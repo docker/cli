@@ -536,6 +536,7 @@ Creates a new container.
       --lxc-conf=[]              (lxc exec-driver only) Add custom lxc options --lxc-conf="lxc.cgroup.cpuset.cpus = 0,1"
       -m, --memory=""            Memory limit (format: <number><optional unit>, where unit = b, k, m or g)
       --name=""                  Assign a name to the container
+      --mac-address=""           Set the container's MAC address
       --net="bridge"             Set the Network mode for the container
                                    'bridge': creates a new network stack for the container on the docker bridge
                                    'none': no networking for this container
@@ -886,6 +887,13 @@ For the most part, you can pick out any field from the JSON in a fairly
 straightforward manner.
 
     $ sudo docker inspect --format='{{.NetworkSettings.IPAddress}}' $INSTANCE_ID
+
+**Get an instance's MAC Address:**
+
+For the most part, you can pick out any field from the JSON in a fairly
+straightforward manner.
+
+    $ sudo docker inspect --format='{{.NetworkSettings.MacAddress}}' $INSTANCE_ID
 
 **List All Port Bindings:**
 
