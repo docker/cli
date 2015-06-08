@@ -1,6 +1,12 @@
-page_title: Dockerfile reference
-page_description: Dockerfiles use a simple DSL which allows you to automate the steps you would normally manually take to create an image.
-page_keywords: builder, docker, Dockerfile, automation, image creation
+<!--[metadata]>
++++
+title = "Dockerfile reference"
+description = "Dockerfiles use a simple DSL which allows you to automate the steps you would normally manually take to create an image."
+keywords = ["builder, docker, Dockerfile, automation,  image creation"]
+[menu.main]
+parent = "mn_reference"
++++
+<![end-metadata]-->
 
 # Dockerfile reference
 

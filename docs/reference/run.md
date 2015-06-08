@@ -1,6 +1,12 @@
-page_title: Docker run reference
-page_description: Configure containers at runtime
-page_keywords: docker, run, configure, runtime
+<!--[metadata]>
++++
+title = "Docker run reference"
+description = "Configure containers at runtime"
+keywords = ["docker, run, configure,  runtime"]
+[menu.main]
+parent = "mn_reference"
++++
+<![end-metadata]-->
 
 <!-- TODO (@thaJeztah) define more flexible table/td classes -->
 <style>

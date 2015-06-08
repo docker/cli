@@ -1,6 +1,13 @@
-page_title: Docker Glossary
-page_description: Glossary of terms used around Docker
-page_keywords: glossary, docker, terms, definitions
+<!--[metadata]>
++++
+title = "Docker Glossary"
+description = "Glossary of terms used around Docker"
+keywords = ["glossary, docker, terms,  definitions"]
+[menu.main]
+parent = "mn_about"
+weight = "50"
++++
+<![end-metadata]-->
 
 # Glossary
 
