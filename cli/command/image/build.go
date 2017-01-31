@@ -290,7 +290,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		Dockerfile:     relDockerfile,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetAll()),
+		BuildArgs:      dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
 		AuthConfigs:    authConfigs,
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,

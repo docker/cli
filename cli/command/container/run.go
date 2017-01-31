@@ -13,6 +13,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/promise"
@@ -96,14 +97,24 @@ func isLocalhost(ip string) bool {
 	return localhostIPRegexp.MatchString(ip)
 }
 
-func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *runOptions, copts *containerOptions) error {
+func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), copts.env.GetAll())
+	newEnv := []string{}
+	for k, v := range proxyConfig {
+		if v == nil {
+			newEnv = append(newEnv, k)
+		} else {
+			newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, *v))
+		}
+	}
+	copts.env = *opts.NewListOptsRef(&newEnv, nil)
 	containerConfig, err := parse(flags, copts)
 	// just in case the parse does not exit
 	if err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	return runContainer(dockerCli, opts, copts, containerConfig)
+	return runContainer(dockerCli, ropts, copts, containerConfig)
 }
 
 // nolint: gocyclo
@@ -159,6 +170,7 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		sigc := ForwardAllSignals(ctx, dockerCli, createResponse.ID)
 		defer signal.StopCatch(sigc)
 	}
+
 	var (
 		waitDisplayID chan struct{}
 		errCh         chan error
