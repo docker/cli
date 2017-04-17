@@ -3,8 +3,8 @@ package container
 import (
 	"fmt"
 
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cli/command"
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/opts"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"

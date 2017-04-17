@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/config/configfile"
-	"github.com/docker/docker/client"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/client"
 )
 
 // FakeCli emulates the default DockerCli

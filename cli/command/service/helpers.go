@@ -3,8 +3,8 @@ package service
 import (
 	"io"
 
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/command/service/progress"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/service/progress"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"golang.org/x/net/context"
 )

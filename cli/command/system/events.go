@@ -11,10 +11,10 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	eventtypes "github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cli/command"
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/docker/docker/pkg/templates"

@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/cli/config/configfile"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )

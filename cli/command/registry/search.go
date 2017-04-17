@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cli/command"
 	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/stringutils"
 	"github.com/docker/docker/registry"

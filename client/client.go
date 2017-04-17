@@ -23,7 +23,7 @@ For example, to list running containers (the equivalent of "docker ps"):
 		"fmt"
 
 		"github.com/docker/docker/api/types"
-		"github.com/docker/docker/client"
+		"github.com/docker/cli/client"
 	)
 
 	func main() {

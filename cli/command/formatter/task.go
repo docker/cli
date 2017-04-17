@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/cli/command"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )

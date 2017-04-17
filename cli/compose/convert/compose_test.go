@@ -3,9 +3,9 @@ package convert
 import (
 	"testing"
 
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	composetypes "github.com/docker/docker/cli/compose/types"
 	"github.com/docker/docker/pkg/testutil/tempfile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

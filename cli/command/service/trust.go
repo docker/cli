@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/trust"
 	"github.com/docker/docker/registry"
 	"github.com/docker/notary/tuf/data"
 	"github.com/opencontainers/go-digest"

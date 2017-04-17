@@ -3,9 +3,9 @@ package volume
 import (
 	"fmt"
 
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
 	volumetypes "github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cli/command"
 	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"

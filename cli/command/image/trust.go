@@ -9,10 +9,10 @@ import (
 	"sort"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/trust"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/docker/notary/client"

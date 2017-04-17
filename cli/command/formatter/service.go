@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/cli/command/inspect"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"

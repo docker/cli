@@ -1,11 +1,11 @@
 package prune
 
 import (
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/command/container"
-	"github.com/docker/docker/cli/command/image"
-	"github.com/docker/docker/cli/command/network"
-	"github.com/docker/docker/cli/command/volume"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/container"
+	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/network"
+	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
 )

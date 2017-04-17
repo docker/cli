@@ -3,8 +3,8 @@ package network
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/docker/docker/cli"
-	"github.com/docker/docker/cli/command"
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
 )
 
 // NewNetworkCommand returns a cobra command for `network` subcommands

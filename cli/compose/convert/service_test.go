@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	composetypes "github.com/docker/docker/cli/compose/types"
 	"github.com/stretchr/testify/assert"
 )
 

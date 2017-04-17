@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/cli/internal/test"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
-	. "github.com/docker/docker/cli/internal/test/builders"
+	. "github.com/docker/cli/cli/internal/test/builders"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 )
