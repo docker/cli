@@ -10,6 +10,57 @@ It's composed of 3 main folders
 * `/client` - the API client, used by `/cli`.
 * `/cmd/docker` - the entrypoint of the cli, aka the main.
 
+Development
+===========
+
+### Build locally
+
+```
+$ make build
+```
+
+```
+$ make clean
+```
+
+You will need [gox](https://github.com/mitchellh/gox) for this one:
+
+```
+$ make cross
+```
+
+If you don't have [gox](https://github.com/mitchellh/gox), you can use the "in-container" version of `make cross`, listed below.
+
+### Build inside container
+
+```
+$ make -f docker.Makefile build
+```
+
+```
+$ make -f docker.Makefile clean
+```
+
+```
+$ make -f docker.Makefile cross
+```
+
+### In-container development environment
+
+```
+$ make -f docker.Makefile dev
+```
+
+Then you can use the [build locally](#build-locally) commands:
+
+```
+$ make build
+```
+
+```
+$ make clean
+```
+
 Legal
 =====
 *Brought to you courtesy of our legal counsel. For more context,
