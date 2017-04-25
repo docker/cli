@@ -28,7 +28,7 @@ func SetupRootCommand(rootCmd *cobra.Command) {
 }
 
 // FlagErrorFunc prints an error message which matches the format of the
-// docker/docker/cli error messages
+// docker/cli/cli error messages
 func FlagErrorFunc(cmd *cobra.Command, err error) error {
 	if err == nil {
 		return nil
