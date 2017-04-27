@@ -6,7 +6,7 @@
 
 # build the CLI
 build: clean
-	@go build -o ./build/docker ./cmd/docker
+	@go build -o ./build/docker github.com/docker/cli/cmd/docker
 
 # remove build artifacts
 clean:
@@ -16,4 +16,4 @@ clean:
 cross: clean
 	@gox -output build/docker-{{.OS}}-{{.Arch}} \
 		 -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
-		 ./cmd/docker
+		 github.com/docker/cli/cmd/docker
