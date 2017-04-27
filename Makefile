@@ -12,6 +12,11 @@ build: clean
 clean:
 	@rm -rf ./build
 
+# run go test
+# the "-tags daemon" part is temporary
+test:
+	@go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
+
 # build the CLI for multiple architectures
 cross: clean
 	@gox -output build/docker-{{.OS}}-{{.Arch}} \
