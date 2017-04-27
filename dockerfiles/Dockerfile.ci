@@ -1,0 +1,29 @@
+#
+# This Dockerfile makes the docker builder run the tests.
+# It means that if this Dockerfile can be built successfully,
+# the tests passed.
+#
+# From the repo root dir: 
+# $ docker build -f dockerfiles/Dockerfile.ci .
+#
+
+FROM    golang:1.8-alpine
+
+RUN     apk add -U git make
+
+RUN     go get github.com/LK4D4/vndr && \
+        cp /go/bin/vndr /usr/bin && \
+        rm -rf /go/src/* /go/pkg/* /go/bin/*
+
+RUN     go get github.com/mitchellh/gox && \
+        cp /go/bin/gox /usr/bin && \
+        rm -rf /go/src/* /go/pkg/* /go/bin/*
+
+COPY    . /go/src/github.com/docker/cli
+
+ENV     CGO_ENABLED=0
+WORKDIR /go/src/github.com/docker/cli
+
+RUN     make cross
+
+CMD     sh
