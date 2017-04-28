@@ -10,7 +10,7 @@ DEV_DOCKER_IMAGE_NAME = docker_cli_dev
 
 # build docker image (dockerfiles/Dockerfile.build)
 build_docker_image:
-	@docker build -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.build . > /dev/null
+	@docker build -q -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.build .
 
 # build executable using a container
 build: build_docker_image
