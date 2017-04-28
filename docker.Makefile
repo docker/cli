@@ -21,6 +21,10 @@ build: build_docker_image
 clean: build_docker_image
 	@docker run --rm -v `pwd`:/go/src/github.com/docker/cli $(DEV_DOCKER_IMAGE_NAME) make clean
 
+# run go test
+test: build_docker_image
+	@docker run --rm -v `pwd`:/go/src/github.com/docker/cli $(DEV_DOCKER_IMAGE_NAME) make test
+
 # build the CLI for multiple architectures using a container
 cross: build_docker_image
 	@docker run --rm -v `pwd`:/go/src/github.com/docker/cli $(DEV_DOCKER_IMAGE_NAME) make cross
