@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -59,11 +58,8 @@ func runPS(dockerCli *command.DockerCli, opts psOptions) error {
 	serviceIDFilter := filters.NewArgs()
 	serviceNameFilter := filters.NewArgs()
 	for _, service := range opts.services {
-		// default to container runtime
 		serviceIDFilter.Add("id", service)
-		serviceIDFilter.Add("runtime", string(swarmtypes.RuntimeContainer))
 		serviceNameFilter.Add("name", service)
-		serviceNameFilter.Add("runtime", string(swarmtypes.RuntimeContainer))
 	}
 	serviceByIDList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
 	if err != nil {
