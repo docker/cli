@@ -54,6 +54,7 @@ func runInfo(dockerCli *command.DockerCli, opts *infoOptions) error {
 	return formatInfo(dockerCli, info, opts.format)
 }
 
+// nolint: gocyclo
 func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 	fmt.Fprintf(dockerCli.Out(), "Containers: %d\n", info.Containers)
 	fmt.Fprintf(dockerCli.Out(), " Running: %d\n", info.ContainersRunning)

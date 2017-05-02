@@ -14,6 +14,7 @@ import (
 
 // holdHijackedConnection handles copying input to and output from streams to the
 // connection
+// nolint: gocyclo
 func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bool, inputStream io.ReadCloser, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {
 	var (
 		err         error

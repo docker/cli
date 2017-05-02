@@ -59,6 +59,7 @@ func stateToProgress(state swarm.TaskState, rollback bool) int64 {
 }
 
 // ServiceProgress outputs progress information for convergence of a service.
+// nolint: gocyclo
 func ServiceProgress(ctx context.Context, client client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
 	defer progressWriter.Close()
 
@@ -240,6 +241,7 @@ type replicatedProgressUpdater struct {
 	done        bool
 }
 
+// nolint: gocyclo
 func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]swarm.Node, rollback bool) (bool, error) {
 	if service.Spec.Mode.Replicated == nil || service.Spec.Mode.Replicated.Replicas == nil {
 		return false, errors.New("no replica count")

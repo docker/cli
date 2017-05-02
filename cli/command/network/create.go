@@ -113,6 +113,7 @@ func runCreate(dockerCli *command.DockerCli, opts createOptions) error {
 // possible to correlate the various related parameters and consolidate them.
 // consolidateIpam consolidates subnets, ip-ranges, gateways and auxiliary addresses into
 // structured ipam data.
+// nolint: gocyclo
 func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]string) ([]network.IPAMConfig, error) {
 	if len(subnets) < len(ranges) || len(subnets) < len(gateways) {
 		return nil, errors.Errorf("every ip-range or gateway must have a corresponding subnet")

@@ -52,6 +52,7 @@ func NewStartCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
+// nolint: gocyclo
 func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 

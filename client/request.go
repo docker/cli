@@ -121,6 +121,7 @@ func (cli *Client) sendRequest(ctx context.Context, method, path string, query u
 	return cli.doRequest(ctx, req)
 }
 
+// nolint: gocyclo
 func (cli *Client) doRequest(ctx context.Context, req *http.Request) (serverResponse, error) {
 	serverResp := serverResponse{statusCode: -1}
 

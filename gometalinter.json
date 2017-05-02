@@ -9,6 +9,9 @@
     "vet",
     "golint",
     "goimports",
-    "deadcode"
-  ]
+    "deadcode",
+    "gocyclo"
+  ],
+
+  "Cyclo": 19
 }

@@ -62,6 +62,7 @@ func NewExecCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
+// nolint: gocyclo
 func runExec(dockerCli *command.DockerCli, opts *execOptions, container string, execCmd []string) error {
 	execConfig, err := parseExec(opts, execCmd)
 	// just in case the ParseExec does not exit
