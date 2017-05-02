@@ -72,7 +72,7 @@ func checkDaemonIsSwarmManager(ctx context.Context, dockerCli *command.DockerCli
 		return err
 	}
 	if !info.Swarm.ControlAvailable {
-		return errors.New("This node is not a swarm manager. Use \"docker swarm init\" or \"docker swarm join\" to connect this node to swarm and try again.")
+		return errors.New("this node is not a swarm manager. Use \"docker swarm init\" or \"docker swarm join\" to connect this node to swarm and try again")
 	}
 	return nil
 }

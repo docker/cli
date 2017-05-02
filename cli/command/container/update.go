@@ -77,7 +77,7 @@ func runUpdate(dockerCli *command.DockerCli, opts *updateOptions) error {
 	var err error
 
 	if opts.nFlag == 0 {
-		return errors.New("You must provide one or more flags when using this command.")
+		return errors.New("you must provide one or more flags when using this command")
 	}
 
 	var restartPolicy containertypes.RestartPolicy

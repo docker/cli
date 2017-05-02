@@ -1,8 +1,8 @@
 {
   "Vendor": true,
-  "Sort": ["linter", "severity"],
+  "Sort": ["linter", "severity", "path"],
   "Exclude": ["cli/compose/schema/bindata.go"],
 
   "DisableAll": true,
-  "Enable": ["gofmt", "vet"]
+  "Enable": ["gofmt", "vet", "golint"]
 }
