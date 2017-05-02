@@ -5,12 +5,13 @@
 
   "DisableAll": true,
   "Enable": [
-    "gofmt",
-    "vet",
-    "golint",
-    "goimports",
     "deadcode",
-    "gocyclo"
+    "gocyclo",
+    "gofmt",
+    "goimports",
+    "golint",
+    "ineffassign",
+    "vet"
   ],
 
   "Cyclo": 19

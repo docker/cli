@@ -92,7 +92,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 		if !client.IsErrServiceNotFound(err) {
 			return err
 		}
-		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
+		task, _, _ := cli.TaskInspectWithRaw(ctx, opts.target)
 		tty = task.Spec.ContainerSpec.TTY
 		// TODO(dperny) hot fix until we get a nice details system squared away,
 		// ignores details (including task context) if we have a TTY log
@@ -112,7 +112,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 			return err
 		}
 		maxLength = getMaxLength(task.Slot)
-		responseBody, err = cli.TaskLogs(ctx, opts.target, options)
+		responseBody, _ = cli.TaskLogs(ctx, opts.target, options)
 	} else {
 		tty = service.Spec.TaskTemplate.ContainerSpec.TTY
 		// TODO(dperny) hot fix until we get a nice details system squared away,

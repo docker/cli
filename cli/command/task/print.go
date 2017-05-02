@@ -59,7 +59,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 			return err
 		}
 
-		name := ""
+		var name string
 		if task.Slot != 0 {
 			name = fmt.Sprintf("%v.%v", serviceName, task.Slot)
 		} else {
