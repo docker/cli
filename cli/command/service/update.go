@@ -219,7 +219,6 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 			*field, _ = flags.GetString(flag)
 		}
 	}
-
 	updateInt64Value := func(flag string, field *int64) {
 		if flags.Changed(flag) {
 			*field = flags.Lookup(flag).Value.(int64Value).Value()
@@ -989,8 +988,8 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	if flags.Changed(flagNetworkAdd) {
-		values := flags.Lookup(flagNetworkAdd).Value.(*opts.ListOpts).GetAll()
-		networks, err := convertNetworks(ctx, apiClient, values)
+		values := flags.Lookup(flagNetworkAdd).Value.(*opts.NetworkOpt)
+		networks, err := verifyNetworks(ctx, apiClient, *values)
 		if err != nil {
 			return err
 		}

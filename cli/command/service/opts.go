@@ -396,17 +396,16 @@ func (c *credentialSpecOpt) Value() *swarm.CredentialSpec {
 	return c.value
 }
 
-func convertNetworks(ctx context.Context, apiClient client.NetworkAPIClient, networks []string) ([]swarm.NetworkAttachmentConfig, error) {
-	nets := []swarm.NetworkAttachmentConfig{}
-	for _, networkIDOrName := range networks {
-		network, err := apiClient.NetworkInspect(ctx, networkIDOrName, false)
+func verifyNetworks(ctx context.Context, apiClient client.NetworkAPIClient, networks opts.NetworkOpt) ([]swarm.NetworkAttachmentConfig, error) {
+	for _, netAttach := range networks.Value() {
+		networkIDOrName := netAttach.Target
+		_, err := apiClient.NetworkInspect(ctx, networkIDOrName, false)
 		if err != nil {
 			return nil, err
 		}
-		nets = append(nets, swarm.NetworkAttachmentConfig{Target: network.ID})
 	}
-	sort.Sort(byNetworkTarget(nets))
-	return nets, nil
+	sort.Sort(byNetworkTarget(networks.Value()))
+	return networks.Value(), nil
 }
 
 type endpointOptions struct {
@@ -539,7 +538,7 @@ type serviceOptions struct {
 	placementPrefs placementPrefOpts
 	update         updateOptions
 	rollback       updateOptions
-	networks       opts.ListOpts
+	networks       opts.NetworkOpt
 	endpoint       endpointOptions
 
 	registryAuth bool
@@ -563,7 +562,6 @@ func newServiceOptions() *serviceOptions {
 		dnsOption:       opts.NewListOpts(nil),
 		dnsSearch:       opts.NewListOpts(opts.ValidateDNSSearch),
 		hosts:           opts.NewListOpts(opts.ValidateExtraHost),
-		networks:        opts.NewListOpts(nil),
 	}
 }
 
@@ -625,7 +623,7 @@ func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.Netw
 		return service, err
 	}
 
-	networks, err := convertNetworks(ctx, apiClient, opts.networks.GetAll())
+	networks, err := verifyNetworks(ctx, apiClient, opts.networks)
 	if err != nil {
 		return service, err
 	}
