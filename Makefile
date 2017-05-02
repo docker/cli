@@ -2,7 +2,7 @@
 # github.com/docker/cli 
 #
 
-.PHONY: build clean cross
+.PHONY: build clean cross test lint
 
 # build the CLI
 build: clean
@@ -16,6 +16,9 @@ clean:
 # the "-tags daemon" part is temporary
 test:
 	@go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
+
+lint:
+	@gometalinter --config gometalinter.json ./...
 
 # build the CLI for multiple architectures
 cross: clean

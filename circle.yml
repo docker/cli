@@ -7,4 +7,11 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -f dockerfiles/Dockerfile.ci .
+      - run: 
+          name: "Lint"          
+          command: |
+            docker build -f dockerfiles/Dockerfile.lint --tag cli-linter .
+            docker run cli-linter
+      - run:
+          name: "Build and Unit Test"
+          command: docker build -f dockerfiles/Dockerfile.ci .
