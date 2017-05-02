@@ -4,5 +4,11 @@
   "Exclude": ["cli/compose/schema/bindata.go"],
 
   "DisableAll": true,
-  "Enable": ["gofmt", "vet", "golint", "goimports"]
+  "Enable": [
+    "gofmt",
+    "vet",
+    "golint",
+    "goimports",
+    "deadcode"
+  ]
 }

@@ -7,8 +7,6 @@ import (
 	eventtypes "github.com/docker/docker/api/types/events"
 )
 
-type eventProcessor func(eventtypes.Message, error) error
-
 // EventHandler is abstract interface for user to customize
 // own handle functions of each type of events
 type EventHandler interface {

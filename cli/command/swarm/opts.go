@@ -26,7 +26,6 @@ const (
 	flagExternalCA          = "external-ca"
 	flagMaxSnapshots        = "max-snapshots"
 	flagSnapshotInterval    = "snapshot-interval"
-	flagLockKey             = "lock-key"
 	flagAutolock            = "autolock"
 	flagAvailability        = "availability"
 )
