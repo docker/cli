@@ -25,3 +25,13 @@ cross: clean
 	@gox -output build/docker-{{.OS}}-{{.Arch}} \
 		 -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
 		 github.com/docker/cli/cmd/docker
+
+vendor: vendor.conf
+	@vndr 2> /dev/null
+	@if [ "`git status --porcelain -- vendor 2>/dev/nul`" ]; then \
+		echo; echo "vendoring is wrong. These files were changed:"; \
+		echo; git status --porcelain -- vendor 2>/dev/nul; \
+		echo; exit 1; \
+	fi;
+
+ci: cross test
