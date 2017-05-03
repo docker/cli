@@ -4,7 +4,7 @@
 # Makefile for developing using Docker
 #
 
-+.PHONY: build_docker_image build clean cross dev
++.PHONY: build_docker_image build_linter_image build clean test cross dev lint
 
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
@@ -37,7 +37,8 @@ cross: build_docker_image
 
 # start container in interactive mode for in-container development
 dev: build_docker_image
-	@docker run -ti $(MOUNTS)  $(DEV_DOCKER_IMAGE_NAME) ash
+	@docker run -ti $(MOUNTS) -v /var/run/docker.sock:/var/run/docker.sock $(DEV_DOCKER_IMAGE_NAME) ash
 
+# run linters in a container
 lint: build_linter_image
 	@docker run -ti $(MOUNTS) $(LINTER_IMAGE_NAME)
