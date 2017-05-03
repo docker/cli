@@ -13,6 +13,8 @@ import (
 
 	"archive/tar"
 	"bytes"
+	"time"
+
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/gitutils"
@@ -22,7 +24,6 @@ import (
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
-	"time"
 )
 
 const (
