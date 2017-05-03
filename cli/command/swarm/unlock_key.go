@@ -80,7 +80,10 @@ func runUnlockKey(dockerCli command.Cli, opts unlockKeyOptions) error {
 
 func printUnlockCommand(ctx context.Context, dockerCli command.Cli, unlockKey string) {
 	if len(unlockKey) > 0 {
-		fmt.Fprintf(dockerCli.Out(), "To unlock a swarm manager after it restarts, run the `docker swarm unlock`\ncommand and provide the following key:\n\n    %s\n\nPlease remember to store this key in a password manager, since without it you\nwill not be able to restart the manager.\n", unlockKey)
+		fmt.Fprintf(dockerCli.Out(), "To unlock a swarm manager after it restarts, "+
+			"run the `docker swarm unlock`\ncommand and provide the following key:\n\n    %s\n\n"+
+			"Please remember to store this key in a password manager, since without it you\n"+
+			"will not be able to restart the manager.\n", unlockKey)
 	}
 	return
 }
