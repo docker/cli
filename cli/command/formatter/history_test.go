@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bytes"
+
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/pkg/stringutils"

@@ -16,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
-	"github.com/docker/go-connections/nat"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -98,6 +97,7 @@ func newListOptsVar() *opts.ListOpts {
 	return opts.NewListOptsRef(&[]string{}, nil)
 }
 
+// nolint: gocyclo
 func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
 	ctx := context.Background()
@@ -212,6 +212,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 	return waitOnService(ctx, dockerCli, serviceID, opts)
 }
 
+// nolint: gocyclo
 func updateService(ctx context.Context, apiClient client.APIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
 	updateString := func(flag string, field *string) {
 		if flags.Changed(flag) {
@@ -585,10 +586,6 @@ func envKey(value string) string {
 	return kv[0]
 }
 
-func itemKey(value string) string {
-	return value
-}
-
 func buildToRemoveSet(flags *pflag.FlagSet, flag string) map[string]struct{} {
 	var empty struct{}
 	toRemove := make(map[string]struct{})
@@ -824,11 +821,6 @@ func equalPublishMode(mode1, mode2 swarm.PortConfigPublishMode) bool {
 	return mode1 == mode2 ||
 		(mode1 == swarm.PortConfigPublishMode("") && mode2 == swarm.PortConfigPublishModeIngress) ||
 		(mode2 == swarm.PortConfigPublishMode("") && mode1 == swarm.PortConfigPublishModeIngress)
-}
-
-func equalPort(targetPort nat.Port, port swarm.PortConfig) bool {
-	return (string(port.Protocol) == targetPort.Proto() &&
-		port.TargetPort == uint32(targetPort.Int()))
 }
 
 func updateReplicas(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error {

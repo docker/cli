@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/pkg/homedir"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmptyConfigDir(t *testing.T) {
@@ -543,6 +544,7 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 		"psFormat": "table {{.ID}}\\t{{.Label \"com.docker.label.cpu\"}}"
 }`
 	config, err := LoadFromReader(strings.NewReader(js))
+	require.NoError(t, err)
 	err = config.Save()
 	if err == nil {
 		t.Fatalf("Expected error. File should not have been able to save with no file name.")
@@ -583,6 +585,7 @@ func TestLegacyJSONSaveWithNoFile(t *testing.T) {
 
 	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
 	config, err := LegacyLoadFromReader(strings.NewReader(js))
+	require.NoError(t, err)
 	err = config.Save()
 	if err == nil {
 		t.Fatalf("Expected error. File should not have been able to save with no file name.")

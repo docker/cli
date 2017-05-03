@@ -119,5 +119,5 @@ func runPS(dockerCli *command.DockerCli, opts psOptions) error {
 		}
 	}
 
-	return task.Print(dockerCli, ctx, tasks, idresolver.New(client, opts.noResolve), !opts.noTrunc, opts.quiet, format)
+	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, opts.noResolve), !opts.noTrunc, opts.quiet, format)
 }

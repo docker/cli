@@ -93,6 +93,7 @@ func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *runOptions
 	return runContainer(dockerCli, opts, copts, containerConfig)
 }
 
+// nolint: gocyclo
 func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) error {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig

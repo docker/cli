@@ -52,6 +52,7 @@ func NewStartCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
+// nolint: gocyclo
 func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 
@@ -59,7 +60,7 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 		// We're going to attach to a container.
 		// 1. Ensure we only have one container.
 		if len(opts.containers) > 1 {
-			return errors.New("You cannot start and attach multiple containers at once.")
+			return errors.New("you cannot start and attach multiple containers at once")
 		}
 
 		// 2. Attach to the container.
@@ -143,7 +144,7 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 		}
 	} else if opts.checkpoint != "" {
 		if len(opts.containers) > 1 {
-			return errors.New("You cannot restore multiple containers at once.")
+			return errors.New("you cannot restore multiple containers at once")
 		}
 		container := opts.containers[0]
 		startOptions := types.ContainerStartOptions{

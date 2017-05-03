@@ -38,7 +38,7 @@ func NewSaveCommand(dockerCli *command.DockerCli) *cobra.Command {
 
 func runSave(dockerCli *command.DockerCli, opts saveOptions) error {
 	if opts.output == "" && dockerCli.Out().IsTerminal() {
-		return errors.New("Cowardly refusing to save to a terminal. Use the -o flag or redirect.")
+		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
 	}
 
 	responseBody, err := dockerCli.Client().ImageSave(context.Background(), opts.images)

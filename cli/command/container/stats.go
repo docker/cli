@@ -48,6 +48,7 @@ func NewStatsCommand(dockerCli *command.DockerCli) *cobra.Command {
 
 // runStats displays a live stream of resource usage statistics for one or more containers.
 // This shows real-time information on CPU usage, memory usage, and network I/O.
+// nolint: gocyclo
 func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 	showAll := len(opts.containers) == 0
 	closeChan := make(chan error)

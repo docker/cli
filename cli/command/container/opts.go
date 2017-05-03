@@ -298,6 +298,7 @@ type containerConfig struct {
 // parse parses the args for the specified command and generates a Config,
 // a HostConfig and returns them with the specified command.
 // If the specified args are not valid, it will return an error.
+// nolint: gocyclo
 func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, error) {
 	var (
 		attachStdin  = copts.attach.Get("stdin")

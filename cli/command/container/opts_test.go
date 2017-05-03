@@ -86,6 +86,7 @@ func TestParseRunLinks(t *testing.T) {
 	}
 }
 
+// nolint: gocyclo
 func TestParseRunAttach(t *testing.T) {
 	if config, _ := mustParse(t, "-a stdin"); !config.AttachStdin || config.AttachStdout || config.AttachStderr {
 		t.Fatalf("Error parsing attach flags. Expect only Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
@@ -129,6 +130,7 @@ func TestParseRunAttach(t *testing.T) {
 	}
 }
 
+// nolint: gocyclo
 func TestParseRunVolumes(t *testing.T) {
 
 	// A single volume
@@ -614,6 +616,7 @@ func TestParseEntryPoint(t *testing.T) {
 
 // This tests the cases for binds which are generated through
 // DecodeContainerConfig rather than Parse()
+// nolint: gocyclo
 func TestDecodeContainerConfigVolumes(t *testing.T) {
 
 	// Root to root

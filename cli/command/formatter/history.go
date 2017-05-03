@@ -99,13 +99,10 @@ func (c *historyContext) CreatedBy() string {
 }
 
 func (c *historyContext) Size() string {
-	size := ""
 	if c.human {
-		size = units.HumanSizeWithPrecision(float64(c.h.Size), 3)
-	} else {
-		size = strconv.FormatInt(c.h.Size, 10)
+		return units.HumanSizeWithPrecision(float64(c.h.Size), 3)
 	}
-	return size
+	return strconv.FormatInt(c.h.Size, 10)
 }
 
 func (c *historyContext) Comment() string {

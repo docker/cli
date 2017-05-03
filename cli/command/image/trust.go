@@ -41,6 +41,7 @@ func trustedPush(ctx context.Context, cli *command.DockerCli, repoInfo *registry
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
+// nolint: gocyclo
 func PushTrustedReference(cli *command.DockerCli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.

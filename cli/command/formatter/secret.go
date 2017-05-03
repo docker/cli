@@ -12,7 +12,6 @@ import (
 const (
 	defaultSecretTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
 	secretIDHeader           = "ID"
-	secretNameHeader         = "NAME"
 	secretCreatedHeader      = "CREATED"
 	secretUpdatedHeader      = "UPDATED"
 )
