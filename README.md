@@ -1,3 +1,5 @@
+[![build status](https://circleci.com/gh/docker/cli.svg?style=shield)](https://circleci.com/gh/docker/cli/tree/master)
+
 docker/cli
 ==========
 
