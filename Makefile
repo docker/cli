@@ -2,7 +2,7 @@
 # github.com/docker/cli 
 #
 
-.PHONY: build clean cross test lint
+.PHONY: build clean test lint cross
 
 # build the CLI
 build: clean
@@ -17,6 +17,7 @@ clean:
 test:
 	@go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
 
+# run linters
 lint:
 	@gometalinter --config gometalinter.json ./...
 
