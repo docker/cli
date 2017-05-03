@@ -12,7 +12,7 @@ import (
 )
 
 // NewLogoutCommand creates a new `docker logout` command
-func NewLogoutCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logout [SERVER]",
 		Short: "Log out from a Docker registry",
@@ -30,7 +30,7 @@ func NewLogoutCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(dockerCli *command.DockerCli, serverAddress string) error {
+func runLogout(dockerCli command.Cli, serverAddress string) error {
 	ctx := context.Background()
 	var isDefaultRegistry bool
 

@@ -14,7 +14,7 @@ type listOptions struct {
 	checkpointDir string
 }
 
-func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	var opts listOptions
 
 	cmd := &cobra.Command{
@@ -34,7 +34,7 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 
 }
 
-func runList(dockerCli *command.DockerCli, container string, opts listOptions) error {
+func runList(dockerCli command.Cli, container string, opts listOptions) error {
 	client := dockerCli.Client()
 
 	listOpts := types.CheckpointListOptions{

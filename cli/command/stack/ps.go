@@ -24,7 +24,7 @@ type psOptions struct {
 	format    string
 }
 
-func newPsCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	opts := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -46,7 +46,7 @@ func newPsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runPS(dockerCli *command.DockerCli, opts psOptions) error {
+func runPS(dockerCli command.Cli, opts psOptions) error {
 	namespace := opts.namespace
 	client := dockerCli.Client()
 	ctx := context.Background()

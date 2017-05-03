@@ -24,7 +24,7 @@ type deployOptions struct {
 	prune            bool
 }
 
-func newDeployCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	var opts deployOptions
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func newDeployCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runDeploy(dockerCli *command.DockerCli, opts deployOptions) error {
+func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 	ctx := context.Background()
 
 	switch {
@@ -66,7 +66,7 @@ func runDeploy(dockerCli *command.DockerCli, opts deployOptions) error {
 // a swarm manager. This is necessary because we must create networks before we
 // create services, but the API call for creating a network does not return a
 // proper status code when it can't create a network in the "global" scope.
-func checkDaemonIsSwarmManager(ctx context.Context, dockerCli *command.DockerCli) error {
+func checkDaemonIsSwarmManager(ctx context.Context, dockerCli command.Cli) error {
 	info, err := dockerCli.Client().Info(ctx)
 	if err != nil {
 		return err

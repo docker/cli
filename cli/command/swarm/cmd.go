@@ -8,12 +8,13 @@ import (
 )
 
 // NewSwarmCommand returns a cobra command for `swarm` subcommands
-func NewSwarmCommand(dockerCli *command.DockerCli) *cobra.Command {
+// nolint: interfacer
+func NewSwarmCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "swarm",
 		Short: "Manage Swarm",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 		Tags:  map[string]string{"version": "1.24"},
 	}
 	cmd.AddCommand(

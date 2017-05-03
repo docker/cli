@@ -593,7 +593,7 @@ func (opts *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Durati
 	return nil
 }
 
-func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.APIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
+func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
 	var service swarm.ServiceSpec
 
 	envVariables, err := runconfigopts.ReadKVStrings(opts.envFile.GetAll(), opts.env.GetAll())

@@ -20,7 +20,7 @@ type loginOptions struct {
 }
 
 // NewLoginCommand creates a new `docker login` command
-func NewLoginCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	var opts loginOptions
 
 	cmd := &cobra.Command{
@@ -48,7 +48,7 @@ func NewLoginCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runLogin(dockerCli *command.DockerCli, opts loginOptions) error {
+func runLogin(dockerCli command.Cli, opts loginOptions) error {
 	ctx := context.Background()
 	clnt := dockerCli.Client()
 

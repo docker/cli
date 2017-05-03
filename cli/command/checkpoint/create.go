@@ -18,7 +18,7 @@ type createOptions struct {
 	leaveRunning  bool
 }
 
-func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	var opts createOptions
 
 	cmd := &cobra.Command{
@@ -39,7 +39,7 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli *command.DockerCli, opts createOptions) error {
+func runCreate(dockerCli command.Cli, opts createOptions) error {
 	client := dockerCli.Client()
 
 	checkpointOpts := types.CheckpointCreateOptions{

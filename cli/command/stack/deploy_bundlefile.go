@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 )
 
-func deployBundle(ctx context.Context, dockerCli *command.DockerCli, opts deployOptions) error {
+func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
 	bundle, err := loadBundlefile(dockerCli.Err(), opts.namespace, opts.bundlefile)
 	if err != nil {
 		return err

@@ -220,7 +220,7 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 
 func attachContainer(
 	ctx context.Context,
-	dockerCli *command.DockerCli,
+	dockerCli command.Cli,
 	errCh *chan error,
 	config *container.Config,
 	containerID string,

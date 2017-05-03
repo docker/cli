@@ -8,12 +8,13 @@ import (
 )
 
 // NewImageCommand returns a cobra command for `image` subcommands
+// nolint: interfacer
 func NewImageCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "image",
 		Short: "Manage images",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
 	cmd.AddCommand(
 		NewBuildCommand(dockerCli),

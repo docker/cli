@@ -18,7 +18,7 @@ type pruneOptions struct {
 }
 
 // NewPruneCommand creates a new cobra.Command for `docker prune`
-func NewPruneCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	opts := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -51,7 +51,7 @@ Are you sure you want to continue?`
 	allImageDesc      = `- all images without at least one container associated to them`
 )
 
-func runPrune(dockerCli *command.DockerCli, options pruneOptions) error {
+func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	var message string
 
 	if options.all {
@@ -66,7 +66,7 @@ func runPrune(dockerCli *command.DockerCli, options pruneOptions) error {
 
 	var spaceReclaimed uint64
 
-	for _, pruneFn := range []func(dockerCli *command.DockerCli, filter opts.FilterOpt) (uint64, string, error){
+	for _, pruneFn := range []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
 		prune.RunContainerPrune,
 		prune.RunVolumePrune,
 		prune.RunNetworkPrune,

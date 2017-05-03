@@ -86,10 +86,12 @@ func (cli *DockerCli) In() *InStream {
 }
 
 // ShowHelp shows the command help.
-func (cli *DockerCli) ShowHelp(cmd *cobra.Command, args []string) error {
-	cmd.SetOutput(cli.err)
-	cmd.HelpFunc()(cmd, args)
-	return nil
+func ShowHelp(err io.Writer) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		cmd.SetOutput(err)
+		cmd.HelpFunc()(cmd, args)
+		return nil
+	}
 }
 
 // ConfigFile returns the ConfigFile

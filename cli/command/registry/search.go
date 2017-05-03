@@ -30,7 +30,7 @@ type searchOptions struct {
 }
 
 // NewSearchCommand creates a new `docker search` command
-func NewSearchCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 	opts := searchOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewSearchCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runSearch(dockerCli *command.DockerCli, opts searchOptions) error {
+func runSearch(dockerCli command.Cli, opts searchOptions) error {
 	indexInfo, err := registry.ParseSearchIndexInfo(opts.term)
 	if err != nil {
 		return err

@@ -37,7 +37,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 				showVersion()
 				return nil
 			}
-			return dockerCli.ShowHelp(cmd, args)
+			return command.ShowHelp(dockerCli.Err())(cmd, args)
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// daemon command is special, we redirect directly to another binary
