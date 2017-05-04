@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
@@ -96,7 +97,7 @@ func TestSwarmUnlock(t *testing.T) {
 			return nil
 		},
 	}, buf)
-	dockerCli.SetIn(ioutil.NopCloser(strings.NewReader(input)))
+	dockerCli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
 	assert.NoError(t, cmd.Execute())
 }
