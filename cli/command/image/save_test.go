@@ -32,7 +32,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			name:          "output to terminal",
 			args:          []string{"output", "file", "arg1"},
 			isTerminal:    true,
-			expectedError: "Cowardly refusing to save to a terminal. Use the -o flag or redirect.",
+			expectedError: "cowardly refusing to save to a terminal. Use the -o flag or redirect",
 		},
 		{
 			name:          "ImageSave fail",
