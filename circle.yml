@@ -1,27 +1,41 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/cli
+    working_directory: /work
     docker:
       - image: docker:17.05
+    parallelism: 4
     steps:
       - run:
           name: "Install Git and SSH"
-          command: |
-            apk add -U git openssh
+          command: apk add -U git openssh
       - checkout
       - setup_remote_docker
       - run:
           name: "Lint"
           command: |
+            if [ "$CIRCLE_NODE_INDEX" != "0" ]; then exit; fi
             docker build -f dockerfiles/Dockerfile.lint --tag cli-linter .
             docker run cli-linter
       - run:
-          name: "Build and Unit Test"
+          name: "Cross"
           command: |
+            if [ "$CIRCLE_NODE_INDEX" != "1" ]; then exit; fi
             docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
-            docker run cli-builder
+            docker run --name cross cli-builder make cross
+            docker cp cross:/go/src/github.com/docker/cli/build /work/build
+      - run:
+          name: "Unit Test"
+          command: |
+            if [ "$CIRCLE_NODE_INDEX" != "2" ]; then exit; fi
+            docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
+            docker run cli-builder make test
       - run:
           name: "Vendor"
           command: |
+            if [ "$CIRCLE_NODE_INDEX" != "3" ]; then exit; fi
+            docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
             docker run cli-builder make vendor
+
+      - store_artifacts:
+          path: /work/build
