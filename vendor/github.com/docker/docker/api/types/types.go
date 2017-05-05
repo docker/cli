@@ -238,6 +238,8 @@ type PluginsInfo struct {
 	Network []string
 	// List of Authorization plugins registered
 	Authorization []string
+	// List of Log plugins registered
+	Log []string
 }
 
 // ExecStartCheck is a temp struct used by execStart
@@ -527,4 +529,9 @@ type PushResult struct {
 	Tag    string
 	Digest string
 	Size   int
+}
+
+// BuildResult contains the image id of a successful build
+type BuildResult struct {
+	ID string
 }
