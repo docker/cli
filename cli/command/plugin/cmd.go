@@ -19,6 +19,8 @@ func NewPluginCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd.AddCommand(
 		newDisableCommand(dockerCli),
 		newEnableCommand(dockerCli),
+		newSaveCommand(dockerCli),
+		newLoadCommand(dockerCli),
 		newInspectCommand(dockerCli),
 		newInstallCommand(dockerCli),
 		newListCommand(dockerCli),
