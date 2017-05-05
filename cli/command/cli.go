@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	cliconfig "github.com/docker/cli/cli/config"
@@ -51,7 +50,6 @@ type DockerCli struct {
 	in             *InStream
 	out            *OutStream
 	err            io.Writer
-	keyFile        string
 	client         client.APIClient
 	defaultVersion string
 	server         ServerInfo
@@ -186,12 +184,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	}
 
 	cli.defaultVersion = cli.client.ClientVersion()
-
-	if opts.Common.TrustKey == "" {
-		cli.keyFile = filepath.Join(cliconfig.Dir(), cliflags.DefaultTrustKeyFile)
-	} else {
-		cli.keyFile = opts.Common.TrustKey
-	}
 
 	if ping, err := cli.client.Ping(context.Background()); err == nil {
 		cli.server = ServerInfo{
