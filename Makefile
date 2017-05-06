@@ -2,6 +2,8 @@
 # github.com/docker/cli 
 #
 
+CROSS_OSARCH:=linux/arm linux/amd64 linux/ppc64le darwin/amd64 windows/amd64
+
 .PHONY: build clean test lint cross
 
 # build the CLI
@@ -24,7 +26,7 @@ lint:
 # build the CLI for multiple architectures
 cross: clean
 	@gox -output build/docker-{{.OS}}-{{.Arch}} \
-		 -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
+		 -osarch="$(CROSS_OSARCH)" \
 		 github.com/docker/cli/cmd/docker
 
 vendor: vendor.conf
