@@ -35,7 +35,7 @@ jobs:
           command: |
             if [ "$CIRCLE_NODE_INDEX" != "3" ]; then exit; fi
             docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
-            docker run cli-builder make vendor
+            docker run cli-builder make -B vendor
 
       - store_artifacts:
           path: /work/build
