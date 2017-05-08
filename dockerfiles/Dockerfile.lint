@@ -9,4 +9,4 @@ RUN     go get -u gopkg.in/alecthomas/gometalinter.v1 && \
 WORKDIR /go/src/github.com/docker/cli
 COPY . .
 ENTRYPOINT ["/usr/local/bin/gometalinter"]
-CMD ["--config=gometalinter.json", "./..."]
+CMD ["--config=gometalinter.json", "./...", "--deadline=120s"]
