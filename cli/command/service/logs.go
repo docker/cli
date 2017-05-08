@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -29,15 +30,12 @@ type logsOptions struct {
 	since      string
 	timestamps bool
 	tail       string
+	details    bool
+	raw        bool
 
 	target string
 }
 
-// TODO(dperny) the whole CLI for this is kind of a mess IMHOIRL and it needs
-// to be refactored agressively. There may be changes to the implementation of
-// details, which will be need to be reflected in this code. The refactoring
-// should be put off until we make those changes, tho, because I think the
-// decisions made WRT details will impact the design of the CLI.
 func newLogsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	var opts logsOptions
 
@@ -56,11 +54,15 @@ func newLogsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	// options specific to service logs
 	flags.BoolVar(&opts.noResolve, "no-resolve", false, "Do not map IDs to Names in output")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
+	flags.BoolVar(&opts.raw, "raw", false, "Do not neatly format logs")
+	flags.SetAnnotation("raw", "version", []string{"1.30"})
 	flags.BoolVar(&opts.noTaskIDs, "no-task-ids", false, "Do not include task IDs in output")
 	// options identical to container logs
 	flags.BoolVarP(&opts.follow, "follow", "f", false, "Follow log output")
 	flags.StringVar(&opts.since, "since", "", "Show logs since timestamp (e.g. 2013-01-02T13:23:37) or relative (e.g. 42m for 42 minutes)")
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
+	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
+	flags.SetAnnotation("details", "version", []string{"1.30"})
 	flags.StringVar(&opts.tail, "tail", "all", "Number of lines to show from the end of the logs")
 	return cmd
 }
@@ -75,7 +77,9 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 		Timestamps: opts.timestamps,
 		Follow:     opts.follow,
 		Tail:       opts.tail,
-		Details:    true,
+		// get the details if we request it OR if we're not doing raw mode
+		// (we need them for the context to pretty print)
+		Details: opts.details || !opts.raw,
 	}
 
 	cli := dockerCli.Client()
@@ -84,6 +88,9 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 		maxLength    = 1
 		responseBody io.ReadCloser
 		tty          bool
+		// logfunc is used to delay the call to logs so that we can do some
+		// processing before we actually get the logs
+		logfunc func(context.Context, string, types.ContainerLogsOptions) (io.ReadCloser, error)
 	)
 
 	service, _, err := cli.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
@@ -97,56 +104,60 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 			if client.IsErrTaskNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
-				err = fmt.Errorf("no such task or service")
+				err = fmt.Errorf("no such task or service: %v", opts.target)
 			}
 			return err
 		}
+
 		tty = task.Spec.ContainerSpec.TTY
-		// TODO(dperny) hot fix until we get a nice details system squared away,
-		// ignores details (including task context) if we have a TTY log
-		// if we don't do this, we'll vomit the huge context verbatim into the
-		// TTY log lines and that's Undesirable.
-		if tty {
-			options.Details = false
-		}
-
-		responseBody, err = cli.TaskLogs(ctx, opts.target, options)
-		if err != nil {
-			return err
-		}
-
 		maxLength = getMaxLength(task.Slot)
-	} else {
-		tty = service.Spec.TaskTemplate.ContainerSpec.TTY
-		// TODO(dperny) hot fix until we get a nice details system squared away,
-		// ignores details (including task context) if we have a TTY log
-		if tty {
-			options.Details = false
-		}
 
-		responseBody, err = cli.ServiceLogs(ctx, opts.target, options)
-		if err != nil {
-			return err
-		}
+		// use the TaskLogs api function
+		logfunc = cli.TaskLogs
+	} else {
+		// use ServiceLogs api function
+		logfunc = cli.ServiceLogs
+		tty = service.Spec.TaskTemplate.ContainerSpec.TTY
 		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
 			// if replicas are initialized, figure out if we need to pad them
 			replicas := *service.Spec.Mode.Replicated.Replicas
 			maxLength = getMaxLength(int(replicas))
 		}
 	}
+
+	// we can't prettify tty logs. tell the user that this is the case.
+	// this is why we assign the logs function to a variable and delay calling
+	// it. we want to check this before we make the call and checking twice in
+	// each branch is even sloppier than this CLI disaster already is
+	if tty && !opts.raw {
+		return errors.New("tty service logs only supported with --raw")
+	}
+
+	// now get the logs
+	responseBody, err = logfunc(ctx, opts.target, options)
+	if err != nil {
+		return err
+	}
 	defer responseBody.Close()
 
+	// tty logs get straight copied. they're not muxed with stdcopy
 	if tty {
 		_, err = io.Copy(dockerCli.Out(), responseBody)
 		return err
 	}
 
-	taskFormatter := newTaskFormatter(cli, opts, maxLength)
+	// otherwise, logs are multiplexed. if we're doing pretty printing, also
+	// create a task formatter.
+	var stdout, stderr io.Writer
+	stdout = dockerCli.Out()
+	stderr = dockerCli.Err()
+	if !opts.raw {
+		taskFormatter := newTaskFormatter(cli, opts, maxLength)
 
-	stdout := &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: dockerCli.Out()}
-	stderr := &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: dockerCli.Err()}
+		stdout = &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: stdout}
+		stderr = &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: stderr}
+	}
 
-	// TODO(aluzzardi): Do an io.Copy for services with TTY enabled.
 	_, err = stdcopy.StdCopy(stdout, stderr, responseBody)
 	return err
 }
@@ -161,7 +172,9 @@ type taskFormatter struct {
 	opts    *logsOptions
 	padding int
 
-	r     *idresolver.IDResolver
+	r *idresolver.IDResolver
+	// cache saves a pre-cooked logContext formatted string based on a
+	// logcontext object, so we don't have to resolve names every time
 	cache map[logContext]string
 }
 
@@ -222,40 +235,78 @@ type logWriter struct {
 }
 
 func (lw *logWriter) Write(buf []byte) (int, error) {
-	contextIndex := 0
+	// this works but ONLY because stdcopy calls write a whole line at a time.
+	// if this ends up horribly broken or panics, check to see if stdcopy has
+	// reneged on that asssumption. (@god forgive me)
+	// also this only works because the logs format is, like, barely parsable.
+	// if something changes in the logs format, this is gonna break
+
+	// there should always be at least 2 parts: details and message. if there
+	// is no timestamp, details will be first (index 0) when we split on
+	// spaces. if there is a timestamp, details will be 2nd (`index 1)
+	detailsIndex := 0
 	numParts := 2
 	if lw.opts.timestamps {
-		contextIndex++
+		detailsIndex++
 		numParts++
 	}
 
+	// break up the log line into parts.
 	parts := bytes.SplitN(buf, []byte(" "), numParts)
 	if len(parts) != numParts {
 		return 0, errors.Errorf("invalid context in log message: %v", string(buf))
 	}
-
-	logCtx, err := lw.parseContext(string(parts[contextIndex]))
+	// parse the details out
+	details, err := client.ParseLogDetails(string(parts[detailsIndex]))
+	if err != nil {
+		return 0, err
+	}
+	// and then create a context from the details
+	// this removes the context-specific details from the details map, so we
+	// can more easily print the details later
+	logCtx, err := lw.parseContext(details)
 	if err != nil {
 		return 0, err
 	}
 
 	output := []byte{}
-	for i, part := range parts {
-		// First part doesn't get space separation.
-		if i > 0 {
-			output = append(output, []byte(" ")...)
-		}
-
-		if i == contextIndex {
-			formatted, err := lw.f.format(lw.ctx, logCtx)
-			if err != nil {
-				return 0, err
-			}
-			output = append(output, []byte(fmt.Sprintf("%s    |", formatted))...)
-		} else {
-			output = append(output, part...)
-		}
+	// if we included timestamps, add them to the front
+	if lw.opts.timestamps {
+		output = append(output, parts[0]...)
+		output = append(output, ' ')
 	}
+	// add the context, nice and formatted
+	formatted, err := lw.f.format(lw.ctx, logCtx)
+	if err != nil {
+		return 0, err
+	}
+	output = append(output, []byte(formatted+"    | ")...)
+	// if the user asked for details, add them to be log message
+	if lw.opts.details {
+		// ugh i hate this it's basically a dupe of api/server/httputils/write_log_stream.go:stringAttrs()
+		// ok but we're gonna do it a bit different
+
+		// there are optimizations that can be made here. for starters, i'd
+		// suggest caching the details keys. then, we can maybe draw maps and
+		// slices from a pool to avoid alloc overhead on them. idk if it's
+		// worth the time yet.
+
+		// first we need a slice
+		d := make([]string, 0, len(details))
+		// then let's add all the pairs
+		for k := range details {
+			d = append(d, k+"="+details[k])
+		}
+		// then sort em
+		sort.Strings(d)
+		// then join and append
+		output = append(output, []byte(strings.Join(d, ","))...)
+		output = append(output, ' ')
+	}
+
+	// add the log message itself, finally
+	output = append(output, parts[detailsIndex+1]...)
+
 	_, err = lw.w.Write(output)
 	if err != nil {
 		return 0, err
@@ -264,32 +315,25 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
-func (lw *logWriter) parseContext(input string) (logContext, error) {
-	context := make(map[string]string)
-
-	components := strings.Split(input, ",")
-	for _, component := range components {
-		parts := strings.SplitN(component, "=", 2)
-		if len(parts) != 2 {
-			return logContext{}, errors.Errorf("invalid context: %s", input)
-		}
-		context[parts[0]] = parts[1]
-	}
-
-	nodeID, ok := context["com.docker.swarm.node.id"]
+// parseContext returns a log context and REMOVES the context from the details map
+func (lw *logWriter) parseContext(details map[string]string) (logContext, error) {
+	nodeID, ok := details["com.docker.swarm.node.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing node id in context: %s", input)
+		return logContext{}, errors.Errorf("missing node id in details: %v", details)
 	}
+	delete(details, "com.docker.swarm.node.id")
 
-	serviceID, ok := context["com.docker.swarm.service.id"]
+	serviceID, ok := details["com.docker.swarm.service.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing service id in context: %s", input)
+		return logContext{}, errors.Errorf("missing service id in details: %v", details)
 	}
+	delete(details, "com.docker.swarm.service.id")
 
-	taskID, ok := context["com.docker.swarm.task.id"]
+	taskID, ok := details["com.docker.swarm.task.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing task id in context: %s", input)
+		return logContext{}, errors.Errorf("missing task id in details: %s", details)
 	}
+	delete(details, "com.docker.swarm.task.id")
 
 	return logContext{
 		nodeID:    nodeID,
