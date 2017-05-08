@@ -1,10 +1,10 @@
 package volume
 
 import (
-	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	volumetypes "github.com/docker/docker/api/types/volume"
+	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 
