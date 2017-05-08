@@ -68,6 +68,12 @@ func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.SetAnnotation(flagSecretRemove, "version", []string{"1.25"})
 	flags.Var(&serviceOpts.secrets, flagSecretAdd, "Add or update a secret on a service")
 	flags.SetAnnotation(flagSecretAdd, "version", []string{"1.25"})
+
+	flags.Var(newListOptsVar(), flagConfigRemove, "Remove a configuration file")
+	flags.SetAnnotation(flagConfigRemove, "version", []string{"1.30"})
+	flags.Var(&serviceOpts.configs, flagConfigAdd, "Add or update a config file on a service")
+	flags.SetAnnotation(flagConfigAdd, "version", []string{"1.30"})
+
 	flags.Var(&serviceOpts.mounts, flagMountAdd, "Add or update a mount on a service")
 	flags.Var(&serviceOpts.constraints, flagConstraintAdd, "Add or update a placement constraint")
 	flags.Var(&serviceOpts.placementPrefs, flagPlacementPrefAdd, "Add a placement preference")
@@ -169,6 +175,13 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 	}
 
 	spec.TaskTemplate.ContainerSpec.Secrets = updatedSecrets
+
+	updatedConfigs, err := getUpdatedConfigs(apiClient, flags, spec.TaskTemplate.ContainerSpec.Configs)
+	if err != nil {
+		return err
+	}
+
+	spec.TaskTemplate.ContainerSpec.Configs = updatedConfigs
 
 	// only send auth if flag was set
 	sendAuth, err := flags.GetBool(flagRegistryAuth)
@@ -579,6 +592,29 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	}
 
 	return newSecrets, nil
+}
+
+func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, configs []*swarm.ConfigReference) ([]*swarm.ConfigReference, error) {
+	newConfigs := []*swarm.ConfigReference{}
+
+	toRemove := buildToRemoveSet(flags, flagConfigRemove)
+	for _, config := range configs {
+		if _, exists := toRemove[config.ConfigName]; !exists {
+			newConfigs = append(newConfigs, config)
+		}
+	}
+
+	if flags.Changed(flagConfigAdd) {
+		values := flags.Lookup(flagConfigAdd).Value.(*opts.ConfigOpt).Value()
+
+		addConfigs, err := ParseConfigs(apiClient, values)
+		if err != nil {
+			return nil, err
+		}
+		newConfigs = append(newConfigs, addConfigs...)
+	}
+
+	return newConfigs, nil
 }
 
 func envKey(value string) string {

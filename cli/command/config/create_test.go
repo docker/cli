@@ -1,4 +1,4 @@
-package secret
+package config
 
 import (
 	"bytes"
@@ -17,12 +17,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const secretDataFile = "secret-create-with-name.golden"
+const configDataFile = "config-create-with-name.golden"
 
-func TestSecretCreateErrors(t *testing.T) {
+func TestConfigCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		secretCreateFunc func(swarm.SecretSpec) (types.SecretCreateResponse, error)
+		configCreateFunc func(swarm.ConfigSpec) (types.ConfigCreateResponse, error)
 		expectedError    string
 	}{
 		{
@@ -33,18 +33,18 @@ func TestSecretCreateErrors(t *testing.T) {
 			expectedError: "requires exactly 2 argument(s)",
 		},
 		{
-			args: []string{"name", filepath.Join("testdata", secretDataFile)},
-			secretCreateFunc: func(secretSpec swarm.SecretSpec) (types.SecretCreateResponse, error) {
-				return types.SecretCreateResponse{}, errors.Errorf("error creating secret")
+			args: []string{"name", filepath.Join("testdata", configDataFile)},
+			configCreateFunc: func(configSpec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+				return types.ConfigCreateResponse{}, errors.Errorf("error creating config")
 			},
-			expectedError: "error creating secret",
+			expectedError: "error creating config",
 		},
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := newSecretCreateCommand(
+		cmd := newConfigCreateCommand(
 			test.NewFakeCli(&fakeClient{
-				secretCreateFunc: tc.secretCreateFunc,
+				configCreateFunc: tc.configCreateFunc,
 			}, buf),
 		)
 		cmd.SetArgs(tc.args)
@@ -53,33 +53,33 @@ func TestSecretCreateErrors(t *testing.T) {
 	}
 }
 
-func TestSecretCreateWithName(t *testing.T) {
+func TestConfigCreateWithName(t *testing.T) {
 	name := "foo"
 	buf := new(bytes.Buffer)
 	var actual []byte
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
-				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
+				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
 			}
 
 			actual = spec.Data
 
-			return types.SecretCreateResponse{
+			return types.ConfigCreateResponse{
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
 	}, buf)
 
-	cmd := newSecretCreateCommand(cli)
-	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
+	cmd := newConfigCreateCommand(cli)
+	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	assert.NoError(t, cmd.Execute())
-	expected := golden.Get(t, actual, secretDataFile)
-	assert.Equal(t, expected, actual)
+	expected := golden.Get(t, actual, configDataFile)
+	assert.Equal(t, string(expected), string(actual))
 	assert.Equal(t, "ID-"+name, strings.TrimSpace(buf.String()))
 }
 
-func TestSecretCreateWithLabels(t *testing.T) {
+func TestConfigCreateWithLabels(t *testing.T) {
 	expectedLabels := map[string]string{
 		"lbl1": "Label-foo",
 		"lbl2": "Label-bar",
@@ -88,23 +88,23 @@ func TestSecretCreateWithLabels(t *testing.T) {
 
 	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
-				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
+				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
 			}
 
 			if !reflect.DeepEqual(spec.Labels, expectedLabels) {
-				return types.SecretCreateResponse{}, errors.Errorf("expected labels %v, got %v", expectedLabels, spec.Labels)
+				return types.ConfigCreateResponse{}, errors.Errorf("expected labels %v, got %v", expectedLabels, spec.Labels)
 			}
 
-			return types.SecretCreateResponse{
+			return types.ConfigCreateResponse{
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
 	}, buf)
 
-	cmd := newSecretCreateCommand(cli)
-	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
+	cmd := newConfigCreateCommand(cli)
+	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
 	assert.NoError(t, cmd.Execute())

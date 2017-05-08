@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/checkpoint"
+	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/network"
@@ -25,6 +26,9 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 	cmd.AddCommand(
 		// checkpoint
 		checkpoint.NewCheckpointCommand(dockerCli),
+
+		// config
+		config.NewConfigCommand(dockerCli),
 
 		// container
 		container.NewContainerCommand(dockerCli),
