@@ -29,9 +29,9 @@ cross: clean
 
 vendor: vendor.conf
 	@vndr 2> /dev/null
-	@if [ "`git status --porcelain -- vendor 2>/dev/nul`" ]; then \
+	@if [ "`git status --porcelain -- vendor 2>/dev/null`" ]; then \
 		echo; echo "vendoring is wrong. These files were changed:"; \
-		echo; git status --porcelain -- vendor 2>/dev/nul; \
+		echo; git status --porcelain -- vendor 2>/dev/null; \
 		echo; exit 1; \
 	fi;
 
