@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	swarmtypes "github.com/docker/docker/api/types/swarm"

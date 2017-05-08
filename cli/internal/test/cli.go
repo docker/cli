@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 )
 
 // FakeCli emulates the default DockerCli

@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/inspect"
-	apiclient "github.com/docker/cli/client"
+	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

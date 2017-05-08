@@ -9,7 +9,7 @@ import (
 
 	servicecli "github.com/docker/cli/cli/command/service"
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"

@@ -7,7 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	apiclient "github.com/docker/cli/client"
+	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	options "github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/promise"

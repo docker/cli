@@ -1,7 +1,7 @@
 package volume
 
 import (
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	volumetypes "github.com/docker/docker/api/types/volume"

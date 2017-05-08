@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

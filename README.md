@@ -9,7 +9,6 @@ Docker EE products.
 It's composed of 3 main folders
 
 * `/cli` - all the commands code.
-* `/client` - the API client, used by `/cli`.
 * `/cmd/docker` - the entrypoint of the cli, aka the main.
 
 Development

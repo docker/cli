@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/cli/client"
+	"github.com/docker/docker/client"
 )
 
 func main() {
@@ -32,4 +32,4 @@ func main() {
 }
 ```
 
-[Full documentation is available on GoDoc.](https://godoc.org/github.com/docker/cli/client)
+[Full documentation is available on GoDoc.](https://godoc.org/github.com/docker/docker/client)
