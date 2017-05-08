@@ -10,7 +10,7 @@ build: clean
 
 # remove build artifacts
 clean:
-	@rm -rf ./build
+	@rm -rf ./build/*
 
 # run go test
 # the "-tags daemon" part is temporary
