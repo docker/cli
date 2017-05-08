@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/client"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 

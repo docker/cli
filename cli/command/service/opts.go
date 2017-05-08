@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/client"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/swarmkit/api"

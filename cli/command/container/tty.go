@@ -9,8 +9,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/client"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"golang.org/x/net/context"
 )
