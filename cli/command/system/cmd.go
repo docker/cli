@@ -1,19 +1,19 @@
 package system
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/spf13/cobra"
 )
 
 // NewSystemCommand returns a cobra command for `system` subcommands
+// nolint: interfacer
 func NewSystemCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "system",
 		Short: "Manage Docker",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
 	cmd.AddCommand(
 		NewEventsCommand(dockerCli),

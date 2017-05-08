@@ -213,7 +213,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 }
 
 // nolint: gocyclo
-func updateService(ctx context.Context, apiClient client.APIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
+func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
 	updateString := func(flag string, field *string) {
 		if flags.Changed(flag) {
 			*field, _ = flags.GetString(flag)

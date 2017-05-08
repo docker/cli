@@ -7,12 +7,13 @@ import (
 )
 
 // NewContainerCommand returns a cobra command for `container` subcommands
+// nolint: interfacer
 func NewContainerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "container",
 		Short: "Manage containers",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
 	cmd.AddCommand(
 		NewAttachCommand(dockerCli),

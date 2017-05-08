@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newPushCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newPushCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] PLUGIN[:TAG]",
 		Short: "Push a plugin to a registry",
@@ -30,7 +30,7 @@ func newPushCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli *command.DockerCli, name string) error {
+func runPush(dockerCli command.Cli, name string) error {
 	named, err := reference.ParseNormalizedNamed(name)
 	if err != nil {
 		return err

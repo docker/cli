@@ -34,5 +34,3 @@ vendor: vendor.conf
 		echo; git status --porcelain -- vendor 2>/dev/nul; \
 		echo; exit 1; \
 	fi;
-
-ci: cross test

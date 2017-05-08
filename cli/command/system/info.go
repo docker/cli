@@ -330,7 +330,9 @@ func printStorageDriverWarnings(dockerCli *command.DockerCli, info types.Info) {
 
 	for _, pair := range info.DriverStatus {
 		if pair[0] == "Data loop file" {
-			fmt.Fprintf(dockerCli.Err(), "WARNING: %s: usage of loopback devices is strongly discouraged for production use.\n         Use `--storage-opt dm.thinpooldev` to specify a custom block storage device.\n", info.Driver)
+			fmt.Fprintf(dockerCli.Err(), "WARNING: %s: usage of loopback devices is "+
+				"strongly discouraged for production use.\n         "+
+				"Use `--storage-opt dm.thinpooldev` to specify a custom block storage device.\n", info.Driver)
 		}
 		if pair[0] == "Supports d_type" && pair[1] == "false" {
 			backingFs := getBackingFs(info)

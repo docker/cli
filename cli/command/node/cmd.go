@@ -12,12 +12,12 @@ import (
 )
 
 // NewNodeCommand returns a cobra command for `node` subcommands
-func NewNodeCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewNodeCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "node",
 		Short: "Manage Swarm nodes",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 		Tags:  map[string]string{"version": "1.24"},
 	}
 	cmd.AddCommand(

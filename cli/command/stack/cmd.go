@@ -7,12 +7,13 @@ import (
 )
 
 // NewStackCommand returns a cobra command for `stack` subcommands
+// nolint: interfacer
 func NewStackCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stack",
 		Short: "Manage Docker stacks",
 		Args:  cli.NoArgs,
-		RunE:  dockerCli.ShowHelp,
+		RunE:  command.ShowHelp(dockerCli.Err()),
 		Tags:  map[string]string{"version": "1.25"},
 	}
 	cmd.AddCommand(
@@ -26,7 +27,7 @@ func NewStackCommand(dockerCli *command.DockerCli) *cobra.Command {
 }
 
 // NewTopLevelDeployCommand returns a command for `docker deploy`
-func NewTopLevelDeployCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := newDeployCommand(dockerCli)
 	// Remove the aliases at the top level
 	cmd.Aliases = []string{}

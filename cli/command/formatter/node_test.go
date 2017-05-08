@@ -128,8 +128,23 @@ foobar_bar
 
 	for _, testcase := range cases {
 		nodes := []swarm.Node{
-			{ID: "nodeID1", Description: swarm.NodeDescription{Hostname: "foobar_baz"}, Status: swarm.NodeStatus{State: swarm.NodeState("foo")}, Spec: swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")}, ManagerStatus: &swarm.ManagerStatus{Leader: true}},
-			{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar"}, Status: swarm.NodeStatus{State: swarm.NodeState("bar")}, Spec: swarm.NodeSpec{Availability: swarm.NodeAvailability("active")}, ManagerStatus: &swarm.ManagerStatus{Leader: false, Reachability: swarm.Reachability("Reachable")}},
+			{
+				ID:            "nodeID1",
+				Description:   swarm.NodeDescription{Hostname: "foobar_baz"},
+				Status:        swarm.NodeStatus{State: swarm.NodeState("foo")},
+				Spec:          swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")},
+				ManagerStatus: &swarm.ManagerStatus{Leader: true},
+			},
+			{
+				ID:          "nodeID2",
+				Description: swarm.NodeDescription{Hostname: "foobar_bar"},
+				Status:      swarm.NodeStatus{State: swarm.NodeState("bar")},
+				Spec:        swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
+				ManagerStatus: &swarm.ManagerStatus{
+					Leader:       false,
+					Reachability: swarm.Reachability("Reachable"),
+				},
+			},
 		}
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out

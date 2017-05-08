@@ -25,7 +25,7 @@ type createOptions struct {
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
-func NewCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	var opts createOptions
 	var copts *containerOptions
 
@@ -56,7 +56,7 @@ func NewCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *createOptions, copts *containerOptions) error {
+func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions, copts *containerOptions) error {
 	containerConfig, err := parse(flags, copts)
 	if err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
@@ -70,7 +70,7 @@ func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *createO
 	return nil
 }
 
-func pullImage(ctx context.Context, dockerCli *command.DockerCli, image string, out io.Writer) error {
+func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.Writer) error {
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
-func createContainer(ctx context.Context, dockerCli *command.DockerCli, containerConfig *containerConfig, name string) (*container.ContainerCreateCreatedBody, error) {
+func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, name string) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig

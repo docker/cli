@@ -17,7 +17,7 @@ type pruneOptions struct {
 }
 
 // NewPruneCommand returns a new cobra prune command for containers
-func NewPruneCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	opts := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -48,7 +48,7 @@ func NewPruneCommand(dockerCli *command.DockerCli) *cobra.Command {
 const warning = `WARNING! This will remove all stopped containers.
 Are you sure you want to continue?`
 
-func runPrune(dockerCli *command.DockerCli, opts pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(dockerCli command.Cli, opts pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, opts.filter.Value())
 
 	if !opts.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
@@ -73,6 +73,6 @@ func runPrune(dockerCli *command.DockerCli, opts pruneOptions) (spaceReclaimed u
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli *command.DockerCli, filter opts.FilterOpt) (uint64, string, error) {
+func RunPrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
 	return runPrune(dockerCli, pruneOptions{force: true, filter: filter})
 }

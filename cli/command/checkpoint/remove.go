@@ -13,7 +13,7 @@ type removeOptions struct {
 	checkpointDir string
 }
 
-func newRemoveCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	var opts removeOptions
 
 	cmd := &cobra.Command{
@@ -32,7 +32,7 @@ func newRemoveCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli *command.DockerCli, container string, checkpoint string, opts removeOptions) error {
+func runRemove(dockerCli command.Cli, container string, checkpoint string, opts removeOptions) error {
 	client := dockerCli.Client()
 
 	removeOpts := types.CheckpointDeleteOptions{

@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func resolveServiceImageDigest(dockerCli *command.DockerCli, service *swarm.ServiceSpec) error {
+func resolveServiceImageDigest(dockerCli command.Cli, service *swarm.ServiceSpec) error {
 	if !command.IsTrusted() {
 		// Digests are resolved by the daemon when not using content
 		// trust.
@@ -51,7 +51,7 @@ func resolveServiceImageDigest(dockerCli *command.DockerCli, service *swarm.Serv
 	return nil
 }
 
-func trustedResolveDigest(ctx context.Context, cli *command.DockerCli, ref reference.NamedTagged) (reference.Canonical, error) {
+func trustedResolveDigest(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return nil, err

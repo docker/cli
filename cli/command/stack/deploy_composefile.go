@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func deployCompose(ctx context.Context, dockerCli *command.DockerCli, opts deployOptions) error {
+func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
 	configDetails, err := getConfigDetails(opts.composefile)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func getConfigFile(filename string) (*composetypes.ConfigFile, error) {
 
 func validateExternalNetworks(
 	ctx context.Context,
-	dockerCli *command.DockerCli,
+	dockerCli command.Cli,
 	externalNetworks []string) error {
 	client := dockerCli.Client()
 
@@ -183,7 +183,7 @@ func validateExternalNetworks(
 
 func createSecrets(
 	ctx context.Context,
-	dockerCli *command.DockerCli,
+	dockerCli command.Cli,
 	namespace convert.Namespace,
 	secrets []swarm.SecretSpec,
 ) error {
@@ -210,7 +210,7 @@ func createSecrets(
 
 func createNetworks(
 	ctx context.Context,
-	dockerCli *command.DockerCli,
+	dockerCli command.Cli,
 	namespace convert.Namespace,
 	networks map[string]types.NetworkCreate,
 ) error {
@@ -247,7 +247,7 @@ func createNetworks(
 
 func deployServices(
 	ctx context.Context,
-	dockerCli *command.DockerCli,
+	dockerCli command.Cli,
 	services map[string]swarm.ServiceSpec,
 	namespace convert.Namespace,
 	sendAuth bool,
