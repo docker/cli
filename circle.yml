@@ -3,8 +3,12 @@ jobs:
   build:
     working_directory: ~/cli
     docker:
-      - image: docker:17.04
+      - image: docker:17.05
     steps:
+      - run:
+          name: "Install Git and SSH"
+          command: |
+            apk add -U git openssh
       - checkout
       - setup_remote_docker
       - run:
