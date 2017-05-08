@@ -66,7 +66,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 
 	var spaceReclaimed uint64
 
-	for _, pruneFn := range []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
+	for _, pruneFn := range [3]func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
 		prune.RunContainerPrune,
 		prune.RunVolumePrune,
 		prune.RunNetworkPrune,
