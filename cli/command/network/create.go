@@ -18,6 +18,7 @@ import (
 
 type createOptions struct {
 	name       string
+	scope      string
 	driver     string
 	driverOpts opts.MapOpts
 	labels     opts.ListOpts
@@ -25,6 +26,8 @@ type createOptions struct {
 	ipv6       bool
 	attachable bool
 	ingress    bool
+	configOnly bool
+	configFrom string
 
 	ipamDriver  string
 	ipamSubnet  []string
@@ -62,6 +65,12 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.SetAnnotation("attachable", "version", []string{"1.25"})
 	flags.BoolVar(&options.ingress, "ingress", false, "Create swarm routing-mesh network")
 	flags.SetAnnotation("ingress", "version", []string{"1.29"})
+	flags.StringVar(&options.scope, "scope", "", "Control the network's scope")
+	flags.SetAnnotation("scope", "version", []string{"1.30"})
+	flags.BoolVar(&options.configOnly, "config-only", false, "Create a configuration only network")
+	flags.SetAnnotation("config-only", "version", []string{"1.30"})
+	flags.StringVar(&options.configFrom, "config-from", "", "The network from which copying the configuration")
+	flags.SetAnnotation("config-from", "version", []string{"1.30"})
 
 	flags.StringVar(&options.ipamDriver, "ipam-driver", "default", "IP Address Management Driver")
 	flags.StringSliceVar(&options.ipamSubnet, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
@@ -96,7 +105,15 @@ func runCreate(dockerCli *command.DockerCli, options createOptions) error {
 		EnableIPv6:     options.ipv6,
 		Attachable:     options.attachable,
 		Ingress:        options.ingress,
+		Scope:          options.scope,
+		ConfigOnly:     options.configOnly,
 		Labels:         runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
+	}
+
+	if from := options.configFrom; from != "" {
+		nc.ConfigFrom = &network.ConfigReference{
+			Network: from,
+		}
 	}
 
 	resp, err := client.NetworkCreate(context.Background(), options.name, nc)
