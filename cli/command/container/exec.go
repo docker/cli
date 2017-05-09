@@ -80,6 +80,19 @@ func runExec(dockerCli *command.DockerCli, opts *execOptions, container string, 
 	ctx := context.Background()
 	client := dockerCli.Client()
 
+	// We need to check the tty _before_ we do the ContainerExecCreate, because
+	// otherwise if we error out we will leak execIDs on the server (and
+	// there's no easy way to clean those up). But also in order to make "not
+	// exist" errors take precedence we do a dummy inspect first.
+	if _, err := client.ContainerInspect(ctx, container); err != nil {
+		return err
+	}
+	if !execConfig.Detach {
+		if err := dockerCli.In().CheckTty(execConfig.AttachStdin, execConfig.Tty); err != nil {
+			return err
+		}
+	}
+
 	response, err := client.ContainerExecCreate(ctx, container, *execConfig)
 	if err != nil {
 		return err
@@ -91,12 +104,8 @@ func runExec(dockerCli *command.DockerCli, opts *execOptions, container string, 
 		return nil
 	}
 
-	//Temp struct for execStart so that we don't need to transfer all the execConfig
-	if !execConfig.Detach {
-		if err := dockerCli.In().CheckTty(execConfig.AttachStdin, execConfig.Tty); err != nil {
-			return err
-		}
-	} else {
+	// Temp struct for execStart so that we don't need to transfer all the execConfig.
+	if execConfig.Detach {
 		execStartCheck := types.ExecStartCheck{
 			Detach: execConfig.Detach,
 			Tty:    execConfig.Tty,
