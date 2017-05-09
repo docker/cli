@@ -62,7 +62,6 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// nolint: gocyclo
 func runExec(dockerCli command.Cli, options *execOptions, container string, execCmd []string) error {
 	execConfig, err := parseExec(options, execCmd)
 	// just in case the ParseExec does not exit
@@ -104,16 +103,17 @@ func runExec(dockerCli command.Cli, options *execOptions, container string, exec
 		return nil
 	}
 
-	// Temp struct for execStart so that we don't need to transfer all the execConfig.
 	if execConfig.Detach {
 		execStartCheck := types.ExecStartCheck{
 			Detach: execConfig.Detach,
 			Tty:    execConfig.Tty,
 		}
-
 		return client.ContainerExecStart(ctx, execID, execStartCheck)
 	}
+	return interactiveExec(ctx, dockerCli, execConfig, execID)
+}
 
+func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *types.ExecConfig, execID string) error {
 	// Interactive exec requested.
 	var (
 		out, stderr io.Writer
@@ -135,6 +135,7 @@ func runExec(dockerCli command.Cli, options *execOptions, container string, exec
 		}
 	}
 
+	client := dockerCli.Client()
 	resp, err := client.ContainerExecAttach(ctx, execID, *execConfig)
 	if err != nil {
 		return err
@@ -165,31 +166,23 @@ func runExec(dockerCli command.Cli, options *execOptions, container string, exec
 		return err
 	}
 
-	var status int
-	if _, status, err = getExecExitCode(ctx, client, execID); err != nil {
-		return err
-	}
-
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
-	}
-
-	return nil
+	return getExecExitStatus(ctx, client, execID)
 }
 
-// getExecExitCode perform an inspect on the exec command. It returns
-// the running state and the exit code.
-func getExecExitCode(ctx context.Context, client apiclient.ContainerAPIClient, execID string) (bool, int, error) {
+func getExecExitStatus(ctx context.Context, client apiclient.ContainerAPIClient, execID string) error {
 	resp, err := client.ContainerExecInspect(ctx, execID)
 	if err != nil {
 		// If we can't connect, then the daemon probably died.
 		if !apiclient.IsErrConnectionFailed(err) {
-			return false, -1, err
+			return err
 		}
-		return false, -1, nil
+		return cli.StatusError{StatusCode: -1}
 	}
-
-	return resp.Running, resp.ExitCode, nil
+	status := resp.ExitCode
+	if status != 0 {
+		return cli.StatusError{StatusCode: status}
+	}
+	return nil
 }
 
 // parseExec parses the specified args for the specified command and generates
