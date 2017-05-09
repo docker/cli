@@ -65,49 +65,52 @@ reclaimable: {{.Reclaimable}}
 }
 
 func (ctx *DiskUsageContext) Write() (err error) {
-	if !ctx.Verbose {
-		ctx.buffer = bytes.NewBufferString("")
-		ctx.preFormat()
+	if ctx.Verbose {
+		return ctx.verboseWrite()
+	}
+	ctx.buffer = bytes.NewBufferString("")
+	ctx.preFormat()
 
-		tmpl, err := ctx.parseFormat()
-		if err != nil {
-			return err
-		}
-
-		err = ctx.contextFormat(tmpl, &diskUsageImagesContext{
-			totalSize: ctx.LayersSize,
-			images:    ctx.Images,
-		})
-		if err != nil {
-			return err
-		}
-		err = ctx.contextFormat(tmpl, &diskUsageContainersContext{
-			containers: ctx.Containers,
-		})
-		if err != nil {
-			return err
-		}
-
-		err = ctx.contextFormat(tmpl, &diskUsageVolumesContext{
-			volumes: ctx.Volumes,
-		})
-		if err != nil {
-			return err
-		}
-
-		diskUsageContainersCtx := diskUsageContainersContext{containers: []*types.Container{}}
-		diskUsageContainersCtx.header = map[string]string{
-			"Type":        typeHeader,
-			"TotalCount":  totalHeader,
-			"Active":      activeHeader,
-			"Size":        sizeHeader,
-			"Reclaimable": reclaimableHeader,
-		}
-		ctx.postFormat(tmpl, &diskUsageContainersCtx)
-
+	tmpl, err := ctx.parseFormat()
+	if err != nil {
 		return err
 	}
 
+	err = ctx.contextFormat(tmpl, &diskUsageImagesContext{
+		totalSize: ctx.LayersSize,
+		images:    ctx.Images,
+	})
+	if err != nil {
+		return err
+	}
+	err = ctx.contextFormat(tmpl, &diskUsageContainersContext{
+		containers: ctx.Containers,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = ctx.contextFormat(tmpl, &diskUsageVolumesContext{
+		volumes: ctx.Volumes,
+	})
+	if err != nil {
+		return err
+	}
+
+	diskUsageContainersCtx := diskUsageContainersContext{containers: []*types.Container{}}
+	diskUsageContainersCtx.header = map[string]string{
+		"Type":        typeHeader,
+		"TotalCount":  totalHeader,
+		"Active":      activeHeader,
+		"Size":        sizeHeader,
+		"Reclaimable": reclaimableHeader,
+	}
+	ctx.postFormat(tmpl, &diskUsageContainersCtx)
+
+	return err
+}
+
+func (ctx *DiskUsageContext) verboseWrite() (err error) {
 	// First images
 	tmpl, err := ctx.startSubsection(defaultDiskUsageImageTableFormat)
 	if err != nil {
