@@ -29,8 +29,10 @@ cross: clean
 
 vendor: vendor.conf
 	@vndr 2> /dev/null
-	@if [ "`git status --porcelain -- vendor 2>/dev/null`" ]; then \
-		echo; echo "vendoring is wrong. These files were changed:"; \
-		echo; git status --porcelain -- vendor 2>/dev/null; \
-		echo; exit 1; \
-	fi;
+	@script/validate/check-git-diff vendor
+
+cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
+	go generate github.com/docker/cli/cli/compose/schema
+
+compose-jsonschema: cli/compose/schema/bindata.go
+	@script/validate/check-git-diff cli/compose/schema/bindata.go

@@ -31,11 +31,11 @@ jobs:
             docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
             docker run cli-builder make test
       - run:
-          name: "Vendor"
+          name: "Validate Vendor and Code Generation"
           command: |
             if [ "$CIRCLE_NODE_INDEX" != "3" ]; then exit; fi
             docker build -f dockerfiles/Dockerfile.ci --tag cli-builder .
-            docker run cli-builder make -B vendor
+            docker run cli-builder make -B vendor compose-jsonschema
 
       - store_artifacts:
           path: /work/build
