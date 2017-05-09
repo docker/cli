@@ -12,7 +12,8 @@ import (
 
 const endOfSpec = rune(0)
 
-func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
+// ParseVolume parses a volume spec without any knowledge of the target platform
+func ParseVolume(spec string) (types.ServiceVolumeConfig, error) {
 	volume := types.ServiceVolumeConfig{}
 
 	switch len(spec) {
@@ -31,6 +32,7 @@ func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
 			buffer = append(buffer, char)
 		case char == ':' || char == endOfSpec:
 			if err := populateFieldFromBuffer(char, buffer, &volume); err != nil {
+				populateType(&volume)
 				return volume, errors.Wrapf(err, "invalid spec: %s", spec)
 			}
 			buffer = []rune{}
@@ -38,6 +40,7 @@ func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
 			buffer = append(buffer, char)
 		}
 	}
+
 	populateType(&volume)
 	return volume, nil
 }
@@ -75,9 +78,8 @@ func populateFieldFromBuffer(char rune, buffer []rune, volume *types.ServiceVolu
 		default:
 			if isBindOption(option) {
 				volume.Bind = &types.ServiceVolumeBind{Propagation: option}
-			} else {
-				return errors.Errorf("unknown option: %s", option)
 			}
+			// ignore unknown options
 		}
 	}
 	return nil
