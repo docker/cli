@@ -1028,8 +1028,8 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	if flags.Changed(flagNetworkAdd) {
-		values := flags.Lookup(flagNetworkAdd).Value.(*opts.ListOpts).GetAll()
-		networks, err := convertNetworks(ctx, apiClient, values)
+		values := flags.Lookup(flagNetworkAdd).Value.(*opts.NetworkOpt)
+		networks, err := convertNetworks(ctx, apiClient, *values)
 		if err != nil {
 			return err
 		}
