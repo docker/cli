@@ -93,11 +93,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	cfg.Configs, err = LoadConfigObjs(config["configs"], configDetails.WorkingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
+	return &cfg, err
 }
 
 func interpolateConfig(configDict map[string]interface{}, lookupEnv template.Mapping) (map[string]map[string]interface{}, error) {
