@@ -113,6 +113,9 @@ type cidFile struct {
 }
 
 func (cid *cidFile) Close() error {
+	if cid.file == nil {
+		return nil
+	}
 	cid.file.Close()
 
 	if cid.written {
@@ -126,6 +129,9 @@ func (cid *cidFile) Close() error {
 }
 
 func (cid *cidFile) Write(id string) error {
+	if cid.file == nil {
+		return nil
+	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
 		return errors.Errorf("Failed to write the container ID to the file: %s", err)
 	}
@@ -134,6 +140,9 @@ func (cid *cidFile) Write(id string) error {
 }
 
 func newCIDFile(path string) (*cidFile, error) {
+	if path == "" {
+		return &cidFile{}, nil
+	}
 	if _, err := os.Stat(path); err == nil {
 		return nil, errors.Errorf("Container ID file found, make sure the other container isn't running or delete %s", path)
 	}
@@ -153,19 +162,15 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	stderr := dockerCli.Err()
 
 	var (
-		containerIDFile *cidFile
-		trustedRef      reference.Canonical
-		namedRef        reference.Named
+		trustedRef reference.Canonical
+		namedRef   reference.Named
 	)
 
-	cidfile := hostConfig.ContainerIDFile
-	if cidfile != "" {
-		var err error
-		if containerIDFile, err = newCIDFile(cidfile); err != nil {
-			return nil, err
-		}
-		defer containerIDFile.Close()
+	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
+	if err != nil {
+		return nil, err
 	}
+	defer containerIDFile.Close()
 
 	ref, err := reference.ParseAnyReference(config.Image)
 	if err != nil {
@@ -207,18 +212,13 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 			if retryErr != nil {
 				return nil, retryErr
 			}
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 
 	for _, warning := range response.Warnings {
 		fmt.Fprintf(stderr, "WARNING: %s\n", warning)
 	}
-	if containerIDFile != nil {
-		if err = containerIDFile.Write(response.ID); err != nil {
-			return nil, err
-		}
-	}
-	return &response, nil
+	err = containerIDFile.Write(response.ID)
+	return &response, err
 }

@@ -4,118 +4,201 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
-type arguments struct {
-	options execOptions
-	execCmd []string
+func withDefaultOpts(options execOptions) execOptions {
+	options.env = opts.NewListOpts(opts.ValidateEnv)
+	if len(options.command) == 0 {
+		options.command = []string{"command"}
+	}
+	return options
 }
 
 func TestParseExec(t *testing.T) {
-	valids := map[*arguments]*types.ExecConfig{
+	testcases := []struct {
+		options    execOptions
+		configFile configfile.ConfigFile
+		expected   types.ExecConfig
+	}{
 		{
-			execCmd: []string{"command"},
-		}: {
-			Cmd:          []string{"command"},
-			AttachStdout: true,
-			AttachStderr: true,
+			expected: types.ExecConfig{
+				Cmd:          []string{"command"},
+				AttachStdout: true,
+				AttachStderr: true,
+			},
+			options: withDefaultOpts(execOptions{}),
 		},
 		{
-			execCmd: []string{"command1", "command2"},
-		}: {
-			Cmd:          []string{"command1", "command2"},
-			AttachStdout: true,
-			AttachStderr: true,
+			expected: types.ExecConfig{
+				Cmd:          []string{"command1", "command2"},
+				AttachStdout: true,
+				AttachStderr: true,
+			},
+			options: withDefaultOpts(execOptions{
+				command: []string{"command1", "command2"},
+			}),
 		},
 		{
-			options: execOptions{
+			options: withDefaultOpts(execOptions{
 				interactive: true,
 				tty:         true,
 				user:        "uid",
+			}),
+			expected: types.ExecConfig{
+				User:         "uid",
+				AttachStdin:  true,
+				AttachStdout: true,
+				AttachStderr: true,
+				Tty:          true,
+				Cmd:          []string{"command"},
 			},
-			execCmd: []string{"command"},
-		}: {
-			User:         "uid",
-			AttachStdin:  true,
-			AttachStdout: true,
-			AttachStderr: true,
-			Tty:          true,
-			Cmd:          []string{"command"},
 		},
 		{
-			options: execOptions{
-				detach: true,
+			options: withDefaultOpts(execOptions{detach: true}),
+			expected: types.ExecConfig{
+				Detach: true,
+				Cmd:    []string{"command"},
 			},
-			execCmd: []string{"command"},
-		}: {
-			AttachStdin:  false,
-			AttachStdout: false,
-			AttachStderr: false,
-			Detach:       true,
-			Cmd:          []string{"command"},
 		},
 		{
-			options: execOptions{
+			options: withDefaultOpts(execOptions{
 				tty:         true,
 				interactive: true,
 				detach:      true,
+			}),
+			expected: types.ExecConfig{
+				Detach: true,
+				Tty:    true,
+				Cmd:    []string{"command"},
 			},
-			execCmd: []string{"command"},
-		}: {
-			AttachStdin:  false,
-			AttachStdout: false,
-			AttachStderr: false,
-			Detach:       true,
-			Tty:          true,
-			Cmd:          []string{"command"},
+		},
+		{
+			options:    withDefaultOpts(execOptions{detach: true}),
+			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			expected: types.ExecConfig{
+				Cmd:        []string{"command"},
+				DetachKeys: "de",
+				Detach:     true,
+			},
+		},
+		{
+			options: withDefaultOpts(execOptions{
+				detach:     true,
+				detachKeys: "ab",
+			}),
+			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			expected: types.ExecConfig{
+				Cmd:        []string{"command"},
+				DetachKeys: "ab",
+				Detach:     true,
+			},
 		},
 	}
 
-	for valid, expectedExecConfig := range valids {
-		execConfig, err := parseExec(&valid.options, valid.execCmd)
-		require.NoError(t, err)
-		if !compareExecConfig(expectedExecConfig, execConfig) {
-			t.Fatalf("Expected [%v] for %v, got [%v]", expectedExecConfig, valid, execConfig)
-		}
+	for _, testcase := range testcases {
+		execConfig := parseExec(testcase.options, &testcase.configFile)
+		assert.Equal(t, testcase.expected, *execConfig)
 	}
 }
 
-func compareExecConfig(config1 *types.ExecConfig, config2 *types.ExecConfig) bool {
-	if config1.AttachStderr != config2.AttachStderr {
-		return false
+func TestRunExec(t *testing.T) {
+	var testcases = []struct {
+		doc           string
+		options       execOptions
+		client        fakeClient
+		expectedError string
+		expectedOut   string
+		expectedErr   string
+	}{
+		{
+			doc: "successful detach",
+			options: withDefaultOpts(execOptions{
+				container: "thecontainer",
+				detach:    true,
+			}),
+			client: fakeClient{execCreateFunc: execCreateWithID},
+		},
+		{
+			doc:     "inspect error",
+			options: newExecOptions(),
+			client: fakeClient{
+				inspectFunc: func(string) (types.ContainerJSON, error) {
+					return types.ContainerJSON{}, errors.New("failed inspect")
+				},
+			},
+			expectedError: "failed inspect",
+		},
+		{
+			doc:           "missing exec ID",
+			options:       newExecOptions(),
+			expectedError: "exec ID empty",
+		},
 	}
-	if config1.AttachStdin != config2.AttachStdin {
-		return false
+
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&testcase.client)
+
+			err := runExec(cli, testcase.options)
+			if testcase.expectedError != "" {
+				testutil.ErrorContains(t, err, testcase.expectedError)
+			} else {
+				if !assert.NoError(t, err) {
+					return
+				}
+			}
+			assert.Equal(t, testcase.expectedOut, cli.OutBuffer().String())
+			assert.Equal(t, testcase.expectedErr, cli.ErrBuffer().String())
+		})
 	}
-	if config1.AttachStdout != config2.AttachStdout {
-		return false
+}
+
+func execCreateWithID(_ string, _ types.ExecConfig) (types.IDResponse, error) {
+	return types.IDResponse{ID: "execid"}, nil
+}
+
+func TestGetExecExitStatus(t *testing.T) {
+	execID := "the exec id"
+	expecatedErr := errors.New("unexpected error")
+
+	testcases := []struct {
+		inspectError  error
+		exitCode      int
+		expectedError error
+	}{
+		{
+			inspectError: nil,
+			exitCode:     0,
+		},
+		{
+			inspectError:  expecatedErr,
+			expectedError: expecatedErr,
+		},
+		{
+			exitCode:      15,
+			expectedError: cli.StatusError{StatusCode: 15},
+		},
 	}
-	if config1.Detach != config2.Detach {
-		return false
-	}
-	if config1.Privileged != config2.Privileged {
-		return false
-	}
-	if config1.Tty != config2.Tty {
-		return false
-	}
-	if config1.User != config2.User {
-		return false
-	}
-	if len(config1.Cmd) != len(config2.Cmd) {
-		return false
-	}
-	for index, value := range config1.Cmd {
-		if value != config2.Cmd[index] {
-			return false
+
+	for _, testcase := range testcases {
+		client := &fakeClient{
+			execInspectFunc: func(id string) (types.ContainerExecInspect, error) {
+				assert.Equal(t, execID, id)
+				return types.ContainerExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+			},
 		}
+		err := getExecExitStatus(context.Background(), client, execID)
+		assert.Equal(t, testcase.expectedError, err)
 	}
-	return true
 }
 
 func TestNewExecCommandErrors(t *testing.T) {
@@ -135,7 +218,7 @@ func TestNewExecCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{containerInspectFunc: tc.containerInspectFunc})
+		cli := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
 		cmd := NewExecCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)

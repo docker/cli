@@ -10,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
-	clientapi "github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 
@@ -123,20 +122,6 @@ func legacyWaitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, 
 	}()
 
 	return statusChan
-}
-
-// getExitCode performs an inspect on the container. It returns
-// the running state and the exit code.
-func getExitCode(ctx context.Context, dockerCli command.Cli, containerID string) (bool, int, error) {
-	c, err := dockerCli.Client().ContainerInspect(ctx, containerID)
-	if err != nil {
-		// If we can't connect, then the daemon probably died.
-		if !clientapi.IsErrConnectionFailed(err) {
-			return false, -1, err
-		}
-		return false, -1, nil
-	}
-	return c.State.Running, c.State.ExitCode, nil
 }
 
 func parallelOperation(ctx context.Context, containers []string, op func(ctx context.Context, container string) error) chan error {
