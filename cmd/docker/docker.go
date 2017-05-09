@@ -15,7 +15,6 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/term"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -184,7 +183,7 @@ func main() {
 }
 
 func showVersion() {
-	fmt.Printf("Docker version %s, build %s\n", dockerversion.Version, dockerversion.GitCommit)
+	fmt.Printf("Docker version %s, build %s\n", cli.Version, cli.GitCommit)
 }
 
 func dockerPreRun(opts *cliflags.ClientOptions) {

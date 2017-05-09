@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/docker/cli/cli"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/dockerversion"
 	dopts "github.com/docker/docker/opts"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
@@ -300,5 +300,5 @@ func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, er
 
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
-	return "Docker-Client/" + dockerversion.Version + " (" + runtime.GOOS + ")"
+	return "Docker-Client/" + cli.Version + " (" + runtime.GOOS + ")"
 }

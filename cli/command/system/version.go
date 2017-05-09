@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/templates"
 	"github.com/spf13/cobra"
 )
@@ -94,12 +93,12 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 
 	vd := versionInfo{
 		Client: clientVersion{
-			Version:           dockerversion.Version,
+			Version:           cli.Version,
 			APIVersion:        dockerCli.Client().ClientVersion(),
 			DefaultAPIVersion: dockerCli.DefaultVersion(),
 			GoVersion:         runtime.Version(),
-			GitCommit:         dockerversion.GitCommit,
-			BuildTime:         dockerversion.BuildTime,
+			GitCommit:         cli.GitCommit,
+			BuildTime:         cli.BuildTime,
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
 		},
