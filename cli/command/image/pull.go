@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
@@ -70,16 +71,29 @@ func runPull(dockerCli command.Cli, opts pullOptions) error {
 	// Check if reference has a digest
 	_, isCanonical := distributionRef.(reference.Canonical)
 	if command.IsTrusted() && !isCanonical {
-		err = trustedPull(ctx, dockerCli, repoInfo, distributionRef, authConfig, requestPrivilege)
-	} else {
-		err = imagePullPrivileged(ctx, dockerCli, authConfig, reference.FamiliarString(distributionRef), requestPrivilege, opts.all)
-	}
-	if err != nil {
-		if strings.Contains(err.Error(), "when fetching 'plugin'") {
-			return errors.New(err.Error() + " - Use `docker plugin install`")
+		notaryRepo, err := trust.GetNotaryRepository(dockerCli, repoInfo, authConfig, "pull")
+		if err != nil {
+			fmt.Fprintf(dockerCli.Out(), "Error establishing connection to trust repository: %s\n", err)
+			return err
 		}
-		return err
+		targets, err := getTargetsForTrustedPull(dockerCli, distributionRef, notaryRepo)
+		if err != nil {
+			return err
+		}
+		err = trustedPull(ctx, dockerCli, targets, distributionRef, authConfig, requestPrivilege)
+		return handlePullError(err)
 	}
 
-	return nil
+	err = imagePullPrivileged(ctx, dockerCli, authConfig, reference.FamiliarString(distributionRef), requestPrivilege, opts.all)
+	return handlePullError(err)
+}
+
+func handlePullError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "when fetching 'plugin'") {
+		return errors.New(err.Error() + " - Use `docker plugin install`")
+	}
+	return err
 }
