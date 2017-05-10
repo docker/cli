@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+source ./scripts/build/ldflags
+
+go build -o ./build/docker --ldflags "${LDFLAGS}" github.com/docker/cli/cmd/docker

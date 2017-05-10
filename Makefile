@@ -1,11 +1,11 @@
 #
-# github.com/docker/cli 
+# github.com/docker/cli
 #
 
 # build the CLI
 .PHONY: build
 build: clean
-	@go build -o ./build/docker github.com/docker/cli/cmd/docker
+	@./scripts/build/binary
 
 # remove build artifacts
 .PHONY: clean
@@ -26,9 +26,7 @@ lint:
 # build the CLI for multiple architectures
 .PHONY: cross
 cross: clean
-	@gox -output build/docker-{{.OS}}-{{.Arch}} \
-		 -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
-		 github.com/docker/cli/cmd/docker
+	@./scripts/build/cross
 
 # download dependencies (vendor/) listed in vendor.conf
 .PHONY: vendor
