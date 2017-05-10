@@ -14,6 +14,7 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
+	"github.com/docker/cli/project"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
@@ -199,9 +200,17 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 		verStr = tmpStr
 	}
 
-	httpClient, err := newHTTPClient(host, opts.TLSOptions)
-	if err != nil {
-		return &client.Client{}, err
+	var httpClient *http.Client
+	if project.IsInProject() {
+		httpClient, err = project.GetCurrentProject().NewScopedHttpClient(host, verStr)
+		if err != nil {
+			return &client.Client{}, err
+		}
+	} else {
+		httpClient, err = newHTTPClient(host, opts.TLSOptions)
+		if err != nil {
+			return &client.Client{}, err
+		}
 	}
 
 	return client.NewClient(host, verStr, httpClient, customHeaders)

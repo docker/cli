@@ -12,6 +12,9 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/project"
+	projectImpl "github.com/docker/cli/project/impl"
+	projectutil "github.com/docker/cli/project/util"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/term"
@@ -51,12 +54,14 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 			}
 			return isSupported(cmd, dockerCli)
 		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {},
 	}
 	cli.SetupRootCommand(cmd)
 
 	flags = cmd.Flags()
 	flags.BoolVarP(&opts.Version, "version", "v", false, "Print version information and quit")
 	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
+	_ = flags.Bool("ignore-project", false, "Disable project scoping")
 	opts.Common.InstallFlags(flags)
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
@@ -156,12 +161,30 @@ func noArgs(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
+
 	// Set terminal emulation based on platform as required.
 	stdin, stdout, stderr := term.StdStreams()
 	logrus.SetOutput(stderr)
 
 	dockerCli := command.NewDockerCli(stdin, stdout, stderr)
 	cmd := newDockerCommand(dockerCli)
+
+	// see if we're in the context of a Docker project or not
+	basicProj, err := projectImpl.LoadForWd()
+	if err != nil {
+		fmt.Fprintln(stderr, err.Error())
+		os.Exit(1)
+	}
+	if basicProj != nil {
+		project.SetCurrentProject(basicProj)
+	}
+
+	if project.GetCurrentProject() != nil {
+		err := projectutil.SaveInRecentProjects(project.GetCurrentProject())
+		if err != nil {
+			logrus.Fatalln(err)
+		}
+	}
 
 	if err := cmd.Execute(); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
@@ -178,6 +201,7 @@ func main() {
 		fmt.Fprintln(stderr, err)
 		os.Exit(1)
 	}
+
 }
 
 func showVersion() {

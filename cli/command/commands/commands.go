@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/plugin"
+	"github.com/docker/cli/cli/command/project"
 	"github.com/docker/cli/cli/command/registry"
 	"github.com/docker/cli/cli/command/secret"
 	"github.com/docker/cli/cli/command/service"
@@ -48,6 +49,9 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 		// plugin
 		plugin.NewPluginCommand(dockerCli),
 
+		// project
+		project.NewProjectCommand(dockerCli),
+
 		// registry
 		registry.NewLoginCommand(dockerCli),
 		registry.NewLogoutCommand(dockerCli),
@@ -77,6 +81,7 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 		volume.NewVolumeCommand(dockerCli),
 
 		// legacy commands may be hidden
+		hide(project.NewInitCommand(dockerCli)),
 		hide(system.NewEventsCommand(dockerCli)),
 		hide(system.NewInfoCommand(dockerCli)),
 		hide(system.NewInspectCommand(dockerCli)),
