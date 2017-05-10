@@ -1,0 +1,51 @@
+
+meta:
+  project: docker_proxy
+
+mount=source:
+  bind: .
+  path: /go/src/github.com/docker/engine-api-proxy
+
+image=builder:
+  image: docker-proxy-dev
+  context: dobifiles/builder/
+  dockerfile: Dockerfile
+
+image=linter:
+  image: msoap/golang-checks
+  tags: [alpine]
+  pull: "48h"
+
+job=deps:
+  use: builder
+  mounts: [source]
+  command: 'glide install -v'
+
+job=shell:
+  use: builder
+  mounts: [source]
+  interactive: true
+  provide-docker: true
+  command: sh
+
+job=watch:
+  use: builder
+  mounts: [source]
+  interactive: true
+  command: script/watch
+
+job=binary:
+  use: builder
+  mounts: [source]
+  command: script/binary
+
+job=lint:
+  use: linter
+  mounts: [source]
+  working-dir: /go/src/github.com/docker/engine-api-proxy
+  command: gometalinter
+
+job=test-unit:
+  use: builder
+  mounts: [source]
+  command: "bash -c 'go test -v $(glide nv)'"

@@ -1,0 +1,22 @@
+package: github.com/docker/engine-api-proxy
+import:
+- package: github.com/spf13/cobra
+- package: github.com/Sirupsen/logrus
+  version: ~0.11.5
+- package: github.com/pkg/errors
+  version: ^0.8.0
+- package: github.com/gorilla/mux
+  repo: https://github.com/dnephin/mux
+- package: github.com/docker/go-connections
+  subpackages:
+  - sockets
+- package: github.com/docker/docker
+  repo: https://github.com/moby/moby
+  subpackages:
+  - api/types
+  - client
+- package: github.com/stretchr/testify
+  version: ^1.1.4
+  subpackages:
+  - assert
+- package: github.com/dnephin/go-os-user

@@ -1,0 +1,114 @@
+hash: 3d1275539423a8a4ff1f31c242c36b1a62ade5727a5df060f6e2107298ef3c4b
+updated: 2017-05-09T21:20:15.65011855Z
+imports:
+- name: github.com/dnephin/go-os-user
+  version: 44e2994deb1ed3c8bf21e28cbd5d2e3107b35e0b
+- name: github.com/docker/distribution
+  version: 0700fa570d7bcc1b3e46ee127c4489fd25f4daa3
+  subpackages:
+  - digestset
+  - reference
+- name: github.com/docker/docker
+  version: 1a6f8a92b2c5912058828d560f52281ba0424472
+  repo: https://github.com/moby/moby
+  subpackages:
+  - api
+  - api/types
+  - api/types/blkiodev
+  - api/types/container
+  - api/types/events
+  - api/types/filters
+  - api/types/image
+  - api/types/mount
+  - api/types/network
+  - api/types/registry
+  - api/types/strslice
+  - api/types/swarm
+  - api/types/time
+  - api/types/versions
+  - api/types/volume
+  - client
+  - pkg/idtools
+  - pkg/ioutils
+  - pkg/longpath
+  - pkg/parsers
+  - pkg/random
+  - pkg/stringid
+  - pkg/sysinfo
+  - pkg/system
+  - pkg/tlsconfig
+  - runconfig
+  - volume
+- name: github.com/docker/go-connections
+  version: a2afab9802043837035592f1c24827fb70766de9
+  subpackages:
+  - nat
+  - sockets
+  - tlsconfig
+- name: github.com/docker/go-units
+  version: 0dadbb0345b35ec7ef35e228dabb8de89a65bf52
+- name: github.com/docker/libtrust
+  version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/mux
+  version: e6d8883c5d26ee0e6146b7ea7793a131fcf551f2
+  repo: https://github.com/dnephin/mux
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/Microsoft/go-winio
+  version: fff283ad5116362ca252298cfc9b95828956d85d
+- name: github.com/opencontainers/go-digest
+  version: aa2ec055abd10d26d539eb630a92241b781ce4bc
+- name: github.com/opencontainers/runc
+  version: ef9a4b315558d31eae520725ff67383c2f79c3cb
+  subpackages:
+  - libcontainer/cgroups
+  - libcontainer/configs
+  - libcontainer/user
+- name: github.com/opencontainers/runtime-spec
+  version: e659613ba5a720bcc11afa54461970a6eec163a7
+  subpackages:
+  - specs-go
+- name: github.com/opencontainers/selinux
+  version: 63bd19516561f1973f86c9f777b263ee1e0db140
+  subpackages:
+  - go-selinux
+  - go-selinux/label
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/rneugeba/virtsock
+  version: 6b4dec728264e07c41e108caebd6bc2b72559a5f
+  subpackages:
+  - pkg/hvsock
+- name: github.com/Sirupsen/logrus
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/spf13/cobra
+  version: 7be4beda01ec05d0b93d80b3facd2b6f44080d94
+- name: github.com/spf13/pflag
+  version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - require
+- name: golang.org/x/net
+  version: a6577fac2d73be281a500b310739095313165611
+  subpackages:
+  - context
+  - context/ctxhttp
+  - proxy
+- name: golang.org/x/sys
+  version: 99f16d856c9836c42d24e7ab64ea72916925fa97
+  subpackages:
+  - unix
+  - windows
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
