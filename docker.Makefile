@@ -6,6 +6,7 @@
 
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
+CROSS_IMAGE_NAME = docker-cli-cross
 MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
 
 # build docker image (dockerfiles/Dockerfile.build)
@@ -17,6 +18,11 @@ build_docker_image:
 .PHONY: build_linter_image
 build_linter_image:
 	@docker build -q -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
+
+.PHONY: build_cross_image
+build_cross_image:
+	@docker build -t $(CROSS_IMAGE_NAME) -f ./dockerfiles/Dockerfile.cross .
+
 
 # build executable using a container
 .PHONY: build
@@ -44,6 +50,8 @@ cross: build_docker_image
 dev: build_docker_image
 	@docker run -ti $(MOUNTS) -v /var/run/docker.sock:/var/run/docker.sock $(DEV_DOCKER_IMAGE_NAME) ash
 
+shell: dev
+
 # run linters in a container
 .PHONY: lint
 lint: build_linter_image
@@ -53,3 +61,6 @@ lint: build_linter_image
 .PHONY: vendor
 vendor: build_docker_image vendor.conf
 	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
+
+dynbinary: build_cross_image
+	@docker run -ti --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary

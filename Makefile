@@ -2,11 +2,6 @@
 # github.com/docker/cli
 #
 
-# build the CLI
-.PHONY: build
-build: clean
-	@./scripts/build/binary
-
 # remove build artifacts
 .PHONY: clean
 clean:
@@ -18,15 +13,23 @@ clean:
 test:
 	@go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
 
-# run linters
 .PHONY: lint
 lint:
 	@gometalinter --config gometalinter.json ./...
 
+
+.PHONY: binary
+binary:
+	@./scripts/build/binary
+
 # build the CLI for multiple architectures
 .PHONY: cross
-cross: clean
+cross:
 	@./scripts/build/cross
+
+.PHONY: dynbinary
+dynbinary:
+	@./scripts/build/dynbinary
 
 # download dependencies (vendor/) listed in vendor.conf
 .PHONY: vendor

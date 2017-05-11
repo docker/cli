@@ -1,5 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+#
+# Build a static binary for the host OS/ARCH
+#
 
-source ./scripts/build/ldflags
+set -eu -o pipefail
 
-go build -o ./build/docker --ldflags "${LDFLAGS}" github.com/docker/cli/cmd/docker
+source ./scripts/build/.variables
+
+export CGO_ENABLED=0
+go build -o "${TARGET}" --ldflags "${LDFLAGS}" "${SOURCE}"
+
+ln -sf "$(basename ${TARGET})" build/docker

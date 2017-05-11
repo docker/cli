@@ -1,0 +1,19 @@
+
+FROM    golang:1.8.1
+
+# allow replacing httpredir or deb mirror
+ARG     APT_MIRROR=deb.debian.org
+RUN     sed -ri "s/(httpredir|deb).debian.org/$APT_MIRROR/g" /etc/apt/sources.list
+
+RUN     apt-get update && apt-get install -y \
+            libltdl-dev \
+            ;
+
+#            build-essential \ 
+#            binutils-mingw-w64 gcc-mingw-w64
+
+RUN     go get github.com/mitchellh/gox && \
+        cp /go/bin/gox /usr/bin && \
+        rm -rf /go/src/* /go/pkg/* /go/bin/*
+
+WORKDIR /go/src/github.com/docker/cli

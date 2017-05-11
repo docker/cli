@@ -1,8 +1,21 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-source ./scripts/build/ldflags
+set -eu -o pipefail
+
+source ./scripts/build/.variables
+
+# Wow, gox doesn't like extra spaces between these strings...
+CROSS_OSARCH="\
+windows/amd64"
+
+#darwin/amd64 \
+#linux/amd64 \
+#linux/arm \
+
+# Currently broken
+# linux/ppc64le \
 
 gox -output build/docker-{{.OS}}-{{.Arch}} \
-    -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
+    -osarch "${CROSS_OSARCH}" \
 	--ldflags "${LDFLAGS}" \
-	github.com/docker/cli/cmd/docker
+	${SOURCE}
