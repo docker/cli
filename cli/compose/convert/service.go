@@ -129,6 +129,7 @@ func convertService(
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
 				Secrets:         secrets,
+				ReadOnly:        service.ReadOnly,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,

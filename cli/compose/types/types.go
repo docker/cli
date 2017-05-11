@@ -18,7 +18,6 @@ var UnsupportedProperties = []string{
 	"mac_address",
 	"network_mode",
 	"privileged",
-	"read_only",
 	"restart",
 	"security_opt",
 	"shm_size",
