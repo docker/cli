@@ -21,7 +21,7 @@ build_linter_image:
 # build executable using a container
 .PHONY: build
 build: build_docker_image
-	@echo "WARNING: this will drop a Linux executable on your host (not a macOS of Windows one)"
+	@echo "WARNING: this will drop a Linux executable on your host (not a macOS or Windows one)"
 	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make build
 
 # clean build artifacts using a container
