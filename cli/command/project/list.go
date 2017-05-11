@@ -14,7 +14,7 @@ type lsOptions struct {
 	format string
 }
 
-// NewInitCommand creates a new cobra.Command for `docker project init`
+// NewLsCommand creates a new cobra.Command for `docker project ls`
 func NewLsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	var opts lsOptions
 
@@ -32,12 +32,6 @@ func NewLsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.StringVar(&opts.format, "format", "", "Pretty-print volumes using a Go template")
 
 	return cmd
-}
-
-type projectForJson struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-	Root string `json:"root"`
 }
 
 func runLs(dockerCli *command.DockerCli, opts *lsOptions) error {

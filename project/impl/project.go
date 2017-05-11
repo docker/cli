@@ -123,9 +123,9 @@ func (p *Project) Dial() (net.Conn, error) {
 	return fakeListener.DialContext(nil, "", "")
 }
 
-// NewScopedHttpClient ...
-func (p *Project) NewScopedHttpClient(backendAddr, apiVersion string) (*http.Client, error) {
-	// creates a docker API client that will be used internally by the proxy
+// NewScopedHTTPClient creates a docker API client used internally by the proxy
+func (p *Project) NewScopedHTTPClient(backendAddr, apiVersion string) (*http.Client, error) {
+	//
 	dockerClient, err := client.NewClient(backendAddr, apiVersion, nil, nil)
 	if err != nil {
 		return nil, err

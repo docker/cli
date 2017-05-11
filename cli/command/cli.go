@@ -202,7 +202,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 
 	var httpClient *http.Client
 	if project.IsInProject() {
-		httpClient, err = project.GetCurrentProject().NewScopedHttpClient(host, verStr)
+		httpClient, err = project.GetCurrentProject().NewScopedHTTPClient(host, verStr)
 		if err != nil {
 			return &client.Client{}, err
 		}

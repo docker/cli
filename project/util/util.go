@@ -19,6 +19,7 @@ const (
 	recentProjectsFileName = ".recentProjects.json"
 )
 
+// ChRootDir changes the current working directory to project's root directory
 func ChRootDir(p project.Project) (previousWorkDir string, err error) {
 	previousWorkDir, err = os.Getwd()
 	if err != nil {
@@ -47,7 +48,7 @@ func (rp *recentProject) ID() string {
 func (rp *recentProject) Dial() (net.Conn, error) {
 	return nil, nil
 }
-func (rp *recentProject) NewScopedHttpClient(backendAddr, apiVersion string) (*http.Client, error) {
+func (rp *recentProject) NewScopedHTTPClient(backendAddr, apiVersion string) (*http.Client, error) {
 	return nil, nil
 }
 
