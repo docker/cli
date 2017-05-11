@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+source ./scripts/build/ldflags
+
+go build \
+    -o ./build/docker \
+    --ldflags "${LDFLAGS}" \
+    github.com/docker/cli/cmd/docker
