@@ -98,6 +98,12 @@ func convertService(
 		return swarm.ServiceSpec{}, err
 	}
 
+	var privileges swarm.Privileges
+	privileges.CredentialSpec, err = convertCredentialSpec(service.CredentialSpec)
+	if err != nil {
+		return swarm.ServiceSpec{}, err
+	}
+
 	var logDriver *swarm.Driver
 	if service.Logging != nil {
 		logDriver = &swarm.Driver{
@@ -130,6 +136,7 @@ func convertService(
 				OpenStdin:       service.StdinOpen,
 				Secrets:         secrets,
 				ReadOnly:        service.ReadOnly,
+				Privileges:      &privileges,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -476,4 +483,18 @@ func convertDNSConfig(DNS []string, DNSSearch []string) (*swarm.DNSConfig, error
 		}, nil
 	}
 	return nil, nil
+}
+
+func convertCredentialSpec(spec composetypes.CredentialSpecConfig) (*swarm.CredentialSpec, error) {
+	if spec.File == "" && spec.Registry == "" {
+		return nil, nil
+	}
+	if spec.File != "" && spec.Registry != "" {
+		return nil, errors.New("Invalid credential spec - must provide one of `File` or `Registry`")
+	}
+
+	return &swarm.CredentialSpec{
+		File:     spec.File,
+		Registry: spec.Registry,
+	}, nil
 }
