@@ -1,2 +1,5 @@
 .DS_Store
 build
+/man/man1
+/man/man5
+/man/man8

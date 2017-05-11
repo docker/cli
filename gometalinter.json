@@ -2,7 +2,7 @@
   "Vendor": true,
   "Deadline": "2m",
   "Sort": ["linter", "severity", "path"],
-  "Exclude": ["cli/compose/schema/bindata.go"],
+  "Exclude": ["cli/compose/schema/bindata.go", "man/generate.go"],
 
   "DisableAll": true,
   "Enable": [

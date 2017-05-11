@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/cli/command"
-	"github.com/docker/docker/cli/command/commands"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/commands"
 	"github.com/docker/docker/pkg/term"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
