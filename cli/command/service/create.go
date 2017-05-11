@@ -92,7 +92,7 @@ func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 		service.TaskTemplate.ContainerSpec.Configs = configs
 	}
 
-	if err := resolveServiceImageDigest(dockerCli, &service); err != nil {
+	if err := resolveServiceImageDigestContentTrust(dockerCli, &service); err != nil {
 		return err
 	}
 
@@ -105,6 +105,8 @@ func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 		}
 		createOpts.EncodedRegistryAuth = encodedAuth
 	}
+
+	createOpts.QueryRegistry = true
 
 	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
 	if err != nil {

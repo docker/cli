@@ -15,10 +15,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-func resolveServiceImageDigest(dockerCli command.Cli, service *swarm.ServiceSpec) error {
+func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm.ServiceSpec) error {
 	if !command.IsTrusted() {
-		// Digests are resolved by the daemon when not using content
-		// trust.
+		// When not using content trust, digest resolution happens later when
+		// contacting the registry to retrieve image information.
 		return nil
 	}
 
