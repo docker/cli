@@ -13,7 +13,7 @@ export GOOS=windows
 export GOARCH=amd64
 
 # Override TARGET
-export TARGET="build/docker-windows-amd64"
+export TARGET="build/docker-$GOOS-$GOARCH"
 
 # TODO: -tags pkcs11
 go build -o "${TARGET}" --ldflags "${LDFLAGS}" "${SOURCE}"

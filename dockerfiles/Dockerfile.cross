@@ -5,7 +5,7 @@ FROM    golang:1.8.1
 ARG     APT_MIRROR=deb.debian.org
 RUN     sed -ri "s/(httpredir|deb).debian.org/$APT_MIRROR/g" /etc/apt/sources.list
 
-RUN     apt-get update && apt-get install -y \
+RUN     apt-get update -qq && apt-get install -y -q \
             libltdl-dev \
             gcc-mingw-w64 \
             parallel \
@@ -14,5 +14,9 @@ RUN     apt-get update && apt-get install -y \
 RUN     go get github.com/mitchellh/gox && \
         cp /go/bin/gox /usr/bin && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
+
+COPY    dockerfiles/osx-cross.sh /tmp/
+RUN     /tmp/osx-cross.sh
+ENV     PATH /osxcross/target/bin:$PATH
 
 WORKDIR /go/src/github.com/docker/cli

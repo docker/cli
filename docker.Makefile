@@ -12,7 +12,7 @@ MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
 build_docker_image:
-	@docker build -q -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.build .
+	@docker build -q -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
 
 # build docker image having the linting tools (dockerfiles/Dockerfile.lint)
 .PHONY: build_linter_image
@@ -25,10 +25,11 @@ build_cross_image:
 
 
 # build executable using a container
-.PHONY: build
-build: build_docker_image
+binary: build_docker_image
 	@echo "WARNING: this will drop a Linux executable on your host (not a macOS or Windows one)"
-	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make build
+	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make binary
+
+build: binary
 
 # clean build artifacts using a container
 .PHONY: clean
@@ -43,7 +44,7 @@ test: build_docker_image
 # build the CLI for multiple architectures using a container
 .PHONY: cross
 cross: build_docker_image
-	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make cross
+	@docker run --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
 # start container in interactive mode for in-container development
 .PHONY: dev

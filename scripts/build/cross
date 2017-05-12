@@ -6,4 +6,6 @@ export BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 SHELL=/bin/bash parallel ::: \
     "$BUILDDIR/linux-cross" \
-    "$BUILDDIR/windows"
+    "$BUILDDIR/windows" \
+    "$BUILDDIR/osx" \
+    ;
