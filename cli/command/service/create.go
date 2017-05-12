@@ -43,6 +43,8 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.Var(&opts.networks, flagNetwork, "Network attachments")
 	flags.Var(&opts.secrets, flagSecret, "Specify secrets to expose to the service")
 	flags.SetAnnotation(flagSecret, "version", []string{"1.25"})
+	flags.Var(&opts.configs, flagConfig, "Specify configurations to expose to the service")
+	flags.SetAnnotation(flagConfig, "version", []string{"1.30"})
 	flags.VarP(&opts.endpoint.publishPorts, flagPublish, "p", "Publish a port as a node port")
 	flags.Var(&opts.groups, flagGroup, "Set one or more supplementary user groups for the container")
 	flags.SetAnnotation(flagGroup, "version", []string{"1.25"})
@@ -78,7 +80,16 @@ func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 			return err
 		}
 		service.TaskTemplate.ContainerSpec.Secrets = secrets
+	}
 
+	specifiedConfigs := opts.configs.Value()
+	if len(specifiedConfigs) > 0 {
+		// parse and validate configs
+		configs, err := ParseConfigs(apiClient, specifiedConfigs)
+		if err != nil {
+			return err
+		}
+		service.TaskTemplate.ContainerSpec.Configs = configs
 	}
 
 	if err := resolveServiceImageDigest(dockerCli, &service); err != nil {

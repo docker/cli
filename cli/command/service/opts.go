@@ -548,6 +548,7 @@ type serviceOptions struct {
 
 	healthcheck healthCheckOptions
 	secrets     opts.SecretOpt
+	configs     opts.ConfigOpt
 }
 
 func newServiceOptions() *serviceOptions {
@@ -657,7 +658,6 @@ func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.Netw
 				},
 				Hosts:           convertExtraHostsToSwarmHosts(opts.hosts.GetAll()),
 				StopGracePeriod: opts.ToStopGracePeriod(flags),
-				Secrets:         nil,
 				Healthcheck:     healthConfig,
 			},
 			Networks:      networks,
@@ -910,4 +910,7 @@ const (
 	flagSecret                  = "secret"
 	flagSecretAdd               = "secret-add"
 	flagSecretRemove            = "secret-rm"
+	flagConfig                  = "config"
+	flagConfigAdd               = "config-add"
+	flagConfigRemove            = "config-rm"
 )

@@ -16,7 +16,7 @@ const (
 	secretUpdatedHeader      = "UPDATED"
 )
 
-// NewSecretFormat returns a Format for rendering using a network Context
+// NewSecretFormat returns a Format for rendering using a secret Context
 func NewSecretFormat(source string, quiet bool) Format {
 	switch source {
 	case TableFormatKey:

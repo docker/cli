@@ -38,6 +38,7 @@ type ConfigFile struct {
 	ServicesFormat       string                      `json:"servicesFormat,omitempty"`
 	TasksFormat          string                      `json:"tasksFormat,omitempty"`
 	SecretFormat         string                      `json:"secretFormat,omitempty"`
+	ConfigFormat         string                      `json:"configFormat,omitempty"`
 	NodesFormat          string                      `json:"nodesFormat,omitempty"`
 	PruneFilters         []string                    `json:"pruneFilters,omitempty"`
 }

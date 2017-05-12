@@ -3,6 +3,7 @@ package volume
 import (
 	"bytes"
 	"io/ioutil"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -104,10 +105,10 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 			if body.Driver != expectedDriver {
 				return types.Volume{}, errors.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
 			}
-			if !compareMap(body.DriverOpts, expectedOpts) {
+			if !reflect.DeepEqual(body.DriverOpts, expectedOpts) {
 				return types.Volume{}, errors.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
 			}
-			if !compareMap(body.Labels, expectedLabels) {
+			if !reflect.DeepEqual(body.Labels, expectedLabels) {
 				return types.Volume{}, errors.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
 			}
 			return types.Volume{
@@ -124,20 +125,4 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("label", "lbl2=v2")
 	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, name, strings.TrimSpace(buf.String()))
-}
-
-func compareMap(actual map[string]string, expected map[string]string) bool {
-	if len(actual) != len(expected) {
-		return false
-	}
-	for key, value := range actual {
-		if expectedValue, ok := expected[key]; ok {
-			if expectedValue != value {
-				return false
-			}
-		} else {
-			return false
-		}
-	}
-	return true
 }
