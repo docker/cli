@@ -7,10 +7,9 @@ RUN     sed -ri "s/(httpredir|deb).debian.org/$APT_MIRROR/g" /etc/apt/sources.li
 
 RUN     apt-get update && apt-get install -y \
             libltdl-dev \
+            gcc-mingw-w64 \
+            parallel \
             ;
-
-#            build-essential \ 
-#            binutils-mingw-w64 gcc-mingw-w64
 
 RUN     go get github.com/mitchellh/gox && \
         cp /go/bin/gox /usr/bin && \

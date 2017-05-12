@@ -2,20 +2,8 @@
 
 set -eu -o pipefail
 
-source ./scripts/build/.variables
+export BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Wow, gox doesn't like extra spaces between these strings...
-CROSS_OSARCH="\
-windows/amd64"
-
-#darwin/amd64 \
-#linux/amd64 \
-#linux/arm \
-
-# Currently broken
-# linux/ppc64le \
-
-gox -output build/docker-{{.OS}}-{{.Arch}} \
-    -osarch "${CROSS_OSARCH}" \
-	--ldflags "${LDFLAGS}" \
-	${SOURCE}
+SHELL=/bin/bash parallel ::: \
+    "$BUILDDIR/linux-cross" \
+    "$BUILDDIR/windows"
