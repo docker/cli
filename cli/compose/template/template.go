@@ -33,8 +33,9 @@ func (e InvalidTemplateError) Error() string {
 type Mapping func(string) (string, bool)
 
 // Substitute variables in the string with their values
-func Substitute(template string, mapping Mapping) (result string, err *InvalidTemplateError) {
-	result = pattern.ReplaceAllStringFunc(template, func(substring string) string {
+func Substitute(template string, mapping Mapping) (string, error) {
+	var err error
+	result := pattern.ReplaceAllStringFunc(template, func(substring string) string {
 		matches := pattern.FindStringSubmatch(substring)
 		groups := make(map[string]string)
 		for i, name := range pattern.SubexpNames() {
