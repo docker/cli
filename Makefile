@@ -28,6 +28,9 @@ lint:
 cross: clean
 	@./scripts/build/cross
 
+dynbinary: clean
+	@./scripts/build/dynbinary
+
 # download dependencies (vendor/) listed in vendor.conf
 .PHONY: vendor
 vendor: vendor.conf
