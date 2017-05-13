@@ -129,6 +129,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 					fmt.Fprintf(dockerCli.Out(), "    %s: %s\n", entry.Protocol, entry.URL)
 				}
 			}
+			fmt.Fprintf(dockerCli.Out(), " Root Rotation In Progress: %v\n", info.Swarm.Cluster.RootRotationInProgress)
 		}
 		fmt.Fprintf(dockerCli.Out(), " Node Address: %s\n", info.Swarm.NodeAddr)
 		managers := []string{}

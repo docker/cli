@@ -1,7 +1,9 @@
 package formatter
 
 import (
+	"encoding/base64"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -61,12 +63,20 @@ Engine Labels:
 {{- range $k, $v := .EngineLabels }}
  - {{ $k }}{{if $v }}={{ $v }}{{ end }}
 {{- end }}{{- end }}
+{{- if .HasTLSInfo}}
+TLS Info:
+ TrustRoot:
+{{.TLSInfoTrustRoot}}
+ Issuer Subject:	{{.TLSInfoCertIssuerSubject}}
+ Issuer Public Key:	{{.TLSInfoCertIssuerPublicKey}}
+{{- end}}
 `
 	nodeIDHeader        = "ID"
 	selfHeader          = ""
 	hostnameHeader      = "HOSTNAME"
 	availabilityHeader  = "AVAILABILITY"
 	managerStatusHeader = "MANAGER STATUS"
+	tlsStatusHeader     = "TLS STATUS"
 )
 
 // NewNodeFormat returns a Format for rendering using a node Context
@@ -99,15 +109,17 @@ func NodeWrite(ctx Context, nodes []swarm.Node, info types.Info) error {
 		}
 		return nil
 	}
-	nodeCtx := nodeContext{}
-	nodeCtx.header = nodeHeaderContext{
+	header := nodeHeaderContext{
 		"ID":            nodeIDHeader,
 		"Self":          selfHeader,
 		"Hostname":      hostnameHeader,
 		"Status":        statusHeader,
 		"Availability":  availabilityHeader,
 		"ManagerStatus": managerStatusHeader,
+		"TLSStatus":     tlsStatusHeader,
 	}
+	nodeCtx := nodeContext{}
+	nodeCtx.header = header
 	return ctx.Write(&nodeCtx, render)
 }
 
@@ -153,6 +165,16 @@ func (c *nodeContext) ManagerStatus() string {
 		}
 	}
 	return command.PrettyPrint(reachability)
+}
+
+func (c *nodeContext) TLSStatus() string {
+	if c.info.Swarm.Cluster == nil || reflect.DeepEqual(c.info.Swarm.Cluster.TLSInfo, swarm.TLSInfo{}) || reflect.DeepEqual(c.n.Description.TLSInfo, swarm.TLSInfo{}) {
+		return "Unknown"
+	}
+	if reflect.DeepEqual(c.n.Description.TLSInfo, c.info.Swarm.Cluster.TLSInfo) {
+		return "Ready"
+	}
+	return "Needs Rotation"
 }
 
 // NodeInspectWrite renders the context for a list of services
@@ -289,4 +311,21 @@ func (ctx *nodeInspectContext) EngineLabels() map[string]string {
 
 func (ctx *nodeInspectContext) EngineVersion() string {
 	return ctx.Node.Description.Engine.EngineVersion
+}
+
+func (ctx *nodeInspectContext) HasTLSInfo() bool {
+	tlsInfo := ctx.Node.Description.TLSInfo
+	return !reflect.DeepEqual(tlsInfo, swarm.TLSInfo{})
+}
+
+func (ctx *nodeInspectContext) TLSInfoTrustRoot() string {
+	return ctx.Node.Description.TLSInfo.TrustRoot
+}
+
+func (ctx *nodeInspectContext) TLSInfoCertIssuerPublicKey() string {
+	return base64.StdEncoding.EncodeToString(ctx.Node.Description.TLSInfo.CertIssuerPublicKey)
+}
+
+func (ctx *nodeInspectContext) TLSInfoCertIssuerSubject() string {
+	return base64.StdEncoding.EncodeToString(ctx.Node.Description.TLSInfo.CertIssuerSubject)
 }
