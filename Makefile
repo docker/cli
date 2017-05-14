@@ -2,6 +2,8 @@
 # github.com/docker/cli
 #
 
+all: binary
+
 # remove build artifacts
 .PHONY: clean
 clean:
@@ -35,10 +37,10 @@ dynbinary:
 .PHONY: vendor
 vendor: vendor.conf
 	@vndr 2> /dev/null
-	@script/validate/check-git-diff vendor
+	@scripts/validate/check-git-diff vendor
 
 cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
 	go generate github.com/docker/cli/cli/compose/schema
 
 compose-jsonschema: cli/compose/schema/bindata.go
-	@script/validate/check-git-diff cli/compose/schema/bindata.go
+	@scripts/validate/check-git-diff cli/compose/schema/bindata.go

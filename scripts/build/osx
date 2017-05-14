@@ -15,6 +15,7 @@ export LDFLAGS='-linkmode external -s'
 export LDFLAGS_STATIC_DOCKER='-extld='${CC}
 
 # Override TARGET
-export TARGET="build/docker-$GOOS-$GOARCH"
+TARGET="build/docker-$GOOS-$GOARCH"
 
+echo "Building $TARGET"
 go build -o "${TARGET}" -tags pkcs11 --ldflags "${LDFLAGS}" "${SOURCE}"

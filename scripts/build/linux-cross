@@ -15,6 +15,7 @@ CROSS_OSARCH="linux/amd64 linux/arm"
 # Not yet supported by gox
 # linux/s390x
 
+echo "Building all linux binaries"
 gox -output build/docker-{{.OS}}-{{.Arch}} \
     -osarch "${CROSS_OSARCH}" \
 	--ldflags "${LDFLAGS}" \

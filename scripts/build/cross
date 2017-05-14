@@ -4,6 +4,7 @@ set -eu -o pipefail
 
 export BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+echo "Building all binaries"
 SHELL=/bin/bash parallel ::: \
     "$BUILDDIR/linux-cross" \
     "$BUILDDIR/windows" \

@@ -12,12 +12,12 @@ MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
 build_docker_image:
-	@docker build -q -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
+	@docker build -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
 
 # build docker image having the linting tools (dockerfiles/Dockerfile.lint)
 .PHONY: build_linter_image
 build_linter_image:
-	@docker build -q -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
+	@docker build -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
 
 .PHONY: build_cross_image
 build_cross_image:
@@ -43,7 +43,7 @@ test: build_docker_image
 
 # build the CLI for multiple architectures using a container
 .PHONY: cross
-cross: build_docker_image
+cross: build_cross_image
 	@docker run --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
 # start container in interactive mode for in-container development
