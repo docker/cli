@@ -2,7 +2,7 @@
 
 . ./scripts/build/ldflags
 
-gox -output build/docker-{{.OS}}-{{.Arch}} \
+CGO_ENABLED=0 gox -output build/docker-{{.OS}}-{{.Arch}} \
     -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
 	--ldflags "${LDFLAGS}" \
 	github.com/docker/cli/cmd/docker

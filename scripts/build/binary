@@ -2,4 +2,4 @@
 
 . ./scripts/build/ldflags
 
-go build -o ./build/docker --ldflags "${LDFLAGS}" github.com/docker/cli/cmd/docker
+CGO_ENABLED=0 go build -o ./build/docker --ldflags "${LDFLAGS}" github.com/docker/cli/cmd/docker
