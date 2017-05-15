@@ -29,11 +29,12 @@ const (
 // DiskUsageContext contains disk usage specific information required by the formatter, encapsulate a Context struct.
 type DiskUsageContext struct {
 	Context
-	Verbose    bool
-	LayersSize int64
-	Images     []*types.ImageSummary
-	Containers []*types.Container
-	Volumes    []*types.Volume
+	Verbose     bool
+	LayersSize  int64
+	Images      []*types.ImageSummary
+	Containers  []*types.Container
+	Volumes     []*types.Volume
+	BuilderSize int64
 }
 
 func (ctx *DiskUsageContext) startSubsection(format string) (*template.Template, error) {
@@ -92,6 +93,13 @@ func (ctx *DiskUsageContext) Write() (err error) {
 
 	err = ctx.contextFormat(tmpl, &diskUsageVolumesContext{
 		volumes: ctx.Volumes,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = ctx.contextFormat(tmpl, &diskUsageBuilderContext{
+		builderSize: ctx.BuilderSize,
 	})
 	if err != nil {
 		return err
@@ -179,6 +187,9 @@ func (ctx *DiskUsageContext) verboseWrite() (err error) {
 		}
 	}
 	ctx.postFormat(tmpl, newVolumeContext())
+
+	// And build cache
+	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
 	return
 }
 
@@ -356,4 +367,33 @@ func (c *diskUsageVolumesContext) Reclaimable() string {
 	}
 
 	return fmt.Sprintf("%s", units.HumanSize(float64(reclaimable)))
+}
+
+type diskUsageBuilderContext struct {
+	HeaderContext
+	builderSize int64
+}
+
+func (c *diskUsageBuilderContext) MarshalJSON() ([]byte, error) {
+	return marshalJSON(c)
+}
+
+func (c *diskUsageBuilderContext) Type() string {
+	return "Build Cache"
+}
+
+func (c *diskUsageBuilderContext) TotalCount() string {
+	return ""
+}
+
+func (c *diskUsageBuilderContext) Active() string {
+	return ""
+}
+
+func (c *diskUsageBuilderContext) Size() string {
+	return units.HumanSize(float64(c.builderSize))
+}
+
+func (c *diskUsageBuilderContext) Reclaimable() string {
+	return c.Size()
 }
