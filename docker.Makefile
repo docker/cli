@@ -53,3 +53,8 @@ lint: build_linter_image
 .PHONY: vendor
 vendor: build_docker_image vendor.conf
 	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
+
+## Generate man pages from go source and markdown
+.PHONY: manpages
+manpages: build_docker_image
+	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make manpages
