@@ -5,16 +5,15 @@ import (
 	"net"
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type createOptions struct {
@@ -36,7 +35,7 @@ type createOptions struct {
 }
 
 func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := createOptions{
+	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateEnv),
 		ipamAux:    *opts.NewMapOpts(nil, nil),
@@ -48,59 +47,59 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Short: "Create a network",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.name = args[0]
-			return runCreate(dockerCli, opts)
+			options.name = args[0]
+			return runCreate(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.driver, "driver", "d", "bridge", "Driver to manage the Network")
-	flags.VarP(&opts.driverOpts, "opt", "o", "Set driver specific options")
-	flags.Var(&opts.labels, "label", "Set metadata on a network")
-	flags.BoolVar(&opts.internal, "internal", false, "Restrict external access to the network")
-	flags.BoolVar(&opts.ipv6, "ipv6", false, "Enable IPv6 networking")
-	flags.BoolVar(&opts.attachable, "attachable", false, "Enable manual container attachment")
+	flags.StringVarP(&options.driver, "driver", "d", "bridge", "Driver to manage the Network")
+	flags.VarP(&options.driverOpts, "opt", "o", "Set driver specific options")
+	flags.Var(&options.labels, "label", "Set metadata on a network")
+	flags.BoolVar(&options.internal, "internal", false, "Restrict external access to the network")
+	flags.BoolVar(&options.ipv6, "ipv6", false, "Enable IPv6 networking")
+	flags.BoolVar(&options.attachable, "attachable", false, "Enable manual container attachment")
 	flags.SetAnnotation("attachable", "version", []string{"1.25"})
-	flags.BoolVar(&opts.ingress, "ingress", false, "Create swarm routing-mesh network")
+	flags.BoolVar(&options.ingress, "ingress", false, "Create swarm routing-mesh network")
 	flags.SetAnnotation("ingress", "version", []string{"1.29"})
 
-	flags.StringVar(&opts.ipamDriver, "ipam-driver", "default", "IP Address Management Driver")
-	flags.StringSliceVar(&opts.ipamSubnet, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
-	flags.StringSliceVar(&opts.ipamIPRange, "ip-range", []string{}, "Allocate container ip from a sub-range")
-	flags.StringSliceVar(&opts.ipamGateway, "gateway", []string{}, "IPv4 or IPv6 Gateway for the master subnet")
+	flags.StringVar(&options.ipamDriver, "ipam-driver", "default", "IP Address Management Driver")
+	flags.StringSliceVar(&options.ipamSubnet, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
+	flags.StringSliceVar(&options.ipamIPRange, "ip-range", []string{}, "Allocate container ip from a sub-range")
+	flags.StringSliceVar(&options.ipamGateway, "gateway", []string{}, "IPv4 or IPv6 Gateway for the master subnet")
 
-	flags.Var(&opts.ipamAux, "aux-address", "Auxiliary IPv4 or IPv6 addresses used by Network driver")
-	flags.Var(&opts.ipamOpt, "ipam-opt", "Set IPAM driver specific options")
+	flags.Var(&options.ipamAux, "aux-address", "Auxiliary IPv4 or IPv6 addresses used by Network driver")
+	flags.Var(&options.ipamOpt, "ipam-opt", "Set IPAM driver specific options")
 
 	return cmd
 }
 
-func runCreate(dockerCli *command.DockerCli, opts createOptions) error {
+func runCreate(dockerCli *command.DockerCli, options createOptions) error {
 	client := dockerCli.Client()
 
-	ipamCfg, err := consolidateIpam(opts.ipamSubnet, opts.ipamIPRange, opts.ipamGateway, opts.ipamAux.GetAll())
+	ipamCfg, err := consolidateIpam(options.ipamSubnet, options.ipamIPRange, options.ipamGateway, options.ipamAux.GetAll())
 	if err != nil {
 		return err
 	}
 
 	// Construct network create request body
 	nc := types.NetworkCreate{
-		Driver:  opts.driver,
-		Options: opts.driverOpts.GetAll(),
+		Driver:  options.driver,
+		Options: options.driverOpts.GetAll(),
 		IPAM: &network.IPAM{
-			Driver:  opts.ipamDriver,
+			Driver:  options.ipamDriver,
 			Config:  ipamCfg,
-			Options: opts.ipamOpt.GetAll(),
+			Options: options.ipamOpt.GetAll(),
 		},
 		CheckDuplicate: true,
-		Internal:       opts.internal,
-		EnableIPv6:     opts.ipv6,
-		Attachable:     opts.attachable,
-		Ingress:        opts.ingress,
-		Labels:         runconfigopts.ConvertKVStringsToMap(opts.labels.GetAll()),
+		Internal:       options.internal,
+		EnableIPv6:     options.ipv6,
+		Attachable:     options.attachable,
+		Ingress:        options.ingress,
+		Labels:         runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
 	}
 
-	resp, err := client.NetworkCreate(context.Background(), opts.name, nc)
+	resp, err := client.NetworkCreate(context.Background(), options.name, nc)
 	if err != nil {
 		return err
 	}

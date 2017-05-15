@@ -3,12 +3,11 @@ package network
 import (
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/opts"
+	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type pruneOptions struct {
@@ -18,14 +17,14 @@ type pruneOptions struct {
 
 // NewPruneCommand returns a new cobra prune command for networks
 func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
-	opts := pruneOptions{filter: opts.NewFilterOpt()}
+	options := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
 		Short: "Remove all unused networks",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			output, err := runPrune(dockerCli, opts)
+			output, err := runPrune(dockerCli, options)
 			if err != nil {
 				return err
 			}
@@ -38,8 +37,8 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.force, "force", "f", false, "Do not prompt for confirmation")
-	flags.Var(&opts.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
+	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
+	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
 
 	return cmd
 }
@@ -47,10 +46,10 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all networks not used by at least one container.
 Are you sure you want to continue?`
 
-func runPrune(dockerCli command.Cli, opts pruneOptions) (output string, err error) {
-	pruneFilters := command.PruneFilters(dockerCli, opts.filter.Value())
+func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err error) {
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
-	if !opts.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
+	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return
 	}
 

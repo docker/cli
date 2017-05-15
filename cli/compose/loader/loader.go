@@ -12,7 +12,7 @@ import (
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/opts"
+	"github.com/docker/cli/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"

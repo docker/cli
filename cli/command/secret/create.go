@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/system"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
@@ -23,7 +23,7 @@ type createOptions struct {
 }
 
 func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
-	createOpts := createOptions{
+	options := createOptions{
 		labels: opts.NewListOpts(opts.ValidateEnv),
 	}
 
@@ -32,13 +32,13 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create a secret from a file or STDIN as content",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			createOpts.name = args[0]
-			createOpts.file = args[1]
-			return runSecretCreate(dockerCli, createOpts)
+			options.name = args[0]
+			options.file = args[1]
+			return runSecretCreate(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.VarP(&createOpts.labels, "label", "l", "Secret labels")
+	flags.VarP(&options.labels, "label", "l", "Secret labels")
 
 	return cmd
 }

@@ -9,16 +9,15 @@ import (
 	"text/template"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	eventtypes "github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/docker/docker/pkg/templates"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type eventsOptions struct {
@@ -30,41 +29,41 @@ type eventsOptions struct {
 
 // NewEventsCommand creates a new cobra.Command for `docker events`
 func NewEventsCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := eventsOptions{filter: opts.NewFilterOpt()}
+	options := eventsOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "events [OPTIONS]",
 		Short: "Get real time events from the server",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEvents(dockerCli, &opts)
+			return runEvents(dockerCli, &options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.since, "since", "", "Show all events created since timestamp")
-	flags.StringVar(&opts.until, "until", "", "Stream events until this timestamp")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.StringVar(&opts.format, "format", "", "Format the output using the given Go template")
+	flags.StringVar(&options.since, "since", "", "Show all events created since timestamp")
+	flags.StringVar(&options.until, "until", "", "Stream events until this timestamp")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.StringVar(&options.format, "format", "", "Format the output using the given Go template")
 
 	return cmd
 }
 
-func runEvents(dockerCli *command.DockerCli, opts *eventsOptions) error {
-	tmpl, err := makeTemplate(opts.format)
+func runEvents(dockerCli *command.DockerCli, options *eventsOptions) error {
+	tmpl, err := makeTemplate(options.format)
 	if err != nil {
 		return cli.StatusError{
 			StatusCode: 64,
 			Status:     "Error parsing format: " + err.Error()}
 	}
-	options := types.EventsOptions{
-		Since:   opts.since,
-		Until:   opts.until,
-		Filters: opts.filter.Value(),
+	eventOptions := types.EventsOptions{
+		Since:   options.since,
+		Until:   options.until,
+		Filters: options.filter.Value(),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	events, errs := dockerCli.Client().Events(ctx, options)
+	events, errs := dockerCli.Client().Events(ctx, eventOptions)
 	defer cancel()
 
 	out := dockerCli.Out()

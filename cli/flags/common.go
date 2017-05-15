@@ -7,7 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/docker/opts"
+	"github.com/docker/cli/opts"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/spf13/pflag"
 )

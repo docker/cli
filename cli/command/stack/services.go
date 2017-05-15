@@ -3,16 +3,15 @@ package stack
 import (
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/service"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type servicesOptions struct {
@@ -23,30 +22,30 @@ type servicesOptions struct {
 }
 
 func newServicesCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := servicesOptions{filter: opts.NewFilterOpt()}
+	options := servicesOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "services [OPTIONS] STACK",
 		Short: "List the services in the stack",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.namespace = args[0]
-			return runServices(dockerCli, opts)
+			options.namespace = args[0]
+			return runServices(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print services using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
+	flags.StringVar(&options.format, "format", "", "Pretty-print services using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
-func runServices(dockerCli *command.DockerCli, opts servicesOptions) error {
+func runServices(dockerCli *command.DockerCli, options servicesOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
-	filter := getStackFilterFromOpt(opts.namespace, opts.filter)
+	filter := getStackFilterFromOpt(options.namespace, options.filter)
 	services, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: filter})
 	if err != nil {
 		return err
@@ -56,12 +55,12 @@ func runServices(dockerCli *command.DockerCli, opts servicesOptions) error {
 
 	// if no services in this stack, print message and exit 0
 	if len(services) == 0 {
-		fmt.Fprintf(out, "Nothing found in stack: %s\n", opts.namespace)
+		fmt.Fprintf(out, "Nothing found in stack: %s\n", options.namespace)
 		return nil
 	}
 
 	info := map[string]formatter.ServiceListInfo{}
-	if !opts.quiet {
+	if !options.quiet {
 		taskFilter := filters.NewArgs()
 		for _, service := range services {
 			taskFilter.Add("service", service.ID)
@@ -80,9 +79,9 @@ func runServices(dockerCli *command.DockerCli, opts servicesOptions) error {
 		info = service.GetServicesStatus(services, nodes, tasks)
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().ServicesFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -91,7 +90,7 @@ func runServices(dockerCli *command.DockerCli, opts servicesOptions) error {
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, opts.quiet),
+		Format: formatter.NewServiceListFormat(format, options.quiet),
 	}
 	return formatter.ServiceListWrite(servicesCtx, services, info)
 }

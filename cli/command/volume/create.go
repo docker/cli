@@ -5,8 +5,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	volumetypes "github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -21,7 +21,7 @@ type createOptions struct {
 }
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
-	opts := createOptions{
+	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateEnv),
 	}
@@ -32,32 +32,32 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
-				if opts.name != "" {
+				if options.name != "" {
 					return errors.Errorf("Conflicting options: either specify --name or provide positional arg, not both\n")
 				}
-				opts.name = args[0]
+				options.name = args[0]
 			}
-			return runCreate(dockerCli, opts)
+			return runCreate(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.driver, "driver", "d", "local", "Specify volume driver name")
-	flags.StringVar(&opts.name, "name", "", "Specify volume name")
+	flags.StringVarP(&options.driver, "driver", "d", "local", "Specify volume driver name")
+	flags.StringVar(&options.name, "name", "", "Specify volume name")
 	flags.Lookup("name").Hidden = true
-	flags.VarP(&opts.driverOpts, "opt", "o", "Set driver specific options")
-	flags.Var(&opts.labels, "label", "Set metadata for a volume")
+	flags.VarP(&options.driverOpts, "opt", "o", "Set driver specific options")
+	flags.Var(&options.labels, "label", "Set metadata for a volume")
 
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, opts createOptions) error {
+func runCreate(dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
 
 	volReq := volumetypes.VolumesCreateBody{
-		Driver:     opts.driver,
-		DriverOpts: opts.driverOpts.GetAll(),
-		Name:       opts.name,
-		Labels:     runconfigopts.ConvertKVStringsToMap(opts.labels.GetAll()),
+		Driver:     options.driver,
+		DriverOpts: options.driverOpts.GetAll(),
+		Name:       options.name,
+		Labels:     runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
 	}
 
 	vol, err := client.VolumeCreate(context.Background(), volReq)

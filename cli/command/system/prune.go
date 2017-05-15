@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/prune"
-	"github.com/docker/docker/opts"
+	"github.com/docker/cli/opts"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
@@ -19,22 +19,22 @@ type pruneOptions struct {
 
 // NewPruneCommand creates a new cobra.Command for `docker prune`
 func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
-	opts := pruneOptions{filter: opts.NewFilterOpt()}
+	options := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
 		Short: "Remove unused data",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPrune(dockerCli, opts)
+			return runPrune(dockerCli, options)
 		},
 		Tags: map[string]string{"version": "1.25"},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.force, "force", "f", false, "Do not prompt for confirmation")
-	flags.BoolVarP(&opts.all, "all", "a", false, "Remove all unused images not just dangling ones")
-	flags.Var(&opts.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
+	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
+	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
+	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
 
 	return cmd
 }

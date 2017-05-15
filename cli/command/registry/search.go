@@ -6,16 +6,15 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/stringutils"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type searchOptions struct {
@@ -31,26 +30,26 @@ type searchOptions struct {
 
 // NewSearchCommand creates a new `docker search` command
 func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
-	opts := searchOptions{filter: opts.NewFilterOpt()}
+	options := searchOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "search [OPTIONS] TERM",
 		Short: "Search the Docker Hub for images",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.term = args[0]
-			return runSearch(dockerCli, opts)
+			options.term = args[0]
+			return runSearch(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Don't truncate output")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.IntVar(&opts.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.IntVar(&options.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
 
-	flags.BoolVar(&opts.automated, "automated", false, "Only show automated builds")
-	flags.UintVarP(&opts.stars, "stars", "s", 0, "Only displays with at least x stars")
+	flags.BoolVar(&options.automated, "automated", false, "Only show automated builds")
+	flags.UintVarP(&options.stars, "stars", "s", 0, "Only displays with at least x stars")
 
 	flags.MarkDeprecated("automated", "use --filter=is-automated=true instead")
 	flags.MarkDeprecated("stars", "use --filter=stars=3 instead")
@@ -58,8 +57,8 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSearch(dockerCli command.Cli, opts searchOptions) error {
-	indexInfo, err := registry.ParseSearchIndexInfo(opts.term)
+func runSearch(dockerCli command.Cli, options searchOptions) error {
+	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
 	if err != nil {
 		return err
 	}
@@ -74,16 +73,16 @@ func runSearch(dockerCli command.Cli, opts searchOptions) error {
 		return err
 	}
 
-	options := types.ImageSearchOptions{
+	searchOptions := types.ImageSearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
-		Filters:       opts.filter.Value(),
-		Limit:         opts.limit,
+		Filters:       options.filter.Value(),
+		Limit:         options.limit,
 	}
 
 	clnt := dockerCli.Client()
 
-	unorderedResults, err := clnt.ImageSearch(ctx, opts.term, options)
+	unorderedResults, err := clnt.ImageSearch(ctx, options.term, searchOptions)
 	if err != nil {
 		return err
 	}
@@ -95,12 +94,12 @@ func runSearch(dockerCli command.Cli, opts searchOptions) error {
 	fmt.Fprintf(w, "NAME\tDESCRIPTION\tSTARS\tOFFICIAL\tAUTOMATED\n")
 	for _, res := range results {
 		// --automated and -s, --stars are deprecated since Docker 1.12
-		if (opts.automated && !res.IsAutomated) || (int(opts.stars) > res.StarCount) {
+		if (options.automated && !res.IsAutomated) || (int(options.stars) > res.StarCount) {
 			continue
 		}
 		desc := strings.Replace(res.Description, "\n", " ", -1)
 		desc = strings.Replace(desc, "\r", " ", -1)
-		if !opts.noTrunc {
+		if !options.noTrunc {
 			desc = stringutils.Ellipsis(desc, 45)
 		}
 		fmt.Fprintf(w, "%s\t%s\t%d\t", res.Name, desc, res.StarCount)

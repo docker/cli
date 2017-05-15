@@ -3,19 +3,18 @@ package service
 import (
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/task"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type psOptions struct {
@@ -28,36 +27,36 @@ type psOptions struct {
 }
 
 func newPsCommand(dockerCli command.Cli) *cobra.Command {
-	opts := psOptions{filter: opts.NewFilterOpt()}
+	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "ps [OPTIONS] SERVICE [SERVICE...]",
 		Short: "List the tasks of one or more services",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.services = args
-			return runPS(dockerCli, opts)
+			options.services = args
+			return runPS(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display task IDs")
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.BoolVar(&opts.noResolve, "no-resolve", false, "Do not map IDs to Names")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print tasks using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
+	flags.BoolVar(&options.noResolve, "no-resolve", false, "Do not map IDs to Names")
+	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
-func runPS(dockerCli command.Cli, opts psOptions) error {
+func runPS(dockerCli command.Cli, options psOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-	filter := opts.filter.Value()
+	filter := options.filter.Value()
 
 	serviceIDFilter := filters.NewArgs()
 	serviceNameFilter := filters.NewArgs()
-	for _, service := range opts.services {
+	for _, service := range options.services {
 		serviceIDFilter.Add("id", service)
 		serviceNameFilter.Add("name", service)
 	}
@@ -70,7 +69,7 @@ func runPS(dockerCli command.Cli, opts psOptions) error {
 		return err
 	}
 
-	for _, service := range opts.services {
+	for _, service := range options.services {
 		serviceCount := 0
 		// Lookup by ID/Prefix
 		for _, serviceEntry := range serviceByIDList {
@@ -110,14 +109,14 @@ func runPS(dockerCli command.Cli, opts psOptions) error {
 		return err
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().TasksFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().TasksFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().TasksFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
 	}
 
-	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, opts.noResolve), !opts.noTrunc, opts.quiet, format)
+	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format)
 }

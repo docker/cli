@@ -3,14 +3,13 @@ package network
 import (
 	"sort"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type byNetworkName []types.NetworkResource
@@ -27,7 +26,7 @@ type listOptions struct {
 }
 
 func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := listOptions{filter: opts.NewFilterOpt()}
+	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -35,30 +34,30 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Short:   "List networks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
+			return runList(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display network IDs")
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate the output")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print networks using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Provide filter values (e.g. 'driver=bridge')")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display network IDs")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate the output")
+	flags.StringVar(&options.format, "format", "", "Pretty-print networks using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'driver=bridge')")
 
 	return cmd
 }
 
-func runList(dockerCli *command.DockerCli, opts listOptions) error {
+func runList(dockerCli *command.DockerCli, options listOptions) error {
 	client := dockerCli.Client()
-	options := types.NetworkListOptions{Filters: opts.filter.Value()}
-	networkResources, err := client.NetworkList(context.Background(), options)
+	listOptions := types.NetworkListOptions{Filters: options.filter.Value()}
+	networkResources, err := client.NetworkList(context.Background(), listOptions)
 	if err != nil {
 		return err
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().NetworksFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().NetworksFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().NetworksFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -69,8 +68,8 @@ func runList(dockerCli *command.DockerCli, opts listOptions) error {
 
 	networksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewNetworkFormat(format, opts.quiet),
-		Trunc:  !opts.noTrunc,
+		Format: formatter.NewNetworkFormat(format, options.quiet),
+		Trunc:  !options.noTrunc,
 	}
 	return formatter.NetworkWrite(networksCtx, networkResources)
 }

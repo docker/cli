@@ -6,8 +6,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/templates"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -26,27 +26,27 @@ type psOptions struct {
 
 // NewPsCommand creates a new cobra.Command for `docker ps`
 func NewPsCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := psOptions{filter: opts.NewFilterOpt()}
+	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "ps [OPTIONS]",
 		Short: "List containers",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPs(dockerCli, &opts)
+			return runPs(dockerCli, &options)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display numeric IDs")
-	flags.BoolVarP(&opts.size, "size", "s", false, "Display total file sizes")
-	flags.BoolVarP(&opts.all, "all", "a", false, "Show all containers (default shows just running)")
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Don't truncate output")
-	flags.BoolVarP(&opts.nLatest, "latest", "l", false, "Show the latest created container (includes all states)")
-	flags.IntVarP(&opts.last, "last", "n", -1, "Show n last created containers (includes all states)")
-	flags.StringVarP(&opts.format, "format", "", "", "Pretty-print containers using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display numeric IDs")
+	flags.BoolVarP(&options.size, "size", "s", false, "Display total file sizes")
+	flags.BoolVarP(&options.all, "all", "a", false, "Show all containers (default shows just running)")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
+	flags.BoolVarP(&options.nLatest, "latest", "l", false, "Show the latest created container (includes all states)")
+	flags.IntVarP(&options.last, "last", "n", -1, "Show n last created containers (includes all states)")
+	flags.StringVarP(&options.format, "format", "", "", "Pretty-print containers using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
@@ -109,10 +109,10 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 	return options, nil
 }
 
-func runPs(dockerCli *command.DockerCli, opts *psOptions) error {
+func runPs(dockerCli *command.DockerCli, options *psOptions) error {
 	ctx := context.Background()
 
-	listOptions, err := buildContainerListOptions(opts)
+	listOptions, err := buildContainerListOptions(options)
 	if err != nil {
 		return err
 	}
@@ -122,9 +122,9 @@ func runPs(dockerCli *command.DockerCli, opts *psOptions) error {
 		return err
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().PsFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().PsFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().PsFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -133,8 +133,8 @@ func runPs(dockerCli *command.DockerCli, opts *psOptions) error {
 
 	containerCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewContainerFormat(format, opts.quiet, listOptions.Size),
-		Trunc:  !opts.noTrunc,
+		Format: formatter.NewContainerFormat(format, options.quiet, listOptions.Size),
+		Trunc:  !options.noTrunc,
 	}
 	return formatter.ContainerWrite(containerCtx, containers)
 }

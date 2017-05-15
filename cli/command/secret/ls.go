@@ -4,8 +4,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -17,7 +17,7 @@ type listOptions struct {
 }
 
 func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
-	opts := listOptions{filter: opts.NewFilterOpt()}
+	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -25,29 +25,29 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List secrets",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSecretList(dockerCli, opts)
+			return runSecretList(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVarP(&opts.format, "format", "", "", "Pretty-print secrets using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
+	flags.StringVarP(&options.format, "format", "", "", "Pretty-print secrets using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
-func runSecretList(dockerCli command.Cli, opts listOptions) error {
+func runSecretList(dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-	secrets, err := client.SecretList(ctx, types.SecretListOptions{Filters: opts.filter.Value()})
+	secrets, err := client.SecretList(ctx, types.SecretListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().SecretFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().SecretFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().SecretFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -55,7 +55,7 @@ func runSecretList(dockerCli command.Cli, opts listOptions) error {
 	}
 	secretCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewSecretFormat(format, opts.quiet),
+		Format: formatter.NewSecretFormat(format, options.quiet),
 	}
 	return formatter.SecretWrite(secretCtx, secrets)
 }

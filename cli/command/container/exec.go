@@ -7,9 +7,9 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	apiclient "github.com/docker/docker/client"
-	options "github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/promise"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -22,19 +22,19 @@ type execOptions struct {
 	detach      bool
 	user        string
 	privileged  bool
-	env         *options.ListOpts
+	env         *opts.ListOpts
 }
 
 func newExecOptions() *execOptions {
 	var values []string
 	return &execOptions{
-		env: options.NewListOptsRef(&values, options.ValidateEnv),
+		env: opts.NewListOptsRef(&values, opts.ValidateEnv),
 	}
 }
 
 // NewExecCommand creates a new cobra.Command for `docker exec`
 func NewExecCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := newExecOptions()
+	options := newExecOptions()
 
 	cmd := &cobra.Command{
 		Use:   "exec [OPTIONS] CONTAINER COMMAND [ARG...]",
@@ -43,35 +43,35 @@ func NewExecCommand(dockerCli *command.DockerCli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			container := args[0]
 			execCmd := args[1:]
-			return runExec(dockerCli, opts, container, execCmd)
+			return runExec(dockerCli, options, container, execCmd)
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVarP(&opts.detachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
-	flags.BoolVarP(&opts.interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
-	flags.BoolVarP(&opts.tty, "tty", "t", false, "Allocate a pseudo-TTY")
-	flags.BoolVarP(&opts.detach, "detach", "d", false, "Detached mode: run command in the background")
-	flags.StringVarP(&opts.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
-	flags.BoolVarP(&opts.privileged, "privileged", "", false, "Give extended privileges to the command")
-	flags.VarP(opts.env, "env", "e", "Set environment variables")
+	flags.StringVarP(&options.detachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
+	flags.BoolVarP(&options.interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
+	flags.BoolVarP(&options.tty, "tty", "t", false, "Allocate a pseudo-TTY")
+	flags.BoolVarP(&options.detach, "detach", "d", false, "Detached mode: run command in the background")
+	flags.StringVarP(&options.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
+	flags.BoolVarP(&options.privileged, "privileged", "", false, "Give extended privileges to the command")
+	flags.VarP(options.env, "env", "e", "Set environment variables")
 	flags.SetAnnotation("env", "version", []string{"1.25"})
 
 	return cmd
 }
 
 // nolint: gocyclo
-func runExec(dockerCli *command.DockerCli, opts *execOptions, container string, execCmd []string) error {
-	execConfig, err := parseExec(opts, execCmd)
+func runExec(dockerCli *command.DockerCli, options *execOptions, container string, execCmd []string) error {
+	execConfig, err := parseExec(options, execCmd)
 	// just in case the ParseExec does not exit
 	if container == "" || err != nil {
 		return cli.StatusError{StatusCode: 1}
 	}
 
-	if opts.detachKeys != "" {
-		dockerCli.ConfigFile().DetachKeys = opts.detachKeys
+	if options.detachKeys != "" {
+		dockerCli.ConfigFile().DetachKeys = options.detachKeys
 	}
 
 	// Send client escape keys
