@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/opts"
 	"github.com/stretchr/testify/assert"
 )
 

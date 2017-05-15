@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/volume"
-	"github.com/docker/docker/opts"
+	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
 )
 

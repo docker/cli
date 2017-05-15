@@ -1,13 +1,12 @@
 package network
 
 import (
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type connectOptions struct {
@@ -21,7 +20,7 @@ type connectOptions struct {
 }
 
 func newConnectCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := connectOptions{
+	options := connectOptions{
 		links: opts.NewListOpts(opts.ValidateLink),
 	}
 
@@ -30,34 +29,34 @@ func newConnectCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Short: "Connect a container to a network",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.network = args[0]
-			opts.container = args[1]
-			return runConnect(dockerCli, opts)
+			options.network = args[0]
+			options.container = args[1]
+			return runConnect(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.ipaddress, "ip", "", "IPv4 address (e.g., 172.30.100.104)")
-	flags.StringVar(&opts.ipv6address, "ip6", "", "IPv6 address (e.g., 2001:db8::33)")
-	flags.Var(&opts.links, "link", "Add link to another container")
-	flags.StringSliceVar(&opts.aliases, "alias", []string{}, "Add network-scoped alias for the container")
-	flags.StringSliceVar(&opts.linklocalips, "link-local-ip", []string{}, "Add a link-local address for the container")
+	flags.StringVar(&options.ipaddress, "ip", "", "IPv4 address (e.g., 172.30.100.104)")
+	flags.StringVar(&options.ipv6address, "ip6", "", "IPv6 address (e.g., 2001:db8::33)")
+	flags.Var(&options.links, "link", "Add link to another container")
+	flags.StringSliceVar(&options.aliases, "alias", []string{}, "Add network-scoped alias for the container")
+	flags.StringSliceVar(&options.linklocalips, "link-local-ip", []string{}, "Add a link-local address for the container")
 
 	return cmd
 }
 
-func runConnect(dockerCli *command.DockerCli, opts connectOptions) error {
+func runConnect(dockerCli *command.DockerCli, options connectOptions) error {
 	client := dockerCli.Client()
 
 	epConfig := &network.EndpointSettings{
 		IPAMConfig: &network.EndpointIPAMConfig{
-			IPv4Address:  opts.ipaddress,
-			IPv6Address:  opts.ipv6address,
-			LinkLocalIPs: opts.linklocalips,
+			IPv4Address:  options.ipaddress,
+			IPv6Address:  options.ipv6address,
+			LinkLocalIPs: options.linklocalips,
 		},
-		Links:   opts.links.GetAll(),
-		Aliases: opts.aliases,
+		Links:   options.links.GetAll(),
+		Aliases: options.aliases,
 	}
 
-	return client.NetworkConnect(context.Background(), opts.network, opts.container, epConfig)
+	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/task"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -26,33 +26,33 @@ type psOptions struct {
 }
 
 func newPsCommand(dockerCli command.Cli) *cobra.Command {
-	opts := psOptions{filter: opts.NewFilterOpt()}
+	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "ps [OPTIONS] [NODE...]",
 		Short: "List tasks running on one or more nodes, defaults to current node",
 		Args:  cli.RequiresMinArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.nodeIDs = []string{"self"}
+			options.nodeIDs = []string{"self"}
 
 			if len(args) != 0 {
-				opts.nodeIDs = args
+				options.nodeIDs = args
 			}
 
-			return runPs(dockerCli, opts)
+			return runPs(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.BoolVar(&opts.noResolve, "no-resolve", false, "Do not map IDs to Names")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print tasks using a Go template")
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display task IDs")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
+	flags.BoolVar(&options.noResolve, "no-resolve", false, "Do not map IDs to Names")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
 
 	return cmd
 }
 
-func runPs(dockerCli command.Cli, opts psOptions) error {
+func runPs(dockerCli command.Cli, options psOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
@@ -61,7 +61,7 @@ func runPs(dockerCli command.Cli, opts psOptions) error {
 		tasks []swarm.Task
 	)
 
-	for _, nodeID := range opts.nodeIDs {
+	for _, nodeID := range options.nodeIDs {
 		nodeRef, err := Reference(ctx, client, nodeID)
 		if err != nil {
 			errs = append(errs, err.Error())
@@ -74,7 +74,7 @@ func runPs(dockerCli command.Cli, opts psOptions) error {
 			continue
 		}
 
-		filter := opts.filter.Value()
+		filter := options.filter.Value()
 		filter.Add("node", node.ID)
 
 		nodeTasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
@@ -86,9 +86,9 @@ func runPs(dockerCli command.Cli, opts psOptions) error {
 		tasks = append(tasks, nodeTasks...)
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if dockerCli.ConfigFile() != nil && len(dockerCli.ConfigFile().TasksFormat) > 0 && !opts.quiet {
+		if dockerCli.ConfigFile() != nil && len(dockerCli.ConfigFile().TasksFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().TasksFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -96,7 +96,7 @@ func runPs(dockerCli command.Cli, opts psOptions) error {
 	}
 
 	if len(errs) == 0 || len(tasks) != 0 {
-		if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, opts.noResolve), !opts.noTrunc, opts.quiet, format); err != nil {
+		if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
 			errs = append(errs, err.Error())
 		}
 	}

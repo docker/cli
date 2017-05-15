@@ -6,10 +6,10 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -21,7 +21,7 @@ type listOptions struct {
 }
 
 func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := listOptions{filter: opts.NewFilterOpt()}
+	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -29,30 +29,30 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Short:   "List services",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
+			return runList(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print services using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
+	flags.StringVar(&options.format, "format", "", "Pretty-print services using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
-func runList(dockerCli *command.DockerCli, opts listOptions) error {
+func runList(dockerCli *command.DockerCli, options listOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
-	serviceFilters := opts.filter.Value()
+	serviceFilters := options.filter.Value()
 	services, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceFilters})
 	if err != nil {
 		return err
 	}
 
 	info := map[string]formatter.ServiceListInfo{}
-	if len(services) > 0 && !opts.quiet {
+	if len(services) > 0 && !options.quiet {
 		// only non-empty services and not quiet, should we call TaskList and NodeList api
 		taskFilter := filters.NewArgs()
 		for _, service := range services {
@@ -72,9 +72,9 @@ func runList(dockerCli *command.DockerCli, opts listOptions) error {
 		info = GetServicesStatus(services, nodes, tasks)
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().ServicesFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -83,7 +83,7 @@ func runList(dockerCli *command.DockerCli, opts listOptions) error {
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, opts.quiet),
+		Format: formatter.NewServiceListFormat(format, options.quiet),
 	}
 	return formatter.ServiceListWrite(servicesCtx, services, info)
 }

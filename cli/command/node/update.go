@@ -5,8 +5,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -19,7 +19,7 @@ var (
 )
 
 func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
-	nodeOpts := newNodeOptions()
+	options := newNodeOptions()
 
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] NODE",
@@ -31,9 +31,9 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&nodeOpts.role, flagRole, "", `Role of the node ("worker"|"manager")`)
-	flags.StringVar(&nodeOpts.availability, flagAvailability, "", `Availability of the node ("active"|"pause"|"drain")`)
-	flags.Var(&nodeOpts.annotations.labels, flagLabelAdd, "Add or update a node label (key=value)")
+	flags.StringVar(&options.role, flagRole, "", `Role of the node ("worker"|"manager")`)
+	flags.StringVar(&options.availability, flagAvailability, "", `Availability of the node ("active"|"pause"|"drain")`)
+	flags.Var(&options.annotations.labels, flagLabelAdd, "Add or update a node label (key=value)")
 	labelKeys := opts.NewListOpts(nil)
 	flags.Var(&labelKeys, flagLabelRemove, "Remove a node label if exists")
 	return cmd

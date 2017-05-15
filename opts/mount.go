@@ -17,6 +17,7 @@ type MountOpt struct {
 }
 
 // Set a new mount value
+// nolint: gocyclo
 func (m *MountOpt) Set(value string) error {
 	csvReader := csv.NewReader(strings.NewReader(value))
 	fields, err := csvReader.Read()

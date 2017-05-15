@@ -9,11 +9,11 @@ import (
 
 	servicecli "github.com/docker/cli/cli/command/service"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 )

@@ -4,15 +4,14 @@ import (
 	"io"
 	"os"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	dockeropts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	dockeropts "github.com/docker/docker/opts"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type importOptions struct {
@@ -24,41 +23,41 @@ type importOptions struct {
 
 // NewImportCommand creates a new `docker import` command
 func NewImportCommand(dockerCli command.Cli) *cobra.Command {
-	var opts importOptions
+	var options importOptions
 
 	cmd := &cobra.Command{
 		Use:   "import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]",
 		Short: "Import the contents from a tarball to create a filesystem image",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.source = args[0]
+			options.source = args[0]
 			if len(args) > 1 {
-				opts.reference = args[1]
+				options.reference = args[1]
 			}
-			return runImport(dockerCli, opts)
+			return runImport(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	opts.changes = dockeropts.NewListOpts(nil)
-	flags.VarP(&opts.changes, "change", "c", "Apply Dockerfile instruction to the created image")
-	flags.StringVarP(&opts.message, "message", "m", "", "Set commit message for imported image")
+	options.changes = dockeropts.NewListOpts(nil)
+	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
+	flags.StringVarP(&options.message, "message", "m", "", "Set commit message for imported image")
 
 	return cmd
 }
 
-func runImport(dockerCli command.Cli, opts importOptions) error {
+func runImport(dockerCli command.Cli, options importOptions) error {
 	var (
 		in      io.Reader
-		srcName = opts.source
+		srcName = options.source
 	)
 
-	if opts.source == "-" {
+	if options.source == "-" {
 		in = dockerCli.In()
-	} else if !urlutil.IsURL(opts.source) {
+	} else if !urlutil.IsURL(options.source) {
 		srcName = "-"
-		file, err := os.Open(opts.source)
+		file, err := os.Open(options.source)
 		if err != nil {
 			return err
 		}
@@ -71,14 +70,14 @@ func runImport(dockerCli command.Cli, opts importOptions) error {
 		SourceName: srcName,
 	}
 
-	options := types.ImageImportOptions{
-		Message: opts.message,
-		Changes: opts.changes.GetAll(),
+	importOptions := types.ImageImportOptions{
+		Message: options.message,
+		Changes: options.changes.GetAll(),
 	}
 
 	clnt := dockerCli.Client()
 
-	responseBody, err := clnt.ImageImport(context.Background(), source, opts.reference, options)
+	responseBody, err := clnt.ImageImport(context.Background(), source, options.reference, importOptions)
 	if err != nil {
 		return err
 	}

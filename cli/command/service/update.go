@@ -8,13 +8,13 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
@@ -24,14 +24,14 @@ import (
 )
 
 func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
-	serviceOpts := newServiceOptions()
+	options := newServiceOptions()
 
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] SERVICE",
 		Short: "Update a service",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(dockerCli, cmd.Flags(), serviceOpts, args[0])
+			return runUpdate(dockerCli, cmd.Flags(), options, args[0])
 		},
 	}
 
@@ -42,7 +42,7 @@ func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.SetAnnotation("rollback", "version", []string{"1.25"})
 	flags.Bool("force", false, "Force update even if no changes require it")
 	flags.SetAnnotation("force", "version", []string{"1.25"})
-	addServiceFlags(flags, serviceOpts, nil)
+	addServiceFlags(flags, options, nil)
 
 	flags.Var(newListOptsVar(), flagEnvRemove, "Remove an environment variable")
 	flags.Var(newListOptsVar(), flagGroupRemove, "Remove a previously added supplementary user group from the container")
@@ -61,39 +61,39 @@ func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.SetAnnotation(flagDNSSearchRemove, "version", []string{"1.25"})
 	flags.Var(newListOptsVar(), flagHostRemove, "Remove a custom host-to-IP mapping (host:ip)")
 	flags.SetAnnotation(flagHostRemove, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.labels, flagLabelAdd, "Add or update a service label")
-	flags.Var(&serviceOpts.containerLabels, flagContainerLabelAdd, "Add or update a container label")
-	flags.Var(&serviceOpts.env, flagEnvAdd, "Add or update an environment variable")
+	flags.Var(&options.labels, flagLabelAdd, "Add or update a service label")
+	flags.Var(&options.containerLabels, flagContainerLabelAdd, "Add or update a container label")
+	flags.Var(&options.env, flagEnvAdd, "Add or update an environment variable")
 	flags.Var(newListOptsVar(), flagSecretRemove, "Remove a secret")
 	flags.SetAnnotation(flagSecretRemove, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.secrets, flagSecretAdd, "Add or update a secret on a service")
+	flags.Var(&options.secrets, flagSecretAdd, "Add or update a secret on a service")
 	flags.SetAnnotation(flagSecretAdd, "version", []string{"1.25"})
 
 	flags.Var(newListOptsVar(), flagConfigRemove, "Remove a configuration file")
 	flags.SetAnnotation(flagConfigRemove, "version", []string{"1.30"})
-	flags.Var(&serviceOpts.configs, flagConfigAdd, "Add or update a config file on a service")
+	flags.Var(&options.configs, flagConfigAdd, "Add or update a config file on a service")
 	flags.SetAnnotation(flagConfigAdd, "version", []string{"1.30"})
 
-	flags.Var(&serviceOpts.mounts, flagMountAdd, "Add or update a mount on a service")
-	flags.Var(&serviceOpts.constraints, flagConstraintAdd, "Add or update a placement constraint")
-	flags.Var(&serviceOpts.placementPrefs, flagPlacementPrefAdd, "Add a placement preference")
+	flags.Var(&options.mounts, flagMountAdd, "Add or update a mount on a service")
+	flags.Var(&options.constraints, flagConstraintAdd, "Add or update a placement constraint")
+	flags.Var(&options.placementPrefs, flagPlacementPrefAdd, "Add a placement preference")
 	flags.SetAnnotation(flagPlacementPrefAdd, "version", []string{"1.28"})
 	flags.Var(&placementPrefOpts{}, flagPlacementPrefRemove, "Remove a placement preference")
 	flags.SetAnnotation(flagPlacementPrefRemove, "version", []string{"1.28"})
-	flags.Var(&serviceOpts.networks, flagNetworkAdd, "Add a network")
+	flags.Var(&options.networks, flagNetworkAdd, "Add a network")
 	flags.SetAnnotation(flagNetworkAdd, "version", []string{"1.29"})
 	flags.Var(newListOptsVar(), flagNetworkRemove, "Remove a network")
 	flags.SetAnnotation(flagNetworkRemove, "version", []string{"1.29"})
-	flags.Var(&serviceOpts.endpoint.publishPorts, flagPublishAdd, "Add or update a published port")
-	flags.Var(&serviceOpts.groups, flagGroupAdd, "Add an additional supplementary user group to the container")
+	flags.Var(&options.endpoint.publishPorts, flagPublishAdd, "Add or update a published port")
+	flags.Var(&options.groups, flagGroupAdd, "Add an additional supplementary user group to the container")
 	flags.SetAnnotation(flagGroupAdd, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.dns, flagDNSAdd, "Add or update a custom DNS server")
+	flags.Var(&options.dns, flagDNSAdd, "Add or update a custom DNS server")
 	flags.SetAnnotation(flagDNSAdd, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.dnsOption, flagDNSOptionAdd, "Add or update a DNS option")
+	flags.Var(&options.dnsOption, flagDNSOptionAdd, "Add or update a DNS option")
 	flags.SetAnnotation(flagDNSOptionAdd, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.dnsSearch, flagDNSSearchAdd, "Add or update a custom DNS search domain")
+	flags.Var(&options.dnsSearch, flagDNSSearchAdd, "Add or update a custom DNS search domain")
 	flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
-	flags.Var(&serviceOpts.hosts, flagHostAdd, "Add or update a custom host-to-IP mapping (host:ip)")
+	flags.Var(&options.hosts, flagHostAdd, "Add or update a custom host-to-IP mapping (host:ip)")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
 
 	return cmd
@@ -104,7 +104,7 @@ func newListOptsVar() *opts.ListOpts {
 }
 
 // nolint: gocyclo
-func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *serviceOptions, serviceID string) error {
+func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
 	ctx := context.Background()
 
@@ -214,7 +214,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if opts.detach {
+	if options.detach {
 		if !flags.Changed("detach") {
 			fmt.Fprintln(dockerCli.Err(), "Since --detach=false was not specified, tasks will be updated in the background.\n"+
 				"In a future release, --detach=false will become the default.")
@@ -222,7 +222,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, opts)
+	return waitOnService(ctx, dockerCli, serviceID, options)
 }
 
 // nolint: gocyclo

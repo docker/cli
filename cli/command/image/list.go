@@ -1,14 +1,13 @@
 package image
 
 import (
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 type imagesOptions struct {
@@ -24,7 +23,7 @@ type imagesOptions struct {
 
 // NewImagesCommand creates a new `docker images` command
 func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
-	opts := imagesOptions{filter: opts.NewFilterOpt()}
+	options := imagesOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "images [OPTIONS] [REPOSITORY[:TAG]]",
@@ -32,20 +31,20 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
-				opts.matchName = args[0]
+				options.matchName = args[0]
 			}
-			return runImages(dockerCli, opts)
+			return runImages(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only show numeric IDs")
-	flags.BoolVarP(&opts.all, "all", "a", false, "Show all images (default hides intermediate images)")
-	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Don't truncate output")
-	flags.BoolVar(&opts.showDigests, "digests", false, "Show digests")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only show numeric IDs")
+	flags.BoolVarP(&options.all, "all", "a", false, "Show all images (default hides intermediate images)")
+	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
+	flags.BoolVar(&options.showDigests, "digests", false, "Show digests")
+	flags.StringVar(&options.format, "format", "", "Pretty-print images using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
@@ -57,27 +56,27 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runImages(dockerCli command.Cli, opts imagesOptions) error {
+func runImages(dockerCli command.Cli, options imagesOptions) error {
 	ctx := context.Background()
 
-	filters := opts.filter.Value()
-	if opts.matchName != "" {
-		filters.Add("reference", opts.matchName)
+	filters := options.filter.Value()
+	if options.matchName != "" {
+		filters.Add("reference", options.matchName)
 	}
 
-	options := types.ImageListOptions{
-		All:     opts.all,
+	listOptions := types.ImageListOptions{
+		All:     options.all,
 		Filters: filters,
 	}
 
-	images, err := dockerCli.Client().ImageList(ctx, options)
+	images, err := dockerCli.Client().ImageList(ctx, listOptions)
 	if err != nil {
 		return err
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ImagesFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().ImagesFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().ImagesFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -87,10 +86,10 @@ func runImages(dockerCli command.Cli, opts imagesOptions) error {
 	imageCtx := formatter.ImageContext{
 		Context: formatter.Context{
 			Output: dockerCli.Out(),
-			Format: formatter.NewImageFormat(format, opts.quiet, opts.showDigests),
-			Trunc:  !opts.noTrunc,
+			Format: formatter.NewImageFormat(format, options.quiet, options.showDigests),
+			Trunc:  !options.noTrunc,
 		},
-		Digest: opts.showDigests,
+		Digest: options.showDigests,
 	}
 	return formatter.ImageWrite(imageCtx, images)
 }

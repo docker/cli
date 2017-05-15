@@ -24,6 +24,7 @@ type PortOpt struct {
 }
 
 // Set a new port value
+// nolint: gocyclo
 func (p *PortOpt) Set(value string) error {
 	longSyntax, err := regexp.MatchString(`\w+=\w+(,\w+=\w+)*`, value)
 	if err != nil {
@@ -101,7 +102,7 @@ func (p *PortOpt) Set(value string) error {
 		for _, portBindings := range portBindingMap {
 			for _, portBinding := range portBindings {
 				if portBinding.HostIP != "" {
-					return fmt.Errorf("HostIP is not supported.")
+					return fmt.Errorf("hostip is not supported")
 				}
 			}
 		}

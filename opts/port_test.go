@@ -273,7 +273,7 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 		},
 		{
 			value:         "1.1.1.1:80:80",
-			expectedError: "HostIP is not supported.",
+			expectedError: "hostip is not supported",
 		},
 	}
 	for _, tc := range testCases {

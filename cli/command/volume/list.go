@@ -6,8 +6,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -27,7 +27,7 @@ type listOptions struct {
 }
 
 func newListCommand(dockerCli command.Cli) *cobra.Command {
-	opts := listOptions{filter: opts.NewFilterOpt()}
+	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -35,28 +35,28 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List volumes",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
+			return runList(dockerCli, options)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only display volume names")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print volumes using a Go template")
-	flags.VarP(&opts.filter, "filter", "f", "Provide filter values (e.g. 'dangling=true')")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display volume names")
+	flags.StringVar(&options.format, "format", "", "Pretty-print volumes using a Go template")
+	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'dangling=true')")
 
 	return cmd
 }
 
-func runList(dockerCli command.Cli, opts listOptions) error {
+func runList(dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	volumes, err := client.VolumeList(context.Background(), opts.filter.Value())
+	volumes, err := client.VolumeList(context.Background(), options.filter.Value())
 	if err != nil {
 		return err
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().VolumesFormat) > 0 && !opts.quiet {
+		if len(dockerCli.ConfigFile().VolumesFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().VolumesFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -67,7 +67,7 @@ func runList(dockerCli command.Cli, opts listOptions) error {
 
 	volumeCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewVolumeFormat(format, opts.quiet),
+		Format: formatter.NewVolumeFormat(format, options.quiet),
 	}
 	return formatter.VolumeWrite(volumeCtx, volumes.Volumes)
 }

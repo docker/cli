@@ -5,8 +5,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	dockeropts "github.com/docker/docker/opts"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -18,54 +18,54 @@ type commitOptions struct {
 	pause   bool
 	comment string
 	author  string
-	changes dockeropts.ListOpts
+	changes opts.ListOpts
 }
 
 // NewCommitCommand creates a new cobra.Command for `docker commit`
 func NewCommitCommand(dockerCli *command.DockerCli) *cobra.Command {
-	var opts commitOptions
+	var options commitOptions
 
 	cmd := &cobra.Command{
 		Use:   "commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]",
 		Short: "Create a new image from a container's changes",
 		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.container = args[0]
+			options.container = args[0]
 			if len(args) > 1 {
-				opts.reference = args[1]
+				options.reference = args[1]
 			}
-			return runCommit(dockerCli, &opts)
+			return runCommit(dockerCli, &options)
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.BoolVarP(&opts.pause, "pause", "p", true, "Pause container during commit")
-	flags.StringVarP(&opts.comment, "message", "m", "", "Commit message")
-	flags.StringVarP(&opts.author, "author", "a", "", "Author (e.g., \"John Hannibal Smith <hannibal@a-team.com>\")")
+	flags.BoolVarP(&options.pause, "pause", "p", true, "Pause container during commit")
+	flags.StringVarP(&options.comment, "message", "m", "", "Commit message")
+	flags.StringVarP(&options.author, "author", "a", "", "Author (e.g., \"John Hannibal Smith <hannibal@a-team.com>\")")
 
-	opts.changes = dockeropts.NewListOpts(nil)
-	flags.VarP(&opts.changes, "change", "c", "Apply Dockerfile instruction to the created image")
+	options.changes = opts.NewListOpts(nil)
+	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
 
 	return cmd
 }
 
-func runCommit(dockerCli *command.DockerCli, opts *commitOptions) error {
+func runCommit(dockerCli *command.DockerCli, options *commitOptions) error {
 	ctx := context.Background()
 
-	name := opts.container
-	reference := opts.reference
+	name := options.container
+	reference := options.reference
 
-	options := types.ContainerCommitOptions{
+	commitOptions := types.ContainerCommitOptions{
 		Reference: reference,
-		Comment:   opts.comment,
-		Author:    opts.author,
-		Changes:   opts.changes.GetAll(),
-		Pause:     opts.pause,
+		Comment:   options.comment,
+		Author:    options.author,
+		Changes:   options.changes.GetAll(),
+		Pause:     options.pause,
 	}
 
-	response, err := dockerCli.Client().ContainerCommit(ctx, name, options)
+	response, err := dockerCli.Client().ContainerCommit(ctx, name, commitOptions)
 	if err != nil {
 		return err
 	}
