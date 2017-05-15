@@ -5,20 +5,33 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
 	units "github.com/docker/go-units"
 )
 
 const (
-	defaultSecretTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
-	secretIDHeader           = "ID"
-	secretCreatedHeader      = "CREATED"
-	secretUpdatedHeader      = "UPDATED"
+	defaultSecretTableFormat           = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
+	secretIDHeader                     = "ID"
+	secretCreatedHeader                = "CREATED"
+	secretUpdatedHeader                = "UPDATED"
+	secretInspectPrettyTemplate Format = `ID:			{{.ID}}
+Name:			{{.Name}}
+{{- if .Labels }}
+Labels:
+{{- range $k, $v := .Labels }}
+ - {{ $k }}{{if $v }}={{ $v }}{{ end }}
+{{- end }}{{ end }}
+Created at:            	{{.CreatedAt}}
+Updated at:            	{{.UpdatedAt}}`
 )
 
 // NewSecretFormat returns a Format for rendering using a secret Context
 func NewSecretFormat(source string, quiet bool) Format {
 	switch source {
+	case PrettyFormatKey:
+		return secretInspectPrettyTemplate
 	case TableFormatKey:
 		if quiet {
 			return defaultQuietFormat
@@ -97,4 +110,53 @@ func (c *secretContext) Label(name string) string {
 		return ""
 	}
 	return c.s.Spec.Annotations.Labels[name]
+}
+
+// SecretInspectWrite renders the context for a list of secrets
+func SecretInspectWrite(ctx Context, refs []string, getRef inspect.GetRefFunc) error {
+	if ctx.Format != secretInspectPrettyTemplate {
+		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+	}
+	render := func(format func(subContext subContext) error) error {
+		for _, ref := range refs {
+			secretI, _, err := getRef(ref)
+			if err != nil {
+				return err
+			}
+			secret, ok := secretI.(swarm.Secret)
+			if !ok {
+				return fmt.Errorf("got wrong object to inspect :%v", ok)
+			}
+			if err := format(&secretInspectContext{Secret: secret}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return ctx.Write(&secretInspectContext{}, render)
+}
+
+type secretInspectContext struct {
+	swarm.Secret
+	subContext
+}
+
+func (ctx *secretInspectContext) ID() string {
+	return ctx.Secret.ID
+}
+
+func (ctx *secretInspectContext) Name() string {
+	return ctx.Secret.Spec.Name
+}
+
+func (ctx *secretInspectContext) Labels() map[string]string {
+	return ctx.Secret.Spec.Labels
+}
+
+func (ctx *secretInspectContext) CreatedAt() string {
+	return command.PrettyPrint(ctx.Secret.CreatedAt)
+}
+
+func (ctx *secretInspectContext) UpdatedAt() string {
+	return command.PrettyPrint(ctx.Secret.UpdatedAt)
 }

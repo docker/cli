@@ -59,3 +59,10 @@ func ConfigUpdatedAt(t time.Time) func(*swarm.Config) {
 		config.UpdatedAt = t
 	}
 }
+
+// ConfigData sets the config payload.
+func ConfigData(data []byte) func(*swarm.Config) {
+	return func(config *swarm.Config) {
+		config.Spec.Data = data
+	}
+}

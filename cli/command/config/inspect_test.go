@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
@@ -145,6 +146,42 @@ func TestConfigInspectWithFormat(t *testing.T) {
 		assert.NoError(t, cmd.Execute())
 		actual := buf.String()
 		expected := golden.Get(t, []byte(actual), fmt.Sprintf("config-inspect-with-format.%s.golden", tc.name))
+		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	}
+}
+
+func TestConfigInspectPretty(t *testing.T) {
+	testCases := []struct {
+		name              string
+		configInspectFunc func(string) (swarm.Config, []byte, error)
+	}{
+		{
+			name: "simple",
+			configInspectFunc: func(id string) (swarm.Config, []byte, error) {
+				return *Config(
+					ConfigLabels(map[string]string{
+						"lbl1": "value1",
+					}),
+					ConfigID("configID"),
+					ConfigName("configName"),
+					ConfigCreatedAt(time.Time{}),
+					ConfigUpdatedAt(time.Time{}),
+					ConfigData([]byte("payload here")),
+				), []byte{}, nil
+			},
+		},
+	}
+	for _, tc := range testCases {
+		buf := new(bytes.Buffer)
+		cmd := newConfigInspectCommand(
+			test.NewFakeCli(&fakeClient{
+				configInspectFunc: tc.configInspectFunc,
+			}, buf))
+		cmd.SetArgs([]string{"configID"})
+		cmd.Flags().Set("pretty", "true")
+		assert.NoError(t, cmd.Execute())
+		actual := buf.String()
+		expected := golden.Get(t, []byte(actual), fmt.Sprintf("config-inspect-pretty.%s.golden", tc.name))
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 	}
 }

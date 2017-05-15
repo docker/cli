@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
@@ -145,6 +146,41 @@ func TestSecretInspectWithFormat(t *testing.T) {
 		assert.NoError(t, cmd.Execute())
 		actual := buf.String()
 		expected := golden.Get(t, []byte(actual), fmt.Sprintf("secret-inspect-with-format.%s.golden", tc.name))
+		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	}
+}
+
+func TestSecretInspectPretty(t *testing.T) {
+	testCases := []struct {
+		name              string
+		secretInspectFunc func(string) (swarm.Secret, []byte, error)
+	}{
+		{
+			name: "simple",
+			secretInspectFunc: func(id string) (swarm.Secret, []byte, error) {
+				return *Secret(
+					SecretLabels(map[string]string{
+						"lbl1": "value1",
+					}),
+					SecretID("secretID"),
+					SecretName("secretName"),
+					SecretCreatedAt(time.Time{}),
+					SecretUpdatedAt(time.Time{}),
+				), []byte{}, nil
+			},
+		},
+	}
+	for _, tc := range testCases {
+		buf := new(bytes.Buffer)
+		cmd := newSecretInspectCommand(
+			test.NewFakeCli(&fakeClient{
+				secretInspectFunc: tc.secretInspectFunc,
+			}, buf))
+		cmd.SetArgs([]string{"secretID"})
+		cmd.Flags().Set("pretty", "true")
+		assert.NoError(t, cmd.Execute())
+		actual := buf.String()
+		expected := golden.Get(t, []byte(actual), fmt.Sprintf("secret-inspect-pretty.%s.golden", tc.name))
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 	}
 }
