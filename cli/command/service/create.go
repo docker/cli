@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
@@ -106,7 +107,10 @@ func runCreate(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *service
 		createOpts.EncodedRegistryAuth = encodedAuth
 	}
 
-	createOpts.QueryRegistry = true
+	// query registry if flag disabling it was not set
+	if !opts.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
+		createOpts.QueryRegistry = true
+	}
 
 	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
 	if err != nil {

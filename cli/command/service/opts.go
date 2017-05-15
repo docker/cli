@@ -542,7 +542,8 @@ type serviceOptions struct {
 	networks       opts.ListOpts
 	endpoint       endpointOptions
 
-	registryAuth bool
+	registryAuth   bool
+	noResolveImage bool
 
 	logDriver logDriverOptions
 
@@ -797,6 +798,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.StringVar(&opts.endpoint.mode, flagEndpointMode, defaultFlagValues.getString(flagEndpointMode), "Endpoint mode (vip or dnsrr)")
 
 	flags.BoolVar(&opts.registryAuth, flagRegistryAuth, false, "Send registry authentication details to swarm agents")
+	flags.BoolVar(&opts.noResolveImage, flagNoResolveImage, false, "Do not query the registry to resolve image digest and supported platforms")
+	flags.SetAnnotation(flagNoResolveImage, "version", []string{"1.30"})
 
 	flags.StringVar(&opts.logDriver.name, flagLogDriver, "", "Logging driver for service")
 	flags.Var(&opts.logDriver.opts, flagLogOpt, "Logging driver options")
@@ -899,6 +902,7 @@ const (
 	flagUser                    = "user"
 	flagWorkdir                 = "workdir"
 	flagRegistryAuth            = "with-registry-auth"
+	flagNoResolveImage          = "no-resolve-image"
 	flagLogDriver               = "log-driver"
 	flagLogOpt                  = "log-opt"
 	flagHealthCmd               = "health-cmd"
