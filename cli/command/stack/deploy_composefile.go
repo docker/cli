@@ -79,6 +79,14 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 		return err
 	}
 
+	configs, err := convert.Configs(namespace, config.Configs)
+	if err != nil {
+		return err
+	}
+	if err := createConfigs(ctx, dockerCli, namespace, configs); err != nil {
+		return err
+	}
+
 	services, err := convert.Services(namespace, config, dockerCli.Client())
 	if err != nil {
 		return err
@@ -199,6 +207,33 @@ func createSecrets(
 		} else if apiclient.IsErrSecretNotFound(err) {
 			// secret does not exist, then we create a new one.
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	return nil
+}
+
+func createConfigs(
+	ctx context.Context,
+	dockerCli command.Cli,
+	namespace convert.Namespace,
+	configs []swarm.ConfigSpec,
+) error {
+	client := dockerCli.Client()
+
+	for _, configSpec := range configs {
+		config, _, err := client.ConfigInspectWithRaw(ctx, configSpec.Name)
+		if err == nil {
+			// config already exists, then we update that
+			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
+				return err
+			}
+		} else if apiclient.IsErrConfigNotFound(err) {
+			// config does not exist, then we create a new one.
+			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
 				return err
 			}
 		} else {

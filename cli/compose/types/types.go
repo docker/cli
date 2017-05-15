@@ -60,12 +60,19 @@ type ConfigDetails struct {
 	Environment map[string]string
 }
 
+// LookupEnv provides a lookup function for environment variables
+func (cd ConfigDetails) LookupEnv(key string) (string, bool) {
+	v, ok := cd.Environment[key]
+	return v, ok
+}
+
 // Config is a full compose file configuration
 type Config struct {
 	Services []ServiceConfig
 	Networks map[string]NetworkConfig
 	Volumes  map[string]VolumeConfig
 	Secrets  map[string]SecretConfig
+	Configs  map[string]ConfigObjConfig
 }
 
 // ServiceConfig is the configuration of one service
@@ -76,6 +83,7 @@ type ServiceConfig struct {
 	CapDrop         []string `mapstructure:"cap_drop"`
 	CgroupParent    string   `mapstructure:"cgroup_parent"`
 	Command         ShellCommand
+	Configs         []ServiceConfigObjConfig
 	ContainerName   string               `mapstructure:"container_name"`
 	CredentialSpec  CredentialSpecConfig `mapstructure:"credential_spec"`
 	DependsOn       []string             `mapstructure:"depends_on"`
@@ -252,14 +260,19 @@ type ServiceVolumeVolume struct {
 	NoCopy bool `mapstructure:"nocopy"`
 }
 
-// ServiceSecretConfig is the secret configuration for a service
-type ServiceSecretConfig struct {
+type fileReferenceConfig struct {
 	Source string
 	Target string
 	UID    string
 	GID    string
 	Mode   *uint32
 }
+
+// ServiceConfigObjConfig is the config obj configuration for a service
+type ServiceConfigObjConfig fileReferenceConfig
+
+// ServiceSecretConfig is the secret configuration for a service
+type ServiceSecretConfig fileReferenceConfig
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
@@ -305,15 +318,20 @@ type External struct {
 	External bool
 }
 
-// SecretConfig for a secret
-type SecretConfig struct {
-	File     string
-	External External
-	Labels   Labels
-}
-
 // CredentialSpecConfig for credential spec on Windows
 type CredentialSpecConfig struct {
 	File     string
 	Registry string
 }
+
+type fileObjectConfig struct {
+	File     string
+	External External
+	Labels   Labels
+}
+
+// SecretConfig for a secret
+type SecretConfig fileObjectConfig
+
+// ConfigObjConfig is the config for the swarm "Config" object
+type ConfigObjConfig fileObjectConfig

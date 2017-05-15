@@ -50,6 +50,17 @@
         }
       },
       "additionalProperties": false
+    },
+
+    "configs": {
+      "id": "#/properties/configs",
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9._-]+$": {
+          "$ref": "#/definitions/config"
+        }
+      },
+      "additionalProperties": false
     }
   },
 
@@ -87,6 +98,24 @@
             {"type": "string"},
             {"type": "array", "items": {"type": "string"}}
           ]
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {"type": "string"},
+              {
+                "type": "object",
+                "properties": {
+                  "source": {"type": "string"},
+                  "target": {"type": "string"},
+                  "uid": {"type": "string"},
+                  "gid": {"type": "string"},
+                  "mode": {"type": "number"}
+                }
+              }
+            ]
+          }
         },
         "container_name": {"type": "string"},
         "credential_spec": {"type": "object", "properties": {
@@ -429,6 +458,22 @@
 
     "secret": {
       "id": "#/definitions/secret",
+      "type": "object",
+      "properties": {
+        "file": {"type": "string"},
+        "external": {
+          "type": ["boolean", "object"],
+          "properties": {
+            "name": {"type": "string"}
+          }
+        },
+        "labels": {"$ref": "#/definitions/list_or_dict"}
+      },
+      "additionalProperties": false
+    },
+
+    "config": {
+      "id": "#/definitions/config",
       "type": "object",
       "properties": {
         "file": {"type": "string"},
