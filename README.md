@@ -6,60 +6,42 @@ docker/cli
 This repository is the home of the cli used in the Docker CE and
 Docker EE products.
 
-It's composed of 3 main folders
-
-* `/cli` - all the commands code.
-* `/cmd/docker` - the entrypoint of the cli, aka the main.
-
 Development
 ===========
 
-### Build locally
+`docker/cli` is developed using Docker.
+
+Build a linux binary:
 
 ```
-$ make build
+$ make -f docker.Makefile binary
 ```
 
-```
-$ make clean
-```
-
-You will need [gox](https://github.com/mitchellh/gox) for this one:
-
-```
-$ make cross
-```
-
-If you don't have [gox](https://github.com/mitchellh/gox), you can use the "in-container" version of `make cross`, listed below.
-
-### Build inside container
-
-```
-$ make -f docker.Makefile build
-```
-
-```
-$ make -f docker.Makefile clean
-```
+Build binaries for all supported platforms:
 
 ```
 $ make -f docker.Makefile cross
 ```
 
+Run all linting:
+
+```
+$ make -f docker.Makefile lint
+```
+`
+
 ### In-container development environment
 
-```
-$ make -f docker.Makefile dev
-```
-
-Then you can use the [build locally](#build-locally) commands:
+Start an interactive development environment:
 
 ```
-$ make build
+$ make -f docker.Makefile shell
 ```
 
+In the development environment you can run many tasks, including build binaries:
+
 ```
-$ make clean
+$ make binary
 ```
 
 Legal

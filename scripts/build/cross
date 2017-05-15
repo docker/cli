@@ -1,8 +1,12 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-source ./scripts/build/ldflags
+set -eu -o pipefail
 
-gox -output build/docker-{{.OS}}-{{.Arch}} \
-    -osarch="linux/arm linux/amd64 darwin/amd64 windows/amd64" \
-	--ldflags "${LDFLAGS}" \
-	github.com/docker/cli/cmd/docker
+export BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "Building all binaries"
+SHELL=/bin/bash parallel ::: \
+    "$BUILDDIR/linux-cross" \
+    "$BUILDDIR/windows" \
+    "$BUILDDIR/osx" \
+    ;
