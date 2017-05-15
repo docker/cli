@@ -7,7 +7,7 @@ all: binary
 # remove build artifacts
 .PHONY: clean
 clean:
-	@rm -rf ./build/*
+	@rm -rf ./build/* cli/winresources/rsrc_*
 
 # run go test
 # the "-tags daemon" part is temporary

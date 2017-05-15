@@ -15,6 +15,9 @@ export GOARCH=amd64
 # Override TARGET
 TARGET="build/docker-$GOOS-$GOARCH"
 
+echo "Generating windows resources"
+go generate ./cli/winresources
+
 echo "Building $TARGET"
 # TODO: -tags pkcs11
 go build -o "${TARGET}" --ldflags "${LDFLAGS}" "${SOURCE}"
