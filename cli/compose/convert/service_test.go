@@ -316,3 +316,30 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 		Search:      search,
 	}, dnsConfig)
 }
+
+func TestConvertCredentialSpec(t *testing.T) {
+	swarmSpec, err := convertCredentialSpec(composetypes.CredentialSpecConfig{})
+	assert.NoError(t, err)
+	assert.Nil(t, swarmSpec)
+
+	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
+		File: "/foo",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, swarmSpec.File, "/foo")
+	assert.Equal(t, swarmSpec.Registry, "")
+
+	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
+		Registry: "foo",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, swarmSpec.File, "")
+	assert.Equal(t, swarmSpec.Registry, "foo")
+
+	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
+		File:     "/asdf",
+		Registry: "foo",
+	})
+	assert.Error(t, err)
+	assert.Nil(t, swarmSpec)
+}

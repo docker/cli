@@ -76,8 +76,9 @@ type ServiceConfig struct {
 	CapDrop         []string `mapstructure:"cap_drop"`
 	CgroupParent    string   `mapstructure:"cgroup_parent"`
 	Command         ShellCommand
-	ContainerName   string   `mapstructure:"container_name"`
-	DependsOn       []string `mapstructure:"depends_on"`
+	ContainerName   string               `mapstructure:"container_name"`
+	CredentialSpec  CredentialSpecConfig `mapstructure:"credential_spec"`
+	DependsOn       []string             `mapstructure:"depends_on"`
 	Deploy          DeployConfig
 	Devices         []string
 	DNS             StringList
@@ -309,4 +310,10 @@ type SecretConfig struct {
 	File     string
 	External External
 	Labels   Labels
+}
+
+// CredentialSpecConfig for credential spec on Windows
+type CredentialSpecConfig struct {
+	File     string
+	Registry string
 }
