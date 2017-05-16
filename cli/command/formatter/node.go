@@ -69,8 +69,7 @@ TLS Info:
 {{.TLSInfoTrustRoot}}
  Issuer Subject:	{{.TLSInfoCertIssuerSubject}}
  Issuer Public Key:	{{.TLSInfoCertIssuerPublicKey}}
-{{- end}}
-`
+{{- end}}`
 	nodeIDHeader        = "ID"
 	selfHeader          = ""
 	hostnameHeader      = "HOSTNAME"
@@ -177,7 +176,7 @@ func (c *nodeContext) TLSStatus() string {
 	return "Needs Rotation"
 }
 
-// NodeInspectWrite renders the context for a list of services
+// NodeInspectWrite renders the context for a list of nodes
 func NodeInspectWrite(ctx Context, refs []string, getRef inspect.GetRefFunc) error {
 	if ctx.Format != nodeInspectPrettyTemplate {
 		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)

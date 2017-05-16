@@ -5,20 +5,35 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
 	units "github.com/docker/go-units"
 )
 
 const (
-	defaultConfigTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
-	configIDHeader           = "ID"
-	configCreatedHeader      = "CREATED"
-	configUpdatedHeader      = "UPDATED"
+	defaultConfigTableFormat           = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
+	configIDHeader                     = "ID"
+	configCreatedHeader                = "CREATED"
+	configUpdatedHeader                = "UPDATED"
+	configInspectPrettyTemplate Format = `ID:			{{.ID}}
+Name:			{{.Name}}
+{{- if .Labels }}
+Labels:
+{{- range $k, $v := .Labels }}
+ - {{ $k }}{{if $v }}={{ $v }}{{ end }}
+{{- end }}{{ end }}
+Created at:            	{{.CreatedAt}}
+Updated at:            	{{.UpdatedAt}}
+Data:
+{{.Data}}`
 )
 
 // NewConfigFormat returns a Format for rendering using a config Context
 func NewConfigFormat(source string, quiet bool) Format {
 	switch source {
+	case PrettyFormatKey:
+		return configInspectPrettyTemplate
 	case TableFormatKey:
 		if quiet {
 			return defaultQuietFormat
@@ -97,4 +112,60 @@ func (c *configContext) Label(name string) string {
 		return ""
 	}
 	return c.c.Spec.Annotations.Labels[name]
+}
+
+// ConfigInspectWrite renders the context for a list of configs
+func ConfigInspectWrite(ctx Context, refs []string, getRef inspect.GetRefFunc) error {
+	if ctx.Format != configInspectPrettyTemplate {
+		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+	}
+	render := func(format func(subContext subContext) error) error {
+		for _, ref := range refs {
+			configI, _, err := getRef(ref)
+			if err != nil {
+				return err
+			}
+			config, ok := configI.(swarm.Config)
+			if !ok {
+				return fmt.Errorf("got wrong object to inspect :%v", ok)
+			}
+			if err := format(&configInspectContext{Config: config}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return ctx.Write(&configInspectContext{}, render)
+}
+
+type configInspectContext struct {
+	swarm.Config
+	subContext
+}
+
+func (ctx *configInspectContext) ID() string {
+	return ctx.Config.ID
+}
+
+func (ctx *configInspectContext) Name() string {
+	return ctx.Config.Spec.Name
+}
+
+func (ctx *configInspectContext) Labels() map[string]string {
+	return ctx.Config.Spec.Labels
+}
+
+func (ctx *configInspectContext) CreatedAt() string {
+	return command.PrettyPrint(ctx.Config.CreatedAt)
+}
+
+func (ctx *configInspectContext) UpdatedAt() string {
+	return command.PrettyPrint(ctx.Config.UpdatedAt)
+}
+
+func (ctx *configInspectContext) Data() string {
+	if ctx.Config.Spec.Data == nil {
+		return ""
+	}
+	return string(ctx.Config.Spec.Data)
 }

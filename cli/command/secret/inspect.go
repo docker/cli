@@ -1,9 +1,12 @@
 package secret
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/inspect"
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -11,6 +14,7 @@ import (
 type inspectOptions struct {
 	names  []string
 	format string
+	pretty bool
 }
 
 func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
@@ -26,6 +30,7 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	cmd.Flags().BoolVar(&opts.pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }
 
@@ -33,9 +38,28 @@ func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
+	if opts.pretty {
+		opts.format = "pretty"
+	}
+
 	getRef := func(id string) (interface{}, []byte, error) {
 		return client.SecretInspectWithRaw(ctx, id)
 	}
+	f := opts.format
 
-	return inspect.Inspect(dockerCli.Out(), opts.names, opts.format, getRef)
+	// check if the user is trying to apply a template to the pretty format, which
+	// is not supported
+	if strings.HasPrefix(f, "pretty") && f != "pretty" {
+		return fmt.Errorf("Cannot supply extra formatting options to the pretty template")
+	}
+
+	secretCtx := formatter.Context{
+		Output: dockerCli.Out(),
+		Format: formatter.NewSecretFormat(f, false),
+	}
+
+	if err := formatter.SecretInspectWrite(secretCtx, opts.names, getRef); err != nil {
+		return cli.StatusError{StatusCode: 1, Status: err.Error()}
+	}
+	return nil
 }

@@ -341,7 +341,6 @@ data
 
  Issuer Subject:	c3ViamVjdA==
  Issuer Public Key:	cHViS2V5
-
 `
 	assert.Equal(t, expected, out.String())
 }
