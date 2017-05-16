@@ -102,13 +102,7 @@ func runRotateCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) er
 	}()
 
 	if opts.quiet {
-		go func() {
-			for {
-				if _, err := io.Copy(ioutil.Discard, pipeReader); err != nil {
-					return
-				}
-			}
-		}()
+		go io.Copy(ioutil.Discard, pipeReader)
 		return <-errChan
 	}
 
