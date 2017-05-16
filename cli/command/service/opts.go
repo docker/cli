@@ -25,56 +25,6 @@ type int64Value interface {
 	Value() int64
 }
 
-// PositiveDurationOpt is an option type for time.Duration that uses a pointer.
-// It bahave similarly to DurationOpt but only allows positive duration values.
-type PositiveDurationOpt struct {
-	DurationOpt
-}
-
-// Set a new value on the option. Setting a negative duration value will cause
-// an error to be returned.
-func (d *PositiveDurationOpt) Set(s string) error {
-	err := d.DurationOpt.Set(s)
-	if err != nil {
-		return err
-	}
-	if *d.DurationOpt.value < 0 {
-		return errors.Errorf("duration cannot be negative")
-	}
-	return nil
-}
-
-// DurationOpt is an option type for time.Duration that uses a pointer. This
-// allows us to get nil values outside, instead of defaulting to 0
-type DurationOpt struct {
-	value *time.Duration
-}
-
-// Set a new value on the option
-func (d *DurationOpt) Set(s string) error {
-	v, err := time.ParseDuration(s)
-	d.value = &v
-	return err
-}
-
-// Type returns the type of this option, which will be displayed in `--help` output
-func (d *DurationOpt) Type() string {
-	return "duration"
-}
-
-// String returns a string repr of this option
-func (d *DurationOpt) String() string {
-	if d.value != nil {
-		return d.value.String()
-	}
-	return ""
-}
-
-// Value returns the time.Duration
-func (d *DurationOpt) Value() *time.Duration {
-	return d.value
-}
-
 // Uint64Opt represents a uint64.
 type Uint64Opt struct {
 	value *uint64
@@ -293,9 +243,9 @@ func (r *resourceOptions) ToResourceRequirements() *swarm.ResourceRequirements {
 
 type restartPolicyOptions struct {
 	condition   string
-	delay       DurationOpt
+	delay       opts.DurationOpt
 	maxAttempts Uint64Opt
-	window      DurationOpt
+	window      opts.DurationOpt
 }
 
 func defaultRestartPolicy() *swarm.RestartPolicy {
@@ -444,10 +394,10 @@ func (ldo *logDriverOptions) toLogDriver() *swarm.Driver {
 
 type healthCheckOptions struct {
 	cmd           string
-	interval      PositiveDurationOpt
-	timeout       PositiveDurationOpt
+	interval      opts.PositiveDurationOpt
+	timeout       opts.PositiveDurationOpt
 	retries       int
-	startPeriod   PositiveDurationOpt
+	startPeriod   opts.PositiveDurationOpt
 	noHealthcheck bool
 }
 
@@ -529,7 +479,7 @@ type serviceOptions struct {
 	hosts           opts.ListOpts
 
 	resources resourceOptions
-	stopGrace DurationOpt
+	stopGrace opts.DurationOpt
 
 	replicas Uint64Opt
 	mode     string

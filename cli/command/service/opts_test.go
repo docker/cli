@@ -31,27 +31,6 @@ func TestNanoCPUsSetAndValue(t *testing.T) {
 	assert.Equal(t, int64(350000000), cpus.Value())
 }
 
-func TestDurationOptString(t *testing.T) {
-	dur := time.Duration(300 * 10e8)
-	duration := DurationOpt{value: &dur}
-	assert.Equal(t, "5m0s", duration.String())
-}
-
-func TestDurationOptSetAndValue(t *testing.T) {
-	var duration DurationOpt
-	assert.NoError(t, duration.Set("300s"))
-	assert.Equal(t, time.Duration(300*10e8), *duration.Value())
-	assert.NoError(t, duration.Set("-300s"))
-	assert.Equal(t, time.Duration(-300*10e8), *duration.Value())
-}
-
-func TestPositiveDurationOptSetAndValue(t *testing.T) {
-	var duration PositiveDurationOpt
-	assert.NoError(t, duration.Set("300s"))
-	assert.Equal(t, time.Duration(300*10e8), *duration.Value())
-	assert.EqualError(t, duration.Set("-300s"), "duration cannot be negative")
-}
-
 func TestUint64OptString(t *testing.T) {
 	value := uint64(2345678)
 	opt := Uint64Opt{value: &value}
@@ -71,9 +50,9 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 	dur := time.Second
 	opt := healthCheckOptions{
 		cmd:         "curl",
-		interval:    PositiveDurationOpt{DurationOpt{value: &dur}},
-		timeout:     PositiveDurationOpt{DurationOpt{value: &dur}},
-		startPeriod: PositiveDurationOpt{DurationOpt{value: &dur}},
+		interval:    opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
+		timeout:     opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
+		startPeriod: opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
 		retries:     10,
 	}
 	config, err := opt.toHealthConfig()
