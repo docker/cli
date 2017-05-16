@@ -2,6 +2,7 @@ package service
 
 import (
 	"io"
+	"io/ioutil"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service/progress"
@@ -20,14 +21,7 @@ func waitOnService(ctx context.Context, dockerCli *command.DockerCli, serviceID 
 	}()
 
 	if opts.quiet {
-		go func() {
-			for {
-				var buf [1024]byte
-				if _, err := pipeReader.Read(buf[:]); err != nil {
-					return
-				}
-			}
-		}()
+		go io.Copy(ioutil.Discard, pipeReader)
 		return <-errChan
 	}
 

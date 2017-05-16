@@ -123,6 +123,8 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 			fmt.Fprintf(dockerCli.Out(), "  Heartbeat Period: %s\n", units.HumanDuration(time.Duration(info.Swarm.Cluster.Spec.Dispatcher.HeartbeatPeriod)))
 			fmt.Fprintf(dockerCli.Out(), " CA Configuration:\n")
 			fmt.Fprintf(dockerCli.Out(), "  Expiry Duration: %s\n", units.HumanDuration(info.Swarm.Cluster.Spec.CAConfig.NodeCertExpiry))
+			fmt.Fprintf(dockerCli.Out(), "  Force Rotate: %d\n", info.Swarm.Cluster.Spec.CAConfig.ForceRotate)
+			fprintfIfNotEmpty(dockerCli.Out(), "  Signing CA Certificate: \n%s\n\n", strings.TrimSpace(info.Swarm.Cluster.Spec.CAConfig.SigningCACert))
 			if len(info.Swarm.Cluster.Spec.CAConfig.ExternalCAs) > 0 {
 				fmt.Fprintf(dockerCli.Out(), "  External CAs:\n")
 				for _, entry := range info.Swarm.Cluster.Spec.CAConfig.ExternalCAs {
