@@ -41,6 +41,5 @@ function makeres {
 		$defs
 }
 
-$WINDMC $RESOURCES/event_messages.mc -h $TEMPDIR -r $TEMPDIR
 makeres docker.rc pe-x86-64 rsrc_amd64.syso
 makeres docker.rc pe-i386   rsrc_386.syso
