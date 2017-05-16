@@ -133,3 +133,34 @@ func TestSecrets(t *testing.T) {
 	}, secret.Labels)
 	assert.Equal(t, []byte(secretText), secret.Data)
 }
+
+func TestConfigs(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+
+	configText := "this is the first config"
+	configFile := tempfile.NewTempFile(t, "convert-configs", configText)
+	defer configFile.Remove()
+
+	source := map[string]composetypes.ConfigObjConfig{
+		"one": {
+			File:   configFile.Name(),
+			Labels: map[string]string{"monster": "mash"},
+		},
+		"ext": {
+			External: composetypes.External{
+				External: true,
+			},
+		},
+	}
+
+	specs, err := Configs(namespace, source)
+	assert.NoError(t, err)
+	require.Len(t, specs, 1)
+	config := specs[0]
+	assert.Equal(t, "foo_one", config.Name)
+	assert.Equal(t, map[string]string{
+		"monster":      "mash",
+		LabelNamespace: "foo",
+	}, config.Labels)
+	assert.Equal(t, []byte(configText), config.Data)
+}

@@ -66,67 +66,56 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	cfg := types.Config{}
-	lookupEnv := func(k string) (string, bool) {
-		v, ok := configDetails.Environment[k]
-		return v, ok
-	}
-	if services, ok := configDict["services"]; ok {
-		servicesConfig, err := interpolation.Interpolate(services.(map[string]interface{}), "service", lookupEnv)
-		if err != nil {
-			return nil, err
-		}
 
-		servicesList, err := LoadServices(servicesConfig, configDetails.WorkingDir, lookupEnv)
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.Services = servicesList
+	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
+	if err != nil {
+		return nil, err
 	}
 
-	if networks, ok := configDict["networks"]; ok {
-		networksConfig, err := interpolation.Interpolate(networks.(map[string]interface{}), "network", lookupEnv)
-		if err != nil {
-			return nil, err
-		}
-
-		networksMapping, err := LoadNetworks(networksConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.Networks = networksMapping
+	cfg.Services, err = LoadServices(config["services"], configDetails.WorkingDir, configDetails.LookupEnv)
+	if err != nil {
+		return nil, err
 	}
 
-	if volumes, ok := configDict["volumes"]; ok {
-		volumesConfig, err := interpolation.Interpolate(volumes.(map[string]interface{}), "volume", lookupEnv)
-		if err != nil {
-			return nil, err
-		}
-
-		volumesMapping, err := LoadVolumes(volumesConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.Volumes = volumesMapping
+	cfg.Networks, err = LoadNetworks(config["networks"])
+	if err != nil {
+		return nil, err
 	}
 
-	if secrets, ok := configDict["secrets"]; ok {
-		secretsConfig, err := interpolation.Interpolate(secrets.(map[string]interface{}), "secret", lookupEnv)
-		if err != nil {
-			return nil, err
-		}
+	cfg.Volumes, err = LoadVolumes(config["volumes"])
+	if err != nil {
+		return nil, err
+	}
 
-		secretsMapping, err := LoadSecrets(secretsConfig, configDetails.WorkingDir)
-		if err != nil {
-			return nil, err
-		}
+	cfg.Secrets, err = LoadSecrets(config["secrets"], configDetails.WorkingDir)
+	if err != nil {
+		return nil, err
+	}
 
-		cfg.Secrets = secretsMapping
+	cfg.Configs, err = LoadConfigObjs(config["configs"], configDetails.WorkingDir)
+	if err != nil {
+		return nil, err
 	}
 
 	return &cfg, nil
+}
+
+func interpolateConfig(configDict map[string]interface{}, lookupEnv template.Mapping) (map[string]map[string]interface{}, error) {
+	config := make(map[string]map[string]interface{})
+
+	for _, key := range []string{"services", "networks", "volumes", "secrets", "configs"} {
+		section, ok := configDict[key]
+		if !ok {
+			config[key] = make(map[string]interface{})
+			continue
+		}
+		var err error
+		config[key], err = interpolation.Interpolate(section.(map[string]interface{}), key, lookupEnv)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return config, nil
 }
 
 // GetUnsupportedProperties returns the list of any unsupported properties that are
@@ -241,7 +230,9 @@ func transformHook(
 	case reflect.TypeOf([]types.ServicePortConfig{}):
 		return transformServicePort(data)
 	case reflect.TypeOf(types.ServiceSecretConfig{}):
-		return transformServiceSecret(data)
+		return transformStringSourceMap(data)
+	case reflect.TypeOf(types.ServiceConfigObjConfig{}):
+		return transformStringSourceMap(data)
 	case reflect.TypeOf(types.StringOrNumberList{}):
 		return transformStringOrNumberList(data)
 	case reflect.TypeOf(map[string]*types.ServiceNetworkConfig{}):
@@ -482,6 +473,25 @@ func LoadSecrets(source map[string]interface{}, workingDir string) (map[string]t
 	return secrets, nil
 }
 
+// LoadConfigObjs produces a ConfigObjConfig map from a compose file Dict
+// the source Dict is not validated if directly used. Use Load() to enable validation
+func LoadConfigObjs(source map[string]interface{}, workingDir string) (map[string]types.ConfigObjConfig, error) {
+	configs := make(map[string]types.ConfigObjConfig)
+	if err := transform(source, &configs); err != nil {
+		return configs, err
+	}
+	for name, config := range configs {
+		if config.External.External && config.External.Name == "" {
+			config.External.Name = name
+			configs[name] = config
+		}
+		if config.File != "" {
+			config.File = absPath(workingDir, config.File)
+		}
+	}
+	return configs, nil
+}
+
 func absPath(workingDir string, filepath string) string {
 	if path.IsAbs(filepath) {
 		return filepath
@@ -544,7 +554,7 @@ func transformServicePort(data interface{}) (interface{}, error) {
 	}
 }
 
-func transformServiceSecret(data interface{}) (interface{}, error) {
+func transformStringSourceMap(data interface{}) (interface{}, error) {
 	switch value := data.(type) {
 	case string:
 		return map[string]interface{}{"source": value}, nil

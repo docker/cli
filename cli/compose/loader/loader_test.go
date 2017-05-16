@@ -206,12 +206,17 @@ services:
     image: busybox
     credential_spec:
       File: "/foo"
+    configs: [super]
+configs:
+  super:
+    external: true
 `)
 	if !assert.NoError(t, err) {
 		return
 	}
 	assert.Equal(t, len(actual.Services), 1)
 	assert.Equal(t, actual.Services[0].CredentialSpec.File, "/foo")
+	assert.Equal(t, len(actual.Configs), 1)
 }
 
 func TestParseAndLoad(t *testing.T) {

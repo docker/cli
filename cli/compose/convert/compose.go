@@ -116,3 +116,27 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 	}
 	return result, nil
 }
+
+// Configs converts config objects from the Compose type to the engine API type
+func Configs(namespace Namespace, configs map[string]composetypes.ConfigObjConfig) ([]swarm.ConfigSpec, error) {
+	result := []swarm.ConfigSpec{}
+	for name, config := range configs {
+		if config.External.External {
+			continue
+		}
+
+		data, err := ioutil.ReadFile(config.File)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, swarm.ConfigSpec{
+			Annotations: swarm.Annotations{
+				Name:   namespace.Scope(name),
+				Labels: AddStackLabel(namespace, config.Labels),
+			},
+			Data: data,
+		})
+	}
+	return result, nil
+}
