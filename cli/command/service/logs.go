@@ -204,8 +204,12 @@ func (f *taskFormatter) format(ctx context.Context, logCtx logContext) (string, 
 		}
 	}
 
-	padding := strings.Repeat(" ", f.padding-getMaxLength(task.Slot))
-	formatted := fmt.Sprintf("%s@%s%s", taskName, nodeName, padding)
+	paddingCount := f.padding - getMaxLength(task.Slot)
+	padding := ""
+	if paddingCount > 0 {
+		padding = strings.Repeat(" ", paddingCount)
+	}
+	formatted := taskName + "@" + nodeName + padding
 	f.cache[logCtx] = formatted
 	return formatted, nil
 }
