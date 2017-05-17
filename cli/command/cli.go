@@ -294,7 +294,8 @@ func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, er
 	sockets.ConfigureTransport(tr, proto, addr)
 
 	return &http.Client{
-		Transport: tr,
+		Transport:     tr,
+		CheckRedirect: client.CheckRedirect,
 	}, nil
 }
 
