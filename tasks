@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+dev_image=docker-cli-dev
+linter_image=docker-cli-lint
+cross_image=docker-cli-cross
+mounts="-v $PWD:/go/src/github.com/docker/cli"
+
+if [ -t 1 ] ; then use_tty="-ti"; else use_tty=""; fi
+
+function run_task {
+    local task=$1
+
+    if [[ "$task" = *shell ]]; then
+        local cmd=sh
+    else
+        local cmd="make $task"
+    fi
+    
+    case $task in
+        lint|lint-shell)
+            docker build -t "$linter_image" -f ./dockerfiles/Dockerfile.lint .
+            docker run --rm $use_tty $mounts "$linter_image" $cmd
+            ;;
+        cross|dynbinary|cross-shell)
+            docker build -t "$cross_image" -f ./dockerfiles/Dockerfile.cross .
+            docker run --rm $use_tty $mounts "$cross_image" $cmd
+            ;;
+        *)
+            docker build -t "$dev_image" -f ./dockerfiles/Dockerfile.dev .
+            docker run --rm $use_tty $mounts "$dev_image" $cmd
+            ;;
+    esac
+}
+
+function usage {
+    cat <<USAGE
+Usage: $0 TASK [TASK...]
+
+Run a project task in the appropriate Docker image.
+
+TASK may be the name of a target in the Makefile or one of:
+shell, lint-shell, cross-shell
+USAGE
+    exit 1
+}
+
+if [ -z "$@" ] || [ "$@" = "--help" ]; then usage; fi
+
+for task in $@; do
+    run_task $task
+done
