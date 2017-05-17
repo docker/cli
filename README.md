@@ -28,7 +28,6 @@ Run all linting:
 ```
 $ make -f docker.Makefile lint
 ```
-`
 
 ### In-container development environment
 

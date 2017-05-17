@@ -46,6 +46,10 @@ test: build_docker_image
 cross: build_cross_image
 	@docker run --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
+.PHONY: watch
+watch: build_docker_image
+	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make watch
+
 # start container in interactive mode for in-container development
 .PHONY: dev
 dev: build_docker_image

@@ -19,7 +19,6 @@ test:
 lint:
 	@gometalinter --config gometalinter.json ./...
 
-
 .PHONY: binary
 binary:
 	@./scripts/build/binary
@@ -32,6 +31,10 @@ cross:
 .PHONY: dynbinary
 dynbinary:
 	@./scripts/build/dynbinary
+
+.PHONY: watch
+watch:
+	@./scripts/test/watch
 
 # download dependencies (vendor/) listed in vendor.conf
 .PHONY: vendor
