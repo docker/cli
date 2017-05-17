@@ -146,7 +146,17 @@ func runExec(dockerCli *command.DockerCli, options *execOptions, container strin
 	}
 	defer resp.Close()
 	errCh = promise.Go(func() error {
-		return holdHijackedConnection(ctx, dockerCli, execConfig.Tty, in, out, stderr, resp)
+		streamer := hijackedIOStreamer{
+			streams:      dockerCli,
+			inputStream:  in,
+			outputStream: out,
+			errorStream:  stderr,
+			resp:         resp,
+			tty:          execConfig.Tty,
+			detachKeys:   execConfig.DetachKeys,
+		}
+
+		return streamer.stream(ctx)
 	})
 
 	if execConfig.Tty && dockerCli.In().IsTerminal() {

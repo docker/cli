@@ -109,7 +109,18 @@ func runAttach(dockerCli *command.DockerCli, opts *attachOptions) error {
 			logrus.Debugf("Error monitoring TTY size: %s", err)
 		}
 	}
-	if err := holdHijackedConnection(ctx, dockerCli, c.Config.Tty, in, dockerCli.Out(), dockerCli.Err(), resp); err != nil {
+
+	streamer := hijackedIOStreamer{
+		streams:      dockerCli,
+		inputStream:  in,
+		outputStream: dockerCli.Out(),
+		errorStream:  dockerCli.Err(),
+		resp:         resp,
+		tty:          c.Config.Tty,
+		detachKeys:   options.DetachKeys,
+	}
+
+	if err := streamer.stream(ctx); err != nil {
 		return err
 	}
 

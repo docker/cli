@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/docker/distribution"
-	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // ServiceConfig stores daemon registry services configuration.
 type ServiceConfig struct {
-	InsecureRegistryCIDRs []*NetIPNet           `json:"InsecureRegistryCIDRs"`
-	IndexConfigs          map[string]*IndexInfo `json:"IndexConfigs"`
-	Mirrors               []string
+	AllowNondistributableArtifactsCIDRs     []*NetIPNet
+	AllowNondistributableArtifactsHostnames []string
+	InsecureRegistryCIDRs                   []*NetIPNet           `json:"InsecureRegistryCIDRs"`
+	IndexConfigs                            map[string]*IndexInfo `json:"IndexConfigs"`
+	Mirrors                                 []string
 }
 
 // NetIPNet is the net.IPNet type, which can be marshalled and
@@ -111,8 +112,8 @@ type SearchResults struct {
 type DistributionInspect struct {
 	// Descriptor contains information about the manifest, including
 	// the content addressable digest
-	Descriptor distribution.Descriptor
+	Descriptor v1.Descriptor
 	// Platforms contains the list of platforms supported by the image,
 	// obtained by parsing the manifest
-	Platforms []manifestlist.PlatformSpec
+	Platforms []v1.Platform
 }
