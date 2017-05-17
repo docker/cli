@@ -104,7 +104,17 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 		}
 		defer resp.Close()
 		cErr := promise.Go(func() error {
-			errHijack := holdHijackedConnection(ctx, dockerCli, c.Config.Tty, options.DetachKeys, in, dockerCli.Out(), dockerCli.Err(), resp)
+			streamer := hijackedIOStreamer{
+				streams:      dockerCli,
+				inputStream:  in,
+				outputStream: dockerCli.Out(),
+				errorStream:  dockerCli.Err(),
+				resp:         resp,
+				tty:          c.Config.Tty,
+				detachKeys:   options.DetachKeys,
+			}
+
+			errHijack := streamer.stream(ctx)
 			if errHijack == nil {
 				return errAttach
 			}

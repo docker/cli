@@ -176,8 +176,8 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 
 	//start the container
 	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
-		// If we have holdHijackedConnection, we should notify
-		// holdHijackedConnection we are going to exit and wait
+		// If we have hijackedIOStreamer, we should notify
+		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
 		if attach {
 			cancelFun()
@@ -267,7 +267,17 @@ func attachContainer(
 	}
 
 	*errCh = promise.Go(func() error {
-		if errHijack := holdHijackedConnection(ctx, dockerCli, config.Tty, options.DetachKeys, in, out, cerr, resp); errHijack != nil {
+		streamer := hijackedIOStreamer{
+			streams:      dockerCli,
+			inputStream:  in,
+			outputStream: out,
+			errorStream:  cerr,
+			resp:         resp,
+			tty:          config.Tty,
+			detachKeys:   options.DetachKeys,
+		}
+
+		if errHijack := streamer.stream(ctx); errHijack != nil {
 			return errHijack
 		}
 		return errAttach
