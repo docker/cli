@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -103,7 +104,7 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 		}
 		defer resp.Close()
 		cErr := promise.Go(func() error {
-			errHijack := holdHijackedConnection(ctx, dockerCli, c.Config.Tty, in, dockerCli.Out(), dockerCli.Err(), resp)
+			errHijack := holdHijackedConnection(ctx, dockerCli, c.Config.Tty, options.DetachKeys, in, dockerCli.Out(), dockerCli.Err(), resp)
 			if errHijack == nil {
 				return errAttach
 			}
@@ -136,6 +137,10 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 			}
 		}
 		if attchErr := <-cErr; attchErr != nil {
+			if _, ok := err.(term.EscapeError); ok {
+				// The user entered the detach escape sequence.
+				return nil
+			}
 			return attchErr
 		}
 

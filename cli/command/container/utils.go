@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
@@ -13,12 +14,41 @@ import (
 	"golang.org/x/net/context"
 )
 
-func waitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, containerID string, waitRemove bool) chan int {
+func waitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, containerID string, waitRemove bool) <-chan int {
 	if len(containerID) == 0 {
 		// containerID can never be empty
 		panic("Internal Error: waitExitOrRemoved needs a containerID as parameter")
 	}
 
+	// Older versions used the Events API, and even older versions did not
+	// support server-side removal. This legacyWaitExitOrRemoved method
+	// preserves that old behavior and any issues it may have.
+	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
+		return legacyWaitExitOrRemoved(ctx, dockerCli, containerID, waitRemove)
+	}
+
+	condition := container.WaitConditionNextExit
+	if waitRemove {
+		condition = container.WaitConditionRemoved
+	}
+
+	resultC, errC := dockerCli.Client().ContainerWait(ctx, containerID, condition)
+
+	statusC := make(chan int)
+	go func() {
+		select {
+		case result := <-resultC:
+			statusC <- int(result.StatusCode)
+		case err := <-errC:
+			logrus.Errorf("error waiting for container: %v", err)
+			statusC <- 125
+		}
+	}()
+
+	return statusC
+}
+
+func legacyWaitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, containerID string, waitRemove bool) <-chan int {
 	var removeErr error
 	statusChan := make(chan int)
 	exitCode := 125

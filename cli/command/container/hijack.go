@@ -8,14 +8,19 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/docker/docker/pkg/term"
 	"golang.org/x/net/context"
 )
+
+// The default escape key sequence: ctrl-p, ctrl-q
+var defaultEscapeKeys = []byte{16, 17}
 
 // holdHijackedConnection handles copying input to and output from streams to the
 // connection
 // nolint: gocyclo
-func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bool, inputStream io.ReadCloser, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {
+func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bool, detachKeys string, inputStream io.ReadCloser, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {
 	var (
 		err         error
 		restoreOnce sync.Once
@@ -29,6 +34,15 @@ func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bo
 				restoreTerminal(streams, inputStream)
 			})
 		}()
+
+		// Wrap the input to detect detach control sequence.
+		// Use default detach sequence if an invalid sequence is given.
+		escapeKeys, err := term.ToBytes(detachKeys)
+		if len(escapeKeys) == 0 || err != nil {
+			escapeKeys = defaultEscapeKeys
+		}
+
+		inputStream = ioutils.NewReadCloserWrapper(term.NewEscapeProxy(inputStream, escapeKeys), inputStream.Close)
 	}
 
 	receiveStdout := make(chan error, 1)
@@ -54,9 +68,10 @@ func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bo
 	}
 
 	stdinDone := make(chan struct{})
+	detachedC := make(chan term.EscapeError)
 	go func() {
 		if inputStream != nil {
-			io.Copy(resp.Conn, inputStream)
+			_, inputErr := io.Copy(resp.Conn, inputStream)
 			// we should restore the terminal as soon as possible once connection end
 			// so any following print messages will be in normal type.
 			if tty {
@@ -65,6 +80,11 @@ func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bo
 				})
 			}
 			logrus.Debug("[hijack] End of stdin")
+
+			if detached, ok := inputErr.(term.EscapeError); ok {
+				detachedC <- detached
+				return
+			}
 		}
 
 		if err := resp.CloseWrite(); err != nil {
@@ -90,6 +110,9 @@ func holdHijackedConnection(ctx context.Context, streams command.Streams, tty bo
 			case <-ctx.Done():
 			}
 		}
+	case err := <-detachedC:
+		// Got a detach key sequence.
+		return err
 	case <-ctx.Done():
 	}
 

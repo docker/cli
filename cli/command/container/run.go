@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/docker/docker/pkg/term"
 	"github.com/docker/libnetwork/resolvconf/dns"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -199,6 +200,11 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 
 	if errCh != nil {
 		if err := <-errCh; err != nil {
+			if _, ok := err.(term.EscapeError); ok {
+				// The user entered the detach escape sequence.
+				return nil
+			}
+
 			logrus.Debugf("Error hijack: %s", err)
 			return err
 		}
@@ -261,7 +267,7 @@ func attachContainer(
 	}
 
 	*errCh = promise.Go(func() error {
-		if errHijack := holdHijackedConnection(ctx, dockerCli, config.Tty, in, out, cerr, resp); errHijack != nil {
+		if errHijack := holdHijackedConnection(ctx, dockerCli, config.Tty, options.DetachKeys, in, out, cerr, resp); errHijack != nil {
 			return errHijack
 		}
 		return errAttach
