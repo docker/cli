@@ -12,20 +12,11 @@ clean:
 # the "-tags daemon" part is temporary
 .PHONY: test
 test:
-	go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
+	./scripts/test/unit $(shell go list ./... | grep -v /vendor/)
 
 .PHONY: test-coverage
 test-coverage:
-	for pkg in $(shell go list ./... | grep -v /vendor/); do \
-		go test -tags daemon -v -cover -parallel 8 -coverprofile=profile.out -covermode=atomic $${pkg} || exit 1; \
-		if test -f profile.out; then \
-			cat profile.out >> coverage.txt && rm profile.out; \
-		fi; \
-	done
-
-.PHONY: codecov
-codecov:
-	$(shell curl -s https://codecov.io/bash | bash)
+	./scripts/test/unit-with-coverage
 
 .PHONY: lint
 lint:

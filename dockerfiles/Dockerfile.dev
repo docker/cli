@@ -1,7 +1,7 @@
 
 FROM    golang:1.8-alpine
 
-RUN     apk add -U git make bash coreutils curl
+RUN     apk add -U git make bash coreutils
 
 RUN     go get github.com/LK4D4/vndr && \
         cp /go/bin/vndr /usr/bin && \

@@ -29,13 +29,16 @@ jobs:
             docker run --name cross cli-builder make cross
             docker cp cross:/go/src/github.com/docker/cli/build /work/build
       - run:
-          name: "Unit Test"
+          name: "Unit Test with Coverage"
           command: |
             if [ "$CIRCLE_NODE_INDEX" != "2" ]; then exit; fi
             dockerfile=dockerfiles/Dockerfile.dev
             echo "COPY . ." >> $dockerfile
             docker build -f $dockerfile --tag cli-builder .
-            docker run cli-builder make test-coverage codecov
+            docker run --name test cli-builder make test-coverage
+            docker cp test:/go/src/github.com/docker/cli/coverage.txt coverage.txt
+            apk add -U bash curl
+            curl -s https://codecov.io/bash | bash
       - run:
           name: "Validate Vendor and Code Generation"
           command: |
