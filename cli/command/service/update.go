@@ -256,7 +256,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 
 	updateDurationOpt := func(flag string, field **time.Duration) {
 		if flags.Changed(flag) {
-			val := *flags.Lookup(flag).Value.(*DurationOpt).Value()
+			val := *flags.Lookup(flag).Value.(*opts.DurationOpt).Value()
 			*field = &val
 		}
 	}
@@ -963,15 +963,15 @@ func updateHealthcheck(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec)
 		containerSpec.Healthcheck.Test = nil
 	}
 	if flags.Changed(flagHealthInterval) {
-		val := *flags.Lookup(flagHealthInterval).Value.(*PositiveDurationOpt).Value()
+		val := *flags.Lookup(flagHealthInterval).Value.(*opts.PositiveDurationOpt).Value()
 		containerSpec.Healthcheck.Interval = val
 	}
 	if flags.Changed(flagHealthTimeout) {
-		val := *flags.Lookup(flagHealthTimeout).Value.(*PositiveDurationOpt).Value()
+		val := *flags.Lookup(flagHealthTimeout).Value.(*opts.PositiveDurationOpt).Value()
 		containerSpec.Healthcheck.Timeout = val
 	}
 	if flags.Changed(flagHealthStartPeriod) {
-		val := *flags.Lookup(flagHealthStartPeriod).Value.(*PositiveDurationOpt).Value()
+		val := *flags.Lookup(flagHealthStartPeriod).Value.(*opts.PositiveDurationOpt).Value()
 		containerSpec.Healthcheck.StartPeriod = val
 	}
 	if flags.Changed(flagHealthRetries) {
