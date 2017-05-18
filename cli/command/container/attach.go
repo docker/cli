@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -20,6 +21,20 @@ type attachOptions struct {
 	detachKeys string
 
 	container string
+}
+
+func inspectContainerAndCheckState(ctx context.Context, cli client.APIClient, args string) (*types.ContainerJSON, error) {
+	c, err := cli.ContainerInspect(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+	if !c.State.Running {
+		return nil, errors.New("You cannot attach to a stopped container, start it first")
+	}
+	if c.State.Paused {
+		return nil, errors.New("You cannot attach to a paused container, unpause it first")
+	}
+	return &c, nil
 }
 
 // NewAttachCommand creates a new cobra.Command for `docker attach`
@@ -47,17 +62,9 @@ func runAttach(dockerCli *command.DockerCli, opts *attachOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
-	c, err := client.ContainerInspect(ctx, opts.container)
+	c, err := inspectContainerAndCheckState(ctx, client, opts.container)
 	if err != nil {
 		return err
-	}
-
-	if !c.State.Running {
-		return errors.New("You cannot attach to a stopped container, start it first")
-	}
-
-	if c.State.Paused {
-		return errors.New("You cannot attach to a paused container, unpause it first")
 	}
 
 	if err := dockerCli.In().CheckTty(!opts.noStdin, c.Config.Tty); err != nil {
@@ -94,6 +101,19 @@ func runAttach(dockerCli *command.DockerCli, opts *attachOptions) error {
 		return errAttach
 	}
 	defer resp.Close()
+
+	// If use docker attach command to attach to a stop container, it will return
+	// "You cannot attach to a stopped container" error, it's ok, but when
+	// attach to a running container, it(docker attach) use inspect to check
+	// the container's state, if it pass the state check on the client side,
+	// and then the container is stopped, docker attach command still attach to
+	// the container and not exit.
+	//
+	// Recheck the container's state to avoid attach block.
+	_, err = inspectContainerAndCheckState(ctx, client, opts.container)
+	if err != nil {
+		return err
+	}
 
 	if c.Config.Tty && dockerCli.Out().IsTerminal() {
 		height, width := dockerCli.Out().GetTtySize()
