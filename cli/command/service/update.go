@@ -164,8 +164,11 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 	}
 
 	if flags.Changed("image") {
-		if err := resolveServiceImageDigest(dockerCli, spec); err != nil {
+		if err := resolveServiceImageDigestContentTrust(dockerCli, spec); err != nil {
 			return err
+		}
+		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
+			updateOpts.QueryRegistry = true
 		}
 	}
 
