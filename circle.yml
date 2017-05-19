@@ -4,7 +4,7 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'dnephin/docker-circleci-task-runner:17.05'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -15,14 +15,11 @@ jobs:
       - run:
           name: "Lint"
           command: |
-            dockerfile=dockerfiles/Dockerfile.lint
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-linter:$CIRCLE_BUILD_NUM .
-            docker run --rm cli-linter:$CIRCLE_BUILD_NUM
+            TASK_UNIQUE_ID=$CIRCLE_BUILD_NUM ./tasks lint
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'dnephin/docker-circleci-task-runner:17.05'}]
     parallelism: 3
     steps:
       - checkout
@@ -32,23 +29,15 @@ jobs:
       - run:
           name: "Cross"
           command: |
-            dockerfile=dockerfiles/Dockerfile.cross
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
-            name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
-            docker run \
-                -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
-                --name $name cli-builder:$CIRCLE_BUILD_NUM \
-                make cross
-            docker cp \
-                $name:/go/src/github.com/docker/cli/build \
-                /work/build
+            TASK_UNIQUE_ID=$CIRCLE_BUILD_NUM CID_FILENAME=.cid ./tasks cross
+            docker cp $(cat .cid):/go/src/github.com/docker/cli/build /work/build
+
       - store_artifacts:
           path: /work/build
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'dnephin/docker-circleci-task-runner:17.05'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -57,25 +46,17 @@ jobs:
       - run:
           name: "Unit Test with Coverage"
           command: |
-            dockerfile=dockerfiles/Dockerfile.dev
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
-            docker run --name \
-                test-$CIRCLE_BUILD_NUM cli-builder:$CIRCLE_BUILD_NUM \
-                make test-coverage
+            TASK_UNIQUE_ID=$CIRCLE_BUILD_NUM CID_FILENAME=.cid ./tasks test-coverage
 
       - run:
           name: "Upload to Codecov"
           command: |
-            docker cp \
-                test-$CIRCLE_BUILD_NUM:/go/src/github.com/docker/cli/coverage.txt \
-                coverage.txt
-            apk add -U bash curl
+            docker cp $(cat .cid):/go/src/github.com/docker/cli/coverage.txt coverage.txt
             curl -s https://codecov.io/bash | bash
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'dnephin/docker-circleci-task-runner:17.05'}]
     steps:
       - run: apk add -U git openssh
       - checkout
@@ -85,12 +66,9 @@ jobs:
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
-            dockerfile=dockerfiles/Dockerfile.dev
-            echo "COPY . ." >> $dockerfile
             rm -f .dockerignore # include .git
-            docker build -f $dockerfile --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
-            docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
-                make -B vendor compose-jsonschema manpages yamldocs
+            export TASK_UNIQUE_ID=$CIRCLE_BUILD_NUM
+            ./tasks vendor compose-jsonschema manpages yamldocs
 
 workflows:
   version: 2
