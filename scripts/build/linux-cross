@@ -7,10 +7,7 @@ set -eu -o pipefail
 
 source ./scripts/build/.variables
 
-CROSS_OSARCH="linux/amd64 linux/arm"
-
-# Compile is broken
-# linux/ppc64le
+CROSS_OSARCH="linux/amd64 linux/arm linux/ppc64le"
 
 # Not yet supported by gox
 # linux/s390x
