@@ -135,7 +135,7 @@ func GetRecentProjects() []project.Project {
 
 func getRecentProjects() recentProjects {
 	rProjects := make(recentProjects, 0)
-	jsonBytes, err := ioutil.ReadFile(recentProjectsFile())
+	jsonBytes, err := ioutil.ReadFile(recentProjectsFilePath())
 	if err == nil {
 		err := json.Unmarshal(jsonBytes, &rProjects)
 		if err != nil {
@@ -145,7 +145,7 @@ func getRecentProjects() recentProjects {
 	return rProjects
 }
 
-func recentProjectsFile() string {
+func recentProjectsFilePath() string {
 	return filepath.Join(cliconfig.Dir(), recentProjectsFileName)
 }
 
@@ -177,7 +177,15 @@ func saveRecentProjects(rProjects recentProjects) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(recentProjectsFile(), jsonBytes, 0644)
+	// update recent projects JSON file on disc
+	// automatically create parent directories if they don't exist
+	filePath := recentProjectsFilePath()
+	parentDirPath := filepath.Dir(filePath)
+	err = os.MkdirAll(parentDirPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filePath, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
