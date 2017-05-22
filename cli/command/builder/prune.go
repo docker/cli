@@ -16,6 +16,7 @@ import (
 type pruneOptions struct {
 	force       bool
 	all         bool
+	dryRun      bool
 	filter      opts.FilterOpt
 	keepStorage opts.MemBytes
 }
@@ -64,7 +65,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 	if options.all {
 		warning = allCacheWarning
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
+	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
 	}
 
@@ -79,7 +80,11 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 	if len(report.CachesDeleted) > 0 {
 		var sb strings.Builder
-		sb.WriteString("Deleted build cache objects:\n")
+		if options.dryRun {
+			sb.WriteString("Will delete build cache objects:\n")
+		} else {
+			sb.WriteString("Deleted build cache objects:\n")
+		}
 		for _, id := range report.CachesDeleted {
 			sb.WriteString(id)
 			sb.WriteByte('\n')
@@ -91,6 +96,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 }
 
 // CachePrune executes a prune command for build cache
-func CachePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, all: all, filter: filter})
+func CachePrune(dockerCli command.Cli, all bool, dryRun bool, filter opts.FilterOpt) (uint64, string, error) {
+	return runPrune(dockerCli, pruneOptions{force: true, all: all, dryRun: dryRun, filter: filter})
 }

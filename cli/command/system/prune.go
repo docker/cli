@@ -25,6 +25,7 @@ type pruneOptions struct {
 	all             bool
 	pruneVolumes    bool
 	pruneBuildCache bool
+	dryRun          bool
 	filter          opts.FilterOpt
 }
 
@@ -46,6 +47,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
+	flags.BoolVarP(&options.dryRun, "dry-run", "n", false, "Display prune report without removing anything")
 	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune volumes")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'label=<key>=<value>')")
 	// "filter" flag is available in 1.28 (docker 17.04) and up
@@ -71,10 +73,11 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
+
+	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
 		return nil
 	}
-	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
+	pruneFuncs := []func(dockerCli command.Cli, all bool, dryRun bool, filter opts.FilterOpt) (uint64, string, error){
 		container.RunPrune,
 		network.RunPrune,
 	}
@@ -88,7 +91,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 
 	var spaceReclaimed uint64
 	for _, pruneFn := range pruneFuncs {
-		spc, output, err := pruneFn(dockerCli, options.all, options.filter)
+		spc, output, err := pruneFn(dockerCli, options.all, options.dryRun, options.filter)
 		if err != nil {
 			return err
 		}
@@ -98,7 +101,11 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		}
 	}
 
-	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+	spaceReclaimedLabel := "Total reclaimed space:"
+	if options.dryRun {
+		spaceReclaimedLabel = "Estimated reclaimable space:"
+	}
+	fmt.Fprintln(dockerCli.Out(), spaceReclaimedLabel, units.HumanSize(float64(spaceReclaimed)))
 
 	return nil
 }

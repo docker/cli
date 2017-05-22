@@ -89,6 +89,18 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 				}, nil
 			},
 		},
+		{
+			name: "dryRun",
+			args: []string{"--dry-run"},
+			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
+				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
+				assert.Check(t, is.Equal("true", pruneFilter.Get("dryRun")[0]))
+				return types.ImagesPruneReport{
+					ImagesDeleted:  []types.ImageDeleteResponseItem{{Untagged: "image1"}},
+					SpaceReclaimed: 2,
+				}, nil
+			},
+		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
