@@ -226,7 +226,7 @@ size: 0B
 			Context{Format: NewContainerFormat("{{.Image}}", false, true)},
 			"ubuntu\nubuntu\n",
 		},
-		// Special headers for customerized table format
+		// Special headers for customized table format
 		{
 			Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
 			`CONTAINER ID        IMAGE CREATED/STATUS/  PORTS  .NAMES STATUS

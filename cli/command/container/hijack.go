@@ -163,7 +163,7 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 			if err != nil {
 				// This error will also occur on the receive
 				// side (from stdout) where it will be
-				// propogated back to the caller.
+				// propagated back to the caller.
 				logrus.Debugf("Error sendStdin: %s", err)
 			}
 		}
