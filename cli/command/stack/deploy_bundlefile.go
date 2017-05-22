@@ -87,5 +87,5 @@ func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions
 	if err := createNetworks(ctx, dockerCli, namespace, networks); err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth)
+	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.noResolveImage)
 }

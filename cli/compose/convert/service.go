@@ -45,6 +45,12 @@ func Services(
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
+		// add an image label to serviceSpec
+		if serviceSpec.Labels == nil {
+			serviceSpec.Labels = make(map[string]string)
+		}
+		serviceSpec.Labels["com.docker.stack.image"] = service.Image
+
 		result[service.Name] = serviceSpec
 	}
 

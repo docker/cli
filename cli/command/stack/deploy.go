@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -21,6 +22,7 @@ type deployOptions struct {
 	composefile      string
 	namespace        string
 	sendRegistryAuth bool
+	noResolveImage   bool
 	prune            bool
 }
 
@@ -44,11 +46,18 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	addRegistryAuthFlag(&opts.sendRegistryAuth, flags)
 	flags.BoolVar(&opts.prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
+	flags.BoolVar(&opts.noResolveImage, "no-resolve-image", false, "Do not query the registry to resolve image digest and supported platforms")
+	flags.SetAnnotation("no-resolve-image", "version", []string{"1.30"})
 	return cmd
 }
 
 func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 	ctx := context.Background()
+
+	// image resolution should not happen for clients older than v1.30
+	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
+		opts.noResolveImage = true
+	}
 
 	switch {
 	case opts.bundlefile == "" && opts.composefile == "":
