@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		args          []string
 		isTerminal    bool
 		expectedError string
-		imageSaveFunc func(images []string) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error)
 	}{
 		{
 			name:          "wrong args",
@@ -39,7 +40,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			args:          []string{"arg1"},
 			isTerminal:    false,
 			expectedError: "error saving image",
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
 			},
 		},
@@ -58,13 +59,13 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		args          []string
 		isTerminal    bool
-		imageSaveFunc func(images []string) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error)
 		deferredFunc  func()
 	}{
 		{
 			args:       []string{"-o", "save_tmp_file", "arg1"},
 			isTerminal: true,
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error) {
 				require.Len(t, images, 1)
 				assert.Equal(t, "arg1", images[0])
 				return ioutil.NopCloser(strings.NewReader("")), nil
@@ -76,7 +77,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		{
 			args:       []string{"arg1", "arg2"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error) {
 				require.Len(t, images, 2)
 				assert.Equal(t, "arg1", images[0])
 				assert.Equal(t, "arg2", images[1])
@@ -86,7 +87,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, opts types.ImageSaveOptions) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 		}, new(bytes.Buffer)))
