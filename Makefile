@@ -12,7 +12,11 @@ clean:
 # the "-tags daemon" part is temporary
 .PHONY: test
 test:
-	go test -tags daemon -v $(shell go list ./... | grep -v /vendor/)
+	./scripts/test/unit $(shell go list ./... | grep -v /vendor/)
+
+.PHONY: test-coverage
+test-coverage:
+	./scripts/test/unit-with-coverage
 
 .PHONY: lint
 lint:
