@@ -9,6 +9,7 @@ LINTER_IMAGE_NAME = docker-cli-lint
 CROSS_IMAGE_NAME = docker-cli-cross
 MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
+ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
 
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
@@ -27,7 +28,7 @@ build_cross_image:
 
 # build executable using a container
 binary: build_docker_image
-	docker run --rm -e VERSION=$(VERSION) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make binary
+	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make binary
 
 build: binary
 
@@ -44,7 +45,7 @@ test: build_docker_image
 # build the CLI for multiple architectures using a container
 .PHONY: cross
 cross: build_cross_image
-	docker run --rm -e VERSION=$(VERSION) $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
+	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
 .PHONY: watch
 watch: build_docker_image
@@ -68,4 +69,4 @@ vendor: build_docker_image vendor.conf
 	docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
 
 dynbinary: build_cross_image
-	docker run -ti --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary
+	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary
