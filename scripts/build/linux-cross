@@ -13,6 +13,7 @@ CROSS_OSARCH="linux/amd64 linux/arm linux/ppc64le"
 # linux/s390x
 
 echo "Building all linux binaries"
+# TODO(stevvooe): Remove gox. This just wraps environement variables.
 gox -output build/docker-{{.OS}}-{{.Arch}} \
     -osarch "${CROSS_OSARCH}" \
 	--ldflags "${LDFLAGS}" \
