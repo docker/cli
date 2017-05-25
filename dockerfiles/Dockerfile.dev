@@ -7,10 +7,6 @@ RUN     go get github.com/LK4D4/vndr && \
         cp /go/bin/vndr /usr/bin && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-RUN     go get github.com/mitchellh/gox && \
-        cp /go/bin/gox /usr/bin && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
-
 RUN     go get github.com/jteeuwen/go-bindata/go-bindata && \
         cp /go/bin/go-bindata /usr/bin && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*

@@ -11,10 +11,6 @@ RUN     apt-get update -qq && apt-get install -y -q \
             parallel \
             ;
 
-RUN     go get github.com/mitchellh/gox && \
-        cp /go/bin/gox /usr/bin && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
-
 COPY    dockerfiles/osx-cross.sh /tmp/
 RUN     /tmp/osx-cross.sh
 ENV     PATH /osxcross/target/bin:$PATH

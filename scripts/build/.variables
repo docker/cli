@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -eu
 
 VERSION=${VERSION:-"unknown-version"}
@@ -14,5 +13,7 @@ export LDFLAGS="\
     ${LDFLAGS:-} \
 "
 
-export TARGET="build/docker-$(go env GOHOSTOS)-$(go env GOHOSTARCH)"
+GOOS="${GOOS:-$(go env GOHOSTOS)}"
+GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
+export TARGET="build/docker-$GOOS-$GOARCH"
 export SOURCE="github.com/docker/cli/cmd/docker"
