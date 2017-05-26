@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	apiclient "github.com/docker/docker/client"
 	dockerclient "github.com/docker/docker/client"
@@ -177,11 +178,11 @@ func validateExternalNetworks(
 		network, err := client.NetworkInspect(ctx, networkName, false)
 		if err != nil {
 			if dockerclient.IsErrNetworkNotFound(err) {
-				return errors.Errorf("network %q is declared as external, but could not be found. You need to create the network before the stack is deployed (with overlay driver)", networkName)
+				return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 			}
 			return err
 		}
-		if network.Scope != "swarm" {
+		if container.NetworkMode(networkName).IsUserDefined() && network.Scope != "swarm" {
 			return errors.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of %q", networkName, network.Scope, "swarm")
 		}
 	}

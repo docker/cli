@@ -214,18 +214,21 @@ func convertServiceNetworks(
 		if !ok && networkName != defaultNetwork {
 			return nil, errors.Errorf("undefined network %q", networkName)
 		}
-		var aliases []string
-		if network != nil {
-			aliases = network.Aliases
-		}
 		target := namespace.Scope(networkName)
 		if networkConfig.External.External {
 			target = networkConfig.External.Name
 		}
-		nets = append(nets, swarm.NetworkAttachmentConfig{
-			Target:  target,
-			Aliases: append(aliases, name),
-		})
+		netAttachConfig := swarm.NetworkAttachmentConfig{
+			Target: target,
+		}
+		if container.NetworkMode(target).IsUserDefined() {
+			var aliases []string
+			if network != nil {
+				aliases = network.Aliases
+			}
+			netAttachConfig.Aliases = append(aliases, name)
+		}
+		nets = append(nets, netAttachConfig)
 	}
 
 	sort.Sort(byNetworkTarget(nets))
