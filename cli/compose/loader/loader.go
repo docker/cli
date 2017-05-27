@@ -3,6 +3,7 @@ package loader
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -371,7 +372,16 @@ func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, 
 			continue
 		}
 
-		volume.Source = absPath(workingDir, expandUser(volume.Source, lookupEnv))
+		filePath := expandUser(volume.Source, lookupEnv)
+		// Check for a Unix absolute path first, to handle a Windows client
+		// with a Unix daemon. This handles a Windows client connecting to a
+		// Unix daemon. Note that this is not required for Docker for Windows
+		// when specifying a local Windows path, because Docker for Windows
+		// translates the Windows path into a valid path within the VM.
+		if !path.IsAbs(filePath) {
+			filePath = absPath(workingDir, filePath)
+		}
+		volume.Source = filePath
 		volumes[i] = volume
 	}
 }
@@ -492,11 +502,11 @@ func LoadConfigObjs(source map[string]interface{}, workingDir string) (map[strin
 	return configs, nil
 }
 
-func absPath(workingDir string, filepath string) string {
-	if path.IsAbs(filepath) {
-		return filepath
+func absPath(workingDir string, filePath string) string {
+	if filepath.IsAbs(filePath) {
+		return filePath
 	}
-	return path.Join(workingDir, filepath)
+	return filepath.Join(workingDir, filePath)
 }
 
 func transformMapStringString(data interface{}) (interface{}, error) {
