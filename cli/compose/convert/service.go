@@ -141,6 +141,7 @@ func convertService(
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
 				Secrets:         secrets,
+				Configs:         configs,
 				ReadOnly:        service.ReadOnly,
 				Privileges:      &privileges,
 			},
