@@ -43,6 +43,8 @@ type swarmOptions struct {
 	maxSnapshots        uint64
 	snapshotInterval    uint64
 	autolock            bool
+	rootCACert          PEMFile
+	rootCAKey           PEMFile
 }
 
 // NodeAddrOption is a pflag.Value for listening addresses
@@ -252,6 +254,12 @@ func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet)
 	}
 	if flags.Changed(flagAutolock) {
 		spec.EncryptionConfig.AutoLockManagers = opts.autolock
+	}
+	if flags.Changed(flagCACert) {
+		spec.CAConfig.SigningCACert = opts.rootCACert.Contents()
+	}
+	if flags.Changed(flagCAKey) {
+		spec.CAConfig.SigningCAKey = opts.rootCAKey.Contents()
 	}
 }
 
