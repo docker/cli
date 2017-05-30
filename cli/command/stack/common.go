@@ -61,3 +61,13 @@ func getStackSecrets(
 		ctx,
 		types.SecretListOptions{Filters: getStackFilter(namespace)})
 }
+
+func getStackConfigs(
+	ctx context.Context,
+	apiclient client.APIClient,
+	namespace string,
+) ([]swarm.Config, error) {
+	return apiclient.ConfigList(
+		ctx,
+		types.ConfigListOptions{Filters: getStackFilter(namespace)})
+}
