@@ -3,7 +3,7 @@
 set -e
 
 filewatcher \
-    -L 5 \
+    -L 6 \
     -x '**/*.swp' \
     -x .git \
     -x build \

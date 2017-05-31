@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	apiclient "github.com/docker/docker/client"
 	dockerclient "github.com/docker/docker/client"
@@ -64,7 +65,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 
 	serviceNetworks := getServicesDeclaredNetworks(config.Services)
 	networks, externalNetworks := convert.Networks(namespace, config.Networks, serviceNetworks)
-	if err := validateExternalNetworks(ctx, dockerCli, externalNetworks); err != nil {
+	if err := validateExternalNetworks(ctx, dockerCli.Client(), externalNetworks); err != nil {
 		return err
 	}
 	if err := createNetworks(ctx, dockerCli, namespace, networks); err != nil {
@@ -75,7 +76,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	if err := createSecrets(ctx, dockerCli, namespace, secrets); err != nil {
+	if err := createSecrets(ctx, dockerCli, secrets); err != nil {
 		return err
 	}
 
@@ -83,7 +84,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	if err := createConfigs(ctx, dockerCli, namespace, configs); err != nil {
+	if err := createConfigs(ctx, dockerCli, configs); err != nil {
 		return err
 	}
 
@@ -169,30 +170,26 @@ func getConfigFile(filename string) (*composetypes.ConfigFile, error) {
 
 func validateExternalNetworks(
 	ctx context.Context,
-	dockerCli command.Cli,
-	externalNetworks []string) error {
-	client := dockerCli.Client()
-
+	client dockerclient.NetworkAPIClient,
+	externalNetworks []string,
+) error {
 	for _, networkName := range externalNetworks {
 		network, err := client.NetworkInspect(ctx, networkName, false)
-		if err != nil {
-			if dockerclient.IsErrNetworkNotFound(err) {
-				return errors.Errorf("network %q is declared as external, but could not be found. You need to create the network before the stack is deployed (with overlay driver)", networkName)
-			}
+		switch {
+		case dockerclient.IsErrNotFound(err):
+			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
+		case err != nil:
 			return err
-		}
-		if network.Scope != "swarm" {
-			return errors.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of %q", networkName, network.Scope, "swarm")
+		case container.NetworkMode(networkName).IsUserDefined() && network.Scope != "swarm":
+			return errors.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, network.Scope)
 		}
 	}
-
 	return nil
 }
 
 func createSecrets(
 	ctx context.Context,
 	dockerCli command.Cli,
-	namespace convert.Namespace,
 	secrets []swarm.SecretSpec,
 ) error {
 	client := dockerCli.Client()
@@ -219,7 +216,6 @@ func createSecrets(
 func createConfigs(
 	ctx context.Context,
 	dockerCli command.Cli,
-	namespace convert.Namespace,
 	configs []swarm.ConfigSpec,
 ) error {
 	client := dockerCli.Client()

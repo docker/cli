@@ -223,10 +223,16 @@ func convertServiceNetworks(
 		if networkConfig.External.External {
 			target = networkConfig.External.Name
 		}
-		nets = append(nets, swarm.NetworkAttachmentConfig{
+		netAttachConfig := swarm.NetworkAttachmentConfig{
 			Target:  target,
-			Aliases: append(aliases, name),
-		})
+			Aliases: aliases,
+		}
+		// Only add default aliases to user defined networks. Other networks do
+		// not support aliases.
+		if container.NetworkMode(target).IsUserDefined() {
+			netAttachConfig.Aliases = append(netAttachConfig.Aliases, name)
+		}
+		nets = append(nets, netAttachConfig)
 	}
 
 	sort.Sort(byNetworkTarget(nets))
