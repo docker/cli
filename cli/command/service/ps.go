@@ -69,29 +69,43 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 		return err
 	}
 
+	var errs []string
+	serviceCount := 0
+loop:
+	// Match services by 1. Full ID, 2. Full name, 3. ID prefix. An error is returned if the ID-prefix match is ambiguous
 	for _, service := range options.services {
-		serviceCount := 0
-		// Lookup by ID/Prefix
-		for _, serviceEntry := range serviceByIDList {
-			if strings.HasPrefix(serviceEntry.ID, service) {
-				filter.Add("service", serviceEntry.ID)
+		for _, s := range serviceByIDList {
+			if s.ID == service {
+				filter.Add("service", s.ID)
 				serviceCount++
+				continue loop
 			}
 		}
-
-		// Lookup by Name/Prefix
-		for _, serviceEntry := range serviceByNameList {
-			if strings.HasPrefix(serviceEntry.Spec.Annotations.Name, service) {
-				filter.Add("service", serviceEntry.ID)
+		for _, s := range serviceByNameList {
+			if s.Spec.Annotations.Name == service {
+				filter.Add("service", s.ID)
 				serviceCount++
+				continue loop
 			}
 		}
-		// If nothing has been found, return immediately.
-		if serviceCount == 0 {
-			return errors.Errorf("no such services: %s", service)
+		found := false
+		for _, s := range serviceByIDList {
+			if strings.HasPrefix(s.ID, service) {
+				if found {
+					return errors.New("multiple services found with provided prefix: " + service)
+				}
+				filter.Add("service", s.ID)
+				serviceCount++
+				found = true
+			}
+		}
+		if !found {
+			errs = append(errs, "no such service: "+service)
 		}
 	}
-
+	if serviceCount == 0 {
+		return errors.New(strings.Join(errs, "\n"))
+	}
 	if filter.Include("node") {
 		nodeFilters := filter.Get("node")
 		for _, nodeFilter := range nodeFilters {
@@ -117,6 +131,11 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 			format = formatter.TableFormatKey
 		}
 	}
-
-	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format)
+	if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
+		return err
+	}
+	if len(errs) != 0 {
+		return errors.New(strings.Join(errs, "\n"))
+	}
+	return nil
 }
