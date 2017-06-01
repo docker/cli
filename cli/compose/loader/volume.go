@@ -114,8 +114,5 @@ func isFilePath(source string) bool {
 
 	// Windows absolute path
 	first, next := utf8.DecodeRuneInString(source)
-	if unicode.IsLetter(first) && source[next] == ':' {
-		return true
-	}
-	return false
+	return unicode.IsLetter(first) && source[next] == ':'
 }
