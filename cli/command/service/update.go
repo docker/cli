@@ -131,7 +131,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 		// Rollback can't be combined with other flags.
 		otherFlagsPassed := false
 		flags.VisitAll(func(f *pflag.Flag) {
-			if f.Name == "rollback" {
+			if f.Name == "rollback" || f.Name == "detach" || f.Name == "quiet" {
 				return
 			}
 			if flags.Changed(f.Name) {
