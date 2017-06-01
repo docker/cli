@@ -196,7 +196,7 @@ func transform(source map[string]interface{}, target interface{}) error {
 	data := mapstructure.Metadata{}
 	config := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			transformHook,
+			createTransformHook(),
 			mapstructure.StringToTimeDurationHookFunc()),
 		Result:   target,
 		Metadata: &data,
@@ -208,46 +208,33 @@ func transform(source map[string]interface{}, target interface{}) error {
 	return decoder.Decode(source)
 }
 
-func transformHook(
-	source reflect.Type,
-	target reflect.Type,
-	data interface{},
-) (interface{}, error) {
-	switch target {
-	case reflect.TypeOf(types.External{}):
-		return transformExternal(data)
-	case reflect.TypeOf(types.HealthCheckTest{}):
-		return transformHealthCheckTest(data)
-	case reflect.TypeOf(types.ShellCommand{}):
-		return transformShellCommand(data)
-	case reflect.TypeOf(types.StringList{}):
-		return transformStringList(data)
-	case reflect.TypeOf(map[string]string{}):
-		return transformMapStringString(data)
-	case reflect.TypeOf(types.UlimitsConfig{}):
-		return transformUlimits(data)
-	case reflect.TypeOf(types.UnitBytes(0)):
-		return transformSize(data)
-	case reflect.TypeOf([]types.ServicePortConfig{}):
-		return transformServicePort(data)
-	case reflect.TypeOf(types.ServiceSecretConfig{}):
-		return transformStringSourceMap(data)
-	case reflect.TypeOf(types.ServiceConfigObjConfig{}):
-		return transformStringSourceMap(data)
-	case reflect.TypeOf(types.StringOrNumberList{}):
-		return transformStringOrNumberList(data)
-	case reflect.TypeOf(map[string]*types.ServiceNetworkConfig{}):
-		return transformServiceNetworkMap(data)
-	case reflect.TypeOf(types.MappingWithEquals{}):
-		return transformMappingOrList(data, "=", true), nil
-	case reflect.TypeOf(types.Labels{}):
-		return transformMappingOrList(data, "=", false), nil
-	case reflect.TypeOf(types.MappingWithColon{}):
-		return transformMappingOrList(data, ":", false), nil
-	case reflect.TypeOf(types.ServiceVolumeConfig{}):
-		return transformServiceVolumeConfig(data)
+func createTransformHook() mapstructure.DecodeHookFuncType {
+	transforms := map[reflect.Type]func(interface{}) (interface{}, error){
+		reflect.TypeOf(types.External{}):                         transformExternal,
+		reflect.TypeOf(types.HealthCheckTest{}):                  transformHealthCheckTest,
+		reflect.TypeOf(types.ShellCommand{}):                     transformShellCommand,
+		reflect.TypeOf(types.StringList{}):                       transformStringList,
+		reflect.TypeOf(map[string]string{}):                      transformMapStringString,
+		reflect.TypeOf(types.UlimitsConfig{}):                    transformUlimits,
+		reflect.TypeOf(types.UnitBytes(0)):                       transformSize,
+		reflect.TypeOf([]types.ServicePortConfig{}):              transformServicePort,
+		reflect.TypeOf(types.ServiceSecretConfig{}):              transformStringSourceMap,
+		reflect.TypeOf(types.ServiceConfigObjConfig{}):           transformStringSourceMap,
+		reflect.TypeOf(types.StringOrNumberList{}):               transformStringOrNumberList,
+		reflect.TypeOf(map[string]*types.ServiceNetworkConfig{}): transformServiceNetworkMap,
+		reflect.TypeOf(types.MappingWithEquals{}):                transformMappingOrListFunc("=", true),
+		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
+		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),
+		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
 	}
-	return data, nil
+
+	return func(_ reflect.Type, target reflect.Type, data interface{}) (interface{}, error) {
+		transform, ok := transforms[target]
+		if !ok {
+			return data, nil
+		}
+		return transform(data)
+	}
 }
 
 // keys needs to be converted to strings for jsonschema
@@ -618,6 +605,12 @@ func transformStringList(data interface{}) (interface{}, error) {
 	}
 }
 
+func transformMappingOrListFunc(sep string, allowNil bool) func(interface{}) (interface{}, error) {
+	return func(data interface{}) (interface{}, error) {
+		return transformMappingOrList(data, sep, allowNil), nil
+	}
+}
+
 func transformMappingOrList(mappingOrList interface{}, sep string, allowNil bool) interface{} {
 	switch value := mappingOrList.(type) {
 	case map[string]interface{}:
@@ -659,7 +652,7 @@ func transformHealthCheckTest(data interface{}) (interface{}, error) {
 	}
 }
 
-func transformSize(value interface{}) (int64, error) {
+func transformSize(value interface{}) (interface{}, error) {
 	switch value := value.(type) {
 	case int:
 		return int64(value), nil
