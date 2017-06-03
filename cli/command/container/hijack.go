@@ -179,10 +179,7 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 }
 
 func setRawTerminal(streams command.Streams) error {
-	if err := streams.In().SetRawTerminal(); err != nil {
-		return err
-	}
-	return streams.Out().SetRawTerminal()
+	return streams.In().SetRawTerminal()
 }
 
 func restoreTerminal(streams command.Streams, in io.Closer) error {
