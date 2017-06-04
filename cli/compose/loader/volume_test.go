@@ -147,3 +147,7 @@ func TestParseVolumeWithRW(t *testing.T) {
 		assert.Equal(t, expected, volume)
 	}
 }
+
+func TestIsFilePath(t *testing.T) {
+	assert.False(t, isFilePath("a界"))
+}

@@ -10,6 +10,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const endOfSpec = rune(0)
+
 func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
 	volume := types.ServiceVolumeConfig{}
 
@@ -23,11 +25,11 @@ func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
 	}
 
 	buffer := []rune{}
-	for _, char := range spec {
+	for _, char := range spec + string(endOfSpec) {
 		switch {
-		case isWindowsDrive(char, buffer, volume):
+		case isWindowsDrive(buffer, char):
 			buffer = append(buffer, char)
-		case char == ':':
+		case char == ':' || char == endOfSpec:
 			if err := populateFieldFromBuffer(char, buffer, &volume); err != nil {
 				return volume, errors.Wrapf(err, "invalid spec: %s", spec)
 			}
@@ -36,15 +38,11 @@ func parseVolume(spec string) (types.ServiceVolumeConfig, error) {
 			buffer = append(buffer, char)
 		}
 	}
-
-	if err := populateFieldFromBuffer(rune(0), buffer, &volume); err != nil {
-		return volume, errors.Wrapf(err, "invalid spec: %s", spec)
-	}
 	populateType(&volume)
 	return volume, nil
 }
 
-func isWindowsDrive(char rune, buffer []rune, volume types.ServiceVolumeConfig) bool {
+func isWindowsDrive(buffer []rune, char rune) bool {
 	return char == ':' && len(buffer) == 1 && unicode.IsLetter(buffer[0])
 }
 
@@ -54,7 +52,7 @@ func populateFieldFromBuffer(char rune, buffer []rune, volume *types.ServiceVolu
 	case len(buffer) == 0:
 		return errors.New("empty section between colons")
 	// Anonymous volume
-	case volume.Source == "" && char == rune(0):
+	case volume.Source == "" && char == endOfSpec:
 		volume.Target = strBuffer
 		return nil
 	case volume.Source == "":
@@ -112,7 +110,6 @@ func isFilePath(source string) bool {
 		return true
 	}
 
-	// Windows absolute path
-	first, next := utf8.DecodeRuneInString(source)
-	return unicode.IsLetter(first) && source[next] == ':'
+	first, nextIndex := utf8.DecodeRuneInString(source)
+	return isWindowsDrive([]rune{first}, rune(source[nextIndex]))
 }
