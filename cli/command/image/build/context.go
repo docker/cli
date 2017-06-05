@@ -1,24 +1,23 @@
 package build
 
 import (
+	"archive/tar"
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"archive/tar"
-	"bytes"
 	"time"
 
+	"github.com/docker/docker/builder/remotecontext/git"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/gitutils"
-	"github.com/docker/docker/pkg/httputils"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
@@ -143,7 +142,7 @@ func GetContextFromGitURL(gitURL, dockerfileName string) (string, string, error)
 	if _, err := exec.LookPath("git"); err != nil {
 		return "", "", errors.Wrapf(err, "unable to find 'git'")
 	}
-	absContextDir, err := gitutils.Clone(gitURL)
+	absContextDir, err := git.Clone(gitURL)
 	if err != nil {
 		return "", "", errors.Wrapf(err, "unable to 'git clone' to temporary context directory")
 	}
@@ -161,7 +160,7 @@ func GetContextFromGitURL(gitURL, dockerfileName string) (string, string, error)
 // Returns the tar archive used for the context and a path of the
 // dockerfile inside the tar.
 func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.ReadCloser, string, error) {
-	response, err := httputils.Download(remoteURL)
+	response, err := getWithStatusError(remoteURL)
 	if err != nil {
 		return nil, "", errors.Errorf("unable to download remote context %s: %v", remoteURL, err)
 	}
@@ -171,6 +170,24 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", fmt.Sprintf("Downloading build context from remote url: %s", remoteURL))
 
 	return GetContextFromReader(ioutils.NewReadCloserWrapper(progReader, func() error { return response.Body.Close() }), dockerfileName)
+}
+
+// getWithStatusError does an http.Get() and returns an error if the
+// status code is 4xx or 5xx.
+func getWithStatusError(url string) (resp *http.Response, err error) {
+	if resp, err = http.Get(url); err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 400 {
+		return resp, nil
+	}
+	msg := fmt.Sprintf("failed to GET %s with status %s", url, resp.Status)
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, errors.Wrapf(err, msg+": error reading body")
+	}
+	return nil, errors.Errorf(msg+": %s", bytes.TrimSpace(body))
 }
 
 // GetContextFromLocalDir uses the given local directory as context for a

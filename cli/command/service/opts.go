@@ -11,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/api/defaults"
 	shlex "github.com/flynn-archive/go-shlex"
@@ -389,7 +388,7 @@ func (ldo *logDriverOptions) toLogDriver() *swarm.Driver {
 	// set the log driver only if specified.
 	return &swarm.Driver{
 		Name:    ldo.name,
-		Options: runconfigopts.ConvertKVStringsToMap(ldo.opts.GetAll()),
+		Options: opts.ConvertKVStringsToMap(ldo.opts.GetAll()),
 	}
 }
 
@@ -519,36 +518,36 @@ func newServiceOptions() *serviceOptions {
 	}
 }
 
-func (opts *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
+func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 	serviceMode := swarm.ServiceMode{}
-	switch opts.mode {
+	switch options.mode {
 	case "global":
-		if opts.replicas.Value() != nil {
+		if options.replicas.Value() != nil {
 			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
 		}
 
 		serviceMode.Global = &swarm.GlobalService{}
 	case "replicated":
 		serviceMode.Replicated = &swarm.ReplicatedService{
-			Replicas: opts.replicas.Value(),
+			Replicas: options.replicas.Value(),
 		}
 	default:
-		return serviceMode, errors.Errorf("Unknown mode: %s, only replicated and global supported", opts.mode)
+		return serviceMode, errors.Errorf("Unknown mode: %s, only replicated and global supported", options.mode)
 	}
 	return serviceMode, nil
 }
 
-func (opts *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Duration {
+func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Duration {
 	if flags.Changed(flagStopGracePeriod) {
-		return opts.stopGrace.Value()
+		return options.stopGrace.Value()
 	}
 	return nil
 }
 
-func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
+func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
 	var service swarm.ServiceSpec
 
-	envVariables, err := runconfigopts.ReadKVStrings(opts.envFile.GetAll(), opts.env.GetAll())
+	envVariables, err := opts.ReadKVStrings(options.envFile.GetAll(), options.env.GetAll())
 	if err != nil {
 		return service, err
 	}
@@ -567,68 +566,68 @@ func (opts *serviceOptions) ToService(ctx context.Context, apiClient client.Netw
 		currentEnv = append(currentEnv, env)
 	}
 
-	healthConfig, err := opts.healthcheck.toHealthConfig()
+	healthConfig, err := options.healthcheck.toHealthConfig()
 	if err != nil {
 		return service, err
 	}
 
-	serviceMode, err := opts.ToServiceMode()
+	serviceMode, err := options.ToServiceMode()
 	if err != nil {
 		return service, err
 	}
 
-	networks, err := convertNetworks(ctx, apiClient, opts.networks)
+	networks, err := convertNetworks(ctx, apiClient, options.networks)
 	if err != nil {
 		return service, err
 	}
 
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
-			Name:   opts.name,
-			Labels: runconfigopts.ConvertKVStringsToMap(opts.labels.GetAll()),
+			Name:   options.name,
+			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: swarm.ContainerSpec{
-				Image:      opts.image,
-				Args:       opts.args,
-				Command:    opts.entrypoint.Value(),
+				Image:      options.image,
+				Args:       options.args,
+				Command:    options.entrypoint.Value(),
 				Env:        currentEnv,
-				Hostname:   opts.hostname,
-				Labels:     runconfigopts.ConvertKVStringsToMap(opts.containerLabels.GetAll()),
-				Dir:        opts.workdir,
-				User:       opts.user,
-				Groups:     opts.groups.GetAll(),
-				StopSignal: opts.stopSignal,
-				TTY:        opts.tty,
-				ReadOnly:   opts.readOnly,
-				Mounts:     opts.mounts.Value(),
+				Hostname:   options.hostname,
+				Labels:     opts.ConvertKVStringsToMap(options.containerLabels.GetAll()),
+				Dir:        options.workdir,
+				User:       options.user,
+				Groups:     options.groups.GetAll(),
+				StopSignal: options.stopSignal,
+				TTY:        options.tty,
+				ReadOnly:   options.readOnly,
+				Mounts:     options.mounts.Value(),
 				DNSConfig: &swarm.DNSConfig{
-					Nameservers: opts.dns.GetAll(),
-					Search:      opts.dnsSearch.GetAll(),
-					Options:     opts.dnsOption.GetAll(),
+					Nameservers: options.dns.GetAll(),
+					Search:      options.dnsSearch.GetAll(),
+					Options:     options.dnsOption.GetAll(),
 				},
-				Hosts:           convertExtraHostsToSwarmHosts(opts.hosts.GetAll()),
-				StopGracePeriod: opts.ToStopGracePeriod(flags),
+				Hosts:           convertExtraHostsToSwarmHosts(options.hosts.GetAll()),
+				StopGracePeriod: options.ToStopGracePeriod(flags),
 				Healthcheck:     healthConfig,
 			},
 			Networks:      networks,
-			Resources:     opts.resources.ToResourceRequirements(),
-			RestartPolicy: opts.restartPolicy.ToRestartPolicy(flags),
+			Resources:     options.resources.ToResourceRequirements(),
+			RestartPolicy: options.restartPolicy.ToRestartPolicy(flags),
 			Placement: &swarm.Placement{
-				Constraints: opts.constraints.GetAll(),
-				Preferences: opts.placementPrefs.prefs,
+				Constraints: options.constraints.GetAll(),
+				Preferences: options.placementPrefs.prefs,
 			},
-			LogDriver: opts.logDriver.toLogDriver(),
+			LogDriver: options.logDriver.toLogDriver(),
 		},
 		Mode:           serviceMode,
-		UpdateConfig:   opts.update.updateConfig(flags),
-		RollbackConfig: opts.update.rollbackConfig(flags),
-		EndpointSpec:   opts.endpoint.ToEndpointSpec(),
+		UpdateConfig:   options.update.updateConfig(flags),
+		RollbackConfig: options.update.rollbackConfig(flags),
+		EndpointSpec:   options.endpoint.ToEndpointSpec(),
 	}
 
-	if opts.credentialSpec.Value() != nil {
+	if options.credentialSpec.Value() != nil {
 		service.TaskTemplate.ContainerSpec.Privileges = &swarm.Privileges{
-			CredentialSpec: opts.credentialSpec.Value(),
+			CredentialSpec: options.credentialSpec.Value(),
 		}
 	}
 

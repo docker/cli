@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/system"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -65,7 +64,7 @@ func runConfigCreate(dockerCli command.Cli, options createOptions) error {
 	spec := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
-			Labels: runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
+			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		},
 		Data: configData,
 	}

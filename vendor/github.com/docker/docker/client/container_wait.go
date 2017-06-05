@@ -10,7 +10,7 @@ import (
 	"github.com/docker/docker/api/types/versions"
 )
 
-// ContainerWait waits until the specified continer is in a certain state
+// ContainerWait waits until the specified container is in a certain state
 // indicated by the given condition, either "not-running" (default),
 // "next-exit", or "removed".
 //
@@ -31,7 +31,7 @@ func (cli *Client) ContainerWait(ctx context.Context, containerID string, condit
 	}
 
 	resultC := make(chan container.ContainerWaitOKBody)
-	errC := make(chan error)
+	errC := make(chan error, 1)
 
 	query := url.Values{}
 	query.Set("condition", string(condition))
