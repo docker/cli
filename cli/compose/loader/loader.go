@@ -566,7 +566,6 @@ func transformServiceVolumeConfig(data interface{}) (interface{}, error) {
 	default:
 		return data, errors.Errorf("invalid type %T for service volume", value)
 	}
-
 }
 
 func transformServiceNetworkMap(value interface{}) (interface{}, error) {

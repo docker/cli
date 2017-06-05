@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	apiclient "github.com/docker/docker/client"
@@ -63,18 +64,10 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runExec(dockerCli command.Cli, options *execOptions, container string, execCmd []string) error {
-	execConfig, err := parseExec(options, execCmd)
-	// just in case the ParseExec does not exit
-	if container == "" || err != nil {
-		return cli.StatusError{StatusCode: 1}
+	execConfig := parseExec(options, dockerCli.ConfigFile(), execCmd)
+	if container == "" {
+		return cli.StatusError{StatusCode: 1, Status: "No container id or name"}
 	}
-
-	if options.detachKeys != "" {
-		dockerCli.ConfigFile().DetachKeys = options.detachKeys
-	}
-
-	// Send client escape keys
-	execConfig.DetachKeys = dockerCli.ConfigFile().DetachKeys
 
 	ctx := context.Background()
 	client := dockerCli.Client()
@@ -187,7 +180,7 @@ func getExecExitStatus(ctx context.Context, client apiclient.ContainerAPIClient,
 
 // parseExec parses the specified args for the specified command and generates
 // an ExecConfig from it.
-func parseExec(opts *execOptions, execCmd []string) (*types.ExecConfig, error) {
+func parseExec(opts *execOptions, configFile *configfile.ConfigFile, execCmd []string) *types.ExecConfig {
 	execConfig := &types.ExecConfig{
 		User:       opts.user,
 		Privileged: opts.privileged,
@@ -209,5 +202,10 @@ func parseExec(opts *execOptions, execCmd []string) (*types.ExecConfig, error) {
 		execConfig.Env = opts.env.GetAll()
 	}
 
-	return execConfig, nil
+	if opts.detachKeys != "" {
+		execConfig.DetachKeys = opts.detachKeys
+	} else {
+		execConfig.DetachKeys = configFile.DetachKeys
+	}
+	return execConfig
 }
