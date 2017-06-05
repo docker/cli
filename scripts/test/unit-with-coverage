@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-for pkg in $(go list ./... | grep -v /vendor/); do
+for pkg in $@; do
     ./scripts/test/unit \
         -cover \
         -coverprofile=profile.out \
