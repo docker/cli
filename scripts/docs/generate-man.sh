@@ -18,7 +18,7 @@ MD2MAN_COMMIT=$(grep -F "$MD2MAN_REPO" vendor.conf | cut -d' ' -f2)
 )
 
 # Generate man pages from cobra commands
-go build -o /tmp/gen-manpages ./man
+go build -o /tmp/gen-manpages github.com/docker/cli/man
 /tmp/gen-manpages --root . --target ./man/man1
 
 # Generate legacy pages from markdown

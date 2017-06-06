@@ -47,7 +47,7 @@ vendor: vendor.conf
 ## generate man pages from go source and markdown
 .PHONY: manpages
 manpages:
-	scripts/dos/generate-man.sh
+	scripts/docs/generate-man.sh
 
 ## generate documentation YAML files consumed by docs repo
 .PHONY: yamldocs
