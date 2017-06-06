@@ -45,6 +45,7 @@ jobs:
             if [ "$CIRCLE_NODE_INDEX" != "3" ]; then exit; fi
             dockerfile=dockerfiles/Dockerfile.dev
             echo "COPY . ." >> $dockerfile
+            rm -f .dockerignore # include .git
             docker build -f $dockerfile --tag cli-builder .
             docker run cli-builder make -B vendor compose-jsonschema
 
