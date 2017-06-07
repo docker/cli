@@ -34,6 +34,9 @@ func inspectContainerAndCheckState(ctx context.Context, cli client.APIClient, ar
 	if c.State.Paused {
 		return nil, errors.New("You cannot attach to a paused container, unpause it first")
 	}
+	if c.State.Restarting {
+		return nil, errors.New("You cannot attach to a restarting container, wait until it is running")
+	}
 
 	return &c, nil
 }

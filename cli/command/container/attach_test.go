@@ -51,6 +51,21 @@ func TestNewAttachCommandErrors(t *testing.T) {
 				return c, nil
 			},
 		},
+		{
+			name:          "client-restarting",
+			args:          []string{"5cb5bb5e4a3b"},
+			expectedError: "You cannot attach to a restarting container",
+			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
+				c := types.ContainerJSON{}
+				c.ContainerJSONBase = &types.ContainerJSONBase{}
+				c.ContainerJSONBase.State = &types.ContainerState{
+					Running:    true,
+					Paused:     false,
+					Restarting: true,
+				}
+				return c, nil
+			},
+		},
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
