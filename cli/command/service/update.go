@@ -15,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -519,7 +518,7 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagContainerLabelAdd).Value.(*opts.ListOpts).GetAll()
-		for key, value := range runconfigopts.ConvertKVStringsToMap(values) {
+		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
 	}
@@ -539,7 +538,7 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
-		for key, value := range runconfigopts.ConvertKVStringsToMap(values) {
+		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
 	}
@@ -933,7 +932,7 @@ func updateLogDriver(flags *pflag.FlagSet, taskTemplate *swarm.TaskSpec) error {
 
 	taskTemplate.LogDriver = &swarm.Driver{
 		Name:    name,
-		Options: runconfigopts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetAll()),
+		Options: opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetAll()),
 	}
 
 	return nil

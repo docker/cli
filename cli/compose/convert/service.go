@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 )
 
@@ -404,7 +403,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*swarm.RestartPolicy, error) {
 	// TODO: log if restart is being ignored
 	if source == nil {
-		policy, err := runconfigopts.ParseRestartPolicy(restart)
+		policy, err := opts.ParseRestartPolicy(restart)
 		if err != nil {
 			return nil, err
 		}

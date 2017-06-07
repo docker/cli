@@ -9,12 +9,27 @@ import (
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
+// isValidCredsMessage checks if 'msg' contains invalid credentials error message.
+// It returns whether the logs are free of invalid credentials errors and the error if it isn't.
+// error values can be errCredentialsMissingServerURL or errCredentialsMissingUsername.
+func isValidCredsMessage(msg string) error {
+	if credentials.IsCredentialsMissingServerURLMessage(msg) {
+		return credentials.NewErrCredentialsMissingServerURL()
+	}
+
+	if credentials.IsCredentialsMissingUsernameMessage(msg) {
+		return credentials.NewErrCredentialsMissingUsername()
+	}
+
+	return nil
+}
+
 // Store uses an external program to save credentials.
-func Store(program ProgramFunc, credentials *credentials.Credentials) error {
+func Store(program ProgramFunc, creds *credentials.Credentials) error {
 	cmd := program("store")
 
 	buffer := new(bytes.Buffer)
-	if err := json.NewEncoder(buffer).Encode(credentials); err != nil {
+	if err := json.NewEncoder(buffer).Encode(creds); err != nil {
 		return err
 	}
 	cmd.Input(buffer)
@@ -22,6 +37,11 @@ func Store(program ProgramFunc, credentials *credentials.Credentials) error {
 	out, err := cmd.Output()
 	if err != nil {
 		t := strings.TrimSpace(string(out))
+
+		if isValidErr := isValidCredsMessage(t); isValidErr != nil {
+			err = isValidErr
+		}
+
 		return fmt.Errorf("error storing credentials - err: %v, out: `%s`", err, t)
 	}
 
@@ -39,6 +59,10 @@ func Get(program ProgramFunc, serverURL string) (*credentials.Credentials, error
 
 		if credentials.IsErrCredentialsNotFoundMessage(t) {
 			return nil, credentials.NewErrCredentialsNotFound()
+		}
+
+		if isValidErr := isValidCredsMessage(t); isValidErr != nil {
+			err = isValidErr
 		}
 
 		return nil, fmt.Errorf("error getting credentials - err: %v, out: `%s`", err, t)
@@ -62,6 +86,11 @@ func Erase(program ProgramFunc, serverURL string) error {
 	out, err := cmd.Output()
 	if err != nil {
 		t := strings.TrimSpace(string(out))
+
+		if isValidErr := isValidCredsMessage(t); isValidErr != nil {
+			err = isValidErr
+		}
+
 		return fmt.Errorf("error erasing credentials - err: %v, out: `%s`", err, t)
 	}
 
@@ -75,6 +104,11 @@ func List(program ProgramFunc) (map[string]string, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		t := strings.TrimSpace(string(out))
+
+		if isValidErr := isValidCredsMessage(t); isValidErr != nil {
+			err = isValidErr
+		}
+
 		return nil, fmt.Errorf("error listing credentials - err: %v, out: `%s`", err, t)
 	}
 

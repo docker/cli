@@ -17,7 +17,6 @@ import (
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/pkg/signal"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -409,13 +408,13 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 	}
 
 	// collect all the environment variables for the container
-	envVariables, err := runconfigopts.ReadKVStrings(copts.envFile.GetAll(), copts.env.GetAll())
+	envVariables, err := opts.ReadKVStrings(copts.envFile.GetAll(), copts.env.GetAll())
 	if err != nil {
 		return nil, err
 	}
 
 	// collect all the labels for the container
-	labels, err := runconfigopts.ReadKVStrings(copts.labelsFile.GetAll(), copts.labels.GetAll())
+	labels, err := opts.ReadKVStrings(copts.labelsFile.GetAll(), copts.labels.GetAll())
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +439,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		return nil, errors.Errorf("--userns: invalid USER mode")
 	}
 
-	restartPolicy, err := runconfigopts.ParseRestartPolicy(copts.restartPolicy)
+	restartPolicy, err := opts.ParseRestartPolicy(copts.restartPolicy)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +552,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		MacAddress:      copts.macAddress,
 		Entrypoint:      entrypoint,
 		WorkingDir:      copts.workingDir,
-		Labels:          runconfigopts.ConvertKVStringsToMap(labels),
+		Labels:          opts.ConvertKVStringsToMap(labels),
 		Healthcheck:     healthConfig,
 	}
 	if flags.Changed("stop-signal") {
@@ -666,7 +665,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 }
 
 func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]string, error) {
-	loggingOptsMap := runconfigopts.ConvertKVStringsToMap(loggingOpts)
+	loggingOptsMap := opts.ConvertKVStringsToMap(loggingOpts)
 	if loggingDriver == "none" && len(loggingOpts) > 0 {
 		return map[string]string{}, errors.Errorf("invalid logging opts for driver %s", loggingDriver)
 	}

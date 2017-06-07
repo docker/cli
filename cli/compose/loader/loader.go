@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"
 	shellwords "github.com/mattn/go-shellwords"
@@ -351,14 +350,14 @@ func resolveEnvironment(serviceConfig *types.ServiceConfig, workingDir string, l
 
 		for _, file := range serviceConfig.EnvFile {
 			filePath := absPath(workingDir, file)
-			fileVars, err := runconfigopts.ParseEnvFile(filePath)
+			fileVars, err := opts.ParseEnvFile(filePath)
 			if err != nil {
 				return err
 			}
 			envVars = append(envVars, fileVars...)
 		}
 		updateEnvironment(environment,
-			runconfigopts.ConvertKVStringsToMapWithNil(envVars), lookupEnv)
+			opts.ConvertKVStringsToMapWithNil(envVars), lookupEnv)
 	}
 
 	updateEnvironment(environment, serviceConfig.Environment, lookupEnv)

@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	volumetypes "github.com/docker/docker/api/types/volume"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -57,7 +56,7 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,
-		Labels:     runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
+		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
 	}
 
 	vol, err := client.VolumeCreate(context.Background(), volReq)

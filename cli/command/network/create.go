@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -107,7 +106,7 @@ func runCreate(dockerCli *command.DockerCli, options createOptions) error {
 		Ingress:        options.ingress,
 		Scope:          options.scope,
 		ConfigOnly:     options.configOnly,
-		Labels:         runconfigopts.ConvertKVStringsToMap(options.labels.GetAll()),
+		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 	}
 
 	if from := options.configFrom; from != "" {

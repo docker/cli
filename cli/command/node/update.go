@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -95,7 +94,7 @@ func mergeNodeUpdate(flags *pflag.FlagSet) func(*swarm.Node) error {
 		}
 		if flags.Changed(flagLabelAdd) {
 			labels := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
-			for k, v := range runconfigopts.ConvertKVStringsToMap(labels) {
+			for k, v := range opts.ConvertKVStringsToMap(labels) {
 				spec.Annotations.Labels[k] = v
 			}
 		}

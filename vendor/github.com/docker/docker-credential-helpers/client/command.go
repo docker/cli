@@ -2,6 +2,7 @@ package client
 
 import (
 	"io"
+	"os"
 	"os/exec"
 )
 
@@ -17,8 +18,14 @@ type ProgramFunc func(args ...string) Program
 // NewShellProgramFunc creates programs that are executed in a Shell.
 func NewShellProgramFunc(name string) ProgramFunc {
 	return func(args ...string) Program {
-		return &Shell{cmd: exec.Command(name, args...)}
+		return &Shell{cmd: newCmdRedirectErr(name, args)}
 	}
+}
+
+func newCmdRedirectErr(name string, args []string) *exec.Cmd {
+	newCmd := exec.Command(name, args...)
+	newCmd.Stderr = os.Stderr
+	return newCmd
 }
 
 // Shell invokes shell commands to talk with a remote credentials helper.

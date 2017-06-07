@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	containertypes "github.com/docker/docker/api/types/container"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -82,7 +81,7 @@ func runUpdate(dockerCli *command.DockerCli, options *updateOptions) error {
 
 	var restartPolicy containertypes.RestartPolicy
 	if options.restartPolicy != "" {
-		restartPolicy, err = runconfigopts.ParseRestartPolicy(options.restartPolicy)
+		restartPolicy, err = opts.ParseRestartPolicy(options.restartPolicy)
 		if err != nil {
 			return err
 		}
