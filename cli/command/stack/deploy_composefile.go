@@ -196,17 +196,18 @@ func createSecrets(
 
 	for _, secretSpec := range secrets {
 		secret, _, err := client.SecretInspectWithRaw(ctx, secretSpec.Name)
-		if err == nil {
+		switch {
+		case err == nil:
 			// secret already exists, then we update that
 			if err := client.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to update secret %s", secretSpec.Name)
 			}
-		} else if apiclient.IsErrSecretNotFound(err) {
+		case apiclient.IsErrSecretNotFound(err):
 			// secret does not exist, then we create a new one.
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to create secret %s", secretSpec.Name)
 			}
-		} else {
+		default:
 			return err
 		}
 	}
@@ -222,17 +223,18 @@ func createConfigs(
 
 	for _, configSpec := range configs {
 		config, _, err := client.ConfigInspectWithRaw(ctx, configSpec.Name)
-		if err == nil {
+		switch {
+		case err == nil:
 			// config already exists, then we update that
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
-				return err
+				errors.Wrapf(err, "failed to update config %s", configSpec.Name)
 			}
-		} else if apiclient.IsErrConfigNotFound(err) {
+		case apiclient.IsErrConfigNotFound(err):
 			// config does not exist, then we create a new one.
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
-				return err
+				errors.Wrapf(err, "failed to create config %s", configSpec.Name)
 			}
-		} else {
+		default:
 			return err
 		}
 	}
@@ -269,10 +271,9 @@ func createNetworks(
 
 		fmt.Fprintf(dockerCli.Out(), "Creating network %s\n", name)
 		if _, err := client.NetworkCreate(ctx, name, createOpts); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to create network %s", internalName)
 		}
 	}
-
 	return nil
 }
 
@@ -312,19 +313,15 @@ func deployServices(
 		if service, exists := existingServiceMap[name]; exists {
 			fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
-			updateOpts := types.ServiceUpdateOptions{}
-			if sendAuth {
-				updateOpts.EncodedRegistryAuth = encodedAuth
-			}
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,
 				service.Version,
 				serviceSpec,
-				updateOpts,
+				types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth},
 			)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed to update service %s", name)
 			}
 
 			for _, warning := range response.Warnings {
@@ -333,15 +330,11 @@ func deployServices(
 		} else {
 			fmt.Fprintf(out, "Creating service %s\n", name)
 
-			createOpts := types.ServiceCreateOptions{}
-			if sendAuth {
-				createOpts.EncodedRegistryAuth = encodedAuth
-			}
+			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
 			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to create service %s", name)
 			}
 		}
 	}
-
 	return nil
 }
