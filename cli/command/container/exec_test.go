@@ -1,9 +1,15 @@
 package container
 
 import (
+	"bytes"
+	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/pkg/testutil"
+	"github.com/pkg/errors"
 )
 
 type arguments struct {
@@ -113,4 +119,32 @@ func compareExecConfig(config1 *types.ExecConfig, config2 *types.ExecConfig) boo
 		}
 	}
 	return true
+}
+
+func TestNewExecCommandErrors(t *testing.T) {
+	testCases := []struct {
+		name                 string
+		args                 []string
+		expectedError        string
+		containerInspectFunc func(img string) (types.ContainerJSON, error)
+	}{
+		{
+			name:          "client-error",
+			args:          []string{"5cb5bb5e4a3b", "-t", "-i", "bash"},
+			expectedError: "something went wrong",
+			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
+				return types.ContainerJSON{}, errors.Errorf("something went wrong")
+			},
+		},
+	}
+	for _, tc := range testCases {
+		buf := new(bytes.Buffer)
+		conf := configfile.ConfigFile{}
+		cli := test.NewFakeCli(&fakeClient{containerInspectFunc: tc.containerInspectFunc}, buf)
+		cli.SetConfigfile(&conf)
+		cmd := NewExecCommand(cli)
+		cmd.SetOutput(ioutil.Discard)
+		cmd.SetArgs(tc.args)
+		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }

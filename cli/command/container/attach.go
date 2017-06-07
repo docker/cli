@@ -34,11 +34,12 @@ func inspectContainerAndCheckState(ctx context.Context, cli client.APIClient, ar
 	if c.State.Paused {
 		return nil, errors.New("You cannot attach to a paused container, unpause it first")
 	}
+
 	return &c, nil
 }
 
 // NewAttachCommand creates a new cobra.Command for `docker attach`
-func NewAttachCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 	var opts attachOptions
 
 	cmd := &cobra.Command{
@@ -58,7 +59,7 @@ func NewAttachCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runAttach(dockerCli *command.DockerCli, opts *attachOptions) error {
+func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
