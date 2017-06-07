@@ -11,7 +11,7 @@ coverage:
     project:
       default:
         target: auto
-        threshold: "0.05%"
+        threshold: "15%"
     changes: false
 ignore:
   - "**/internal/test"
