@@ -28,6 +28,8 @@ import (
 const (
 	// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
 	DefaultDockerfileName string = "Dockerfile"
+	// archiveHeaderSize is the number of bytes in an archive header
+	archiveHeaderSize = 512
 )
 
 // ValidateContextDirectory checks if all the contents of the directory
@@ -84,12 +86,12 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 func GetContextFromReader(r io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
 	buf := bufio.NewReader(r)
 
-	magic, err := buf.Peek(archive.HeaderSize)
+	magic, err := buf.Peek(archiveHeaderSize)
 	if err != nil && err != io.EOF {
 		return nil, "", errors.Errorf("failed to peek context header from STDIN: %v", err)
 	}
 
-	if archive.IsArchive(magic) {
+	if IsArchive(magic) {
 		return ioutils.NewReadCloserWrapper(buf, func() error { return r.Close() }), dockerfileName, nil
 	}
 
@@ -131,6 +133,18 @@ func GetContextFromReader(r io.ReadCloser, dockerfileName string) (out io.ReadCl
 		return err
 	}), DefaultDockerfileName, nil
 
+}
+
+// IsArchive checks for the magic bytes of a tar or any supported compression
+// algorithm.
+func IsArchive(header []byte) bool {
+	compression := archive.DetectCompression(header)
+	if compression != archive.Uncompressed {
+		return true
+	}
+	r := tar.NewReader(bytes.NewBuffer(header))
+	_, err := r.Next()
+	return err == nil
 }
 
 // GetContextFromGitURL uses a Git URL as context for a `docker build`. The
