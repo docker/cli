@@ -127,7 +127,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, 
 
 // getExitCode performs an inspect on the container. It returns
 // the running state and the exit code.
-func getExitCode(ctx context.Context, dockerCli *command.DockerCli, containerID string) (bool, int, error) {
+func getExitCode(ctx context.Context, dockerCli command.Cli, containerID string) (bool, int, error) {
 	c, err := dockerCli.Client().ContainerInspect(ctx, containerID)
 	if err != nil {
 		// If we can't connect, then the daemon probably died.
