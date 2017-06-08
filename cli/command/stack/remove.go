@@ -15,6 +15,7 @@ import (
 
 type removeOptions struct {
 	namespaces []string
+	force      bool
 }
 
 func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
@@ -30,7 +31,32 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			return runRemove(dockerCli, opts)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&opts.force, "force", "f", false, "Force the removal of the stack")
 	return cmd
+}
+
+const warning = `WARNING! This will remove:
+Services: %s
+Secrets: %s
+Networks: %s
+Are you sure you want to continue?`
+
+func formatWarning(warning string, svcs []swarm.Service, scrts []swarm.Secret, ntwks []types.NetworkResource) string {
+	services := []string{}
+	secrets := []string{}
+	networks := []string{}
+	for _, svc := range svcs {
+		services = append(services, svc.Spec.Annotations.Name)
+	}
+	for _, scrt := range scrts {
+		secrets = append(secrets, scrt.Spec.Annotations.Name)
+	}
+	for _, ntwk := range ntwks {
+		networks = append(networks, ntwk.Name)
+	}
+	return fmt.Sprintf(warning, strings.Join(services, ","), strings.Join(secrets, ","), strings.Join(networks, ","))
 }
 
 func runRemove(dockerCli command.Cli, opts removeOptions) error {
@@ -62,6 +88,10 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
 			fmt.Fprintf(dockerCli.Out(), "Nothing found in stack: %s\n", namespace)
+			continue
+		}
+
+		if !opts.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), formatWarning(warning, services, secrets, networks)) {
 			continue
 		}
 
