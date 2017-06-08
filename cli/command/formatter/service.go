@@ -511,9 +511,12 @@ func (c *serviceContext) Image() string {
 			if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
 				image = reference.FamiliarString(namedTagged)
 			}
+		} else {
+			// when a tag is not provided
+			named := reference.TrimNamed(ref)
+			image = reference.FamiliarString(named)
 		}
 	}
-
 	return image
 }
 

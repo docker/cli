@@ -94,13 +94,16 @@ func (c *taskContext) Name() string {
 func (c *taskContext) Image() string {
 	image := c.task.Spec.ContainerSpec.Image
 	if c.trunc {
-		ref, err := reference.ParseNormalizedNamed(image)
-		if err == nil {
+		if ref, err := reference.ParseNormalizedNamed(image); err == nil {
 			// update image string for display, (strips any digest)
 			if nt, ok := ref.(reference.NamedTagged); ok {
 				if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
 					image = reference.FamiliarString(namedTagged)
 				}
+			} else {
+				// when a tag is not provided
+				named := reference.TrimNamed(ref)
+				image = reference.FamiliarString(named)
 			}
 		}
 	}
