@@ -34,6 +34,7 @@ import (
 type buildOptions struct {
 	context        string
 	dockerfileName string
+	baseImage      string
 	tags           opts.ListOpts
 	labels         opts.ListOpts
 	buildArgs      opts.ListOpts
@@ -75,6 +76,11 @@ func (o buildOptions) contextFromStdin() bool {
 	return o.context == "-"
 }
 
+// usingBaseImage returns true when the user specified a base image to use
+func (o buildOptions) usingBaseImage() bool {
+	return o.baseImage != ""
+}
+
 // NewBuildCommand creates a new `docker build` command
 func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
 	ulimits := make(map[string]*units.Ulimit)
@@ -102,6 +108,7 @@ func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
 	flags.Var(options.ulimits, "ulimit", "Ulimit options")
 	flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
+	flags.StringVarP(&options.baseImage, "base-image", "b", "", "Base Image to build FROM, using a generated Dockerfile")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
 	flags.Var(&options.shmSize, "shm-size", "Size of /dev/shm")
@@ -165,6 +172,15 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		buildBuff     io.Writer
 	)
 
+	if options.baseImage != "" {
+		if options.dockerfileName != "" {
+			return errors.New("Conflicting options: -f and -b")
+		}
+		if options.dockerfileFromStdin() {
+			return errors.New("Conflicting options: -b and stdin for dockerfile")
+		}
+	}
+
 	if options.dockerfileFromStdin() {
 		if options.contextFromStdin() {
 			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
@@ -186,15 +202,22 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 	}
 
+	dockerfileName := options.dockerfileName
+	if options.usingBaseImage() {
+		// for some context resolution, it is necessary to treat a generated
+		// Dockerfile the same as reading it from stdin
+		dockerfileName = "-"
+	}
+
 	switch {
 	case options.contextFromStdin():
-		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), options.dockerfileName)
+		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), dockerfileName)
 	case isLocalDir(specifiedContext):
-		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, options.dockerfileName)
+		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, dockerfileName)
 	case urlutil.IsGitURL(specifiedContext):
-		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, options.dockerfileName)
+		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, dockerfileName)
 	case urlutil.IsURL(specifiedContext):
-		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, options.dockerfileName)
+		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, dockerfileName)
 	default:
 		return errors.Errorf("unable to prepare context: path %q not found", specifiedContext)
 	}
@@ -227,7 +250,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 			return errors.Errorf("cannot canonicalize dockerfile path %s: %v", relDockerfile, err)
 		}
 
-		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
+		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin() || options.usingBaseImage())
 
 		compression := archive.Uncompressed
 		if options.compress {
@@ -242,8 +265,18 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 	}
 
-	// replace Dockerfile if added dynamically
+	if options.usingBaseImage() {
+		// create the dockerfile contents if using a base image
+		dockerfileContents := []byte("FROM " + options.baseImage)
+		// dockerfileCtx = nopCloser{bytes.NewBufferString("FROM " + options.baseImage)}
+		buildCtx, relDockerfile, err = build.AddDockerfileContentsToBuildContext(dockerfileContents, buildCtx)
+		if err != nil {
+			return err
+		}
+	}
+
 	if dockerfileCtx != nil {
+		// replace Dockerfile if added dynamically
 		buildCtx, relDockerfile, err = build.AddDockerfileToBuildContext(dockerfileCtx, buildCtx)
 		if err != nil {
 			return err
