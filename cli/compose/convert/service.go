@@ -17,7 +17,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-const defaultNetwork = "default"
+const (
+	defaultNetwork = "default"
+	// LabelImage is the label used to store image name provided in the compose file
+	LabelImage = "com.docker.stack.image"
+)
 
 // Services from compose-file types to engine API types
 func Services(
@@ -157,6 +161,9 @@ func Service(
 		Mode:         mode,
 		UpdateConfig: convertUpdateConfig(service.Deploy.UpdateConfig),
 	}
+
+	// add an image label to serviceSpec
+	serviceSpec.Labels[LabelImage] = service.Image
 
 	// ServiceSpec.Networks is deprecated and should not have been used by
 	// this package. It is possible to update TaskTemplate.Networks, but it

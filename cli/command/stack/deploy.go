@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -14,12 +15,16 @@ import (
 
 const (
 	defaultNetworkDriver = "overlay"
+	resolveImageAlways   = "always"
+	resolveImageChanged  = "changed"
+	resolveImageNever    = "never"
 )
 
 type deployOptions struct {
 	bundlefile       string
 	composefile      string
 	namespace        string
+	resolveImage     string
 	sendRegistryAuth bool
 	prune            bool
 }
@@ -44,11 +49,18 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	addRegistryAuthFlag(&opts.sendRegistryAuth, flags)
 	flags.BoolVar(&opts.prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
+	flags.StringVar(&opts.resolveImage, "resolve-image", resolveImageAlways,
+		`Query the registry to resolve image digest and supported platforms ("`+resolveImageAlways+`"|"`+resolveImageChanged+`"|"`+resolveImageNever+`")`)
+	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	return cmd
 }
 
 func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 	ctx := context.Background()
+
+	if err := validateResolveImageFlag(dockerCli, &opts); err != nil {
+		return err
+	}
 
 	switch {
 	case opts.bundlefile == "" && opts.composefile == "":
@@ -60,6 +72,20 @@ func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 	default:
 		return deployCompose(ctx, dockerCli, opts)
 	}
+}
+
+// validateResolveImageFlag validates the opts.resolveImage command line option
+// and also turns image resolution off if the version is older than 1.30
+func validateResolveImageFlag(dockerCli command.Cli, opts *deployOptions) error {
+	if opts.resolveImage != resolveImageAlways && opts.resolveImage != resolveImageChanged && opts.resolveImage != resolveImageNever {
+		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.resolveImage)
+	}
+	// client side image resolution should not be done when the supported
+	// server version is older than 1.30
+	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
+		opts.resolveImage = resolveImageNever
+	}
+	return nil
 }
 
 // checkDaemonIsSwarmManager does an Info API call to verify that the daemon is
