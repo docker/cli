@@ -5,7 +5,6 @@ import (
 	"io"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -120,7 +119,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 			fmt.Fprintf(dockerCli.Out(), "  Heartbeat Tick: %d\n", info.Swarm.Cluster.Spec.Raft.HeartbeatTick)
 			fmt.Fprintf(dockerCli.Out(), "  Election Tick: %d\n", info.Swarm.Cluster.Spec.Raft.ElectionTick)
 			fmt.Fprintf(dockerCli.Out(), " Dispatcher:\n")
-			fmt.Fprintf(dockerCli.Out(), "  Heartbeat Period: %s\n", units.HumanDuration(time.Duration(info.Swarm.Cluster.Spec.Dispatcher.HeartbeatPeriod)))
+			fmt.Fprintf(dockerCli.Out(), "  Heartbeat Period: %s\n", units.HumanDuration(info.Swarm.Cluster.Spec.Dispatcher.HeartbeatPeriod))
 			fmt.Fprintf(dockerCli.Out(), " CA Configuration:\n")
 			fmt.Fprintf(dockerCli.Out(), "  Expiry Duration: %s\n", units.HumanDuration(info.Swarm.Cluster.Spec.CAConfig.NodeCertExpiry))
 			fmt.Fprintf(dockerCli.Out(), "  Force Rotate: %d\n", info.Swarm.Cluster.Spec.CAConfig.ForceRotate)

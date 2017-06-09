@@ -15,6 +15,7 @@
     "interfacer",
     "lll",
     "misspell",
+    "unconvert",
     "unused",
     "vet"
   ],
