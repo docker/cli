@@ -164,7 +164,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 
 // getMaxLength gets the maximum length of the number in base 10
 func getMaxLength(i int) int {
-	return len(strconv.FormatInt(int64(i), 10))
+	return len(strconv.Itoa(i))
 }
 
 type taskFormatter struct {

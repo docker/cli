@@ -69,7 +69,7 @@ func getStacks(ctx context.Context, apiclient client.APIClient) ([]*formatter.St
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]*formatter.Stack, 0)
+	m := make(map[string]*formatter.Stack)
 	for _, service := range services {
 		labels := service.Spec.Labels
 		name, ok := labels[convert.LabelNamespace]

@@ -65,7 +65,7 @@ reclaimable: {{.Reclaimable}}
 }
 
 func (ctx *DiskUsageContext) Write() (err error) {
-	if ctx.Verbose == false {
+	if !ctx.Verbose {
 		ctx.buffer = bytes.NewBufferString("")
 		ctx.preFormat()
 

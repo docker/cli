@@ -73,7 +73,7 @@ func (c *nativeStore) GetAll() (map[string]types.AuthConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		ac, _ := fileConfigs[registry] // might contain Email
+		ac := fileConfigs[registry] // might contain Email
 		ac.Username = creds.Username
 		ac.Password = creds.Password
 		ac.IdentityToken = creds.IdentityToken

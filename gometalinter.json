@@ -1,6 +1,6 @@
 {
   "Vendor": true,
-  "Deadline": "5m",
+  "Deadline": "8m",
   "Sort": ["linter", "severity", "path"],
   "Exclude": ["cli/compose/schema/bindata.go"],
 
@@ -11,6 +11,7 @@
     "gofmt",
     "goimports",
     "golint",
+    "gosimple",
     "ineffassign",
     "interfacer",
     "lll",

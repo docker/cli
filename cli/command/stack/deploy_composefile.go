@@ -134,10 +134,7 @@ func getConfigDetails(composefile string) (composetypes.ConfigDetails, error) {
 	// TODO: support multiple files
 	details.ConfigFiles = []composetypes.ConfigFile{*configFile}
 	details.Environment, err = buildEnvironment(os.Environ())
-	if err != nil {
-		return details, err
-	}
-	return details, nil
+	return details, err
 }
 
 func buildEnvironment(env []string) (map[string]string, error) {

@@ -354,7 +354,7 @@ func convertNetworks(ctx context.Context, apiClient client.NetworkAPIClient, net
 		if err != nil {
 			return nil, err
 		}
-		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{Target: net.Target, Aliases: net.Aliases, DriverOpts: net.DriverOpts})
+		netAttach = append(netAttach, swarm.NetworkAttachmentConfig(net))
 	}
 	sort.Sort(byNetworkTarget(netAttach))
 	return netAttach, nil

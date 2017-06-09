@@ -263,7 +263,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 	if info.RegistryConfig != nil && (len(info.RegistryConfig.InsecureRegistryCIDRs) > 0 || len(info.RegistryConfig.IndexConfigs) > 0) {
 		fmt.Fprintln(dockerCli.Out(), "Insecure Registries:")
 		for _, registry := range info.RegistryConfig.IndexConfigs {
-			if registry.Secure == false {
+			if !registry.Secure {
 				fmt.Fprintf(dockerCli.Out(), " %s\n", registry.Name)
 			}
 		}
