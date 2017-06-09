@@ -12,6 +12,8 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          command: docker version
+      - run:
           name: "Lint"
           command: |
             if [ "$CIRCLE_NODE_INDEX" != "0" ]; then exit; fi
