@@ -76,6 +76,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	}, buf)
 
 	cmd := newSecretRemoveCommand(cli)
+	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs(names)
 	assert.EqualError(t, cmd.Execute(), "error removing secret: foo")
 	assert.Equal(t, names, removedSecrets)
