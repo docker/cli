@@ -66,14 +66,14 @@ func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandle
 	if _, err := io.WriteString(f, filePrepender(filename)); err != nil {
 		return err
 	}
-	if err := GenYamlCustom(cmd, f, linkHandler); err != nil {
+	if err := GenYamlCustom(cmd, f); err != nil {
 		return err
 	}
 	return nil
 }
 
 // GenYamlCustom creates custom yaml output
-func GenYamlCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error {
+func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 	cliDoc := cmdDoc{}
 	cliDoc.Name = cmd.CommandPath()
 

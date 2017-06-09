@@ -65,7 +65,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, opts swarmOptions) e
 		if err != nil {
 			return errors.Wrap(err, "could not fetch unlock key")
 		}
-		printUnlockCommand(ctx, dockerCli, unlockKeyResp.UnlockKey)
+		printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
 	}
 
 	return nil
