@@ -3,6 +3,7 @@ package stack
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -116,6 +117,7 @@ func TestContinueAfterError(t *testing.T) {
 		},
 	}
 	cmd := newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
+	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.EqualError(t, cmd.Execute(), "Failed to remove some resources from stack: foo")
