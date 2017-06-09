@@ -7,15 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/test"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestNewPushCommandErrors(t *testing.T) {
@@ -60,11 +56,8 @@ func TestNewPushCommandErrors(t *testing.T) {
 
 func TestNewPushCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		trustedPushFunc func(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo,
-			ref reference.Named, authConfig types.AuthConfig,
-			requestPrivilege types.RequestPrivilegeFunc) error
+		name string
+		args []string
 	}{
 		{
 			name: "simple",

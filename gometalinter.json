@@ -1,6 +1,6 @@
 {
   "Vendor": true,
-  "Deadline": "2m",
+  "Deadline": "3m",
   "Sort": ["linter", "severity", "path"],
   "Exclude": ["cli/compose/schema/bindata.go"],
 
@@ -14,6 +14,7 @@
     "ineffassign",
     "interfacer",
     "lll",
+    "unused",
     "vet"
   ],
 

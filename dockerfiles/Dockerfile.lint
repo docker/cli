@@ -7,5 +7,6 @@ RUN     go get -u gopkg.in/alecthomas/gometalinter.v1 && \
         gometalinter --install
 
 WORKDIR /go/src/github.com/docker/cli
+ENV     CGO_ENABLED=0
 ENTRYPOINT ["/usr/local/bin/gometalinter"]
-CMD ["--config=gometalinter.json", "./..."]
+CMD     ["--config=gometalinter.json", "./..."]

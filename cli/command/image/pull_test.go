@@ -6,24 +6,17 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/test"
-	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/docker/docker/pkg/testutil/golden"
-	"github.com/docker/docker/registry"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestNewPullCommandErrors(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		expectedError   string
-		trustedPullFunc func(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named,
-			authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error
+		name          string
+		args          []string
+		expectedError string
 	}{
 		{
 			name:          "wrong-args",
@@ -57,10 +50,8 @@ func TestNewPullCommandErrors(t *testing.T) {
 
 func TestNewPullCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		trustedPullFunc func(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named,
-			authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error
+		name string
+		args []string
 	}{
 		{
 			name: "simple",

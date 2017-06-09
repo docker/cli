@@ -11,7 +11,6 @@ type nodeOptions struct {
 }
 
 type annotations struct {
-	name   string
 	labels opts.ListOpts
 }
 

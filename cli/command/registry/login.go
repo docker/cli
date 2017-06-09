@@ -16,7 +16,6 @@ type loginOptions struct {
 	serverAddress string
 	user          string
 	password      string
-	email         string
 }
 
 // NewLoginCommand creates a new `docker login` command

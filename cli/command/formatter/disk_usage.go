@@ -234,7 +234,6 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 
 type diskUsageContainersContext struct {
 	HeaderContext
-	verbose    bool
 	containers []*types.Container
 }
 
@@ -297,7 +296,6 @@ func (c *diskUsageContainersContext) Reclaimable() string {
 
 type diskUsageVolumesContext struct {
 	HeaderContext
-	verbose bool
 	volumes []*types.Volume
 }
 
