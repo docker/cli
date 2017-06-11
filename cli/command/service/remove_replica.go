@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -64,7 +64,7 @@ func runRemoveReplica(dockerCli *command.DockerCli, args []string) error {
 			errs = append(errs, fmt.Sprintf("%s: %v", arg, err))
 		}
 	}
-	
+
 	if len(errs) == 0 {
 		return nil
 	}
@@ -92,6 +92,6 @@ func runServiceRemoveReplica(dockerCli *command.DockerCli, serviceID string, slo
 
 	replicas := serviceMode.Replicated.Replicas
 
-	fmt.Fprintf(dockerCli.Out(), "%s scaled to %d\n", serviceID, *replicas - 1)
+	fmt.Fprintf(dockerCli.Out(), "%s scaled to %d\n", serviceID, *replicas-1)
 	return nil
 }
