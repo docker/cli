@@ -35,6 +35,7 @@ Options:
   -m, --memory string               Memory limit
       --memory-reservation string   Memory soft limit
       --memory-swap string          Swap limit equal to memory plus swap: '-1' to enable unlimited swap
+      --pids-limit int              Tune container pids limit (set -1 for unlimited)
       --restart string              Restart policy to apply when a container exits
 ```
 
