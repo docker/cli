@@ -27,6 +27,7 @@ type updateOptions struct {
 	memorySwap         opts.MemSwapBytes
 	kernelMemory       opts.MemBytes
 	restartPolicy      string
+	pidsLimit          int64
 	cpus               opts.NanoCPUs
 
 	nFlag int
@@ -65,6 +66,8 @@ func NewUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
 	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit")
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
+	flags.Int64Var(&options.pidsLimit, "pids-limit", -1, "Tune container pids limit (set -1 for unlimited)")
+	flags.SetAnnotation("pids-limit", "verbose", []string{"1.31"})
 
 	flags.Var(&options.cpus, "cpus", "Number of CPUs")
 	flags.SetAnnotation("cpus", "version", []string{"1.29"})
@@ -100,6 +103,7 @@ func runUpdate(dockerCli *command.DockerCli, options *updateOptions) error {
 		CPUQuota:           options.cpuQuota,
 		CPURealtimePeriod:  options.cpuRealtimePeriod,
 		CPURealtimeRuntime: options.cpuRealtimeRuntime,
+		PidsLimit:          options.pidsLimit,
 		NanoCPUs:           options.cpus.Value(),
 	}
 
