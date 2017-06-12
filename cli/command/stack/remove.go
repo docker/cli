@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -55,9 +56,19 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 			return err
 		}
 
-		configs, err := getStackConfigs(ctx, client, namespace)
+		var configs []swarm.Config
+
+		version, err := client.ServerVersion(ctx)
 		if err != nil {
 			return err
+		}
+		if versions.LessThan(version.APIVersion, "1.30") {
+			fmt.Fprintf(dockerCli.Err(), `WARNING: ignoring "configs" (requires API version 1.30, but the Docker daemon API version is %s)`, version.APIVersion)
+		} else {
+			configs, err = getStackConfigs(ctx, client, namespace)
+			if err != nil {
+				return err
+			}
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
