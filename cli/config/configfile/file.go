@@ -53,6 +53,15 @@ type ProxyConfig struct {
 	FTPProxy   string `json:"ftpProxy,omitempty"`
 }
 
+// NewConfigFile initializes an empty configuration file for the given filename 'fn'
+func NewConfigFile(fn string) *ConfigFile {
+	return &ConfigFile{
+		AuthConfigs: make(map[string]types.AuthConfig),
+		HTTPHeaders: make(map[string]string),
+		Filename:    fn,
+	}
+}
+
 // LegacyLoadFromReader reads the non-nested configuration data given and sets up the
 // auth config information with given directory and populates the receiver object
 func (configFile *ConfigFile) LegacyLoadFromReader(configData io.Reader) error {

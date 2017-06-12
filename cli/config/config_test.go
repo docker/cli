@@ -484,15 +484,6 @@ func TestConfigDir(t *testing.T) {
 	}
 }
 
-func TestConfigFile(t *testing.T) {
-	configFilename := "configFilename"
-	configFile := NewConfigFile(configFilename)
-
-	if configFile.Filename != configFilename {
-		t.Fatalf("Expected %s, got %s", configFilename, configFile.Filename)
-	}
-}
-
 func TestJSONReaderNoFile(t *testing.T) {
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } } }`
 

@@ -142,3 +142,10 @@ func TestProxyConfigPerHost(t *testing.T) {
 	}
 	assert.Equal(t, expected, proxyConfig)
 }
+
+func TestConfigFile(t *testing.T) {
+	configFilename := "configFilename"
+	configFile := NewConfigFile(configFilename)
+
+	assert.Equal(t, configFilename, configFile.Filename)
+}
