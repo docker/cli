@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -157,7 +156,7 @@ func getConfiguredCredentialStore(c *configfile.ConfigFile, serverAddress string
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
-	cli.configFile = LoadDefaultConfigFile(cli.err)
+	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
 	var err error
 	cli.client, err = NewAPIClientFromFlags(opts.Common, cli.configFile)
@@ -217,19 +216,6 @@ type ServerInfo struct {
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
 func NewDockerCli(in io.ReadCloser, out, err io.Writer) *DockerCli {
 	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err}
-}
-
-// LoadDefaultConfigFile attempts to load the default config file and returns
-// an initialized ConfigFile struct if none is found.
-func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
-	configFile, e := cliconfig.Load(cliconfig.Dir())
-	if e != nil {
-		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
-	}
-	if !configFile.ContainsAuth() {
-		credentials.DetectDefaultStore(configFile)
-	}
-	return configFile
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags

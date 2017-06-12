@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
+	"github.com/docker/cli/cli/config/credentials"
 )
 
 const (
@@ -36,15 +38,6 @@ func Dir() string {
 // SetDir sets the directory the configuration file is stored in
 func SetDir(dir string) {
 	configDir = dir
-}
-
-// NewConfigFile initializes an empty configuration file for the given filename 'fn'
-func NewConfigFile(fn string) *configfile.ConfigFile {
-	return &configfile.ConfigFile{
-		AuthConfigs: make(map[string]types.AuthConfig),
-		HTTPHeaders: make(map[string]string),
-		Filename:    fn,
-	}
 }
 
 // LegacyLoadFromReader is a convenience function that creates a ConfigFile object from
@@ -117,4 +110,17 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 		configFile.HTTPHeaders = map[string]string{}
 	}
 	return &configFile, nil
+}
+
+// LoadDefaultConfigFile attempts to load the default config file and returns
+// an initialized ConfigFile struct if none is found.
+func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
+	configFile, e := Load(Dir())
+	if e != nil {
+		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
+	}
+	if !configFile.ContainsAuth() {
+		credentials.DetectDefaultStore(configFile)
+	}
+	return configFile
 }
