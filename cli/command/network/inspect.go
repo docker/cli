@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/inspect"
+	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +41,7 @@ func runInspect(dockerCli *command.DockerCli, opts inspectOptions) error {
 	ctx := context.Background()
 
 	getNetFunc := func(name string) (interface{}, []byte, error) {
-		return client.NetworkInspectWithRaw(ctx, name, opts.verbose)
+		return client.NetworkInspectWithRaw(ctx, name, types.NetworkInspectOptions{Verbose: opts.verbose})
 	}
 
 	return inspect.Inspect(dockerCli.Out(), opts.names, opts.format, getNetFunc)

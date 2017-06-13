@@ -174,7 +174,7 @@ func validateExternalNetworks(
 	externalNetworks []string,
 ) error {
 	for _, networkName := range externalNetworks {
-		network, err := client.NetworkInspect(ctx, networkName, false)
+		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 		switch {
 		case dockerclient.IsErrNotFound(err):
 			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)

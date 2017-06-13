@@ -70,7 +70,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 
 	for _, testcase := range testcases {
 		fakeClient := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ bool) (types.NetworkResource, error) {
+			NetworkInspectFunc: func(_ context.Context, _ string, _ types.NetworkInspectOptions) (types.NetworkResource, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}

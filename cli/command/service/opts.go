@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -349,7 +350,7 @@ func convertNetworks(ctx context.Context, apiClient client.NetworkAPIClient, net
 	var netAttach []swarm.NetworkAttachmentConfig
 	for _, net := range networks.Value() {
 		networkIDOrName := net.Target
-		_, err := apiClient.NetworkInspect(ctx, networkIDOrName, false)
+		_, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
 		if err != nil {
 			return nil, err
 		}

@@ -9,7 +9,7 @@ import (
 
 // FakeClient is a fake NetworkAPIClient
 type FakeClient struct {
-	NetworkInspectFunc func(ctx context.Context, networkID string, verbose bool) (types.NetworkResource, error)
+	NetworkInspectFunc func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error)
 }
 
 // NetworkConnect fakes connecting to a network
@@ -28,15 +28,15 @@ func (c *FakeClient) NetworkDisconnect(ctx context.Context, networkID, container
 }
 
 // NetworkInspect fakes inspecting a network
-func (c *FakeClient) NetworkInspect(ctx context.Context, networkID string, verbose bool) (types.NetworkResource, error) {
+func (c *FakeClient) NetworkInspect(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
 	if c.NetworkInspectFunc != nil {
-		return c.NetworkInspectFunc(ctx, networkID, verbose)
+		return c.NetworkInspectFunc(ctx, networkID, options)
 	}
 	return types.NetworkResource{}, nil
 }
 
 // NetworkInspectWithRaw fakes inspecting a network with a raw response
-func (c *FakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, verbose bool) (types.NetworkResource, []byte, error) {
+func (c *FakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
 	return types.NetworkResource{}, nil, nil
 }
 
