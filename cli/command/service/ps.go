@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -52,56 +53,9 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-	filter := options.filter.Value()
-
-	serviceIDFilter := filters.NewArgs()
-	serviceNameFilter := filters.NewArgs()
-	for _, service := range options.services {
-		serviceIDFilter.Add("id", service)
-		serviceNameFilter.Add("name", service)
-	}
-	serviceByIDList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
+	filter, notfound, err := createFilter(ctx, client, options)
 	if err != nil {
 		return err
-	}
-	serviceByNameList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceNameFilter})
-	if err != nil {
-		return err
-	}
-
-	for _, service := range options.services {
-		serviceCount := 0
-		// Lookup by ID/Prefix
-		for _, serviceEntry := range serviceByIDList {
-			if strings.HasPrefix(serviceEntry.ID, service) {
-				filter.Add("service", serviceEntry.ID)
-				serviceCount++
-			}
-		}
-
-		// Lookup by Name/Prefix
-		for _, serviceEntry := range serviceByNameList {
-			if strings.HasPrefix(serviceEntry.Spec.Annotations.Name, service) {
-				filter.Add("service", serviceEntry.ID)
-				serviceCount++
-			}
-		}
-		// If nothing has been found, return immediately.
-		if serviceCount == 0 {
-			return errors.Errorf("no such services: %s", service)
-		}
-	}
-
-	if filter.Include("node") {
-		nodeFilters := filter.Get("node")
-		for _, nodeFilter := range nodeFilters {
-			nodeReference, err := node.Reference(ctx, client, nodeFilter)
-			if err != nil {
-				return err
-			}
-			filter.Del("node", nodeFilter)
-			filter.Add("node", nodeReference)
-		}
 	}
 
 	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
@@ -117,6 +71,80 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 			format = formatter.TableFormatKey
 		}
 	}
+	if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
+		return err
+	}
+	if len(notfound) != 0 {
+		return errors.New(strings.Join(notfound, "\n"))
+	}
+	return nil
+}
 
-	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format)
+func createFilter(ctx context.Context, client client.APIClient, options psOptions) (filters.Args, []string, error) {
+	filter := options.filter.Value()
+
+	serviceIDFilter := filters.NewArgs()
+	serviceNameFilter := filters.NewArgs()
+	for _, service := range options.services {
+		serviceIDFilter.Add("id", service)
+		serviceNameFilter.Add("name", service)
+	}
+	serviceByIDList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
+	if err != nil {
+		return filter, nil, err
+	}
+	serviceByNameList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceNameFilter})
+	if err != nil {
+		return filter, nil, err
+	}
+
+	var notfound []string
+	serviceCount := 0
+loop:
+	// Match services by 1. Full ID, 2. Full name, 3. ID prefix. An error is returned if the ID-prefix match is ambiguous
+	for _, service := range options.services {
+		for _, s := range serviceByIDList {
+			if s.ID == service {
+				filter.Add("service", s.ID)
+				serviceCount++
+				continue loop
+			}
+		}
+		for _, s := range serviceByNameList {
+			if s.Spec.Annotations.Name == service {
+				filter.Add("service", s.ID)
+				serviceCount++
+				continue loop
+			}
+		}
+		found := false
+		for _, s := range serviceByIDList {
+			if strings.HasPrefix(s.ID, service) {
+				if found {
+					return filter, nil, errors.New("multiple services found with provided prefix: " + service)
+				}
+				filter.Add("service", s.ID)
+				serviceCount++
+				found = true
+			}
+		}
+		if !found {
+			notfound = append(notfound, "no such service: "+service)
+		}
+	}
+	if serviceCount == 0 {
+		return filter, nil, errors.New(strings.Join(notfound, "\n"))
+	}
+	if filter.Include("node") {
+		nodeFilters := filter.Get("node")
+		for _, nodeFilter := range nodeFilters {
+			nodeReference, err := node.Reference(ctx, client, nodeFilter)
+			if err != nil {
+				return filter, nil, err
+			}
+			filter.Del("node", nodeFilter)
+			filter.Add("node", nodeReference)
+		}
+	}
+	return filter, notfound, err
 }
