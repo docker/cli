@@ -107,7 +107,7 @@ func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *runOptions
 }
 
 // nolint: gocyclo
-func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) error {
+func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) (retErr error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
@@ -182,9 +182,28 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		if err != nil {
 			return err
 		}
+
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+	var userDetached bool
+	if attach || copts.autoRemove {
+		statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+		defer func() {
+			if userDetached {
+				return
+			}
+
+			if retErr == nil || copts.autoRemove {
+				status := <-statusChan
+				if status != 0 {
+					if retErr != nil {
+						return
+					}
+					retErr = cli.StatusError{StatusCode: status}
+				}
+			}
+		}()
+	}
 
 	//start the container
 	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
@@ -197,14 +216,10 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		}
 
 		reportError(stderr, cmdPath, err.Error(), false)
-		if copts.autoRemove {
-			// wait container to be removed
-			<-statusChan
-		}
 		return runStartContainerErr(err)
 	}
 
-	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
+	if attach && config.Tty && dockerCli.Out().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, createResponse.ID, false); err != nil {
 			fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
@@ -214,6 +229,7 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		if err := <-errCh; err != nil {
 			if _, ok := err.(term.EscapeError); ok {
 				// The user entered the detach escape sequence.
+				userDetached = true
 				return nil
 			}
 
@@ -227,11 +243,6 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		// Detached mode
 		<-waitDisplayID
 		return nil
-	}
-
-	status := <-statusChan
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
 	}
 	return nil
 }
