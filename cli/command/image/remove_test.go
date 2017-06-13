@@ -102,8 +102,6 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
-		err := cmd.Execute()
-		assert.NoError(t, err)
 		actual := buf.String()
 		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("remove-command-success.%s.golden", tc.name))[:])
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
