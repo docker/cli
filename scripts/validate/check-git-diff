@@ -3,12 +3,13 @@
 set -eu
 
 DIFF_PATH=$1
+DIFF=$(git status --porcelain -- $DIFF_PATH)
 
-if [ "`git status --porcelain -- $DIFF_PATH 2>/dev/null`" ]; then
+if [ "$DIFF" ]; then
     echo
     echo "These files were changed:"
     echo
-    git status --porcelain -- $DIFF_PATH 2>/dev/null
+    echo $DIFF
     echo
     exit 1
 else
