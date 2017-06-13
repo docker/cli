@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,7 @@ func runRemove(dockerCli *command.DockerCli, networks []string) error {
 	status := 0
 
 	for _, name := range networks {
-		if nw, _, err := client.NetworkInspectWithRaw(ctx, name, false); err == nil &&
+		if nw, _, err := client.NetworkInspectWithRaw(ctx, name, types.NetworkInspectOptions{}); err == nil &&
 			nw.Ingress &&
 			!command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), ingressWarning) {
 			continue

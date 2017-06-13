@@ -61,7 +61,7 @@ func runInspect(dockerCli *command.DockerCli, opts inspectOptions) error {
 	}
 
 	getNetwork := func(ref string) (interface{}, []byte, error) {
-		network, _, err := client.NetworkInspectWithRaw(ctx, ref, false)
+		network, _, err := client.NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{Scope: "swarm"})
 		if err == nil || !apiclient.IsErrNetworkNotFound(err) {
 			return network, nil, err
 		}
