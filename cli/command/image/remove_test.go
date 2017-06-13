@@ -68,6 +68,14 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			},
 		},
 		{
+			name: "Image Deleted with force option",
+			args: []string{"-f", "image1"},
+			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
+				assert.Equal(t, "image1", image)
+				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
+			},
+		},
+		{
 			name: "Image Untagged",
 			args: []string{"image1"},
 			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
