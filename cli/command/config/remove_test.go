@@ -77,6 +77,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
+	cmd.SetOutput(ioutil.Discard)
 	assert.EqualError(t, cmd.Execute(), "error removing config: foo")
 	assert.Equal(t, names, removedConfigs)
 }
