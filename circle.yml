@@ -42,14 +42,14 @@ jobs:
             apk add -U bash curl
             curl -s https://codecov.io/bash | bash
       - run:
-          name: "Validate Vendor and Code Generation"
+          name: "Validate Vendor, Docs, and Code Generation"
           command: |
             if [ "$CIRCLE_NODE_INDEX" != "3" ]; then exit; fi
             dockerfile=dockerfiles/Dockerfile.dev
             echo "COPY . ." >> $dockerfile
             rm -f .dockerignore # include .git
             docker build -f $dockerfile --tag cli-builder .
-            docker run cli-builder make -B vendor compose-jsonschema
+            docker run cli-builder make -B vendor compose-jsonschema manpages yamldocs
 
       - store_artifacts:
           path: /work/build
