@@ -202,6 +202,9 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 		if versions.LessThan(ping.APIVersion, cli.client.ClientVersion()) {
 			cli.client.UpdateClientVersion(ping.APIVersion)
 		}
+	} else {
+		// Default to true if we fail to connect to daemon
+		cli.server = ServerInfo{HasExperimental: true}
 	}
 
 	return nil
