@@ -58,6 +58,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		name            string
 		args            []string
 		imageRemoveFunc func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error)
+		expectedErrMsg  string
 	}{
 		{
 			name: "Image Deleted",
@@ -74,6 +75,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 				assert.Equal(t, "image1", image)
 				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
 			},
+			expectedErrMsg: "error removing image",
 		},
 		{
 			name: "Image Untagged",
@@ -96,12 +98,16 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
-			imageRemoveFunc: tc.imageRemoveFunc,
-		}, buf))
+		errBuf := new(bytes.Buffer)
+		fakeCli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc}, buf)
+		fakeCli.SetErr(errBuf)
+		cmd := NewRemoveCommand(fakeCli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
+		if tc.expectedErrMsg != "" {
+			assert.Equal(t, tc.expectedErrMsg, errBuf.String())
+		}
 		actual := buf.String()
 		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("remove-command-success.%s.golden", tc.name))[:])
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)

@@ -59,9 +59,6 @@ func runRemove(dockerCli command.Cli, opts removeOptions, images []string) error
 	for _, img := range images {
 		dels, err := client.ImageRemove(ctx, img, options)
 		if err != nil {
-			if opts.force {
-				fmt.Fprintf(dockerCli.Out(), "NotFound: %s\n", img)
-			}
 			errs = append(errs, err.Error())
 		} else {
 			for _, del := range dels {
@@ -74,8 +71,12 @@ func runRemove(dockerCli command.Cli, opts removeOptions, images []string) error
 		}
 	}
 
-	if !opts.force && len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
+	if len(errs) > 0 {
+		msg := strings.Join(errs, "\n")
+		if !opts.force {
+			return errors.New(msg)
+		}
+		fmt.Fprintf(dockerCli.Err(), msg)
 	}
 	return nil
 }
