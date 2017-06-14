@@ -1,13 +1,15 @@
 package image
 
 import (
+	"fmt"
 	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +38,7 @@ func runPush(dockerCli command.Cli, remote string) error {
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	repoInfo, err := dockerregistry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return err
 	}
@@ -44,7 +46,13 @@ func runPush(dockerCli command.Cli, remote string) error {
 	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, dockerCli.Client(), dockerCli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return err
+	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
 
 	if command.IsTrusted() {

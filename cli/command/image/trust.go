@@ -10,11 +10,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	"github.com/opencontainers/go-digest"
@@ -29,7 +30,7 @@ type target struct {
 }
 
 // trustedPush handles content trust pushing of an image
-func trustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
+func trustedPush(ctx context.Context, cli command.Cli, repoInfo *dockerregistry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	responseBody, err := imagePushPrivileged(ctx, cli, authConfig, ref, requestPrivilege)
 	if err != nil {
 		return err
@@ -42,7 +43,7 @@ func trustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 
 // PushTrustedReference pushes a canonical reference to the trust server.
 // nolint: gocyclo
-func PushTrustedReference(streams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, in io.Reader) error {
+func PushTrustedReference(streams command.Streams, repoInfo *dockerregistry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
 	target := &client.Target{}
@@ -204,7 +205,7 @@ func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.T
 
 // imagePushPrivileged push the image
 func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref reference.Reference, requestPrivilege types.RequestPrivilegeFunc) (io.ReadCloser, error) {
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registry.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +218,7 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 }
 
 // trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
+func trustedPull(ctx context.Context, cli command.Cli, repoInfo *dockerregistry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	var refs []target
 
 	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
@@ -298,7 +299,7 @@ func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref string, requestPrivilege types.RequestPrivilegeFunc, all bool) error {
 
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registry.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return err
 	}
@@ -318,23 +319,28 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference
-func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs registry.Service) (reference.Canonical, error) {
+func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs dockerregistry.Service) (reference.Canonical, error) {
 	var (
-		repoInfo *registry.RepositoryInfo
+		repoInfo *dockerregistry.RepositoryInfo
 		err      error
 	)
 	if rs != nil {
 		repoInfo, err = rs.ResolveRepository(ref)
 	} else {
-		repoInfo, err = registry.ParseRepositoryInfo(ref)
+		repoInfo, err = dockerregistry.ParseRepositoryInfo(ref)
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
-
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, cli.Client(), cli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(cli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return nil, err
+	}
 	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
 	if err != nil {
 		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)

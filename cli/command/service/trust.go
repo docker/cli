@@ -2,13 +2,15 @@ package service
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/docker/notary/tuf/data"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -52,12 +54,18 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 }
 
 func trustedResolveDigest(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	repoInfo, err := dockerregistry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return nil, err
 	}
 
-	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, cli.Client(), cli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(cli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
 	if err != nil {

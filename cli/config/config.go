@@ -1,16 +1,15 @@
 package config
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
-	"github.com/docker/cli/cli/config/credentials"
 )
 
 const (
@@ -114,13 +113,13 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 
 // LoadDefaultConfigFile attempts to load the default config file and returns
 // an initialized ConfigFile struct if none is found.
-func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
+func LoadDefaultConfigFile() (*configfile.ConfigFile, error) {
 	configFile, e := Load(Dir())
 	if e != nil {
-		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
+		return nil, e
 	}
 	if !configFile.ContainsAuth() {
 		credentials.DetectDefaultStore(configFile)
 	}
-	return configFile
+	return configFile, nil
 }

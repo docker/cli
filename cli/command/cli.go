@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -156,9 +157,12 @@ func getConfiguredCredentialStore(c *configfile.ConfigFile, serverAddress string
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
-	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
-
 	var err error
+	cli.configFile, err = cliconfig.LoadDefaultConfigFile()
+	if err != nil {
+		fmt.Fprintf(cli.err, "WARNING: Error loading config file:%v\n", err)
+	}
+
 	cli.client, err = NewAPIClientFromFlags(opts.Common, cli.configFile)
 	if tlsconfig.IsErrEncryptedKey(err) {
 		var (

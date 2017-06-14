@@ -6,8 +6,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -57,14 +58,20 @@ func runPull(dockerCli command.Cli, opts pullOptions) error {
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(distributionRef)
+	repoInfo, err := dockerregistry.ParseRepositoryInfo(distributionRef)
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
 
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, dockerCli.Client(), dockerCli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return err
+	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "pull")
 
 	// Check if reference has a digest

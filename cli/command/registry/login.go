@@ -7,7 +7,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/registry"
+	"github.com/docker/cli/cli/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -50,9 +51,15 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 
 	var (
 		serverAddress string
-		authServer    = command.ElectAuthServer(ctx, dockerCli)
 	)
-	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
+	authServer, warns, err := registry.ElectAuthServer(ctx, dockerCli.Client())
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return err
+	}
+	if opts.serverAddress != "" && opts.serverAddress != dockerregistry.DefaultNamespace {
 		serverAddress = opts.serverAddress
 	} else {
 		serverAddress = authServer

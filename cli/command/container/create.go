@@ -8,12 +8,13 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -77,13 +78,19 @@ func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	repoInfo, err := dockerregistry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return err
 	}
 
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, dockerCli.Client(), dockerCli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return err
+	}
+	encodedAuth, err := registry.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return err
 	}

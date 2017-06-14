@@ -8,11 +8,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/stringutils"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -46,7 +47,7 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.IntVar(&options.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
+	flags.IntVar(&options.limit, "limit", dockerregistry.DefaultSearchLimit, "Max number of search results")
 
 	flags.BoolVar(&options.automated, "automated", false, "Only show automated builds")
 	flags.UintVarP(&options.stars, "stars", "s", 0, "Only displays with at least x stars")
@@ -58,17 +59,23 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runSearch(dockerCli command.Cli, options searchOptions) error {
-	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
+	indexInfo, err := dockerregistry.ParseSearchIndexInfo(options.term)
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
 
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, indexInfo)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, dockerCli.Client(), dockerCli.ConfigFile(), indexInfo)
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return err
+	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
 
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registry.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return err
 	}

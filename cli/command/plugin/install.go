@@ -7,10 +7,11 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/registry"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -54,10 +55,10 @@ func newInstallCommand(dockerCli *command.DockerCli) *cobra.Command {
 }
 
 type pluginRegistryService struct {
-	registry.Service
+	dockerregistry.Service
 }
 
-func (s pluginRegistryService) ResolveRepository(name reference.Named) (repoInfo *registry.RepositoryInfo, err error) {
+func (s pluginRegistryService) ResolveRepository(name reference.Named) (repoInfo *dockerregistry.RepositoryInfo, err error) {
 	repoInfo, err = s.Service.ResolveRepository(name)
 	if repoInfo != nil {
 		repoInfo.Class = "plugin"
@@ -65,9 +66,9 @@ func (s pluginRegistryService) ResolveRepository(name reference.Named) (repoInfo
 	return
 }
 
-func newRegistryService() registry.Service {
+func newRegistryService() dockerregistry.Service {
 	return pluginRegistryService{
-		Service: registry.NewService(registry.ServiceOptions{V2Only: true}),
+		Service: dockerregistry.NewService(dockerregistry.ServiceOptions{V2Only: true}),
 	}
 }
 
@@ -80,7 +81,7 @@ func buildPullConfig(ctx context.Context, dockerCli *command.DockerCli, opts plu
 		return types.PluginInstallOptions{}, err
 	}
 
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	repoInfo, err := dockerregistry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return types.PluginInstallOptions{}, err
 	}
@@ -103,9 +104,14 @@ func buildPullConfig(ctx context.Context, dockerCli *command.DockerCli, opts plu
 		remote = reference.FamiliarString(trusted)
 	}
 
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	authConfig, warns, err := registry.ResolveAuthConfig(ctx, dockerCli.Client(), dockerCli.ConfigFile(), repoInfo.Index)
+	for _, w := range warns {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+	}
+	if err != nil {
+		return types.PluginInstallOptions{}, err
+	}
+	encodedAuth, err := registry.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return types.PluginInstallOptions{}, err
 	}

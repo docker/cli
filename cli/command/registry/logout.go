@@ -7,7 +7,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/registry"
+	"github.com/docker/cli/cli/registry"
+	dockerregistry "github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +36,17 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
-		serverAddress = command.ElectAuthServer(ctx, dockerCli)
+		var (
+			warns []error
+			err   error
+		)
+		serverAddress, warns, err = registry.ElectAuthServer(ctx, dockerCli.Client())
+		for _, w := range warns {
+			fmt.Fprintf(dockerCli.Err(), "Warning: %v\n", w)
+		}
+		if err != nil {
+			return err
+		}
 		isDefaultRegistry = true
 	}
 
@@ -46,7 +57,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		regsToTry       = []string{serverAddress}
 	)
 	if !isDefaultRegistry {
-		hostnameAddress = registry.ConvertToHostname(serverAddress)
+		hostnameAddress = dockerregistry.ConvertToHostname(serverAddress)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
 		regsToTry = append(regsToTry, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
