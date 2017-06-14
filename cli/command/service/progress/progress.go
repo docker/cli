@@ -233,7 +233,7 @@ func writeOverallProgress(progressOut progress.Output, numerator, denominator in
 type replicatedProgressUpdater struct {
 	progressOut progress.Output
 
-	// used for maping slots to a contiguous space
+	// used for mapping slots to a contiguous space
 	// this also causes progress bars to appear in order
 	slotMap map[int]int
 

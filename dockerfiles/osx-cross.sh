@@ -25,5 +25,5 @@ echo "Downloading OSX SDK"
 time curl -sSL https://s3.dockerproject.org/darwin/v2/${OSX_SDK}.tar.xz \
     -o "${OSXCROSS_PATH}/tarballs/${OSX_SDK}.tar.xz"
 
-echo "Buidling osxcross"
+echo "Building osxcross"
 UNATTENDED=yes OSX_VERSION_MIN=10.6 ${OSXCROSS_PATH}/build.sh > /dev/null

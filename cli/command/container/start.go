@@ -146,12 +146,12 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 				fmt.Fprintln(dockerCli.Err(), "Error monitoring TTY size:", err)
 			}
 		}
-		if attchErr := <-cErr; attchErr != nil {
+		if attachErr := <-cErr; attachErr != nil {
 			if _, ok := err.(term.EscapeError); ok {
 				// The user entered the detach escape sequence.
 				return nil
 			}
-			return attchErr
+			return attachErr
 		}
 
 		if status := <-statusChan; status != 0 {
