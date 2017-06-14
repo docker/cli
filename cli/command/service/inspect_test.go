@@ -117,11 +117,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 	// s1: [{"ID":..}]
 	// s2: {"ID":..}
 	s1 := formatServiceInspect(t, formatter.NewServiceFormat(""), now)
-	t.Log("// s1")
-	t.Logf("%s", s1)
 	s2 := formatServiceInspect(t, formatter.NewServiceFormat("{{json .}}"), now)
-	t.Log("// s2")
-	t.Logf("%s", s2)
 	var m1Wrap []map[string]interface{}
 	if err := json.Unmarshal([]byte(s1), &m1Wrap); err != nil {
 		t.Fatal(err)
@@ -130,11 +126,9 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 		t.Fatalf("strange s1=%s", s1)
 	}
 	m1 := m1Wrap[0]
-	t.Logf("m1=%+v", m1)
 	var m2 map[string]interface{}
 	if err := json.Unmarshal([]byte(s2), &m2); err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("m2=%+v", m2)
 	assert.Equal(t, m1, m2)
 }
