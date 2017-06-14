@@ -338,10 +338,22 @@ func TestServiceContext_Ports(t *testing.T) {
 						PublishedPort: 62,
 						PublishMode:   "ingress",
 					},
+					{
+						Protocol:      "sctp",
+						TargetPort:    97,
+						PublishedPort: 97,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "sctp",
+						TargetPort:    98,
+						PublishedPort: 98,
+						PublishMode:   "ingress",
+					},
 				},
 			},
 		},
 	}
 
-	assert.Equal(t, "*:60-61->60-61/tcp, *:62->61/tcp, *:80-81->80/tcp, *:90-95->90-95/tcp, *:90-96->90-96/udp", c.Ports())
+	assert.Equal(t, "*:97-98->97-98/sctp, *:60-61->60-61/tcp, *:62->61/tcp, *:80-81->80/tcp, *:90-95->90-95/tcp, *:90-96->90-96/udp", c.Ports())
 }
