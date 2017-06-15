@@ -6,8 +6,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/registry"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/registry"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
 	dockerregistry "github.com/docker/docker/registry"

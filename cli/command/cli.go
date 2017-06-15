@@ -8,10 +8,10 @@ import (
 	"runtime"
 
 	"github.com/docker/cli/cli"
-	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	cliflags "github.com/docker/cli/cli/flags"
+	cliconfig "github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
+	"github.com/docker/cli/config/credentials"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"

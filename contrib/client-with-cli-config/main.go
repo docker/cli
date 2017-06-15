@@ -9,8 +9,8 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/registry"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/registry"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"

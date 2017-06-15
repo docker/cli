@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/registry"
+	"github.com/docker/cli/registry"
 	dockerregistry "github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )

@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config/configfile"
 	"github.com/docker/docker/api/types"
 )
 
