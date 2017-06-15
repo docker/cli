@@ -2,7 +2,7 @@ FROM    golang:1.8.3-alpine
 
 RUN     apk add -U git
 
-RUN     go get -u gopkg.in/alecthomas/gometalinter.v1 && \
+RUN     go get -u gopkg.in/dnephin/gometalinter.v1 && \
         mv /go/bin/gometalinter.v1 /usr/local/bin/gometalinter && \
         gometalinter --install
 
