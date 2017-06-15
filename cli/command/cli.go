@@ -5,16 +5,22 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/config"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	cliflags "github.com/docker/cli/cli/flags"
+	manifeststore "github.com/docker/cli/cli/manifest/store"
+	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
+	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
@@ -45,6 +51,8 @@ type Cli interface {
 	ClientInfo() ClientInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 	DefaultVersion() string
+	ManifestStore() manifeststore.Store
+	RegistryClient(bool) registryclient.RegistryClient
 }
 
 // DockerCli is an instance the docker command line client.
@@ -112,6 +120,21 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 // ClientInfo returns the client details for the cli
 func (cli *DockerCli) ClientInfo() ClientInfo {
 	return cli.clientInfo
+}
+
+// ManifestStore returns a store for local manifests
+func (cli *DockerCli) ManifestStore() manifeststore.Store {
+	// TODO: support override default location from config file
+	return manifeststore.NewStore(filepath.Join(config.Dir(), "manifests"))
+}
+
+// RegistryClient returns a client for communicating with a Docker distribution
+// registry
+func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
+	resolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
+		return ResolveAuthConfig(ctx, cli, index)
+	}
+	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }
 
 // Initialize the dockerCli runs initialization that must happen after command

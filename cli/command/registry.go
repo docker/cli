@@ -10,14 +10,13 @@ import (
 	"runtime"
 	"strings"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/term"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 // ElectAuthServer returns the default registry to use (by asking the daemon)
