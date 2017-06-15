@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContainerPsContext(t *testing.T) {
@@ -357,12 +358,11 @@ func TestContainerContextWriteJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-		t.Logf("Output: line %d: %s", i, line)
+		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var m map[string]interface{}
-		if err := json.Unmarshal([]byte(line), &m); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, expectedJSONs[i], m)
+		err := json.Unmarshal([]byte(line), &m)
+		require.NoError(t, err, msg)
+		assert.Equal(t, expectedJSONs[i], m, msg)
 	}
 }
 
@@ -377,12 +377,11 @@ func TestContainerContextWriteJSONField(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-		t.Logf("Output: line %d: %s", i, line)
+		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var s string
-		if err := json.Unmarshal([]byte(line), &s); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, containers[i].ID, s)
+		err := json.Unmarshal([]byte(line), &s)
+		require.NoError(t, err, msg)
+		assert.Equal(t, containers[i].ID, s, msg)
 	}
 }
 

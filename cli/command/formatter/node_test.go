@@ -3,6 +3,7 @@ package formatter
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNodeContext(t *testing.T) {
@@ -248,12 +250,11 @@ func TestNodeContextWriteJSON(t *testing.T) {
 			t.Fatal(err)
 		}
 		for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-			t.Logf("Output: line %d: %s", i, line)
+			msg := fmt.Sprintf("Output: line %d: %s", i, line)
 			var m map[string]interface{}
-			if err := json.Unmarshal([]byte(line), &m); err != nil {
-				t.Fatal(err)
-			}
-			assert.Equal(t, testcase.expected[i], m)
+			err := json.Unmarshal([]byte(line), &m)
+			require.NoError(t, err, msg)
+			assert.Equal(t, testcase.expected[i], m, msg)
 		}
 	}
 }
@@ -269,12 +270,11 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-		t.Logf("Output: line %d: %s", i, line)
+		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var s string
-		if err := json.Unmarshal([]byte(line), &s); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, nodes[i].ID, s)
+		err := json.Unmarshal([]byte(line), &s)
+		require.NoError(t, err, msg)
+		assert.Equal(t, nodes[i].ID, s, msg)
 	}
 }
 
