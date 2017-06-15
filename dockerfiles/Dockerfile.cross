@@ -1,18 +1,2 @@
-
-FROM    golang:1.8.3
-
-# allow replacing httpredir or deb mirror
-ARG     APT_MIRROR=deb.debian.org
-RUN     sed -ri "s/(httpredir|deb).debian.org/$APT_MIRROR/g" /etc/apt/sources.list
-
-RUN     apt-get update -qq && apt-get install -y -q \
-            libltdl-dev \
-            gcc-mingw-w64 \
-            parallel \
-            ;
-
-COPY    dockerfiles/osx-cross.sh /tmp/
-RUN     /tmp/osx-cross.sh
-ENV     PATH /osxcross/target/bin:$PATH
-
+FROM    dnephin/golang-cross@sha256:3a23c1791a8f9bb4a79e2708b2a87b51502ef24315170ed0fc27baa056c1a862
 WORKDIR /go/src/github.com/docker/cli
