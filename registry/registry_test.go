@@ -38,7 +38,7 @@ func TestElectAuthServer(t *testing.T) {
 		},
 		{
 			expectedAuthServer: "https://index.docker.io/v1/",
-			expectedWarning:    "Empty registry endpoint from daemon",
+			expectedWarning:    "empty registry endpoint from daemon",
 			infoFunc: func() (types.Info, error) {
 				return types.Info{IndexServerAddress: ""}, nil
 			},

@@ -23,9 +23,9 @@ func ElectAuthServer(ctx context.Context, c client.APIClient) (string, []error, 
 	serverAddress := dockerregistry.IndexServer
 	var warns []error
 	if info, err := c.Info(ctx); err != nil {
-		warns = append(warns, fmt.Errorf("failed to get default registry endpoint from daemon (%v). Using system default: %s\n", err, serverAddress))
+		warns = append(warns, fmt.Errorf("failed to get default registry endpoint from daemon (%v). Using system default: %s", err, serverAddress))
 	} else if info.IndexServerAddress == "" {
-		warns = append(warns, fmt.Errorf("Empty registry endpoint from daemon. Using system default: %s\n", serverAddress))
+		warns = append(warns, fmt.Errorf("empty registry endpoint from daemon. Using system default: %s", serverAddress))
 	} else {
 		serverAddress = info.IndexServerAddress
 	}
