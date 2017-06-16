@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeAuth(t *testing.T) {
@@ -24,4 +25,11 @@ func TestEncodeAuth(t *testing.T) {
 	if authStr != "a2VuOnRlc3Q=" {
 		t.Fatal("AuthString encoding isn't correct.")
 	}
+}
+
+func TestConfigFile(t *testing.T) {
+	configFilename := "configFilename"
+	configFile := NewConfigFile(configFilename)
+
+	assert.Equal(t, configFilename, configFile.Filename)
 }

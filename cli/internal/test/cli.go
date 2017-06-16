@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/config/configfile"
+	"github.com/docker/cli/config/credentials"
 	"github.com/docker/docker/client"
 )
 
@@ -25,10 +25,11 @@ type FakeCli struct {
 // NewFakeCli returns a Cli backed by the fakeCli
 func NewFakeCli(client client.APIClient, out io.Writer) *FakeCli {
 	return &FakeCli{
-		client: client,
-		out:    command.NewOutStream(out),
-		err:    ioutil.Discard,
-		in:     command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		client:     client,
+		configfile: &configfile.ConfigFile{},
+		out:        command.NewOutStream(out),
+		err:        ioutil.Discard,
+		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
 	}
 }
 

@@ -48,7 +48,8 @@ func TestNewPullCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewPullCommand(test.NewFakeCli(&fakeClient{}, buf))
+		cli := test.NewFakeCli(&fakeClient{}, buf)
+		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)

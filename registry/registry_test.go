@@ -1,16 +1,12 @@
-package command_test
+package registry
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
-	// Prevents a circular import with "github.com/docker/cli/cli/internal/test"
-	. "github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
@@ -42,7 +38,7 @@ func TestElectAuthServer(t *testing.T) {
 		},
 		{
 			expectedAuthServer: "https://index.docker.io/v1/",
-			expectedWarning:    "Empty registry endpoint from daemon",
+			expectedWarning:    "empty registry endpoint from daemon",
 			infoFunc: func() (types.Info, error) {
 				return types.Info{IndexServerAddress: ""}, nil
 			},
@@ -63,17 +59,18 @@ func TestElectAuthServer(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc}, buf)
-		errBuf := new(bytes.Buffer)
-		cli.SetErr(errBuf)
-		server := ElectAuthServer(context.Background(), cli)
+		c := &fakeClient{infoFunc: tc.infoFunc}
+		server, warns, err := ElectAuthServer(context.Background(), c)
 		assert.Equal(t, tc.expectedAuthServer, server)
-		actual := errBuf.String()
+		assert.Nil(t, err)
 		if tc.expectedWarning == "" {
-			assert.Empty(t, actual)
+			assert.Nil(t, warns)
 		} else {
-			assert.Contains(t, actual, tc.expectedWarning)
+			joinedWarns := ""
+			for _, w := range warns {
+				joinedWarns += w.Error() + "\n"
+			}
+			assert.Contains(t, joinedWarns, tc.expectedWarning)
 		}
 	}
 }

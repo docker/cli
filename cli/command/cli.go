@@ -8,10 +8,10 @@ import (
 	"runtime"
 
 	"github.com/docker/cli/cli"
-	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	cliflags "github.com/docker/cli/cli/flags"
+	cliconfig "github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
+	"github.com/docker/cli/config/credentials"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -157,9 +157,12 @@ func getConfiguredCredentialStore(c *configfile.ConfigFile, serverAddress string
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
-	cli.configFile = LoadDefaultConfigFile(cli.err)
-
 	var err error
+	cli.configFile, err = cliconfig.LoadDefaultConfigFile()
+	if err != nil {
+		fmt.Fprintf(cli.err, "WARNING: Error loading config file:%v\n", err)
+	}
+
 	cli.client, err = NewAPIClientFromFlags(opts.Common, cli.configFile)
 	if tlsconfig.IsErrEncryptedKey(err) {
 		var (
@@ -217,19 +220,6 @@ type ServerInfo struct {
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
 func NewDockerCli(in io.ReadCloser, out, err io.Writer) *DockerCli {
 	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err}
-}
-
-// LoadDefaultConfigFile attempts to load the default config file and returns
-// an initialized ConfigFile struct if none is found.
-func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
-	configFile, e := cliconfig.Load(cliconfig.Dir())
-	if e != nil {
-		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
-	}
-	if !configFile.ContainsAuth() {
-		credentials.DetectDefaultStore(configFile)
-	}
-	return configFile
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
