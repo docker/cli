@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/templates"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testElement struct {
@@ -217,5 +219,41 @@ func TestIndentedInspectorRawElements(t *testing.T) {
 `
 	if b.String() != expected {
 		t.Fatalf("Expected `%s`, got `%s`", expected, b.String())
+	}
+}
+
+// moby/moby#32235
+// This test verifies that even if `tryRawInspectFallback` is called the fields containing
+// numerical values are displayed correctly.
+// For example, `docker inspect --format "{{.Id}} {{.Size}} alpine` and
+// `docker inspect --format "{{.ID}} {{.Size}} alpine" will have the same output which is
+// sha256:651aa95985aa4a17a38ffcf71f598ec461924ca96865facc2c5782ef2d2be07f 3983636
+func TestTemplateInspectorRawFallbackNumber(t *testing.T) {
+	// Using typedElem to automatically fall to tryRawInspectFallback.
+	typedElem := struct {
+		ID string `json:"Id"`
+	}{"ad3"}
+	testcases := []struct {
+		raw []byte
+		exp string
+	}{
+		{raw: []byte(`{"Id": "ad3", "Size": 53317}`), exp: "53317 ad3\n"},
+		{raw: []byte(`{"Id": "ad3", "Size": 53317.102}`), exp: "53317.102 ad3\n"},
+		{raw: []byte(`{"Id": "ad3", "Size": 53317.0}`), exp: "53317.0 ad3\n"},
+	}
+	b := new(bytes.Buffer)
+	tmpl, err := templates.Parse("{{.Size}} {{.Id}}")
+	require.NoError(t, err)
+
+	i := NewTemplateInspector(b, tmpl)
+	for _, tc := range testcases {
+		err = i.Inspect(typedElem, tc.raw)
+		require.NoError(t, err)
+
+		err = i.Flush()
+		require.NoError(t, err)
+
+		assert.Equal(t, tc.exp, b.String())
+		b.Reset()
 	}
 }
