@@ -61,6 +61,11 @@ func runRotateCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) er
 	}
 
 	if !opts.rotate {
+		for _, f := range []string{flagCACert, flagCAKey, flagCACert, flagExternalCA} {
+			if flags.Changed(f) {
+				return fmt.Errorf("`--%s` flag requires the `--rotate` flag to update the CA", f)
+			}
+		}
 		if swarmInspect.ClusterInfo.TLSInfo.TrustRoot == "" {
 			fmt.Fprintln(dockerCli.Out(), "No CA information available")
 		} else {
@@ -71,7 +76,7 @@ func runRotateCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) er
 
 	genRootCA := true
 	spec := &swarmInspect.Spec
-	opts.mergeSwarmSpec(spec, flags)
+	opts.mergeSwarmSpec(spec, flags) // updates the spec given the cert expiry or external CA flag
 	if flags.Changed(flagCACert) {
 		spec.CAConfig.SigningCACert = opts.rootCACert.Contents()
 		genRootCA = false
