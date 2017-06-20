@@ -87,7 +87,7 @@ func TestSkipEmptyStack(t *testing.T) {
 	assert.Equal(t, allConfigIDs, cli.removedConfigs)
 }
 
-func TestContinueAfterError(t *testing.T) {
+func TestRemoveContinueAfterError(t *testing.T) {
 	allServices := []string{objectName("foo", "service1"), objectName("bar", "service1")}
 	allServiceIDs := buildObjectIDs(allServices)
 

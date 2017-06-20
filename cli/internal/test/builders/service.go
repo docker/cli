@@ -14,6 +14,7 @@ func Service(builders ...func(*swarm.Service)) *swarm.Service {
 			Annotations: swarm.Annotations{
 				Name: "defaultServiceName",
 			},
+			EndpointSpec: &swarm.EndpointSpec{},
 		},
 	}
 
@@ -24,9 +25,44 @@ func Service(builders ...func(*swarm.Service)) *swarm.Service {
 	return service
 }
 
+// ServiceID sets the service ID
+func ServiceID(ID string) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.ID = ID
+	}
+}
+
 // ServiceName sets the service name
 func ServiceName(name string) func(*swarm.Service) {
 	return func(service *swarm.Service) {
 		service.Spec.Annotations.Name = name
+	}
+}
+
+// ServiceLabels sets the service's labels
+func ServiceLabels(labels map[string]string) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.Spec.Annotations.Labels = labels
+	}
+}
+
+// ReplicatedService sets the number of replicas for the service
+func ReplicatedService(replicas uint64) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.Spec.Mode = swarm.ServiceMode{Replicated: &swarm.ReplicatedService{Replicas: &replicas}}
+	}
+}
+
+// ServiceImage sets the service's image
+func ServiceImage(image string) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.Spec.TaskTemplate = swarm.TaskSpec{ContainerSpec: swarm.ContainerSpec{Image: image}}
+	}
+}
+
+// ServicePort sets the service's port
+func ServicePort(port swarm.PortConfig) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.Spec.EndpointSpec.Ports = append(service.Spec.EndpointSpec.Ports, port)
 	}
 }

@@ -42,10 +42,31 @@ func TaskID(id string) func(*swarm.Task) {
 	}
 }
 
-// ServiceID sets the task service's ID
-func ServiceID(id string) func(*swarm.Task) {
+// TaskName sets the task name
+func TaskName(name string) func(*swarm.Task) {
+	return func(task *swarm.Task) {
+		task.Annotations.Name = name
+	}
+}
+
+// TaskServiceID sets the task service's ID
+func TaskServiceID(id string) func(*swarm.Task) {
 	return func(task *swarm.Task) {
 		task.ServiceID = id
+	}
+}
+
+// TaskNodeID sets the task's node id
+func TaskNodeID(id string) func(*swarm.Task) {
+	return func(task *swarm.Task) {
+		task.NodeID = id
+	}
+}
+
+// TaskDesiredState sets the task's desired state
+func TaskDesiredState(state swarm.TaskState) func(*swarm.Task) {
+	return func(task *swarm.Task) {
+		task.DesiredState = state
 	}
 }
 
@@ -86,11 +107,25 @@ func StatusErr(err string) func(*swarm.TaskStatus) {
 	}
 }
 
+// TaskState sets the task's current state
+func TaskState(state swarm.TaskState) func(*swarm.TaskStatus) {
+	return func(taskStatus *swarm.TaskStatus) {
+		taskStatus.State = state
+	}
+}
+
 // PortStatus sets the tasks port config status
 // FIXME(vdemeester) should be a sub builder 👼
 func PortStatus(portConfigs []swarm.PortConfig) func(*swarm.TaskStatus) {
 	return func(taskStatus *swarm.TaskStatus) {
 		taskStatus.PortStatus.Ports = portConfigs
+	}
+}
+
+// WithTaskSpec sets the task spec
+func WithTaskSpec(specBuilders ...func(*swarm.TaskSpec)) func(*swarm.Task) {
+	return func(task *swarm.Task) {
+		task.Spec = *TaskSpec(specBuilders...)
 	}
 }
 
@@ -108,4 +143,11 @@ func TaskSpec(specBuilders ...func(*swarm.TaskSpec)) *swarm.TaskSpec {
 	}
 
 	return taskSpec
+}
+
+// TaskImage sets the task's image
+func TaskImage(image string) func(*swarm.TaskSpec) {
+	return func(taskSpec *swarm.TaskSpec) {
+		taskSpec.ContainerSpec.Image = image
+	}
 }
