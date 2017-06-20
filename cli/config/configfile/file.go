@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 )
@@ -41,6 +42,15 @@ type ConfigFile struct {
 	ConfigFormat         string                      `json:"configFormat,omitempty"`
 	NodesFormat          string                      `json:"nodesFormat,omitempty"`
 	PruneFilters         []string                    `json:"pruneFilters,omitempty"`
+	Proxies              map[string]ProxyConfig      `json:"proxies,omitempty"`
+}
+
+// ProxyConfig contains proxy configuration settings
+type ProxyConfig struct {
+	HTTPProxy  string `json:"httpProxy,omitempty"`
+	HTTPSProxy string `json:"httpsProxy,omitempty"`
+	NoProxy    string `json:"noProxy,omitempty"`
+	FTPProxy   string `json:"ftpProxy,omitempty"`
 }
 
 // LegacyLoadFromReader reads the non-nested configuration data given and sets up the
@@ -150,6 +160,39 @@ func (configFile *ConfigFile) Save() error {
 	}
 	defer f.Close()
 	return configFile.SaveToWriter(f)
+}
+
+// ParseProxyConfig computes proxy configuration by retreiving the config for the provided host and
+// then checking this against any environment variables provided to the container
+func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts []string) map[string]*string {
+	var cfgKey string
+
+	if _, ok := configFile.Proxies[host]; !ok {
+		cfgKey = "default"
+	} else {
+		cfgKey = host
+	}
+
+	config, _ := configFile.Proxies[cfgKey]
+	permitted := map[string]*string{
+		"HTTP_PROXY":  &config.HTTPProxy,
+		"HTTPS_PROXY": &config.HTTPSProxy,
+		"NO_PROXY":    &config.NoProxy,
+		"FTP_PROXY":   &config.FTPProxy,
+	}
+	m := opts.ConvertKVStringsToMapWithNil(runOpts)
+	for k := range permitted {
+		if *permitted[k] == "" {
+			continue
+		}
+		if _, ok := m[k]; !ok {
+			m[k] = permitted[k]
+		}
+		if _, ok := m[strings.ToLower(k)]; !ok {
+			m[strings.ToLower(k)] = permitted[k]
+		}
+	}
+	return m
 }
 
 // encodeAuth creates a base64 encoded string to containing authorization information
