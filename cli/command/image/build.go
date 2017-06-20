@@ -35,6 +35,7 @@ type buildOptions struct {
 	context        string
 	dockerfileName string
 	tags           opts.ListOpts
+	pushAs         string
 	labels         opts.ListOpts
 	buildArgs      opts.ListOpts
 	extraHosts     opts.ListOpts
@@ -99,6 +100,7 @@ func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
+	flags.StringVar(&options.pushAs, "push-as", "", "Tag and push image to a registry")
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
 	flags.Var(options.ulimits, "ulimit", "Ulimit options")
 	flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
@@ -271,10 +273,14 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 	var body io.Reader = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
 
 	authConfigs, _ := dockerCli.GetAllCredentials()
+	tags := options.tags.GetAll()
+	if options.pushAs != "" {
+		tags = append(tags, options.pushAs)
+	}
 	buildOptions := types.ImageBuildOptions{
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
-		Tags:           options.tags.GetAll(),
+		Tags:           tags,
 		SuppressOutput: options.quiet,
 		NoCache:        options.noCache,
 		Remove:         options.rm,
@@ -370,6 +376,9 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 	}
 
+	if options.pushAs != "" {
+		return runPush(dockerCli, options.pushAs)
+	}
 	return nil
 }
 
