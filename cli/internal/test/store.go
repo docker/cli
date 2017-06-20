@@ -53,8 +53,7 @@ func (c *fakeStore) Get(serverAddress string) (types.AuthConfig, error) {
 	if c.getFunc != nil {
 		return c.getFunc(serverAddress)
 	}
-	authConfig, _ := c.store[serverAddress]
-	return authConfig, nil
+	return c.store[serverAddress], nil
 }
 
 func (c *fakeStore) GetAll() (map[string]types.AuthConfig, error) {

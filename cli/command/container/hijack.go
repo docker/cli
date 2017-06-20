@@ -110,7 +110,7 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 
 func (h *hijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error {
 	if h.outputStream == nil && h.errorStream == nil {
-		// Ther is no need to copy output.
+		// There is no need to copy output.
 		return nil
 	}
 

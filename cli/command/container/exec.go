@@ -111,12 +111,7 @@ func runExec(dockerCli command.Cli, options *execOptions, container string, exec
 			Tty:    execConfig.Tty,
 		}
 
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			return err
-		}
-		// For now don't print this - wait for when we support exec wait()
-		// fmt.Fprintf(dockerCli.Out(), "%s\n", execID)
-		return nil
+		return client.ContainerExecStart(ctx, execID, execStartCheck)
 	}
 
 	// Interactive exec requested.

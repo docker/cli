@@ -109,10 +109,8 @@ func NewStatsFormat(source, osType string) Format {
 }
 
 // NewContainerStats returns a new ContainerStats entity and sets in it the given name
-func NewContainerStats(container, osType string) *ContainerStats {
-	return &ContainerStats{
-		StatsEntry: StatsEntry{Container: container},
-	}
+func NewContainerStats(container string) *ContainerStats {
+	return &ContainerStats{StatsEntry: StatsEntry{Container: container}}
 }
 
 // ContainerStatsWrite renders the context for a list of containers statistics

@@ -65,7 +65,7 @@ reclaimable: {{.Reclaimable}}
 }
 
 func (ctx *DiskUsageContext) Write() (err error) {
-	if ctx.Verbose == false {
+	if !ctx.Verbose {
 		ctx.buffer = bytes.NewBufferString("")
 		ctx.preFormat()
 
@@ -234,7 +234,6 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 
 type diskUsageContainersContext struct {
 	HeaderContext
-	verbose    bool
 	containers []*types.Container
 }
 
@@ -297,7 +296,6 @@ func (c *diskUsageContainersContext) Reclaimable() string {
 
 type diskUsageVolumesContext struct {
 	HeaderContext
-	verbose bool
 	volumes []*types.Volume
 }
 

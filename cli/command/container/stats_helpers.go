@@ -16,9 +16,8 @@ import (
 )
 
 type stats struct {
-	ostype string
-	mu     sync.Mutex
-	cs     []*formatter.ContainerStats
+	mu sync.Mutex
+	cs []*formatter.ContainerStats
 }
 
 // daemonOSType is set once we have at least one stat for a container

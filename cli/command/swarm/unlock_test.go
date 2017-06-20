@@ -19,7 +19,6 @@ func TestSwarmUnlockErrors(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
-		input           string
 		swarmUnlockFunc func(req swarm.UnlockRequest) error
 		infoFunc        func() (types.Info, error)
 		expectedError   string

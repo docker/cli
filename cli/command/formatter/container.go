@@ -171,11 +171,11 @@ func (c *containerContext) Command() string {
 }
 
 func (c *containerContext) CreatedAt() string {
-	return time.Unix(int64(c.c.Created), 0).String()
+	return time.Unix(c.c.Created, 0).String()
 }
 
 func (c *containerContext) RunningFor() string {
-	createdAt := time.Unix(int64(c.c.Created), 0)
+	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 

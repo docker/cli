@@ -61,16 +61,14 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 	return containerConfig.Config, containerConfig.HostConfig, containerConfig.NetworkingConfig, err
 }
 
-func parsetest(t *testing.T, args string) (*container.Config, *container.HostConfig, error) {
-	config, hostConfig, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
-	return config, hostConfig, err
+func parseMustError(t *testing.T, args string) {
+	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
+	assert.Error(t, err, args)
 }
 
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
-	config, hostConfig, err := parsetest(t, args)
-	if err != nil {
-		t.Fatal(err)
-	}
+	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
+	assert.NoError(t, err)
 	return config, hostConfig
 }
 
@@ -86,7 +84,6 @@ func TestParseRunLinks(t *testing.T) {
 	}
 }
 
-// nolint: gocyclo
 func TestParseRunAttach(t *testing.T) {
 	if config, _ := mustParse(t, "-a stdin"); !config.AttachStdin || config.AttachStdout || config.AttachStderr {
 		t.Fatalf("Error parsing attach flags. Expect only Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
@@ -103,31 +100,17 @@ func TestParseRunAttach(t *testing.T) {
 	if config, _ := mustParse(t, "-i"); !config.AttachStdin || !config.AttachStdout || !config.AttachStderr {
 		t.Fatalf("Error parsing attach flags. Expect Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
 	}
+}
 
-	if _, _, err := parsetest(t, "-a"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a invalid"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a invalid` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a invalid -a stdout"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -a invalid` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdout -a stderr -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -a stderr -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdin -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdin -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdout -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stderr -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stderr -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-d --rm"); err == nil {
-		t.Fatal("Error parsing attach flags, `-d --rm` should be an error but is not")
-	}
+func TestParseRunWithInvalidArgs(t *testing.T) {
+	parseMustError(t, "-a")
+	parseMustError(t, "-a invalid")
+	parseMustError(t, "-a invalid -a stdout")
+	parseMustError(t, "-a stdout -a stderr -d")
+	parseMustError(t, "-a stdin -d")
+	parseMustError(t, "-a stdout -d")
+	parseMustError(t, "-a stderr -d")
+	parseMustError(t, "-d --rm")
 }
 
 // nolint: gocyclo

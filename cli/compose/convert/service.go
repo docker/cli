@@ -563,9 +563,6 @@ func convertCredentialSpec(spec composetypes.CredentialSpecConfig) (*swarm.Crede
 	if spec.File != "" && spec.Registry != "" {
 		return nil, errors.New("Invalid credential spec - must provide one of `File` or `Registry`")
 	}
-
-	return &swarm.CredentialSpec{
-		File:     spec.File,
-		Registry: spec.Registry,
-	}, nil
+	swarmCredSpec := swarm.CredentialSpec(spec)
+	return &swarmCredSpec, nil
 }

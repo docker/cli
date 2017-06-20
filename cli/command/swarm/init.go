@@ -92,7 +92,7 @@ func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) erro
 		if err != nil {
 			return errors.Wrap(err, "could not fetch unlock key")
 		}
-		printUnlockCommand(ctx, dockerCli, unlockKeyResp.UnlockKey)
+		printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
 	}
 
 	return nil
