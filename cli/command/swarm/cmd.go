@@ -25,7 +25,7 @@ func NewSwarmCommand(dockerCli command.Cli) *cobra.Command {
 		newUpdateCommand(dockerCli),
 		newLeaveCommand(dockerCli),
 		newUnlockCommand(dockerCli),
-		newRotateCACommand(dockerCli),
+		newCACommand(dockerCli),
 	)
 	return cmd
 }
