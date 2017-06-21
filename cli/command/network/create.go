@@ -36,7 +36,7 @@ type createOptions struct {
 	ipamOpt     opts.MapOpts
 }
 
-func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateEnv),
@@ -82,7 +82,7 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli *command.DockerCli, options createOptions) error {
+func runCreate(dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
 
 	ipamCfg, err := consolidateIpam(options.ipamSubnet, options.ipamIPRange, options.ipamGateway, options.ipamAux.GetAll())
@@ -232,13 +232,13 @@ func subnetMatches(subnet, data string) (bool, error) {
 
 	_, s, err := net.ParseCIDR(subnet)
 	if err != nil {
-		return false, errors.Errorf("Invalid subnet %s : %v", s, err)
+		return false, errors.Wrap(err, "invalid subnet")
 	}
 
 	if strings.Contains(data, "/") {
 		ip, _, err = net.ParseCIDR(data)
 		if err != nil {
-			return false, errors.Errorf("Invalid cidr %s : %v", data, err)
+			return false, err
 		}
 	} else {
 		ip = net.ParseIP(data)

@@ -25,7 +25,7 @@ type listOptions struct {
 	filter  opts.FilterOpt
 }
 
-func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli *command.DockerCli, options listOptions) error {
+func runList(dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
 	listOptions := types.NetworkListOptions{Filters: options.filter.Value()}
 	networkResources, err := client.NetworkList(context.Background(), listOptions)
