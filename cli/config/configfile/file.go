@@ -127,6 +127,11 @@ func (configFile *ConfigFile) ContainsAuth() bool {
 		len(configFile.AuthConfigs) > 0
 }
 
+// GetAuthConfigs returns the mapping of repo to auth configuration
+func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
+	return configFile.AuthConfigs
+}
+
 // SaveToWriter encodes and writes out all the authorization information to
 // the given writer
 func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {

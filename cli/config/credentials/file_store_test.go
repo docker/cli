@@ -1,55 +1,49 @@
 package credentials
 
 import (
-	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/api/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func newConfigFile(auths map[string]types.AuthConfig) *configfile.ConfigFile {
-	tmp, _ := ioutil.TempFile("", "docker-test")
-	name := tmp.Name()
-	tmp.Close()
+type fakeStore struct {
+	configs map[string]types.AuthConfig
+}
 
-	c := configfile.NewConfigFile(name)
-	c.AuthConfigs = auths
-	return c
+func (f *fakeStore) Save() error {
+	return nil
+}
+
+func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
+	return f.configs
+}
+
+func newStore(auths map[string]types.AuthConfig) store {
+	return &fakeStore{configs: auths}
 }
 
 func TestFileStoreAddCredentials(t *testing.T) {
-	f := newConfigFile(make(map[string]types.AuthConfig))
+	f := newStore(make(map[string]types.AuthConfig))
 
 	s := NewFileStore(f)
-	err := s.Store(types.AuthConfig{
+	auth := types.AuthConfig{
 		Auth:          "super_secret_token",
 		Email:         "foo@example.com",
 		ServerAddress: "https://example.com",
-	})
+	}
+	err := s.Store(auth)
+	require.NoError(t, err)
+	assert.Len(t, f.GetAuthConfigs(), 1)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(f.AuthConfigs) != 1 {
-		t.Fatalf("expected 1 auth config, got %d", len(f.AuthConfigs))
-	}
-
-	a, ok := f.AuthConfigs["https://example.com"]
-	if !ok {
-		t.Fatalf("expected auth for https://example.com, got %v", f.AuthConfigs)
-	}
-	if a.Auth != "super_secret_token" {
-		t.Fatalf("expected auth `super_secret_token`, got %s", a.Auth)
-	}
-	if a.Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com`, got %s", a.Email)
-	}
+	actual, ok := f.GetAuthConfigs()["https://example.com"]
+	assert.True(t, ok)
+	assert.Equal(t, auth, actual)
 }
 
 func TestFileStoreGet(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
@@ -73,7 +67,7 @@ func TestFileStoreGet(t *testing.T) {
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
 	s2 := "https://example2.com"
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		s1: {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
@@ -109,7 +103,7 @@ func TestFileStoreGetAll(t *testing.T) {
 }
 
 func TestFileStoreErase(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",

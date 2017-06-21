@@ -120,7 +120,7 @@ func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
 		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
 	}
 	if !configFile.ContainsAuth() {
-		credentials.DetectDefaultStore(configFile)
+		configFile.CredentialsStore = credentials.DetectDefaultStore(configFile.CredentialsStore)
 	}
 	return configFile
 }

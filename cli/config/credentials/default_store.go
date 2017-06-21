@@ -2,21 +2,18 @@ package credentials
 
 import (
 	"os/exec"
-
-	"github.com/docker/cli/cli/config/configfile"
 )
 
-// DetectDefaultStore sets the default credentials store
-// if the host includes the default store helper program.
-func DetectDefaultStore(c *configfile.ConfigFile) {
-	if c.CredentialsStore != "" {
-		// user defined
-		return
+// DetectDefaultStore return the default credentials store for the platform if
+// the store executable is available.
+func DetectDefaultStore(store string) string {
+	// user defined or no default for platform
+	if store != "" || defaultCredentialsStore == "" {
+		return store
 	}
 
-	if defaultCredentialsStore != "" {
-		if _, err := exec.LookPath(remoteCredentialsPrefix + defaultCredentialsStore); err == nil {
-			c.CredentialsStore = defaultCredentialsStore
-		}
+	if _, err := exec.LookPath(remoteCredentialsPrefix + defaultCredentialsStore); err == nil {
+		return defaultCredentialsStore
 	}
+	return ""
 }
