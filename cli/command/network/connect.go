@@ -19,7 +19,7 @@ type connectOptions struct {
 	linklocalips []string
 }
 
-func newConnectCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 	options := connectOptions{
 		links: opts.NewListOpts(opts.ValidateLink),
 	}
@@ -45,7 +45,7 @@ func newConnectCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runConnect(dockerCli *command.DockerCli, options connectOptions) error {
+func runConnect(dockerCli command.Cli, options connectOptions) error {
 	client := dockerCli.Client()
 
 	epConfig := &network.EndpointSettings{
