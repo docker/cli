@@ -173,7 +173,7 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts []string) ma
 		cfgKey = host
 	}
 
-	config, _ := configFile.Proxies[cfgKey]
+	config := configFile.Proxies[cfgKey]
 	permitted := map[string]*string{
 		"HTTP_PROXY":  &config.HTTPProxy,
 		"HTTPS_PROXY": &config.HTTPSProxy,

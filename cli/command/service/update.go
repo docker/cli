@@ -503,9 +503,8 @@ func updatePlacementPreferences(flags *pflag.FlagSet, placement *swarm.Placement
 	}
 
 	if flags.Changed(flagPlacementPrefAdd) {
-		for _, addition := range flags.Lookup(flagPlacementPrefAdd).Value.(*placementPrefOpts).prefs {
-			newPrefs = append(newPrefs, addition)
-		}
+		newPrefs = append(newPrefs,
+			flags.Lookup(flagPlacementPrefAdd).Value.(*placementPrefOpts).prefs...)
 	}
 
 	placement.Preferences = newPrefs
