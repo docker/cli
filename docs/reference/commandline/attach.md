@@ -40,7 +40,7 @@ interactively, as though the commands were running directly in your terminal.
 > not be interacting with the terminal at that time.
 
 You can attach to the same contained process multiple times simultaneously,
-even as a different user with the appropriate permissions.
+from different sessions on the Docker host.
 
 To stop a container, use `CTRL-c`. This key sequence sends `SIGKILL` to the
 container. If `--sig-proxy` is true (the default),`CTRL-c` sends a `SIGINT` to
