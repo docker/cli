@@ -8,8 +8,7 @@ import (
 )
 
 // NewNetworkCommand returns a cobra command for `network` subcommands
-// nolint: interfacer
-func NewNetworkCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewNetworkCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "network",
 		Short: "Manage networks",
