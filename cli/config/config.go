@@ -114,10 +114,10 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 
 // LoadDefaultConfigFile attempts to load the default config file and returns
 // an initialized ConfigFile struct if none is found.
-func LoadDefaultConfigFile(err io.Writer) *configfile.ConfigFile {
-	configFile, e := Load(Dir())
-	if e != nil {
-		fmt.Fprintf(err, "WARNING: Error loading config file:%v\n", e)
+func LoadDefaultConfigFile(stderr io.Writer) *configfile.ConfigFile {
+	configFile, err := Load(Dir())
+	if err != nil {
+		fmt.Fprintf(stderr, "WARNING: Error loading config file: %v\n", err)
 	}
 	if !configFile.ContainsAuth() {
 		configFile.CredentialsStore = credentials.DetectDefaultStore(configFile.CredentialsStore)

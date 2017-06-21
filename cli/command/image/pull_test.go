@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/docker/docker/pkg/testutil/golden"
@@ -41,7 +42,9 @@ func TestNewPullCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewPullCommand(test.NewFakeCli(&fakeClient{}, buf))
+		cli := test.NewFakeCli(&fakeClient{}, buf)
+		cli.SetConfigfile(configfile.NewConfigFile("filename"))
+		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -64,7 +67,9 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewPullCommand(test.NewFakeCli(&fakeClient{}, buf))
+		cli := test.NewFakeCli(&fakeClient{}, buf)
+		cli.SetConfigfile(configfile.NewConfigFile("filename"))
+		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()

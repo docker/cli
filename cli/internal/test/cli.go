@@ -71,11 +71,3 @@ func (c *FakeCli) In() *command.InStream {
 func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 	return c.configfile
 }
-
-// CredentialsStore returns the fake store the cli will use
-func (c *FakeCli) CredentialsStore(serverAddress string) credentials.Store {
-	if c.store == nil {
-		c.store = NewFakeStore()
-	}
-	return c.store
-}

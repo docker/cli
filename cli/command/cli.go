@@ -9,11 +9,9 @@ import (
 	"github.com/docker/cli/cli"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	cliflags "github.com/docker/cli/cli/flags"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
@@ -38,7 +36,6 @@ type Cli interface {
 	In() *InStream
 	SetIn(in *InStream)
 	ConfigFile() *configfile.ConfigFile
-	CredentialsStore(serverAddress string) credentials.Store
 }
 
 // DockerCli is an instance the docker command line client.
@@ -101,55 +98,6 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
 	return cli.server
-}
-
-// GetAllCredentials returns all of the credentials stored in all of the
-// configured credential stores.
-func (cli *DockerCli) GetAllCredentials() (map[string]types.AuthConfig, error) {
-	auths := make(map[string]types.AuthConfig)
-	for registry := range cli.configFile.CredentialHelpers {
-		helper := cli.CredentialsStore(registry)
-		newAuths, err := helper.GetAll()
-		if err != nil {
-			return nil, err
-		}
-		addAll(auths, newAuths)
-	}
-	defaultStore := cli.CredentialsStore("")
-	newAuths, err := defaultStore.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	addAll(auths, newAuths)
-	return auths, nil
-}
-
-func addAll(to, from map[string]types.AuthConfig) {
-	for reg, ac := range from {
-		to[reg] = ac
-	}
-}
-
-// CredentialsStore returns a new credentials store based
-// on the settings provided in the configuration file. Empty string returns
-// the default credential store.
-func (cli *DockerCli) CredentialsStore(serverAddress string) credentials.Store {
-	if helper := getConfiguredCredentialStore(cli.configFile, serverAddress); helper != "" {
-		return credentials.NewNativeStore(cli.configFile, helper)
-	}
-	return credentials.NewFileStore(cli.configFile)
-}
-
-// getConfiguredCredentialStore returns the credential helper configured for the
-// given registry, the default credsStore, or the empty string if neither are
-// configured.
-func getConfiguredCredentialStore(c *configfile.ConfigFile, serverAddress string) string {
-	if c.CredentialHelpers != nil && serverAddress != "" {
-		if helper, exists := c.CredentialHelpers[serverAddress]; exists {
-			return helper
-		}
-	}
-	return c.CredentialsStore
 }
 
 // Initialize the dockerCli runs initialization that must happen after command
