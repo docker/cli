@@ -564,7 +564,7 @@ func transformStringSourceMap(data interface{}) (interface{}, error) {
 func transformServiceVolumeConfig(data interface{}) (interface{}, error) {
 	switch value := data.(type) {
 	case string:
-		return parseVolume(value)
+		return ParseVolume(value)
 	case map[string]interface{}:
 		return data, nil
 	default:
