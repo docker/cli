@@ -18,15 +18,17 @@ type FakeCli struct {
 	out        *command.OutStream
 	err        io.Writer
 	in         *command.InStream
+	server     command.ServerInfo
 }
 
 // NewFakeCli returns a Cli backed by the fakeCli
 func NewFakeCli(client client.APIClient, out io.Writer) *FakeCli {
 	return &FakeCli{
-		client: client,
-		out:    command.NewOutStream(out),
-		err:    ioutil.Discard,
-		in:     command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		client:     client,
+		out:        command.NewOutStream(out),
+		err:        ioutil.Discard,
+		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		configfile: configfile.New("configfile"),
 	}
 }
 
@@ -68,4 +70,9 @@ func (c *FakeCli) In() *command.InStream {
 // ConfigFile returns the cli configfile object (to get client configuration)
 func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 	return c.configfile
+}
+
+// ServerInfo returns API server information for the server used by this client
+func (c *FakeCli) ServerInfo() command.ServerInfo {
+	return c.server
 }

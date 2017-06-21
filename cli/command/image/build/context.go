@@ -19,6 +19,7 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/ioutils"
+	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
@@ -374,4 +375,28 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		},
 	})
 	return buildCtx, randomName, nil
+}
+
+// Compress the build context for sending to the API
+func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
+	pipeReader, pipeWriter := io.Pipe()
+
+	go func() {
+		compressWriter, err := archive.CompressStream(pipeWriter, archive.Gzip)
+		if err != nil {
+			pipeWriter.CloseWithError(err)
+		}
+		defer buildCtx.Close()
+
+		if _, err := pools.Copy(compressWriter, buildCtx); err != nil {
+			pipeWriter.CloseWithError(
+				errors.Wrap(err, "failed to compress context"))
+			compressWriter.Close()
+			return
+		}
+		compressWriter.Close()
+		pipeWriter.Close()
+	}()
+
+	return pipeReader, nil
 }
