@@ -21,7 +21,7 @@ type servicesOptions struct {
 	namespace string
 }
 
-func newServicesCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	options := servicesOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -41,7 +41,7 @@ func newServicesCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runServices(dockerCli *command.DockerCli, options servicesOptions) error {
+func runServices(dockerCli command.Cli, options servicesOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
