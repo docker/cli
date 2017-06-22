@@ -7,7 +7,7 @@
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
 CROSS_IMAGE_NAME = docker-cli-cross
-MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
+MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
 
