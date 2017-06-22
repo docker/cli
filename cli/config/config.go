@@ -68,48 +68,42 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 		configDir = Dir()
 	}
 
-	configFile := configfile.ConfigFile{
-		AuthConfigs: make(map[string]types.AuthConfig),
-		Filename:    filepath.Join(configDir, ConfigFileName),
-	}
+	filename := filepath.Join(configDir, ConfigFileName)
+	configFile := configfile.NewConfigFile(filename)
 
 	// Try happy path first - latest config file
-	if _, err := os.Stat(configFile.Filename); err == nil {
-		file, err := os.Open(configFile.Filename)
+	if _, err := os.Stat(filename); err == nil {
+		file, err := os.Open(filename)
 		if err != nil {
-			return &configFile, errors.Errorf("%s - %v", configFile.Filename, err)
+			return configFile, errors.Errorf("%s - %v", filename, err)
 		}
 		defer file.Close()
 		err = configFile.LoadFromReader(file)
 		if err != nil {
-			err = errors.Errorf("%s - %v", configFile.Filename, err)
+			err = errors.Errorf("%s - %v", filename, err)
 		}
-		return &configFile, err
+		return configFile, err
 	} else if !os.IsNotExist(err) {
 		// if file is there but we can't stat it for any reason other
 		// than it doesn't exist then stop
-		return &configFile, errors.Errorf("%s - %v", configFile.Filename, err)
+		return configFile, errors.Errorf("%s - %v", filename, err)
 	}
 
 	// Can't find latest config file so check for the old one
 	confFile := filepath.Join(homedir.Get(), oldConfigfile)
 	if _, err := os.Stat(confFile); err != nil {
-		return &configFile, nil //missing file is not an error
+		return configFile, nil //missing file is not an error
 	}
 	file, err := os.Open(confFile)
 	if err != nil {
-		return &configFile, errors.Errorf("%s - %v", confFile, err)
+		return configFile, errors.Errorf("%s - %v", confFile, err)
 	}
 	defer file.Close()
 	err = configFile.LegacyLoadFromReader(file)
 	if err != nil {
-		return &configFile, errors.Errorf("%s - %v", confFile, err)
+		return configFile, errors.Errorf("%s - %v", confFile, err)
 	}
-
-	if configFile.HTTPHeaders == nil {
-		configFile.HTTPHeaders = map[string]string{}
-	}
-	return &configFile, nil
+	return configFile, nil
 }
 
 // LoadDefaultConfigFile attempts to load the default config file and returns
