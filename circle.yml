@@ -4,7 +4,7 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:17.05'}]
+    docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
       - setup_remote_docker
@@ -20,7 +20,7 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:17.05'}]
+    docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
       - setup_remote_docker
@@ -37,7 +37,7 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:17.05'}]
+    docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
       - setup_remote_docker
@@ -58,7 +58,7 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:17.05'}]
+    docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
       - setup_remote_docker
