@@ -58,7 +58,6 @@ jobs:
     working_directory: /work
     docker: [{image: 'dnephin/docker-circleci-task-runner:17.05'}]
     steps:
-      - run: apk add -U git openssh
       - checkout
       - setup_remote_docker:
             reusable: true

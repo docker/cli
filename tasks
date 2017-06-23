@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-
+#
+# Run a development task
+#
 set -eu -o pipefail
 
 unique_id=${TASK_UNIQUE_ID:-$USER}
@@ -36,7 +38,11 @@ function docker_build_and_run {
     local dockerfile_source=
     local cidfile=
     local remove="--rm"
-    local envvars="-e VERSION -e GITCOMMIT -e BUILDTIME -e LDFLAGS"
+    local envvars="-e VERSION \
+                   -e GITCOMMIT \
+                   -e BUILDTIME \
+                   -e LDFLAGS \
+                   -e DISABLE_WARN_OUTSIDE_CONTAINER=1"
     # Use an array to preserve whitespace in $PWD
     local mounts=(-v "$PWD:/go/src/github.com/docker/cli")
     if [ -t 1 ] ; then local use_tty="-ti"; else local use_tty=""; fi
@@ -53,7 +59,14 @@ function docker_build_and_run {
     fi
 
     echo "$dockerfile_source" | docker build -t "$image" -f "$dockerfile" .
-    docker run $remove $envvars $cidfile $use_tty ${mounts[@]+"${mounts[@]}"} "$image" $cmd
+    docker run \
+        $remove \
+        $envvars \
+        $cidfile \
+        $use_tty \
+        ${mounts[@]+"${mounts[@]}"} \
+        "$image" \
+        $cmd
 }
 
 function usage {

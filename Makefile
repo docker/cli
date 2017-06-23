@@ -3,6 +3,8 @@
 #
 all: binary
 
+_:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
+
 # remove build artifacts
 .PHONY: clean
 clean:
