@@ -110,6 +110,7 @@ func (i *TemplateInspector) tryRawInspectFallback(rawElement []byte) error {
 	buffer := new(bytes.Buffer)
 	rdr := bytes.NewReader(rawElement)
 	dec := json.NewDecoder(rdr)
+	dec.UseNumber()
 
 	if rawErr := dec.Decode(&raw); rawErr != nil {
 		return errors.Errorf("unable to read inspect data: %v", rawErr)
