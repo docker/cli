@@ -63,7 +63,7 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 			return err
 		}
 		if versions.LessThan(version.APIVersion, "1.30") {
-			fmt.Fprintf(dockerCli.Err(), `WARNING: ignoring "configs" (requires API version 1.30, but the Docker daemon API version is %s)`, version.APIVersion)
+			fmt.Fprintf(dockerCli.Err(), "WARNING: ignoring \"configs\" (requires API version 1.30, but the Docker daemon API version is %s)\n", version.APIVersion)
 		} else {
 			configs, err = getStackConfigs(ctx, client, namespace)
 			if err != nil {
