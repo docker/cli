@@ -4322,7 +4322,7 @@ _docker_system_prune() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--all -a --force -f --filter --help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--all -a --force -f --filter --help --volumes" -- "$cur" ) )
 			;;
 	esac
 }
