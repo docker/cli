@@ -23,6 +23,7 @@ func TestDiskUsageContextFormatWrite(t *testing.T) {
 Images              0                   0                   0B                  0B
 Containers          0                   0                   0B                  0B
 Local Volumes       0                   0                   0B                  0B
+Build Cache                                                 0B                  0B
 `,
 		},
 		{
@@ -38,6 +39,9 @@ CONTAINER ID        IMAGE               COMMAND             LOCAL VOLUMES       
 Local Volumes space usage:
 
 VOLUME NAME         LINKS               SIZE
+
+Build cache usage: 0B
+
 `,
 		},
 		// Errors
@@ -70,6 +74,7 @@ VOLUME NAME         LINKS               SIZE
 Images              0                   0                   0B                  0B
 Containers          0                   0                   0B                  0B
 Local Volumes       0                   0                   0B                  0B
+Build Cache                                                 0B                  0B
 `,
 		},
 		{
@@ -82,6 +87,7 @@ Local Volumes       0                   0                   0B                  
 Images              0
 Containers          0
 Local Volumes       0
+Build Cache         
 `,
 		},
 		// Raw Format
@@ -106,6 +112,12 @@ reclaimable: 0B
 type: Local Volumes
 total: 0
 active: 0
+size: 0B
+reclaimable: 0B
+
+type: Build Cache
+total: 
+active: 
 size: 0B
 reclaimable: 0B
 

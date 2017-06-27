@@ -15,7 +15,6 @@ import (
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
@@ -193,15 +192,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 			OSType:          ping.OSType,
 		}
 
-		// since the new header was added in 1.25, assume server is 1.24 if header is not present.
-		if ping.APIVersion == "" {
-			ping.APIVersion = "1.24"
-		}
-
-		// if server version is lower than the current cli, downgrade
-		if versions.LessThan(ping.APIVersion, cli.client.ClientVersion()) {
-			cli.client.UpdateClientVersion(ping.APIVersion)
-		}
+		cli.client.NegotiateAPIVersionPing(ping)
 	} else {
 		// Default to true if we fail to connect to daemon
 		cli.server = ServerInfo{HasExperimental: true}

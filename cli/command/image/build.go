@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"runtime"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -61,6 +62,7 @@ type buildOptions struct {
 	squash         bool
 	target         string
 	imageIDFile    string
+	stream         bool
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -133,6 +135,10 @@ func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags.SetAnnotation("squash", "experimental", nil)
 	flags.SetAnnotation("squash", "version", []string{"1.25"})
 
+	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
+	flags.SetAnnotation("stream", "experimental", nil)
+	flags.SetAnnotation("stream", "version", []string{"1.31"})
+
 	return cmd
 }
 
@@ -163,6 +169,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		relDockerfile string
 		progBuff      io.Writer
 		buildBuff     io.Writer
+		remote        string
 	)
 
 	if options.dockerfileFromStdin() {
@@ -188,6 +195,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 
 	switch {
 	case options.contextFromStdin():
+		// buildCtx is tar archive. if stdin was dockerfile then it is wrapped
 		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), options.dockerfileName)
 	case isLocalDir(specifiedContext):
 		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, options.dockerfileName)
@@ -211,7 +219,8 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		contextDir = tempDir
 	}
 
-	if buildCtx == nil {
+	// read from a directory into tar archive
+	if buildCtx == nil && !options.stream {
 		excludes, err := build.ReadDockerignore(contextDir)
 		if err != nil {
 			return err
@@ -242,24 +251,45 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 	}
 
-	// replace Dockerfile if added dynamically
-	if dockerfileCtx != nil {
+	// replace Dockerfile if it was added from stdin and there is archive context
+	if dockerfileCtx != nil && buildCtx != nil {
 		buildCtx, relDockerfile, err = build.AddDockerfileToBuildContext(dockerfileCtx, buildCtx)
 		if err != nil {
 			return err
 		}
 	}
 
-	ctx := context.Background()
+	// if streaming and dockerfile was not from stdin then read from file
+	// to the same reader that is usually stdin
+	if options.stream && dockerfileCtx == nil {
+		dockerfileCtx, err = os.Open(relDockerfile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to open %s", relDockerfile)
+		}
+		defer dockerfileCtx.Close()
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var resolvedTags []*resolvedTag
 	if command.IsTrusted() {
 		translator := func(ctx context.Context, ref reference.NamedTagged) (reference.Canonical, error) {
 			return TrustedReference(ctx, dockerCli, ref, nil)
 		}
-		// Wrap the tar archive to replace the Dockerfile entry with the rewritten
-		// Dockerfile which uses trusted pulls.
-		buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
+		// if there is a tar wrapper, the dockerfile needs to be replaced inside it
+		if buildCtx != nil {
+			// Wrap the tar archive to replace the Dockerfile entry with the rewritten
+			// Dockerfile which uses trusted pulls.
+			buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
+		} else if dockerfileCtx != nil {
+			// if there was not archive context still do the possible replacements in Dockerfile
+			newDockerfile, _, err := rewriteDockerfileFrom(ctx, dockerfileCtx, translator)
+			if err != nil {
+				return err
+			}
+			dockerfileCtx = ioutil.NopCloser(bytes.NewBuffer(newDockerfile))
+		}
 	}
 
 	// Setup an upload progress bar
@@ -268,7 +298,43 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		progressOutput = &lastProgressOutput{output: progressOutput}
 	}
 
-	var body io.Reader = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
+	// if up to this point nothing has set the context then we must have have
+	// another way for sending it(streaming) and set the context to the Dockerfile
+	if dockerfileCtx != nil && buildCtx == nil {
+		buildCtx = dockerfileCtx
+	}
+
+	s, err := trySession(dockerCli, contextDir)
+	if err != nil {
+		return err
+	}
+
+	var body io.Reader
+	if buildCtx != nil && !options.stream {
+		body = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
+	}
+
+	// add context stream to the session
+	if options.stream && s != nil {
+		syncDone := make(chan error) // used to signal first progress reporting completed.
+		// progress would also send errors but don't need it here as errors
+		// are handled by session.Run() and ImageBuild()
+		if err := addDirToSession(s, contextDir, progressOutput, syncDone); err != nil {
+			return err
+		}
+
+		buf := newBufferedWriter(syncDone, buildBuff)
+		defer func() {
+			select {
+			case <-buf.flushed:
+			case <-ctx.Done():
+			}
+		}()
+		buildBuff = buf
+
+		remote = clientSessionRemote
+		body = buildCtx
+	}
 
 	authConfigs, _ := dockerCli.GetAllCredentials()
 	buildOptions := types.ImageBuildOptions{
@@ -299,6 +365,18 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		Squash:         options.squash,
 		ExtraHosts:     options.extraHosts.GetAll(),
 		Target:         options.target,
+		RemoteContext:  remote,
+	}
+
+	if s != nil {
+		go func() {
+			logrus.Debugf("running session: %v", s.UUID())
+			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
+				logrus.Error(err)
+				cancel() // cancel progress context
+			}
+		}()
+		buildOptions.SessionID = s.UUID()
 	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
@@ -306,6 +384,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		if options.quiet {
 			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
 		}
+		cancel()
 		return err
 	}
 	defer response.Body.Close()
