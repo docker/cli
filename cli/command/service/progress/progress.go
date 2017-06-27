@@ -275,7 +275,11 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 				continue
 			}
 		}
-		if _, nodeActive := activeNodes[task.NodeID]; nodeActive {
+		if task.NodeID != "" {
+			if _, nodeActive := activeNodes[task.NodeID]; nodeActive {
+				tasksBySlot[task.Slot] = task
+			}
+		} else {
 			tasksBySlot[task.Slot] = task
 		}
 	}
