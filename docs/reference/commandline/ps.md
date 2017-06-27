@@ -82,20 +82,21 @@ than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bi
 
 The currently supported filters are:
 
-* id (container's id)
-* label (`label=<key>` or `label=<key>=<value>`)
-* name (container's name)
-* exited (int - the code of exited containers. Only useful with `--all`)
-* status (`created|restarting|running|removing|paused|exited|dead`)
-* ancestor (`<image-name>[:<tag>]`,  `<image id>` or `<image@digest>`) - filters containers that were created from the given image or a descendant.
-* before (container's id or name) - filters containers created before given id or name
-* since (container's id or name) - filters containers created since given id or name
-* isolation (`default|process|hyperv`)   (Windows daemon only)
-* volume (volume name or mount point) - filters containers that mount volumes.
-* network (network id or name) - filters containers connected to the provided network
-* health (starting|healthy|unhealthy|none) - filters containers based on healthcheck status
-* publish=(container's published port) - filters published ports by containers
-* expose=(container's exposed port) - filters exposed ports by containers
+| Filter                | Description                                                                                                                          |
+|:----------------------|:-------------------------------------------------------------------------------------------------------------------------------------|
+| `id`                  | container's ID                                                                                                                       |
+| `name`                | container's name                                                                                                                     |
+| `label`               | An arbitrary string representing either a key or a key-value pair                                                                    |
+| `exited`              | An integer representing the container's exit code. Only useful with `--all`.                                                         |
+| `status`              | One of `created|restarting|running|removing|paused|exited|dead`                                                                      |
+| `ancestor`            | Filters containers which share a given image as an ancestor. Expressed as `<image-name>[:<tag>]`,  `<image id>`, or `<image@digest>` |
+| `before` or `since`   | Filters containers created before or after a given container ID or name                                                              |
+| `volume`              | Filters running containers which have mounted a given volume or bind mount.                                                          |
+| `network`             | Filters running containers connected to a given network.                                                                             |
+| `publish` or `expose` | Filters containers which publish or expose a given port.                                                                             |
+| `health`              | One of `starting|healthy|unhealthy|none`. Filters containers based on their healthcheck status.                                      |
+| `isolation`           | Windows daemon only. One of `default|process|hyperv`.                                                                                |
+
 
 #### label
 
@@ -387,21 +388,21 @@ template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder   | Description
---------------|----------------------------------------------------------------------------------------------------
-`.ID`         | Container ID
-`.Image`      | Image ID
-`.Command`    | Quoted command
-`.CreatedAt`  | Time when the container was created.
-`.RunningFor` | Elapsed time since the container was started.
-`.Ports`      | Exposed ports.
-`.Status`     | Container status.
-`.Size`       | Container disk size.
-`.Names`      | Container names.
-`.Labels`     | All labels assigned to the container.
-`.Label`      | Value of a specific label for this container. For example `'{{.Label "com.docker.swarm.cpu"}}'`
-`.Mounts`     | Names of the volumes mounted in this container.
-`.Networks`   | Names of the networks attached to this container.
+| Placeholder   | Description                                                                                     |
+|:--------------|:------------------------------------------------------------------------------------------------|
+| `.ID`         | Container ID                                                                                    |
+| `.Image`      | Image ID                                                                                        |
+| `.Command`    | Quoted command                                                                                  |
+| `.CreatedAt`  | Time when the container was created.                                                            |
+| `.RunningFor` | Elapsed time since the container was started.                                                   |
+| `.Ports`      | Exposed ports.                                                                                  |
+| `.Status`     | Container status.                                                                               |
+| `.Size`       | Container disk size.                                                                            |
+| `.Names`      | Container names.                                                                                |
+| `.Labels`     | All labels assigned to the container.                                                           |
+| `.Label`      | Value of a specific label for this container. For example `'{{.Label "com.docker.swarm.cpu"}}'` |
+| `.Mounts`     | Names of the volumes mounted in this container.                                                 |
+| `.Networks`   | Names of the networks attached to this container.                                               |
 
 When using the `--format` option, the `ps` command will either output the data
 exactly as the template declares or, when using the `table` directive, includes
