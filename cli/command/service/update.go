@@ -37,8 +37,8 @@ func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.String("image", "", "Service image tag")
 	flags.Var(&ShlexOpt{}, "args", "Service command args")
-	flags.Bool("rollback", false, "Rollback to previous specification")
-	flags.SetAnnotation("rollback", "version", []string{"1.25"})
+	flags.Bool(flagRollback, false, "Rollback to previous specification")
+	flags.SetAnnotation(flagRollback, "version", []string{"1.25"})
 	flags.Bool("force", false, "Force update even if no changes require it")
 	flags.SetAnnotation("force", "version", []string{"1.25"})
 	addServiceFlags(flags, options, nil)
@@ -112,7 +112,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 		return err
 	}
 
-	rollback, err := flags.GetBool("rollback")
+	rollback, err := flags.GetBool(flagRollback)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 		// Rollback can't be combined with other flags.
 		otherFlagsPassed := false
 		flags.VisitAll(func(f *pflag.Flag) {
-			if f.Name == "rollback" || f.Name == "detach" || f.Name == "quiet" {
+			if f.Name == flagRollback || f.Name == flagDetach || f.Name == flagQuiet {
 				return
 			}
 			if flags.Changed(f.Name) {
@@ -141,7 +141,7 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 			return errors.New("other flags may not be combined with --rollback")
 		}
 
-		if versions.LessThan(dockerCli.Client().ClientVersion(), "1.28") {
+		if versions.LessThan(apiClient.ClientVersion(), "1.28") {
 			clientSideRollback = true
 			spec = service.PreviousSpec
 			if spec == nil {
@@ -217,14 +217,11 @@ func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serv
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
 	if options.detach {
-		if !flags.Changed("detach") {
-			fmt.Fprintln(dockerCli.Err(), "Since --detach=false was not specified, tasks will be updated in the background.\n"+
-				"In a future release, --detach=false will become the default.")
-		}
+		warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "updated")
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options)
+	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
 }
 
 // nolint: gocyclo

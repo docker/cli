@@ -690,6 +690,11 @@ func buildServiceDefaultFlagMapping() flagDefaults {
 	return defaultFlagValues
 }
 
+func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
+	flags.BoolVarP(detach, flagDetach, "d", true, "Exit immediately instead of waiting for the service to converge")
+	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
+}
+
 // addServiceFlags adds all flags that are common to both `create` and `update`.
 // Any flags that are not common are added separately in the individual command
 func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValues flagDefaults) {
@@ -700,8 +705,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 		return desc
 	}
 
-	flags.BoolVarP(&opts.detach, "detach", "d", true, "Exit immediately instead of waiting for the service to converge")
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output")
+	addDetachFlag(flags, &opts.detach)
+	flags.BoolVarP(&opts.quiet, flagQuiet, "q", false, "Suppress progress output")
 
 	flags.StringVarP(&opts.workdir, flagWorkdir, "w", "", "Working directory inside the container")
 	flags.StringVarP(&opts.user, flagUser, "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
@@ -792,6 +797,7 @@ const (
 	flagContainerLabel          = "container-label"
 	flagContainerLabelRemove    = "container-label-rm"
 	flagContainerLabelAdd       = "container-label-add"
+	flagDetach                  = "detach"
 	flagDNS                     = "dns"
 	flagDNSRemove               = "dns-rm"
 	flagDNSAdd                  = "dns-add"
@@ -803,10 +809,6 @@ const (
 	flagDNSSearchAdd            = "dns-search-add"
 	flagEndpointMode            = "endpoint-mode"
 	flagEntrypoint              = "entrypoint"
-	flagHost                    = "host"
-	flagHostAdd                 = "host-add"
-	flagHostRemove              = "host-rm"
-	flagHostname                = "hostname"
 	flagEnv                     = "env"
 	flagEnvFile                 = "env-file"
 	flagEnvRemove               = "env-rm"
@@ -814,6 +816,10 @@ const (
 	flagGroup                   = "group"
 	flagGroupAdd                = "group-add"
 	flagGroupRemove             = "group-rm"
+	flagHost                    = "host"
+	flagHostAdd                 = "host-add"
+	flagHostRemove              = "host-rm"
+	flagHostname                = "hostname"
 	flagLabel                   = "label"
 	flagLabelRemove             = "label-rm"
 	flagLabelAdd                = "label-add"
@@ -830,6 +836,7 @@ const (
 	flagPublish                 = "publish"
 	flagPublishRemove           = "publish-rm"
 	flagPublishAdd              = "publish-add"
+	flagQuiet                   = "quiet"
 	flagReadOnly                = "read-only"
 	flagReplicas                = "replicas"
 	flagReserveCPU              = "reserve-cpu"
@@ -838,6 +845,7 @@ const (
 	flagRestartDelay            = "restart-delay"
 	flagRestartMaxAttempts      = "restart-max-attempts"
 	flagRestartWindow           = "restart-window"
+	flagRollback                = "rollback"
 	flagRollbackDelay           = "rollback-delay"
 	flagRollbackFailureAction   = "rollback-failure-action"
 	flagRollbackMaxFailureRatio = "rollback-max-failure-ratio"
