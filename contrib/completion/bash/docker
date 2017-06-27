@@ -3039,6 +3039,7 @@ _docker_service_update() {
 _docker_service_update_and_create() {
 	local options_with_args="
 		--endpoint-mode
+		--entrypoint
 		--env -e
 		--force
 		--health-cmd
@@ -3138,7 +3139,7 @@ _docker_service_update_and_create() {
 	fi
 	if [ "$subcommand" = "update" ] ; then
 		options_with_args="$options_with_args
-			--arg
+			--args
 			--constraint-add
 			--constraint-rm
 			--container-label-add
