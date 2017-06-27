@@ -29,6 +29,7 @@ import (
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
 )
 
@@ -77,6 +78,15 @@ func (o buildOptions) contextFromStdin() bool {
 	return o.context == "-"
 }
 
+func setDefaultsFromConfig(cli command.Cli, flags *pflag.FlagSet, options *buildOptions) {
+	if !flags.Changed("stream") && isSessionSupported(cli) {
+		// if stream is not set try the default from config file
+		if v := cli.ConfigFile().BuildStreamContext; v != nil {
+			options.stream = *v
+		}
+	}
+}
+
 func newBuildOptions() buildOptions {
 	ulimits := make(map[string]*units.Ulimit)
 	return buildOptions{
@@ -98,6 +108,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.context = args[0]
+
+			setDefaultsFromConfig(dockerCli, cmd.Flags(), &options)
+
 			return runBuild(dockerCli, options)
 		},
 	}
