@@ -26,11 +26,11 @@ import (
 
 const clientSessionRemote = "client-session"
 
-func isSessionSupported(dockerCli *command.DockerCli) bool {
+func isSessionSupported(dockerCli command.Cli) bool {
 	return dockerCli.ServerInfo().HasExperimental && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
 }
 
-func trySession(dockerCli *command.DockerCli, contextDir string) (*session.Session, error) {
+func trySession(dockerCli command.Cli, contextDir string) (*session.Session, error) {
 	var s *session.Session
 	if isSessionSupported(dockerCli) {
 		sharedKey, err := getBuildSharedKey(contextDir)

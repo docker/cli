@@ -137,13 +137,13 @@ func TestProxyConfigPerHost(t *testing.T) {
 
 func TestConfigFile(t *testing.T) {
 	configFilename := "configFilename"
-	configFile := NewConfigFile(configFilename)
+	configFile := New(configFilename)
 
 	assert.Equal(t, configFilename, configFile.Filename)
 }
 
 func TestGetAllCredentials(t *testing.T) {
-	configFile := NewConfigFile("filename")
+	configFile := New("filename")
 	exampleAuth := types.AuthConfig{
 		Username: "user",
 		Password: "pass",

@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/client"
 )
 
@@ -19,7 +18,6 @@ type FakeCli struct {
 	out        *command.OutStream
 	err        io.Writer
 	in         *command.InStream
-	store      credentials.Store
 }
 
 // NewFakeCli returns a Cli backed by the fakeCli

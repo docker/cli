@@ -36,6 +36,7 @@ type Cli interface {
 	In() *InStream
 	SetIn(in *InStream)
 	ConfigFile() *configfile.ConfigFile
+	ServerInfo() ServerInfo
 }
 
 // DockerCli is an instance the docker command line client.

@@ -69,7 +69,7 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 	}
 
 	filename := filepath.Join(configDir, ConfigFileName)
-	configFile := configfile.NewConfigFile(filename)
+	configFile := configfile.New(filename)
 
 	// Try happy path first - latest config file
 	if _, err := os.Stat(filename); err == nil {

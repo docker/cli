@@ -49,7 +49,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cli := test.NewFakeCli(&fakeClient{imagePushFunc: tc.imagePushFunc}, buf)
-		cli.SetConfigfile(configfile.NewConfigFile("filename"))
+		cli.SetConfigfile(configfile.New("filename"))
 		cmd := NewPushCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
@@ -74,7 +74,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 		}, buf)
-		cli.SetConfigfile(configfile.NewConfigFile("filename"))
+		cli.SetConfigfile(configfile.New("filename"))
 		cmd := NewPushCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)

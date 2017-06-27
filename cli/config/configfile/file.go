@@ -54,8 +54,8 @@ type ProxyConfig struct {
 	FTPProxy   string `json:"ftpProxy,omitempty"`
 }
 
-// NewConfigFile initializes an empty configuration file for the given filename 'fn'
-func NewConfigFile(fn string) *ConfigFile {
+// New initializes an empty configuration file for the given filename 'fn'
+func New(fn string) *ConfigFile {
 	return &ConfigFile{
 		AuthConfigs: make(map[string]types.AuthConfig),
 		HTTPHeaders: make(map[string]string),

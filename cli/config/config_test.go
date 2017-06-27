@@ -540,7 +540,7 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 
 	configFile := LoadDefaultConfigFile(buffer)
 	credStore := credentials.DetectDefaultStore("")
-	expected := configfile.NewConfigFile(filename)
+	expected := configfile.New(filename)
 	expected.CredentialsStore = credStore
 	expected.PsFormat = "format"
 
