@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -29,6 +30,13 @@ var (
 		swarm.TaskStateReady:     7,
 		swarm.TaskStateStarting:  8,
 		swarm.TaskStateRunning:   9,
+
+		// The following states are not actually shown in progress
+		// output, but are used internally for ordering.
+		swarm.TaskStateComplete: 10,
+		swarm.TaskStateShutdown: 11,
+		swarm.TaskStateFailed:   12,
+		swarm.TaskStateRejected: 13,
 	}
 
 	longestState int
@@ -45,17 +53,21 @@ type progressUpdater interface {
 
 func init() {
 	for state := range numberedStates {
-		if len(state) > longestState {
+		if !terminalState(state) && len(state) > longestState {
 			longestState = len(state)
 		}
 	}
+}
+
+func terminalState(state swarm.TaskState) bool {
+	return numberedStates[state] > numberedStates[swarm.TaskStateRunning]
 }
 
 func stateToProgress(state swarm.TaskState, rollback bool) int64 {
 	if !rollback {
 		return numberedStates[state]
 	}
-	return int64(len(numberedStates)) - numberedStates[state]
+	return numberedStates[swarm.TaskStateRunning] - numberedStates[state]
 }
 
 // ServiceProgress outputs progress information for convergence of a service.
@@ -235,6 +247,18 @@ func writeOverallProgress(progressOut progress.Output, numerator, denominator in
 	})
 }
 
+func truncError(errMsg string) string {
+	// Remove newlines from the error, which corrupt the output.
+	errMsg = strings.Replace(errMsg, "\n", " ", -1)
+
+	// Limit the length to 75 characters, so that even on narrow terminals
+	// this will not overflow to the next line.
+	if len(errMsg) > 75 {
+		errMsg = errMsg[:74] + "…"
+	}
+	return errMsg
+}
+
 type replicatedProgressUpdater struct {
 	progressOut progress.Output
 
@@ -308,7 +332,23 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 			u.slotMap[task.Slot] = mappedSlot
 		}
 
-		if !u.done && replicas <= maxProgressBars && uint64(mappedSlot) <= replicas {
+		if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
+			running++
+		}
+
+		if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
+			continue
+		}
+
+		if task.Status.Err != "" {
+			u.progressOut.WriteProgress(progress.Progress{
+				ID:     fmt.Sprintf("%d/%d", mappedSlot, replicas),
+				Action: truncError(task.Status.Err),
+			})
+			continue
+		}
+
+		if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
 			u.progressOut.WriteProgress(progress.Progress{
 				ID:         fmt.Sprintf("%d/%d", mappedSlot, replicas),
 				Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
@@ -316,9 +356,6 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 				Total:      maxProgress,
 				HideCounts: true,
 			})
-		}
-		if task.Status.State == swarm.TaskStateRunning {
-			running++
 		}
 	}
 
@@ -340,6 +377,7 @@ type globalProgressUpdater struct {
 	done        bool
 }
 
+// nolint: gocyclo
 func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]swarm.Node, rollback bool) (bool, error) {
 	// If there are multiple tasks with the same node ID, favor the one
 	// with the *lowest* desired state. This can happen in restart
@@ -393,7 +431,23 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 
 	for _, task := range tasksByNode {
 		if node, nodeActive := activeNodes[task.NodeID]; nodeActive {
-			if !u.done && nodeCount <= maxProgressBars {
+			if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
+				running++
+			}
+
+			if u.done || nodeCount > maxProgressBars {
+				continue
+			}
+
+			if task.Status.Err != "" {
+				u.progressOut.WriteProgress(progress.Progress{
+					ID:     stringid.TruncateID(node.ID),
+					Action: truncError(task.Status.Err),
+				})
+				continue
+			}
+
+			if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
 				u.progressOut.WriteProgress(progress.Progress{
 					ID:         stringid.TruncateID(node.ID),
 					Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
@@ -401,9 +455,6 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 					Total:      maxProgress,
 					HideCounts: true,
 				})
-			}
-			if task.Status.State == swarm.TaskStateRunning {
-				running++
 			}
 		}
 	}
