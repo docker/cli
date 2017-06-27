@@ -3065,6 +3065,7 @@ _docker_service_update_and_create() {
 		--rollback-failure-action
 		--rollback-max-failure-ratio
 		--rollback-monitor
+		--rollback-order
 		--rollback-parallelism
 		--stop-grace-period
 		--stop-signal
@@ -3072,6 +3073,7 @@ _docker_service_update_and_create() {
 		--update-failure-action
 		--update-max-failure-ratio
 		--update-monitor
+		--update-order
 		--update-parallelism
 		--user -u
 		--workdir -w
@@ -3238,6 +3240,10 @@ _docker_service_update_and_create() {
 			;;
 		--update-failure-action)
 			COMPREPLY=( $( compgen -W "continue pause rollback" -- "$cur" ) )
+			return
+			;;
+		--update-order|--rollback-order)
+			COMPREPLY=( $( compgen -W "start-first stop-first" -- "$cur" ) )
 			return
 			;;
 		--user|-u)
