@@ -47,6 +47,10 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 	ctx := context.Background()
 	clnt := dockerCli.Client()
 
+	if opts.password != "" {
+		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure.")
+	}
+
 	var (
 		serverAddress string
 		authServer    = command.ElectAuthServer(ctx, dockerCli)
