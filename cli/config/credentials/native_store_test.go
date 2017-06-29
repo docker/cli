@@ -11,7 +11,10 @@ import (
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/pkg/testutil"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -90,53 +93,32 @@ func mockCommandFn(args ...string) client.Program {
 }
 
 func TestNativeStoreAddCredentials(t *testing.T) {
-	f := newConfigFile(make(map[string]types.AuthConfig))
-	f.CredentialsStore = "mock"
-
+	f := newStore(make(map[string]types.AuthConfig))
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
-	err := s.Store(types.AuthConfig{
+	auth := types.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
 		Email:         "foo@example.com",
 		ServerAddress: validServerAddress,
-	})
+	}
+	err := s.Store(auth)
+	require.NoError(t, err)
+	assert.Len(t, f.GetAuthConfigs(), 1)
 
-	if err != nil {
-		t.Fatal(err)
+	actual, ok := f.GetAuthConfigs()[validServerAddress]
+	assert.True(t, ok)
+	expected := types.AuthConfig{
+		Email:         auth.Email,
+		ServerAddress: auth.ServerAddress,
 	}
-
-	if len(f.AuthConfigs) != 1 {
-		t.Fatalf("expected 1 auth config, got %d", len(f.AuthConfigs))
-	}
-
-	a, ok := f.AuthConfigs[validServerAddress]
-	if !ok {
-		t.Fatalf("expected auth for %s, got %v", validServerAddress, f.AuthConfigs)
-	}
-	if a.Auth != "" {
-		t.Fatalf("expected auth to be empty, got %s", a.Auth)
-	}
-	if a.Username != "" {
-		t.Fatalf("expected username to be empty, got %s", a.Username)
-	}
-	if a.Password != "" {
-		t.Fatalf("expected password to be empty, got %s", a.Password)
-	}
-	if a.IdentityToken != "" {
-		t.Fatalf("expected identity token to be empty, got %s", a.IdentityToken)
-	}
-	if a.Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com`, got %s", a.Email)
-	}
+	assert.Equal(t, expected, actual)
 }
 
 func TestNativeStoreAddInvalidCredentials(t *testing.T) {
-	f := newConfigFile(make(map[string]types.AuthConfig))
-	f.CredentialsStore = "mock"
-
+	f := newStore(make(map[string]types.AuthConfig))
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
@@ -147,102 +129,66 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 		Email:         "foo@example.com",
 		ServerAddress: invalidServerAddress,
 	})
-
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), "program failed") {
-		t.Fatalf("expected `program failed`, got %v", err)
-	}
-
-	if len(f.AuthConfigs) != 0 {
-		t.Fatalf("expected 0 auth config, got %d", len(f.AuthConfigs))
-	}
+	testutil.ErrorContains(t, err, "program failed")
+	assert.Len(t, f.GetAuthConfigs(), 0)
 }
 
 func TestNativeStoreGet(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
-
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
-	a, err := s.Get(validServerAddress)
-	if err != nil {
-		t.Fatal(err)
-	}
+	actual, err := s.Get(validServerAddress)
+	require.NoError(t, err)
 
-	if a.Username != "foo" {
-		t.Fatalf("expected username `foo`, got %s", a.Username)
+	expected := types.AuthConfig{
+		Username: "foo",
+		Password: "bar",
+		Email:    "foo@example.com",
 	}
-	if a.Password != "bar" {
-		t.Fatalf("expected password `bar`, got %s", a.Password)
-	}
-	if a.IdentityToken != "" {
-		t.Fatalf("expected identity token to be empty, got %s", a.IdentityToken)
-	}
-	if a.Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com`, got %s", a.Email)
-	}
+	assert.Equal(t, expected, actual)
 }
 
 func TestNativeStoreGetIdentityToken(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress2: {
 			Email: "foo@example2.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
-	a, err := s.Get(validServerAddress2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	actual, err := s.Get(validServerAddress2)
+	require.NoError(t, err)
 
-	if a.Username != "" {
-		t.Fatalf("expected username to be empty, got %s", a.Username)
+	expected := types.AuthConfig{
+		IdentityToken: "abcd1234",
+		Email:         "foo@example2.com",
 	}
-	if a.Password != "" {
-		t.Fatalf("expected password to be empty, got %s", a.Password)
-	}
-	if a.IdentityToken != "abcd1234" {
-		t.Fatalf("expected identity token `abcd1234`, got %s", a.IdentityToken)
-	}
-	if a.Email != "foo@example2.com" {
-		t.Fatalf("expected email `foo@example2.com`, got %s", a.Email)
-	}
+	assert.Equal(t, expected, actual)
 }
 
 func TestNativeStoreGetAll(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
 	as, err := s.GetAll()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(as) != 2 {
-		t.Fatalf("wanted 2, got %d", len(as))
-	}
+	require.NoError(t, err)
+	assert.Len(t, as, 2)
 
 	if as[validServerAddress].Username != "foo" {
 		t.Fatalf("expected username `foo` for %s, got %s", validServerAddress, as[validServerAddress].Username)
@@ -271,86 +217,62 @@ func TestNativeStoreGetAll(t *testing.T) {
 }
 
 func TestNativeStoreGetMissingCredentials(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
 	_, err := s.Get(missingCredsAddress)
-	if err != nil {
-		// missing credentials do not produce an error
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
 	_, err := s.Get(invalidServerAddress)
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), "program failed") {
-		t.Fatalf("expected `program failed`, got %v", err)
-	}
+	testutil.ErrorContains(t, err, "program failed")
 }
 
 func TestNativeStoreErase(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
 	err := s.Erase(validServerAddress)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(f.AuthConfigs) != 0 {
-		t.Fatalf("expected 0 auth configs, got %d", len(f.AuthConfigs))
-	}
+	require.NoError(t, err)
+	assert.Len(t, f.GetAuthConfigs(), 0)
 }
 
 func TestNativeStoreEraseInvalidAddress(t *testing.T) {
-	f := newConfigFile(map[string]types.AuthConfig{
+	f := newStore(map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
 	})
-	f.CredentialsStore = "mock"
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
 	err := s.Erase(invalidServerAddress)
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-
-	if !strings.Contains(err.Error(), "program failed") {
-		t.Fatalf("expected `program failed`, got %v", err)
-	}
+	testutil.ErrorContains(t, err, "program failed")
 }

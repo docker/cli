@@ -78,7 +78,7 @@ func (o buildOptions) contextFromStdin() bool {
 }
 
 // NewBuildCommand creates a new `docker build` command
-func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	ulimits := make(map[string]*units.Ulimit)
 	options := buildOptions{
 		tags:       opts.NewListOpts(validateTag),
@@ -159,7 +159,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 }
 
 // nolint: gocyclo
-func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
+func runBuild(dockerCli command.Cli, options buildOptions) error {
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
@@ -336,7 +336,8 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		body = buildCtx
 	}
 
-	authConfigs, _ := dockerCli.GetAllCredentials()
+	configFile := dockerCli.ConfigFile()
+	authConfigs, _ := configFile.GetAllCredentials()
 	buildOptions := types.ImageBuildOptions{
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
@@ -356,7 +357,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		Dockerfile:     relDockerfile,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
 		AuthConfigs:    authConfigs,
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,

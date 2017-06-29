@@ -71,7 +71,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 		authConfig.Password = ""
 		authConfig.IdentityToken = response.IdentityToken
 	}
-	if err := dockerCli.CredentialsStore(serverAddress).Store(authConfig); err != nil {
+	if err := dockerCli.ConfigFile().GetCredentialsStore(serverAddress).Store(authConfig); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
 

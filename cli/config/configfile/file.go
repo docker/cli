@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
@@ -51,6 +52,15 @@ type ProxyConfig struct {
 	HTTPSProxy string `json:"httpsProxy,omitempty"`
 	NoProxy    string `json:"noProxy,omitempty"`
 	FTPProxy   string `json:"ftpProxy,omitempty"`
+}
+
+// New initializes an empty configuration file for the given filename 'fn'
+func New(fn string) *ConfigFile {
+	return &ConfigFile{
+		AuthConfigs: make(map[string]types.AuthConfig),
+		HTTPHeaders: make(map[string]string),
+		Filename:    fn,
+	}
 }
 
 // LegacyLoadFromReader reads the non-nested configuration data given and sets up the
@@ -116,6 +126,11 @@ func (configFile *ConfigFile) ContainsAuth() bool {
 	return configFile.CredentialsStore != "" ||
 		len(configFile.CredentialHelpers) > 0 ||
 		len(configFile.AuthConfigs) > 0
+}
+
+// GetAuthConfigs returns the mapping of repo to auth configuration
+func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
+	return configFile.AuthConfigs
 }
 
 // SaveToWriter encodes and writes out all the authorization information to
@@ -230,4 +245,57 @@ func decodeAuth(authStr string) (string, string, error) {
 	}
 	password := strings.Trim(arr[1], "\x00")
 	return arr[0], password, nil
+}
+
+// GetCredentialsStore returns a new credentials store from the settings in the
+// configuration file
+func (configFile *ConfigFile) GetCredentialsStore(serverAddress string) credentials.Store {
+	if helper := getConfiguredCredentialStore(configFile, serverAddress); helper != "" {
+		return credentials.NewNativeStore(configFile, helper)
+	}
+	return credentials.NewFileStore(configFile)
+}
+
+// GetAuthConfig for a repository from the credential store
+func (configFile *ConfigFile) GetAuthConfig(serverAddress string) (types.AuthConfig, error) {
+	return configFile.GetCredentialsStore(serverAddress).Get(serverAddress)
+}
+
+// getConfiguredCredentialStore returns the credential helper configured for the
+// given registry, the default credsStore, or the empty string if neither are
+// configured.
+func getConfiguredCredentialStore(c *ConfigFile, serverAddress string) string {
+	if c.CredentialHelpers != nil && serverAddress != "" {
+		if helper, exists := c.CredentialHelpers[serverAddress]; exists {
+			return helper
+		}
+	}
+	return c.CredentialsStore
+}
+
+// GetAllCredentials returns all of the credentials stored in all of the
+// configured credential stores.
+func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, error) {
+	auths := make(map[string]types.AuthConfig)
+	addAll := func(from map[string]types.AuthConfig) {
+		for reg, ac := range from {
+			auths[reg] = ac
+		}
+	}
+
+	for registry := range configFile.CredentialHelpers {
+		helper := configFile.GetCredentialsStore(registry)
+		newAuths, err := helper.GetAll()
+		if err != nil {
+			return nil, err
+		}
+		addAll(newAuths)
+	}
+	defaultStore := configFile.GetCredentialsStore("")
+	newAuths, err := defaultStore.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	addAll(newAuths)
+	return auths, nil
 }
