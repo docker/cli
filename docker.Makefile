@@ -87,4 +87,4 @@ yamldocs: build_docker_image
 
 .PHONY: shellcheck
 shellcheck: build_shell_validate_image
-	docker run -ti --rm -v "$(CURDIR)":/tmp $(VALIDATE_IMAGE_NAME) make shellcheck
+	docker run -ti --rm $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
