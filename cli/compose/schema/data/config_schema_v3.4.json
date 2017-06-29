@@ -437,6 +437,7 @@
       "id": "#/definitions/volume",
       "type": ["object", "null"],
       "properties": {
+        "name": {"type": "string"},
         "driver": {"type": "string"},
         "driver_opts": {
           "type": "object",
