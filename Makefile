@@ -54,6 +54,11 @@ manpages:
 yamldocs:
 	scripts/docs/generate-yaml.sh
 
+## Shellcheck validation
+.PHONY: shellcheck
+shellcheck:
+	scripts/validate/shellcheck
+
 cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
 	go generate github.com/docker/cli/cli/compose/schema
 

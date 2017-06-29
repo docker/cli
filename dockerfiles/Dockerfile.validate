@@ -1,0 +1,9 @@
+FROM debian:stretch-slim
+
+RUN apt-get update && \
+    apt-get -y install make shellcheck && \
+    apt-get clean
+
+WORKDIR /tmp
+
+CMD bash
