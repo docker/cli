@@ -2,6 +2,8 @@ package registry
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -16,6 +18,7 @@ type loginOptions struct {
 	serverAddress string
 	user          string
 	password      string
+	passwordStdin bool
 }
 
 // NewLoginCommand creates a new `docker login` command
@@ -39,6 +42,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
 	flags.StringVarP(&opts.password, "password", "p", "", "Password")
+	flags.BoolVarP(&opts.passwordStdin, "password-stdin", "", false, "Take the password from stdin")
 
 	return cmd
 }
@@ -48,7 +52,24 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 	clnt := dockerCli.Client()
 
 	if opts.password != "" {
-		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure.")
+		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
+		if opts.passwordStdin {
+			return errors.New("--password and --password-stdin are mutually exclusive")
+		}
+	}
+
+	if opts.passwordStdin {
+		if opts.user == "" {
+			return errors.New("Must provide --username with --password-stdin")
+		}
+
+		contents, err := ioutil.ReadAll(dockerCli.In())
+		if err != nil {
+			return err
+		}
+
+		opts.password = strings.TrimSuffix(string(contents), "\n")
+		opts.password = strings.TrimSuffix(opts.password, "\r")
 	}
 
 	var (
