@@ -7,6 +7,7 @@
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
 CROSS_IMAGE_NAME = docker-cli-cross
+VALIDATE_IMAGE_NAME = docker-cli-validate
 MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
@@ -25,6 +26,9 @@ build_linter_image:
 build_cross_image:
 	docker build -t $(CROSS_IMAGE_NAME) -f ./dockerfiles/Dockerfile.cross .
 
+.PHONY: build_validate_image
+build_validate_image:
+	docker build -t $(VALIDATE_IMAGE_NAME) -f ./dockerfiles/Dockerfile.validate .
 
 # build executable using a container
 binary: build_docker_image
@@ -80,3 +84,7 @@ manpages: build_docker_image
 .PHONY: yamldocs
 yamldocs: build_docker_image
 	docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make yamldocs
+
+.PHONY: shellcheck
+shellcheck: build_validate_image
+	docker run -ti --rm -v "$(CURDIR)":/tmp $(VALIDATE_IMAGE_NAME) make shellcheck

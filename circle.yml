@@ -91,7 +91,20 @@ jobs:
             docker build -f $dockerfile --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
                 make -B vendor compose-jsonschema manpages yamldocs
-
+  shellcheck:
+    working_directory: /work
+    docker: [{image: 'docker:17.05-git'}]
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: "Run shellcheck"
+          command: |
+            dockerfile=dockerfiles/Dockerfile.validate
+            echo "COPY . ." >> $dockerfile
+            docker build -f $dockerfile --tag cli-validator:$CIRCLE_BUILD_NUM .
+            docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
+                make -B shellcheck
 workflows:
   version: 2
   ci:
@@ -100,3 +113,4 @@ workflows:
       - cross
       - test
       - validate
+      - shellcheck
