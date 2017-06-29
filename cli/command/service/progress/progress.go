@@ -48,7 +48,7 @@ const (
 )
 
 type progressUpdater interface {
-	update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]swarm.Node, rollback bool) (bool, error)
+	update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error)
 }
 
 func init() {
@@ -199,16 +199,16 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	}
 }
 
-func getActiveNodes(ctx context.Context, client client.APIClient) (map[string]swarm.Node, error) {
+func getActiveNodes(ctx context.Context, client client.APIClient) (map[string]struct{}, error) {
 	nodes, err := client.NodeList(ctx, types.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	activeNodes := make(map[string]swarm.Node)
+	activeNodes := make(map[string]struct{})
 	for _, n := range nodes {
 		if n.Status.State != swarm.NodeStateDown {
-			activeNodes[n.ID] = n
+			activeNodes[n.ID] = struct{}{}
 		}
 	}
 	return activeNodes, nil
@@ -266,7 +266,7 @@ type replicatedProgressUpdater struct {
 }
 
 // nolint: gocyclo
-func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]swarm.Node, rollback bool) (bool, error) {
+func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error) {
 	if service.Spec.Mode.Replicated == nil || service.Spec.Mode.Replicated.Replicas == nil {
 		return false, errors.New("no replica count")
 	}
@@ -291,11 +291,18 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	// scenarios.
 	tasksBySlot := make(map[int]swarm.Task)
 	for _, task := range tasks {
-		if numberedStates[task.DesiredState] == 0 {
+		if numberedStates[task.DesiredState] == 0 || numberedStates[task.Status.State] == 0 {
 			continue
 		}
 		if existingTask, ok := tasksBySlot[task.Slot]; ok {
-			if numberedStates[existingTask.DesiredState] <= numberedStates[task.DesiredState] {
+			if numberedStates[existingTask.DesiredState] < numberedStates[task.DesiredState] {
+				continue
+			}
+			// If the desired states match, observed state breaks
+			// ties. This can happen with the "start first" service
+			// update mode.
+			if numberedStates[existingTask.DesiredState] == numberedStates[task.DesiredState] &&
+				numberedStates[existingTask.Status.State] <= numberedStates[task.Status.State] {
 				continue
 			}
 		}
@@ -373,19 +380,28 @@ type globalProgressUpdater struct {
 }
 
 // nolint: gocyclo
-func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]swarm.Node, rollback bool) (bool, error) {
+func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error) {
 	// If there are multiple tasks with the same node ID, favor the one
 	// with the *lowest* desired state. This can happen in restart
 	// scenarios.
 	tasksByNode := make(map[string]swarm.Task)
 	for _, task := range tasks {
-		if numberedStates[task.DesiredState] == 0 {
+		if numberedStates[task.DesiredState] == 0 || numberedStates[task.Status.State] == 0 {
 			continue
 		}
 		if existingTask, ok := tasksByNode[task.NodeID]; ok {
-			if numberedStates[existingTask.DesiredState] <= numberedStates[task.DesiredState] {
+			if numberedStates[existingTask.DesiredState] < numberedStates[task.DesiredState] {
 				continue
 			}
+
+			// If the desired states match, observed state breaks
+			// ties. This can happen with the "start first" service
+			// update mode.
+			if numberedStates[existingTask.DesiredState] == numberedStates[task.DesiredState] &&
+				numberedStates[existingTask.Status.State] <= numberedStates[task.Status.State] {
+				continue
+			}
+
 		}
 		tasksByNode[task.NodeID] = task
 	}
@@ -425,7 +441,7 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 	running := 0
 
 	for _, task := range tasksByNode {
-		if node, nodeActive := activeNodes[task.NodeID]; nodeActive {
+		if _, nodeActive := activeNodes[task.NodeID]; nodeActive {
 			if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
 				running++
 			}
@@ -436,7 +452,7 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 
 			if task.Status.Err != "" {
 				u.progressOut.WriteProgress(progress.Progress{
-					ID:     stringid.TruncateID(node.ID),
+					ID:     stringid.TruncateID(task.NodeID),
 					Action: truncError(task.Status.Err),
 				})
 				continue
@@ -444,7 +460,7 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 
 			if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
 				u.progressOut.WriteProgress(progress.Progress{
-					ID:         stringid.TruncateID(node.ID),
+					ID:         stringid.TruncateID(task.NodeID),
 					Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
 					Current:    stateToProgress(task.Status.State, rollback),
 					Total:      maxProgress,
