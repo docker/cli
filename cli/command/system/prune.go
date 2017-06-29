@@ -1,7 +1,9 @@
 package system
 
 import (
+	"bytes"
 	"fmt"
+	"text/template"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -44,29 +46,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-const (
-	warning = `WARNING! This will remove:
-	- all stopped containers
-	- all volumes not used by at least one container
-	- all networks not used by at least one container
-	%s
-	- all build cache
+const confirmationTemplate = `WARNING! This will remove:
+{{- range $_, $warning := . }}
+        - {{ $warning }}
+{{- end }}
 Are you sure you want to continue?`
 
-	danglingImageDesc = "- all dangling images"
-	allImageDesc      = `- all images without at least one container associated to them`
-)
-
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
-	var message string
-
-	if options.all {
-		message = fmt.Sprintf(warning, allImageDesc)
-	} else {
-		message = fmt.Sprintf(warning, danglingImageDesc)
-	}
-
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), message) {
+	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
 
@@ -108,4 +95,27 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 
 	return nil
+}
+
+// confirmationMessage constructs a confirmation message that depends on the cli options.
+func confirmationMessage(options pruneOptions) string {
+	t := template.Must(template.New("confirmation message").Parse(confirmationTemplate))
+
+	warnings := []string{
+		"all stopped containers",
+		"all networks not used by at least one container",
+	}
+	if options.pruneVolumes {
+		warnings = append(warnings, "all volumes not used by at least one container")
+	}
+	if options.all {
+		warnings = append(warnings, "all images without at least one container associated to them")
+	} else {
+		warnings = append(warnings, "all dangling images")
+	}
+	warnings = append(warnings, "all build cache")
+
+	var buffer bytes.Buffer
+	t.Execute(&buffer, &warnings)
+	return buffer.String()
 }
