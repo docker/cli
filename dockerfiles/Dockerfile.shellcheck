@@ -4,6 +4,6 @@ RUN apt-get update && \
     apt-get -y install make shellcheck && \
     apt-get clean
 
-WORKDIR /tmp
+WORKDIR /go/src/github.com/docker/cli
 
 CMD bash
