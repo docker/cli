@@ -70,6 +70,13 @@ func TaskDesiredState(state swarm.TaskState) func(*swarm.Task) {
 	}
 }
 
+// TaskSlot sets the task's slot
+func TaskSlot(slot int) func(*swarm.Task) {
+	return func(task *swarm.Task) {
+		task.Slot = slot
+	}
+}
+
 // WithStatus sets the task status
 func WithStatus(statusBuilders ...func(*swarm.TaskStatus)) func(*swarm.Task) {
 	return func(task *swarm.Task) {
