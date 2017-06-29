@@ -3308,6 +3308,10 @@ _docker_swarm_init() {
 		--cert-expiry|--dispatcher-heartbeat|--external-ca|--max-snapshots|--snapshot-interval|--task-history-limit)
 			return
 			;;
+		--data-path-addr)
+			__docker_complete_local_interfaces
+			return
+			;;
 		--listen-addr)
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
@@ -3321,7 +3325,7 @@ _docker_swarm_init() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--advertise-addr --data-path-addr --autolock --availability --cert-expiry --dispatcher-heartbeat --external-ca --force-new-cluster --help --listen-addr --max-snapshots --snapshot-interval --task-history-limit" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--advertise-addr --autolock --availability --cert-expiry --data-path-addr --dispatcher-heartbeat --external-ca --force-new-cluster --help --listen-addr --max-snapshots --snapshot-interval --task-history-limit" -- "$cur" ) )
 			;;
 	esac
 }
@@ -3337,6 +3341,14 @@ _docker_swarm_join() {
 			fi
 			return
 			;;
+		--availability)
+			COMPREPLY=( $( compgen -W "active drain pause" -- "$cur" ) )
+			return
+			;;
+		--data-path-addr)
+			__docker_complete_local_interfaces
+			return
+			;;
 		--listen-addr)
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
@@ -3346,10 +3358,6 @@ _docker_swarm_join() {
 			fi
 			return
 			;;
-		--availability)
-			COMPREPLY=( $( compgen -W "active drain pause" -- "$cur" ) )
-			return
-			;;
 		--token)
 			return
 			;;
@@ -3357,7 +3365,7 @@ _docker_swarm_join() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--advertise-addr --data-path-addr --availability --help --listen-addr --token" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--advertise-addr --availability --data-path-addr --help --listen-addr --token" -- "$cur" ) )
 			;;
 		*:)
 			COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
