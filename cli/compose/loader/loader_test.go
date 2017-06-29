@@ -628,6 +628,22 @@ volumes:
 	assert.Contains(t, err.Error(), "external_volume")
 }
 
+func TestInvalidExternalNameAndNameCombination(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.4"
+volumes:
+  external_volume:
+    name: user_specified_name
+    external:
+      name:	external_name
+`)
+
+	assert.Error(t, err)
+	fmt.Println(err)
+	assert.Contains(t, err.Error(), "volume.external.name and volume.name conflict; only use volume.name")
+	assert.Contains(t, err.Error(), "external_volume")
+}
+
 func durationPtr(value time.Duration) *time.Duration {
 	return &value
 }
@@ -983,6 +999,14 @@ func TestFullExample(t *testing.T) {
 				"baz": "1",
 			},
 		},
+		"another-volume": {
+			Name:   "user_specified_name",
+			Driver: "vsphere",
+			DriverOpts: map[string]string{
+				"foo": "bar",
+				"baz": "1",
+			},
+		},
 		"external-volume": {
 			External: types.External{
 				Name:     "external-volume",
@@ -992,6 +1016,13 @@ func TestFullExample(t *testing.T) {
 		"other-external-volume": {
 			External: types.External{
 				Name:     "my-cool-volume",
+				External: true,
+			},
+		},
+		"external-volume3": {
+			Name: "this-is-volume3",
+			External: types.External{
+				Name:     "external-volume3",
 				External: true,
 			},
 		},

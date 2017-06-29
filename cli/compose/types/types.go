@@ -305,6 +305,7 @@ type IPAMPool struct {
 
 // VolumeConfig for a volume
 type VolumeConfig struct {
+	Name       string
 	Driver     string
 	DriverOpts map[string]string `mapstructure:"driver_opts"`
 	External   External
@@ -313,6 +314,7 @@ type VolumeConfig struct {
 
 // External identifies a Volume or Network as a reference to a resource that is
 // not managed, and should already exist.
+// External.name is deprecated and replaced by Volume.name
 type External struct {
 	Name     string
 	External bool
