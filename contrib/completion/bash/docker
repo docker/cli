@@ -3081,6 +3081,7 @@ _docker_service_update_and_create() {
 	"
 
 	local boolean_options="
+		--detach -d
 		--help
 		--no-healthcheck
 		--read-only
