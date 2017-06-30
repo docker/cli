@@ -56,6 +56,7 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 
 func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scaleOptions, args []string) error {
 	var errs []string
+	var serviceIDs []string
 	ctx := context.Background()
 
 	for _, arg := range args {
@@ -71,19 +72,22 @@ func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scale
 
 		if err := runServiceScale(ctx, dockerCli, serviceID, scale); err != nil {
 			errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
+		} else {
+			serviceIDs = append(serviceIDs, serviceID)
 		}
 
-		if options.detach {
-			continue
-		}
-
-		if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
-			errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
-		}
 	}
 
-	if options.detach {
-		warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "scaled")
+	if len(serviceIDs) > 0 {
+		if options.detach {
+			warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "scaled")
+		} else {
+			for _, serviceID := range serviceIDs {
+				if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
+					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
+				}
+			}
+		}
 	}
 
 	if len(errs) == 0 {
