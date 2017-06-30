@@ -3284,6 +3284,7 @@ _docker_service_update_and_create() {
 
 _docker_swarm() {
 	local subcommands="
+		ca
 		init
 		join
 		join-token
@@ -3300,6 +3301,24 @@ _docker_swarm() {
 			;;
 		*)
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_swarm_ca() {
+	case "$prev" in
+		--ca-cert|--ca-key)
+			_filedir
+			return
+			;;
+		--cert-expiry|--external-ca)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--ca-cert --ca-key --cert-expiry --detach -d --external-ca --help --quiet -q --rotate" -- "$cur" ) )
 			;;
 	esac
 }
