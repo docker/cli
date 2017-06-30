@@ -4231,13 +4231,16 @@ _docker_system_events() {
 				destroy
 				detach
 				die
+				disable
 				disconnect
+				enable
 				exec_create
 				exec_detach
 				exec_start
 				export
 				health_status
 				import
+				install
 				kill
 				load
 				mount
@@ -4246,6 +4249,7 @@ _docker_system_events() {
 				pull
 				push
 				reload
+				remove
 				rename
 				resize
 				restart
@@ -4271,7 +4275,7 @@ _docker_system_events() {
 			return
 			;;
 		type)
-			COMPREPLY=( $( compgen -W "container daemon image network volume" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "container daemon image network plugin volume" -- "${cur##*=}" ) )
 			return
 			;;
 		volume)
