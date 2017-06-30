@@ -3155,6 +3155,8 @@ _docker_service_update_and_create() {
 			--host-add
 			--host-rm
 			--image
+			--network-add
+			--network-rm
 			--placement-pref-add
 			--placement-pref-rm
 			--publish-add
@@ -3179,6 +3181,10 @@ _docker_service_update_and_create() {
 				;;
 			--image)
 				__docker_complete_image_repos_and_tags
+				return
+				;;
+			--network-add|--network-rm)
+				__docker_complete_networks
 				return
 				;;
 			--placement-pref-add|--placement-pref-rm)
