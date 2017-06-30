@@ -27,6 +27,7 @@ type fakeClient struct {
 	imageInspectFunc func(image string) (types.ImageInspect, []byte, error)
 	imageImportFunc  func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
 	imageHistoryFunc func(image string) ([]image.HistoryResponseItem, error)
+	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
 
 func (cli *fakeClient) ImageTag(_ context.Context, image, ref string) error {
@@ -113,4 +114,11 @@ func (cli *fakeClient) ImageHistory(_ context.Context, img string) ([]image.Hist
 		return cli.imageHistoryFunc(img)
 	}
 	return []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}}, nil
+}
+
+func (cli *fakeClient) ImageBuild(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	if cli.imageBuildFunc != nil {
+		return cli.imageBuildFunc(ctx, context, options)
+	}
+	return types.ImageBuildResponse{Body: ioutil.NopCloser(strings.NewReader(""))}, nil
 }

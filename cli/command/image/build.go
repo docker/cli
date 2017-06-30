@@ -77,16 +77,20 @@ func (o buildOptions) contextFromStdin() bool {
 	return o.context == "-"
 }
 
-// NewBuildCommand creates a new `docker build` command
-func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
+func newBuildOptions() buildOptions {
 	ulimits := make(map[string]*units.Ulimit)
-	options := buildOptions{
+	return buildOptions{
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
 		ulimits:    opts.NewUlimitOpt(&ulimits),
 		labels:     opts.NewListOpts(opts.ValidateEnv),
 		extraHosts: opts.NewListOpts(opts.ValidateExtraHost),
 	}
+}
+
+// NewBuildCommand creates a new `docker build` command
+func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
+	options := newBuildOptions()
 
 	cmd := &cobra.Command{
 		Use:   "build [OPTIONS] PATH | URL | -",
@@ -237,13 +241,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
-
-		compression := archive.Uncompressed
-		if options.compress {
-			compression = archive.Gzip
-		}
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
-			Compression:     compression,
 			ExcludePatterns: excludes,
 		})
 		if err != nil {
@@ -289,6 +287,13 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 				return err
 			}
 			dockerfileCtx = ioutil.NopCloser(bytes.NewBuffer(newDockerfile))
+		}
+	}
+
+	if options.compress {
+		buildCtx, err = build.Compress(buildCtx)
+		if err != nil {
+			return err
 		}
 	}
 
