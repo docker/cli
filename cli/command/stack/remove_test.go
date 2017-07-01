@@ -40,13 +40,49 @@ func TestRemoveStack(t *testing.T) {
 	}
 	allConfigIDs := buildObjectIDs(allConfigs)
 
+	// Using API 1.24; removes services, networks, but doesn't remove configs and secrets
 	cli := &fakeClient{
+		version:  "1.24",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
 		configs:  allConfigs,
 	}
 	cmd := newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
+	cmd.SetArgs([]string{"foo", "bar"})
+
+	assert.NoError(t, cmd.Execute())
+	assert.Equal(t, allServiceIDs, cli.removedServices)
+	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
+	assert.Nil(t, cli.removedSecrets)
+	assert.Nil(t, cli.removedConfigs)
+
+	// Using API 1.25; removes services, networks, but doesn't remove configs
+	cli = &fakeClient{
+		version:  "1.25",
+		services: allServices,
+		networks: allNetworks,
+		secrets:  allSecrets,
+		configs:  allConfigs,
+	}
+	cmd = newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
+	cmd.SetArgs([]string{"foo", "bar"})
+
+	assert.NoError(t, cmd.Execute())
+	assert.Equal(t, allServiceIDs, cli.removedServices)
+	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
+	assert.Equal(t, allSecretIDs, cli.removedSecrets)
+	assert.Nil(t, cli.removedConfigs)
+
+	// Using API 1.30; removes services, networks, configs, and secrets
+	cli = &fakeClient{
+		version:  "1.30",
+		services: allServices,
+		networks: allNetworks,
+		secrets:  allSecrets,
+		configs:  allConfigs,
+	}
+	cmd = newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NoError(t, cmd.Execute())
@@ -72,6 +108,7 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	allConfigIDs := buildObjectIDs(allConfigs)
 
 	fakeClient := &fakeClient{
+		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
@@ -106,6 +143,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 
 	removedServices := []string{}
 	cli := &fakeClient{
+		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
