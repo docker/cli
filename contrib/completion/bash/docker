@@ -4214,6 +4214,10 @@ _docker_secret_ls() {
 }
 
 _docker_secret_remove() {
+	_docker_secret_rm
+}
+
+_docker_secret_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
@@ -4222,10 +4226,6 @@ _docker_secret_remove() {
 			__docker_complete_secrets
 			;;
 	esac
-}
-
-_docker_secret_rm() {
-	_docker_secret_remove
 }
 
 
