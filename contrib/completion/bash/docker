@@ -636,18 +636,40 @@ __docker_complete_resolved_hostname() {
 	COMPREPLY=( $(host 2>/dev/null "${cur%:}" | awk '/has address/ {print $4}') )
 }
 
+# __docker_local_interfaces returns a list of the names and addresses of all
+# local network interfaces.
+# If `--ip-only` is passed as a first argument, only addresses are returned.
 __docker_local_interfaces() {
 	command -v ip >/dev/null 2>&1 || return
-	ip addr show scope global 2>/dev/null | sed -n 's| \+inet \([0-9.]\+\).* \([^ ]\+\)|\1 \2|p'
+
+	local format
+	if [ "$1" = "--ip-only" ] ; then
+		format='\1'
+		shift
+	else
+		 format='\1 \2'
+	fi
+
+	ip addr show scope global 2>/dev/null | sed -n "s| \+inet \([0-9.]\+\).* \([^ ]\+\)|$format|p"
 }
 
+# __docker_complete_local_interfaces applies completion of the names and addresses of all
+# local network interfaces based on the current value of `$cur`.
+# An additional value can be added to the possible completions with an `--add` argument.
 __docker_complete_local_interfaces() {
 	local additional_interface
 	if [ "$1" = "--add" ] ; then
 		additional_interface="$2"
+		shift 2
 	fi
 
-	COMPREPLY=( $( compgen -W "$(__docker_local_interfaces) $additional_interface" -- "$cur" ) )
+	COMPREPLY=( $( compgen -W "$(__docker_local_interfaces "$@") $additional_interface" -- "$cur" ) )
+}
+
+# __docker_complete_local_ips applies completion of the addresses of all local network
+# interfaces based on the current value of `$cur`.
+__docker_complete_local_ips() {
+	__docker_complete_local_interfaces --ip-only
 }
 
 # __docker_complete_capabilities_addable completes Linux capabilities which are
@@ -2006,6 +2028,7 @@ _docker_daemon() {
 		--log-opt
 		--max-concurrent-downloads
 		--max-concurrent-uploads
+		--metrics-addr
 		--mtu
 		--oom-score-adjust
 		--pidfile -p
@@ -2134,6 +2157,12 @@ _docker_daemon() {
 			;;
 		--log-opt)
 			__docker_complete_log_options
+			return
+			;;
+		--metrics-addr)
+			__docker_complete_local_ips
+			__docker_append_to_completions ":"
+			__docker_nospace
 			return
 			;;
 		--seccomp-profile)
