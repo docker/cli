@@ -1965,6 +1965,7 @@ _docker_daemon() {
 		--raw-logs
 		--selinux-enabled
 		--userland-proxy=false
+		--version -v
 	"
 	local options_with_args="
 		$global_options_with_args
