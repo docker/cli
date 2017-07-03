@@ -1985,6 +1985,7 @@ _docker_daemon() {
 		--data-root
 		--default-gateway
 		--default-gateway-v6
+		--default-runtime
 		--default-shm-size
 		--default-ulimit
 		--dns
