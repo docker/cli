@@ -1982,6 +1982,8 @@ _docker_daemon() {
 		--cluster-store-opt
 		--config-file
 		--containerd
+		--cpu-rt-period
+		--cpu-rt-runtime
 		--data-root
 		--default-gateway
 		--default-gateway-v6
