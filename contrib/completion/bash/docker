@@ -2069,7 +2069,7 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay  overlay2 vfs zfs" -- "$(echo $cur | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo $cur | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
@@ -2094,17 +2094,23 @@ _docker_daemon() {
 				dm.use_deferred_deletion
 				dm.use_deferred_removal
 			"
+			local overlay2_options="overlay2.size"
 			local zfs_options="zfs.fsname"
+
+			local all_options="$btrfs_options $devicemapper_options $overlay2_options $zfs_options"
 
 			case $(__docker_value_of_option '--storage-driver|-s') in
 				'')
-					COMPREPLY=( $( compgen -W "$btrfs_options $devicemapper_options $zfs_options" -S = -- "$cur" ) )
+					COMPREPLY=( $( compgen -W "$all_options" -S = -- "$cur" ) )
 					;;
 				btrfs)
 					COMPREPLY=( $( compgen -W "$btrfs_options" -S = -- "$cur" ) )
 					;;
 				devicemapper)
 					COMPREPLY=( $( compgen -W "$devicemapper_options" -S = -- "$cur" ) )
+					;;
+				overlay2)
+					COMPREPLY=( $( compgen -W "$overlay2_options" -S = -- "$cur" ) )
 					;;
 				zfs)
 					COMPREPLY=( $( compgen -W "$zfs_options" -S = -- "$cur" ) )
