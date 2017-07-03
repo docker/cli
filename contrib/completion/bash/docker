@@ -754,7 +754,7 @@ __docker_complete_log_options() {
 	local common_options2="env env-regex labels"
 
 	# awslogs does not implement the $common_options2.
-	local awslogs_options="$common_options1 awslogs-create-group awslogs-group awslogs-region awslogs-stream tag"
+	local awslogs_options="$common_options1 awslogs-create-group awslogs-datetime-format awslogs-group awslogs-multiline-pattern awslogs-region awslogs-stream tag"
 
 	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries tag"
 	local gcplogs_options="$common_options1 $common_options2 gcp-log-cmd gcp-meta-id gcp-meta-name gcp-meta-zone gcp-project"
