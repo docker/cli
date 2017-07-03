@@ -1962,6 +1962,7 @@ _docker_daemon() {
 		--iptables=false
 		--ipv6
 		--live-restore
+		--no-new-privileges
 		--raw-logs
 		--selinux-enabled
 		--userland-proxy=false
