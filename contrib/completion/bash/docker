@@ -2009,6 +2009,7 @@ _docker_daemon() {
 		--shutdown-timeout
 		--storage-driver -s
 		--storage-opt
+		--swarm-default-advertise-addr
 		--userland-proxy-path
 		--userns-remap
 	"
@@ -2126,6 +2127,10 @@ _docker_daemon() {
 			;;
 		--seccomp-profile)
 			_filedir json
+			return
+			;;
+		--swarm-default-advertise-addr)
+			__docker_complete_local_interfaces
 			return
 			;;
 		--userns-remap)
