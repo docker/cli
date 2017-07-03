@@ -87,8 +87,9 @@ default foreground mode:
 
 To start a container in detached mode, you use `-d=true` or just `-d` option. By
 design, containers started in detached mode exit when the root process used to
-run the container exits. A container in detached mode cannot be automatically
-removed when it stops, this means you cannot use the `--rm` option with `-d` option.
+run the container exits, unless you also specify the `--rm` option. If you use
+`-d` with `--rm`, the container is removed when it exits **or** when the daemon
+exits, whichever happens first.
 
 Do not pass a `service x start` command to a detached container. For example, this
 command attempts to start the `nginx` service.
@@ -149,7 +150,7 @@ is receiving its standard input from a pipe, as in:
 The operator can identify a container in three ways:
 
 | Identifier type       | Example value                                                      |
-| --------------------- | ------------------------------------------------------------------ |
+|:----------------------|:-------------------------------------------------------------------|
 | UUID long identifier  | "f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778" |
 | UUID short identifier | "f78375b1c487"                                                     |
 | Name                  | "evil_ptolemy"                                                     |
@@ -686,29 +687,29 @@ parent group.
 The operator can also adjust the performance parameters of the
 container:
 
-| Option                     |  Description                                                                                                                                    |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-m`, `--memory=""`        | Memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 4M.               |
-| `--memory-swap=""`         | Total memory limit (memory + swap, format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.         |
-| `--memory-reservation=""`  | Memory soft limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.                         |
-| `--kernel-memory=""`       | Kernel memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 4M.        |
-| `-c`, `--cpu-shares=0`     | CPU shares (relative weight)                                                                                                                    |
-| `--cpus=0.000`             | Number of CPUs. Number is a fractional number. 0.000 means no limit.                                                                            |
-| `--cpu-period=0`           | Limit the CPU CFS (Completely Fair Scheduler) period                                                                                            |
-| `--cpuset-cpus=""`         | CPUs in which to allow execution (0-3, 0,1)                                                                                                     |
-| `--cpuset-mems=""`         | Memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective on NUMA systems.                                                     |
-| `--cpu-quota=0`            | Limit the CPU CFS (Completely Fair Scheduler) quota                                                                                             |
-| `--cpu-rt-period=0`        | Limit the CPU real-time period. In microseconds. Requires parent cgroups be set and cannot be higher than parent. Also check rtprio ulimits.    |
-| `--cpu-rt-runtime=0`       | Limit the CPU real-time runtime. In microseconds. Requires parent cgroups be set and cannot be higher than parent. Also check rtprio ulimits.   |
-| `--blkio-weight=0`         | Block IO weight (relative weight) accepts a weight value between 10 and 1000.                                                                   |
-| `--blkio-weight-device=""` | Block IO weight (relative device weight, format: `DEVICE_NAME:WEIGHT`)                                                                          |
-| `--device-read-bps=""`     | Limit read rate from a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`. |
-| `--device-write-bps=""`    | Limit write rate to a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`.  |
-| `--device-read-iops="" `   | Limit read rate (IO per second) from a device (format: `<device-path>:<number>`). Number is a positive integer.                                 |
-| `--device-write-iops="" `  | Limit write rate (IO per second) to a device (format: `<device-path>:<number>`). Number is a positive integer.                                  |
-| `--oom-kill-disable=false` | Whether to disable OOM Killer for the container or not.                                                                                         |
-| `--oom-score-adj=0`        | Tune container's OOM preferences (-1000 to 1000)                                                                                                |
-| `--memory-swappiness=""`   | Tune a container's memory swappiness behavior. Accepts an integer between 0 and 100.                                                            |
+| Option                     | Description                                                                                                                                                                                                                                                                              |
+|:---------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-m`, `--memory=""`        | Memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 4M.                                                                                                                                                        |
+| `--memory-swap=""`         | Total memory limit (memory + swap, format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.                                                                                                                                                  |
+| `--memory-reservation=""`  | Memory soft limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.                                                                                                                                                                  |
+| `--kernel-memory=""`       | Kernel memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 4M.                                                                                                                                                 |
+| `-c`, `--cpu-shares=0`     | CPU shares (relative weight)                                                                                                                                                                                                                                                             |
+| `--cpus=0.000`             | Number of CPUs. Number is a fractional number. 0.000 means no limit.                                                                                                                                                                                                                     |
+| `--cpu-period=0`           | Limit the CPU CFS (Completely Fair Scheduler) period                                                                                                                                                                                                                                     |
+| `--cpuset-cpus=""`         | CPUs in which to allow execution (0-3, 0,1)                                                                                                                                                                                                                                              |
+| `--cpuset-mems=""`         | Memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective on NUMA systems.                                                                                                                                                                                              |
+| `--cpu-quota=0`            | Limit the CPU CFS (Completely Fair Scheduler) quota                                                                                                                                                                                                                                      |
+| `--cpu-rt-period=0`        | Limit the CPU real-time period. In microseconds. Requires parent cgroups be set and cannot be higher than parent. Also check rtprio ulimits.                                                                                                                                             |
+| `--cpu-rt-runtime=0`       | Limit the CPU real-time runtime. In microseconds. Requires parent cgroups be set and cannot be higher than parent. Also check rtprio ulimits.                                                                                                                                            |
+| `--blkio-weight=0`         | Block IO weight (relative weight) accepts a weight value between 10 and 1000.                                                                                                                                                                                                            |
+| `--blkio-weight-device=""` | Block IO weight (relative device weight, format: `DEVICE_NAME:WEIGHT`)                                                                                                                                                                                                                   |
+| `--device-read-bps=""`     | Limit read rate from a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`.                                                                                                                                          |
+| `--device-write-bps=""`    | Limit write rate to a device (format: `<device-path>:<number>[<unit>]`). Number is a positive integer. Unit can be one of `kb`, `mb`, or `gb`.                                                                                                                                           |
+| `--device-read-iops="" `   | Limit read rate (IO per second) from a device (format: `<device-path>:<number>`). Number is a positive integer.                                                                                                                                                                          |
+| `--device-write-iops="" `  | Limit write rate (IO per second) to a device (format: `<device-path>:<number>`). Number is a positive integer.                                                                                                                                                                           |
+| `--oom-kill-disable=false` | Whether to disable OOM Killer for the container or not.                                                                                                                                                                                                                                  |
+| `--oom-score-adj=0`        | Tune container's OOM preferences (-1000 to 1000)                                                                                                                                                                                                                                         |
+| `--memory-swappiness=""`   | Tune a container's memory swappiness behavior. Accepts an integer between 0 and 100.                                                                                                                                                                                                     |
 | `--shm-size=""`            | Size of `/dev/shm`. The format is `<number><unit>`. `number` must be greater than `0`. Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes), or `g` (gigabytes). If you omit the unit, the system uses bytes. If you omit the size entirely, the system uses `64m`. |
 
 ### User memory constraints
@@ -1158,7 +1159,7 @@ list of capabilities that are kept. The following table lists the Linux capabili
 options which are allowed by default and can be dropped.
 
 | Capability Key   | Capability Description                                                                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+|:-----------------|:------------------------------------------------------------------------------------------------------------------------------|
 | SETPCAP          | Modify process capabilities.                                                                                                  |
 | MKNOD            | Create special files using mknod(2).                                                                                          |
 | AUDIT_WRITE      | Write records to kernel auditing log.                                                                                         |
@@ -1176,31 +1177,31 @@ options which are allowed by default and can be dropped.
 
 The next table shows the capabilities which are not granted by default and may be added.
 
-| Capability Key   | Capability Description                                                                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| SYS_MODULE       | Load and unload kernel modules.                                                                                               |
-| SYS_RAWIO        | Perform I/O port operations (iopl(2) and ioperm(2)).                                                                          |
-| SYS_PACCT        | Use acct(2), switch process accounting on or off.                                                                             |
-| SYS_ADMIN        | Perform a range of system administration operations.                                                                          |
-| SYS_NICE         | Raise process nice value (nice(2), setpriority(2)) and change the nice value for arbitrary processes.                         |
-| SYS_RESOURCE     | Override resource Limits.                                                                                                     |
-| SYS_TIME         | Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.                                    |
-| SYS_TTY_CONFIG   | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                                           |
-| AUDIT_CONTROL    | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules.               |
-| MAC_OVERRIDE     | Allow MAC configuration or state changes. Implemented for the Smack LSM.                                                      |
-| MAC_ADMIN        | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                               |
-| NET_ADMIN        | Perform various network-related operations.                                                                                   |
-| SYSLOG           | Perform privileged syslog(2) operations.                                                                                      |
-| DAC_READ_SEARCH  | Bypass file read permission checks and directory read and execute permission checks.                                          |
-| LINUX_IMMUTABLE  | Set the FS_APPEND_FL and FS_IMMUTABLE_FL i-node flags.                                                                        |
-| NET_BROADCAST    | Make socket broadcasts, and listen to multicasts.                                                                             |
-| IPC_LOCK         | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                                      |
-| IPC_OWNER        | Bypass permission checks for operations on System V IPC objects.                                                              |
-| SYS_PTRACE       | Trace arbitrary processes using ptrace(2).                                                                                    |
-| SYS_BOOT         | Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution.                                            |
-| LEASE            | Establish leases on arbitrary files (see fcntl(2)).                                                                           |
-| WAKE_ALARM       | Trigger something that will wake up the system.                                                                               |
-| BLOCK_SUSPEND    | Employ features that can block system suspend.                                                                                |
+| Capability Key  | Capability Description                                                                                          |
+|:----------------|:----------------------------------------------------------------------------------------------------------------|
+| SYS_MODULE      | Load and unload kernel modules.                                                                                 |
+| SYS_RAWIO       | Perform I/O port operations (iopl(2) and ioperm(2)).                                                            |
+| SYS_PACCT       | Use acct(2), switch process accounting on or off.                                                               |
+| SYS_ADMIN       | Perform a range of system administration operations.                                                            |
+| SYS_NICE        | Raise process nice value (nice(2), setpriority(2)) and change the nice value for arbitrary processes.           |
+| SYS_RESOURCE    | Override resource Limits.                                                                                       |
+| SYS_TIME        | Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.                      |
+| SYS_TTY_CONFIG  | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                             |
+| AUDIT_CONTROL   | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules. |
+| MAC_OVERRIDE    | Allow MAC configuration or state changes. Implemented for the Smack LSM.                                        |
+| MAC_ADMIN       | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                 |
+| NET_ADMIN       | Perform various network-related operations.                                                                     |
+| SYSLOG          | Perform privileged syslog(2) operations.                                                                        |
+| DAC_READ_SEARCH | Bypass file read permission checks and directory read and execute permission checks.                            |
+| LINUX_IMMUTABLE | Set the FS_APPEND_FL and FS_IMMUTABLE_FL i-node flags.                                                          |
+| NET_BROADCAST   | Make socket broadcasts, and listen to multicasts.                                                               |
+| IPC_LOCK        | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                        |
+| IPC_OWNER       | Bypass permission checks for operations on System V IPC objects.                                                |
+| SYS_PTRACE      | Trace arbitrary processes using ptrace(2).                                                                      |
+| SYS_BOOT        | Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution.                              |
+| LEASE           | Establish leases on arbitrary files (see fcntl(2)).                                                             |
+| WAKE_ALARM      | Trigger something that will wake up the system.                                                                 |
+| BLOCK_SUSPEND   | Employ features that can block system suspend.                                                                  |
 
 Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html)
 
@@ -1252,7 +1253,7 @@ the `--log-driver=VALUE` with the `docker run` command to configure the
 container's logging driver. The following options are supported:
 
 | Driver      | Description                                                                                                                   |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+|:------------|:------------------------------------------------------------------------------------------------------------------------------|
 | `none`      | Disables any logging for the container. `docker logs` won't be available with this driver.                                    |
 | `json-file` | Default logging driver for Docker. Writes JSON messages to file.  No logging options are supported for this driver.           |
 | `syslog`    | Syslog logging driver for Docker. Writes log messages to syslog.                                                              |
@@ -1398,12 +1399,12 @@ container.
 
 The following environment variables are set for Linux containers:
 
-| Variable | Value |
-| -------- | ----- |
-| `HOME` | Set based on the value of `USER` |
-| `HOSTNAME` | The hostname associated with the container |
-| `PATH` | Includes popular directories, such as `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin` |
-| `TERM` | `xterm` if the container is allocated a pseudo-TTY |
+| Variable   | Value                                                                                                |
+|:-----------|:-----------------------------------------------------------------------------------------------------|
+| `HOME`     | Set based on the value of `USER`                                                                     |
+| `HOSTNAME` | The hostname associated with the container                                                           |
+| `PATH`     | Includes popular directories, such as `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin` |
+| `TERM`     | `xterm` if the container is allocated a pseudo-TTY                                                   |
 
 
 Additionally, the operator can **set any environment variable** in the
