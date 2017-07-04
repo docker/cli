@@ -16,11 +16,12 @@ keywords: "service, scale"
 # service scale
 
 ```markdown
-Usage:  docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...]
+Usage:  docker service scale [OPTIONS] SERVICE=REPLICAS [SERVICE=REPLICAS...]
 
 Scale one or multiple replicated services
 
 Options:
+  -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
       --help   Print usage
 ```
 
