@@ -174,8 +174,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		contextDir    string
 		tempDir       string
 		relDockerfile string
-		progBuff      io.Writer
-		buildBuff     io.Writer
 		remote        string
 	)
 
@@ -187,12 +185,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	specifiedContext := options.context
-	progBuff = dockerCli.Out()
-	buildBuff = dockerCli.Out()
-	if options.quiet {
-		progBuff = bytes.NewBuffer(nil)
-		buildBuff = bytes.NewBuffer(nil)
-	}
 	if options.imageIDFile != "" {
 		// Avoid leaving a stale file if we eventually fail
 		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
@@ -200,6 +192,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 	}
 
+	buildBuffer := newBuildBuffer(dockerCli.Out(), dockerCli.Err(), options.quiet)
 	switch {
 	case options.contextFromStdin():
 		// buildCtx is tar archive. if stdin was dockerfile then it is wrapped
@@ -209,15 +202,13 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	case urlutil.IsGitURL(specifiedContext):
 		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, options.dockerfileName)
 	case urlutil.IsURL(specifiedContext):
-		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, options.dockerfileName)
+		buildCtx, relDockerfile, err = build.GetContextFromURL(buildBuffer.progress, specifiedContext, options.dockerfileName)
 	default:
 		return errors.Errorf("unable to prepare context: path %q not found", specifiedContext)
 	}
 
 	if err != nil {
-		if options.quiet && urlutil.IsURL(specifiedContext) {
-			fmt.Fprintln(dockerCli.Err(), progBuff)
-		}
+		buildBuffer.PrintProgressOnError()
 		return errors.Errorf("unable to prepare context: %s", err)
 	}
 
@@ -302,7 +293,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	// Setup an upload progress bar
-	progressOutput := streamformatter.NewProgressOutput(progBuff)
+	progressOutput := streamformatter.NewProgressOutput(buildBuffer.progress)
 	if !dockerCli.Out().IsTerminal() {
 		progressOutput = &lastProgressOutput{output: progressOutput}
 	}
@@ -332,14 +323,15 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			return err
 		}
 
-		buf := newBufferedWriter(syncDone, buildBuff)
+		buf := newBufferedWriter(syncDone, buildBuffer.output)
 		defer func() {
 			select {
 			case <-buf.flushed:
 			case <-ctx.Done():
 			}
 		}()
-		buildBuff = buf
+		// TODO: this overrides setting a buffer on quiet, is that correct?
+		buildBuffer.SetOutput(buf)
 
 		remote = clientSessionRemote
 		body = buildCtx
@@ -392,37 +384,15 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
 	if err != nil {
-		if options.quiet {
-			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
-		}
+		buildBuffer.PrintErrorIfQuiet()
 		cancel()
 		return err
 	}
 	defer response.Body.Close()
 
-	imageID := ""
-	aux := func(auxJSON *json.RawMessage) {
-		var result types.BuildResult
-		if err := json.Unmarshal(*auxJSON, &result); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
-		} else {
-			imageID = result.ID
-		}
-	}
-
-	err = jsonmessage.DisplayJSONMessagesStream(response.Body, buildBuff, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), aux)
+	imageID, err := streamResponse(dockerCli, response, buildBuffer)
 	if err != nil {
-		if jerr, ok := err.(*jsonmessage.JSONError); ok {
-			// If no error code is set, default to 1
-			if jerr.Code == 0 {
-				jerr.Code = 1
-			}
-			if options.quiet {
-				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
-			}
-			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
-		}
-		return err
+		return nil
 	}
 
 	// Windows: show error message about modified file permissions if the
@@ -435,12 +405,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			"files and directories.")
 	}
 
-	// Everything worked so if -q was provided the output from the daemon
-	// should be just the image ID and we'll print that to stdout.
-	if options.quiet {
-		imageID = fmt.Sprintf("%s", buildBuff)
-		fmt.Fprintf(dockerCli.Out(), imageID)
-	}
+	buildBuffer.PrintImageIDIfQuiet()
 
 	if options.imageIDFile != "" {
 		if imageID == "" {
@@ -544,4 +509,85 @@ func rewriteDockerfileForContentTrust(buildCtx io.ReadCloser, dockerfileName str
 			return hdr, newDockerfile, err
 		},
 	}), resolvedTags
+}
+
+type buildBuffer struct {
+	quiet    bool
+	stderr   io.Writer
+	stdout   io.Writer
+	output   io.Writer
+	progress io.Writer
+}
+
+func newBuildBuffer(out io.Writer, stderr io.Writer, quiet bool) *buildBuffer {
+	stdout := out
+	progress := out
+	if quiet {
+		out = bytes.NewBuffer(nil)
+		progress = bytes.NewBuffer(nil)
+	}
+	return &buildBuffer{
+		output:   out,
+		progress: progress,
+		stdout:   stdout,
+		quiet:    quiet,
+		stderr:   stderr,
+	}
+}
+
+// PrintErrorIfQuiet to the stderr stream. If quiet is not set then the error
+// was printed elsewhere, so do nothing.
+func (bb *buildBuffer) PrintErrorIfQuiet() {
+	if bb.quiet {
+		fmt.Fprintf(bb.stderr, "%s%s", bb.progress, bb.output)
+	}
+}
+
+// PrintImageIDIfQuiet to stdout. If quiet is not set then the image ID is
+// printed elsewhere, so do nothing.
+func (bb *buildBuffer) PrintImageIDIfQuiet() {
+	if bb.quiet {
+		fmt.Fprintf(bb.stdout, "%s", bb.output)
+	}
+}
+
+// PrintProgressOnError to stderr if quiet is set. If quiet is not set then
+// the progress is printed elsewhere, so do nothing.
+func (bb *buildBuffer) PrintProgressOnError() {
+	if bb.quiet {
+		fmt.Fprintln(bb.stderr, bb.progress)
+	}
+}
+
+// SetOutput to a new Writer. If quiet is set then do nothing.
+func (bb *buildBuffer) SetOutput(out io.Writer) {
+	if !bb.quiet {
+		bb.output = out
+	}
+}
+
+func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, buffer *buildBuffer) (string, error) {
+	var imageID string
+	aux := func(auxJSON *json.RawMessage) {
+		var result types.BuildResult
+		if err := json.Unmarshal(*auxJSON, &result); err != nil {
+			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
+		} else {
+			imageID = result.ID
+		}
+	}
+
+	err := jsonmessage.DisplayJSONMessagesStream(response.Body, buffer.output, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), aux)
+	if err != nil {
+		if jerr, ok := err.(*jsonmessage.JSONError); ok {
+			// If no error code is set, default to 1
+			if jerr.Code == 0 {
+				jerr.Code = 1
+			}
+			buffer.PrintErrorIfQuiet()
+			return "", cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+		}
+		return "", err
+	}
+	return imageID, nil
 }
