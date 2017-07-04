@@ -184,14 +184,13 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		dockerfileCtx = dockerCli.In()
 	}
 
-	specifiedContext := options.context
-	if options.imageIDFile != "" {
-		// Avoid leaving a stale file if we eventually fail
-		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
-			return errors.Wrap(err, "Removing image ID file")
-		}
+	idFile := build.NewIDFile(options.imageIDFile)
+	// Avoid leaving a stale file if we eventually fail
+	if err := idFile.Remove(); err != nil {
+		return err
 	}
 
+	specifiedContext := options.context
 	buildBuffer := newBuildBuffer(dockerCli.Out(), dockerCli.Err(), options.quiet)
 	switch {
 	case options.contextFromStdin():
@@ -395,26 +394,12 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		return nil
 	}
 
-	// Windows: show error message about modified file permissions if the
-	// daemon isn't running Windows.
-	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
-		fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
-			"image from Windows against a non-Windows Docker host. All files and "+
-			"directories added to build context will have '-rwxr-xr-x' permissions. "+
-			"It is recommended to double check and reset permissions for sensitive "+
-			"files and directories.")
-	}
-
+	warnBuildWindowsToLinux(dockerCli.Out(), response.OSType, options.quiet)
 	buildBuffer.PrintImageIDIfQuiet()
-
-	if options.imageIDFile != "" {
-		if imageID == "" {
-			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
-		}
-		if err := ioutil.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
-			return err
-		}
+	if err := idFile.Save(imageID); err != nil {
+		return err
 	}
+
 	if command.IsTrusted() {
 		// Since the build was successful, now we must tag any of the resolved
 		// images from the above Dockerfile rewrite.
@@ -590,4 +575,16 @@ func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, bu
 		return "", err
 	}
 	return imageID, nil
+}
+
+func warnBuildWindowsToLinux(out io.Writer, osType string, quiet bool) {
+	// Windows: show error message about modified file permissions if the
+	// daemon isn't running Windows.
+	if osType != "windows" && runtime.GOOS == "windows" && !quiet {
+		fmt.Fprintln(out, "SECURITY WARNING: You are building a Docker "+
+			"image from Windows against a non-Windows Docker host. All files and "+
+			"directories added to build context will have '-rwxr-xr-x' permissions. "+
+			"It is recommended to double check and reset permissions for sensitive "+
+			"files and directories.")
+	}
 }
