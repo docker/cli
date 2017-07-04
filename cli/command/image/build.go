@@ -276,17 +276,17 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	var resolvedTags []*resolvedTag
 	if command.IsTrusted() {
-		translator := func(ctx context.Context, ref reference.NamedTagged) (reference.Canonical, error) {
+		translator := func(ref reference.NamedTagged) (reference.Canonical, error) {
 			return TrustedReference(ctx, dockerCli, ref, nil)
 		}
 		// if there is a tar wrapper, the dockerfile needs to be replaced inside it
 		if buildCtx != nil {
 			// Wrap the tar archive to replace the Dockerfile entry with the rewritten
 			// Dockerfile which uses trusted pulls.
-			buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
+			buildCtx, resolvedTags = rewriteDockerfileForContentTrust(buildCtx, relDockerfile, translator)
 		} else if dockerfileCtx != nil {
 			// if there was not archive context still do the possible replacements in Dockerfile
-			newDockerfile, _, err := rewriteDockerfileFrom(ctx, dockerfileCtx, translator)
+			newDockerfile, _, err := rewriteDockerfileFrom(dockerfileCtx, translator)
 			if err != nil {
 				return err
 			}
@@ -468,7 +468,7 @@ func isLocalDir(c string) bool {
 	return err == nil
 }
 
-type translatorFunc func(context.Context, reference.NamedTagged) (reference.Canonical, error)
+type translatorFunc func(reference.NamedTagged) (reference.Canonical, error)
 
 // validateTag checks if the given image name can be resolved.
 func validateTag(rawRepo string) (string, error) {
@@ -493,7 +493,7 @@ type resolvedTag struct {
 // "FROM <image>" instructions to a digest reference. `translator` is a
 // function that takes a repository name and tag reference and returns a
 // trusted digest reference.
-func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
+func rewriteDockerfileFrom(dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
 	scanner := bufio.NewScanner(dockerfile)
 	buf := bytes.NewBuffer(nil)
 
@@ -511,7 +511,7 @@ func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator
 			}
 			ref = reference.TagNameOnly(ref)
 			if ref, ok := ref.(reference.NamedTagged); ok && command.IsTrusted() {
-				trustedRef, err := translator(ctx, ref)
+				trustedRef, err := translator(ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -533,57 +533,15 @@ func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator
 	return buf.Bytes(), resolvedTags, scanner.Err()
 }
 
-// replaceDockerfileTarWrapper wraps the given input tar archive stream and
-// replaces the entry with the given Dockerfile name with the contents of the
-// new Dockerfile. Returns a new tar archive stream with the replaced
-// Dockerfile.
-func replaceDockerfileTarWrapper(ctx context.Context, inputTarStream io.ReadCloser, dockerfileName string, translator translatorFunc, resolvedTags *[]*resolvedTag) io.ReadCloser {
-	pipeReader, pipeWriter := io.Pipe()
-	go func() {
-		tarReader := tar.NewReader(inputTarStream)
-		tarWriter := tar.NewWriter(pipeWriter)
-
-		defer inputTarStream.Close()
-
-		for {
-			hdr, err := tarReader.Next()
-			if err == io.EOF {
-				// Signals end of archive.
-				tarWriter.Close()
-				pipeWriter.Close()
-				return
-			}
-			if err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
-
-			content := io.Reader(tarReader)
-			if hdr.Name == dockerfileName {
-				// This entry is the Dockerfile. Since the tar archive was
-				// generated from a directory on the local filesystem, the
-				// Dockerfile will only appear once in the archive.
-				var newDockerfile []byte
-				newDockerfile, *resolvedTags, err = rewriteDockerfileFrom(ctx, content, translator)
-				if err != nil {
-					pipeWriter.CloseWithError(err)
-					return
-				}
-				hdr.Size = int64(len(newDockerfile))
-				content = bytes.NewBuffer(newDockerfile)
-			}
-
-			if err := tarWriter.WriteHeader(hdr); err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
-
-			if _, err := io.Copy(tarWriter, content); err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
-		}
-	}()
-
-	return pipeReader
+func rewriteDockerfileForContentTrust(buildCtx io.ReadCloser, dockerfileName string, translator translatorFunc) (io.ReadCloser, []*resolvedTag) {
+	var resolvedTags []*resolvedTag
+	return archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
+		dockerfileName: func(_ string, hdr *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
+			var newDockerfile []byte
+			var err error
+			newDockerfile, resolvedTags, err = rewriteDockerfileFrom(content, translator)
+			hdr.Size = int64(len(newDockerfile))
+			return hdr, newDockerfile, err
+		},
+	}), resolvedTags
 }
