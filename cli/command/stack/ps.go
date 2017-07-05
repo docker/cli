@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
@@ -64,11 +63,7 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 
 	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().TasksFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().TasksFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
+		format = task.DefaultFormat(dockerCli.ConfigFile(), options.quiet)
 	}
 
 	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format)
