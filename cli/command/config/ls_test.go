@@ -38,7 +38,7 @@ func TestConfigListErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigListCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configListFunc: tc.configListFunc,
 			}, buf),
 		)
@@ -50,7 +50,7 @@ func TestConfigListErrors(t *testing.T) {
 
 func TestConfigList(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"),
@@ -79,7 +79,7 @@ func TestConfigList(t *testing.T) {
 
 func TestConfigListWithQuietOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
@@ -100,7 +100,7 @@ func TestConfigListWithQuietOption(t *testing.T) {
 
 func TestConfigListWithConfigFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
@@ -122,7 +122,7 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 
 func TestConfigListWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
@@ -142,7 +142,7 @@ func TestConfigListWithFormat(t *testing.T) {
 
 func TestConfigListWithFilter(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Equal(t, "foo", options.Filters.Get("name")[0])
 			assert.Equal(t, "lbl1=Label-bar", options.Filters.Get("label")[0])

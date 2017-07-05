@@ -140,7 +140,7 @@ func TestNewExecCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		conf := configfile.ConfigFile{}
-		cli := test.NewFakeCli(&fakeClient{containerInspectFunc: tc.containerInspectFunc}, buf)
+		cli := test.NewFakeCliWithOutput(&fakeClient{containerInspectFunc: tc.containerInspectFunc}, buf)
 		cli.SetConfigfile(&conf)
 		cmd := NewExecCommand(cli)
 		cmd.SetOutput(ioutil.Discard)

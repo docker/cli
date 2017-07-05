@@ -39,7 +39,7 @@ func TestVolumeListErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newListCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeListFunc: tc.volumeListFunc,
 			}, buf),
 		)
@@ -54,7 +54,7 @@ func TestVolumeListErrors(t *testing.T) {
 
 func TestVolumeListWithoutFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{
@@ -77,7 +77,7 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 
 func TestVolumeListWithConfigFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{
@@ -102,7 +102,7 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 
 func TestVolumeListWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{

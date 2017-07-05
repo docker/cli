@@ -43,7 +43,7 @@ func TestStackPsErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newPsCommand(test.NewFakeCli(&fakeClient{
+		cmd := newPsCommand(test.NewFakeCliWithOutput(&fakeClient{
 			taskListFunc: tc.taskListFunc,
 		}, &bytes.Buffer{}))
 		cmd.SetArgs(tc.args)
@@ -53,25 +53,22 @@ func TestStackPsErrors(t *testing.T) {
 }
 
 func TestStackPsEmptyStack(t *testing.T) {
-	out := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
 	fakeCli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{}, nil
 		},
-	}, out)
-	fakeCli.SetErr(stderr)
+	})
 	cmd := newPsCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
 
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "", out.String())
-	assert.Equal(t, "Nothing found in stack: foo\n", stderr.String())
+	assert.Equal(t, "", fakeCli.OutBuffer().String())
+	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskID("id-foo"))}, nil
 		},
@@ -89,7 +86,7 @@ func TestStackPsWithQuietOption(t *testing.T) {
 
 func TestStackPsWithNoTruncOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
 		},
@@ -107,7 +104,7 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 
 func TestStackPsWithNoResolveOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(
 				TaskNodeID("id-node-foo"),
@@ -130,7 +127,7 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 
 func TestStackPsWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
@@ -147,7 +144,7 @@ func TestStackPsWithFormat(t *testing.T) {
 
 func TestStackPsWithConfigFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
@@ -165,7 +162,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 
 func TestStackPsWithoutFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(
 				TaskID("id-foo"),

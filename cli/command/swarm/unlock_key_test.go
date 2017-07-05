@@ -85,7 +85,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newUnlockKeyCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmUpdateFunc:       tc.swarmUpdateFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
@@ -160,7 +160,7 @@ func TestSwarmUnlockKey(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newUnlockKeyCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmUpdateFunc:       tc.swarmUpdateFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,

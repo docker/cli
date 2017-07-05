@@ -45,7 +45,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc}, new(bytes.Buffer))
+		cli := test.NewFakeCliWithOutput(&fakeClient{imageSaveFunc: tc.imageSaveFunc}, new(bytes.Buffer))
 		cli.Out().SetIsTerminal(tc.isTerminal)
 		cmd := NewSaveCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
@@ -85,7 +85,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
+		cmd := NewSaveCommand(test.NewFakeCliWithOutput(&fakeClient{
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},

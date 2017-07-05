@@ -36,7 +36,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}, new(bytes.Buffer)))
+		cmd := NewImagesCommand(test.NewFakeCliWithOutput(&fakeClient{imageListFunc: tc.imageListFunc}, new(bytes.Buffer)))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -81,7 +81,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}, buf)
+		cli := test.NewFakeCliWithOutput(&fakeClient{imageListFunc: tc.imageListFunc}, buf)
 		cli.SetConfigfile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
 		cmd := NewImagesCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
@@ -95,7 +95,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 }
 
 func TestNewListCommandAlias(t *testing.T) {
-	cmd := newListCommand(test.NewFakeCli(&fakeClient{}, new(bytes.Buffer)))
+	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
 	assert.True(t, cmd.HasAlias("images"))
 	assert.True(t, cmd.HasAlias("list"))
 	assert.False(t, cmd.HasAlias("other"))

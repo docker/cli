@@ -33,7 +33,7 @@ func TestSecretRemoveErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretRemoveCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretRemoveFunc: tc.secretRemoveFunc,
 			}, buf),
 		)
@@ -47,7 +47,7 @@ func TestSecretRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
 	buf := new(bytes.Buffer)
 	var removedSecrets []string
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretRemoveFunc: func(name string) error {
 			removedSecrets = append(removedSecrets, name)
 			return nil
@@ -65,7 +65,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	var removedSecrets []string
 
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretRemoveFunc: func(name string) error {
 			removedSecrets = append(removedSecrets, name)
 			if name == "foo" {

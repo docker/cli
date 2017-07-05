@@ -55,7 +55,7 @@ func TestSecretInspectErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretInspectFunc: tc.secretInspectFunc,
 			}, buf),
 		)
@@ -97,7 +97,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretInspectFunc: tc.secretInspectFunc,
 			}, buf),
 		)
@@ -137,7 +137,7 @@ func TestSecretInspectWithFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretInspectFunc: tc.secretInspectFunc,
 			}, buf),
 		)
@@ -173,7 +173,7 @@ func TestSecretInspectPretty(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretInspectFunc: tc.secretInspectFunc,
 			}, buf))
 		cmd.SetArgs([]string{"secretID"})

@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewRemoveCommandAlias(t *testing.T) {
-	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}, new(bytes.Buffer)))
+	cmd := newRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
 	assert.True(t, cmd.HasAlias("rmi"))
 	assert.True(t, cmd.HasAlias("remove"))
 	assert.False(t, cmd.HasAlias("other"))
@@ -44,7 +44,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
+		cmd := NewRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{
 			imageRemoveFunc: tc.imageRemoveFunc,
 		}, new(bytes.Buffer)))
 		cmd.SetOutput(ioutil.Discard)
@@ -99,7 +99,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		errBuf := new(bytes.Buffer)
-		fakeCli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc}, buf)
+		fakeCli := test.NewFakeCliWithOutput(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc}, buf)
 		fakeCli.SetErr(errBuf)
 		cmd := NewRemoveCommand(fakeCli)
 		cmd.SetOutput(ioutil.Discard)

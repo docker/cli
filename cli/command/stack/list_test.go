@@ -48,7 +48,7 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newListCommand(test.NewFakeCli(&fakeClient{
+		cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
 		}, &bytes.Buffer{}))
 		cmd.SetArgs(tc.args)
@@ -62,7 +62,7 @@ func TestListErrors(t *testing.T) {
 
 func TestListWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCli(&fakeClient{
+	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(
@@ -81,7 +81,7 @@ func TestListWithFormat(t *testing.T) {
 
 func TestListWithoutFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCli(&fakeClient{
+	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(
@@ -99,7 +99,7 @@ func TestListWithoutFormat(t *testing.T) {
 
 func TestListOrder(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCli(&fakeClient{
+	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(

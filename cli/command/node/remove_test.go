@@ -31,7 +31,7 @@ func TestNodeRemoveErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newRemoveCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				nodeRemoveFunc: tc.nodeRemoveFunc,
 			}, buf))
 		cmd.SetArgs(tc.args)
@@ -42,7 +42,7 @@ func TestNodeRemoveErrors(t *testing.T) {
 
 func TestNodeRemoveMultiple(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}, buf))
+	cmd := newRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
 	assert.NoError(t, cmd.Execute())
 }

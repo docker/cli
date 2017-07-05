@@ -19,7 +19,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 	expectedError := "\"tag\" requires exactly 2 argument(s)."
 	buf := new(bytes.Buffer)
 	for _, args := range testCases {
-		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}, buf))
+		cmd := NewTagCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
 		cmd.SetArgs(args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), expectedError)
@@ -29,7 +29,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 func TestCliNewTagCommand(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := NewTagCommand(
-		test.NewFakeCli(&fakeClient{
+		test.NewFakeCliWithOutput(&fakeClient{
 			imageTagFunc: func(image string, ref string) error {
 				assert.Equal(t, "image1", image)
 				assert.Equal(t, "image2", ref)

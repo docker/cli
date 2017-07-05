@@ -38,7 +38,7 @@ func TestSecretListErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretListCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretListFunc: tc.secretListFunc,
 			}, buf),
 		)
@@ -50,7 +50,7 @@ func TestSecretListErrors(t *testing.T) {
 
 func TestSecretList(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"),
@@ -79,7 +79,7 @@ func TestSecretList(t *testing.T) {
 
 func TestSecretListWithQuietOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
@@ -100,7 +100,7 @@ func TestSecretListWithQuietOption(t *testing.T) {
 
 func TestSecretListWithConfigFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
@@ -122,7 +122,7 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 
 func TestSecretListWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
@@ -142,7 +142,7 @@ func TestSecretListWithFormat(t *testing.T) {
 
 func TestSecretListWithFilter(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			assert.Equal(t, "foo", options.Filters.Get("name")[0], "foo")
 			assert.Equal(t, "lbl1=Label-bar", options.Filters.Get("label")[0])

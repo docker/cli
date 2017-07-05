@@ -64,7 +64,7 @@ func TestElectAuthServer(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc}, buf)
+		cli := test.NewFakeCliWithOutput(&fakeClient{infoFunc: tc.infoFunc}, buf)
 		errBuf := new(bytes.Buffer)
 		cli.SetErr(errBuf)
 		server := ElectAuthServer(context.Background(), cli)

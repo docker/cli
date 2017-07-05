@@ -37,7 +37,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
+		cmd := NewImportCommand(test.NewFakeCliWithOutput(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -45,7 +45,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 }
 
 func TestNewImportCommandInvalidFile(t *testing.T) {
-	cmd := NewImportCommand(test.NewFakeCli(&fakeClient{}, new(bytes.Buffer)))
+	cmd := NewImportCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"testdata/import-command-success.unexistent-file"})
 	testutil.ErrorContains(t, cmd.Execute(), "testdata/import-command-success.unexistent-file")
@@ -92,7 +92,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
+		cmd := NewImportCommand(test.NewFakeCliWithOutput(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())

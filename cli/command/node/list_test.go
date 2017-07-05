@@ -43,7 +43,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			nodeListFunc: tc.nodeListFunc,
 			infoFunc:     tc.infoFunc,
 		}, buf)
@@ -56,7 +56,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 
 func TestNodeList(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -82,7 +82,7 @@ func TestNodeList(t *testing.T) {
 
 func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(),
@@ -99,7 +99,7 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 // Test case for #24090
 func TestNodeListContainsHostname(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{}, buf)
+	cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
 	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
@@ -108,7 +108,7 @@ func TestNodeListContainsHostname(t *testing.T) {
 
 func TestNodeListDefaultFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -136,7 +136,7 @@ func TestNodeListDefaultFormat(t *testing.T) {
 
 func TestNodeListFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),

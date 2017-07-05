@@ -42,7 +42,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{}, buf)
+		cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
 		cli.SetConfigfile(configfile.New("filename"))
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
@@ -67,7 +67,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{}, buf)
+		cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
 		cli.SetConfigfile(configfile.New("filename"))
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)

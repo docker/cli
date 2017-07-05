@@ -43,7 +43,7 @@ func TestConfigCreateErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigCreateCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configCreateFunc: tc.configCreateFunc,
 			}, buf),
 		)
@@ -57,7 +57,7 @@ func TestConfigCreateWithName(t *testing.T) {
 	name := "foo"
 	buf := new(bytes.Buffer)
 	var actual []byte
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
 				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -87,7 +87,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	name := "foo"
 
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
 				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
