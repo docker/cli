@@ -68,7 +68,6 @@ func TestSecretList(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newSecretListCommand(cli)
 	cmd.SetOutput(buf)
 	assert.NoError(t, cmd.Execute())
@@ -89,7 +88,6 @@ func TestSecretListWithQuietOption(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newSecretListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
@@ -110,7 +108,7 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		SecretFormat: "{{ .Name }} {{ .Labels }}",
 	})
 	cmd := newSecretListCommand(cli)
@@ -162,7 +160,6 @@ func TestSecretListWithFilter(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newSecretListCommand(cli)
 	cmd.Flags().Set("filter", "name=foo")
 	cmd.Flags().Set("filter", "label=lbl1=Label-bar")

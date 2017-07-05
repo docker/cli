@@ -1,12 +1,10 @@
 package image
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/docker/docker/pkg/testutil/golden"
@@ -41,9 +39,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
-		cli.SetConfigfile(configfile.New("filename"))
+		cli := test.NewFakeCli(&fakeClient{})
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
@@ -66,15 +62,13 @@ func TestNewPullCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
-		cli.SetConfigfile(configfile.New("filename"))
+		cli := test.NewFakeCli(&fakeClient{})
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		actual := buf.String()
+		actual := cli.OutBuffer().String()
 		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("pull-command-success.%s.golden", tc.name))[:])
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
 	}

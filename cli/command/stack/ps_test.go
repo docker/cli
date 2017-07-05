@@ -73,7 +73,6 @@ func TestStackPsWithQuietOption(t *testing.T) {
 			return []swarm.Task{*Task(TaskID("id-foo"))}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
@@ -91,7 +90,6 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 			return []swarm.Task{*Task(TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-trunc", "true")
@@ -114,7 +112,6 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-resolve", "true")
@@ -132,7 +129,6 @@ func TestStackPsWithFormat(t *testing.T) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
@@ -149,7 +145,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		TasksFormat: "{{ .Name }}",
 	})
 	cmd := newPsCommand(cli)
@@ -177,7 +173,6 @@ func TestStackPsWithoutFormat(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
