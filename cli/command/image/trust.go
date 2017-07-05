@@ -344,15 +344,13 @@ func convertTarget(t client.Target) (target, error) {
 }
 
 // TagTrusted tags a trusted ref
-// nolint: interfacer
-func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
+func TagTrusted(ctx context.Context, cli command.Cli, fromRef reference.Reference, toRef reference.Reference) error {
 	// Use familiar references when interacting with client and output
-	familiarRef := reference.FamiliarString(ref)
-	trustedFamiliarRef := reference.FamiliarString(trustedRef)
+	from := reference.FamiliarString(fromRef)
+	to := reference.FamiliarString(toRef)
 
-	fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-
-	return cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef)
+	fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", from, to)
+	return cli.Client().ImageTag(ctx, from, to)
 }
 
 // AuthResolver returns an auth resolver function from a command.Cli
