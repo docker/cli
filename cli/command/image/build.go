@@ -166,15 +166,16 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
 	var (
-		buildCtx      io.ReadCloser
-		dockerfileCtx io.ReadCloser
-		err           error
-		contextDir    string
-		tempDir       string
-		relDockerfile string
-		progBuff      io.Writer
-		buildBuff     io.Writer
-		remote        string
+		buildCtx          io.ReadCloser
+		dockerfileCtx     io.ReadCloser
+		err               error
+		contextDir        string
+		tempDir           string
+		relDockerfile     string
+		progBuff          io.Writer
+		buildBuff         io.Writer
+		remote            string
+		quietOutputBuffer *bytes.Buffer
 	)
 
 	if options.dockerfileFromStdin() {
@@ -189,7 +190,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	buildBuff = dockerCli.Out()
 	if options.quiet {
 		progBuff = bytes.NewBuffer(nil)
-		buildBuff = bytes.NewBuffer(nil)
+		quietOutputBuffer = bytes.NewBuffer(nil)
+		buildBuff = quietOutputBuffer
 	}
 	if options.imageIDFile != "" {
 		// Avoid leaving a stale file if we eventually fail
@@ -284,7 +286,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
 		} else if dockerfileCtx != nil {
 			// if there was not archive context still do the possible replacements in Dockerfile
-			newDockerfile, _, err := rewriteDockerfileFrom(ctx, dockerfileCtx, translator)
+			var newDockerfile []byte
+			newDockerfile, resolvedTags, err = rewriteDockerfileFrom(ctx, dockerfileCtx, translator)
 			if err != nil {
 				return err
 			}
@@ -415,7 +418,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 				jerr.Code = 1
 			}
 			if options.quiet {
-				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
+				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, quietOutputBuffer)
 			}
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
@@ -435,7 +438,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	// Everything worked so if -q was provided the output from the daemon
 	// should be just the image ID and we'll print that to stdout.
 	if options.quiet {
-		imageID = fmt.Sprintf("%s", buildBuff)
+		imageID = quietOutputBuffer.String()
 		fmt.Fprintf(dockerCli.Out(), imageID)
 	}
 
