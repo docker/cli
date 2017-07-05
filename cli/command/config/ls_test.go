@@ -68,7 +68,6 @@ func TestConfigList(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newConfigListCommand(cli)
 	cmd.SetOutput(buf)
 	assert.NoError(t, cmd.Execute())
@@ -89,7 +88,6 @@ func TestConfigListWithQuietOption(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
@@ -110,7 +108,7 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		ConfigFormat: "{{ .Name }} {{ .Labels }}",
 	})
 	cmd := newConfigListCommand(cli)
@@ -162,7 +160,6 @@ func TestConfigListWithFilter(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("filter", "name=foo")
 	cmd.Flags().Set("filter", "label=lbl1=Label-bar")

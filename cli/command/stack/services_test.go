@@ -66,12 +66,11 @@ func TestStackServicesErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCliWithOutput(&fakeClient{
+		cli := test.NewFakeCli(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
 			nodeListFunc:    tc.nodeListFunc,
 			taskListFunc:    tc.taskListFunc,
-		}, &bytes.Buffer{})
-		cli.SetConfigfile(&configfile.ConfigFile{})
+		})
 		cmd := newServicesCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -102,7 +101,6 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 			return []swarm.Service{*Service(ServiceID("id-foo"))}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newServicesCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
@@ -121,7 +119,6 @@ func TestStackServicesWithFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
@@ -140,7 +137,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		ServicesFormat: "{{ .Name }}",
 	})
 	cmd := newServicesCommand(cli)
@@ -169,7 +166,6 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 			)}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())

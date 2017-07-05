@@ -55,8 +55,8 @@ func (c *FakeCli) SetErr(err *bytes.Buffer) {
 	c.err = err
 }
 
-// SetConfigfile sets the "fake" config file
-func (c *FakeCli) SetConfigfile(configfile *configfile.ConfigFile) {
+// SetConfigFile sets the "fake" config file
+func (c *FakeCli) SetConfigFile(configfile *configfile.ConfigFile) {
 	c.configfile = configfile
 }
 

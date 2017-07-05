@@ -1,15 +1,14 @@
 package container
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 type arguments struct {
@@ -79,9 +78,7 @@ func TestParseExec(t *testing.T) {
 
 	for valid, expectedExecConfig := range valids {
 		execConfig, err := parseExec(&valid.options, valid.execCmd)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		if !compareExecConfig(expectedExecConfig, execConfig) {
 			t.Fatalf("Expected [%v] for %v, got [%v]", expectedExecConfig, valid, execConfig)
 		}
@@ -138,10 +135,7 @@ func TestNewExecCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		conf := configfile.ConfigFile{}
-		cli := test.NewFakeCliWithOutput(&fakeClient{containerInspectFunc: tc.containerInspectFunc}, buf)
-		cli.SetConfigfile(&conf)
+		cli := test.NewFakeCli(&fakeClient{containerInspectFunc: tc.containerInspectFunc})
 		cmd := NewExecCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)

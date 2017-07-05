@@ -82,7 +82,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cli := test.NewFakeCliWithOutput(&fakeClient{imageListFunc: tc.imageListFunc}, buf)
-		cli.SetConfigfile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
+		cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
 		cmd := NewImagesCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
@@ -95,7 +95,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 }
 
 func TestNewListCommandAlias(t *testing.T) {
-	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
+	cmd := newListCommand(test.NewFakeCli(&fakeClient{}))
 	assert.True(t, cmd.HasAlias("images"))
 	assert.True(t, cmd.HasAlias("list"))
 	assert.False(t, cmd.HasAlias("other"))

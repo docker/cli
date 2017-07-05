@@ -67,7 +67,6 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
 	actual := buf.String()
@@ -90,7 +89,7 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		VolumesFormat: "{{ .Name }} {{ .Driver }} {{ .Labels }}",
 	})
 	cmd := newListCommand(cli)
@@ -115,7 +114,6 @@ func TestVolumeListWithFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}")
 	assert.NoError(t, cmd.Execute())
