@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -33,11 +32,10 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newLeaveCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				swarmLeaveFunc: tc.swarmLeaveFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -45,9 +43,8 @@ func TestSwarmLeaveErrors(t *testing.T) {
 }
 
 func TestSwarmLeave(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newLeaveCommand(
-		test.NewFakeCliWithOutput(&fakeClient{}, buf))
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := newLeaveCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "Node left the swarm.", strings.TrimSpace(buf.String()))
+	assert.Equal(t, "Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String()))
 }

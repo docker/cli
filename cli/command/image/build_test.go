@@ -38,7 +38,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 		return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
 	}
 
-	cli := test.NewFakeCliWithOutput(&fakeClient{imageBuildFunc: fakeImageBuild}, ioutil.Discard)
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
 	dockerfile := bytes.NewBufferString(`
 		FROM alpine:3.6
 		COPY foo /

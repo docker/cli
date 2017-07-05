@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -41,11 +40,10 @@ func TestConfigCreateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newConfigCreateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				configCreateFunc: tc.configCreateFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -55,9 +53,8 @@ func TestConfigCreateErrors(t *testing.T) {
 
 func TestConfigCreateWithName(t *testing.T) {
 	name := "foo"
-	buf := new(bytes.Buffer)
 	var actual []byte
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
 				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -69,14 +66,14 @@ func TestConfigCreateWithName(t *testing.T) {
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
-	}, buf)
+	})
 
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	assert.NoError(t, cmd.Execute())
 	expected := golden.Get(t, actual, configDataFile)
 	assert.Equal(t, string(expected), string(actual))
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(buf.String()))
+	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }
 
 func TestConfigCreateWithLabels(t *testing.T) {
@@ -86,8 +83,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	}
 	name := "foo"
 
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
 				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -101,12 +97,12 @@ func TestConfigCreateWithLabels(t *testing.T) {
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
-	}, buf)
+	})
 
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(buf.String()))
+	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }

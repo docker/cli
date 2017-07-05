@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -66,12 +65,11 @@ func TestSwarmUnlockErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newUnlockCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				swarmUnlockFunc: tc.swarmUnlockFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -80,8 +78,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 
 func TestSwarmUnlock(t *testing.T) {
 	input := "unlockKey"
-	buf := new(bytes.Buffer)
-	dockerCli := test.NewFakeCliWithOutput(&fakeClient{
+	dockerCli := test.NewFakeCli(&fakeClient{
 		infoFunc: func() (types.Info, error) {
 			return types.Info{
 				Swarm: swarm.Info{
@@ -95,7 +92,7 @@ func TestSwarmUnlock(t *testing.T) {
 			}
 			return nil
 		},
-	}, buf)
+	})
 	dockerCli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
 	assert.NoError(t, cmd.Execute())

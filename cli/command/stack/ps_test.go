@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -43,9 +42,9 @@ func TestStackPsErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newPsCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cmd := newPsCommand(test.NewFakeCli(&fakeClient{
 			taskListFunc: tc.taskListFunc,
-		}, &bytes.Buffer{}))
+		}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -67,42 +66,39 @@ func TestStackPsEmptyStack(t *testing.T) {
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskID("id-foo"))}, nil
 		},
-	}, buf)
+	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-with-quiet-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 
 }
 
 func TestStackPsWithNoTruncOption(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
 		},
-	}, buf)
+	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-trunc", "true")
 	cmd.Flags().Set("format", "{{ .ID }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-with-no-trunc-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackPsWithNoResolveOption(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(
 				TaskNodeID("id-node-foo"),
@@ -111,54 +107,51 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
-	}, buf)
+	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-resolve", "true")
 	cmd.Flags().Set("format", "{{ .Node }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-with-no-resolve-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackPsWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
-	}, buf)
+	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-with-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackPsWithConfigFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
-	}, buf)
+	})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		TasksFormat: "{{ .Name }}",
 	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-with-config-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackPsWithoutFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{*Task(
 				TaskID("id-foo"),
@@ -172,11 +165,11 @@ func TestStackPsWithoutFormat(t *testing.T) {
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
-	}, buf)
+	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-ps-without-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }

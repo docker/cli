@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -68,13 +67,12 @@ func TestSwarmUpdateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newUpdateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmUpdateFunc:       tc.swarmUpdateFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
@@ -164,20 +162,19 @@ func TestSwarmUpdate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newUpdateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				swarmInspectFunc:      tc.swarmInspectFunc,
-				swarmUpdateFunc:       tc.swarmUpdateFunc,
-				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			swarmInspectFunc:      tc.swarmInspectFunc,
+			swarmUpdateFunc:       tc.swarmUpdateFunc,
+			swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+		})
+		cmd := newUpdateCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOutput(buf)
+		cmd.SetOutput(cli.OutBuffer())
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
+		actual := cli.OutBuffer().String()
 		expected := golden.Get(t, []byte(actual), fmt.Sprintf("update-%s.golden", tc.name))
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 	}

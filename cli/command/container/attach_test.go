@@ -1,7 +1,6 @@
 package container
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -68,8 +67,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewAttachCommand(test.NewFakeCliWithOutput(&fakeClient{containerInspectFunc: tc.containerInspectFunc}, buf))
+		cmd := NewAttachCommand(test.NewFakeCli(&fakeClient{containerInspectFunc: tc.containerInspectFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)

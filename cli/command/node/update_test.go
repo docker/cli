@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -57,12 +56,11 @@ func TestNodeUpdateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newUpdateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
@@ -158,12 +156,11 @@ func TestNodeUpdate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newUpdateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)

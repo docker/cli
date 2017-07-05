@@ -1,7 +1,6 @@
 package network
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -130,11 +129,10 @@ func TestNetworkCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newCreateCommand(
 			test.NewFakeCli(&fakeClient{
 				networkCreateFunc: tc.networkCreateFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -155,7 +153,6 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 			map[string]string{},
 		},
 	}
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
 			assert.Equal(t, expectedDriver, createBody.Driver, "not expected driver error")
@@ -164,7 +161,7 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 				ID: name,
 			}, nil
 		},
-	}, buf)
+	})
 	args := []string{"banana"}
 	cmd := newCreateCommand(cli)
 
@@ -174,5 +171,5 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("gateway", "192.168.4.1/24")
 	cmd.Flags().Set("subnet", "192.168.4.0/24")
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "banana", strings.TrimSpace(buf.String()))
+	assert.Equal(t, "banana", strings.TrimSpace(cli.OutBuffer().String()))
 }

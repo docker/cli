@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -38,8 +37,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewHistoryCommand(test.NewFakeCliWithOutput(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
+		cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -90,13 +88,13 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewHistoryCommand(test.NewFakeCliWithOutput(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
+		cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
+		cmd := NewHistoryCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		actual := buf.String()
+		actual := cli.OutBuffer().String()
 		if tc.outputRegex == "" {
 			expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("history-command-success.%s.golden", tc.name))[:])
 			testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)

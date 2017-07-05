@@ -41,11 +41,10 @@ func TestVolumeCreateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newCreateCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				volumeCreateFunc: tc.volumeCreateFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
