@@ -36,7 +36,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewImagesCommand(test.NewFakeCliWithOutput(&fakeClient{imageListFunc: tc.imageListFunc}, new(bytes.Buffer)))
+		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)

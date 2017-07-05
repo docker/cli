@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/docker/cli/cli/compose/convert"
@@ -18,10 +17,8 @@ func TestPruneServices(t *testing.T) {
 		"keep": {},
 	}
 	client := &fakeClient{services: []string{objectName("foo", "keep"), objectName("foo", "remove")}}
-	dockerCli := test.NewFakeCliWithOutput(client, &bytes.Buffer{})
-	dockerCli.SetErr(&bytes.Buffer{})
+	dockerCli := test.NewFakeCli(client)
 
 	pruneServices(ctx, dockerCli, namespace, services)
-
 	assert.Equal(t, buildObjectIDs([]string{objectName("foo", "remove")}), client.removedServices)
 }

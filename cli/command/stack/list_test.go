@@ -48,9 +48,9 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cmd := newListCommand(test.NewFakeCli(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
-		}, &bytes.Buffer{}))
+		}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		for key, value := range tc.flags {

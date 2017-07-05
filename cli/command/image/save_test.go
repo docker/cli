@@ -45,7 +45,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCliWithOutput(&fakeClient{imageSaveFunc: tc.imageSaveFunc}, new(bytes.Buffer))
+		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
 		cli.Out().SetIsTerminal(tc.isTerminal)
 		cmd := NewSaveCommand(cli)
 		cmd.SetOutput(ioutil.Discard)

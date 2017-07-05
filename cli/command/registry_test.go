@@ -1,7 +1,6 @@
 package command_test
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -63,13 +62,10 @@ func TestElectAuthServer(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{infoFunc: tc.infoFunc}, buf)
-		errBuf := new(bytes.Buffer)
-		cli.SetErr(errBuf)
+		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
 		server := ElectAuthServer(context.Background(), cli)
 		assert.Equal(t, tc.expectedAuthServer, server)
-		actual := errBuf.String()
+		actual := cli.ErrBuffer().String()
 		if tc.expectedWarning == "" {
 			assert.Empty(t, actual)
 		} else {

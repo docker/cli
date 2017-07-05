@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -15,7 +14,7 @@ import (
 )
 
 func TestNewRemoveCommandAlias(t *testing.T) {
-	cmd := newRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
+	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	assert.True(t, cmd.HasAlias("rmi"))
 	assert.True(t, cmd.HasAlias("remove"))
 	assert.False(t, cmd.HasAlias("other"))
@@ -44,9 +43,9 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
 			imageRemoveFunc: tc.imageRemoveFunc,
-		}, new(bytes.Buffer)))
+		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -97,18 +96,15 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		errBuf := new(bytes.Buffer)
-		fakeCli := test.NewFakeCliWithOutput(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc}, buf)
-		fakeCli.SetErr(errBuf)
+		fakeCli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
 		cmd := NewRemoveCommand(fakeCli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
 		if tc.expectedErrMsg != "" {
-			assert.Equal(t, tc.expectedErrMsg, errBuf.String())
+			assert.Equal(t, tc.expectedErrMsg, fakeCli.ErrBuffer().String())
 		}
-		actual := buf.String()
+		actual := fakeCli.OutBuffer().String()
 		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("remove-command-success.%s.golden", tc.name))[:])
 		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
 	}

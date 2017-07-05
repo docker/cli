@@ -43,7 +43,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCliWithOutput(&fakeClient{imageLoadFunc: tc.imageLoadFunc}, new(bytes.Buffer))
+		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 		cli.In().SetIsTerminal(tc.isTerminalIn)
 		cmd := NewLoadCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
@@ -54,7 +54,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 
 func TestNewLoadCommandInvalidInput(t *testing.T) {
 	expectedError := "open *"
-	cmd := NewLoadCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
+	cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"--input", "*"})
 	err := cmd.Execute()

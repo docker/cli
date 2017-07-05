@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -95,62 +94,58 @@ func TestStackServicesEmptyServiceList(t *testing.T) {
 }
 
 func TestStackServicesWithQuietOption(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(ServiceID("id-foo"))}, nil
 		},
-	}, buf)
+	})
 	cmd := newServicesCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-quiet-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
 			}, nil
 		},
-	}, buf)
+	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
 			}, nil
 		},
-	}, buf)
+	})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		ServicesFormat: "{{ .Name }}",
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-config-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithoutFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(
 				ServiceName("name-foo"),
@@ -165,11 +160,11 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 				}),
 			)}, nil
 		},
-	}, buf)
+	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-without-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
