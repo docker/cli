@@ -51,11 +51,9 @@ func runServices(dockerCli command.Cli, options servicesOptions) error {
 		return err
 	}
 
-	out := dockerCli.Out()
-
 	// if no services in this stack, print message and exit 0
 	if len(services) == 0 {
-		fmt.Fprintf(out, "Nothing found in stack: %s\n", options.namespace)
+		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", options.namespace)
 		return nil
 	}
 

@@ -72,7 +72,7 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
-			fmt.Fprintf(dockerCli.Out(), "Nothing found in stack: %s\n", namespace)
+			fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
 			continue
 		}
 
