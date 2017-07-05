@@ -43,7 +43,7 @@ func TestSecretCreateErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newSecretCreateCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				secretCreateFunc: tc.secretCreateFunc,
 			}, buf),
 		)
@@ -57,7 +57,7 @@ func TestSecretCreateWithName(t *testing.T) {
 	name := "foo"
 	buf := new(bytes.Buffer)
 	var actual []byte
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -87,7 +87,7 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	name := "foo"
 
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)

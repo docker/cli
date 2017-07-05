@@ -43,7 +43,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newCreateCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeCreateFunc: tc.volumeCreateFunc,
 			}, buf),
 		)
@@ -59,7 +59,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 func TestVolumeCreateWithName(t *testing.T) {
 	name := "foo"
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
 			if body.Name != name {
 				return types.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
@@ -97,7 +97,7 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	name := "banana"
 
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
 			if body.Name != "" {
 				return types.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)

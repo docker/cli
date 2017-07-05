@@ -51,7 +51,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newJoinCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmJoinFunc: tc.swarmJoinFunc,
 				infoFunc:      tc.infoFunc,
 			}, buf))
@@ -93,7 +93,7 @@ func TestSwarmJoin(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newJoinCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc: tc.infoFunc,
 			}, buf))
 		cmd.SetArgs([]string{"remote"})

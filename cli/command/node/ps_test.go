@@ -52,7 +52,7 @@ func TestNodePsErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newPsCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				nodeInspectFunc: tc.nodeInspectFunc,
 				taskInspectFunc: tc.taskInspectFunc,
@@ -116,7 +116,7 @@ func TestNodePs(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newPsCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				nodeInspectFunc: tc.nodeInspectFunc,
 				taskInspectFunc: tc.taskInspectFunc,

@@ -24,7 +24,7 @@ func TestTaskPrintWithQuietOption(t *testing.T) {
 	noResolve := true
 	buf := new(bytes.Buffer)
 	apiClient := &fakeClient{}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(TaskID("id-foo")),
 	}
@@ -41,7 +41,7 @@ func TestTaskPrintWithNoTruncOption(t *testing.T) {
 	noResolve := true
 	buf := new(bytes.Buffer)
 	apiClient := &fakeClient{}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
 	}
@@ -58,7 +58,7 @@ func TestTaskPrintWithGlobalService(t *testing.T) {
 	noResolve := true
 	buf := new(bytes.Buffer)
 	apiClient := &fakeClient{}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(TaskServiceID("service-id-foo"), TaskNodeID("node-id-bar"), TaskSlot(0)),
 	}
@@ -75,7 +75,7 @@ func TestTaskPrintWithReplicatedService(t *testing.T) {
 	noResolve := true
 	buf := new(bytes.Buffer)
 	apiClient := &fakeClient{}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
 	}
@@ -99,7 +99,7 @@ func TestTaskPrintWithIndentation(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(
 			TaskID("id-foo"),
@@ -138,7 +138,7 @@ func TestTaskPrintWithResolution(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	}
-	cli := test.NewFakeCli(apiClient, buf)
+	cli := test.NewFakeCliWithOutput(apiClient, buf)
 	tasks := []swarm.Task{
 		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
 	}

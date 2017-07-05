@@ -69,7 +69,7 @@ func TestNodeInspectErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				infoFunc:        tc.infoFunc,
 			}, buf))
@@ -111,7 +111,7 @@ func TestNodeInspectPretty(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 			}, buf))
 		cmd.SetArgs([]string{"nodeID"})

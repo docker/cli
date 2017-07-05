@@ -37,7 +37,7 @@ func TestCheckpointCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			checkpointCreateFunc: tc.checkpointCreateFunc,
 		}, &bytes.Buffer{})
 		cmd := newCreateCommand(cli)
@@ -51,7 +51,7 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
 	var exit bool
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		checkpointCreateFunc: func(container string, options types.CheckpointCreateOptions) error {
 			containerID = container
 			checkpointID = options.CheckpointID

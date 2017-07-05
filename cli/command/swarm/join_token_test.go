@@ -92,7 +92,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newJoinTokenCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInspectFunc: tc.swarmInspectFunc,
 				swarmUpdateFunc:  tc.swarmUpdateFunc,
 				infoFunc:         tc.infoFunc,
@@ -200,7 +200,7 @@ func TestSwarmJoinToken(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newJoinTokenCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInspectFunc: tc.swarmInspectFunc,
 				infoFunc:         tc.infoFunc,
 				nodeInspectFunc:  tc.nodeInspectFunc,

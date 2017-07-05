@@ -55,7 +55,7 @@ func TestConfigInspectErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configInspectFunc: tc.configInspectFunc,
 			}, buf),
 		)
@@ -97,7 +97,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configInspectFunc: tc.configInspectFunc,
 			}, buf),
 		)
@@ -137,7 +137,7 @@ func TestConfigInspectWithFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configInspectFunc: tc.configInspectFunc,
 			}, buf),
 		)
@@ -174,7 +174,7 @@ func TestConfigInspectPretty(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configInspectFunc: tc.configInspectFunc,
 			}, buf))
 		cmd.SetArgs([]string{"configID"})

@@ -68,7 +68,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newUnlockCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				swarmUnlockFunc: tc.swarmUnlockFunc,
 			}, buf))
@@ -81,7 +81,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 func TestSwarmUnlock(t *testing.T) {
 	input := "unlockKey"
 	buf := new(bytes.Buffer)
-	dockerCli := test.NewFakeCli(&fakeClient{
+	dockerCli := test.NewFakeCliWithOutput(&fakeClient{
 		infoFunc: func() (types.Info, error) {
 			return types.Info{
 				Swarm: swarm.Info{

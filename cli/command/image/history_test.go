@@ -39,7 +39,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
+		cmd := NewHistoryCommand(test.NewFakeCliWithOutput(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -91,7 +91,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
+		cmd := NewHistoryCommand(test.NewFakeCliWithOutput(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()

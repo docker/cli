@@ -36,7 +36,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			checkpointDeleteFunc: tc.checkpointDeleteFunc,
 		}, &bytes.Buffer{})
 		cmd := newRemoveCommand(cli)
@@ -48,7 +48,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 
 func TestCheckpointRemoveWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		checkpointDeleteFunc: func(container string, options types.CheckpointDeleteOptions) error {
 			containerID = container
 			checkpointID = options.CheckpointID

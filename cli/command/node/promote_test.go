@@ -42,7 +42,7 @@ func TestNodePromoteErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newPromoteCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
 			}, buf))
@@ -55,7 +55,7 @@ func TestNodePromoteErrors(t *testing.T) {
 func TestNodePromoteNoChange(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := newPromoteCommand(
-		test.NewFakeCli(&fakeClient{
+		test.NewFakeCliWithOutput(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(Manager()), []byte{}, nil
 			},
@@ -73,7 +73,7 @@ func TestNodePromoteNoChange(t *testing.T) {
 func TestNodePromoteMultipleNode(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := newPromoteCommand(
-		test.NewFakeCli(&fakeClient{
+		test.NewFakeCliWithOutput(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(), []byte{}, nil
 			},

@@ -66,7 +66,7 @@ func TestStackServicesErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
 			nodeListFunc:    tc.nodeListFunc,
 			taskListFunc:    tc.taskListFunc,
@@ -83,24 +83,21 @@ func TestStackServicesErrors(t *testing.T) {
 }
 
 func TestStackServicesEmptyServiceList(t *testing.T) {
-	out := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
 	fakeCli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{}, nil
 		},
-	}, out)
-	fakeCli.SetErr(stderr)
+	})
 	cmd := newServicesCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "", out.String())
-	assert.Equal(t, "Nothing found in stack: foo\n", stderr.String())
+	assert.Equal(t, "", fakeCli.OutBuffer().String())
+	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
 }
 
 func TestStackServicesWithQuietOption(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(ServiceID("id-foo"))}, nil
 		},
@@ -117,7 +114,7 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 
 func TestStackServicesWithFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
@@ -136,7 +133,7 @@ func TestStackServicesWithFormat(t *testing.T) {
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
@@ -156,7 +153,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 
 func TestStackServicesWithoutFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(
 				ServiceName("name-foo"),

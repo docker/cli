@@ -41,7 +41,7 @@ func TestVolumePruneErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewPruneCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumePruneFunc: tc.volumePruneFunc,
 			}, ioutil.Discard),
 		)
@@ -70,7 +70,7 @@ func TestVolumePruneForce(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := NewPruneCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumePruneFunc: tc.volumePruneFunc,
 			}, buf),
 		)
@@ -88,7 +88,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 	}
 	for _, input := range []string{"y", "Y"} {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			volumePruneFunc: simplePruneFunc,
 		}, buf)
 
@@ -110,7 +110,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 	}
 	for _, input := range []string{"n", "N", "no", "anything", "really"} {
 		buf := new(bytes.Buffer)
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			volumePruneFunc: simplePruneFunc,
 		}, buf)
 

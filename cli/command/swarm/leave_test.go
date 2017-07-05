@@ -35,7 +35,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newLeaveCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmLeaveFunc: tc.swarmLeaveFunc,
 			}, buf))
 		cmd.SetArgs(tc.args)
@@ -47,7 +47,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 func TestSwarmLeave(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := newLeaveCommand(
-		test.NewFakeCli(&fakeClient{}, buf))
+		test.NewFakeCliWithOutput(&fakeClient{}, buf))
 	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, "Node left the swarm.", strings.TrimSpace(buf.String()))
 }

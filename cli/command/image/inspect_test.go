@@ -27,7 +27,7 @@ func TestNewInspectCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}, buf))
+		cmd := newInspectCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -79,7 +79,7 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		imageInspectInvocationCount = 0
 		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc}, buf))
+		cmd := newInspectCommand(test.NewFakeCliWithOutput(&fakeClient{imageInspectFunc: tc.imageInspectFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()

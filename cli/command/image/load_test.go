@@ -43,7 +43,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc}, new(bytes.Buffer))
+		cli := test.NewFakeCliWithOutput(&fakeClient{imageLoadFunc: tc.imageLoadFunc}, new(bytes.Buffer))
 		cli.In().SetIsTerminal(tc.isTerminalIn)
 		cmd := NewLoadCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
@@ -54,7 +54,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 
 func TestNewLoadCommandInvalidInput(t *testing.T) {
 	expectedError := "open *"
-	cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{}, new(bytes.Buffer)))
+	cmd := NewLoadCommand(test.NewFakeCliWithOutput(&fakeClient{}, new(bytes.Buffer)))
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"--input", "*"})
 	err := cmd.Execute()
@@ -93,7 +93,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
-		cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc}, buf))
+		cmd := NewLoadCommand(test.NewFakeCliWithOutput(&fakeClient{imageLoadFunc: tc.imageLoadFunc}, buf))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()

@@ -107,7 +107,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 	}
 
 	out := new(bytes.Buffer)
-	cli := test.NewFakeCli(client, out)
+	cli := test.NewFakeCliWithOutput(client, out)
 	options := psOptions{
 		services: []string{"foo", "bar"},
 		filter:   opts.NewFilterOpt(),

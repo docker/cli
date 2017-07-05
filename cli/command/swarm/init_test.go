@@ -67,7 +67,7 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInitCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInitFunc:         tc.swarmInitFunc,
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
@@ -114,7 +114,7 @@ func TestSwarmInit(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInitCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				swarmInitFunc:         tc.swarmInitFunc,
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,

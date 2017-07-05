@@ -42,7 +42,7 @@ func TestNodeDemoteErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newDemoteCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
 			}, buf))
@@ -55,7 +55,7 @@ func TestNodeDemoteErrors(t *testing.T) {
 func TestNodeDemoteNoChange(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := newDemoteCommand(
-		test.NewFakeCli(&fakeClient{
+		test.NewFakeCliWithOutput(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(), []byte{}, nil
 			},
@@ -73,7 +73,7 @@ func TestNodeDemoteNoChange(t *testing.T) {
 func TestNodeDemoteMultipleNode(t *testing.T) {
 	buf := new(bytes.Buffer)
 	cmd := newDemoteCommand(
-		test.NewFakeCli(&fakeClient{
+		test.NewFakeCliWithOutput(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(Manager()), []byte{}, nil
 			},
