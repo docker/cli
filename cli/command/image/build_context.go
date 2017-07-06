@@ -34,7 +34,7 @@ func (bi *buildInput) addCleanup(fnc func()) {
 	bi.cleanups = append([]func(){fnc}, bi.cleanups...)
 }
 
-func setupContextAndDockerfile(dockerCli command.Cli, buildBuffer *buildBuffer, options buildOptions) (*buildInput, error) {
+func setupContextAndDockerfile(dockerCli command.Cli, buildBuffer *buildOutputBuffer, options buildOptions) (*buildInput, error) {
 	result := &buildInput{}
 
 	if options.dockerfileFromStdin() {
@@ -64,7 +64,7 @@ func setupContextAndDockerfile(dockerCli command.Cli, buildBuffer *buildBuffer, 
 	}
 
 	if err != nil {
-		buildBuffer.PrintProgressOnError()
+		buildBuffer.PrintProgressBuffer(dockerCli.Err())
 		return result, errors.Errorf("unable to prepare context: %s", err)
 	}
 

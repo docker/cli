@@ -168,7 +168,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		return err
 	}
 
-	buildBuffer := newBuildBuffer(dockerCli.Out(), dockerCli.Err(), options.quiet)
+	buildBuffer := newBuildBuffer(dockerCli.Out(), options.quiet)
 	buildInput, err := setupContextAndDockerfile(dockerCli, buildBuffer, options)
 	if err != nil {
 		return err
@@ -198,14 +198,15 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 	}
 
-	progressOutput := newProgaressOutput(dockerCli.Out(), buildBuffer.progress)
+	progressOutput := newProgressOutput(dockerCli.Out(), buildBuffer.progress)
 	var body io.Reader
 	var remote string
 	if contextSession != nil {
-		buf, err := setupContextStream(progressOutput, contextSession, buildBuffer, buildInput.contextDir)
+		buf, err := setupContextStream(contextSession, buildInput.contextDir, progressOutput, buildBuffer.output)
 		if err != nil {
 			return err
 		}
+		buildBuffer.output = buf
 		// TODO: move this to a method on bufferedWriter
 		defer func() {
 			select {
@@ -257,7 +258,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
 	if err != nil {
-		buildBuffer.PrintErrorIfQuiet()
+		buildBuffer.PrintBuffers(dockerCli.Err())
 		cancel()
 		return err
 	}
@@ -270,7 +271,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	warnBuildWindowsToLinux(dockerCli.Out(), response.OSType, options.quiet)
 
-	buildBuffer.PrintImageIDIfQuiet()
+	// Print the imageID if it's buffered (when options.quiet is set)
+	buildBuffer.PrintOutputBuffer(dockerCli.Out())
 
 	if err := idFile.Save(imageID); err != nil {
 		return err
@@ -288,21 +290,18 @@ func setupRequestBody(progressOutput progress.Output, buildCtx io.ReadCloser) io
 	return progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
 }
 
-func setupContextStream(progressOutput progress.Output, contextSession *session.Session, buildBuffer *buildBuffer, contextDir string) (*bufferedWriter, error) {
+func setupContextStream(contextSession *session.Session, contextDir string, progressOutput progress.Output, out io.Writer) (*bufferedWriter, error) {
 	syncDone := make(chan error) // used to signal first progress reporting completed.
 	// progress would also send errors but don't need it here as errors
 	// are handled by session.Run() and ImageBuild()
 	if err := addDirToSession(contextSession, contextDir, progressOutput, syncDone); err != nil {
 		return nil, err
 	}
-
-	buf := newBufferedWriter(syncDone, buildBuffer.output)
-	buildBuffer.SetOutput(buf)
-	return buf, nil
+	return newBufferedWriter(syncDone, out), nil
 }
 
 // Setup an upload progress bar
-func newProgaressOutput(out *command.OutStream, progressWriter io.Writer) progress.Output {
+func newProgressOutput(out *command.OutStream, progressWriter io.Writer) progress.Output {
 	progressOutput := streamformatter.NewProgressOutput(progressWriter)
 	if !out.IsTerminal() {
 		progressOutput = &lastProgressOutput{output: progressOutput}
@@ -379,62 +378,42 @@ func rewriteDockerfileForContentTrust(buildCtx io.ReadCloser, dockerfileName str
 	}), resolvedTags
 }
 
-type buildBuffer struct {
-	quiet    bool
-	stderr   io.Writer
-	stdout   io.Writer
+// buildOutputBuffer manages io.Writers used to print build progress and errors
+type buildOutputBuffer struct {
 	output   io.Writer
 	progress io.Writer
 }
 
-func newBuildBuffer(out io.Writer, stderr io.Writer, quiet bool) *buildBuffer {
-	stdout := out
+func newBuildBuffer(out io.Writer, quiet bool) *buildOutputBuffer {
 	progress := out
 	if quiet {
-		out = bytes.NewBuffer(nil)
-		progress = bytes.NewBuffer(nil)
+		out = new(bytes.Buffer)
+		progress = new(bytes.Buffer)
 	}
-	return &buildBuffer{
-		output:   out,
-		progress: progress,
-		stdout:   stdout,
-		quiet:    quiet,
-		stderr:   stderr,
+	return &buildOutputBuffer{output: out, progress: progress}
+}
+
+// PrintBuffers to the writer
+func (bb *buildOutputBuffer) PrintBuffers(writer io.Writer) {
+	bb.PrintProgressBuffer(writer)
+	bb.PrintOutputBuffer(writer)
+}
+
+// PrintOutputBuffer to the writer if output is a buffer
+func (bb *buildOutputBuffer) PrintOutputBuffer(writer io.Writer) {
+	if buffer, ok := bb.output.(*bytes.Buffer); ok {
+		fmt.Fprintf(writer, buffer.String())
 	}
 }
 
-// PrintErrorIfQuiet to the stderr stream. If quiet is not set then the error
-// was printed elsewhere, so do nothing.
-func (bb *buildBuffer) PrintErrorIfQuiet() {
-	if bb.quiet {
-		fmt.Fprintf(bb.stderr, "%s%s", bb.progress, bb.output)
+// PrintProgressBuffer to the writer with a trailing newline if progress is a buffer
+func (bb *buildOutputBuffer) PrintProgressBuffer(writer io.Writer) {
+	if buffer, ok := bb.progress.(*bytes.Buffer); ok {
+		fmt.Fprintln(writer, buffer.String())
 	}
 }
 
-// PrintImageIDIfQuiet to stdout. If quiet is not set then the image ID is
-// printed elsewhere, so do nothing.
-func (bb *buildBuffer) PrintImageIDIfQuiet() {
-	if bb.quiet {
-		fmt.Fprintf(bb.stdout, "%s", bb.output)
-	}
-}
-
-// PrintProgressOnError to stderr if quiet is set. If quiet is not set then
-// the progress is printed elsewhere, so do nothing.
-func (bb *buildBuffer) PrintProgressOnError() {
-	if bb.quiet {
-		fmt.Fprintln(bb.stderr, bb.progress)
-	}
-}
-
-// SetOutput to a new Writer. If quiet is set then do nothing.
-func (bb *buildBuffer) SetOutput(out io.Writer) {
-	if !bb.quiet {
-		bb.output = out
-	}
-}
-
-func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, buffer *buildBuffer) (string, error) {
+func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, buffer *buildOutputBuffer) (string, error) {
 	var imageID string
 	aux := func(auxJSON *json.RawMessage) {
 		var result types.BuildResult
@@ -452,7 +431,7 @@ func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, bu
 			if jerr.Code == 0 {
 				jerr.Code = 1
 			}
-			buffer.PrintErrorIfQuiet()
+			buffer.PrintBuffers(dockerCli.Err())
 			return "", cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
 		return "", err
