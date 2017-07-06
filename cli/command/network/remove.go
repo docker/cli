@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRemoveCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:     "rm NETWORK [NETWORK...]",
 		Aliases: []string{"remove"},
@@ -28,7 +28,7 @@ const ingressWarning = "WARNING! Before removing the routing-mesh network, " +
 	"Otherwise, removal may not be effective and functionality of newly create " +
 	"ingress networks will be impaired.\nAre you sure you want to continue?"
 
-func runRemove(dockerCli *command.DockerCli, networks []string) error {
+func runRemove(dockerCli command.Cli, networks []string) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 	status := 0
