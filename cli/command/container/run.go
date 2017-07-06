@@ -190,10 +190,11 @@ func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *contain
 		}
 
 		close, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
-		defer close()
+
 		if err != nil {
 			return err
 		}
+		defer close()
 	}
 
 	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
