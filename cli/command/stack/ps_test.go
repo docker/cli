@@ -53,15 +53,20 @@ func TestStackPsErrors(t *testing.T) {
 }
 
 func TestStackPsEmptyStack(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newPsCommand(test.NewFakeCli(&fakeClient{
+	out := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	fakeCli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{}, nil
 		},
-	}, buf))
+	}, out)
+	fakeCli.SetErr(stderr)
+	cmd := newPsCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
+
 	assert.NoError(t, cmd.Execute())
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, buf.String(), "Nothing found in stack: foo")
+	assert.Equal(t, "", out.String())
+	assert.Equal(t, "Nothing found in stack: foo\n", stderr.String())
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {

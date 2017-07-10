@@ -83,17 +83,19 @@ func TestStackServicesErrors(t *testing.T) {
 }
 
 func TestStackServicesEmptyServiceList(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newServicesCommand(
-		test.NewFakeCli(&fakeClient{
-			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{}, nil
-			},
-		}, buf),
-	)
+	out := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	fakeCli := test.NewFakeCli(&fakeClient{
+		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
+			return []swarm.Service{}, nil
+		},
+	}, out)
+	fakeCli.SetErr(stderr)
+	cmd := newServicesCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, buf.String(), "Nothing found in stack: foo")
+	assert.Equal(t, "", out.String())
+	assert.Equal(t, "Nothing found in stack: foo\n", stderr.String())
 }
 
 func TestStackServicesWithQuietOption(t *testing.T) {
