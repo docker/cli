@@ -95,6 +95,16 @@ func (n *NetworkOpt) String() string {
 	return ""
 }
 
+// NetworkMode return the network mode for the network option
+func (n *NetworkOpt) NetworkMode() string {
+	networkIDOrName := "default"
+	netOptVal := n.Value()
+	if len(netOptVal) > 0 {
+		networkIDOrName = netOptVal[0].Target
+	}
+	return networkIDOrName
+}
+
 func parseDriverOpt(driverOpt string) (string, string, error) {
 	parts := strings.SplitN(driverOpt, "=", 2)
 	if len(parts) != 2 {
