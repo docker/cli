@@ -1,0 +1,3 @@
+node-1-foo:
+node-2-foo: Leader
+node-10-foo: Reachable
