@@ -98,10 +98,13 @@ func TestListWithoutFormat(t *testing.T) {
 }
 
 func TestListOrder(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
-		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
+	usecases := []struct {
+		golden        string
+		swarmServices []swarm.Service
+	}{
+		{
+			golden: "stack-list-sort.golden",
+			swarmServices: []swarm.Service{
 				*Service(
 					ServiceLabels(map[string]string{
 						"com.docker.stack.namespace": "service-name-foo",
@@ -112,11 +115,40 @@ func TestListOrder(t *testing.T) {
 						"com.docker.stack.namespace": "service-name-bar",
 					}),
 				),
-			}, nil
+			},
 		},
-	}, buf))
-	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "stack-list-sort.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		{
+			golden: "stack-list-sort-natural.golden",
+			swarmServices: []swarm.Service{
+				*Service(
+					ServiceLabels(map[string]string{
+						"com.docker.stack.namespace": "service-name-1-foo",
+					}),
+				),
+				*Service(
+					ServiceLabels(map[string]string{
+						"com.docker.stack.namespace": "service-name-10-foo",
+					}),
+				),
+				*Service(
+					ServiceLabels(map[string]string{
+						"com.docker.stack.namespace": "service-name-2-foo",
+					}),
+				),
+			},
+		},
+	}
+
+	for _, uc := range usecases {
+		buf := new(bytes.Buffer)
+		cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
+			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
+				return uc.swarmServices, nil
+			},
+		}, buf))
+		assert.NoError(t, cmd.Execute())
+		actual := buf.String()
+		expected := golden.Get(t, []byte(actual), uc.golden)
+		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	}
 }
