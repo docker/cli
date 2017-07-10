@@ -97,7 +97,7 @@ type containerOptions struct {
 	ioMaxBandwidth     opts.MemBytes
 	ioMaxIOps          uint64
 	swappiness         int64
-	netMode            string
+	netMode            opts.NetworkOpt
 	macAddress         string
 	ipv4Address        string
 	ipv6Address        string
@@ -215,8 +215,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.VarP(&copts.publish, "publish", "p", "Publish a container's port(s) to the host")
 	flags.BoolVarP(&copts.publishAll, "publish-all", "P", false, "Publish all exposed ports to random ports")
 	// We allow for both "--net" and "--network", although the latter is the recommended way.
-	flags.StringVar(&copts.netMode, "net", "default", "Connect a container to a network")
-	flags.StringVar(&copts.netMode, "network", "default", "Connect a container to a network")
+	flags.Var(&copts.netMode, "net", "Connect a container to a network")
+	flags.Var(&copts.netMode, "network", "Connect a container to a network")
 	flags.MarkHidden("net")
 	// We allow for both "--net-alias" and "--network-alias", although the latter is the recommended way.
 	flags.Var(&copts.aliases, "net-alias", "Add network-scoped alias for the container")
@@ -613,8 +613,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		DNSOptions:     copts.dnsOptions.GetAllOrEmpty(),
 		ExtraHosts:     copts.extraHosts.GetAll(),
 		VolumesFrom:    copts.volumesFrom.GetAll(),
-		NetworkMode:    container.NetworkMode(copts.netMode),
 		IpcMode:        container.IpcMode(copts.ipcMode),
+		NetworkMode:    container.NetworkMode(copts.netMode.NetworkMode()),
 		PidMode:        pidMode,
 		UTSMode:        utsMode,
 		UsernsMode:     usernsMode,
@@ -676,6 +676,27 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		}
 		epConfig.Links = make([]string, len(hostConfig.Links))
 		copy(epConfig.Links, hostConfig.Links)
+		networkingConfig.EndpointsConfig[string(hostConfig.NetworkMode)] = epConfig
+	}
+	value := copts.netMode.Value()
+
+	if value != nil && hostConfig.NetworkMode.IsUserDefined() {
+		epConfig := networkingConfig.EndpointsConfig[string(hostConfig.NetworkMode)]
+		if epConfig == nil {
+			epConfig = &networktypes.EndpointSettings{}
+		}
+
+		if len(value[0].Aliases) > 0 {
+			if copts.aliases.Len() > 0 {
+				return nil, fmt.Errorf("ambiguity in alias options provided")
+			}
+			epConfig.Aliases = append(epConfig.Aliases, value[0].Aliases...)
+		}
+
+		if len(value[0].DriverOpts) > 0 {
+			epConfig.DriverOpts = make(map[string]string)
+			epConfig.DriverOpts = value[0].DriverOpts
+		}
 		networkingConfig.EndpointsConfig[string(hostConfig.NetworkMode)] = epConfig
 	}
 
