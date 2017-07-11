@@ -791,6 +791,74 @@ appends a new placement preference after all existing placement preferences.
 `--placement-pref-rm` removes an existing placement preference that matches the
 argument.
 
+### Specify memory requirements and constraints for a service (--reserve-memory and --limit-memory)
+
+If your service needs a minimum amount of memory in order to run correctly,
+you can use `--reserve-memory` to specify that the service should only be
+scheduled on a node with this much memory available to reserve. If no node is
+available that meets the criteria, the task is not scheduled, but remains in a
+pending state.
+
+The following example requires that 4GB of memory be available and reservable
+on a given node before scheduling the service to run on that node.
+
+```bash
+$ docker service create --reserve-memory=4GB --name=too-big nginx:alpine
+```
+
+The managers won't schedule a set of containers on a single node whose combined
+reservations exceed the memory available on that node.
+
+After a task is scheduled and running, `--reserve-memory` does not enforce a
+memory limit. Use `--limit-memory` to ensure that a task uses no more than a
+given amount of memory on a node. This example limits the amount of memory used
+by the task to 4GB. The task will be scheduled even if each of your nodes has
+only 2GB of memory, because `--limit-memory` is an upper limit.
+
+```bash
+$ docker service create --limit-memory=4GB --name=too-big nginx:alpine
+```
+
+Using `--reserve-memory` and `--limit-memory` does not guarantee that Docker
+will not use more memory on your host than you want. For instance, you could
+create many services, the sum of whose memory usage could exhaust the available
+memory.
+
+You can prevent this scenario from exhausting the available memory by taking
+into account other (non-containerized) software running on the host as well. If
+`--reserve-memory` is greater than or equal to `--limit-memory`, Docker won't
+schedule a service on a host that doesn't have enough memory. `--limit-memory`
+will limit the service's memory to stay within that limit, so if every service
+has a memory-reservation and limit set, Docker services will be less likely to
+saturate the host. Other non-service containers or applications running directly
+on the Docker host could still exhaust memory.
+
+There is a downside to this approach. Reserving memory also means that you may
+not make optimum use of the memory available on the node. Consider a service
+that under normal circumstances uses 100MB of memory, but depending on load can
+"peak" at 500MB. Reserving 500MB for that service (to guarantee can have 500MB
+for those "peaks") results in 400MB of memory being wasted most of the time.
+
+In short, you can take a more conservative or more flexible approach:
+
+- **Conservative**: reserve 500MB, and limit to 500MB. Basically you're now
+  treating the service containers as VMs, and you may be losing a big advantage
+  containers, which is greater density of services per host.
+
+- **Flexible**: limit to 500MB in the assumption that if the service requires
+  more than 500MB, it is malfunctioning. Reserve something between the 100MB
+  "normal" requirement and the 500MB "peak" requirement". This assumes that when
+  this service is at "peak", other services or non-container workloads probably
+  won't be.
+
+The approach you take depends heavily on the memory-usage patterns of your
+workloads. You should test under normal and peak conditions before settling
+on an approach.
+
+On Linux, you can also limit a service's overall memory footprint on a given
+host at the level of the host operating system, using `cgroups` or other
+relevant operating system tools.
+
 ### Specify maximum replicas per node (--replicas-max-per-node)
 
 Use the `--replicas-max-per-node` flag to set the maximum number of replica tasks that can run on a node.
