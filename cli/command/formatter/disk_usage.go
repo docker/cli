@@ -243,7 +243,7 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 	if c.totalSize > 0 {
 		return fmt.Sprintf("%s (%v%%)", units.HumanSize(float64(reclaimable)), (reclaimable*100)/c.totalSize)
 	}
-	return fmt.Sprintf("%s", units.HumanSize(float64(reclaimable)))
+	return units.HumanSize(float64(reclaimable))
 }
 
 type diskUsageContainersContext struct {
@@ -305,7 +305,7 @@ func (c *diskUsageContainersContext) Reclaimable() string {
 		return fmt.Sprintf("%s (%v%%)", units.HumanSize(float64(reclaimable)), (reclaimable*100)/totalSize)
 	}
 
-	return fmt.Sprintf("%s", units.HumanSize(float64(reclaimable)))
+	return units.HumanSize(float64(reclaimable))
 }
 
 type diskUsageVolumesContext struct {
@@ -366,7 +366,7 @@ func (c *diskUsageVolumesContext) Reclaimable() string {
 		return fmt.Sprintf("%s (%v%%)", units.HumanSize(float64(reclaimable)), (reclaimable*100)/totalSize)
 	}
 
-	return fmt.Sprintf("%s", units.HumanSize(float64(reclaimable)))
+	return units.HumanSize(float64(reclaimable))
 }
 
 type diskUsageBuilderContext struct {

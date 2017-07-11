@@ -184,7 +184,7 @@ func (c *containerStatsContext) MemUsage() string {
 		return fmt.Sprintf("-- / --")
 	}
 	if c.os == winOSType {
-		return fmt.Sprintf("%s", units.BytesSize(c.s.Memory))
+		return units.BytesSize(c.s.Memory)
 	}
 	return fmt.Sprintf("%s / %s", units.BytesSize(c.s.Memory), units.BytesSize(c.s.MemoryLimit))
 }
