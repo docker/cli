@@ -3,8 +3,11 @@ FROM    golang:1.8.3-alpine
 
 RUN     apk add -U git make bash coreutils
 
-RUN     go get github.com/LK4D4/vndr && \
-        cp /go/bin/vndr /usr/bin && \
+ARG     VNDR_COMMIT=9909bb2b8a0b7ea464527b376dc50389c90df587
+RUN     git clone https://github.com/LK4D4/vndr.git "/go/src/github.com/LK4D4/vndr" && \
+        cd "/go/src/github.com/LK4D4/vndr" && \
+        git checkout -q "$VNDR_COMMIT" && \
+        go build -v -o /usr/bin/vndr . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
 RUN     go get github.com/jteeuwen/go-bindata/go-bindata && \
