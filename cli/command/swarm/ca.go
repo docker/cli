@@ -60,7 +60,7 @@ func runCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) error {
 	}
 
 	if !opts.rotate {
-		for _, f := range []string{flagCACert, flagCAKey, flagCACert, flagExternalCA} {
+		for _, f := range []string{flagCACert, flagCAKey, flagCertExpiry, flagExternalCA} {
 			if flags.Changed(f) {
 				return fmt.Errorf("`--%s` flag requires the `--rotate` flag to update the CA", f)
 			}
