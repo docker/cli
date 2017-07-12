@@ -2,10 +2,14 @@ package swarm
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,6 +36,69 @@ func TestDisplayTrustRootNoRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	err := displayTrustRoot(buffer, swarm.Swarm{})
 	assert.EqualError(t, err, "No CA information available")
+}
+
+func TestDisplayTrustRootInvalidFlags(t *testing.T) {
+	// we need an actual PEMfile to test
+	tmpfile, err := ioutil.TempFile("", "pemfile")
+	assert.NoError(t, err)
+	defer os.Remove(tmpfile.Name())
+	tmpfile.Write([]byte(`
+-----BEGIN CERTIFICATE-----
+MIIBajCCARCgAwIBAgIUe0+jYWhxN8fFOByC7yveIYgvx1kwCgYIKoZIzj0EAwIw
+EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMTcwNjI3MTUxNDAwWhcNMzcwNjIyMTUx
+NDAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+A0IABGgbOZLd7b4b262+6m4ignIecbAZKim6djNiIS1Kl5IHciXYn7gnSpsayjn7
+GQABpgkdPeM9TEQowmtR1qSnORujQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MB0GA1UdDgQWBBQ6Rtcn823/fxRZyheRDFpDzuBMpTAKBggqhkjO
+PQQDAgNIADBFAiEAqD3Kb2rgsy6NoTk+zEgcUi/aGBCsvQDG3vML1PXN8j0CIBjj
+4nDj+GmHXcnKa8wXx70Z8OZEpRQIiKDDLmcXuslp
+-----END CERTIFICATE-----
+`))
+	tmpfile.Close()
+
+	errorTestCases := [][]string{
+		{
+			"--ca-cert=" + tmpfile.Name(),
+		},
+		{
+			"--ca-key=" + tmpfile.Name(),
+		},
+		{ // to make sure we're not erroring because we didn't provide a CA key along with the CA cert
+
+			"--ca-cert=" + tmpfile.Name(),
+			"--ca-key=" + tmpfile.Name(),
+		},
+		{
+			"--cert-expiry=2160h0m0s",
+		},
+		{
+			"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+		},
+		{ // to make sure we're not erroring because we didn't provide a CA cert and external CA
+
+			"--ca-cert=" + tmpfile.Name(),
+			"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+		},
+	}
+
+	for _, args := range errorTestCases {
+		cmd := newCACommand(
+			test.NewFakeCli(&fakeClient{
+				swarmInspectFunc: func() (swarm.Swarm, error) {
+					return swarm.Swarm{
+						ClusterInfo: swarm.ClusterInfo{
+							TLSInfo: swarm.TLSInfo{
+								TrustRoot: "root",
+							},
+						},
+					}, nil
+				},
+			}))
+		assert.NoError(t, cmd.Flags().Parse(args))
+		cmd.SetOutput(ioutil.Discard)
+		testutil.ErrorContains(t, cmd.Execute(), "flag requires the `--rotate` flag to update the CA")
+	}
 }
 
 func TestDisplayTrustRoot(t *testing.T) {
