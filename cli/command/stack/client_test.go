@@ -15,6 +15,8 @@ import (
 type fakeClient struct {
 	client.Client
 
+	version string
+
 	services []string
 	networks []string
 	secrets  []string
@@ -43,6 +45,10 @@ func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error)
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,
 	}, nil
+}
+
+func (cli *fakeClient) ClientVersion() string {
+	return cli.version
 }
 
 func (cli *fakeClient) ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
