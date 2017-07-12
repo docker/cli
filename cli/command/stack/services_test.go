@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -70,8 +69,7 @@ func TestStackServicesErrors(t *testing.T) {
 			serviceListFunc: tc.serviceListFunc,
 			nodeListFunc:    tc.nodeListFunc,
 			taskListFunc:    tc.taskListFunc,
-		}, &bytes.Buffer{})
-		cli.SetConfigfile(&configfile.ConfigFile{})
+		})
 		cmd := newServicesCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -83,79 +81,70 @@ func TestStackServicesErrors(t *testing.T) {
 }
 
 func TestStackServicesEmptyServiceList(t *testing.T) {
-	out := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
 	fakeCli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{}, nil
 		},
-	}, out)
-	fakeCli.SetErr(stderr)
+	})
 	cmd := newServicesCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "", out.String())
-	assert.Equal(t, "Nothing found in stack: foo\n", stderr.String())
+	assert.Equal(t, "", fakeCli.OutBuffer().String())
+	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
 }
 
 func TestStackServicesWithQuietOption(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(ServiceID("id-foo"))}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newServicesCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-quiet-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(ServiceName("service-name-foo")),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	})
+	cli.SetConfigFile(&configfile.ConfigFile{
 		ServicesFormat: "{{ .Name }}",
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-with-config-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestStackServicesWithoutFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*Service(
@@ -171,12 +160,11 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 				}),
 			)}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "stack-services-without-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }

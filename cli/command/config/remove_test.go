@@ -33,7 +33,7 @@ func TestConfigRemoveErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newConfigRemoveCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				configRemoveFunc: tc.configRemoveFunc,
 			}, buf),
 		)
@@ -47,7 +47,7 @@ func TestConfigRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
 	buf := new(bytes.Buffer)
 	var removedConfigs []string
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			return nil
@@ -65,7 +65,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	var removedConfigs []string
 
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {

@@ -37,7 +37,7 @@ func TestCheckpointListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
+		cli := test.NewFakeCliWithOutput(&fakeClient{
 			checkpointListFunc: tc.checkpointListFunc,
 		}, &bytes.Buffer{})
 		cmd := newListCommand(cli)
@@ -50,7 +50,7 @@ func TestCheckpointListErrors(t *testing.T) {
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		checkpointListFunc: func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error) {
 			containerID = container
 			checkpointDir = options.CheckpointDir

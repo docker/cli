@@ -31,7 +31,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newRemoveCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeRemoveFunc: tc.volumeRemoveFunc,
 			}, buf))
 		cmd.SetArgs(tc.args)
@@ -42,7 +42,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 
 func TestNodeRemoveMultiple(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}, buf))
+	cmd := newRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
 	cmd.SetArgs([]string{"volume1", "volume2"})
 	assert.NoError(t, cmd.Execute())
 }

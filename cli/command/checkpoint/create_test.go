@@ -1,7 +1,6 @@
 package checkpoint
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -39,7 +38,7 @@ func TestCheckpointCreateErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
 			checkpointCreateFunc: tc.checkpointCreateFunc,
-		}, &bytes.Buffer{})
+		})
 		cmd := newCreateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -50,7 +49,6 @@ func TestCheckpointCreateErrors(t *testing.T) {
 func TestCheckpointCreateWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
 	var exit bool
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		checkpointCreateFunc: func(container string, options types.CheckpointCreateOptions) error {
 			containerID = container
@@ -59,7 +57,7 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 			exit = options.Exit
 			return nil
 		},
-	}, buf)
+	})
 	cmd := newCreateCommand(cli)
 	checkpoint := "checkpoint-bar"
 	cmd.SetArgs([]string{"container-foo", checkpoint})
@@ -70,5 +68,5 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 	assert.Equal(t, checkpoint, checkpointID)
 	assert.Equal(t, "/dir/foo", checkpointDir)
 	assert.Equal(t, false, exit)
-	assert.Equal(t, checkpoint, strings.TrimSpace(buf.String()))
+	assert.Equal(t, checkpoint, strings.TrimSpace(cli.OutBuffer().String()))
 }

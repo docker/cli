@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -36,11 +35,10 @@ func TestConfigListErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newConfigListCommand(
 			test.NewFakeCli(&fakeClient{
 				configListFunc: tc.configListFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -49,7 +47,6 @@ func TestConfigListErrors(t *testing.T) {
 }
 
 func TestConfigList(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
@@ -67,18 +64,16 @@ func TestConfigList(t *testing.T) {
 				),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newConfigListCommand(cli)
-	cmd.SetOutput(buf)
+	cmd.SetOutput(cli.OutBuffer())
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "config-list.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestConfigListWithQuietOption(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
@@ -88,18 +83,16 @@ func TestConfigListWithQuietOption(t *testing.T) {
 				})),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "config-list-with-quiet-option.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestConfigListWithConfigFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
@@ -109,19 +102,18 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 				})),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	})
+	cli.SetConfigFile(&configfile.ConfigFile{
 		ConfigFormat: "{{ .Name }} {{ .Labels }}",
 	})
 	cmd := newConfigListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "config-list-with-config-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestConfigListWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
@@ -131,17 +123,16 @@ func TestConfigListWithFormat(t *testing.T) {
 				})),
 			}, nil
 		},
-	}, buf)
+	})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Labels }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "config-list-with-format.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
 
 func TestConfigListWithFilter(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Equal(t, "foo", options.Filters.Get("name")[0])
@@ -161,13 +152,12 @@ func TestConfigListWithFilter(t *testing.T) {
 				),
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("filter", "name=foo")
 	cmd.Flags().Set("filter", "label=lbl1=Label-bar")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
+	actual := cli.OutBuffer().String()
 	expected := golden.Get(t, []byte(actual), "config-list-with-filter.golden")
 	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
