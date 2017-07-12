@@ -3,19 +3,25 @@ FROM    golang:1.8.3-alpine
 
 RUN     apk add -U git make bash coreutils
 
-ARG     VNDR_COMMIT=9909bb2b8a0b7ea464527b376dc50389c90df587
-RUN     git clone https://github.com/LK4D4/vndr.git "/go/src/github.com/LK4D4/vndr" && \
-        cd "/go/src/github.com/LK4D4/vndr" && \
-        git checkout -q "$VNDR_COMMIT" && \
+ARG     VNDR_SHA=9909bb2b8a0b7ea464527b376dc50389c90df587
+RUN     go get github.com/LK4D4/vndr && \
+        cd /go/src/github.com/LK4D4/vndr && \
+        git checkout -q "$VNDR_SHA" && \
         go build -v -o /usr/bin/vndr . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
+ARG     BINDATA_SHA=a0ff2567cfb70903282db057e799fd826784d41d
 RUN     go get github.com/jteeuwen/go-bindata/go-bindata && \
-        cp /go/bin/go-bindata /usr/bin && \
+        cd /go/src/github.com/jteeuwen/go-bindata/go-bindata && \
+        git checkout -q "$BINDATA_SHA" && \
+        go build -v -o /usr/bin/go-bindata . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
+ARG     FILEWATCHER_SHA=2e12ea42f6c8c089b19e992145bb94e8adaecedb
 RUN     go get github.com/dnephin/filewatcher && \
-        cp /go/bin/filewatcher /usr/bin/ && \
+        cd /go/src/github.com/dnephin/filewatcher && \
+        git checkout -q "$FILEWATCHER_SHA" && \
+        go build -v -o /usr/bin/filewatcher . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
 ENV     CGO_ENABLED=0
