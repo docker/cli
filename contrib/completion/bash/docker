@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2155
+# shellcheck disable=SC2016,SC2119,SC2155
 #
 # Shellcheck ignore list:
+#  - SC2016: Expressions don't expand in single quotes, use double quotes for that.
+#  - SC2119: Use foo "$@" if function's $1 should mean script's $1.
 #  - SC2155: Declare and assign separately to avoid masking return values.
+# 
+# You can find more details for each warning at the following page: 
+#    https://github.com/koalaman/shellcheck/wiki/<SCXXXX>
 #
 # bash completion file for core docker commands
 #
@@ -105,6 +110,7 @@ __docker_complete_containers_all() {
 	__docker_complete_containers "$@" --all
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_removable() {
 	__docker_complete_containers "$@" --filter status=created --filter status=exited
 }
@@ -113,10 +119,12 @@ __docker_complete_containers_running() {
 	__docker_complete_containers "$@" --filter status=running
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_stopped() {
 	__docker_complete_containers "$@" --filter status=exited
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_unpauseable() {
 	__docker_complete_containers "$@" --filter status=paused
 }
@@ -146,7 +154,6 @@ __docker_images() {
 	esac
 
 	local repo_print_command
-	# shellcheck disable=SC2016
 	if [ "${DOCKER_COMPLETION_SHOW_TAGS:-yes}" = "yes" ]; then
 		repo_print_command='print $1; print $1":"$2'
 	else
@@ -154,7 +161,6 @@ __docker_images() {
 	fi
 
 	local awk_script
-	# shellcheck disable=SC2016
 	case "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" in
 		all|non-intermediate)
 			awk_script='NR>1 { print $3; if ($1 != "<none>") { '"$repo_print_command"' } }'
@@ -219,7 +225,7 @@ __docker_complete_networks() {
 	COMPREPLY=( $(compgen -W "$(__docker_networks "$@")" -- "$current") )
 }
 
-# shellcheck disable=SC2016,SC2128,SC2178
+# shellcheck disable=SC2128,SC2178
 __docker_complete_containers_in_network() {
 	local containers=$(__docker_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1")
 	COMPREPLY=( $(compgen -W "$containers" -- "$cur") )
@@ -397,7 +403,6 @@ __docker_complete_stacks() {
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
 # Completions may be added with `--add`, e.g. `--add self`.
-# shellcheck disable=SC2016
 __docker_nodes() {
 	local add=()
 	local fields='$2'  # default: node name only
@@ -446,7 +451,6 @@ __docker_complete_nodes() {
 # An optional first option `--id|--name` may be used to limit the
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
-# shellcheck disable=SC2016
 __docker_services() {
 	local fields='$2'  # default: service name only
 	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS}" = yes ] && fields='$1,$2' # ID & name
@@ -479,6 +483,7 @@ __docker_tasks() {
 }
 
 # __docker_complete_services_and_tasks applies completion of services and task IDs.
+# shellcheck disable=SC2120
 __docker_complete_services_and_tasks() {
 	COMPREPLY=( $(compgen -W "$(__docker_services "$@") $(__docker_tasks)" -- "$cur") )
 }
@@ -1508,7 +1513,7 @@ _docker_container_rm() {
 						;;
 				esac
 			done
-			__docker_complete_containers_removable "$@"
+			__docker_complete_containers_removable
 			;;
 	esac
 }
@@ -1851,7 +1856,7 @@ _docker_container_start() {
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
-			__docker_complete_containers_stopped "$@"
+			__docker_complete_containers_stopped
 			;;
 	esac
 }
@@ -1912,7 +1917,7 @@ _docker_container_unpause() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_containers_unpauseable "$@"
+				__docker_complete_containers_unpauseable
 			fi
 			;;
 	esac
@@ -2111,7 +2116,7 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay  overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
@@ -2753,7 +2758,7 @@ _docker_network_connect() {
 			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_networks
-			elif [ "$cword" -eq $((counter + 1)) ]; then
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -2803,7 +2808,7 @@ _docker_network_disconnect() {
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_networks
-			elif [ "$cword" -eq $((counter + 1)) ]; then
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
 				__docker_complete_containers_in_network "$prev"
 			fi
 			;;
@@ -2983,7 +2988,7 @@ _docker_service_logs() {
 		*)
 			local counter=$(__docker_pos_first_nonflag '--since|--tail')
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_services_and_tasks "$@"
+				__docker_complete_services_and_tasks
 			fi
 			;;
 	esac
@@ -3748,7 +3753,7 @@ _docker_plugin_create() {
 			if [ "$cword" -eq "$counter" ]; then
 				# reponame
 				return
-			elif [ "$cword" -eq  $((counter + 1)) ]; then
+			elif [ "$cword" -eq  "$((counter + 1))" ]; then
 				_filedir -d
 			fi
 			;;
@@ -3908,7 +3913,7 @@ _docker_plugin_upgrade() {
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed
 				__ltrim_colon_completions "$cur"
-			elif [ "$cword" -eq  $((counter + 1)) ]; then
+			elif [ "$cword" -eq  "$((counter + 1))" ]; then
 				local plugin_images="$(__docker_plugins_installed)"
 				COMPREPLY=( $(compgen -S : -W "${plugin_images%:*}" -- "$cur") )
 				__docker_nospace
@@ -3943,7 +3948,7 @@ _docker_restart() {
 }
 
 _docker_rm() {
-	_docker_container_rm "$@"
+	_docker_container_rm
 }
 
 _docker_rmi() {
@@ -4269,7 +4274,7 @@ _docker_stack_up() {
 
 
 _docker_start() {
-	_docker_container_start "$@"
+	_docker_container_start
 }
 
 _docker_stats() {
@@ -4444,7 +4449,7 @@ _docker_tag() {
 }
 
 _docker_unpause() {
-	_docker_container_unpause "$@"
+	_docker_container_unpause
 }
 
 _docker_update() {
