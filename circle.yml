@@ -7,7 +7,9 @@ jobs:
     docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+            reusable: true
+            exclusive: false
       - run:
           command: docker version
       - run:
@@ -15,23 +17,32 @@ jobs:
           command: |
             dockerfile=dockerfiles/Dockerfile.lint
             echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-linter .
-            docker run cli-linter
+            docker build -f $dockerfile --tag cli-linter:$CIRCLE_BUILD_NUM .
+            docker run --rm cli-linter:$CIRCLE_BUILD_NUM
 
   cross:
     working_directory: /work
     docker: [{image: 'docker:17.05-git'}]
+    parallelism: 3
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+            reusable: true
+            exclusive: false
       - run:
           name: "Cross"
           command: |
             dockerfile=dockerfiles/Dockerfile.cross
             echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder .
-            docker run --name cross cli-builder make cross
-            docker cp cross:/go/src/github.com/docker/cli/build /work/build
+            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
+            name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
+            docker run \
+                -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
+                --name $name cli-builder:$CIRCLE_BUILD_NUM \
+                make cross
+            docker cp \
+                $name:/go/src/github.com/docker/cli/build \
+                /work/build
       - store_artifacts:
           path: /work/build
 
@@ -40,19 +51,25 @@ jobs:
     docker: [{image: 'docker:17.05-git'}]
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+            reusable: true
+            exclusive: false
       - run:
           name: "Unit Test with Coverage"
           command: |
             dockerfile=dockerfiles/Dockerfile.dev
             echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder .
-            docker run --name test cli-builder make test-coverage
+            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
+            docker run --name \
+                test-$CIRCLE_BUILD_NUM cli-builder:$CIRCLE_BUILD_NUM \
+                make test-coverage
 
       - run:
           name: "Upload to Codecov"
           command: |
-            docker cp test:/go/src/github.com/docker/cli/coverage.txt coverage.txt
+            docker cp \
+                test-$CIRCLE_BUILD_NUM:/go/src/github.com/docker/cli/coverage.txt \
+                coverage.txt
             apk add -U bash curl
             curl -s https://codecov.io/bash | bash
 
@@ -60,16 +77,20 @@ jobs:
     working_directory: /work
     docker: [{image: 'docker:17.05-git'}]
     steps:
+      - run: apk add -U git openssh
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+            reusable: true
+            exclusive: false
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
             dockerfile=dockerfiles/Dockerfile.dev
             echo "COPY . ." >> $dockerfile
             rm -f .dockerignore # include .git
-            docker build -f $dockerfile --tag cli-builder .
-            docker run cli-builder make -B vendor compose-jsonschema manpages yamldocs
+            docker build -f $dockerfile --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
+            docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
+                make -B vendor compose-jsonschema manpages yamldocs
 
 workflows:
   version: 2
