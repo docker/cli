@@ -22,9 +22,10 @@ Log in to a Docker registry.
 If no server is specified, the default is defined by the daemon.
 
 Options:
-      --help              Print usage
-  -p, --password string   Password
-  -u, --username string   Username
+      --help                    Print usage
+  -p, --password       string   Password
+      --password-stdin          Read password from stdin
+  -u, --username       string   Username
 ```
 
 ## Description
@@ -38,6 +39,20 @@ adding the server name.
 
 ```bash
 $ docker login localhost:8080
+```
+
+### Provide a password using STDIN
+
+To run the `docker login` command non-interactively, you can set the
+`--password-stdin` flag to provide a password through `STDIN`. Using
+`STDIN` prevents the password from ending up in the shell's history,
+or log-files.
+
+The following example reads a password from a file, and passes it to the
+`docker login` command using `STDIN`:
+
+```bash
+$ cat ~/my_password.txt | docker login --username foo --password-stdin
 ```
 
 ### Privileged user requirement
