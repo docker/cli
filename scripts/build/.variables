@@ -2,7 +2,7 @@
 set -eu
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-default_version=$(cat $scriptdir/../../VERSION)
+default_version=$(cat "$scriptdir/../../VERSION")
 VERSION=${VERSION:-"$default_version"}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')}

@@ -8,6 +8,8 @@ linter_image="docker-cli-lint:$unique_id"
 cross_image="docker-cli-cross:$unique_id"
 shellcheck_image="docker-cli-shellcheck:$unique_id"
 
+TASK_BUILD_ARGS=${TASK_BUILD_ARGS:-}
+
 function run_task {
     local task=$1
 
@@ -46,7 +48,7 @@ function docker_build_and_run {
     if [ -t 1 ] ; then local use_tty="-ti"; else local use_tty=""; fi
 
     if [ -n "${DOCKER_HOST:-}" ] || [ -n "${NO_BINDMOUNT:-}" ]; then
-        dockerfile_source="$(cat $dockerfile <(echo COPY . .))"
+        dockerfile_source="$(cat "$dockerfile" <(echo COPY . .))"
         mounts=()
         dockerfile="-"
     fi
@@ -56,8 +58,16 @@ function docker_build_and_run {
         remove=
     fi
 
-    echo "$dockerfile_source" | docker build -t "$image" -f "$dockerfile" .
-    docker run $remove $envvars $cidfile $use_tty ${mounts[@]+"${mounts[@]}"} "$image" $cmd
+    echo "$dockerfile_source" | \
+        docker build $TASK_BUILD_ARGS -t "$image" -f "$dockerfile" .
+    docker run \
+        $remove \
+        $envvars \
+        $cidfile \
+        $use_tty \
+        ${mounts[@]+"${mounts[@]}"} \
+        "$image" \
+        $cmd
 }
 
 function usage {
