@@ -14,16 +14,16 @@ ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
 build_docker_image:
-	docker build -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
+	docker build ${DOCKER_BUILD_ARGS} -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
 
 # build docker image having the linting tools (dockerfiles/Dockerfile.lint)
 .PHONY: build_linter_image
 build_linter_image:
-	docker build -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
+	docker build ${DOCKER_BUILD_ARGS} -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
 
 .PHONY: build_cross_image
 build_cross_image:
-	docker build -t $(CROSS_IMAGE_NAME) -f ./dockerfiles/Dockerfile.cross .
+	docker build ${DOCKER_BUILD_ARGS} -t $(CROSS_IMAGE_NAME) -f ./dockerfiles/Dockerfile.cross .
 
 
 # build executable using a container
