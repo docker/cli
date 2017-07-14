@@ -9,6 +9,8 @@ dev_image="docker-cli-dev:$unique_id"
 linter_image="docker-cli-lint:$unique_id"
 cross_image="docker-cli-cross:$unique_id"
 
+TASK_BUILD_ARGS=${TASK_BUILD_ARGS:-}
+
 function run_task {
     local task=$1
 
@@ -58,7 +60,8 @@ function docker_build_and_run {
         remove=
     fi
 
-    echo "$dockerfile_source" | docker build -t "$image" -f "$dockerfile" .
+    echo "$dockerfile_source" | \
+        docker build $TASK_BUILD_ARGS -t "$image" -f "$dockerfile" .
     docker run \
         $remove \
         $envvars \
