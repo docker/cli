@@ -9,21 +9,23 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/prune"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/versions"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
 type pruneOptions struct {
-	force        bool
-	all          bool
-	pruneVolumes bool
-	filter       opts.FilterOpt
+	force           bool
+	all             bool
+	pruneBuildCache bool
+	pruneVolumes    bool
+	filter          opts.FilterOpt
 }
 
 // NewPruneCommand creates a new cobra.Command for `docker prune`
 func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
-	options := pruneOptions{filter: opts.NewFilterOpt()}
+	options := pruneOptions{filter: opts.NewFilterOpt(), pruneBuildCache: true}
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
@@ -53,6 +55,9 @@ const confirmationTemplate = `WARNING! This will remove:
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
+	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.31") {
+		options.pruneBuildCache = false
+	}
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
@@ -86,11 +91,13 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		fmt.Fprintln(dockerCli.Out(), output)
 	}
 
-	report, err := dockerCli.Client().BuildCachePrune(context.Background())
-	if err != nil {
-		return err
+	if options.pruneBuildCache {
+		report, err := dockerCli.Client().BuildCachePrune(context.Background())
+		if err != nil {
+			return err
+		}
+		spaceReclaimed += report.SpaceReclaimed
 	}
-	spaceReclaimed += report.SpaceReclaimed
 
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 
@@ -113,7 +120,9 @@ func confirmationMessage(options pruneOptions) string {
 	} else {
 		warnings = append(warnings, "all dangling images")
 	}
-	warnings = append(warnings, "all build cache")
+	if options.pruneBuildCache {
+		warnings = append(warnings, "all build cache")
+	}
 
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &warnings)
