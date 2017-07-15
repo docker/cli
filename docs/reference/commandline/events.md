@@ -80,9 +80,9 @@ Docker images report the following events:
 
 Docker plugins report the following events:
 
-- `install`
 - `enable`
 - `disable`
+- `install`
 - `remove`
 
 #### Volumes
@@ -90,9 +90,9 @@ Docker plugins report the following events:
 Docker volumes report the following events:
 
 - `create`
+- `destroy`
 - `mount`
 - `unmount`
-- `destroy`
 
 #### Networks
 
@@ -100,14 +100,47 @@ Docker networks report the following events:
 
 - `create`
 - `connect`
-- `disconnect`
 - `destroy`
+- `disconnect`
+- `remove`
 
 #### Daemons
 
 Docker daemons report the following events:
 
 - `reload`
+
+#### Services
+
+Docker services report the following events:
+
+- `create`
+- `remove`
+- `update`
+
+#### Nodes
+
+Docker nodes report the following events:
+
+- `create`
+- `remove`
+- `update`
+
+#### Secrets
+
+Docker secrets report the following events:
+
+- `create`
+- `remove`
+- `update`
+
+#### Configs
+
+Docker configs report the following events:
+
+- `create`
+- `remove`
+- `update`
 
 ### Limiting, filtering, and formatting the output
 
@@ -149,7 +182,8 @@ The currently supported filters are:
 * label (`label=<key>` or `label=<key>=<value>`)
 * network (`network=<name or id>`)
 * plugin (`plugin=<name or id>`)
-* type (`type=<container or image or volume or network or daemon or plugin>`)
+* scope (`scope=<local or swarm>`)
+* type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
 * volume (`volume=<name or id>`)
 
 #### Format
@@ -317,6 +351,29 @@ $ docker events --filter 'type=plugin'
 
 2016-07-25T17:30:14.825557616Z plugin pull ec7b87f2ce84330fe076e666f17dfc049d2d7ae0b8190763de94e1f2d105993f (name=tiborvass/sample-volume-plugin:latest)
 2016-07-25T17:30:14.888127370Z plugin enable ec7b87f2ce84330fe076e666f17dfc049d2d7ae0b8190763de94e1f2d105993f (name=tiborvass/sample-volume-plugin:latest)
+
+$ docker events -f type=service
+
+2017-07-12T06:34:07.999446625Z service create wj64st89fzgchxnhiqpn8p4oj (name=reverent_albattani)
+2017-07-12T06:34:21.405496207Z service remove wj64st89fzgchxnhiqpn8p4oj (name=reverent_albattani)
+
+$ docker events -f type=node
+
+2017-07-12T06:21:51.951586759Z node update 3xyz5ttp1a253q74z1thwywk9 (name=ip-172-31-23-42, state.new=ready, state.old=unknown)
+
+$ docker events -f type=secret
+
+2017-07-12T06:32:13.915704367Z secret create s8o6tmlnndrgzbmdilyy5ymju (name=new_secret)
+2017-07-12T06:32:37.052647783Z secret remove s8o6tmlnndrgzbmdilyy5ymju (name=new_secret)
+
+$  docker events -f type=config
+2017-07-12T06:44:13.349037127Z config create u96zlvzdfsyb9sg4mhyxfh3rl (name=abc)
+2017-07-12T06:44:36.327694184Z config remove u96zlvzdfsyb9sg4mhyxfh3rl (name=abc)
+
+$ docker events --filter 'scope=swarm'
+
+2017-07-10T07:46:50.250024503Z service create m8qcxu8081woyof7w3jaax6gk (name=affectionate_wilson)
+2017-07-10T07:47:31.093797134Z secret create 6g5pufzsv438p9tbvl9j94od4 (name=new_secret)
 ```
 
 ### Format the output
