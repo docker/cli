@@ -94,7 +94,6 @@ radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Co
 The flag `--limit` is the maximum number of results returned by a search. This value could
 be in the range between 1 and 100. The default value of `--limit` is 25.
 
-
 ### Filtering
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
@@ -103,9 +102,8 @@ than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bi
 The currently supported filters are:
 
 * stars (int - number of stars the image has)
-* is-automated (true|false) - is the image automated or not
-* is-official (true|false) - is the image official or not
-
+* is-automated (boolean - true or false) - is the image automated or not
+* is-official (boolean - true or false) - is the image official or not
 
 #### stars
 
@@ -120,7 +118,6 @@ busybox              Busybox base image.                             325       [
 progrium/busybox                                                     50                   [OK]
 radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8                    [OK]
 ```
-
 
 #### is-automated
 
