@@ -77,6 +77,15 @@ func runImagePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint
 	return image.RunPrune(dockerCli, all, filter)
 }
 
+// runBuildCachePrune executes a prune command for build cache
+func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string, error) {
+	report, err := dockerCli.Client().BuildCachePrune(context.Background())
+	if err != nil {
+		return 0, "", err
+	}
+	return report.SpaceReclaimed, "", nil
+}
+
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.31") {
 		options.pruneBuildCache = false
@@ -84,8 +93,9 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
-
-	var spaceReclaimed uint64
+	imagePrune := func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
+		return runImagePrune(dockerCli, options.all, options.filter)
+	}
 	pruneFuncs := []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
 		runContainerPrune,
 		runNetworkPrune,
@@ -93,7 +103,12 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if options.pruneVolumes {
 		pruneFuncs = append(pruneFuncs, runVolumePrune)
 	}
+	pruneFuncs = append(pruneFuncs, imagePrune)
+	if options.pruneBuildCache {
+		pruneFuncs = append(pruneFuncs, runBuildCachePrune)
+	}
 
+	var spaceReclaimed uint64
 	for _, pruneFn := range pruneFuncs {
 		spc, output, err := pruneFn(dockerCli, options.filter)
 		if err != nil {
@@ -103,23 +118,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		if output != "" {
 			fmt.Fprintln(dockerCli.Out(), output)
 		}
-	}
-
-	spc, output, err := runImagePrune(dockerCli, options.all, options.filter)
-	if err != nil {
-		return err
-	}
-	if spc > 0 {
-		spaceReclaimed += spc
-		fmt.Fprintln(dockerCli.Out(), output)
-	}
-
-	if options.pruneBuildCache {
-		report, err := dockerCli.Client().BuildCachePrune(context.Background())
-		if err != nil {
-			return err
-		}
-		spaceReclaimed += report.SpaceReclaimed
 	}
 
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
