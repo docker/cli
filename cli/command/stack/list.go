@@ -18,7 +18,7 @@ type listOptions struct {
 	format string
 }
 
-func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	opts := listOptions{}
 
 	cmd := &cobra.Command{
@@ -36,7 +36,7 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli *command.DockerCli, opts listOptions) error {
+func runList(dockerCli command.Cli, opts listOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
@@ -69,7 +69,7 @@ func getStacks(ctx context.Context, apiclient client.APIClient) ([]*formatter.St
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]*formatter.Stack, 0)
+	m := make(map[string]*formatter.Stack)
 	for _, service := range services {
 		labels := service.Spec.Labels
 		name, ok := labels[convert.LabelNamespace]

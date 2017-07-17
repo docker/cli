@@ -232,7 +232,7 @@ func subnetMatches(subnet, data string) (bool, error) {
 
 	_, s, err := net.ParseCIDR(subnet)
 	if err != nil {
-		return false, errors.Errorf("invalid subnet : %v", err)
+		return false, errors.Wrap(err, "invalid subnet")
 	}
 
 	if strings.Contains(data, "/") {

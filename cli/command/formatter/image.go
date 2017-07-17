@@ -234,12 +234,12 @@ func (c *imageContext) Digest() string {
 }
 
 func (c *imageContext) CreatedSince() string {
-	createdAt := time.Unix(int64(c.i.Created), 0)
+	createdAt := time.Unix(c.i.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
 func (c *imageContext) CreatedAt() string {
-	return time.Unix(int64(c.i.Created), 0).String()
+	return time.Unix(c.i.Created, 0).String()
 }
 
 func (c *imageContext) Size() string {

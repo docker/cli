@@ -30,13 +30,13 @@ Practices](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-pr
 ## Usage
 
 The [`docker build`](commandline/build.md) command builds an image from
-a `Dockerfile` and a *context*. The build's context is the files at a specified
-location `PATH` or `URL`. The `PATH` is a directory on your local filesystem.
-The `URL` is a Git repository location.
+a `Dockerfile` and a *context*. The build's context is the set of files at a
+specified location `PATH` or `URL`. The `PATH` is a directory on your local
+filesystem. The `URL` is a Git repository location.
 
 A context is processed recursively. So, a `PATH` includes any subdirectories and
-the `URL` includes the repository and its submodules. A simple build command
-that uses the current directory as context:
+the `URL` includes the repository and its submodules. This example shows a
+build command that uses the current directory as context:
 
     $ docker build .
     Sending build context to Docker daemon  6.51 MB
@@ -138,7 +138,7 @@ be UPPERCASE to distinguish them from arguments more easily.
 Docker runs instructions in a `Dockerfile` in order. A `Dockerfile` **must
 start with a \`FROM\` instruction**. The `FROM` instruction specifies the [*Base
 Image*](glossary.md#base-image) from which you are building. `FROM` may only be
-proceeded by one or more `ARG` instructions, which declare arguments that are used
+preceded by one or more `ARG` instructions, which declare arguments that are used
 in `FROM` lines in the `Dockerfile`.
 
 Docker treats lines that *begin* with `#` as a comment, unless the line is
@@ -499,7 +499,7 @@ valid `Dockerfile` must start with a `FROM` instruction. The image can be
 any valid image – it is especially easy to start by **pulling an image** from 
 the [*Public Repositories*](https://docs.docker.com/engine/tutorials/dockerrepos/).
 
-- `ARG` is the only instruction that may proceed `FROM` in the `Dockerfile`. 
+- `ARG` is the only instruction that may precede `FROM` in the `Dockerfile`.
   See [Understand how ARG and FROM interact](#understand-how-arg-and-from-interact).
 
 - `FROM` can appear multiple times within a single `Dockerfile` to 
@@ -530,15 +530,16 @@ FROM extras:${CODE_VERSION}
 CMD  /code/run-extras
 ```
 
-To use the default value of an `ARG` declared before the first `FROM` use an
-`ARG` instruction without a value:
+An `ARG` declared before a `FROM` is outside of a build stage, so it
+can't be used in any instruction after a `FROM`. To use the default value of
+an `ARG` declared before the first `FROM` use an `ARG` instruction without
+a value inside of a build stage:
 
 ```Dockerfile
-ARG  SETTINGS=default
-
-FROM busybox
-ARG  SETTINGS
-
+ARG VERSION=latest
+FROM busybox:$VERSION
+ARG VERSION
+RUN echo $VERSION > image_version
 ```
 
 ## RUN
@@ -1328,9 +1329,9 @@ The `WORKDIR` instruction sets the working directory for any `RUN`, `CMD`,
 If the `WORKDIR` doesn't exist, it will be created even if it's not used in any
 subsequent `Dockerfile` instruction.
 
-It can be used multiple times in the one `Dockerfile`. If a relative path
-is provided, it will be relative to the path of the previous `WORKDIR`
-instruction. For example:
+The `WORKDIR` instruction can be used multiple times in a `Dockerfile`. If a
+relative path is provided, it will be relative to the path of the previous
+`WORKDIR` instruction. For example:
 
     WORKDIR /a
     WORKDIR b
@@ -1364,8 +1365,8 @@ defined in the Dockerfile, the build outputs a warning.
 [Warning] One or more build-args [foo] were not consumed.
 ```
 
-The Dockerfile author can define a single variable by specifying `ARG` once or many
-variables by specifying `ARG` more than once. For example, a valid Dockerfile:
+A Dockerfile may include one or more `ARG` instructions. For example,
+the following is a valid Dockerfile:
 
 ```
 FROM busybox
@@ -1374,7 +1375,13 @@ ARG buildno
 ...
 ```
 
-A Dockerfile author may optionally specify a default value for an `ARG` instruction:
+> **Warning:** It is not recommended to use build-time variables for
+>  passing secrets like github keys, user credentials etc. Build-time variable
+>  values are visible to any user of the image with the `docker history` command.
+
+### Default values
+
+An `ARG` instruction can optionally include a default value:
 
 ```
 FROM busybox
@@ -1383,8 +1390,10 @@ ARG buildno=1
 ...
 ```
 
-If an `ARG` value has a default and if there is no value passed at build-time, the
-builder uses the default.
+If an `ARG` instruction has a default value and if there is no value passed
+at build-time, the builder uses the default.
+
+### Scope
 
 An `ARG` variable definition comes into effect from the line on which it is
 defined in the `Dockerfile` not from the argument's use on the command-line or
@@ -1408,9 +1417,21 @@ subsequent line 3. The `USER` at line 4 evaluates to `what_user` as `user` is
 defined and the `what_user` value was passed on the command line. Prior to its definition by an
 `ARG` instruction, any use of a variable results in an empty string.
 
-> **Warning:** It is not recommended to use build-time variables for
->  passing secrets like github keys, user credentials etc. Build-time variable
->  values are visible to any user of the image with the `docker history` command.
+An `ARG` instruction goes out of scope at the end of the build
+stage where it was defined. To use an arg in multiple stages, each stage must
+include the `ARG` instruction.
+
+```
+FROM busybox
+ARG SETTINGS
+RUN ./run/setup $SETTINGS
+
+FROM busybox
+ARG SETTINGS
+RUN ./run/other $SETTINGS
+```
+
+### Using ARG variables
 
 You can use an `ARG` or an `ENV` instruction to specify variables that are
 available to the `RUN` instruction. Environment variables defined using the
@@ -1458,6 +1479,8 @@ The variable expansion technique in this example allows you to pass arguments
 from the command line and persist them in the final image by leveraging the
 `ENV` instruction. Variable expansion is only supported for [a limited set of
 Dockerfile instructions.](#environment-replacement)
+
+### Predefined ARGs
 
 Docker has a set of predefined `ARG` variables that you can use without a
 corresponding `ARG` instruction in the Dockerfile.

@@ -36,10 +36,9 @@ const (
 )
 
 type swarmOptions struct {
+	swarmCAOptions
 	taskHistoryLimit    int64
 	dispatcherHeartbeat time.Duration
-	nodeCertExpiry      time.Duration
-	externalCA          ExternalCAOption
 	maxSnapshots        uint64
 	snapshotInterval    uint64
 	autolock            bool
@@ -216,19 +215,19 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	return &externalCA, nil
 }
 
-func addSwarmCAFlags(flags *pflag.FlagSet, opts *swarmOptions) {
-	flags.DurationVar(&opts.nodeCertExpiry, flagCertExpiry, time.Duration(90*24*time.Hour), "Validity period for node certificates (ns|us|ms|s|m|h)")
+func addSwarmCAFlags(flags *pflag.FlagSet, opts *swarmCAOptions) {
+	flags.DurationVar(&opts.nodeCertExpiry, flagCertExpiry, 90*24*time.Hour, "Validity period for node certificates (ns|us|ms|s|m|h)")
 	flags.Var(&opts.externalCA, flagExternalCA, "Specifications of one or more certificate signing endpoints")
 }
 
 func addSwarmFlags(flags *pflag.FlagSet, opts *swarmOptions) {
 	flags.Int64Var(&opts.taskHistoryLimit, flagTaskHistoryLimit, 5, "Task history retention limit")
-	flags.DurationVar(&opts.dispatcherHeartbeat, flagDispatcherHeartbeat, time.Duration(5*time.Second), "Dispatcher heartbeat period (ns|us|ms|s|m|h)")
+	flags.DurationVar(&opts.dispatcherHeartbeat, flagDispatcherHeartbeat, 5*time.Second, "Dispatcher heartbeat period (ns|us|ms|s|m|h)")
 	flags.Uint64Var(&opts.maxSnapshots, flagMaxSnapshots, 0, "Number of additional Raft snapshots to retain")
 	flags.SetAnnotation(flagMaxSnapshots, "version", []string{"1.25"})
 	flags.Uint64Var(&opts.snapshotInterval, flagSnapshotInterval, 10000, "Number of log entries between Raft snapshots")
 	flags.SetAnnotation(flagSnapshotInterval, "version", []string{"1.25"})
-	addSwarmCAFlags(flags, opts)
+	addSwarmCAFlags(flags, &opts.swarmCAOptions)
 }
 
 func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet) {
@@ -238,12 +237,6 @@ func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet)
 	if flags.Changed(flagDispatcherHeartbeat) {
 		spec.Dispatcher.HeartbeatPeriod = opts.dispatcherHeartbeat
 	}
-	if flags.Changed(flagCertExpiry) {
-		spec.CAConfig.NodeCertExpiry = opts.nodeCertExpiry
-	}
-	if flags.Changed(flagExternalCA) {
-		spec.CAConfig.ExternalCAs = opts.externalCA.Value()
-	}
 	if flags.Changed(flagMaxSnapshots) {
 		spec.Raft.KeepOldSnapshots = &opts.maxSnapshots
 	}
@@ -252,6 +245,21 @@ func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet)
 	}
 	if flags.Changed(flagAutolock) {
 		spec.EncryptionConfig.AutoLockManagers = opts.autolock
+	}
+	opts.mergeSwarmSpecCAFlags(spec, flags)
+}
+
+type swarmCAOptions struct {
+	nodeCertExpiry time.Duration
+	externalCA     ExternalCAOption
+}
+
+func (opts *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet) {
+	if flags.Changed(flagCertExpiry) {
+		spec.CAConfig.NodeCertExpiry = opts.nodeCertExpiry
+	}
+	if flags.Changed(flagExternalCA) {
+		spec.CAConfig.ExternalCAs = opts.externalCA.Value()
 	}
 }
 

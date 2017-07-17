@@ -56,7 +56,7 @@ func TestVolumeInspectErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeInspectFunc: tc.volumeInspectFunc,
 			}, buf),
 		)
@@ -98,7 +98,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeInspectFunc: tc.volumeInspectFunc,
 			}, buf),
 		)
@@ -138,7 +138,7 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				volumeInspectFunc: tc.volumeInspectFunc,
 			}, buf),
 		)

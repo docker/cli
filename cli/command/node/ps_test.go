@@ -52,7 +52,7 @@ func TestNodePsErrors(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newPsCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				nodeInspectFunc: tc.nodeInspectFunc,
 				taskInspectFunc: tc.taskInspectFunc,
@@ -103,11 +103,11 @@ func TestNodePs(t *testing.T) {
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{
-					*Task(TaskID("taskID1"), ServiceID("failure"),
+					*Task(TaskID("taskID1"), TaskServiceID("failure"),
 						WithStatus(Timestamp(time.Now().Add(-2*time.Hour)), StatusErr("a task error"))),
-					*Task(TaskID("taskID2"), ServiceID("failure"),
+					*Task(TaskID("taskID2"), TaskServiceID("failure"),
 						WithStatus(Timestamp(time.Now().Add(-3*time.Hour)), StatusErr("a task error"))),
-					*Task(TaskID("taskID3"), ServiceID("failure"),
+					*Task(TaskID("taskID3"), TaskServiceID("failure"),
 						WithStatus(Timestamp(time.Now().Add(-4*time.Hour)), StatusErr("a task error"))),
 				}, nil
 			},
@@ -116,7 +116,7 @@ func TestNodePs(t *testing.T) {
 	for _, tc := range testCases {
 		buf := new(bytes.Buffer)
 		cmd := newPsCommand(
-			test.NewFakeCli(&fakeClient{
+			test.NewFakeCliWithOutput(&fakeClient{
 				infoFunc:        tc.infoFunc,
 				nodeInspectFunc: tc.nodeInspectFunc,
 				taskInspectFunc: tc.taskInspectFunc,

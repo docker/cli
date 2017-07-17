@@ -42,12 +42,10 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cli := test.NewFakeCli(&fakeClient{
 			nodeListFunc: tc.nodeListFunc,
 			infoFunc:     tc.infoFunc,
-		}, buf)
-		cli.SetConfigfile(&configfile.ConfigFile{})
+		})
 		cmd := newListCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		assert.EqualError(t, cmd.Execute(), tc.expectedError)
@@ -55,7 +53,6 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 }
 
 func TestNodeList(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
@@ -71,25 +68,25 @@ func TestNodeList(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	})
+
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), `nodeID1 *           nodeHostname1       Ready               Active              Leader`)
-	assert.Contains(t, buf.String(), `nodeID2             nodeHostname2       Ready               Active              Reachable`)
-	assert.Contains(t, buf.String(), `nodeID3             nodeHostname3       Ready               Active`)
+	out := cli.OutBuffer().String()
+	assert.Contains(t, out, `nodeID1 *           nodeHostname1       Ready               Active              Leader`)
+	assert.Contains(t, out, `nodeID2             nodeHostname2       Ready               Active              Reachable`)
+	assert.Contains(t, out, `nodeID3             nodeHostname3       Ready               Active`)
 }
 
 func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(),
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
@@ -99,8 +96,7 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 // Test case for #24090
 func TestNodeListContainsHostname(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{})
+	cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, buf.String(), "HOSTNAME")
@@ -108,7 +104,7 @@ func TestNodeListContainsHostname(t *testing.T) {
 
 func TestNodeListDefaultFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -124,7 +120,7 @@ func TestNodeListDefaultFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
@@ -136,7 +132,7 @@ func TestNodeListDefaultFormat(t *testing.T) {
 
 func TestNodeListFormat(t *testing.T) {
 	buf := new(bytes.Buffer)
-	cli := test.NewFakeCli(&fakeClient{
+	cli := test.NewFakeCliWithOutput(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -151,7 +147,7 @@ func TestNodeListFormat(t *testing.T) {
 			}, nil
 		},
 	}, buf)
-	cli.SetConfigfile(&configfile.ConfigFile{
+	cli.SetConfigFile(&configfile.ConfigFile{
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)

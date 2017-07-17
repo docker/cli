@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateAttach(t *testing.T) {
@@ -61,16 +62,14 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 	return containerConfig.Config, containerConfig.HostConfig, containerConfig.NetworkingConfig, err
 }
 
-func parsetest(t *testing.T, args string) (*container.Config, *container.HostConfig, error) {
-	config, hostConfig, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
-	return config, hostConfig, err
+func parseMustError(t *testing.T, args string) {
+	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
+	assert.Error(t, err, args)
 }
 
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
-	config, hostConfig, err := parsetest(t, args)
-	if err != nil {
-		t.Fatal(err)
-	}
+	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
+	assert.NoError(t, err)
 	return config, hostConfig
 }
 
@@ -86,7 +85,6 @@ func TestParseRunLinks(t *testing.T) {
 	}
 }
 
-// nolint: gocyclo
 func TestParseRunAttach(t *testing.T) {
 	if config, _ := mustParse(t, "-a stdin"); !config.AttachStdin || config.AttachStdout || config.AttachStderr {
 		t.Fatalf("Error parsing attach flags. Expect only Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
@@ -103,31 +101,17 @@ func TestParseRunAttach(t *testing.T) {
 	if config, _ := mustParse(t, "-i"); !config.AttachStdin || !config.AttachStdout || !config.AttachStderr {
 		t.Fatalf("Error parsing attach flags. Expect Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
 	}
+}
 
-	if _, _, err := parsetest(t, "-a"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a invalid"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a invalid` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a invalid -a stdout"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -a invalid` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdout -a stderr -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -a stderr -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdin -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdin -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stdout -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stdout -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-a stderr -d"); err == nil {
-		t.Fatal("Error parsing attach flags, `-a stderr -d` should be an error but is not")
-	}
-	if _, _, err := parsetest(t, "-d --rm"); err == nil {
-		t.Fatal("Error parsing attach flags, `-d --rm` should be an error but is not")
-	}
+func TestParseRunWithInvalidArgs(t *testing.T) {
+	parseMustError(t, "-a")
+	parseMustError(t, "-a invalid")
+	parseMustError(t, "-a invalid -a stdout")
+	parseMustError(t, "-a stdout -a stderr -d")
+	parseMustError(t, "-a stdin -d")
+	parseMustError(t, "-a stdout -d")
+	parseMustError(t, "-a stderr -d")
+	parseMustError(t, "-d --rm")
 }
 
 // nolint: gocyclo
@@ -383,51 +367,46 @@ func TestParseDevice(t *testing.T) {
 
 func TestParseModes(t *testing.T) {
 	// ipc ko
-	if _, _, _, err := parseRun([]string{"--ipc=container:", "img", "cmd"}); err == nil || err.Error() != "--ipc: invalid IPC mode" {
-		t.Fatalf("Expected an error with message '--ipc: invalid IPC mode', got %v", err)
-	}
+	_, _, _, err := parseRun([]string{"--ipc=container:", "img", "cmd"})
+	testutil.ErrorContains(t, err, "--ipc: invalid IPC mode")
+
 	// ipc ok
 	_, hostconfig, _, err := parseRun([]string{"--ipc=host", "img", "cmd"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if !hostconfig.IpcMode.Valid() {
 		t.Fatalf("Expected a valid IpcMode, got %v", hostconfig.IpcMode)
 	}
+
 	// pid ko
-	if _, _, _, err := parseRun([]string{"--pid=container:", "img", "cmd"}); err == nil || err.Error() != "--pid: invalid PID mode" {
-		t.Fatalf("Expected an error with message '--pid: invalid PID mode', got %v", err)
-	}
+	_, _, _, err = parseRun([]string{"--pid=container:", "img", "cmd"})
+	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
+
 	// pid ok
 	_, hostconfig, _, err = parseRun([]string{"--pid=host", "img", "cmd"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if !hostconfig.PidMode.Valid() {
 		t.Fatalf("Expected a valid PidMode, got %v", hostconfig.PidMode)
 	}
+
 	// uts ko
-	if _, _, _, err := parseRun([]string{"--uts=container:", "img", "cmd"}); err == nil || err.Error() != "--uts: invalid UTS mode" {
-		t.Fatalf("Expected an error with message '--uts: invalid UTS mode', got %v", err)
-	}
+	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"})
+	testutil.ErrorContains(t, err, "--uts: invalid UTS mode")
+
 	// uts ok
 	_, hostconfig, _, err = parseRun([]string{"--uts=host", "img", "cmd"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if !hostconfig.UTSMode.Valid() {
 		t.Fatalf("Expected a valid UTSMode, got %v", hostconfig.UTSMode)
 	}
+
 	// shm-size ko
 	expectedErr := `invalid argument "a128m" for --shm-size=a128m: invalid size: 'a128m'`
-	if _, _, _, err = parseRun([]string{"--shm-size=a128m", "img", "cmd"}); err == nil || err.Error() != expectedErr {
-		t.Fatalf("Expected an error with message '%v', got %v", expectedErr, err)
-	}
+	_, _, _, err = parseRun([]string{"--shm-size=a128m", "img", "cmd"})
+	testutil.ErrorContains(t, err, expectedErr)
+
 	// shm-size ok
 	_, hostconfig, _, err = parseRun([]string{"--shm-size=128m", "img", "cmd"})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	if hostconfig.ShmSize != 134217728 {
 		t.Fatalf("Expected a valid ShmSize, got %d", hostconfig.ShmSize)
 	}
@@ -769,58 +748,6 @@ func callDecodeContainerConfig(volumes []string, binds []string) (*container.Con
 	}
 
 	return c, h, err
-}
-
-func TestVolumeSplitN(t *testing.T) {
-	for _, x := range []struct {
-		input    string
-		n        int
-		expected []string
-	}{
-		{`C:\foo:d:`, -1, []string{`C:\foo`, `d:`}},
-		{`:C:\foo:d:`, -1, nil},
-		{`/foo:/bar:ro`, 3, []string{`/foo`, `/bar`, `ro`}},
-		{`/foo:/bar:ro`, 2, []string{`/foo`, `/bar:ro`}},
-		{`C:\foo\:/foo`, -1, []string{`C:\foo\`, `/foo`}},
-
-		{`d:\`, -1, []string{`d:\`}},
-		{`d:`, -1, []string{`d:`}},
-		{`d:\path`, -1, []string{`d:\path`}},
-		{`d:\path with space`, -1, []string{`d:\path with space`}},
-		{`d:\pathandmode:rw`, -1, []string{`d:\pathandmode`, `rw`}},
-		{`c:\:d:\`, -1, []string{`c:\`, `d:\`}},
-		{`c:\windows\:d:`, -1, []string{`c:\windows\`, `d:`}},
-		{`c:\windows:d:\s p a c e`, -1, []string{`c:\windows`, `d:\s p a c e`}},
-		{`c:\windows:d:\s p a c e:RW`, -1, []string{`c:\windows`, `d:\s p a c e`, `RW`}},
-		{`c:\program files:d:\s p a c e i n h o s t d i r`, -1, []string{`c:\program files`, `d:\s p a c e i n h o s t d i r`}},
-		{`0123456789name:d:`, -1, []string{`0123456789name`, `d:`}},
-		{`MiXeDcAsEnAmE:d:`, -1, []string{`MiXeDcAsEnAmE`, `d:`}},
-		{`name:D:`, -1, []string{`name`, `D:`}},
-		{`name:D::rW`, -1, []string{`name`, `D:`, `rW`}},
-		{`name:D::RW`, -1, []string{`name`, `D:`, `RW`}},
-		{`c:/:d:/forward/slashes/are/good/too`, -1, []string{`c:/`, `d:/forward/slashes/are/good/too`}},
-		{`c:\Windows`, -1, []string{`c:\Windows`}},
-		{`c:\Program Files (x86)`, -1, []string{`c:\Program Files (x86)`}},
-
-		{``, -1, nil},
-		{`.`, -1, []string{`.`}},
-		{`..\`, -1, []string{`..\`}},
-		{`c:\:..\`, -1, []string{`c:\`, `..\`}},
-		{`c:\:d:\:xyzzy`, -1, []string{`c:\`, `d:\`, `xyzzy`}},
-
-		// Cover directories with one-character name
-		{`/tmp/x/y:/foo/x/y`, -1, []string{`/tmp/x/y`, `/foo/x/y`}},
-	} {
-		res := volumeSplitN(x.input, x.n)
-		if len(res) < len(x.expected) {
-			t.Fatalf("input: %v, expected: %v, got: %v", x.input, x.expected, res)
-		}
-		for i, e := range res {
-			if e != x.expected[i] {
-				t.Fatalf("input: %v, expected: %v, got: %v", x.input, x.expected, res)
-			}
-		}
-	}
 }
 
 func TestValidateDevice(t *testing.T) {

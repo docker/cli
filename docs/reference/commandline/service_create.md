@@ -23,6 +23,7 @@ Create a new service
 Options:
       --constraint list                    Placement constraints
       --container-label list               Container labels
+      --credential-spec                    Credential spec for managed service account (Windows only)
   -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
       --dns list                           Set custom DNS servers
       --dns-option list                    Set DNS options
@@ -167,6 +168,8 @@ $ docker service create --name redis \
 4cdgfyky7ozwh3htjfw0d12qv
 ```
 
+To grant a service access to multiple secrets, use multiple `--secret` flags.
+
 Secrets are located in `/run/secrets` in the container.  If no target is
 specified, the name of the secret will be used as the in memory file in the
 container.  If a target is specified, that will be the filename.  In the
@@ -191,10 +194,26 @@ tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
 ### Set environment variables (-e, --env)
 
-This sets environmental variables for all tasks in a service. For example:
+This sets an environmental variable for all tasks in a service. For example:
 
 ```bash
-$ docker service create --name redis_2 --replicas 5 --env MYVAR=foo redis:3.0.6
+$ docker service create \
+  --name redis_2 \
+  --replicas 5 \
+  --env MYVAR=foo \
+  redis:3.0.6
+```
+
+To specify multiple environment variables, specify multiple `--env` flags, each
+with a separate key-value pair.
+
+```bash
+$ docker service create \
+  --name redis_2 \
+  --replicas 5 \
+  --env MYVAR=foo \
+  --env MYVAR2=bar \
+  redis:3.0.6
 ```
 
 ### Create a service with specific hostname (--hostname)
@@ -760,6 +779,24 @@ $ docker service create --name dns-cache -p 53:53/tcp -p 53:53/udp dns-cache
 ```bash
 $ docker service create --name dns-cache -p 53:53/udp dns-cache
 ```
+
+### Provide credential specs for managed service accounts (Windows only)
+
+This option is only used for services using Windows containers. The
+`--credential-spec` must be in the format `file://<filename>` or
+`registry://<value-name>`.
+
+When using the `file://<filename>` format, the referenced file must be
+present in the `CredentialSpecs` subdirectory in the docker data directory,
+which defaults to `C:\ProgramData\Docker\` on Windows. For example,
+specifying `file://spec.json` loads `C:\ProgramData\Docker\CredentialSpecs\spec.json`.
+
+When using the `registry://<value-name>` format, the credential spec is
+read from the Windows registry on the daemon's host. The specified
+registry value must be located in:
+
+    HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Virtualization\Containers\CredentialSpecs
+
 
 ### Create services using templates
 

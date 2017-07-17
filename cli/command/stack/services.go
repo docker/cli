@@ -21,7 +21,7 @@ type servicesOptions struct {
 	namespace string
 }
 
-func newServicesCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	options := servicesOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -41,7 +41,7 @@ func newServicesCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runServices(dockerCli *command.DockerCli, options servicesOptions) error {
+func runServices(dockerCli command.Cli, options servicesOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
@@ -51,11 +51,9 @@ func runServices(dockerCli *command.DockerCli, options servicesOptions) error {
 		return err
 	}
 
-	out := dockerCli.Out()
-
 	// if no services in this stack, print message and exit 0
 	if len(services) == 0 {
-		fmt.Fprintf(out, "Nothing found in stack: %s\n", options.namespace)
+		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", options.namespace)
 		return nil
 	}
 

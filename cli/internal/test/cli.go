@@ -1,13 +1,13 @@
 package test
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/client"
 )
 
@@ -17,18 +17,31 @@ type FakeCli struct {
 	client     client.APIClient
 	configfile *configfile.ConfigFile
 	out        *command.OutStream
-	err        io.Writer
+	outBuffer  *bytes.Buffer
+	err        *bytes.Buffer
 	in         *command.InStream
-	store      credentials.Store
+	server     command.ServerInfo
 }
 
-// NewFakeCli returns a Cli backed by the fakeCli
-func NewFakeCli(client client.APIClient, out io.Writer) *FakeCli {
+// NewFakeCliWithOutput returns a Cli backed by the fakeCli
+// Deprecated: Use NewFakeCli
+func NewFakeCliWithOutput(client client.APIClient, out io.Writer) *FakeCli {
+	cli := NewFakeCli(client)
+	cli.out = command.NewOutStream(out)
+	return cli
+}
+
+// NewFakeCli returns a fake for the command.Cli interface
+func NewFakeCli(client client.APIClient) *FakeCli {
+	outBuffer := new(bytes.Buffer)
+	errBuffer := new(bytes.Buffer)
 	return &FakeCli{
-		client: client,
-		out:    command.NewOutStream(out),
-		err:    ioutil.Discard,
-		in:     command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		client:     client,
+		out:        command.NewOutStream(outBuffer),
+		outBuffer:  outBuffer,
+		err:        errBuffer,
+		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		configfile: configfile.New("configfile"),
 	}
 }
 
@@ -38,12 +51,12 @@ func (c *FakeCli) SetIn(in *command.InStream) {
 }
 
 // SetErr sets the stderr stream for the cli to the specified io.Writer
-func (c *FakeCli) SetErr(err io.Writer) {
+func (c *FakeCli) SetErr(err *bytes.Buffer) {
 	c.err = err
 }
 
-// SetConfigfile sets the "fake" config file
-func (c *FakeCli) SetConfigfile(configfile *configfile.ConfigFile) {
+// SetConfigFile sets the "fake" config file
+func (c *FakeCli) SetConfigFile(configfile *configfile.ConfigFile) {
 	c.configfile = configfile
 }
 
@@ -72,10 +85,17 @@ func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 	return c.configfile
 }
 
-// CredentialsStore returns the fake store the cli will use
-func (c *FakeCli) CredentialsStore(serverAddress string) credentials.Store {
-	if c.store == nil {
-		c.store = NewFakeStore()
-	}
-	return c.store
+// ServerInfo returns API server information for the server used by this client
+func (c *FakeCli) ServerInfo() command.ServerInfo {
+	return c.server
+}
+
+// OutBuffer returns the stdout buffer
+func (c *FakeCli) OutBuffer() *bytes.Buffer {
+	return c.outBuffer
+}
+
+// ErrBuffer Buffer returns the stderr buffer
+func (c *FakeCli) ErrBuffer() *bytes.Buffer {
+	return c.err
 }

@@ -109,10 +109,8 @@ func NewStatsFormat(source, osType string) Format {
 }
 
 // NewContainerStats returns a new ContainerStats entity and sets in it the given name
-func NewContainerStats(container, osType string) *ContainerStats {
-	return &ContainerStats{
-		StatsEntry: StatsEntry{Container: container},
-	}
+func NewContainerStats(container string) *ContainerStats {
+	return &ContainerStats{StatsEntry: StatsEntry{Container: container}}
 }
 
 // ContainerStatsWrite renders the context for a list of containers statistics
@@ -186,7 +184,7 @@ func (c *containerStatsContext) MemUsage() string {
 		return fmt.Sprintf("-- / --")
 	}
 	if c.os == winOSType {
-		return fmt.Sprintf("%s", units.BytesSize(c.s.Memory))
+		return units.BytesSize(c.s.Memory)
 	}
 	return fmt.Sprintf("%s / %s", units.BytesSize(c.s.Memory), units.BytesSize(c.s.MemoryLimit))
 }

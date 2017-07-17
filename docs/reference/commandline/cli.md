@@ -216,6 +216,7 @@ attach`, `docker exec`, `docker run` or `docker start` command.
 Following is a sample `config.json` file:
 
 ```json
+{% raw %}
 {
   "HttpHeaders": {
     "MyHeader": "MyValue"
@@ -236,6 +237,7 @@ Following is a sample `config.json` file:
     "unicorn.example.com": "vcbait"
   }
 }
+{% endraw %}
 ```
 
 ### Notary

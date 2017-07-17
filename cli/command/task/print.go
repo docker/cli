@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"sort"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/api/types/swarm"
+	"golang.org/x/net/context"
 )
 
 type tasksBySlot []swarm.Task
@@ -81,4 +81,13 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 	}
 
 	return formatter.TaskWrite(tasksCtx, tasks, names, nodes)
+}
+
+// DefaultFormat returns the default format from the config file, or table
+// format if nothing is set in the config.
+func DefaultFormat(configFile *configfile.ConfigFile, quiet bool) string {
+	if len(configFile.TasksFormat) > 0 && !quiet {
+		return configFile.TasksFormat
+	}
+	return formatter.TableFormatKey
 }

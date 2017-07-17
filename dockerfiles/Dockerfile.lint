@@ -2,10 +2,15 @@ FROM    golang:1.8.3-alpine
 
 RUN     apk add -U git
 
-RUN     go get -u gopkg.in/alecthomas/gometalinter.v1 && \
-        mv /go/bin/gometalinter.v1 /usr/local/bin/gometalinter && \
-        gometalinter --install
+ARG     GOMETALINTER_SHA=4306381615a2ba2a207f8fcea02c08c6b2b0803f
+RUN     go get github.com/alecthomas/gometalinter && \
+        cd /go/src/github.com/alecthomas/gometalinter && \
+        git checkout -q "$GOMETALINTER_SHA" && \
+        go build -v -o /usr/local/bin/gometalinter . && \ 
+        gometalinter --install && \
+        rm -rf /go/src/* /go/pkg/*
 
 WORKDIR /go/src/github.com/docker/cli
+ENV     CGO_ENABLED=0
 ENTRYPOINT ["/usr/local/bin/gometalinter"]
-CMD ["--config=gometalinter.json", "./..."]
+CMD     ["--config=gometalinter.json", "./..."]

@@ -632,10 +632,6 @@ func durationPtr(value time.Duration) *time.Duration {
 	return &value
 }
 
-func int64Ptr(value int64) *int64 {
-	return &value
-}
-
 func uint64Ptr(value uint64) *uint64 {
 	return &value
 }
@@ -687,7 +683,7 @@ func TestFullExample(t *testing.T) {
 				},
 			},
 			RestartPolicy: &types.RestartPolicy{
-				Condition:   "on_failure",
+				Condition:   "on-failure",
 				Delay:       durationPtr(5 * time.Second),
 				MaxAttempts: uint64Ptr(3),
 				Window:      durationPtr(2 * time.Minute),

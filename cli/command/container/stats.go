@@ -106,7 +106,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 			closeChan <- err
 		}
 		for _, container := range cs {
-			s := formatter.NewContainerStats(container.ID[:12], daemonOSType)
+			s := formatter.NewContainerStats(container.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -123,7 +123,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 		eh := command.InitEventHandler()
 		eh.Handle("create", func(e events.Message) {
 			if opts.all {
-				s := formatter.NewContainerStats(e.ID[:12], daemonOSType)
+				s := formatter.NewContainerStats(e.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
 					go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -132,7 +132,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 		})
 
 		eh.Handle("start", func(e events.Message) {
-			s := formatter.NewContainerStats(e.ID[:12], daemonOSType)
+			s := formatter.NewContainerStats(e.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -158,7 +158,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 		// Artificially send creation events for the containers we were asked to
 		// monitor (same code path than we use when monitoring all containers).
 		for _, name := range opts.containers {
-			s := formatter.NewContainerStats(name, daemonOSType)
+			s := formatter.NewContainerStats(name)
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)

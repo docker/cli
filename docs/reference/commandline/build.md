@@ -63,11 +63,11 @@ Options:
 
 ## Description
 
-Builds Docker images from a Dockerfile and a "context". A build's context is
-the files located in the specified `PATH` or `URL`. The build process can refer
-to any of the files in the context. For example, your build can use an
-[*ADD*](../builder.md#add) instruction to reference a file in the
-context.
+The `docker build` command builds Docker images from a Dockerfile and a
+"context". A build's context is the set of files located in the specified
+`PATH` or `URL`. The build process can refer to any of the files in the
+context. For example, your build can use a [*COPY*](../builder.md#copy)
+instruction to reference a file in the context.
 
 The `URL` parameter can refer to three kinds of resources: Git repositories,
 pre-packaged tarball contexts and plain text files.
@@ -88,7 +88,7 @@ user credentials, VPN's, and so forth.
 
 Git URLs accept context configuration in their fragment section, separated by a
 colon `:`.  The first part represents the reference that Git will check out,
-this can be either a branch, a tag, or a remote reference. The second part
+and can be either a branch, a tag, or a remote reference. The second part
 represents a subdirectory inside the repository that will be used as a build
 context.
 
