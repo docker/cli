@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+#
+# Run a development task
+#
+set -eu -o pipefail
+
+unique_id=${TASK_UNIQUE_ID:-$USER}
+dev_image="docker-cli-dev:$unique_id"
+linter_image="docker-cli-lint:$unique_id"
+cross_image="docker-cli-cross:$unique_id"
+
+TASK_BUILD_ARGS=${TASK_BUILD_ARGS:-}
+
+function run_task {
+    local task=$1
+
+    if [[ "$task" = *shell ]]; then
+        local cmd=sh
+    else
+        local cmd="make $task"
+    fi
+
+    case $task in
+        lint|lint-shell)
+            docker_build_and_run "$linter_image" ./dockerfiles/Dockerfile.lint "$cmd"
+            ;;
+        cross|dynbinary|cross-shell)
+            docker_build_and_run "$cross_image" ./dockerfiles/Dockerfile.cross "$cmd"
+            ;;
+        *)
+            docker_build_and_run "$dev_image" ./dockerfiles/Dockerfile.dev "$cmd"
+            ;;
+    esac
+}
+
+function docker_build_and_run {
+    local image=$1
+    local dockerfile=$2
+    local cmd=$3
+    local dockerfile_source=
+    local cidfile=
+    local remove="--rm"
+    local envvars="-e VERSION \
+                   -e GITCOMMIT \
+                   -e BUILDTIME \
+                   -e LDFLAGS \
+                   -e DISABLE_WARN_OUTSIDE_CONTAINER=1"
+    # Use an array to preserve whitespace in $PWD
+    local mounts=(-v "$PWD:/go/src/github.com/docker/cli")
+    if [ -t 1 ] ; then local use_tty="-ti"; else local use_tty=""; fi
+
+    if [ -n "${DOCKER_HOST:-}" ] || [ -n "${NO_BINDMOUNT:-}" ]; then
+        dockerfile_source="$(cat $dockerfile <(echo COPY . .))"
+        mounts=()
+        dockerfile="-"
+    fi
+
+    if [ -n "${CID_FILENAME:-}" ]; then
+        cidfile="--cidfile $CID_FILENAME"
+        remove=
+    fi
+
+    echo "$dockerfile_source" | \
+        docker build $TASK_BUILD_ARGS -t "$image" -f "$dockerfile" .
+    docker run \
+        $remove \
+        $envvars \
+        $cidfile \
+        $use_tty \
+        ${mounts[@]+"${mounts[@]}"} \
+        "$image" \
+        $cmd
+}
+
+function usage {
+    local tasks="See Makefile for a list of task names."
+    if command -v make awk sort grep > /dev/null; then
+        # this ugly command is supposed to list the targets in a Makefile
+        tasks="$(set +o pipefail; echo; make -qp | \
+            awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /); for(i in A) print "   " A[i]}' | \
+            sort -u | grep -v Makefile)"
+        tasks="TASK may be one of: $tasks"
+    fi
+
+    cat <<USAGE
+Usage: $0 TASK [TASK...]
+
+Run a project task in the appropriate Docker image.
+
+$tasks
+USAGE
+    exit 1
+}
+
+tasks="$@"
+if [ -z "$tasks" ] || [ "${tasks[0]}" = "--help" ]; then usage; fi
+
+for task in $tasks; do
+    run_task $task
+done

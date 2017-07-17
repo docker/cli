@@ -9,35 +9,30 @@ Docker EE products.
 Development
 ===========
 
-`docker/cli` is developed using Docker.
+The `./tasks` script allows you to build and develop the cli with Docker.
 
 Build a linux binary:
-
 ```
-$ make -f docker.Makefile binary
-```
-
-Build binaries for all supported platforms:
-
-```
-$ make -f docker.Makefile cross
+$ ./tasks binary
 ```
 
 Run all linting:
+```
+$ ./tasks lint
+```
 
-```
-$ make -f docker.Makefile lint
-```
+You can see a full list of tasks with `./tasks --help`.
 
 ### In-container development environment
 
 Start an interactive development environment:
 
 ```
-$ make -f docker.Makefile shell
+$ ./tasks shell
 ```
 
-In the development environment you can run many tasks, including build binaries:
+From the interactive development shell you can run tasks defined in the
+Makefile. For example, to build a binary you would run:
 
 ```
 $ make binary
