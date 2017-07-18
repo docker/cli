@@ -9,6 +9,8 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/docker/pkg/testutil/golden"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
@@ -155,4 +157,23 @@ func TestNodeListFormat(t *testing.T) {
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, buf.String(), `nodeHostname1: Leader`)
 	assert.Contains(t, buf.String(), `nodeHostname2: Reachable`)
+}
+
+func TestNodeListOrder(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		nodeListFunc: func() ([]swarm.Node, error) {
+			return []swarm.Node{
+				*Node(Hostname("node-2-foo"), Manager(Leader())),
+				*Node(Hostname("node-10-foo"), Manager()),
+				*Node(Hostname("node-1-foo")),
+			}, nil
+
+		},
+	})
+	cmd := newListCommand(cli)
+	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
+	assert.NoError(t, cmd.Execute())
+	actual := cli.OutBuffer().String()
+	expected := golden.Get(t, []byte(actual), "node-list-sort.golden")
+	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
 }
