@@ -7,7 +7,10 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/prune"
+	"github.com/docker/cli/cli/command/container"
+	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/network"
+	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -52,6 +55,26 @@ const confirmationTemplate = `WARNING! This will remove:
 {{- end }}
 Are you sure you want to continue?`
 
+// runContainerPrune executes a prune command for containers
+func runContainerPrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
+	return container.RunPrune(dockerCli, filter)
+}
+
+// runNetworkPrune executes a prune command for networks
+func runNetworkPrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
+	return network.RunPrune(dockerCli, filter)
+}
+
+// runVolumePrune executes a prune command for volumes
+func runVolumePrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
+	return volume.RunPrune(dockerCli, filter)
+}
+
+// runImagePrune executes a prune command for images
+func runImagePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
+	return image.RunPrune(dockerCli, all, filter)
+}
+
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
@@ -59,11 +82,11 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 
 	var spaceReclaimed uint64
 	pruneFuncs := []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
-		prune.RunContainerPrune,
-		prune.RunNetworkPrune,
+		runContainerPrune,
+		runNetworkPrune,
 	}
 	if options.pruneVolumes {
-		pruneFuncs = append(pruneFuncs, prune.RunVolumePrune)
+		pruneFuncs = append(pruneFuncs, runVolumePrune)
 	}
 
 	for _, pruneFn := range pruneFuncs {
@@ -77,7 +100,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		}
 	}
 
-	spc, output, err := prune.RunImagePrune(dockerCli, options.all, options.filter)
+	spc, output, err := runImagePrune(dockerCli, options.all, options.filter)
 	if err != nil {
 		return err
 	}
