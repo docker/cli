@@ -3289,7 +3289,6 @@ _docker_service_update() {
 # and `docker service update`
 _docker_service_update_and_create() {
 	local options_with_args="
-		--credential-spec
 		--endpoint-mode
 		--entrypoint
 		--env -e
@@ -3329,6 +3328,9 @@ _docker_service_update_and_create() {
 		--update-parallelism
 		--user -u
 		--workdir -w
+	"
+	__docker_daemon_os_is windows && options_with_args+="
+		--credential-spec
 	"
 
 	local boolean_options="
