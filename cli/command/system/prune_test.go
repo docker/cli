@@ -9,7 +9,7 @@ import (
 
 func TestPrunePromptPre131(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
-	cmd := NewPruneCommand(cli)
+	cmd := newPruneCommand(cli)
 	assert.NoError(t, cmd.Execute())
 	assert.NotContains(t, cli.OutBuffer().String(), "all build cache")
 }
