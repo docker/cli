@@ -128,7 +128,7 @@ func Service(
 			Labels: AddStackLabel(namespace, service.Deploy.Labels),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:           service.Image,
 				Command:         service.Entrypoint,
 				Args:            service.Command,

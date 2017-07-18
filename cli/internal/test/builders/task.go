@@ -140,7 +140,7 @@ func WithTaskSpec(specBuilders ...func(*swarm.TaskSpec)) func(*swarm.Task) {
 // Any number of taskSpec function builder can be pass to augment it.
 func TaskSpec(specBuilders ...func(*swarm.TaskSpec)) *swarm.TaskSpec {
 	taskSpec := &swarm.TaskSpec{
-		ContainerSpec: swarm.ContainerSpec{
+		ContainerSpec: &swarm.ContainerSpec{
 			Image: "myimage:mytag",
 		},
 	}

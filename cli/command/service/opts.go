@@ -592,7 +592,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:      options.image,
 				Args:       options.args,
 				Command:    options.entrypoint.Value(),

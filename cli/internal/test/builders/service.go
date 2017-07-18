@@ -56,7 +56,7 @@ func ReplicatedService(replicas uint64) func(*swarm.Service) {
 // ServiceImage sets the service's image
 func ServiceImage(image string) func(*swarm.Service) {
 	return func(service *swarm.Service) {
-		service.Spec.TaskTemplate = swarm.TaskSpec{ContainerSpec: swarm.ContainerSpec{Image: image}}
+		service.Spec.TaskTemplate = swarm.TaskSpec{ContainerSpec: &swarm.ContainerSpec{Image: image}}
 	}
 }
 
