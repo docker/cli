@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -eo pipefail
 
-# Maintain an array of files to shellcheck not the best solution but will do for the time being
-FILES=()
-FILES+=("contrib/completion/bash/docker")
-FILES+=("scripts/validate/shellcheck")
-
-for f in "${FILES[@]}"; do
-    shellcheck "$f"
-done
+shellcheck contrib/completion/bash/docker
+find scripts/ -type f | grep -v scripts/winresources | xargs shellcheck

@@ -11,4 +11,4 @@ echo "Building statically linked $TARGET"
 export CGO_ENABLED=0
 go build -o "${TARGET}" --ldflags "${LDFLAGS}" "${SOURCE}"
 
-ln -sf "$(basename ${TARGET})" build/docker
+ln -sf "$(basename "${TARGET}")" build/docker
