@@ -1,2 +1,4 @@
 #!/bin/sh
+
+echo TESTing
 exec filewatcher -L 6 -x build -x script go test -timeout 10s -v './${dir}'
