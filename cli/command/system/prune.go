@@ -57,26 +57,6 @@ const confirmationTemplate = `WARNING! This will remove:
 {{- end }}
 Are you sure you want to continue?`
 
-// runContainerPrune executes a prune command for containers
-func runContainerPrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
-	return container.RunPrune(dockerCli, filter)
-}
-
-// runNetworkPrune executes a prune command for networks
-func runNetworkPrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
-	return network.RunPrune(dockerCli, filter)
-}
-
-// runVolumePrune executes a prune command for volumes
-func runVolumePrune(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
-	return volume.RunPrune(dockerCli, filter)
-}
-
-// runImagePrune executes a prune command for images
-func runImagePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return image.RunPrune(dockerCli, all, filter)
-}
-
 // runBuildCachePrune executes a prune command for build cache
 func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string, error) {
 	report, err := dockerCli.Client().BuildCachePrune(context.Background())
@@ -94,14 +74,14 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		return nil
 	}
 	imagePrune := func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
-		return runImagePrune(dockerCli, options.all, options.filter)
+		return image.RunPrune(dockerCli, options.all, options.filter)
 	}
 	pruneFuncs := []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
-		runContainerPrune,
-		runNetworkPrune,
+		container.RunPrune,
+		network.RunPrune,
 	}
 	if options.pruneVolumes {
-		pruneFuncs = append(pruneFuncs, runVolumePrune)
+		pruneFuncs = append(pruneFuncs, volume.RunPrune)
 	}
 	pruneFuncs = append(pruneFuncs, imagePrune)
 	if options.pruneBuildCache {
