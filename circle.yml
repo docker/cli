@@ -4,7 +4,7 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'docker:17.06-git'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -22,7 +22,7 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'docker:17.06-git'}]
     parallelism: 3
     steps:
       - checkout
@@ -48,7 +48,7 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'docker:17.06-git'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -75,9 +75,8 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'docker:17.06-git'}]
     steps:
-      - run: apk add -U git openssh
       - checkout
       - setup_remote_docker:
             reusable: true
@@ -93,7 +92,7 @@ jobs:
                 make -B vendor compose-jsonschema manpages yamldocs
   shellcheck:
     working_directory: /work
-    docker: [{image: 'docker:17.05-git'}]
+    docker: [{image: 'docker:17.06-git'}]
     steps:
       - checkout
       - setup_remote_docker
