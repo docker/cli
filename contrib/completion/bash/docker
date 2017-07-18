@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016,SC2119,SC2155
+#
+# Shellcheck ignore list:
+#  - SC2016: Expressions don't expand in single quotes, use double quotes for that.
+#  - SC2119: Use foo "$@" if function's $1 should mean script's $1.
+#  - SC2155: Declare and assign separately to avoid masking return values.
+# 
+# You can find more details for each warning at the following page: 
+#    https://github.com/koalaman/shellcheck/wiki/<SCXXXX>
 #
 # bash completion file for core docker commands
 #
@@ -101,6 +110,7 @@ __docker_complete_containers_all() {
 	__docker_complete_containers "$@" --all
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_removable() {
 	__docker_complete_containers "$@" --filter status=created --filter status=exited
 }
@@ -109,10 +119,12 @@ __docker_complete_containers_running() {
 	__docker_complete_containers "$@" --filter status=running
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_stopped() {
 	__docker_complete_containers "$@" --filter status=exited
 }
 
+# shellcheck disable=SC2120
 __docker_complete_containers_unpauseable() {
 	__docker_complete_containers "$@" --filter status=paused
 }
@@ -213,6 +225,7 @@ __docker_complete_networks() {
 	COMPREPLY=( $(compgen -W "$(__docker_networks "$@")" -- "$current") )
 }
 
+# shellcheck disable=SC2128,SC2178
 __docker_complete_containers_in_network() {
 	local containers=$(__docker_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1")
 	COMPREPLY=( $(compgen -W "$containers" -- "$cur") )
@@ -271,6 +284,7 @@ __docker_plugins_bundled() {
 	for del in "${remove[@]}" ; do
 		plugins=(${plugins[@]/$del/})
 	done
+	# shellcheck disable=SC2145
 	echo "${plugins[@]} ${add[@]}"
 }
 
@@ -414,7 +428,7 @@ __docker_nodes() {
 		esac
 	done
 
-	echo $(__docker_q node ls "$@" | tr -d '*' | awk "NR>1 {print $fields}") "${add[@]}"
+	echo "$(__docker_q node ls "$@" | tr -d '*' | awk "NR>1 {print $fields}")" "${add[@]}"
 }
 
 # __docker_complete_nodes applies completion of nodes based on the current
@@ -469,6 +483,7 @@ __docker_tasks() {
 }
 
 # __docker_complete_services_and_tasks applies completion of services and task IDs.
+# shellcheck disable=SC2120
 __docker_complete_services_and_tasks() {
 	COMPREPLY=( $(compgen -W "$(__docker_services "$@") $(__docker_tasks)" -- "$cur") )
 }
@@ -509,7 +524,7 @@ __docker_pos_first_nonflag() {
 	local argument_flags=$1
 
 	local counter=$((${subcommand_pos:-${command_pos}} + 1))
-	while [ $counter -le $cword ]; do
+	while [ "$counter" -le "$cword" ]; do
 		if [ -n "$argument_flags" ] && eval "case '${words[$counter]}' in $argument_flags) true ;; *) false ;; esac"; then
 			(( counter++ ))
 			# eat "=" in case of --option=arg syntax
@@ -569,10 +584,10 @@ __docker_value_of_option() {
 	local option_extglob=$(__docker_to_extglob "$1")
 
 	local counter=$((command_pos + 1))
-	while [ $counter -lt $cword ]; do
+	while [ "$counter" -lt "$cword" ]; do
 		case ${words[$counter]} in
 			$option_extglob )
-				echo ${words[$counter + 1]}
+				echo "${words[$counter + 1]}"
 				break
 				;;
 		esac
@@ -609,14 +624,14 @@ __docker_to_extglob() {
 __docker_subcommands() {
 	local subcommands="$1"
 
-	local counter=$(($command_pos + 1))
-	while [ $counter -lt $cword ]; do
+	local counter=$((command_pos + 1))
+	while [ "$counter" -lt "$cword" ]; do
 		case "${words[$counter]}" in
 			$(__docker_to_extglob "$subcommands") )
 				subcommand_pos=$counter
 				local subcommand=${words[$counter]}
 				local completions_func=_docker_${command}_${subcommand//-/_}
-				declare -F $completions_func >/dev/null && $completions_func
+				declare -F "$completions_func" >/dev/null && "$completions_func"
 				return 0
 				;;
 		esac
@@ -951,7 +966,7 @@ __docker_complete_signals() {
 		SIGUSR1
 		SIGUSR2
 	)
-	COMPREPLY=( $( compgen -W "${signals[*]} ${signals[*]#SIG}" -- "$( echo $cur | tr '[:lower:]' '[:upper:]')" ) )
+	COMPREPLY=( $( compgen -W "${signals[*]} ${signals[*]#SIG}" -- "$( echo "$cur" | tr '[:lower:]' '[:upper:]')" ) )
 }
 
 __docker_complete_user_group() {
@@ -991,7 +1006,7 @@ _docker_docker() {
 			;;
 		*)
 			local counter=$( __docker_pos_first_nonflag "$(__docker_to_extglob "$global_options_with_args")" )
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_daemon_is_experimental && commands+=(${experimental_commands[*]})
 				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
 			fi
@@ -1044,7 +1059,7 @@ _docker_checkpoint_create() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--checkpoint-dir')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_running
 			fi
 			;;
@@ -1065,7 +1080,7 @@ _docker_checkpoint_ls() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--checkpoint-dir')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1086,9 +1101,9 @@ _docker_checkpoint_rm() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--checkpoint-dir')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
-			elif [ $cword -eq $(($counter + 1)) ]; then
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
 				COMPREPLY=( $( compgen -W "$(__docker_q checkpoint ls "$prev" | sed 1d)" -- "$cur" ) )
 			fi
 			;;
@@ -1149,7 +1164,7 @@ _docker_container_attach() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--detach-keys')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_running
 			fi
 			;;
@@ -1170,13 +1185,13 @@ _docker_container_commit() {
 		*)
 			local counter=$(__docker_pos_first_nonflag '--author|-a|--change|-c|--message|-m')
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 				return
 			fi
 			(( counter++ ))
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_image_repos_and_tags
 				return
 			fi
@@ -1191,7 +1206,7 @@ _docker_container_cp() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				case "$cur" in
 					*:)
 						return
@@ -1206,6 +1221,7 @@ _docker_container_cp() {
 						local containers=( ${COMPREPLY[@]} )
 
 						COMPREPLY=( $( compgen -W "${files[*]} ${containers[*]}" -- "$cur" ) )
+						# shellcheck disable=SC2128
 						if [[ "$COMPREPLY" == *: ]]; then
 							__docker_nospace
 						fi
@@ -1215,7 +1231,7 @@ _docker_container_cp() {
 			fi
 			(( counter++ ))
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				if [ -e "$prev" ]; then
 					__docker_complete_containers_all
 					COMPREPLY=( $( compgen -W "${COMPREPLY[*]}" -S ':' ) )
@@ -1240,7 +1256,7 @@ _docker_container_diff() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1252,7 +1268,7 @@ _docker_container_exec() {
 
 	case "$prev" in
 		--env|-e)
-			# we do not append a "=" here because "-e VARNAME" is legal systax, too
+			# we do not append a "=" here because "-e VARNAME" is legal syntax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
 			__docker_nospace
 			return
@@ -1287,7 +1303,7 @@ _docker_container_export() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1329,7 +1345,7 @@ _docker_container_logs() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--since|--tail')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1425,7 +1441,7 @@ _docker_container_port() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1459,7 +1475,7 @@ _docker_container_rename() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -1608,7 +1624,7 @@ _docker_container_run_and_create() {
 		--tty -t
 	"
 
-	if [ "$command" = "run" -o "$subcommand" = "run" ] ; then
+	if [ "$command" = "run" ] || [ "$subcommand" = "run" ] ; then
 		options_with_args="$options_with_args
 			--detach-keys
 		"
@@ -1686,7 +1702,7 @@ _docker_container_run_and_create() {
 			return
 			;;
 		--env|-e)
-			# we do not append a "=" here because "-e VARNAME" is legal systax, too
+			# we do not append a "=" here because "-e VARNAME" is legal syntax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
 			__docker_nospace
 			return
@@ -1699,6 +1715,7 @@ _docker_container_run_and_create() {
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'host container:' -- "$cur" ) )
+					# shellcheck disable=SC2128
 					if [ "$COMPREPLY" = "container:" ]; then
 						__docker_nospace
 					fi
@@ -1753,6 +1770,7 @@ _docker_container_run_and_create() {
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'host container:' -- "$cur" ) )
+					# shellcheck disable=SC2128
 					if [ "$COMPREPLY" = "container:" ]; then
 						__docker_nospace
 					fi
@@ -1806,8 +1824,8 @@ _docker_container_run_and_create() {
 			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __docker_pos_first_nonflag $( __docker_to_alternatives "$options_with_args" ) )
-			if [ $cword -eq $counter ]; then
+			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_images
 			fi
 			;;
@@ -1816,7 +1834,7 @@ _docker_container_run_and_create() {
 
 _docker_container_start() {
 	__docker_complete_detach_keys && return
-
+	# shellcheck disable=SC2078
 	case "$prev" in
 		--checkpoint)
 			if [ __docker_daemon_is_experimental ] ; then
@@ -1884,7 +1902,7 @@ _docker_container_top() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_running
 			fi
 			;;
@@ -1898,7 +1916,7 @@ _docker_container_unpause() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_unpauseable
 			fi
 			;;
@@ -2098,7 +2116,7 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo $cur | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
@@ -2211,7 +2229,7 @@ _docker_export() {
 
 _docker_help() {
 	local counter=$(__docker_pos_first_nonflag)
-	if [ $cword -eq $counter ]; then
+	if [ "$cword" -eq "$counter" ]; then
 		COMPREPLY=( $( compgen -W "${commands[*]}" -- "$cur" ) )
 	fi
 }
@@ -2348,8 +2366,8 @@ _docker_image_build() {
 			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __docker_pos_first_nonflag $( __docker_to_alternatives "$options_with_args" ) )
-			if [ $cword -eq $counter ]; then
+			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
+			if [ "$cword" -eq "$counter" ]; then
 				_filedir -d
 			fi
 			;;
@@ -2369,7 +2387,7 @@ _docker_image_history() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_images
 			fi
 			;;
@@ -2393,12 +2411,12 @@ _docker_image_import() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--change|-c|--message|-m')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				return
 			fi
 			(( counter++ ))
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_image_repos_and_tags
 				return
 			fi
@@ -2493,7 +2511,7 @@ _docker_image_pull() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				for arg in "${COMP_WORDS[@]}"; do
 					case "$arg" in
 						--all-tags|-a)
@@ -2515,7 +2533,7 @@ _docker_image_push() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_image_repos_and_tags
 			fi
 			;;
@@ -2567,13 +2585,13 @@ _docker_image_tag() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_image_repos_and_tags
 				return
 			fi
 			(( counter++ ))
 
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_image_repos_and_tags
 				return
 			fi
@@ -2737,10 +2755,10 @@ _docker_network_connect() {
 			COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __docker_pos_first_nonflag $( __docker_to_alternatives "$options_with_args" ) )
-			if [ $cword -eq $counter ]; then
+			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_networks
-			elif [ $cword -eq $(($counter + 1)) ]; then
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
 				__docker_complete_containers_all
 			fi
 			;;
@@ -2788,9 +2806,9 @@ _docker_network_disconnect() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_networks
-			elif [ $cword -eq $(($counter + 1)) ]; then
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
 				__docker_complete_containers_in_network "$prev"
 			fi
 			;;
@@ -2969,7 +2987,7 @@ _docker_service_logs() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--since|--tail')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_services_and_tasks
 			fi
 			;;
@@ -3076,7 +3094,7 @@ _docker_service_ps() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--filter|-f')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_services
 			fi
 			;;
@@ -3322,13 +3340,13 @@ _docker_service_update_and_create() {
 			COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __docker_pos_first_nonflag $( __docker_to_alternatives "$options_with_args" ) )
+			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
 			if [ "$subcommand" = "update" ] ; then
-				if [ $cword -eq $counter ]; then
+				if [ "$cword" -eq "$counter" ]; then
 					__docker_complete_services
 				fi
 			else
-				if [ $cword -eq $counter ]; then
+				if [ "$cword" -eq "$counter" ]; then
 					__docker_complete_images
 				fi
 			fi
@@ -3467,7 +3485,7 @@ _docker_swarm_join_token() {
 			;;
 		*)
 			local counter=$( __docker_pos_first_nonflag )
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				COMPREPLY=( $( compgen -W "manager worker" -- "$cur" ) )
 			fi
 			;;
@@ -3686,7 +3704,7 @@ _docker_node_update() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--availability|--label-add|--label-rm|--role')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_nodes
 			fi
 			;;
@@ -3733,10 +3751,10 @@ _docker_plugin_create() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				# reponame
 				return
-			elif [ $cword -eq  $((counter + 1)) ]; then
+			elif [ "$cword" -eq  "$((counter + 1))" ]; then
 				_filedir -d
 			fi
 			;;
@@ -3750,7 +3768,7 @@ _docker_plugin_disable() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed --filter enabled=true
 			fi
 			;;
@@ -3770,7 +3788,7 @@ _docker_plugin_enable() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--timeout')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed --filter enabled=false
 			fi
 			;;
@@ -3850,7 +3868,7 @@ _docker_plugin_push() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed
 			fi
 			;;
@@ -3879,7 +3897,7 @@ _docker_plugin_set() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed
 			fi
 			;;
@@ -3893,10 +3911,10 @@ _docker_plugin_upgrade() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_plugins_installed
 				__ltrim_colon_completions "$cur"
-			elif [ $cword -eq  $((counter + 1)) ]; then
+			elif [ "$cword" -eq  "$((counter + 1))" ]; then
 				local plugin_images="$(__docker_plugins_installed)"
 				COMPREPLY=( $(compgen -S : -W "${plugin_images%:*}" -- "$cur") )
 				__docker_nospace
@@ -4190,7 +4208,7 @@ _docker_stack_ps() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--filter|-f')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
 			;;
@@ -4244,7 +4262,7 @@ _docker_stack_services() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--filter|-f|--format')
-			if [ $cword -eq $counter ]; then
+			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
 			;;
@@ -4686,7 +4704,7 @@ _docker() {
 
 	local command='docker' command_pos=0 subcommand_pos
 	local counter=1
-	while [ $counter -lt $cword ]; do
+	while [ "$counter" -lt "$cword" ]; do
 		case "${words[$counter]}" in
 			# save host so that completion can use custom daemon
 			--host|-H)
