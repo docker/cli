@@ -26,8 +26,8 @@ type pruneOptions struct {
 	filter          opts.FilterOpt
 }
 
-// NewPruneCommand creates a new cobra.Command for `docker prune`
-func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
+// newPruneCommand creates a new cobra.Command for `docker prune`
+func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt(), pruneBuildCache: true}
 
 	cmd := &cobra.Command{

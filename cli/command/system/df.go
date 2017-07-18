@@ -15,8 +15,8 @@ type diskUsageOptions struct {
 	format  string
 }
 
-// NewDiskUsageCommand creates a new cobra.Command for `docker df`
-func NewDiskUsageCommand(dockerCli *command.DockerCli) *cobra.Command {
+// newDiskUsageCommand creates a new cobra.Command for `docker df`
+func newDiskUsageCommand(dockerCli *command.DockerCli) *cobra.Command {
 	var opts diskUsageOptions
 
 	cmd := &cobra.Command{
