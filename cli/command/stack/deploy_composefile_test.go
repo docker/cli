@@ -42,6 +42,8 @@ func (n notFound) NotFound() bool {
 
 func TestValidateExternalNetworks(t *testing.T) {
 	var testcases = []struct {
+		inspected       bool
+		noInspect       bool
 		inspectResponse types.NetworkResource
 		inspectError    error
 		expectedMsg     string
@@ -56,7 +58,8 @@ func TestValidateExternalNetworks(t *testing.T) {
 			expectedMsg:  "Unexpected",
 		},
 		{
-			network: "host",
+			noInspect: true,
+			network:   "host",
 		},
 		{
 			network:     "user",
@@ -71,11 +74,15 @@ func TestValidateExternalNetworks(t *testing.T) {
 	for _, testcase := range testcases {
 		fakeClient := &network.FakeClient{
 			NetworkInspectFunc: func(_ context.Context, _ string, _ types.NetworkInspectOptions) (types.NetworkResource, error) {
+				testcase.inspected = true
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}
 		networks := []string{testcase.network}
 		err := validateExternalNetworks(context.Background(), fakeClient, networks)
+		if testcase.noInspect && testcase.inspected {
+			assert.Fail(t, "expected no network inspect operation but one occurent")
+		}
 		if testcase.expectedMsg == "" {
 			assert.NoError(t, err)
 		} else {
