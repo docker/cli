@@ -343,3 +343,21 @@ func TestConvertCredentialSpec(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, swarmSpec)
 }
+
+func TestConvertUpdateConfigOrder(t *testing.T) {
+	// test default behavior
+	updateConfig := convertUpdateConfig(&composetypes.UpdateConfig{})
+	assert.Equal(t, "", updateConfig.Order)
+
+	// test start-first
+	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
+		Order: "start-first",
+	})
+	assert.Equal(t, updateConfig.Order, "start-first")
+
+	// test stop-first
+	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
+		Order: "stop-first",
+	})
+	assert.Equal(t, updateConfig.Order, "stop-first")
+}

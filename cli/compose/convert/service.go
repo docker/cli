@@ -454,6 +454,7 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 		FailureAction:   source.FailureAction,
 		Monitor:         source.Monitor,
 		MaxFailureRatio: source.MaxFailureRatio,
+		Order:           source.Order,
 	}
 }
 
