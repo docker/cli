@@ -29,6 +29,12 @@ Run all linting:
 $ make -f docker.Makefile lint
 ```
 
+List all the available targets:
+
+```
+$ make help
+```
+
 ### In-container development environment
 
 Start an interactive development environment:
