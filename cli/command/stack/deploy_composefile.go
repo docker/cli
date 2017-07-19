@@ -171,13 +171,18 @@ func validateExternalNetworks(
 	externalNetworks []string,
 ) error {
 	for _, networkName := range externalNetworks {
+		if !container.NetworkMode(networkName).IsUserDefined() {
+			// Networks that are not user defined always exist on all nodes as
+			// local-scoped networks, so there's no need to inspect them.
+			continue
+		}
 		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 		switch {
 		case dockerclient.IsErrNotFound(err):
 			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
-		case container.NetworkMode(networkName).IsUserDefined() && network.Scope != "swarm":
+		case network.Scope != "swarm":
 			return errors.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, network.Scope)
 		}
 	}
