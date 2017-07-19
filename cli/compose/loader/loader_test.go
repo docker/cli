@@ -687,6 +687,7 @@ func TestFullExample(t *testing.T) {
 				FailureAction:   "continue",
 				Monitor:         time.Duration(60 * time.Second),
 				MaxFailureRatio: 0.3,
+				Order:           "start-first",
 			},
 			Resources: types.Resources{
 				Limits: &types.Resource{

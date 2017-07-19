@@ -339,7 +339,10 @@
             "delay": {"type": "string", "format": "duration"},
             "failure_action": {"type": "string"},
             "monitor": {"type": "string", "format": "duration"},
-            "max_failure_ratio": {"type": "number"}
+            "max_failure_ratio": {"type": "number"},
+            "order": {"type": "string", "enum": [
+              "start-first", "stop-first"
+            ]}
           },
           "additionalProperties": false
         },
