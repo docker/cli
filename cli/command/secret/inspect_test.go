@@ -164,6 +164,7 @@ func TestSecretInspectPretty(t *testing.T) {
 					}),
 					SecretID("secretID"),
 					SecretName("secretName"),
+					SecretDriver("driver"),
 					SecretCreatedAt(time.Time{}),
 					SecretUpdatedAt(time.Time{}),
 				), []byte{}, nil

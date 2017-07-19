@@ -504,6 +504,9 @@ func (c *serviceContext) Replicas() string {
 }
 
 func (c *serviceContext) Image() string {
+	if c.service.Spec.TaskTemplate.ContainerSpec == nil {
+		return ""
+	}
 	image := c.service.Spec.TaskTemplate.ContainerSpec.Image
 	if ref, err := reference.ParseNormalizedNamed(image); err == nil {
 		// update image string for display, (strips any digest)
