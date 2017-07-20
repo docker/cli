@@ -1184,7 +1184,7 @@ _docker_config_create() {
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--label|-l')
-			if [ $cword -eq $((counter + 1)) ]; then
+			if [ "$cword" -eq $((counter + 1)) ]; then
 				_filedir
 			fi
 			;;
