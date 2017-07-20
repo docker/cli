@@ -32,6 +32,15 @@ func SecretName(name string) func(secret *swarm.Secret) {
 	}
 }
 
+// SecretDriver sets the secret's driver name
+func SecretDriver(driver string) func(secret *swarm.Secret) {
+	return func(secret *swarm.Secret) {
+		secret.Spec.Driver = &swarm.Driver{
+			Name: driver,
+		}
+	}
+}
+
 // SecretID sets the secret's ID
 func SecretID(ID string) func(secret *swarm.Secret) {
 	return func(secret *swarm.Secret) {

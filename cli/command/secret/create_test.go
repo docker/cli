@@ -25,12 +25,8 @@ func TestSecretCreateErrors(t *testing.T) {
 		secretCreateFunc func(swarm.SecretSpec) (types.SecretCreateResponse, error)
 		expectedError    string
 	}{
-		{
-			args:          []string{"too_few"},
-			expectedError: "requires exactly 2 argument(s)",
-		},
 		{args: []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires at least 1 and at most 2",
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", secretDataFile)},
