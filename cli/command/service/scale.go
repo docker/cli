@@ -19,7 +19,7 @@ type scaleOptions struct {
 	detach bool
 }
 
-func newScaleCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 	options := &scaleOptions{}
 
 	cmd := &cobra.Command{
@@ -54,7 +54,7 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scaleOptions, args []string) error {
+func runScale(dockerCli command.Cli, flags *pflag.FlagSet, options *scaleOptions, args []string) error {
 	var errs []string
 	var serviceIDs []string
 	ctx := context.Background()
@@ -96,7 +96,7 @@ func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scale
 	return errors.Errorf(strings.Join(errs, "\n"))
 }
 
-func runServiceScale(ctx context.Context, dockerCli *command.DockerCli, serviceID string, scale uint64) error {
+func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID string, scale uint64) error {
 	client := dockerCli.Client()
 
 	service, _, err := client.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})

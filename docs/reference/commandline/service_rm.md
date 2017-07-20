@@ -55,6 +55,7 @@ ID  NAME  MODE  REPLICAS  IMAGE
 * [service inspect](service_inspect.md)
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
-* [service scale](service_scale.md)
 * [service ps](service_ps.md)
+* [service rollback](service_rollback.md)
+* [service scale](service_scale.md)
 * [service update](service_update.md)

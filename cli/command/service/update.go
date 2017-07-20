@@ -22,7 +22,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	options := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -103,7 +103,7 @@ func newListOptsVar() *opts.ListOpts {
 }
 
 // nolint: gocyclo
-func runUpdate(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
 	ctx := context.Background()
 

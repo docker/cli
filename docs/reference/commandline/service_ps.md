@@ -190,5 +190,6 @@ top.3: busybox
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
 * [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
 * [service scale](service_scale.md)
 * [service update](service_update.md)
