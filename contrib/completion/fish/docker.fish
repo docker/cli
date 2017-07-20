@@ -229,6 +229,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s i -l input -d 
 complete -c docker -f -n '__fish_docker_no_subcommand' -a login -d 'Log in to a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s p -l password -d 'Password'
+complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l password-stdin -d 'Read password from stdin'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s u -l username -d 'Username'
 
 # logout

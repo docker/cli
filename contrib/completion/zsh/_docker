@@ -2761,6 +2761,7 @@ __docker_subcommand() {
             _arguments $(__docker_arguments) -A '-*' \
                 $opts_help \
                 "($help -p --password)"{-p=,--password=}"[Password]:password: " \
+                "($help)--password-stdin[Read password from stdin]" \
                 "($help -u --user)"{-u=,--user=}"[Username]:username: " \
                 "($help -)1:server: " && ret=0
             ;;

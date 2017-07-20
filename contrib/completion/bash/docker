@@ -2851,7 +2851,7 @@ _docker_login() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --password -p --username -u" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --password --password-stdin -p --username -u" -- "$cur" ) )
 			;;
 	esac
 }
