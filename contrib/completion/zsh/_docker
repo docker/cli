@@ -221,18 +221,19 @@ __docker_get_log_options() {
 
     integer ret=1
     local log_driver=${opt_args[--log-driver]:-"all"}
-    local -a common_options awslogs_options fluentd_options gelf_options journald_options json_file_options logentries_options syslog_options splunk_options
+    local -a common_options common_options2 awslogs_options fluentd_options gelf_options journald_options json_file_options logentries_options syslog_options splunk_options
 
     common_options=("max-buffer-size" "mode")
-    awslogs_options=($common_options "awslogs-region" "awslogs-group" "awslogs-stream" "awslogs-create-group")
-    fluentd_options=($common_options "env" "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "labels" "tag")
-    gcplogs_options=($common_options "env" "gcp-log-cmd" "gcp-project" "labels")
-    gelf_options=($common_options "env" "gelf-address" "gelf-compression-level" "gelf-compression-type" "labels" "tag")
-    journald_options=($common_options "env" "labels" "tag")
-    json_file_options=($common_options "env" "labels" "max-file" "max-size")
-    logentries_options=($common_options "logentries-token")
-    syslog_options=($common_options "env" "labels" "syslog-address" "syslog-facility" "syslog-format" "syslog-tls-ca-cert" "syslog-tls-cert" "syslog-tls-key" "syslog-tls-skip-verify" "tag")
-    splunk_options=($common_options "env" "labels" "splunk-caname" "splunk-capath" "splunk-format" "splunk-gzip" "splunk-gzip-level" "splunk-index" "splunk-insecureskipverify" "splunk-source" "splunk-sourcetype" "splunk-token" "splunk-url" "splunk-verify-connection" "tag")
+    common_options2=("env" "env-regex" "labels")
+    awslogs_options=($common_options "awslogs-create-group" "awslogs-datetime-format" "awslogs-group" "awslogs-multiline-pattern" "awslogs-region" "awslogs-stream" "tag")
+    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "tag")
+    gcplogs_options=($common_options $common_options2 "gcp-log-cmd" "gcp-meta-id" "gcp-meta-name" "gcp-meta-zone" "gcp-project")
+    gelf_options=($common_options $common_options2 "gelf-address" "gelf-compression-level" "gelf-compression-type" "tag")
+    journald_options=($common_options $common_options2 "tag")
+    json_file_options=($common_options $common_options2 "max-file" "max-size")
+    logentries_options=($common_options $common_options2 "logentries-token" "tag")
+    syslog_options=($common_options $common_options2 "syslog-address" "syslog-facility" "syslog-format" "syslog-tls-ca-cert" "syslog-tls-cert" "syslog-tls-key" "syslog-tls-skip-verify" "tag")
+    splunk_options=($common_options $common_options2 "splunk-caname" "splunk-capath" "splunk-format" "splunk-gzip" "splunk-gzip-level" "splunk-index" "splunk-insecureskipverify" "splunk-source" "splunk-sourcetype" "splunk-token" "splunk-url" "splunk-verify-connection" "tag")
 
     [[ $log_driver = (awslogs|all) ]] && _describe -t awslogs-options "awslogs options" awslogs_options "$@" && ret=0
     [[ $log_driver = (fluentd|all) ]] && _describe -t fluentd-options "fluentd options" fluentd_options "$@" && ret=0
