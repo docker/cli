@@ -342,10 +342,14 @@ message NetworkSpec {
 	// "ingress" and the label "com.docker.swarm.internal": "true".
 	bool ingress = 7;
 
-	// ConfigFrom indicates that the network specific configuration
-	// for this network will be provided via another network, locally
-	// on the node where this network is being plumbed.
-	string config_from = 8;
+	// ConfigFrom is the source of the configuration for this network.
+	oneof config_from {
+		// Network is the name of a network that provides the network
+		// specific configuration for this network, locally on the node
+		// where this network is being plumbed.
+		string network = 8;
+	}
+
 }
 
 // ClusterSpec specifies global cluster settings.
@@ -382,6 +386,13 @@ message SecretSpec {
 
 	// Data is the secret payload - the maximum size is 500KB (that is, 500*1024 bytes)
 	bytes data = 2;
+
+	// Templating controls whether and how to evaluate the secret payload as
+	// a template. If it is not set, no templating is used.
+	//
+	// The currently recognized values are:
+	// - golang: Go templating
+	Driver templating = 3;
 }
 
 // ConfigSpec specifies user-provided configuration files.
@@ -392,4 +403,11 @@ message ConfigSpec {
 	// TODO(aaronl): Do we want to revise this to include multiple payloads in a single
 	// ConfigSpec? Define this to be a tar? etc...
 	bytes data = 2;
+
+	// Templating controls whether and how to evaluate the secret payload as
+	// a template. If it is not set, no templating is used.
+	//
+	// The currently recognized values are:
+	// - golang: Go templating
+	Driver templating = 3;
 }
