@@ -1521,7 +1521,7 @@ __docker_plugin_complete_ls_filters() {
     if compset -P '*='; then
         case "${${words[-1]%=*}#*=}" in
             (capability)
-                opts=('authz' 'ipamdriver' 'networkdriver' 'volumedriver')
+                opts=('authz' 'ipamdriver' 'logdriver' 'metricscollector' 'networkdriver' 'volumedriver')
                 _describe -t capability-opts "capability options" opts && ret=0
                 ;;
             (enabled)
