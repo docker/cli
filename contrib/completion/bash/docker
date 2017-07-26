@@ -3199,7 +3199,7 @@ _docker_service_rm() {
 _docker_service_scale() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach=false -d=false --help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_services
