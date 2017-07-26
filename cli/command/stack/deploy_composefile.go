@@ -318,10 +318,17 @@ func deployServices(
 
 			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
-			if resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]) {
+			switch {
+			case resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]):
+				// image should be updated by the server using QueryRegistry
 				updateOpts.QueryRegistry = true
+			case image == service.Spec.Labels[convert.LabelImage]:
+				// image has not changed; update the serviceSpec with the
+				// existing information that was set by QueryRegistry on the
+				// previous deploy. Otherwise this will trigger an incorrect
+				// service update.
+				serviceSpec.TaskTemplate.ContainerSpec.Image = service.Spec.TaskTemplate.ContainerSpec.Image
 			}
-
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,

@@ -34,10 +34,13 @@ type fakeClient struct {
 	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
 	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
 	nodeInspectWithRaw func(ref string) (swarm.Node, []byte, error)
-	serviceRemoveFunc  func(serviceID string) error
-	networkRemoveFunc  func(networkID string) error
-	secretRemoveFunc   func(secretID string) error
-	configRemoveFunc   func(configID string) error
+
+	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
+
+	serviceRemoveFunc func(serviceID string) error
+	networkRemoveFunc func(networkID string) error
+	secretRemoveFunc  func(secretID string) error
+	configRemoveFunc  func(configID string) error
 }
 
 func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
@@ -130,6 +133,14 @@ func (cli *fakeClient) NodeInspectWithRaw(ctx context.Context, ref string) (swar
 		return cli.nodeInspectWithRaw(ref)
 	}
 	return swarm.Node{}, nil, nil
+}
+
+func (cli *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+	if cli.serviceUpdateFunc != nil {
+		return cli.serviceUpdateFunc(serviceID, version, service, options)
+	}
+
+	return types.ServiceUpdateResponse{}, nil
 }
 
 func (cli *fakeClient) ServiceRemove(ctx context.Context, serviceID string) error {
