@@ -43,6 +43,11 @@ func TestNewSaveCommandErrors(t *testing.T) {
 				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
 			},
 		},
+		{
+			name:          "output directory does not exist",
+			args:          []string{"-o", "fakedir/out.tar", "arg1"},
+			expectedError: "failed to save image: unable to validate output path: directory \"fakedir\" does not exist",
+		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
