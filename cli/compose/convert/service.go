@@ -142,6 +142,7 @@ func Service(
 				User:            service.User,
 				Mounts:          mounts,
 				StopGracePeriod: service.StopGracePeriod,
+				StopSignal:      service.StopSignal,
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
 				Secrets:         secrets,
