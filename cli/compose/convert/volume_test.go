@@ -98,6 +98,53 @@ func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 	assert.Equal(t, expected, mount)
 }
 
+func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
+	stackVolumes := volumes{
+		"normal": composetypes.VolumeConfig{
+			Name:   "user_specified_name",
+			Driver: "vsphere",
+			DriverOpts: map[string]string{
+				"opt": "value",
+			},
+			Labels: map[string]string{
+				"something": "labeled",
+			},
+		},
+	}
+	namespace := NewNamespace("foo")
+	expected := mount.Mount{
+		Type:     mount.TypeVolume,
+		Source:   "user_specified_name",
+		Target:   "/foo",
+		ReadOnly: true,
+		VolumeOptions: &mount.VolumeOptions{
+			Labels: map[string]string{
+				LabelNamespace: "foo",
+				"something":    "labeled",
+			},
+			DriverConfig: &mount.Driver{
+				Name: "vsphere",
+				Options: map[string]string{
+					"opt": "value",
+				},
+			},
+			NoCopy: true,
+		},
+	}
+	config := composetypes.ServiceVolumeConfig{
+		Type:     "volume",
+		Source:   "normal",
+		Target:   "/foo",
+		ReadOnly: true,
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, mount)
+}
+
 func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{

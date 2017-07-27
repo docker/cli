@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.4"
 
 services:
   foo:
@@ -280,6 +280,15 @@ volumes:
       foo: "bar"
       baz: 1
 
+  another-volume:
+    name: "user_specified_name"
+    driver: vsphere
+
+    driver_opts:
+      # Values can be strings or numbers
+      foo: "bar"
+      baz: 1
+
   external-volume:
     # Specifies that a pre-existing volume called "external-volume"
     # can be referred to within this file as "external-volume"
@@ -288,5 +297,12 @@ volumes:
   other-external-volume:
     # Specifies that a pre-existing volume called "my-cool-volume"
     # can be referred to within this file as "other-external-volume"
+    # This example uses the deprecated "volume.external.name" (replaced by "volume.name")
     external:
       name: my-cool-volume
+
+  external-volume3:
+    # Specifies that a pre-existing volume called "this-is-volume3"
+    # can be referred to within this file as "external-volume3"
+    name: this-is-volume3
+    external: true
