@@ -4,8 +4,8 @@ description: "Docker's CLI command description and usage"
 keywords: "Docker, Docker documentation, CLI, command line"
 ---
 
-<!-- This file is maintained within the docker/docker Github
-     repository at https://github.com/docker/docker/. Make all
+<!-- This file is maintained within the docker/cli Github
+     repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
      periodically be overwritten by the definitive file. Pull

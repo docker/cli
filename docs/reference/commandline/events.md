@@ -4,7 +4,7 @@ description: "The events command description and usage"
 keywords: "events, container, report"
 ---
 
-<!-- This file is maintained within the docker/docker Github
+<!-- This file is maintained within the docker/cli Github
      repository at https://github.com/moby/moby/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
