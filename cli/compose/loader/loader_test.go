@@ -689,6 +689,14 @@ func TestFullExample(t *testing.T) {
 				MaxFailureRatio: 0.3,
 				Order:           "start-first",
 			},
+			RollbackConfig: &types.UpdateConfig{
+				Parallelism:     uint64Ptr(3),
+				Delay:           time.Duration(10 * time.Second),
+				FailureAction:   "continue",
+				Monitor:         time.Duration(60 * time.Second),
+				MaxFailureRatio: 0.3,
+				Order:           "start-first",
+			},
 			Resources: types.Resources{
 				Limits: &types.Resource{
 					NanoCPUs:    "0.001",
