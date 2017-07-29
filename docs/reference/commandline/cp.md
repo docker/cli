@@ -105,11 +105,11 @@ running `tar` in `docker exec`. Both of the following examples do the same thing
 in different ways (consider `SRC_PATH` and `DEST_PATH` are directories):
 
 ```bash
-$ docker exec foo tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | tar Cxf DEST_PATH -
+$ docker exec CONTAINER tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | tar Cxf DEST_PATH -
 ```
 
 ```bash
-$ tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | docker exec -i foo tar Cxf DEST_PATH -
+$ tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | docker exec -i CONTAINER tar Cxf DEST_PATH -
 ```
 
 Using `-` as the `SRC_PATH` streams the contents of `STDIN` as a tar archive.
