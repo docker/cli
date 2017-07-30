@@ -12,19 +12,20 @@ import (
 )
 
 const (
-	defaultSecretTableFormat           = "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
+	defaultSecretTableFormat           = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
 	secretIDHeader                     = "ID"
 	secretCreatedHeader                = "CREATED"
 	secretUpdatedHeader                = "UPDATED"
-	secretInspectPrettyTemplate Format = `ID:			{{.ID}}
-Name:			{{.Name}}
+	secretInspectPrettyTemplate Format = `ID:              {{.ID}}
+Name:              {{.Name}}
 {{- if .Labels }}
 Labels:
 {{- range $k, $v := .Labels }}
  - {{ $k }}{{if $v }}={{ $v }}{{ end }}
 {{- end }}{{ end }}
-Created at:            	{{.CreatedAt}}
-Updated at:            	{{.UpdatedAt}}`
+Driver:            {{.Driver}}
+Created at:        {{.CreatedAt}}
+Updated at:        {{.UpdatedAt}}`
 )
 
 // NewSecretFormat returns a Format for rendering using a secret Context
@@ -61,6 +62,7 @@ func newSecretContext() *secretContext {
 	sCtx.header = map[string]string{
 		"ID":        secretIDHeader,
 		"Name":      nameHeader,
+		"Driver":    driverHeader,
 		"CreatedAt": secretCreatedHeader,
 		"UpdatedAt": secretUpdatedHeader,
 		"Labels":    labelsHeader,
@@ -87,6 +89,13 @@ func (c *secretContext) Name() string {
 
 func (c *secretContext) CreatedAt() string {
 	return units.HumanDuration(time.Now().UTC().Sub(c.s.Meta.CreatedAt)) + " ago"
+}
+
+func (c *secretContext) Driver() string {
+	if c.s.Spec.Driver == nil {
+		return ""
+	}
+	return c.s.Spec.Driver.Name
 }
 
 func (c *secretContext) UpdatedAt() string {
@@ -151,6 +160,13 @@ func (ctx *secretInspectContext) Name() string {
 
 func (ctx *secretInspectContext) Labels() map[string]string {
 	return ctx.Secret.Spec.Labels
+}
+
+func (ctx *secretInspectContext) Driver() string {
+	if ctx.Secret.Spec.Driver == nil {
+		return ""
+	}
+	return ctx.Secret.Spec.Driver.Name
 }
 
 func (ctx *secretInspectContext) CreatedAt() string {

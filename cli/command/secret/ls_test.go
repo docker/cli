@@ -63,6 +63,7 @@ func TestSecretList(t *testing.T) {
 					SecretVersion(swarm.Version{Index: 11}),
 					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
 					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					SecretDriver("driver"),
 				),
 			}, nil
 		},
