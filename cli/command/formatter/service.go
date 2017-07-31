@@ -518,11 +518,11 @@ func (c *serviceContext) Image() string {
 }
 
 func (c *serviceContext) Ports() string {
-	if c.service.Spec.EndpointSpec == nil || c.service.Spec.EndpointSpec.Ports == nil {
+	if c.service.Endpoint.Ports == nil {
 		return ""
 	}
 	ports := []string{}
-	for _, pConfig := range c.service.Spec.EndpointSpec.Ports {
+	for _, pConfig := range c.service.Endpoint.Ports {
 		if pConfig.PublishMode == swarm.PortConfigPublishModeIngress {
 			ports = append(ports, fmt.Sprintf("*:%d->%d/%s",
 				pConfig.PublishedPort,
