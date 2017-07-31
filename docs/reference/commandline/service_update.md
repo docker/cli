@@ -22,11 +22,13 @@ Update a service
 
 Options:
       --args command                       Service command args
+      --config-add config                  Add or update a config file on a service
+      --config-rm list                     Remove a configuration file
       --constraint-add list                Add or update a placement constraint
       --constraint-rm list                 Remove a constraint
       --container-label-add list           Add or update a container label
       --container-label-rm list            Remove a container label by its key
-      --credential-spec                    Credential spec for managed service account (Windows only)
+      --credential-spec credential-spec    Credential spec for managed service account (Windows only)
   -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
       --dns-add list                       Add or update a custom DNS server
       --dns-option-add list                Add or update a DNS option
@@ -59,9 +61,10 @@ Options:
       --log-opt list                       Logging driver options
       --mount-add mount                    Add or update a mount on a service
       --mount-rm list                      Remove a mount by its target path
-      --network-add list                   Add a network
+      --network-add network                Add a network
       --network-rm list                    Remove a network
       --no-healthcheck                     Disable any container-specified HEALTHCHECK
+      --no-resolve-image                   Do not query the registry to resolve image digest and supported platforms
       --placement-pref-add pref            Add a placement preference
       --placement-pref-rm pref             Remove a placement preference
       --publish-add port                   Add or update a published port
@@ -80,7 +83,7 @@ Options:
       --rollback-failure-action string     Action on rollback failure ("pause"|"continue")
       --rollback-max-failure-ratio float   Failure rate to tolerate during a rollback
       --rollback-monitor duration          Duration after each task rollback to monitor for failure (ns|us|ms|s|m|h)
-      --rollback-order string              Rollback order ("start-first"|"stop-first") (default "stop-first")
+      --rollback-order string              Rollback order ("start-first"|"stop-first")
       --rollback-parallelism uint          Maximum number of tasks rolled back simultaneously (0 to roll back all at once)
       --secret-add secret                  Add or update a secret on a service
       --secret-rm list                     Remove a secret
