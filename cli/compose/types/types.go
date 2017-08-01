@@ -186,6 +186,7 @@ type UpdateConfig struct {
 	FailureAction   string `mapstructure:"failure_action"`
 	Monitor         time.Duration
 	MaxFailureRatio float32 `mapstructure:"max_failure_ratio"`
+	Order           string
 }
 
 // Resources the resource limits and reservations
