@@ -158,7 +158,7 @@ The following example uses a template without headers and outputs the
 $ docker node ls --format "{{.ID}}: {{.Hostname}} {{.TLSStatus}}"
 e216jshn25ckzbvmwlnh5jr3g: swarm-manager1 Ready
 35o6tiywb700jesrt3dmllaza: swarm-worker1 Needs Rotation  
-``
+```
 
 
 ## Related commands
