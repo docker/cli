@@ -342,6 +342,7 @@ func TestConvertCredentialSpec(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Nil(t, swarmSpec)
+
 }
 
 func TestConvertUpdateConfigOrder(t *testing.T) {
@@ -360,4 +361,19 @@ func TestConvertUpdateConfigOrder(t *testing.T) {
 		Order: "stop-first",
 	})
 	assert.Equal(t, updateConfig.Order, "stop-first")
+}
+
+func TestConvertUpdateConfigParallelism(t *testing.T) {
+	parallel := uint64(4)
+
+	// test default behavior
+	updateConfig := convertUpdateConfig(&composetypes.UpdateConfig{})
+	assert.Equal(t, uint64(1), updateConfig.Parallelism)
+
+	// Non default value
+	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
+		Parallelism: &parallel,
+	})
+	assert.Equal(t, parallel, updateConfig.Parallelism)
+
 }

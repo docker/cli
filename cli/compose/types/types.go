@@ -156,14 +156,15 @@ type LoggingConfig struct {
 
 // DeployConfig the deployment configuration for a service
 type DeployConfig struct {
-	Mode          string
-	Replicas      *uint64
-	Labels        Labels
-	UpdateConfig  *UpdateConfig `mapstructure:"update_config"`
-	Resources     Resources
-	RestartPolicy *RestartPolicy `mapstructure:"restart_policy"`
-	Placement     Placement
-	EndpointMode  string `mapstructure:"endpoint_mode"`
+	Mode           string
+	Replicas       *uint64
+	Labels         Labels
+	UpdateConfig   *UpdateConfig `mapstructure:"update_config"`
+	RollbackConfig *UpdateConfig `mapstructure:"rollback_config"`
+	Resources      Resources
+	RestartPolicy  *RestartPolicy `mapstructure:"restart_policy"`
+	Placement      Placement
+	EndpointMode   string `mapstructure:"endpoint_mode"`
 }
 
 // HealthCheckConfig the healthcheck configuration for a service
