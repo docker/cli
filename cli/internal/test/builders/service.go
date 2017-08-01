@@ -64,5 +64,11 @@ func ServiceImage(image string) func(*swarm.Service) {
 func ServicePort(port swarm.PortConfig) func(*swarm.Service) {
 	return func(service *swarm.Service) {
 		service.Spec.EndpointSpec.Ports = append(service.Spec.EndpointSpec.Ports, port)
+
+		assignedPort := port
+		if assignedPort.PublishedPort == 0 {
+			assignedPort.PublishedPort = 30000
+		}
+		service.Endpoint.Ports = append(service.Endpoint.Ports, assignedPort)
 	}
 }

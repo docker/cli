@@ -96,14 +96,14 @@ bar
 				ID: "id_baz",
 				Spec: swarm.ServiceSpec{
 					Annotations: swarm.Annotations{Name: "baz"},
-					EndpointSpec: &swarm.EndpointSpec{
-						Ports: []swarm.PortConfig{
-							{
-								PublishMode:   "ingress",
-								PublishedPort: 80,
-								TargetPort:    8080,
-								Protocol:      "tcp",
-							},
+				},
+				Endpoint: swarm.Endpoint{
+					Ports: []swarm.PortConfig{
+						{
+							PublishMode:   "ingress",
+							PublishedPort: 80,
+							TargetPort:    8080,
+							Protocol:      "tcp",
 						},
 					},
 				},
@@ -112,14 +112,14 @@ bar
 				ID: "id_bar",
 				Spec: swarm.ServiceSpec{
 					Annotations: swarm.Annotations{Name: "bar"},
-					EndpointSpec: &swarm.EndpointSpec{
-						Ports: []swarm.PortConfig{
-							{
-								PublishMode:   "ingress",
-								PublishedPort: 80,
-								TargetPort:    8080,
-								Protocol:      "tcp",
-							},
+				},
+				Endpoint: swarm.Endpoint{
+					Ports: []swarm.PortConfig{
+						{
+							PublishMode:   "ingress",
+							PublishedPort: 80,
+							TargetPort:    8080,
+							Protocol:      "tcp",
 						},
 					},
 				},
@@ -152,14 +152,14 @@ func TestServiceContextWriteJSON(t *testing.T) {
 			ID: "id_baz",
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{Name: "baz"},
-				EndpointSpec: &swarm.EndpointSpec{
-					Ports: []swarm.PortConfig{
-						{
-							PublishMode:   "ingress",
-							PublishedPort: 80,
-							TargetPort:    8080,
-							Protocol:      "tcp",
-						},
+			},
+			Endpoint: swarm.Endpoint{
+				Ports: []swarm.PortConfig{
+					{
+						PublishMode:   "ingress",
+						PublishedPort: 80,
+						TargetPort:    8080,
+						Protocol:      "tcp",
 					},
 				},
 			},
@@ -168,14 +168,14 @@ func TestServiceContextWriteJSON(t *testing.T) {
 			ID: "id_bar",
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{Name: "bar"},
-				EndpointSpec: &swarm.EndpointSpec{
-					Ports: []swarm.PortConfig{
-						{
-							PublishMode:   "ingress",
-							PublishedPort: 80,
-							TargetPort:    8080,
-							Protocol:      "tcp",
-						},
+			},
+			Endpoint: swarm.Endpoint{
+				Ports: []swarm.PortConfig{
+					{
+						PublishMode:   "ingress",
+						PublishedPort: 80,
+						TargetPort:    8080,
+						Protocol:      "tcp",
 					},
 				},
 			},
