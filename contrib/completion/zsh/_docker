@@ -2040,6 +2040,7 @@ __docker_service_subcommand() {
         (scale)
             _arguments $(__docker_arguments) \
                 $opts_help \
+                "($help -d --detach)"{-d=false,--detach=false}"[Disable detached mode]" \
                 "($help -)*:service:->values" && ret=0
             case $state in
                 (values)
