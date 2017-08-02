@@ -2234,6 +2234,10 @@ _docker_daemon() {
 			COMPREPLY=( $( compgen -W "ext4 xfs" -- "${cur##*=}" ) )
 			return
 			;;
+		dm.libdm_log_level)
+			COMPREPLY=( $( compgen -W "2 3 4 5 6 7" -- "${cur##*=}" ) )
+			return
+			;;
  	esac
 
 	case "$prev" in
@@ -2275,6 +2279,7 @@ _docker_daemon() {
 				dm.blocksize
 				dm.directlvm_device
 				dm.fs
+				dm.libdm_log_level
 				dm.loopdatasize
 				dm.loopmetadatasize
 				dm.min_free_space
