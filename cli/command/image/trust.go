@@ -180,7 +180,7 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 }
 
 // trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) error {
+func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, platform string) error {
 	refs, err := getTrustedPullTargets(cli, imgRefAndAuth)
 	if err != nil {
 		return err
@@ -202,7 +202,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, false); err != nil {
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, false, platform); err != nil {
 			return err
 		}
 
@@ -268,7 +268,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 }
 
 // imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, all bool) error {
+func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, all bool, platform string) error {
 	ref := reference.FamiliarString(imgRefAndAuth.Reference())
 
 	encodedAuth, err := command.EncodeAuthToBase64(*imgRefAndAuth.AuthConfig())
@@ -280,8 +280,8 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		All:           all,
+		Platform:      platform,
 	}
-
 	responseBody, err := cli.Client().ImagePull(ctx, ref, options)
 	if err != nil {
 		return err
