@@ -13,6 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type notFound struct {
+	imageID string
+}
+
+func (n notFound) Error() string {
+	return fmt.Sprintf("Error: No such image: %s", n.imageID)
+}
+
+func (n notFound) NotFound() bool {
+	return true
+}
+
 func TestNewRemoveCommandAlias(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	assert.True(t, cmd.HasAlias("rmi"))
@@ -30,6 +42,15 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		{
 			name:          "wrong args",
 			expectedError: "requires at least 1 argument.",
+		},
+		{
+			name:          "ImageRemove fail with force option",
+			args:          []string{"-f", "image1"},
+			expectedError: "error removing image",
+			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
+				assert.Equal(t, "image1", image)
+				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
+			},
 		},
 		{
 			name:          "ImageRemove fail",
@@ -68,14 +89,16 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			},
 		},
 		{
-			name: "Image Deleted with force option",
+			name: "Image not found with force option",
 			args: []string{"-f", "image1"},
 			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
 				assert.Equal(t, "image1", image)
-				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
+				assert.Equal(t, true, options.Force)
+				return []types.ImageDeleteResponseItem{}, notFound{"image1"}
 			},
-			expectedErrMsg: "error removing image",
+			expectedErrMsg: "Error: No such image: image1",
 		},
+
 		{
 			name: "Image Untagged",
 			args: []string{"image1"},
