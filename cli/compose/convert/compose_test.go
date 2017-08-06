@@ -53,6 +53,7 @@ func TestNetworks(t *testing.T) {
 			Labels: map[string]string{
 				"something": "labeled",
 			},
+			Scope: "local",
 		},
 		"outside": composetypes.NetworkConfig{
 			External: composetypes.External{External: true},
@@ -86,6 +87,7 @@ func TestNetworks(t *testing.T) {
 				LabelNamespace: "foo",
 				"something":    "labeled",
 			},
+			Scope: "local",
 		},
 		"attachablenet": {
 			Driver:     "overlay",

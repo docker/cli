@@ -473,7 +473,10 @@
         },
         "internal": {"type": "boolean"},
         "attachable": {"type": "boolean"},
-        "labels": {"$ref": "#/definitions/list_or_dict"}
+        "labels": {"$ref": "#/definitions/list_or_dict"},
+        "scope": {"type": "string", "enum": [
+          "local", "swarm"
+        ]}
       },
       "additionalProperties": false
     },

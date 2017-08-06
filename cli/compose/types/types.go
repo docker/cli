@@ -333,6 +333,7 @@ type NetworkConfig struct {
 	Internal   bool
 	Attachable bool
 	Labels     Labels
+	Scope      string
 }
 
 // IPAMConfig for a network
