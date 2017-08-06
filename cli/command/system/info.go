@@ -221,6 +221,15 @@ func prettyPrintInfo(dockerCli command.Cli, info types.Info) error {
 	fmt.Fprintln(dockerCli.Out(), "Live Restore Enabled:", info.LiveRestoreEnabled)
 	fmt.Fprint(dockerCli.Out(), "\n")
 
+	if getManagerCount(info.Swarm) == 2 {
+		msg := "WARNING: Running Swarm in a two-manager configuration. This configuration provides \n"
+		msg += "         no fault tolerance, and poses a high risk to loose control over the cluster.\n"
+		msg += "         Refer to https://docs.docker.com/engine/swarm/admin_guide/ to configure the\n"
+		msg += "         Swarm for fault-tolerance."
+
+		fmt.Fprintln(dockerCli.Err(), msg)
+	}
+
 	// Only output these warnings if the server does not support these features
 	if info.OSType != "windows" {
 		printStorageDriverWarnings(dockerCli, info)
@@ -372,4 +381,17 @@ func fprintlnNonEmpty(w io.Writer, label, value string) {
 	if value != "" {
 		fmt.Fprintln(w, label, value)
 	}
+}
+
+func getManagerCount(info swarm.Info) int {
+	if info.Cluster == nil || info.Error != "" {
+		return 0
+	}
+
+	switch info.LocalNodeState {
+	case swarm.LocalNodeStateInactive, swarm.LocalNodeStateLocked, swarm.LocalNodeStateError:
+		return 0
+	}
+
+	return info.Managers
 }
