@@ -2444,6 +2444,7 @@ _docker_image_build() {
 		--network
 		--shm-size
 		--tag -t
+		--target
 		--ulimit
 	"
 	__docker_daemon_os_is windows && options_with_args+="
@@ -2508,6 +2509,19 @@ _docker_image_build() {
 			;;
 		--tag|-t)
 			__docker_complete_image_repos_and_tags
+			return
+			;;
+		--target)
+			local context_pos=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
+			local context="${words[$context_pos]}"
+			context="${context:-.}"
+
+			local file="$( __docker_value_of_option '--file|f' )"
+			local default_file="${context%/}/Dockerfile"
+			local dockerfile="${file:-$default_file}"
+
+			local targets="$( sed -n 's/^FROM .\+ AS \(.\+\)/\1/p' "$dockerfile" 2>/dev/null )"
+			COMPREPLY=( $( compgen -W "$targets" -- "$cur" ) )
 			return
 			;;
 		$(__docker_to_extglob "$options_with_args") )
