@@ -68,9 +68,9 @@ might have multiple capabilities. Currently `volumedriver`, `networkdriver`,
 `ipamdriver`, `logdriver`, `metricscollector`, and `authz` are supported capabilities.
 
 ```bash
-$ docker plugin install --disable tiborvass/no-remove
+$ docker plugin install --disable vieux/sshfs
 
-tiborvass/no-remove
+Installed plugin vieux/sshfs
 
 $ docker plugin ls --filter enabled=true
 
@@ -102,7 +102,7 @@ The following example uses a template without headers and outputs the
 ```bash
 $ docker plugin ls --format "{{.ID}}: {{.Name}}"
 
-4be01827a72e: tiborvass/no-remove
+4be01827a72e: vieux/sshfs:latest
 ```
 
 ## Related commands
