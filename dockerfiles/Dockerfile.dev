@@ -24,6 +24,7 @@ RUN     go get -d github.com/dnephin/filewatcher && \
         go build -v -o /usr/bin/filewatcher . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ENV     CGO_ENABLED=0
+ENV     CGO_ENABLED=0 \
+        PATH=$PATH:/go/src/github.com/docker/cli/build
 WORKDIR /go/src/github.com/docker/cli
 CMD     sh
