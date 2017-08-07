@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/notary"
 	"github.com/docker/notary/tuf/validation"
 )

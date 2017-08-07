@@ -16,7 +16,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/notary"
 	"github.com/docker/notary/tuf/data"

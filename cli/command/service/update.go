@@ -270,7 +270,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		}
 	}
 
-	cspec := &spec.TaskTemplate.ContainerSpec
+	cspec := spec.TaskTemplate.ContainerSpec
 	task := &spec.TaskTemplate
 
 	taskResources := func() *swarm.ResourceRequirements {

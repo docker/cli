@@ -16,13 +16,13 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/system"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -91,6 +91,16 @@ const (
 	// OverlayWhiteoutFormat formats whiteout according to the overlay
 	// standard.
 	OverlayWhiteoutFormat
+)
+
+const (
+	modeISDIR  = 040000  // Directory
+	modeISFIFO = 010000  // FIFO
+	modeISREG  = 0100000 // Regular file
+	modeISLNK  = 0120000 // Symbolic link
+	modeISBLK  = 060000  // Block special file
+	modeISCHR  = 020000  // Character special file
+	modeISSOCK = 0140000 // Socket
 )
 
 // IsArchivePath checks if the (possibly compressed) file at the given path
@@ -305,12 +315,14 @@ func (compression *Compression) Extension() string {
 
 // FileInfoHeader creates a populated Header from fi.
 // Compared to archive pkg this function fills in more information.
+// Also, regardless of Go version, this function fills file type bits (e.g. hdr.Mode |= modeISDIR),
+// which have been deleted since Go 1.9 archive/tar.
 func FileInfoHeader(name string, fi os.FileInfo, link string) (*tar.Header, error) {
 	hdr, err := tar.FileInfoHeader(fi, link)
 	if err != nil {
 		return nil, err
 	}
-	hdr.Mode = int64(chmodTarEntry(os.FileMode(hdr.Mode)))
+	hdr.Mode = fillGo18FileTypeBits(int64(chmodTarEntry(os.FileMode(hdr.Mode))), fi)
 	name, err = canonicalTarName(name, fi.IsDir())
 	if err != nil {
 		return nil, fmt.Errorf("tar: cannot canonicalize path: %v", err)
@@ -320,6 +332,31 @@ func FileInfoHeader(name string, fi os.FileInfo, link string) (*tar.Header, erro
 		return nil, err
 	}
 	return hdr, nil
+}
+
+// fillGo18FileTypeBits fills type bits which have been removed on Go 1.9 archive/tar
+// https://github.com/golang/go/commit/66b5a2f
+func fillGo18FileTypeBits(mode int64, fi os.FileInfo) int64 {
+	fm := fi.Mode()
+	switch {
+	case fm.IsRegular():
+		mode |= modeISREG
+	case fi.IsDir():
+		mode |= modeISDIR
+	case fm&os.ModeSymlink != 0:
+		mode |= modeISLNK
+	case fm&os.ModeDevice != 0:
+		if fm&os.ModeCharDevice != 0 {
+			mode |= modeISCHR
+		} else {
+			mode |= modeISBLK
+		}
+	case fm&os.ModeNamedPipe != 0:
+		mode |= modeISFIFO
+	case fm&os.ModeSocket != 0:
+		mode |= modeISSOCK
+	}
+	return mode
 }
 
 // ReadSecurityXattrToTarHeader reads security.capability xattr from filesystem
@@ -345,6 +382,7 @@ type tarAppender struct {
 	// for hardlink mapping
 	SeenFiles  map[uint64]string
 	IDMappings *idtools.IDMappings
+	ChownOpts  *idtools.IDPair
 
 	// For packing and unpacking whiteout files in the
 	// non standard format. The whiteout files defined
@@ -353,12 +391,13 @@ type tarAppender struct {
 	WhiteoutConverter tarWhiteoutConverter
 }
 
-func newTarAppender(idMapping *idtools.IDMappings, writer io.Writer) *tarAppender {
+func newTarAppender(idMapping *idtools.IDMappings, writer io.Writer, chownOpts *idtools.IDPair) *tarAppender {
 	return &tarAppender{
 		SeenFiles:  make(map[uint64]string),
 		TarWriter:  tar.NewWriter(writer),
 		Buffer:     pools.BufioWriter32KPool.Get(nil),
 		IDMappings: idMapping,
+		ChownOpts:  chownOpts,
 	}
 }
 
@@ -431,6 +470,12 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// explicitly override with ChownOpts
+	if ta.ChownOpts != nil {
+		hdr.Uid = ta.ChownOpts.UID
+		hdr.Gid = ta.ChownOpts.GID
 	}
 
 	if ta.WhiteoutConverter != nil {
@@ -558,7 +603,7 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, L
 		return nil
 
 	default:
-		return fmt.Errorf("Unhandled tar header type %d\n", hdr.Typeflag)
+		return fmt.Errorf("unhandled tar header type %d", hdr.Typeflag)
 	}
 
 	// Lchown is not supported on Windows.
@@ -655,6 +700,7 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 		ta := newTarAppender(
 			idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps),
 			compressWriter,
+			options.ChownOpts,
 		)
 		ta.WhiteoutConverter = getWhiteoutConverter(options.WhiteoutFormat)
 

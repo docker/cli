@@ -30,21 +30,37 @@ message Annotations {
 	repeated IndexEntry indices = 4 [(gogoproto.nullable) = false];
 }
 
-message GenericString {
+// NamedGenericResource represents a "user defined" resource which is defined
+// as a string.
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to identify the resource (GPU="UUID-1", FPGA="/dev/sdb5", ...)
+message NamedGenericResource {
 	string kind = 1;
 	string value = 2;
 }
 
-message GenericDiscrete {
+// DiscreteGenericResource represents a "user defined" resource which is defined
+// as an integer
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to count the resource (SSD=5, HDD=3, ...)
+message DiscreteGenericResource {
 	string kind = 1;
 	int64 value = 2;
 }
 
+// GenericResource represents a "user defined" resource which can
+// be either an integer (e.g: SSD=3) or a string (e.g: SSD=sda1)
 message GenericResource {
 	oneof resource {
-		GenericString str = 1;
-		GenericDiscrete discrete = 2;
+		NamedGenericResource named_resource_spec = 1;
+		DiscreteGenericResource discrete_resource_spec = 2;
 	}
+}
+
+enum ResourceType {
+	TASK = 0;
+	SECRET = 1;
+	CONFIG = 2;
 }
 
 message Resources {
@@ -498,6 +514,15 @@ message TaskStatus {
 	// HostPorts provides a list of ports allocated at the host
 	// level.
 	PortStatus port_status = 6;
+
+	// AppliedBy gives the node ID of the manager that applied this task
+	// status update to the Task object.
+	string applied_by = 7;
+
+	// AppliedAt gives a timestamp of when this status update was applied to
+	// the Task object.
+	// Note: can't use stdtime because this field is nullable.
+	google.protobuf.Timestamp applied_at = 8;
 }
 
 // NetworkAttachmentConfig specifies how a service should be attached to a particular network.

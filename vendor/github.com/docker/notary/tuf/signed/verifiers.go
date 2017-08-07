@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/notary/tuf/data"
 )

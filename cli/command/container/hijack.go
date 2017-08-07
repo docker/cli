@@ -6,12 +6,12 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/term"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 

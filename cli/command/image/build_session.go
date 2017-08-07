@@ -17,9 +17,9 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client/session"
-	"github.com/docker/docker/client/session/filesync"
 	"github.com/docker/docker/pkg/progress"
+	"github.com/moby/buildkit/session"
+	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 )
