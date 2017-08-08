@@ -12,10 +12,10 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
+	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	eventtypes "github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/pkg/jsonlog"
-	"github.com/docker/docker/pkg/templates"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )

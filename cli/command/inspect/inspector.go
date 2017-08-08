@@ -9,7 +9,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
-	"github.com/docker/docker/pkg/templates"
+	"github.com/docker/cli/templates"
 	"github.com/pkg/errors"
 )
 
