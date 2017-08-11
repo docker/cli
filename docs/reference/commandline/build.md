@@ -96,7 +96,7 @@ For example, run this command to use a directory called `docker` in the branch
 `container`:
 
 ```bash
-$ docker build https://github.com/docker/rootfs.git#container:docker
+$ docker build https://github.com/docker/rootfs#container:docker
 ```
 
 The following table represents all the valid suffixes with their build
@@ -104,14 +104,14 @@ contexts:
 
 Build Syntax Suffix             | Commit Used           | Build Context Used
 --------------------------------|-----------------------|-------------------
-`myrepo.git`                    | `refs/heads/master`   | `/`
-`myrepo.git#mytag`              | `refs/tags/mytag`     | `/`
-`myrepo.git#mybranch`           | `refs/heads/mybranch` | `/`
-`myrepo.git#pull/42/head`       | `refs/pull/42/head`   | `/`
-`myrepo.git#:myfolder`          | `refs/heads/master`   | `/myfolder`
-`myrepo.git#master:myfolder`    | `refs/heads/master`   | `/myfolder`
-`myrepo.git#mytag:myfolder`     | `refs/tags/mytag`     | `/myfolder`
-`myrepo.git#mybranch:myfolder`  | `refs/heads/mybranch` | `/myfolder`
+`myrepo`                        | `refs/heads/master`   | `/`
+`myrepo#mytag`                  | `refs/tags/mytag`     | `/`
+`myrepo#mybranch`               | `refs/heads/mybranch` | `/`
+`myrepo#pull/42/head`           | `refs/pull/42/head`   | `/`
+`myrepo#:myfolder`              | `refs/heads/master`   | `/myfolder`
+`myrepo#master:myfolder`        | `refs/heads/master`   | `/myfolder`
+`myrepo#mytag:myfolder`         | `refs/tags/mytag`     | `/myfolder`
+`myrepo#mybranch:myfolder`      | `refs/heads/mybranch` | `/myfolder`
 
 
 ### Tarball contexts
