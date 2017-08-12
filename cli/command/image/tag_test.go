@@ -15,7 +15,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 		{"image1"},
 		{"image1", "image2", "image3"},
 	}
-	expectedError := "\"tag\" requires exactly 2 argument(s)."
+	expectedError := "\"tag\" requires exactly 2 arguments."
 	for _, args := range testCases {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)

@@ -31,7 +31,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 		},
 		{
 			args:          []string{"too", "many"},
-			expectedError: "requires at most 1 argument(s)",
+			expectedError: "requires at most 1 argument",
 		},
 		{
 			volumeCreateFunc: func(createBody volumetypes.VolumesCreateBody) (types.Volume, error) {

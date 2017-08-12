@@ -27,7 +27,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{"arg"},
-			expectedError: "accepts no argument(s).",
+			expectedError: "accepts no arguments.",
 		},
 		{
 			name:          "input-to-terminal",
