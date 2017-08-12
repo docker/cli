@@ -51,17 +51,21 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
-	unixTime := time.Now().AddDate(0, 0, -7).Unix()
-	expected := "7 days ago"
-
 	var ctx historyContext
 	cases := []historyCase{
 		{
 			historyContext{
-				h:     image.HistoryResponseItem{Created: unixTime},
+				h:     image.HistoryResponseItem{Created: time.Now().AddDate(0, 0, -7).Unix()},
 				trunc: false,
 				human: true,
-			}, expected, ctx.CreatedSince,
+			}, "7 days ago", ctx.CreatedSince,
+		},
+		{
+			historyContext{
+				h:     image.HistoryResponseItem{Created: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).Unix()},
+				trunc: false,
+				human: false,
+			}, "2009-11-10T23:00:00Z", ctx.CreatedSince,
 		},
 	}
 
