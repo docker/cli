@@ -1,3 +1,5 @@
 package credentials
 
-const defaultCredentialsStore = "secretservice"
+func defaultCredentialsStore() string {
+	return "secretservice"
+}
