@@ -140,6 +140,14 @@ image               <none>
 		{
 			ImageContext{
 				Context: Context{
+					Format: NewImageFormat("table {{.Digest}}", true, false),
+				},
+			},
+			"DIGEST\nsha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf\n<none>\n<none>\n",
+		},
+		{
+			ImageContext{
+				Context: Context{
 					Format: NewImageFormat("table", true, false),
 				},
 			},
