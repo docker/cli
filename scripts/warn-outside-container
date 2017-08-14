@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -eu
+
+target="${1:-}"
+
+if [[ -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]]; then
+    (
+        echo
+        echo
+        echo "WARNING: you are not in a container."
+        echo "Use \"make -f docker.Makefile $target\" or set"
+        echo "DISABLE_WARN_OUTSIDE_CONTAINER=1 to disable this warning."
+        echo
+        echo "Press Ctrl+C now to abort."
+        echo
+    ) >&2
+    sleep 10
+fi
