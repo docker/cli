@@ -211,7 +211,7 @@ is also available when creating the ingress network, besides the `--attachable` 
 $ docker network create -d overlay \
   --subnet=10.11.0.0/16 \
   --ingress \
-  --opt com.docker.network.mtu=9216 \
+  --opt com.docker.network.driver.mtu=9216 \
   --opt encrypted=true \
   my-ingress-network
 ```
