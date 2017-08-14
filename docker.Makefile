@@ -42,9 +42,9 @@ clean: build_docker_image
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make clean
 
 # run go test
-.PHONY: test
-test: build_docker_image
-	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make test
+.PHONY: test-unit
+test-unit: build_docker_image
+	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make test-unit
 
 # build the CLI for multiple architectures using a container
 .PHONY: cross
@@ -90,3 +90,7 @@ yamldocs: build_docker_image
 .PHONY: shellcheck
 shellcheck: build_shell_validate_image
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
+
+.PHONY: test-e2e:
+test-e2e: binary
+	./scripts/test/e2e/wrapper

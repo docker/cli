@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Setup, run and teardown e2e test suite in containers.
+set -eu -o pipefail
+
+unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"
+e2e_env_image=docker-cli-e2e-env:$unique_id
+dev_image=docker-cli-dev:$unique_id
+
+function run_in_env {
+    local cmd=$1
+    docker run -i --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -e E2E_UNIQUE_ID \
+        "$e2e_env_image" "$cmd"
+}
+
+docker build \
+    -t "$e2e_env_image" \
+    -f dockerfiles/Dockerfile.test-e2e-env .
+
+docker build \
+    -t "$dev_image" \
+    -f dockerfiles/Dockerfile.dev .
+
+engine_host=$(run_in_env setup)
+testexit=0
+docker run -i --rm \
+    -v "$PWD:/go/src/github.com/docker/cli" \
+    --network "${unique_id}_default" \
+    "$dev_image" \
+    ./scripts/test/e2e/run test "$engine_host" || testexit="$?"
+run_in_env cleanup
+exit "$testexit"

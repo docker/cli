@@ -1,0 +1,15 @@
+FROM    docker/compose:1.15.0
+
+RUN     apk add -U bash curl
+
+RUN     curl -Ls https://download.docker.com/linux/static/edge/x86_64/docker-17.06.0-ce.tgz | \
+        tar -xz docker/docker && \
+        mv docker/docker /usr/local/bin/ && \
+        rmdir docker
+ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
+WORKDIR /work
+COPY    scripts/test/e2e scripts/test/e2e
+COPY    e2e/compose-env.yaml e2e/compose-env.yaml
+
+ENTRYPOINT ["bash", "/work/scripts/test/e2e/run"]
+CMD     []
