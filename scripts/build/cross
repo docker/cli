@@ -18,7 +18,7 @@ jobs=(
 )
 
 # Outside of circleCI run all at once. On circleCI run two at a time because
-# each continer has access to two cores.
+# each container has access to two cores.
 group=${CROSS_GROUP-"all"}
 
 if [ "$group" == "all" ]; then
@@ -29,5 +29,5 @@ if [ "$group" == "all" ]; then
 
 fi
 
-declare -i start=$group*2
+declare -i start="$group*2"
 parallel ::: "${jobs[@]:$start:2}"
