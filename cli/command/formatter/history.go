@@ -79,10 +79,13 @@ func (c *historyContext) ID() string {
 }
 
 func (c *historyContext) CreatedAt() string {
-	return units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
+	return time.Unix(c.h.Created, 0).Format(time.RFC3339)
 }
 
 func (c *historyContext) CreatedSince() string {
+	if !c.human {
+		return c.CreatedAt()
+	}
 	created := units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
 	return created + " ago"
 }
