@@ -26,10 +26,10 @@ func TestConfigCreateErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{"too_few"},
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires exactly 2 arguments",
 		},
 		{args: []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires exactly 2 arguments",
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", configDataFile)},

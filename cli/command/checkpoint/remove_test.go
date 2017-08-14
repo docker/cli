@@ -20,11 +20,11 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{"too-few-arguments"},
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires exactly 2 arguments",
 		},
 		{
 			args:          []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires exactly 2 arguments",
 		},
 		{
 			args: []string{"foo", "bar"},

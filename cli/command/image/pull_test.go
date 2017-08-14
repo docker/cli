@@ -19,7 +19,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 	}{
 		{
 			name:          "wrong-args",
-			expectedError: "requires exactly 1 argument(s).",
+			expectedError: "requires exactly 1 argument.",
 			args:          []string{},
 		},
 		{

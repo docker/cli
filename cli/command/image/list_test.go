@@ -25,7 +25,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{"arg1", "arg2"},
-			expectedError: "requires at most 1 argument(s).",
+			expectedError: "requires at most 1 argument.",
 		},
 		{
 			name:          "failed-list",

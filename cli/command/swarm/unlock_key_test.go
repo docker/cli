@@ -29,7 +29,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 		{
 			name:          "too-many-args",
 			args:          []string{"foo"},
-			expectedError: "accepts no argument(s)",
+			expectedError: "accepts no arguments",
 		},
 		{
 			name: "swarm-inspect-rotate-failed",

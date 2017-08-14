@@ -19,7 +19,7 @@ func TestNetworkConnectErrors(t *testing.T) {
 		expectedError      string
 	}{
 		{
-			expectedError: "requires exactly 2 argument(s)",
+			expectedError: "requires exactly 2 arguments",
 		},
 		{
 			args: []string{"toto", "titi"},

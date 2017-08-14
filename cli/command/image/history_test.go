@@ -25,7 +25,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{},
-			expectedError: "requires exactly 1 argument(s).",
+			expectedError: "requires exactly 1 argument.",
 		},
 		{
 			name:          "client-error",

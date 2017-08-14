@@ -25,7 +25,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 		{
 			name:          "too-many-args",
 			args:          []string{"foo"},
-			expectedError: "accepts no argument(s)",
+			expectedError: "accepts no arguments",
 		},
 		{
 			name: "is-not-part-of-a-swarm",
