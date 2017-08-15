@@ -65,3 +65,10 @@ cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
 
 compose-jsonschema: cli/compose/schema/bindata.go
 	scripts/validate/check-git-diff cli/compose/schema/bindata.go
+
+.PHONY: ci-validate
+ci-validate:
+	time make -B vendor
+	time make -B compose-jsonschema
+	time make manpages
+	time make yamldocs

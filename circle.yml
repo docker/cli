@@ -90,7 +90,7 @@ jobs:
             rm -f .dockerignore # include .git
             docker build -f $dockerfile --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
-                make -B vendor compose-jsonschema manpages yamldocs
+                make ci-validate
   shellcheck:
     working_directory: /work
     docker: [{image: 'docker:17.06-git'}]
@@ -104,7 +104,7 @@ jobs:
             echo "COPY . ." >> $dockerfile
             docker build -f $dockerfile --tag cli-validator:$CIRCLE_BUILD_NUM .
             docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
-                make -B shellcheck
+                make shellcheck
 workflows:
   version: 2
   ci:
