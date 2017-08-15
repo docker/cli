@@ -71,7 +71,8 @@ jobs:
                 test-$CIRCLE_BUILD_NUM:/go/src/github.com/docker/cli/coverage.txt \
                 coverage.txt
             apk add -U bash curl
-            curl -s https://codecov.io/bash | bash
+            curl -s https://codecov.io/bash | bash || \
+                echo 'Codecov failed to upload'
 
   validate:
     working_directory: /work
