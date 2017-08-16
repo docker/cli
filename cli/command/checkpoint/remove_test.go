@@ -1,7 +1,6 @@
 package checkpoint
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -36,9 +35,9 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCliWithOutput(&fakeClient{
+		cli := test.NewFakeCli(&fakeClient{
 			checkpointDeleteFunc: tc.checkpointDeleteFunc,
-		}, &bytes.Buffer{})
+		})
 		cmd := newRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -48,14 +47,14 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 
 func TestCheckpointRemoveWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		checkpointDeleteFunc: func(container string, options types.CheckpointDeleteOptions) error {
 			containerID = container
 			checkpointID = options.CheckpointID
 			checkpointDir = options.CheckpointDir
 			return nil
 		},
-	}, &bytes.Buffer{})
+	})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"container-foo", "checkpoint-bar"})
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
