@@ -23,14 +23,6 @@ type FakeCli struct {
 	server     command.ServerInfo
 }
 
-// NewFakeCliWithOutput returns a Cli backed by the fakeCli
-// Deprecated: Use NewFakeCli
-func NewFakeCliWithOutput(client client.APIClient, out io.Writer) *FakeCli {
-	cli := NewFakeCli(client)
-	cli.out = command.NewOutStream(out)
-	return cli
-}
-
 // NewFakeCli returns a fake for the command.Cli interface
 func NewFakeCli(client client.APIClient) *FakeCli {
 	outBuffer := new(bytes.Buffer)

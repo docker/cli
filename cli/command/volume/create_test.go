@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"bytes"
 	"io/ioutil"
 	"reflect"
 	"strings"
@@ -57,8 +56,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 
 func TestVolumeCreateWithName(t *testing.T) {
 	name := "foo"
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
 			if body.Name != name {
 				return types.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
@@ -67,7 +65,9 @@ func TestVolumeCreateWithName(t *testing.T) {
 				Name: body.Name,
 			}, nil
 		},
-	}, buf)
+	})
+
+	buf := cli.OutBuffer()
 
 	// Test by flags
 	cmd := newCreateCommand(cli)
@@ -95,8 +95,7 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	}
 	name := "banana"
 
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
 			if body.Name != "" {
 				return types.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)
@@ -114,7 +113,7 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 				Name: name,
 			}, nil
 		},
-	}, buf)
+	})
 
 	cmd := newCreateCommand(cli)
 	cmd.Flags().Set("driver", "foo")
@@ -123,5 +122,5 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("label", "lbl1=v1")
 	cmd.Flags().Set("label", "lbl2=v2")
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, name, strings.TrimSpace(buf.String()))
+	assert.Equal(t, name, strings.TrimSpace(cli.OutBuffer().String()))
 }

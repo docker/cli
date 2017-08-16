@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,11 +36,10 @@ func TestVolumeListErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newListCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				volumeListFunc: tc.volumeListFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -53,8 +51,7 @@ func TestVolumeListErrors(t *testing.T) {
 }
 
 func TestVolumeListWithoutFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{
@@ -66,17 +63,14 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
+	})
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "volume-list-without-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "volume-list-without-format.golden")
 }
 
 func TestVolumeListWithConfigFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{
@@ -88,20 +82,17 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
+	})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		VolumesFormat: "{{ .Name }} {{ .Driver }} {{ .Labels }}",
 	})
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "volume-list-with-config-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-config-format.golden")
 }
 
 func TestVolumeListWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
 			return volumetypes.VolumesListOKBody{
 				Volumes: []*types.Volume{
@@ -113,11 +104,9 @@ func TestVolumeListWithFormat(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
+	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "volume-list-with-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-format.golden")
 }

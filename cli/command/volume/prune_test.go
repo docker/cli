@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"runtime"
@@ -13,7 +12,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -41,9 +41,9 @@ func TestVolumePruneErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewPruneCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				volumePruneFunc: tc.volumePruneFunc,
-			}, ioutil.Discard),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -68,60 +68,45 @@ func TestVolumePruneForce(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewPruneCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				volumePruneFunc: tc.volumePruneFunc,
-			}, buf),
-		)
+		cli := test.NewFakeCli(&fakeClient{
+			volumePruneFunc: tc.volumePruneFunc,
+		})
+		cmd := NewPruneCommand(cli)
 		cmd.Flags().Set("force", "true")
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("volume-prune.%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-prune.%s.golden", tc.name))
 	}
 }
+
 func TestVolumePrunePromptYes(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		// FIXME(vdemeester) make it work..
-		t.Skip("skipping this test on Windows")
-	}
+	// FIXME(vdemeester) make it work..
+	skip.IfCondition(t, runtime.GOOS == "windows", "TODO: fix test on windows")
+
 	for _, input := range []string{"y", "Y"} {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{
+		cli := test.NewFakeCli(&fakeClient{
 			volumePruneFunc: simplePruneFunc,
-		}, buf)
+		})
 
 		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
-		cmd := NewPruneCommand(
-			cli,
-		)
+		cmd := NewPruneCommand(cli)
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), "volume-prune-yes.golden")
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
 	}
 }
 
 func TestVolumePrunePromptNo(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		// FIXME(vdemeester) make it work..
-		t.Skip("skipping this test on Windows")
-	}
+	// FIXME(vdemeester) make it work..
+	skip.IfCondition(t, runtime.GOOS == "windows", "TODO: fix test on windows")
+
 	for _, input := range []string{"n", "N", "no", "anything", "really"} {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{
+		cli := test.NewFakeCli(&fakeClient{
 			volumePruneFunc: simplePruneFunc,
-		}, buf)
+		})
 
 		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
-		cmd := NewPruneCommand(
-			cli,
-		)
+		cmd := NewPruneCommand(cli)
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), "volume-prune-no.golden")
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
 	}
 }
 
