@@ -753,8 +753,9 @@ is set on the cgroup and applications in a container can query it at `/sys/fs/cg
 On Windows, this will affect containers differently depending on what type of isolation is used.
 
 - With `process` isolation, Windows will report the full memory of the host system, not the limit to applications running inside the container
+
     ```powershell
-    docker run -it -m 2GB --isolation=process microsoft/nanoserver powershell Get-ComputerInfo *memory*
+    PS C:\> docker run -it -m 2GB --isolation=process microsoft/nanoserver powershell Get-ComputerInfo *memory*
 
     CsTotalPhysicalMemory      : 17064509440
     CsPhyicallyInstalledMemory : 16777216
@@ -765,9 +766,11 @@ On Windows, this will affect containers differently depending on what type of is
     OsInUseVirtualMemory       : 1957488
     OsMaxProcessMemorySize     : 137438953344
     ```
+
 - With `hyperv` isolation, Windows will create a utility VM that is big enough to hold the memory limit, plus the minimal OS needed to host the container. That size is reported as "Total Physical Memory."
+
     ```powershell
-    docker run -it -m 2GB --isolation=hyperv microsoft/nanoserver powershell Get-ComputerInfo *memory*
+    PS C:\> docker run -it -m 2GB --isolation=hyperv microsoft/nanoserver powershell Get-ComputerInfo *memory*
 
     CsTotalPhysicalMemory      : 2683355136
     CsPhyicallyInstalledMemory :
