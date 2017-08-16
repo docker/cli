@@ -243,14 +243,12 @@ $ docker service create \
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
 
-### Add bind-mounts or volumes
+### Add bind-mounts, volumes or memory filesystems
 
-Docker supports two different kinds of mounts, which allow containers to read to
-or write from files or directories on other containers or the host operating
-system. These types are _data volumes_ (often referred to simply as volumes) and
-_bind-mounts_.
-
-Additionally, Docker supports `tmpfs` mounts.
+Docker supports three different kinds of mounts, which allow containers to read
+from or write to files or directories, either on the host operating system, or
+on memory filesystems. These types are _data volumes_ (often referred to simply
+as volumes), _bind-mounts_, and _tmpfs_.
 
 A **bind-mount** makes a file or directory on the host available to the
 container it is mounted within. A bind-mount may be either read-only or
