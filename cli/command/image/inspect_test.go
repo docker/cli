@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -9,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,8 +25,7 @@ func TestNewInspectCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
+		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -78,15 +76,13 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		imageInspectInvocationCount = 0
-		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(test.NewFakeCliWithOutput(&fakeClient{imageInspectFunc: tc.imageInspectFunc}, buf))
+		cli := test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc})
+		cmd := newInspectCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		actual := buf.String()
-		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("inspect-command-success.%s.golden", tc.name))[:])
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("inspect-command-success.%s.golden", tc.name))
 		assert.Equal(t, imageInspectInvocationCount, tc.imageCount)
 	}
 }

@@ -3,14 +3,13 @@ package image
 import (
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -96,11 +95,9 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		assert.NoError(t, err)
 		actual := cli.OutBuffer().String()
 		if tc.outputRegex == "" {
-			expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("history-command-success.%s.golden", tc.name))[:])
-			testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
+			golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
 		} else {
-			match, _ := regexp.MatchString(tc.outputRegex, actual)
-			assert.True(t, match)
+			assert.Regexp(t, tc.outputRegex, actual)
 		}
 	}
 }

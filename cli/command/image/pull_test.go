@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,8 +68,6 @@ func TestNewPullCommandSuccess(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		actual := cli.OutBuffer().String()
-		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("pull-command-success.%s.golden", tc.name))[:])
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
 	}
 }

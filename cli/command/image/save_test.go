@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -90,11 +89,11 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewSaveCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
-		}, new(bytes.Buffer)))
+		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
