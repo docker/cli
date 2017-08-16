@@ -12,7 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -75,9 +75,7 @@ func TestStackPsWithQuietOption(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-with-quiet-option.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-quiet-option.golden")
 
 }
 
@@ -92,9 +90,7 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 	cmd.Flags().Set("no-trunc", "true")
 	cmd.Flags().Set("format", "{{ .ID }}")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-with-no-trunc-option.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-trunc-option.golden")
 }
 
 func TestStackPsWithNoResolveOption(t *testing.T) {
@@ -113,9 +109,7 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 	cmd.Flags().Set("no-resolve", "true")
 	cmd.Flags().Set("format", "{{ .Node }}")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-with-no-resolve-option.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-resolve-option.golden")
 }
 
 func TestStackPsWithFormat(t *testing.T) {
@@ -128,9 +122,7 @@ func TestStackPsWithFormat(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-with-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-format.golden")
 }
 
 func TestStackPsWithConfigFormat(t *testing.T) {
@@ -145,9 +137,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-with-config-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-config-format.golden")
 }
 
 func TestStackPsWithoutFormat(t *testing.T) {
@@ -169,7 +159,5 @@ func TestStackPsWithoutFormat(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-ps-without-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-without-format.golden")
 }

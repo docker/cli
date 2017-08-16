@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,9 +103,7 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-services-with-quiet-option.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-quiet-option.golden")
 }
 
 func TestStackServicesWithFormat(t *testing.T) {
@@ -120,9 +118,7 @@ func TestStackServicesWithFormat(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-services-with-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-format.golden")
 }
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
@@ -139,9 +135,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-services-with-config-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-config-format.golden")
 }
 
 func TestStackServicesWithoutFormat(t *testing.T) {
@@ -164,7 +158,5 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "stack-services-without-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-without-format.golden")
 }
