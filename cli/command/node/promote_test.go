@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -40,12 +39,11 @@ func TestNodePromoteErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newPromoteCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -53,9 +51,8 @@ func TestNodePromoteErrors(t *testing.T) {
 }
 
 func TestNodePromoteNoChange(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cmd := newPromoteCommand(
-		test.NewFakeCliWithOutput(&fakeClient{
+		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(Manager()), []byte{}, nil
 			},
@@ -65,15 +62,14 @@ func TestNodePromoteNoChange(t *testing.T) {
 				}
 				return nil
 			},
-		}, buf))
+		}))
 	cmd.SetArgs([]string{"nodeID"})
 	assert.NoError(t, cmd.Execute())
 }
 
 func TestNodePromoteMultipleNode(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cmd := newPromoteCommand(
-		test.NewFakeCliWithOutput(&fakeClient{
+		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *Node(), []byte{}, nil
 			},
@@ -83,7 +79,7 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 				}
 				return nil
 			},
-		}, buf))
+		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
 	assert.NoError(t, cmd.Execute())
 }
