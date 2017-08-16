@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -49,12 +48,11 @@ func TestSwarmJoinErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newJoinCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				swarmJoinFunc: tc.swarmJoinFunc,
 				infoFunc:      tc.infoFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -91,13 +89,12 @@ func TestSwarmJoin(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newJoinCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				infoFunc: tc.infoFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			infoFunc: tc.infoFunc,
+		})
+		cmd := newJoinCommand(cli)
 		cmd.SetArgs([]string{"remote"})
 		assert.NoError(t, cmd.Execute())
-		assert.Equal(t, strings.TrimSpace(buf.String()), tc.expected)
+		assert.Equal(t, strings.TrimSpace(cli.OutBuffer().String()), tc.expected)
 	}
 }

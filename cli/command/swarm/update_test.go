@@ -13,7 +13,7 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -174,8 +174,6 @@ func TestSwarmUpdate(t *testing.T) {
 		}
 		cmd.SetOutput(cli.OutBuffer())
 		assert.NoError(t, cmd.Execute())
-		actual := cli.OutBuffer().String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("update-%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }

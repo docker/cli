@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -9,8 +8,7 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -65,14 +63,13 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newInitCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				swarmInitFunc:         tc.swarmInitFunc,
 				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
 				nodeInspectFunc:       tc.nodeInspectFunc,
-			}, buf))
+			}))
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
@@ -112,20 +109,17 @@ func TestSwarmInit(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newInitCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				swarmInitFunc:         tc.swarmInitFunc,
-				swarmInspectFunc:      tc.swarmInspectFunc,
-				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-				nodeInspectFunc:       tc.nodeInspectFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			swarmInitFunc:         tc.swarmInitFunc,
+			swarmInspectFunc:      tc.swarmInspectFunc,
+			swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+			nodeInspectFunc:       tc.nodeInspectFunc,
+		})
+		cmd := newInitCommand(cli)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("init-%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("init-%s.golden", tc.name))
 	}
 }
