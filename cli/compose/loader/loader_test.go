@@ -584,6 +584,21 @@ services:
 	assert.Contains(t, forbidden, "extends")
 }
 
+func TestInvalidResource(t *testing.T) {
+	_, err := loadYAML(`
+        version: "3"
+        services:
+          foo:
+            image: busybox
+            deploy:
+              resources:
+                impossible:
+                  x: 1
+`)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Additional property impossible is not allowed")
+}
+
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3"
