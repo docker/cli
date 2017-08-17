@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -12,7 +11,7 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,11 +53,10 @@ func TestVolumeInspectErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				volumeInspectFunc: tc.volumeInspectFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
@@ -96,17 +94,13 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				volumeInspectFunc: tc.volumeInspectFunc,
-			}, buf),
-		)
+		cli := test.NewFakeCli(&fakeClient{
+			volumeInspectFunc: tc.volumeInspectFunc,
+		})
+		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("volume-inspect-without-format.%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-without-format.%s.golden", tc.name))
 	}
 }
 
@@ -136,17 +130,13 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				volumeInspectFunc: tc.volumeInspectFunc,
-			}, buf),
-		)
+		cli := test.NewFakeCli(&fakeClient{
+			volumeInspectFunc: tc.volumeInspectFunc,
+		})
+		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
 	}
 }

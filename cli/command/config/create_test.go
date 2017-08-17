@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,8 +71,7 @@ func TestConfigCreateWithName(t *testing.T) {
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	assert.NoError(t, cmd.Execute())
-	expected := golden.Get(t, actual, configDataFile)
-	assert.Equal(t, string(expected), string(actual))
+	golden.Assert(t, string(actual), configDataFile)
 	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }
 

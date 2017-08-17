@@ -1,7 +1,6 @@
 package secret
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -31,11 +30,10 @@ func TestSecretRemoveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newSecretRemoveCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				secretRemoveFunc: tc.secretRemoveFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -45,27 +43,25 @@ func TestSecretRemoveErrors(t *testing.T) {
 
 func TestSecretRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
-	buf := new(bytes.Buffer)
 	var removedSecrets []string
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		secretRemoveFunc: func(name string) error {
 			removedSecrets = append(removedSecrets, name)
 			return nil
 		},
-	}, buf)
+	})
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetArgs(names)
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, names, strings.Split(strings.TrimSpace(buf.String()), "\n"))
+	assert.Equal(t, names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n"))
 	assert.Equal(t, names, removedSecrets)
 }
 
 func TestSecretRemoveContinueAfterError(t *testing.T) {
 	names := []string{"foo", "bar"}
-	buf := new(bytes.Buffer)
 	var removedSecrets []string
 
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		secretRemoveFunc: func(name string) error {
 			removedSecrets = append(removedSecrets, name)
 			if name == "foo" {
@@ -73,7 +69,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 			}
 			return nil
 		},
-	}, buf)
+	})
 
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetOutput(ioutil.Discard)

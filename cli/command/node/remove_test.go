@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -29,11 +28,10 @@ func TestNodeRemoveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newRemoveCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				nodeRemoveFunc: tc.nodeRemoveFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -41,8 +39,7 @@ func TestNodeRemoveErrors(t *testing.T) {
 }
 
 func TestNodeRemoveMultiple(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newRemoveCommand(test.NewFakeCliWithOutput(&fakeClient{}, buf))
+	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
 	assert.NoError(t, cmd.Execute())
 }

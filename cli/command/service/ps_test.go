@@ -3,8 +3,6 @@ package service
 import (
 	"testing"
 
-	"bytes"
-
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
@@ -82,8 +80,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		},
 	}
 
-	out := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(client, out)
+	cli := test.NewFakeCli(client)
 	options := psOptions{
 		services: []string{"foo", "bar"},
 		filter:   opts.NewFilterOpt(),

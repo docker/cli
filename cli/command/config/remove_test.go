@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -31,11 +30,10 @@ func TestConfigRemoveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newConfigRemoveCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				configRemoveFunc: tc.configRemoveFunc,
-			}, buf),
+			}),
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -45,27 +43,25 @@ func TestConfigRemoveErrors(t *testing.T) {
 
 func TestConfigRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
-	buf := new(bytes.Buffer)
 	var removedConfigs []string
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			return nil
 		},
-	}, buf)
+	})
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, names, strings.Split(strings.TrimSpace(buf.String()), "\n"))
+	assert.Equal(t, names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n"))
 	assert.Equal(t, names, removedConfigs)
 }
 
 func TestConfigRemoveContinueAfterError(t *testing.T) {
 	names := []string{"foo", "bar"}
-	buf := new(bytes.Buffer)
 	var removedConfigs []string
 
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {
@@ -73,7 +69,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 			}
 			return nil
 		},
-	}, buf)
+	})
 
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)

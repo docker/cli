@@ -6,7 +6,7 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/testutil/tempfile"
+	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -107,12 +107,12 @@ func TestSecrets(t *testing.T) {
 	namespace := Namespace{name: "foo"}
 
 	secretText := "this is the first secret"
-	secretFile := tempfile.NewTempFile(t, "convert-secrets", secretText)
+	secretFile := fs.NewFile(t, "convert-secrets", fs.WithContent(secretText))
 	defer secretFile.Remove()
 
 	source := map[string]composetypes.SecretConfig{
 		"one": {
-			File:   secretFile.Name(),
+			File:   secretFile.Path(),
 			Labels: map[string]string{"monster": "mash"},
 		},
 		"ext": {
@@ -138,12 +138,12 @@ func TestConfigs(t *testing.T) {
 	namespace := Namespace{name: "foo"}
 
 	configText := "this is the first config"
-	configFile := tempfile.NewTempFile(t, "convert-configs", configText)
+	configFile := fs.NewFile(t, "convert-configs", fs.WithContent(configText))
 	defer configFile.Remove()
 
 	source := map[string]composetypes.ConfigObjConfig{
 		"one": {
-			File:   configFile.Name(),
+			File:   configFile.Path(),
 			Labels: map[string]string{"monster": "mash"},
 		},
 		"ext": {

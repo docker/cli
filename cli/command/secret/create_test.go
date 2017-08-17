@@ -1,7 +1,6 @@
 package secret
 
 import (
-	"bytes"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -12,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -54,9 +53,8 @@ func TestSecretCreateErrors(t *testing.T) {
 
 func TestSecretCreateWithName(t *testing.T) {
 	name := "foo"
-	buf := new(bytes.Buffer)
 	var actual []byte
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -68,14 +66,13 @@ func TestSecretCreateWithName(t *testing.T) {
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
-	}, buf)
+	})
 
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	assert.NoError(t, cmd.Execute())
-	expected := golden.Get(t, actual, secretDataFile)
-	assert.Equal(t, expected, actual)
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(buf.String()))
+	golden.Assert(t, string(actual), secretDataFile)
+	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }
 
 func TestSecretCreateWithLabels(t *testing.T) {
@@ -85,8 +82,7 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	}
 	name := "foo"
 
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
@@ -100,12 +96,12 @@ func TestSecretCreateWithLabels(t *testing.T) {
 				ID: "ID-" + spec.Name,
 			}, nil
 		},
-	}, buf)
+	})
 
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(buf.String()))
+	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }

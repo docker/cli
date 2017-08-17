@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -13,7 +12,7 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,12 +66,11 @@ func TestNodeInspectErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
 		cmd := newInspectCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
+			test.NewFakeCli(&fakeClient{
 				nodeInspectFunc: tc.nodeInspectFunc,
 				infoFunc:        tc.infoFunc,
-			}, buf))
+			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
@@ -109,16 +107,13 @@ func TestNodeInspectPretty(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newInspectCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				nodeInspectFunc: tc.nodeInspectFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			nodeInspectFunc: tc.nodeInspectFunc,
+		})
+		cmd := newInspectCommand(cli)
 		cmd.SetArgs([]string{"nodeID"})
 		cmd.Flags().Set("pretty", "true")
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("node-inspect-pretty.%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-inspect-pretty.%s.golden", tc.name))
 	}
 }

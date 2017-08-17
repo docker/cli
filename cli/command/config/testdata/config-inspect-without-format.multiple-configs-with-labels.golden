@@ -1,7 +1,7 @@
 [
     {
         "ID": "ID-foo",
-	"Version": {},
+        "Version": {},
         "CreatedAt": "0001-01-01T00:00:00Z",
         "UpdatedAt": "0001-01-01T00:00:00Z",
         "Spec": {
@@ -13,7 +13,7 @@
     },
     {
         "ID": "ID-bar",
-	"Version": {},
+        "Version": {},
         "CreatedAt": "0001-01-01T00:00:00Z",
         "UpdatedAt": "0001-01-01T00:00:00Z",
         "Spec": {

@@ -3,14 +3,12 @@ package service
 import (
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestServiceListOrder(t *testing.T) {
@@ -26,7 +24,5 @@ func TestServiceListOrder(t *testing.T) {
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Name}}")
 	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "service-list-sort.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "service-list-sort.golden")
 }

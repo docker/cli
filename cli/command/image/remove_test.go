@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -96,16 +96,14 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		fakeCli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
-		cmd := NewRemoveCommand(fakeCli)
+		cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
+		cmd := NewRemoveCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())
 		if tc.expectedErrMsg != "" {
-			assert.Equal(t, tc.expectedErrMsg, fakeCli.ErrBuffer().String())
+			assert.Equal(t, tc.expectedErrMsg, cli.ErrBuffer().String())
 		}
-		actual := fakeCli.OutBuffer().String()
-		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("remove-command-success.%s.golden", tc.name))[:])
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("remove-command-success.%s.golden", tc.name))
 	}
 }

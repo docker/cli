@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -9,8 +8,7 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/cli/internal/test/builders"
@@ -58,9 +56,9 @@ func TestNodeList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
-				*Node(NodeID("nodeID2"), Hostname("nodeHostname2"), Manager()),
-				*Node(NodeID("nodeID3"), Hostname("nodeHostname3")),
+				*Node(NodeID("nodeID1"), Hostname("node-2-foo"), Manager(Leader())),
+				*Node(NodeID("nodeID2"), Hostname("node-10-foo"), Manager()),
+				*Node(NodeID("nodeID3"), Hostname("node-1-foo")),
 			}, nil
 		},
 		infoFunc: func() (types.Info, error) {
@@ -74,39 +72,25 @@ func TestNodeList(t *testing.T) {
 
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	out := cli.OutBuffer().String()
-	assert.Contains(t, out, `nodeID1 *           nodeHostname1       Ready               Active              Leader`)
-	assert.Contains(t, out, `nodeID2             nodeHostname2       Ready               Active              Reachable`)
-	assert.Contains(t, out, `nodeID3             nodeHostname3       Ready               Active`)
+	golden.Assert(t, cli.OutBuffer().String(), "node-list-sort.golden")
 }
 
 func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(),
+				*Node(NodeID("nodeID1")),
 			}, nil
 		},
-	}, buf)
+	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), "nodeID")
+	assert.Equal(t, cli.OutBuffer().String(), "nodeID1\n")
 }
 
-// Test case for #24090
-func TestNodeListContainsHostname(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{}, buf)
-	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), "HOSTNAME")
-}
-
-func TestNodeListDefaultFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+func TestNodeListDefaultFormatFromConfig(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -121,20 +105,17 @@ func TestNodeListDefaultFormat(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
+	})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), `nodeID1: nodeHostname1 Ready/Leader`)
-	assert.Contains(t, buf.String(), `nodeID2: nodeHostname2 Ready/Reachable`)
-	assert.Contains(t, buf.String(), `nodeID3: nodeHostname3 Ready`)
+	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-from-config.golden")
 }
 
 func TestNodeListFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
 				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
@@ -148,32 +129,12 @@ func TestNodeListFormat(t *testing.T) {
 				},
 			}, nil
 		},
-	}, buf)
+	})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), `nodeHostname1: Leader`)
-	assert.Contains(t, buf.String(), `nodeHostname2: Reachable`)
-}
-
-func TestNodeListOrder(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{
-		nodeListFunc: func() ([]swarm.Node, error) {
-			return []swarm.Node{
-				*Node(Hostname("node-2-foo"), Manager(Leader())),
-				*Node(Hostname("node-10-foo"), Manager()),
-				*Node(Hostname("node-1-foo")),
-			}, nil
-
-		},
-	})
-	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
-	assert.NoError(t, cmd.Execute())
-	actual := cli.OutBuffer().String()
-	expected := golden.Get(t, []byte(actual), "node-list-sort.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-flag.golden")
 }

@@ -1,7 +1,6 @@
 package image
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -10,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -80,17 +79,14 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cli := test.NewFakeCliWithOutput(&fakeClient{imageListFunc: tc.imageListFunc}, buf)
+		cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
 		cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
 		cmd := NewImagesCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		actual := buf.String()
-		expected := string(golden.Get(t, []byte(actual), fmt.Sprintf("list-command-success.%s.golden", tc.name))[:])
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, expected)
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("list-command-success.%s.golden", tc.name))
 	}
 }
 
