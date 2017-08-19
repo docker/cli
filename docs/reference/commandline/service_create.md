@@ -875,9 +875,10 @@ x3ti0erg11rjpg64m75kej2mz-hosttempl
 * [service inspect](service_inspect.md)
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
-* [service rm](service_rm.md)
-* [service scale](service_scale.md)
 * [service ps](service_ps.md)
+* [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
+* [service scale](service_scale.md)
 * [service update](service_update.md)
 
 <style>table tr > td:first-child { white-space: nowrap;}</style>

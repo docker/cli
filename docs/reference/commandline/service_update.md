@@ -174,9 +174,9 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
-### Rolling back to the previous version of a service 
+### Roll back to the previous version of a service
 
-Use the `--rollback` option to roll back to the previous version of the service. 
+Use the `--rollback` option to roll back to the previous version of the service.
 
 This will revert the service to the configuration that was in place before the most recent `docker service update` command.
 
@@ -193,7 +193,7 @@ ID            NAME  MODE        REPLICAS  IMAGE
 80bvrzp6vxf3  web   replicated  0/5       nginx:alpine
 
 ```
-Roll back the `web` service... 
+Roll back the `web` service...
 
 ```bash
 $ docker service update --rollback web
@@ -266,4 +266,5 @@ See [`service create`](./service_create.md#templating) for the reference.
 * [service ls](service_ls.md)
 * [service ps](service_ps.md)
 * [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
 * [service scale](service_scale.md)

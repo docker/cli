@@ -101,5 +101,6 @@ ID            NAME      MODE        REPLICAS  IMAGE
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
 * [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
 * [service ps](service_ps.md)
 * [service update](service_update.md)
