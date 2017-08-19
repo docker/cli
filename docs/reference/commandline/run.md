@@ -302,7 +302,7 @@ Contents of file
 ```
 
 The following examples will fail when using Windows-based containers, as the
-destination of a volume or bind-mount inside the container must be one of:
+destination of a volume or bind mount inside the container must be one of:
 a non-existing or empty directory; or a drive other than C:. Further, the source
 of a bind mount must be a local directory, not a file.
 
@@ -318,7 +318,7 @@ docker run -v c:\foo:c:\existing-directory-with-contents ...
 For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/engine/tutorials/dockervolumes/)
 
 
-### Add bind-mounts or volumes using the --mount flag
+### Add bind mounts or volumes using the --mount flag
 
 The `--mount` flag allows you to mount volumes, host-directories and `tmpfs`
 mounts in a container.

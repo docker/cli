@@ -671,14 +671,14 @@ alphanumeric character, followed by `a-z0-9`, `_` (underscore), `.` (period) or
 If you supply a `HOST-DIR` that is an absolute path,  Docker bind-mounts to the
 path you specify. If you supply a `name`, Docker creates a named volume by that
 `name`. For example, you can specify either `/foo` or `foo` for a `HOST-DIR`
-value. If you supply the `/foo` value, Docker creates a bind-mount. If you
+value. If you supply the `/foo` value, Docker creates a bind mount. If you
 supply the `foo` specification, Docker creates a named volume.
 
 You can specify multiple  **-v** options to mount one or more mounts to a
 container. To use these same mounts in other containers, specify the
 **--volumes-from** option also.
 
-You can supply additional options for each bind-mount following an additional
+You can supply additional options for each bind mount following an additional
 colon.  A `:ro` or `:rw` suffix mounts a volume in read-only or read-write
 mode, respectively. By default, volumes are mounted in read-write mode.
 You can also specify the consistency requirement for the mount, either

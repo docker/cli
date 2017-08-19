@@ -1577,7 +1577,7 @@ followed by `a-z0-9`, `_` (underscore), `.` (period) or `-` (hyphen).
 An absolute path starts with a `/` (forward slash).
 
 For example, you can specify either `/foo` or `foo` for a `host-src` value.
-If you supply the `/foo` value, Docker creates a bind-mount. If you supply
+If you supply the `/foo` value, Docker creates a bind mount. If you supply
 the `foo` specification, Docker creates a named volume.
 
 ### USER
