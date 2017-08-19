@@ -11,9 +11,8 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
-	"github.com/spf13/cobra"
 	"github.com/pkg/errors"
-
+	"github.com/spf13/cobra"
 )
 
 // NewPushCommand creates a new `docker push` command
@@ -23,7 +22,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Push an image or a repository to a registry",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-				return pushImages(dockerCli, args)
+			return pushImages(dockerCli, args)
 		},
 	}
 
