@@ -1,6 +1,9 @@
 package image
 
 import (
+	"fmt"
+	"strings"
+
 	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
@@ -9,6 +12,8 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
+	"github.com/pkg/errors"
+
 )
 
 // NewPushCommand creates a new `docker push` command
@@ -16,9 +21,9 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] NAME[:TAG]",
 		Short: "Push an image or a repository to a registry",
-		Args:  cli.ExactArgs(1),
+		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPush(dockerCli, args[0])
+				return pushImages(dockerCli, args)
 		},
 	}
 
@@ -29,7 +34,27 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
+func pushImages(dockerCli command.Cli, args []string) error {
+	var errs []string
+
+	for _, remote := range args {
+		if err := runPush(dockerCli, remote); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		fmt.Fprintln(dockerCli.Out(), remote)
+	}
+
+	if len(errs) > 0 {
+		return errors.Errorf("%s", strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+
 func runPush(dockerCli command.Cli, remote string) error {
+
 	ref, err := reference.ParseNormalizedNamed(remote)
 	if err != nil {
 		return err
