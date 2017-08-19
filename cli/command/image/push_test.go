@@ -23,7 +23,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{},
-			expectedError: "requires exactly 1 argument.",
+			expectedError: "requires at least 1 argument.",
 		},
 		{
 			name:          "invalid-name",
