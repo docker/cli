@@ -114,6 +114,7 @@ services:
       interval: 10s
       timeout: 1s
       retries: 5
+      start_period: 15s
 
     # Any valid image reference - repo, tag, id, sha
     image: redis

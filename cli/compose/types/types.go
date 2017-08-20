@@ -172,7 +172,7 @@ type HealthCheckConfig struct {
 	Timeout     string
 	Interval    string
 	Retries     *uint64
-	StartPeriod string
+	StartPeriod string `mapstructure:"start_period"`
 	Disable     bool
 }
 
