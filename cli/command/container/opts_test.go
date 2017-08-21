@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/docker/docker/runconfig"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"

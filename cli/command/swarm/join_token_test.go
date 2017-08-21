@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )

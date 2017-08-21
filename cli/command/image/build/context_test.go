@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

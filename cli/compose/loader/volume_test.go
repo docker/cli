@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
