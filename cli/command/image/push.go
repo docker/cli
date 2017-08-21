@@ -36,8 +36,10 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 func pushImages(dockerCli command.Cli, args []string) error {
 	var errs []string
 
+	ctx := context.Background()
+
 	for _, remote := range args {
-		if err := runPush(dockerCli, remote); err != nil {
+		if err := runPush(dockerCli, remote, ctx); err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
@@ -52,7 +54,7 @@ func pushImages(dockerCli command.Cli, args []string) error {
 	return nil
 }
 
-func runPush(dockerCli command.Cli, remote string) error {
+func runPush(dockerCli command.Cli, remote string, ctx context.Context) error {
 
 	ref, err := reference.ParseNormalizedNamed(remote)
 	if err != nil {
@@ -64,8 +66,6 @@ func runPush(dockerCli command.Cli, remote string) error {
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
