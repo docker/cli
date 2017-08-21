@@ -243,19 +243,19 @@ $ docker service create \
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
 
-### Add bind-mounts, volumes or memory filesystems
+### Add bind mounts, volumes or memory filesystems
 
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
 on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind-mounts_, and _tmpfs_.
+as volumes), _bind mounts_, and _tmpfs_.
 
-A **bind-mount** makes a file or directory on the host available to the
-container it is mounted within. A bind-mount may be either read-only or
+A **bind mount** makes a file or directory on the host available to the
+container it is mounted within. A bind mount may be either read-only or
 read-write. For example, a container might share its host's DNS information by
-means of a bind-mount of the host's `/etc/resolv.conf` or a container might
+means of a bind mount of the host's `/etc/resolv.conf` or a container might
 write logs to its host's `/var/log/myContainerLogs` directory. If you use
-bind-mounts and your host and containers have different notions of permissions,
+bind mounts and your host and containers have different notions of permissions,
 access controls, or other such details, you will run into portability issues.
 
 A **named volume** is a mechanism for decoupling persistent data needed by your
@@ -279,7 +279,7 @@ update the named volume.
 For more information about named volumes, see
 [Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/).
 
-The following table describes options which apply to both bind-mounts and named
+The following table describes options which apply to both bind mounts and named
 volumes in a service:
 
 <table>
@@ -328,7 +328,7 @@ volumes in a service:
     <td>
       <p>Mount path inside the container, for example <tt>/some/path/in/container/</tt>.
       If the path does not exist in the container's filesystem, the Engine creates
-      a directory at the specified location before mounting the volume or bind-mount.</p>
+      a directory at the specified location before mounting the volume or bind mount.</p>
     </td>
   </tr>
   <tr>
@@ -362,15 +362,15 @@ volumes in a service:
 #### Bind Propagation
 
 Bind propagation refers to whether or not mounts created within a given
-bind-mount or named volume can be propagated to replicas of that mount. Consider
+bind mount or named volume can be propagated to replicas of that mount. Consider
 a mount point `/mnt`, which is also mounted on `/tmp`. The propation settings
 control whether a mount on `/tmp/a` would also be available on `/mnt/a`. Each
 propagation setting has a recursive counterpoint. In the case of recursion,
 consider that `/tmp/a` is also mounted as `/foo`. The propagation settings
 control whether `/mnt/a` and/or `/tmp/a` would exist.
 
-The `bind-propagation` option defaults to `rprivate` for both bind-mounts and
-volume mounts, and is only configurable for bind-mounts. In other words, named
+The `bind-propagation` option defaults to `rprivate` for both bind mounts and
+volume mounts, and is only configurable for bind mounts. In other words, named
 volumes do not support bind propagation.
 
 - **`shared`**: Sub-mounts of the original mount are exposed to replica mounts,
