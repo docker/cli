@@ -3101,6 +3101,7 @@ _docker_service() {
 		logs
 		ls
 		rm
+		rollback
 		scale
 		ps
 		update
@@ -3212,6 +3213,20 @@ _docker_service_rm() {
 			;;
 		*)
 			__docker_complete_services
+	esac
+}
+
+_docker_service_rollback() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--detach=false -d --help --quit -q" -- "$cur" ) )
+			;;
+		*)
+			local counter=$( __docker_pos_first_nonflag )
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_services
+			fi
+			;;
 	esac
 }
 
