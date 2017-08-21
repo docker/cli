@@ -39,7 +39,7 @@ func pushImages(dockerCli command.Cli, args []string) error {
 	ctx := context.Background()
 
 	for _, remote := range args {
-		if err := runPush(dockerCli, remote, ctx); err != nil {
+		if err := runPush(ctx, dockerCli, remote); err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
@@ -54,7 +54,7 @@ func pushImages(dockerCli command.Cli, args []string) error {
 	return nil
 }
 
-func runPush(dockerCli command.Cli, remote string, ctx context.Context) error {
+func runPush(ctx context.Context, dockerCli command.Cli, remote string) error {
 
 	ref, err := reference.ParseNormalizedNamed(remote)
 	if err != nil {
