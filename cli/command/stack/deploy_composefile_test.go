@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test/network"
+	"github.com/docker/cli/internal/test/network"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/gotestyourself/gotestyourself/fs"

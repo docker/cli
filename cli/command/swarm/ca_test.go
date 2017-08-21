@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
