@@ -2,6 +2,7 @@ package stack
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
-	configDetails, err := getConfigDetails(opts.composefile)
+	configDetails, err := getConfigDetails(opts.composefile, dockerCli.In())
 	if err != nil {
 		return err
 	}
@@ -118,16 +119,24 @@ func propertyWarnings(properties map[string]string) string {
 	return strings.Join(msgs, "\n\n")
 }
 
-func getConfigDetails(composefile string) (composetypes.ConfigDetails, error) {
+func getConfigDetails(composefile string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
-	absPath, err := filepath.Abs(composefile)
-	if err != nil {
-		return details, err
+	if composefile == "-" {
+		workingDir, err := os.Getwd()
+		if err != nil {
+			return details, err
+		}
+		details.WorkingDir = workingDir
+	} else {
+		absPath, err := filepath.Abs(composefile)
+		if err != nil {
+			return details, err
+		}
+		details.WorkingDir = filepath.Dir(absPath)
 	}
-	details.WorkingDir = filepath.Dir(absPath)
 
-	configFile, err := getConfigFile(composefile)
+	configFile, err := getConfigFile(composefile, stdin)
 	if err != nil {
 		return details, err
 	}
@@ -150,15 +159,24 @@ func buildEnvironment(env []string) (map[string]string, error) {
 	return result, nil
 }
 
-func getConfigFile(filename string) (*composetypes.ConfigFile, error) {
-	bytes, err := ioutil.ReadFile(filename)
+func getConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile, error) {
+	var bytes []byte
+	var err error
+
+	if filename == "-" {
+		bytes, err = ioutil.ReadAll(stdin)
+	} else {
+		bytes, err = ioutil.ReadFile(filename)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	config, err := loader.ParseYAML(bytes)
 	if err != nil {
 		return nil, err
 	}
+
 	return &composetypes.ConfigFile{
 		Filename: filename,
 		Config:   config,
