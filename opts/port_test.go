@@ -3,8 +3,8 @@ package opts
 import (
 	"testing"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
