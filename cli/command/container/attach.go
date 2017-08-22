@@ -120,18 +120,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	}
 
 	if c.Config.Tty && dockerCli.Out().IsTerminal() {
-		height, width := dockerCli.Out().GetTtySize()
-		// To handle the case where a user repeatedly attaches/detaches without resizing their
-		// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
-		// resize it, then go back to normal. Without this, every attach after the first will
-		// require the user to manually resize or hit enter.
-		resizeTtyTo(ctx, client, opts.container, height+1, width+1, false)
-
-		// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
-		// to the actual size.
-		if err := MonitorTtySize(ctx, dockerCli, opts.container, false); err != nil {
-			logrus.Debugf("Error monitoring TTY size: %s", err)
-		}
+		resizeTTY(ctx, dockerCli, opts.container)
 	}
 
 	streamer := hijackedIOStreamer{
@@ -151,14 +140,36 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	if errAttach != nil {
 		return errAttach
 	}
+	return getExitStatus(ctx, dockerCli.Client(), opts.container)
+}
 
-	_, status, err := getExitCode(ctx, dockerCli, opts.container)
-	if err != nil {
-		return err
+func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
+	height, width := dockerCli.Out().GetTtySize()
+	// To handle the case where a user repeatedly attaches/detaches without resizing their
+	// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
+	// resize it, then go back to normal. Without this, every attach after the first will
+	// require the user to manually resize or hit enter.
+	resizeTtyTo(ctx, dockerCli.Client(), containerID, height+1, width+1, false)
+
+	// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
+	// to the actual size.
+	if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
+		logrus.Debugf("Error monitoring TTY size: %s", err)
 	}
+}
+
+func getExitStatus(ctx context.Context, apiclient client.ContainerAPIClient, containerID string) error {
+	container, err := apiclient.ContainerInspect(ctx, containerID)
+	if err != nil {
+		// If we can't connect, then the daemon probably died.
+		if !client.IsErrConnectionFailed(err) {
+			return err
+		}
+		return cli.StatusError{StatusCode: -1}
+	}
+	status := container.State.ExitCode
 	if status != 0 {
 		return cli.StatusError{StatusCode: status}
 	}
-
 	return nil
 }

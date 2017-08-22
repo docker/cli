@@ -52,6 +52,7 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 	return -1, false
 }
 
+// nolint: gocyclo
 func collect(ctx context.Context, s *formatter.ContainerStats, cli client.APIClient, streamStats bool, waitFirst *sync.WaitGroup) {
 	logrus.Debugf("collecting stats for %s", s.Container)
 	var (

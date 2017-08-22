@@ -200,3 +200,13 @@ func TestParseVolumeSplitCases(t *testing.T) {
 		assert.Equal(t, expected, parsed.Source != "", msg)
 	}
 }
+
+func TestParseVolumeInvalidEmptySpec(t *testing.T) {
+	_, err := ParseVolume("")
+	testutil.ErrorContains(t, err, "invalid empty volume spec")
+}
+
+func TestParseVolumeInvalidSections(t *testing.T) {
+	_, err := ParseVolume("/foo::rw")
+	testutil.ErrorContains(t, err, "invalid spec")
+}

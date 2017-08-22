@@ -4,33 +4,39 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/testutil"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
-type arguments struct {
-	options execOptions
-	execCmd []string
-}
-
 func TestParseExec(t *testing.T) {
-	valids := map[*arguments]*types.ExecConfig{
+	testcases := []struct {
+		options    execOptions
+		execCmd    []string
+		configFile configfile.ConfigFile
+		expected   types.ExecConfig
+	}{
 		{
 			execCmd: []string{"command"},
-		}: {
-			Cmd:          []string{"command"},
-			AttachStdout: true,
-			AttachStderr: true,
+			expected: types.ExecConfig{
+				Cmd:          []string{"command"},
+				AttachStdout: true,
+				AttachStderr: true,
+			},
 		},
 		{
 			execCmd: []string{"command1", "command2"},
-		}: {
-			Cmd:          []string{"command1", "command2"},
-			AttachStdout: true,
-			AttachStderr: true,
+			expected: types.ExecConfig{
+				Cmd:          []string{"command1", "command2"},
+				AttachStdout: true,
+				AttachStderr: true,
+			},
 		},
 		{
 			options: execOptions{
@@ -39,25 +45,24 @@ func TestParseExec(t *testing.T) {
 				user:        "uid",
 			},
 			execCmd: []string{"command"},
-		}: {
-			User:         "uid",
-			AttachStdin:  true,
-			AttachStdout: true,
-			AttachStderr: true,
-			Tty:          true,
-			Cmd:          []string{"command"},
+			expected: types.ExecConfig{
+				User:         "uid",
+				AttachStdin:  true,
+				AttachStdout: true,
+				AttachStderr: true,
+				Tty:          true,
+				Cmd:          []string{"command"},
+			},
 		},
 		{
 			options: execOptions{
 				detach: true,
 			},
 			execCmd: []string{"command"},
-		}: {
-			AttachStdin:  false,
-			AttachStdout: false,
-			AttachStderr: false,
-			Detach:       true,
-			Cmd:          []string{"command"},
+			expected: types.ExecConfig{
+				Detach: true,
+				Cmd:    []string{"command"},
+			},
 		},
 		{
 			options: execOptions{
@@ -66,56 +71,82 @@ func TestParseExec(t *testing.T) {
 				detach:      true,
 			},
 			execCmd: []string{"command"},
-		}: {
-			AttachStdin:  false,
-			AttachStdout: false,
-			AttachStderr: false,
-			Detach:       true,
-			Tty:          true,
-			Cmd:          []string{"command"},
+			expected: types.ExecConfig{
+				Detach: true,
+				Tty:    true,
+				Cmd:    []string{"command"},
+			},
+		},
+		{
+			execCmd:    []string{"command"},
+			options:    execOptions{detach: true},
+			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			expected: types.ExecConfig{
+				Cmd:        []string{"command"},
+				DetachKeys: "de",
+				Detach:     true,
+			},
+		},
+		{
+			execCmd:    []string{"command"},
+			options:    execOptions{detach: true, detachKeys: "ab"},
+			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			expected: types.ExecConfig{
+				Cmd:        []string{"command"},
+				DetachKeys: "ab",
+				Detach:     true,
+			},
 		},
 	}
 
-	for valid, expectedExecConfig := range valids {
-		execConfig, err := parseExec(&valid.options, valid.execCmd)
-		require.NoError(t, err)
-		if !compareExecConfig(expectedExecConfig, execConfig) {
-			t.Fatalf("Expected [%v] for %v, got [%v]", expectedExecConfig, valid, execConfig)
-		}
+	for _, testcase := range testcases {
+		execConfig := parseExec(&testcase.options, &testcase.configFile, testcase.execCmd)
+		assert.Equal(t, testcase.expected, *execConfig)
 	}
 }
 
-func compareExecConfig(config1 *types.ExecConfig, config2 *types.ExecConfig) bool {
-	if config1.AttachStderr != config2.AttachStderr {
-		return false
+func TestRunExec(t *testing.T) {
+	client := &fakeClient{}
+	cli := test.NewFakeCli(client)
+	options := &execOptions{detach: true}
+
+	err := runExec(cli, options, "cid", []string{"bash"})
+	require.NoError(t, err)
+}
+
+func TestGetExecExitStatus(t *testing.T) {
+	execID := "the exec id"
+	expecatedErr := errors.New("unexpected error")
+
+	testcases := []struct {
+		inspectError  error
+		exitCode      int
+		expectedError error
+	}{
+		{
+			inspectError:  nil,
+			expectedError: nil,
+		},
+		{
+			inspectError:  expecatedErr,
+			expectedError: expecatedErr,
+		},
+		{
+			exitCode:      15,
+			expectedError: cli.StatusError{StatusCode: 15},
+		},
 	}
-	if config1.AttachStdin != config2.AttachStdin {
-		return false
-	}
-	if config1.AttachStdout != config2.AttachStdout {
-		return false
-	}
-	if config1.Detach != config2.Detach {
-		return false
-	}
-	if config1.Privileged != config2.Privileged {
-		return false
-	}
-	if config1.Tty != config2.Tty {
-		return false
-	}
-	if config1.User != config2.User {
-		return false
-	}
-	if len(config1.Cmd) != len(config2.Cmd) {
-		return false
-	}
-	for index, value := range config1.Cmd {
-		if value != config2.Cmd[index] {
-			return false
+
+	for _, testcase := range testcases {
+		client := &fakeClient{
+			execInspectFunc: func(ctx context.Context, id string) (types.ContainerExecInspect, error) {
+				assert.Equal(t, execID, id)
+				return types.ContainerExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+			},
 		}
+		err := getExecExitStatus(context.Background(), client, execID)
+		assert.Equal(t, testcase.expectedError, err)
 	}
-	return true
 }
 
 func TestNewExecCommandErrors(t *testing.T) {

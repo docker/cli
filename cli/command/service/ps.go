@@ -56,6 +56,9 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	if err != nil {
 		return err
 	}
+	if err := updateNodeFilter(ctx, client, filter); err != nil {
+		return err
+	}
 
 	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
 	if err != nil {
@@ -130,16 +133,20 @@ loop:
 	if serviceCount == 0 {
 		return filter, nil, errors.New(strings.Join(notfound, "\n"))
 	}
+	return filter, notfound, err
+}
+
+func updateNodeFilter(ctx context.Context, client client.APIClient, filter filters.Args) error {
 	if filter.Include("node") {
 		nodeFilters := filter.Get("node")
 		for _, nodeFilter := range nodeFilters {
 			nodeReference, err := node.Reference(ctx, client, nodeFilter)
 			if err != nil {
-				return filter, nil, err
+				return err
 			}
 			filter.Del("node", nodeFilter)
 			filter.Add("node", nodeReference)
 		}
 	}
-	return filter, notfound, err
+	return nil
 }

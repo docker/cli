@@ -216,26 +216,19 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 	return cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
 }
 
-// trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
-	var refs []target
-
-	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
-	if err != nil {
-		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
-		return err
-	}
-
-	if tagged, isTagged := ref.(reference.NamedTagged); !isTagged {
+func getTargetsForTrustedPull(streams command.Streams, ref reference.Named, notaryRepo *client.NotaryRepository) ([]target, error) {
+	tagged, isTagged := ref.(reference.NamedTagged)
+	if !isTagged {
+		var refs []target
 		// List all targets
 		targets, err := notaryRepo.ListTargets(trust.ReleasesRole, data.CanonicalTargetsRole)
 		if err != nil {
-			return trust.NotaryError(ref.Name(), err)
+			return nil, trust.NotaryError(ref.Name(), err)
 		}
 		for _, tgt := range targets {
 			t, err := convertTarget(tgt.Target)
 			if err != nil {
-				fmt.Fprintf(cli.Out(), "Skipping target for %q\n", reference.FamiliarName(ref))
+				fmt.Fprintf(streams.Out(), "Skipping target for %q\n", reference.FamiliarName(ref))
 				continue
 			}
 			// Only list tags in the top level targets role or the releases delegation role - ignore
@@ -246,28 +239,32 @@ func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 			refs = append(refs, t)
 		}
 		if len(refs) == 0 {
-			return trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
+			return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
 		}
-	} else {
-		t, err := notaryRepo.GetTargetByName(tagged.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
-		if err != nil {
-			return trust.NotaryError(ref.Name(), err)
-		}
-		// Only get the tag if it's in the top level targets role or the releases delegation role
-		// ignore it if it's in any other delegation roles
-		if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-			return trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
-		}
-
-		logrus.Debugf("retrieving target for %s role\n", t.Role)
-		r, err := convertTarget(t.Target)
-		if err != nil {
-			return err
-
-		}
-		refs = append(refs, r)
+		return refs, nil
 	}
 
+	t, err := notaryRepo.GetTargetByName(tagged.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
+	if err != nil {
+		return nil, trust.NotaryError(ref.Name(), err)
+	}
+	// Only get the tag if it's in the top level targets role or the releases delegation role
+	// ignore it if it's in any other delegation roles
+	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
+		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
+	}
+
+	logrus.Debugf("retrieving target for %s role\n", t.Role)
+	r, err := convertTarget(t.Target)
+	if err != nil {
+		return nil, err
+
+	}
+	return []target{r}, nil
+}
+
+// trustedPull handles content trust pulling of an image
+func trustedPull(ctx context.Context, cli command.Cli, refs []target, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	for i, r := range refs {
 		displayTag := r.name
 		if displayTag != "" {
