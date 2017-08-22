@@ -79,6 +79,11 @@ func ImageWrite(ctx ImageContext, images []types.ImageSummary) error {
 	return ctx.Write(newImageContext(), render)
 }
 
+// needDigest determines whether the image digest should be ignored or not when writing image context
+func needDigest(ctx ImageContext) bool {
+	return ctx.Digest || ctx.Format.Contains("{{.Digest}}")
+}
+
 func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subContext subContext) error) error {
 	for _, image := range images {
 		images := []*imageContext{}
@@ -121,7 +126,7 @@ func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subC
 				// Do not display digests as their own row
 				delete(repoDigests, repo)
 
-				if !ctx.Digest {
+				if !needDigest(ctx) {
 					// Ignore digest references, just show tag once
 					digests = nil
 				}
