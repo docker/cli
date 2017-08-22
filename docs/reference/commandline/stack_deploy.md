@@ -57,6 +57,23 @@ Creating service vossibility_ghollector
 Creating service vossibility_lookupd
 ```
 
+The Compose file can also be provided as standard input with `--compose-file -`:
+
+```bash
+$ cat docker-compose.yml | docker stack deploy --compose-file - vossibility
+
+Ignoring unsupported options: links
+
+Creating network vossibility_vossibility
+Creating network vossibility_default
+Creating service vossibility_nsqd
+Creating service vossibility_logstash
+Creating service vossibility_elasticsearch
+Creating service vossibility_kibana
+Creating service vossibility_ghollector
+Creating service vossibility_lookupd
+```
+
 Only a single Compose file is accepted. If your configuration is split between
 multiple Compose files, e.g. a base configuration and environment-specific overrides,
 you can combine these by passing them to `docker-compose config` with the `-f` option
