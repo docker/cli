@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+src=alpine:3.6
+dest=registry:5000/alpine:3.6
+docker pull $src
+docker tag $src $dest
+docker push $dest

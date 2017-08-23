@@ -10,13 +10,13 @@ _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 clean: ## remove build artifacts
 	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml/gen
 
-.PHONY: test
-test: ## run go test
-	./scripts/test/unit $(shell go list ./... | grep -v '/vendor/')
+.PHONY: test-unit
+test-unit: ## run unit test
+	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	./scripts/test/unit-with-coverage $(shell go list ./... | grep -v '/vendor/')
+	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: lint
 lint: ## run all the lint tools
