@@ -1,0 +1,51 @@
+Containers: 0
+ Running: 0
+ Paused: 0
+ Stopped: 0
+Images: 0
+Server Version: 17.06.1-ce
+Storage Driver: aufs
+ Root Dir: /var/lib/docker/aufs
+ Backing Filesystem: extfs
+ Dirs: 0
+ Dirperm1 Supported: true
+Logging Driver: json-file
+Cgroup Driver: cgroupfs
+Plugins:
+ Volume: local
+ Network: bridge host macvlan null overlay
+ Log: awslogs fluentd gcplogs gelf journald json-file logentries splunk syslog
+Swarm: inactive
+Runtimes: runc
+Default Runtime: runc
+Init Binary: docker-init
+containerd version: 6e23458c129b551d5c9871e5174f6b1b7f6d1170
+runc version: 810190ceaa507aa2727d7ae6f4790c76ec150bd2
+init version: 949e6fa
+Security Options:
+ apparmor
+ seccomp
+  Profile: default
+Kernel Version: 4.4.0-87-generic
+Operating System: Ubuntu 16.04.3 LTS
+OSType: linux
+Architecture: x86_64
+CPUs: 2
+Total Memory: 1.953GiB
+Name: system-sample
+ID: EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX
+Docker Root Dir: /var/lib/docker
+Debug Mode (client): false
+Debug Mode (server): true
+ File Descriptors: 33
+ Goroutines: 135
+ System Time: 2017-08-24T17:44:34.077811894Z
+ EventsListeners: 0
+Registry: https://index.docker.io/v1/
+Labels:
+ provider=digitalocean
+Experimental: false
+Insecure Registries:
+ 127.0.0.0/8
+Live Restore Enabled: false
+
