@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli/command/stack"
 	"github.com/docker/cli/cli/command/swarm"
 	"github.com/docker/cli/cli/command/system"
+	"github.com/docker/cli/cli/command/trust"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/spf13/cobra"
 )
@@ -68,6 +69,9 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 
 		// swarm
 		swarm.NewSwarmCommand(dockerCli),
+
+		// trust
+		trust.NewTrustCommand(dockerCli),
 
 		// volume
 		volume.NewVolumeCommand(dockerCli),
