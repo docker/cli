@@ -78,18 +78,21 @@ to use `notary` with Docker images.
 
 ## Building Notary
 
+Note that our [latest stable release](https://github.com/docker/notary/releases) is at the head of the
+[releases branch](https://github.com/docker/notary/tree/releases).  The master branch is the development
+branch and contains features for the next release.
+
 Prerequisites:
 
-- Go >= 1.7
-
+- Go >= 1.7.1
 - [godep](https://github.com/tools/godep) installed
 - libtool development headers installed
     - Ubuntu: `apt-get install libltdl-dev`
     - CentOS/RedHat: `yum install libtool-ltdl-devel`
     - Mac OS ([Homebrew](http://brew.sh/)): `brew install libtool`
 
-Run `make binaries`, which creates the Notary Client CLI binary at `bin/notary`.
-Note that `make binaries` assumes a standard Go directory structure, in which
+Run `make client`, which creates the Notary Client CLI binary at `bin/notary`.
+Note that `make client` assumes a standard Go directory structure, in which
 Notary is checked out to the `src` directory in your `GOPATH`. For example:
 ```
 $GOPATH/
@@ -98,3 +101,5 @@ $GOPATH/
             docker/
                 notary/
 ```
+
+To build the server and signer, please run `docker-compose build`.

@@ -22,9 +22,17 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
+	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/validation"
+)
+
+const (
+	// MaxErrorResponseSize is the maximum size for an error message - 1KiB
+	MaxErrorResponseSize int64 = 1 << 10
+	// MaxKeySize is the maximum size for a stored TUF key - 256KiB
+	MaxKeySize = 256 << 10
 )
 
 // ErrServerUnavailable indicates an error from the server. code allows us to
@@ -39,6 +47,21 @@ type NetworkError struct {
 }
 
 func (n NetworkError) Error() string {
+	if _, ok := n.Wrapped.(*url.Error); ok {
+		// QueryUnescape does the inverse transformation of QueryEscape,
+		// converting %AB into the byte 0xAB and '+' into ' ' (space).
+		// It returns an error if any % is not followed by two hexadecimal digits.
+		//
+		// If this happens, we log out the QueryUnescape error and return the
+		// original error to client.
+		res, err := url.QueryUnescape(n.Wrapped.Error())
+		if err != nil {
+			logrus.Errorf("unescape network error message failed: %s", err)
+			return n.Wrapped.Error()
+		}
+		return res
+	}
+
 	return n.Wrapped.Error()
 }
 
@@ -88,7 +111,9 @@ type HTTPStore struct {
 	roundTrip     http.RoundTripper
 }
 
-// NewHTTPStore initializes a new store against a URL and a number of configuration options
+// NewHTTPStore initializes a new store against a URL and a number of configuration options.
+//
+// In case of a nil `roundTrip`, a default offline store is used instead.
 func NewHTTPStore(baseURL, metaPrefix, metaExtension, keyExtension string, roundTrip http.RoundTripper) (RemoteStore, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
@@ -110,7 +135,8 @@ func NewHTTPStore(baseURL, metaPrefix, metaExtension, keyExtension string, round
 }
 
 func tryUnmarshalError(resp *http.Response, defaultError error) error {
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	b := io.LimitReader(resp.Body, MaxErrorResponseSize)
+	bodyBytes, err := ioutil.ReadAll(b)
 	if err != nil {
 		return defaultError
 	}
@@ -269,8 +295,8 @@ func (s HTTPStore) buildMetaURL(name string) (*url.URL, error) {
 	return s.buildURL(uri)
 }
 
-func (s HTTPStore) buildKeyURL(name string) (*url.URL, error) {
-	filename := fmt.Sprintf("%s.%s", name, s.keyExtension)
+func (s HTTPStore) buildKeyURL(name data.RoleName) (*url.URL, error) {
+	filename := fmt.Sprintf("%s.%s", name.String(), s.keyExtension)
 	uri := path.Join(s.metaPrefix, filename)
 	return s.buildURL(uri)
 }
@@ -284,7 +310,7 @@ func (s HTTPStore) buildURL(uri string) (*url.URL, error) {
 }
 
 // GetKey retrieves a public key from the remote server
-func (s HTTPStore) GetKey(role string) ([]byte, error) {
+func (s HTTPStore) GetKey(role data.RoleName) ([]byte, error) {
 	url, err := s.buildKeyURL(role)
 	if err != nil {
 		return nil, err
@@ -298,10 +324,11 @@ func (s HTTPStore) GetKey(role string) ([]byte, error) {
 		return nil, NetworkError{Wrapped: err}
 	}
 	defer resp.Body.Close()
-	if err := translateStatusToError(resp, role+" key"); err != nil {
+	if err := translateStatusToError(resp, role.String()+" key"); err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	b := io.LimitReader(resp.Body, MaxKeySize)
+	body, err := ioutil.ReadAll(b)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +336,7 @@ func (s HTTPStore) GetKey(role string) ([]byte, error) {
 }
 
 // RotateKey rotates a private key and returns the public component from the remote server
-func (s HTTPStore) RotateKey(role string) ([]byte, error) {
+func (s HTTPStore) RotateKey(role data.RoleName) ([]byte, error) {
 	url, err := s.buildKeyURL(role)
 	if err != nil {
 		return nil, err
@@ -323,10 +350,11 @@ func (s HTTPStore) RotateKey(role string) ([]byte, error) {
 		return nil, NetworkError{Wrapped: err}
 	}
 	defer resp.Body.Close()
-	if err := translateStatusToError(resp, role+" key"); err != nil {
+	if err := translateStatusToError(resp, role.String()+" key"); err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	b := io.LimitReader(resp.Body, MaxKeySize)
+	body, err := ioutil.ReadAll(b)
 	if err != nil {
 		return nil, err
 	}

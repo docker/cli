@@ -6,18 +6,19 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary/client/changelist"
 	store "github.com/docker/notary/storage"
 	"github.com/docker/notary/tuf"
 	"github.com/docker/notary/tuf/data"
+	"github.com/docker/notary/tuf/signed"
 	"github.com/docker/notary/tuf/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // Use this to initialize remote HTTPStores from the config settings
-func getRemoteStore(baseURL, gun string, rt http.RoundTripper) (store.RemoteStore, error) {
+func getRemoteStore(baseURL string, gun data.GUN, rt http.RoundTripper) (store.RemoteStore, error) {
 	s, err := store.NewHTTPStore(
-		baseURL+"/v2/"+gun+"/_trust/tuf/",
+		baseURL+"/v2/"+gun.String()+"/_trust/tuf/",
 		"",
 		"json",
 		"key",
@@ -26,7 +27,7 @@ func getRemoteStore(baseURL, gun string, rt http.RoundTripper) (store.RemoteStor
 	if err != nil {
 		return store.OfflineStore{}, err
 	}
-	return s, err
+	return s, nil
 }
 
 func applyChangelist(repo *tuf.Repo, invalid *tuf.Repo, cl changelist.Changelist) error {
@@ -47,7 +48,7 @@ func applyChangelist(repo *tuf.Repo, invalid *tuf.Repo, cl changelist.Changelist
 		case c.Scope() == changelist.ScopeRoot:
 			err = applyRootChange(repo, c)
 		default:
-			return fmt.Errorf("scope not supported: %s", c.Scope())
+			return fmt.Errorf("scope not supported: %s", c.Scope().String())
 		}
 		if err != nil {
 			logrus.Debugf("error attempting to apply change #%d: %s, on scope: %s path: %s type: %s", index, c.Action(), c.Scope(), c.Path(), c.Type())
@@ -165,7 +166,7 @@ func changeTargetMeta(repo *tuf.Repo, c changelist.Change) error {
 func applyRootChange(repo *tuf.Repo, c changelist.Change) error {
 	var err error
 	switch c.Type() {
-	case changelist.TypeRootRole:
+	case changelist.TypeBaseRole:
 		err = applyRootRoleChange(repo, c)
 	default:
 		err = fmt.Errorf("type of root change not yet supported: %s", c.Type())
@@ -218,11 +219,7 @@ func warnRolesNearExpiry(r *tuf.Repo) {
 }
 
 // Fetches a public key from a remote store, given a gun and role
-func getRemoteKey(url, gun, role string, rt http.RoundTripper) (data.PublicKey, error) {
-	remote, err := getRemoteStore(url, gun, rt)
-	if err != nil {
-		return nil, err
-	}
+func getRemoteKey(role data.RoleName, remote store.RemoteStore) (data.PublicKey, error) {
 	rawPubKey, err := remote.GetKey(role)
 	if err != nil {
 		return nil, err
@@ -237,11 +234,7 @@ func getRemoteKey(url, gun, role string, rt http.RoundTripper) (data.PublicKey, 
 }
 
 // Rotates a private key in a remote store and returns the public key component
-func rotateRemoteKey(url, gun, role string, rt http.RoundTripper) (data.PublicKey, error) {
-	remote, err := getRemoteStore(url, gun, rt)
-	if err != nil {
-		return nil, err
-	}
+func rotateRemoteKey(role data.RoleName, remote store.RemoteStore) (data.PublicKey, error) {
 	rawPubKey, err := remote.RotateKey(role)
 	if err != nil {
 		return nil, err
@@ -256,11 +249,11 @@ func rotateRemoteKey(url, gun, role string, rt http.RoundTripper) (data.PublicKe
 }
 
 // signs and serializes the metadata for a canonical role in a TUF repo to JSON
-func serializeCanonicalRole(tufRepo *tuf.Repo, role string) (out []byte, err error) {
+func serializeCanonicalRole(tufRepo *tuf.Repo, role data.RoleName, extraSigningKeys data.KeyList) (out []byte, err error) {
 	var s *data.Signed
 	switch {
 	case role == data.CanonicalRootRole:
-		s, err = tufRepo.SignRoot(data.DefaultExpires(role))
+		s, err = tufRepo.SignRoot(data.DefaultExpires(role), extraSigningKeys)
 	case role == data.CanonicalSnapshotRole:
 		s, err = tufRepo.SignSnapshot(data.DefaultExpires(role))
 	case tufRepo.Targets[role] != nil:
@@ -275,4 +268,39 @@ func serializeCanonicalRole(tufRepo *tuf.Repo, role string) (out []byte, err err
 	}
 
 	return json.Marshal(s)
+}
+
+func getAllPrivKeys(rootKeyIDs []string, cryptoService signed.CryptoService) ([]data.PrivateKey, error) {
+	if cryptoService == nil {
+		return nil, fmt.Errorf("no crypto service available to get private keys from")
+	}
+
+	privKeys := make([]data.PrivateKey, 0, len(rootKeyIDs))
+	for _, keyID := range rootKeyIDs {
+		privKey, _, err := cryptoService.GetPrivateKey(keyID)
+		if err != nil {
+			return nil, err
+		}
+		privKeys = append(privKeys, privKey)
+	}
+	if len(privKeys) == 0 {
+		var rootKeyID string
+		rootKeyList := cryptoService.ListKeys(data.CanonicalRootRole)
+		if len(rootKeyList) == 0 {
+			rootPublicKey, err := cryptoService.Create(data.CanonicalRootRole, "", data.ECDSAKey)
+			if err != nil {
+				return nil, err
+			}
+			rootKeyID = rootPublicKey.ID()
+		} else {
+			rootKeyID = rootKeyList[0]
+		}
+		privKey, _, err := cryptoService.GetPrivateKey(rootKeyID)
+		if err != nil {
+			return nil, err
+		}
+		privKeys = append(privKeys, privKey)
+	}
+
+	return privKeys, nil
 }

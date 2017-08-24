@@ -12,7 +12,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/go/canonical/json"
 )
@@ -376,7 +376,7 @@ func NewECDSAPrivateKey(public PublicKey, private []byte) (*ECDSAPrivateKey, err
 	switch public.(type) {
 	case *ECDSAPublicKey, *ECDSAx509PublicKey:
 	default:
-		return nil, errors.New("Invalid public key type provided to NewECDSAPrivateKey")
+		return nil, errors.New("invalid public key type provided to NewECDSAPrivateKey")
 	}
 	ecdsaPrivKey, err := x509.ParseECPrivateKey(private)
 	if err != nil {
@@ -394,7 +394,7 @@ func NewRSAPrivateKey(public PublicKey, private []byte) (*RSAPrivateKey, error) 
 	switch public.(type) {
 	case *RSAPublicKey, *RSAx509PublicKey:
 	default:
-		return nil, errors.New("Invalid public key type provided to NewRSAPrivateKey")
+		return nil, errors.New("invalid public key type provided to NewRSAPrivateKey")
 	}
 	rsaPrivKey, err := x509.ParsePKCS1PrivateKey(private)
 	if err != nil {
@@ -445,7 +445,7 @@ type ecdsaSig struct {
 func (k ECDSAPrivateKey) Sign(rand io.Reader, msg []byte, opts crypto.SignerOpts) (signature []byte, err error) {
 	ecdsaPrivKey, ok := k.CryptoSigner().(*ecdsa.PrivateKey)
 	if !ok {
-		return nil, errors.New("Signer was based on the wrong key type")
+		return nil, errors.New("signer was based on the wrong key type")
 	}
 	hashed := sha256.Sum256(msg)
 	sigASN1, err := ecdsaPrivKey.Sign(rand, hashed[:], opts)
@@ -492,7 +492,7 @@ func (k ED25519PrivateKey) Sign(rand io.Reader, msg []byte, opts crypto.SignerOp
 // Sign on an UnknownPrivateKey raises an error because the client does not
 // know how to sign with this key type.
 func (k UnknownPrivateKey) Sign(rand io.Reader, msg []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	return nil, errors.New("Unknown key type, cannot sign.")
+	return nil, errors.New("unknown key type, cannot sign")
 }
 
 // SignatureAlgorithm returns the SigAlgorithm for a ECDSAPrivateKey

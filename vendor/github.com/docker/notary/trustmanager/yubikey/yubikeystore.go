@@ -16,7 +16,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 	"github.com/docker/notary/trustmanager"
 	"github.com/docker/notary/tuf/data"
@@ -126,7 +126,7 @@ func (err errHSMNotPresent) Error() string {
 }
 
 type yubiSlot struct {
-	role   string
+	role   data.RoleName
 	slotID []byte
 }
 
@@ -208,7 +208,7 @@ func (y *YubiPrivateKey) Sign(rand io.Reader, msg []byte, opts crypto.SignerOpts
 			return sig, nil
 		}
 	}
-	return nil, errors.New("Failed to generate signature on Yubikey.")
+	return nil, errors.New("failed to generate signature on Yubikey")
 }
 
 // If a byte array is less than the number of bytes specified by
@@ -230,7 +230,7 @@ func addECDSAKey(
 	privKey data.PrivateKey,
 	pkcs11KeyID []byte,
 	passRetriever notary.PassRetriever,
-	role string,
+	role data.RoleName,
 ) error {
 	logrus.Debugf("Attempting to add key to yubikey with ID: %s", privKey.ID())
 
@@ -250,7 +250,7 @@ func addECDSAKey(
 
 	// Hard-coded policy: the generated certificate expires in 10 years.
 	startTime := time.Now()
-	template, err := utils.NewCertificate(role, startTime, startTime.AddDate(10, 0, 0))
+	template, err := utils.NewCertificate(role.String(), startTime, startTime.AddDate(10, 0, 0))
 	if err != nil {
 		return fmt.Errorf("failed to create the certificate template: %v", err)
 	}
@@ -288,7 +288,7 @@ func addECDSAKey(
 	return nil
 }
 
-func getECDSAKey(ctx IPKCS11Ctx, session pkcs11.SessionHandle, pkcs11KeyID []byte) (*data.ECDSAPublicKey, string, error) {
+func getECDSAKey(ctx IPKCS11Ctx, session pkcs11.SessionHandle, pkcs11KeyID []byte) (*data.ECDSAPublicKey, data.RoleName, error) {
 	findTemplate := []*pkcs11.Attribute{
 		pkcs11.NewAttribute(pkcs11.CKA_TOKEN, true),
 		pkcs11.NewAttribute(pkcs11.CKA_ID, pkcs11KeyID),
@@ -448,45 +448,19 @@ func yubiRemoveKey(ctx IPKCS11Ctx, session pkcs11.SessionHandle, pkcs11KeyID []b
 
 func yubiListKeys(ctx IPKCS11Ctx, session pkcs11.SessionHandle) (keys map[string]yubiSlot, err error) {
 	keys = make(map[string]yubiSlot)
-	findTemplate := []*pkcs11.Attribute{
-		pkcs11.NewAttribute(pkcs11.CKA_TOKEN, true),
-		//pkcs11.NewAttribute(pkcs11.CKA_ID, pkcs11KeyID),
-		pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_CERTIFICATE),
-	}
 
 	attrTemplate := []*pkcs11.Attribute{
 		pkcs11.NewAttribute(pkcs11.CKA_ID, []byte{0}),
 		pkcs11.NewAttribute(pkcs11.CKA_VALUE, []byte{0}),
 	}
 
-	if err = ctx.FindObjectsInit(session, findTemplate); err != nil {
-		logrus.Debugf("Failed to init: %s", err.Error())
-		return
-	}
-	objs, b, err := ctx.FindObjects(session, numSlots)
-	for err == nil {
-		var o []pkcs11.ObjectHandle
-		o, b, err = ctx.FindObjects(session, numSlots)
-		if err != nil {
-			continue
-		}
-		if len(o) == 0 {
-			break
-		}
-		objs = append(objs, o...)
-	}
+	objs, err := listObjects(ctx, session)
 	if err != nil {
-		logrus.Debugf("Failed to find: %s %v", err.Error(), b)
-		if len(objs) == 0 {
-			return nil, err
-		}
+		return nil, err
 	}
-	if err = ctx.FindObjectsFinal(session); err != nil {
-		logrus.Debugf("Failed to finalize: %s", err.Error())
-		return
-	}
+
 	if len(objs) == 0 {
-		return nil, errors.New("No keys found in yubikey.")
+		return nil, errors.New("no keys found in yubikey")
 	}
 	logrus.Debugf("Found %d objects matching list filters", len(objs))
 	for _, obj := range objs {
@@ -511,7 +485,7 @@ func yubiListKeys(ctx IPKCS11Ctx, session pkcs11.SessionHandle) (keys map[string
 				if err != nil {
 					continue
 				}
-				if !data.ValidRole(cert.Subject.CommonName) {
+				if !data.ValidRole(data.RoleName(cert.Subject.CommonName)) {
 					continue
 				}
 			}
@@ -538,11 +512,47 @@ func yubiListKeys(ctx IPKCS11Ctx, session pkcs11.SessionHandle) (keys map[string
 		}
 
 		keys[data.NewECDSAPublicKey(pubBytes).ID()] = yubiSlot{
-			role:   cert.Subject.CommonName,
+			role:   data.RoleName(cert.Subject.CommonName),
 			slotID: slot,
 		}
 	}
 	return
+}
+
+func listObjects(ctx IPKCS11Ctx, session pkcs11.SessionHandle) ([]pkcs11.ObjectHandle, error) {
+	findTemplate := []*pkcs11.Attribute{
+		pkcs11.NewAttribute(pkcs11.CKA_TOKEN, true),
+		pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_CERTIFICATE),
+	}
+
+	if err := ctx.FindObjectsInit(session, findTemplate); err != nil {
+		logrus.Debugf("Failed to init: %s", err.Error())
+		return nil, err
+	}
+
+	objs, b, err := ctx.FindObjects(session, numSlots)
+	for err == nil {
+		var o []pkcs11.ObjectHandle
+		o, b, err = ctx.FindObjects(session, numSlots)
+		if err != nil {
+			continue
+		}
+		if len(o) == 0 {
+			break
+		}
+		objs = append(objs, o...)
+	}
+	if err != nil {
+		logrus.Debugf("Failed to find: %s %v", err.Error(), b)
+		if len(objs) == 0 {
+			return nil, err
+		}
+	}
+	if err := ctx.FindObjectsFinal(session); err != nil {
+		logrus.Debugf("Failed to finalize: %s", err.Error())
+		return nil, err
+	}
+	return objs, nil
 }
 
 func getNextEmptySlot(ctx IPKCS11Ctx, session pkcs11.SessionHandle) ([]byte, error) {
@@ -611,7 +621,7 @@ func getNextEmptySlot(ctx IPKCS11Ctx, session pkcs11.SessionHandle) ([]byte, err
 			return []byte{byte(loc)}, nil
 		}
 	}
-	return nil, errors.New("Yubikey has no available slots.")
+	return nil, errors.New("yubikey has no available slots")
 }
 
 // YubiStore is a KeyStore for private keys inside a Yubikey
@@ -687,7 +697,7 @@ func (s *YubiStore) AddKey(keyInfo trustmanager.KeyInfo, privKey data.PrivateKey
 
 // Only add if we haven't seen the key already.  Return whether the key was
 // added.
-func (s *YubiStore) addKey(keyID, role string, privKey data.PrivateKey) (
+func (s *YubiStore) addKey(keyID string, role data.RoleName, privKey data.PrivateKey) (
 	bool, error) {
 
 	// We only allow adding root keys for now
@@ -733,7 +743,7 @@ func (s *YubiStore) addKey(keyID, role string, privKey data.PrivateKey) (
 
 // GetKey retrieves a key from the Yubikey only (it does not look inside the
 // backup store)
-func (s *YubiStore) GetKey(keyID string) (data.PrivateKey, string, error) {
+func (s *YubiStore) GetKey(keyID string) (data.PrivateKey, data.RoleName, error) {
 	ctx, session, err := SetupHSMEnv(pkcs11Lib, s.libLoader)
 	if err != nil {
 		logrus.Debugf("No yubikey found, using alternative key storage: %s", err.Error())

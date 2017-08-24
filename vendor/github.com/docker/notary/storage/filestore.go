@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"bytes"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,20 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 )
 
-// NewFilesystemStore creates a new store in a directory tree
-func NewFilesystemStore(baseDir, subDir, extension string) (*FilesystemStore, error) {
-	baseDir = filepath.Join(baseDir, subDir)
-
-	return NewFileStore(baseDir, extension, notary.PrivKeyPerms)
-}
-
 // NewFileStore creates a fully configurable file store
-func NewFileStore(baseDir, fileExt string, perms os.FileMode) (*FilesystemStore, error) {
+func NewFileStore(baseDir, fileExt string) (*FilesystemStore, error) {
 	baseDir = filepath.Clean(baseDir)
-	if err := createDirectory(baseDir, perms); err != nil {
+	if err := createDirectory(baseDir, notary.PrivExecPerms); err != nil {
 		return nil, err
 	}
 	if !strings.HasPrefix(fileExt, ".") {
@@ -31,34 +27,95 @@ func NewFileStore(baseDir, fileExt string, perms os.FileMode) (*FilesystemStore,
 	return &FilesystemStore{
 		baseDir: baseDir,
 		ext:     fileExt,
-		perms:   perms,
 	}, nil
-}
-
-// NewSimpleFileStore is a convenience wrapper to create a world readable,
-// owner writeable filestore
-func NewSimpleFileStore(baseDir, fileExt string) (*FilesystemStore, error) {
-	return NewFileStore(baseDir, fileExt, notary.PubCertPerms)
 }
 
 // NewPrivateKeyFileStorage initializes a new filestore for private keys, appending
 // the notary.PrivDir to the baseDir.
 func NewPrivateKeyFileStorage(baseDir, fileExt string) (*FilesystemStore, error) {
 	baseDir = filepath.Join(baseDir, notary.PrivDir)
-	return NewFileStore(baseDir, fileExt, notary.PrivKeyPerms)
+	myStore, err := NewFileStore(baseDir, fileExt)
+	myStore.migrateTo0Dot4()
+	return myStore, err
 }
 
 // NewPrivateSimpleFileStore is a wrapper to create an owner readable/writeable
 // _only_ filestore
 func NewPrivateSimpleFileStore(baseDir, fileExt string) (*FilesystemStore, error) {
-	return NewFileStore(baseDir, fileExt, notary.PrivKeyPerms)
+	return NewFileStore(baseDir, fileExt)
 }
 
 // FilesystemStore is a store in a locally accessible directory
 type FilesystemStore struct {
 	baseDir string
 	ext     string
-	perms   os.FileMode
+}
+
+func (f *FilesystemStore) moveKeyTo0Dot4Location(file string) {
+	keyID := filepath.Base(file)
+	fileDir := filepath.Dir(file)
+	d, _ := f.Get(file)
+	block, _ := pem.Decode(d)
+	if block == nil {
+		logrus.Warn("Key data for", file, "could not be decoded as a valid PEM block. The key will not been migrated and may not be available")
+		return
+	}
+	fileDir = strings.TrimPrefix(fileDir, notary.RootKeysSubdir)
+	fileDir = strings.TrimPrefix(fileDir, notary.NonRootKeysSubdir)
+	if fileDir != "" {
+		block.Headers["gun"] = fileDir[1:]
+	}
+	if strings.Contains(keyID, "_") {
+		role := strings.Split(keyID, "_")[1]
+		keyID = strings.TrimSuffix(keyID, "_"+role)
+		block.Headers["role"] = role
+	}
+	var keyPEM bytes.Buffer
+	// since block came from decoding the PEM bytes in the first place, and all we're doing is adding some headers we ignore the possibility of an error while encoding the block
+	pem.Encode(&keyPEM, block)
+	f.Set(keyID, keyPEM.Bytes())
+}
+
+func (f *FilesystemStore) migrateTo0Dot4() {
+	rootKeysSubDir := filepath.Clean(filepath.Join(f.Location(), notary.RootKeysSubdir))
+	nonRootKeysSubDir := filepath.Clean(filepath.Join(f.Location(), notary.NonRootKeysSubdir))
+	if _, err := os.Stat(rootKeysSubDir); !os.IsNotExist(err) && f.Location() != rootKeysSubDir {
+		if rootKeysSubDir == "" || rootKeysSubDir == "/" {
+			// making sure we don't remove a user's homedir
+			logrus.Warn("The directory for root keys is an unsafe value, we are not going to delete the directory. Please delete it manually")
+		} else {
+			// root_keys exists, migrate things from it
+			listOnlyRootKeysDirStore, _ := NewFileStore(rootKeysSubDir, f.ext)
+			for _, file := range listOnlyRootKeysDirStore.ListFiles() {
+				f.moveKeyTo0Dot4Location(filepath.Join(notary.RootKeysSubdir, file))
+			}
+			// delete the old directory
+			os.RemoveAll(rootKeysSubDir)
+		}
+	}
+
+	if _, err := os.Stat(nonRootKeysSubDir); !os.IsNotExist(err) && f.Location() != nonRootKeysSubDir {
+		if nonRootKeysSubDir == "" || nonRootKeysSubDir == "/" {
+			// making sure we don't remove a user's homedir
+			logrus.Warn("The directory for non root keys is an unsafe value, we are not going to delete the directory. Please delete it manually")
+		} else {
+			// tuf_keys exists, migrate things from it
+			listOnlyNonRootKeysDirStore, _ := NewFileStore(nonRootKeysSubDir, f.ext)
+			for _, file := range listOnlyNonRootKeysDirStore.ListFiles() {
+				f.moveKeyTo0Dot4Location(filepath.Join(notary.NonRootKeysSubdir, file))
+			}
+			// delete the old directory
+			os.RemoveAll(nonRootKeysSubDir)
+		}
+	}
+
+	// if we have a trusted_certificates folder, let's delete for a complete migration since it is unused by new clients
+	certsSubDir := filepath.Join(f.Location(), "trusted_certificates")
+	if certsSubDir == "" || certsSubDir == "/" {
+		logrus.Warn("The directory for trusted certificate is an unsafe value, we are not going to delete the directory. Please delete it manually")
+	} else {
+		os.RemoveAll(certsSubDir)
+	}
 }
 
 func (f *FilesystemStore) getPath(name string) (string, error) {
@@ -80,7 +137,7 @@ func (f *FilesystemStore) GetSized(name string, size int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	file, err := os.OpenFile(p, os.O_RDONLY, f.perms)
+	file, err := os.OpenFile(p, os.O_RDONLY, notary.PrivNoExecPerms)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = ErrMetaNotFound{Resource: name}
@@ -140,7 +197,7 @@ func (f *FilesystemStore) Set(name string, meta []byte) error {
 	}
 
 	// Ensures the parent directories of the file we are about to write exist
-	err = os.MkdirAll(filepath.Dir(fp), f.perms)
+	err = os.MkdirAll(filepath.Dir(fp), notary.PrivExecPerms)
 	if err != nil {
 		return err
 	}
@@ -149,7 +206,7 @@ func (f *FilesystemStore) Set(name string, meta []byte) error {
 	os.RemoveAll(fp)
 
 	// Write the file to disk
-	if err = ioutil.WriteFile(fp, meta, f.perms); err != nil {
+	if err = ioutil.WriteFile(fp, meta, notary.PrivNoExecPerms); err != nil {
 		return err
 	}
 	return nil

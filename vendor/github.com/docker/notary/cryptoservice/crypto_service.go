@@ -1,13 +1,12 @@
 package cryptoservice
 
 import (
-	"crypto/rand"
-	"fmt"
-
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"github.com/sirupsen/logrus"
+	"fmt"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 	"github.com/docker/notary/trustmanager"
 	"github.com/docker/notary/tuf/data"
@@ -36,47 +35,19 @@ func NewCryptoService(keyStores ...trustmanager.KeyStore) *CryptoService {
 }
 
 // Create is used to generate keys for targets, snapshots and timestamps
-func (cs *CryptoService) Create(role, gun, algorithm string) (data.PublicKey, error) {
-	var privKey data.PrivateKey
-	var err error
-
-	switch algorithm {
-	case data.RSAKey:
-		privKey, err = utils.GenerateRSAKey(rand.Reader, notary.MinRSABitSize)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate RSA key: %v", err)
-		}
-	case data.ECDSAKey:
-		privKey, err = utils.GenerateECDSAKey(rand.Reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate EC key: %v", err)
-		}
-	case data.ED25519Key:
-		privKey, err = utils.GenerateED25519Key(rand.Reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate ED25519 key: %v", err)
-		}
-	default:
-		return nil, fmt.Errorf("private key type not supported for key generation: %s", algorithm)
-	}
-	logrus.Debugf("generated new %s key for role: %s and keyID: %s", algorithm, role, privKey.ID())
-
-	// Store the private key into our keystore
-	for _, ks := range cs.keyStores {
-		err = ks.AddKey(trustmanager.KeyInfo{Role: role, Gun: gun}, privKey)
-		if err == nil {
-			return data.PublicKeyFromPrivate(privKey), nil
-		}
-	}
+func (cs *CryptoService) Create(role data.RoleName, gun data.GUN, algorithm string) (data.PublicKey, error) {
+	privKey, err := utils.GenerateKey(algorithm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add key to filestore: %v", err)
+		return nil, fmt.Errorf("failed to generate %s key: %v", algorithm, err)
 	}
+	logrus.Debugf("generated new %s key for role: %s and keyID: %s", algorithm, role.String(), privKey.ID())
+	pubKey := data.PublicKeyFromPrivate(privKey)
 
-	return nil, fmt.Errorf("keystores would not accept new private keys for unknown reasons")
+	return pubKey, cs.AddKey(role, gun, privKey)
 }
 
 // GetPrivateKey returns a private key and role if present by ID.
-func (cs *CryptoService) GetPrivateKey(keyID string) (k data.PrivateKey, role string, err error) {
+func (cs *CryptoService) GetPrivateKey(keyID string) (k data.PrivateKey, role data.RoleName, err error) {
 	for _, ks := range cs.keyStores {
 		if k, role, err = ks.GetKey(keyID); err == nil {
 			return
@@ -120,14 +91,14 @@ func (cs *CryptoService) RemoveKey(keyID string) (err error) {
 
 // AddKey adds a private key to a specified role.
 // The GUN is inferred from the cryptoservice itself for non-root roles
-func (cs *CryptoService) AddKey(role, gun string, key data.PrivateKey) (err error) {
+func (cs *CryptoService) AddKey(role data.RoleName, gun data.GUN, key data.PrivateKey) (err error) {
 	// First check if this key already exists in any of our keystores
 	for _, ks := range cs.keyStores {
 		if keyInfo, err := ks.GetKeyInfo(key.ID()); err == nil {
 			if keyInfo.Role != role {
-				return fmt.Errorf("key with same ID already exists for role: %s", keyInfo.Role)
+				return fmt.Errorf("key with same ID already exists for role: %s", keyInfo.Role.String())
 			}
-			logrus.Debugf("key with same ID %s and role %s already exists", key.ID(), keyInfo.Role)
+			logrus.Debugf("key with same ID %s and role %s already exists", key.ID(), keyInfo.Role.String())
 			return nil
 		}
 	}
@@ -142,7 +113,7 @@ func (cs *CryptoService) AddKey(role, gun string, key data.PrivateKey) (err erro
 }
 
 // ListKeys returns a list of key IDs valid for the given role
-func (cs *CryptoService) ListKeys(role string) []string {
+func (cs *CryptoService) ListKeys(role data.RoleName) []string {
 	var res []string
 	for _, ks := range cs.keyStores {
 		for k, r := range ks.ListKeys() {
@@ -155,8 +126,8 @@ func (cs *CryptoService) ListKeys(role string) []string {
 }
 
 // ListAllKeys returns a map of key IDs to role
-func (cs *CryptoService) ListAllKeys() map[string]string {
-	res := make(map[string]string)
+func (cs *CryptoService) ListAllKeys() map[string]data.RoleName {
+	res := make(map[string]data.RoleName)
 	for _, ks := range cs.keyStores {
 		for k, r := range ks.ListKeys() {
 			res[k] = r.Role // keys are content addressed so don't care about overwrites
@@ -173,9 +144,12 @@ func CheckRootKeyIsEncrypted(pemBytes []byte) error {
 		return ErrNoValidPrivateKey
 	}
 
-	if !x509.IsEncryptedPEMBlock(block) {
-		return ErrRootKeyNotEncrypted
+	if block.Type == "ENCRYPTED PRIVATE KEY" {
+		return nil
+	}
+	if !notary.FIPSEnabled() && x509.IsEncryptedPEMBlock(block) {
+		return nil
 	}
 
-	return nil
+	return ErrRootKeyNotEncrypted
 }

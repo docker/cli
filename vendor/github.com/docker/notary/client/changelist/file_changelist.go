@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/uuid"
 	"path/filepath"
 )
@@ -135,6 +135,11 @@ func (cl FileChangelist) Clear(archive string) error {
 func (cl FileChangelist) Close() error {
 	// Nothing to do here
 	return nil
+}
+
+// Location returns the file path to the changelist
+func (cl FileChangelist) Location() string {
+	return cl.dir
 }
 
 // NewIterator creates an iterator from FileChangelist
