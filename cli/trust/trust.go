@@ -33,7 +33,7 @@ import (
 
 var (
 	// ReleasesRole is the role named "releases"
-	ReleasesRole = path.Join(data.CanonicalTargetsRole, "releases")
+	ReleasesRole = data.RoleName(path.Join(data.CanonicalTargetsRole.String(), "releases"))
 )
 
 func trustDirectory() string {
@@ -164,9 +164,9 @@ func GetNotaryRepository(streams command.Streams, repoInfo *registry.RepositoryI
 	modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
 	tr := transport.NewTransport(base, modifiers...)
 
-	return client.NewNotaryRepository(
+	return client.NewFileCachedNotaryRepository(
 		trustDirectory(),
-		repoInfo.Name.Name(),
+		data.GUN(repoInfo.Name.Name()),
 		server,
 		tr,
 		getPassphraseRetriever(streams),
@@ -193,7 +193,7 @@ func getPassphraseRetriever(streams command.Streams) notary.PassRetriever {
 			return v, numAttempts > 1, nil
 		}
 		// For non-root roles, we can also try the "default" alias if it is specified
-		if v := env["default"]; v != "" && alias != data.CanonicalRootRole {
+		if v := env["default"]; v != "" && alias != data.CanonicalRootRole.String() {
 			return v, numAttempts > 1, nil
 		}
 		return baseRetriever(keyName, alias, createNew, numAttempts)

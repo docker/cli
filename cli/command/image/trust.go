@@ -28,8 +28,8 @@ type target struct {
 	size   int64
 }
 
-// trustedPush handles content trust pushing of an image
-func trustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
+// TrustedPush handles content trust pushing of an image
+func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	responseBody, err := imagePushPrivileged(ctx, cli, authConfig, ref, requestPrivilege)
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		err = repo.AddTarget(target, data.CanonicalTargetsRole)
 	case nil:
 		// already initialized and we have successfully downloaded the latest metadata
-		err = addTargetToAllSignableRoles(repo, target)
+		err = AddTargetToAllSignableRoles(repo, target)
 	default:
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
@@ -154,12 +154,10 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	return nil
 }
 
-// Attempt to add the image target to all the top level delegation roles we can
-// (based on whether we have the signing key and whether the role's path allows
-// us to).
-// If there are no delegation roles, we add to the targets role.
-func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.Target) error {
-	var signableRoles []string
+// GetSignableRoles returns a list of roles for which we have valid signing
+// keys, given a notary repository and a target
+func GetSignableRoles(repo *client.NotaryRepository, target *client.Target) ([]data.RoleName, error) {
+	var signableRoles []data.RoleName
 
 	// translate the full key names, which includes the GUN, into just the key IDs
 	allCanonicalKeyIDs := make(map[string]struct{})
@@ -169,12 +167,13 @@ func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.T
 
 	allDelegationRoles, err := repo.GetDelegationRoles()
 	if err != nil {
-		return err
+		return signableRoles, err
 	}
 
 	// if there are no delegation roles, then just try to sign it into the targets role
 	if len(allDelegationRoles) == 0 {
-		return repo.AddTarget(target, data.CanonicalTargetsRole)
+		signableRoles = append(signableRoles, data.CanonicalTargetsRole)
+		return signableRoles, nil
 	}
 
 	// there are delegation roles, find every delegation role we have a key for, and
@@ -183,7 +182,7 @@ func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.T
 		// We do not support signing any delegation role that isn't a direct child of the targets role.
 		// Also don't bother checking the keys if we can't add the target
 		// to this role due to path restrictions
-		if path.Dir(delegationRole.Name) != data.CanonicalTargetsRole || !delegationRole.CheckPaths(target.Name) {
+		if path.Dir(delegationRole.Name.String()) != data.CanonicalTargetsRole.String() || !delegationRole.CheckPaths(target.Name) {
 			continue
 		}
 
@@ -196,7 +195,21 @@ func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.T
 	}
 
 	if len(signableRoles) == 0 {
-		return errors.Errorf("no valid signing keys for delegation roles")
+		return signableRoles, errors.Errorf("no valid signing keys for delegation roles")
+	}
+
+	return signableRoles, nil
+
+}
+
+// AddTargetToAllSignableRoles attempts to add the image target to all the top level delegation roles we can
+// (based on whether we have the signing key and whether the role's path allows
+// us to).
+// If there are no delegation roles, we add to the targets role.
+func AddTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.Target) error {
+	signableRoles, err := GetSignableRoles(repo, target)
+	if err != nil {
+		return err
 	}
 
 	return repo.AddTarget(target, signableRoles...)
@@ -348,7 +361,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	// Only list tags in the top level targets role or the releases delegation role - ignore
 	// all other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(repoInfo.Name.Name(), errors.Errorf("No trust data for %s", ref.Tag()))
+		return nil, trust.NotaryError(repoInfo.Name.Name(), client.ErrNoSuchTarget(ref.Tag()))
 	}
 	r, err := convertTarget(t.Target)
 	if err != nil {
