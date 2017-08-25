@@ -36,6 +36,16 @@ func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	assert.Contains(t, err.Error(), "Additional property helicopters is not allowed")
 }
 
+func TestValidateAllowsXTopLevelFields(t *testing.T) {
+	config := dict{
+		"version":       "3.4",
+		"x-extra-stuff": dict{},
+	}
+
+	err := Validate(config, "3.4")
+	assert.NoError(t, err)
+}
+
 func TestValidateInvalidVersion(t *testing.T) {
 	config := dict{
 		"version": "2.1",
