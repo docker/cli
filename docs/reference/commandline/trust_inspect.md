@@ -24,11 +24,11 @@ Display detailed information about keys and signatures
 
 ## Description
 
-Docker trust inspect provides detailed information on signed repositories.
+`docker trust inspect` provides detailed information on signed repositories.
 This includes all image tags that are signed, who signed them, and who can sign
 new tags.
 
-By default, `docker trust inspect` will render results in a table.
+By default, `docker trust inspect` renders results in a table.
 
 
 ## Examples
@@ -38,6 +38,7 @@ By default, `docker trust inspect` will render results in a table.
 
 ```bash
 $ docker trust inspect alpine:latest
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
 
@@ -46,11 +47,12 @@ Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
 Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
-Note that the `SIGNED TAG` maps to the image tag itself, and associates to given image `DIGEST`. `SIGNERS` lists all entities who have signed.
+The `SIGNED TAG` is the signed image tag with a unique content-addressable `DIGEST`. `SIGNERS` lists all entities who have signed.
 
-The administrative keys listed specify the root key of trust, as well as the administrative repository key.
+The administrative keys listed specify the root key of trust, as well as the administrative repository key. These keys are responsible for modifying signers, and rotating keys for the signed repository.
 
-If signers are set up for the repository via other `docker trust` commands, `docker trust inspect` will display them appropriately as a `SIGNER` and specify their `KEYS`:
+If signers are set up for the repository via other `docker trust` commands, `docker trust inspect` displays them appropriately as a `SIGNER` and specify their `KEYS`:
+
 ```bash
 $ docker trust inspect my-image:purple
 SIGNED TAG          DIGEST                                                              SIGNERS
@@ -68,14 +70,16 @@ Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
 Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```
 
-If the image tag is unsigned or unavailable, `docker trust inspect` will not display any signed tags.
-```
+If the image tag is unsigned or unavailable, `docker trust inspect` does not display any signed tags.
+
+```bash
 $ docker trust inspect unsigned-img
 No signatures or cannot access unsigned-img
 ```
 
-However, if other tags are signed in the same image repository, `docker trust inspect` will report relevant key information.
-```
+However, if other tags are signed in the same image repository, `docker trust inspect` reports relevant key information.
+
+```bash
 $ docker trust inspect alpine:unsigned
 
 No signatures for alpine:unsigned
@@ -108,6 +112,7 @@ Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 Here's an example with signers that are set up by `docker trust` commands:
+
 ```bash
 $ docker trust inspect my-image
 SIGNED TAG          DIGEST                                                              SIGNERS

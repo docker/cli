@@ -24,13 +24,13 @@ Sign an image
 
 ## Description
 
-Docker trust sign adds signatures to tags to create signed repositories.
+`docker trust sign` adds signatures to tags to create signed repositories.
 
 ## Examples
 
 ### Sign a tag as a repo admin
 
-For an image like so:
+Given an image:
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -42,7 +42,7 @@ Repository Key:	36d4c3601102fa7c5712a343c03b94469e5835fb27c191b529c06fd19c14a942
 Root Key:	246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 ```
 
-We can sign a new tag with `docker trust sign`:
+Sign a new tag with `docker trust sign`:
 
 ```bash
 $ docker trust sign example/trust-demo:v2
@@ -60,7 +60,8 @@ Signing and pushing trust metadata
 Enter passphrase for repository key with ID 36d4c36:
 Successfully signed "docker.io/example/trust-demo":v2
 ```
-`docker trust inspect` should now list the new signature:
+
+`docker trust inspect` lists the new signature:
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -75,7 +76,7 @@ Root Key:	246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 
 ### Sign a tag as a signer
 
-For an image like so:
+Given an image:
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -94,7 +95,7 @@ Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-We can sign a new tag with `docker trust sign`:
+Sign a new tag with `docker trust sign`:
 
 ```bash
 $ docker trust sign example/trust-demo:v1
@@ -111,7 +112,7 @@ Enter passphrase for delegation key with ID 27d42a8:
 Successfully signed "docker.io/example/trust-demo":v1
 ```
 
-`docker trust inspect` should now list the new signature:
+`docker trust inspect` lists the new signature:
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -131,7 +132,7 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 ## Initialize a new repo and sign a tag
 
-When signing an image on a repo for the first time, `docker trust sign` sets up new keys and then signs the image.
+When signing an image on a repo for the first time, `docker trust sign` sets up new keys before signing the image.
 
 ```bash
 $ docker trust inspect example/trust-demo

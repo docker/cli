@@ -23,12 +23,11 @@ Remove trust for an image
 Options:
       --help   Print usage
   -y, --yes    Answer yes to the removal question (no confirmation)
-
 ```
 
 ## Description
 
-Docker trust revoke removes signatures from tags in signed repositories.
+`docker trust revoke` removes signatures from tags in signed repositories.
 
 ## Examples
 
@@ -54,7 +53,7 @@ Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-When alice runs `docker trust revoke`  like so:
+When `alice`, one of the signers, runs `docker trust revoke`:
 
 ```bash
 $ docker trust revoke example/trust-demo:red
@@ -62,7 +61,7 @@ Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo:red
 ```
 
-the said tag gets removed from the list of released tags:
+After revocation, the tag is removed from the list of released tags:
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -101,7 +100,7 @@ Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-When alice runs `docker trust revoke`  like so:
+When `alice`, one of the signers, runs `docker trust revoke`:
 
 ```bash
 $ docker trust revoke example/trust-demo
@@ -110,7 +109,7 @@ Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo
 ```
 
-the all tags that have alice's signature on them get removed from the list of released tags:
+All tags that have `alice`'s signature on them are removed from the list of released tags:
 
 ```bash
 $ docker trust inspect example/trust-demo
