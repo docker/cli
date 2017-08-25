@@ -366,23 +366,12 @@ func TestParseDevice(t *testing.T) {
 }
 
 func TestParseModes(t *testing.T) {
-	// ipc ko
-	_, _, _, err := parseRun([]string{"--ipc=container:", "img", "cmd"})
-	testutil.ErrorContains(t, err, "--ipc: invalid IPC mode")
-
-	// ipc ok
-	_, hostconfig, _, err := parseRun([]string{"--ipc=host", "img", "cmd"})
-	require.NoError(t, err)
-	if !hostconfig.IpcMode.Valid() {
-		t.Fatalf("Expected a valid IpcMode, got %v", hostconfig.IpcMode)
-	}
-
 	// pid ko
-	_, _, _, err = parseRun([]string{"--pid=container:", "img", "cmd"})
+	_, _, _, err := parseRun([]string{"--pid=container:", "img", "cmd"})
 	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
-	_, hostconfig, _, err = parseRun([]string{"--pid=host", "img", "cmd"})
+	_, hostconfig, _, err := parseRun([]string{"--pid=host", "img", "cmd"})
 	require.NoError(t, err)
 	if !hostconfig.PidMode.Valid() {
 		t.Fatalf("Expected a valid PidMode, got %v", hostconfig.PidMode)

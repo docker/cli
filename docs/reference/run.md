@@ -265,11 +265,21 @@ more advanced use case would be changing the host's hostname from a container.
 
 ## IPC settings (--ipc)
 
-    --ipc=""  : Set the IPC mode for the container,
-                 'container:<name|id>': reuses another container's IPC namespace
-                 'host': use the host's IPC namespace inside the container
+    --ipc="MODE"  : Set the IPC mode for the container
 
-By default, all containers have the IPC namespace enabled.
+The following values are accepted:
+
+| Value                      | Description                                                                       |
+|:---------------------------|:----------------------------------------------------------------------------------|
+| ""                         | Use daemon's default.                                                             |
+| "none"                     | Own private IPC namespace, with /dev/shm not mounted.                             |
+| "private"                  | Own private IPC namespace.                                                        |
+| "shareable"                | Own private IPC namespace, with a possibility to share it with other containers.  |
+| "container:<_name-or-ID_>" | Join another ("shareable") container's IPC namespace.                             |
+| "host"                     | Use the host system's IPC namespace.                                              |
+
+If not specified, daemon default is used, which can either be `"private"`
+or `"shareable"`, depending on the daemon version and configration.
 
 IPC (POSIX/SysV IPC) namespace provides separation of named shared memory
 segments, semaphores and message queues.
@@ -280,7 +290,8 @@ memory is commonly used by databases and custom-built (typically C/OpenMPI,
 C++/using boost libraries) high performance applications for scientific
 computing and financial services industries. If these types of applications
 are broken into multiple containers, you might need to share the IPC mechanisms
-of the containers.
+of the containers, using `"shareable"` mode for the main (i.e. "donor")
+container, and `"container:<donor-name-or-ID>"` for other containers.
 
 ## Network settings
 
