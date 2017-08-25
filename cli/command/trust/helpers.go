@@ -3,7 +3,6 @@ package trust
 import (
 	"context"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -17,26 +16,53 @@ import (
 
 const releasedRoleName = "Repo Admin"
 
-func checkLocalImageExistence(ctx context.Context, cli command.Cli, imageName string) error {
-	_, _, err := cli.Client().ImageInspectWithRaw(ctx, imageName)
-	return err
+// ImageRefAndAuth contains all reference information and the auth config for an image request
+type ImageRefAndAuth struct {
+	authConfig *types.AuthConfig
+	reference  reference.Named
+	repoInfo   *registry.RepositoryInfo
+	tag        string
 }
 
-func getImageReferencesAndAuth(cli command.Cli, imgName string) (context.Context, reference.Named, *registry.RepositoryInfo, *types.AuthConfig, error) {
+// AuthConfig returns the auth information (username, etc) for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) AuthConfig() *types.AuthConfig {
+	return imgRefAuth.authConfig
+}
+
+// Reference returns the Image reference for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Reference() reference.Named {
+	return imgRefAuth.reference
+}
+
+// RepoInfo returns the repository information for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) RepoInfo() *registry.RepositoryInfo {
+	return imgRefAuth.repoInfo
+}
+
+// Tag returns the Image tag for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Tag() string {
+	return imgRefAuth.tag
+}
+
+func getImageReferencesAndAuth(ctx context.Context, cli command.Cli, imgName string) (*ImageRefAndAuth, error) {
 	ref, err := reference.ParseNormalizedNamed(imgName)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, err
+	}
+
+	tag, err := getTag(ref)
+	if err != nil {
+		return nil, err
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, err
 	}
 
-	ctx := context.Background()
 	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
-	return ctx, ref, repoInfo, &authConfig, err
+	return &ImageRefAndAuth{&authConfig, ref, repoInfo, tag}, err
 }
 
 func getTag(ref reference.Named) (string, error) {
@@ -66,25 +92,10 @@ func notaryRoleToSigner(tufRole data.RoleName) string {
 	return strings.TrimPrefix(tufRole.String(), "targets/")
 }
 
-func askConfirm(input io.Reader) bool {
-	var res string
-	if _, err := fmt.Fscanln(input, &res); err != nil {
-		return false
-	}
-	if strings.EqualFold(res, "y") || strings.EqualFold(res, "yes") {
-		return true
-	}
-	return false
-}
-
 func clearChangeList(notaryRepo *client.NotaryRepository) error {
-
 	cl, err := notaryRepo.GetChangelist()
 	if err != nil {
 		return err
 	}
-	if err = cl.Clear(""); err != nil {
-		return err
-	}
-	return nil
+	return cl.Clear("")
 }

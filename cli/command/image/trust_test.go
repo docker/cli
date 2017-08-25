@@ -79,6 +79,6 @@ func TestGetSignableRolesError(t *testing.T) {
 
 	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
 	target := client.Target{}
-	_, err = GetSignableRoles(notaryRepo, &target)
+	_, err = trust.GetSignableRoles(notaryRepo, &target)
 	assert.EqualError(t, err, "client is offline")
 }

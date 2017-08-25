@@ -58,7 +58,7 @@ $ docker trust inspect my-image:purple
 SIGNED TAG          DIGEST                                                              SIGNERS
 purple              941d3dba358621ce3c41ef67b47cf80f701ff80cdf46b5cc86587eaebfe45557    alice, bob, carol
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               47caae5b3e61, a85aab9d20a4
@@ -123,7 +123,7 @@ yellow              9cc65fc3126790e683d1b92f307a71f48f75fa7dd47a7b03145a123eaf0b
 purple              941d3dba358621ce3c41ef67b47cf80f701ff80cdf46b5cc86587eaebfe45557    alice, bob, carol
 orange              d6c271baa6d271bcc24ef1cbd65abf39123c17d2e83455bdab545a1a9093fc1c    alice
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               47caae5b3e61, a85aab9d20a4

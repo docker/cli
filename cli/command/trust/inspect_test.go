@@ -19,7 +19,7 @@ type fakeClient struct {
 	dockerClient.Client
 }
 
-func TestTrustInfoErrors(t *testing.T) {
+func TestTrustInspectCommandErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
@@ -69,7 +69,7 @@ func TestTrustInfoErrors(t *testing.T) {
 	}
 }
 
-func TestTrustInfo(t *testing.T) {
+func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"alpine"})
@@ -83,10 +83,12 @@ func TestTrustInfo(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for alpine:")
 	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
 	// no delegations on this repo
-	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their KeyIDs:")
+	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
+}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cmd = newInspectCommand(cli)
+func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"alpine:3.5"})
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
@@ -100,10 +102,12 @@ func TestTrustInfo(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
 	// no delegations on this repo
 	assert.NotContains(t, cli.OutBuffer().String(), "3.6")
-	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their KeyIDs:")
+	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
+}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cmd = newInspectCommand(cli)
+func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"dockerorcadev/trust-fixture"})
 	assert.NoError(t, cmd.Execute())
 
@@ -112,7 +116,7 @@ func TestTrustInfo(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
 	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their KeyIDs:")
+	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
 	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
 	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for dockerorcadev/trust-fixture:")
@@ -120,9 +124,11 @@ func TestTrustInfo(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "Root Key")
 	// all signers have names
 	assert.NotContains(t, cli.OutBuffer().String(), "(Repo Admin)")
+}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cmd = newInspectCommand(cli)
+func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"dockerorcadev/trust-fixture:unsigned"})
 	assert.NoError(t, cmd.Execute())
 
@@ -132,7 +138,7 @@ func TestTrustInfo(t *testing.T) {
 	assert.NotContains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.NotContains(t, cli.OutBuffer().String(), "SIGNERS")
 	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their KeyIDs:")
+	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
 	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
 	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for dockerorcadev/trust-fixture:")
@@ -144,7 +150,7 @@ func TestTrustInfo(t *testing.T) {
 	assert.NotContains(t, cli.OutBuffer().String(), "(Repo Admin)")
 }
 
-func TestTUFToSigner(t *testing.T) {
+func TestNotaryRoleToSigner(t *testing.T) {
 	assert.Equal(t, releasedRoleName, notaryRoleToSigner(data.CanonicalTargetsRole))
 	assert.Equal(t, releasedRoleName, notaryRoleToSigner(trust.ReleasesRole))
 	assert.Equal(t, "signer", notaryRoleToSigner("targets/signer"))
@@ -314,7 +320,7 @@ func TestMatchReleasedSignatureFromTargets(t *testing.T) {
 	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.HashHex)
 }
 
-func TestGetSignerAndAdminRolesWithKeyIDs(t *testing.T) {
+func TestGetSignerRolesWithKeyIDs(t *testing.T) {
 	roles := []data.Role{
 		{
 			RootRole: data.RootRole{
@@ -363,10 +369,6 @@ func TestGetSignerAndAdminRolesWithKeyIDs(t *testing.T) {
 		"alice": {"key11"},
 		"bob":   {"key71", "key72"},
 	}
-	expectedAdminRoleToKeyIDs := map[string]string{
-		"Root Key":       "key01, key41",
-		"Repository Key": "key31",
-	}
 
 	var roleWithSigs []client.RoleWithSignatures
 	for _, role := range roles {
@@ -375,6 +377,60 @@ func TestGetSignerAndAdminRolesWithKeyIDs(t *testing.T) {
 	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(roles)
 	assert.Equal(t, expectedSignerRoleToKeyIDs, signerRoleToKeyIDs)
-	adminRoleToKeyIDs := getAdministrativeRolesToKeyMap(roleWithSigs)
-	assert.Equal(t, expectedAdminRoleToKeyIDs, adminRoleToKeyIDs)
+}
+
+func TestFormatAdminRole(t *testing.T) {
+	aliceRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key11"},
+		},
+		Name: "targets/alice",
+	}
+	aliceRoleWithSigs := client.RoleWithSignatures{Role: aliceRole, Signatures: nil}
+	assert.Equal(t, "", formatAdminRole(aliceRoleWithSigs))
+
+	releasesRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key11"},
+		},
+		Name: "targets/releases",
+	}
+	releasesRoleWithSigs := client.RoleWithSignatures{Role: releasesRole, Signatures: nil}
+	assert.Equal(t, "", formatAdminRole(releasesRoleWithSigs))
+
+	timestampRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key11"},
+		},
+		Name: data.CanonicalTimestampRole,
+	}
+	timestampRoleWithSigs := client.RoleWithSignatures{Role: timestampRole, Signatures: nil}
+	assert.Equal(t, "", formatAdminRole(timestampRoleWithSigs))
+
+	snapshotRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key11"},
+		},
+		Name: data.CanonicalSnapshotRole,
+	}
+	snapshotRoleWithSigs := client.RoleWithSignatures{Role: snapshotRole, Signatures: nil}
+	assert.Equal(t, "", formatAdminRole(snapshotRoleWithSigs))
+
+	rootRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key11"},
+		},
+		Name: data.CanonicalRootRole,
+	}
+	rootRoleWithSigs := client.RoleWithSignatures{Role: rootRole, Signatures: nil}
+	assert.Equal(t, "Root Key:\tkey11\n", formatAdminRole(rootRoleWithSigs))
+
+	targetsRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs: []string{"key99", "abc", "key11"},
+		},
+		Name: data.CanonicalTargetsRole,
+	}
+	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
+	assert.Equal(t, "Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs))
 }

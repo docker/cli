@@ -22,7 +22,7 @@ Remove trust for an image
 
 Options:
       --help   Print usage
-  -y, --yes    Answer yes to the removal question (no confirmation)
+  -y, --yes    Do not prompt for confirmation
 ```
 
 ## Description
@@ -42,7 +42,7 @@ SIGNED TAG          DIGEST                                                      
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -68,7 +68,7 @@ $ docker trust inspect example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -89,7 +89,7 @@ SIGNED TAG          DIGEST                                                      
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -104,7 +104,7 @@ When `alice`, one of the signers, runs `docker trust revoke`:
 
 ```bash
 $ docker trust revoke example/trust-demo
-Please confirm you would like to delete all signature data for example/trust-demo? (y/n) y
+Please confirm you would like to delete all signature data for example/trust-demo? [y/N] y
 Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo
 ```
@@ -117,7 +117,7 @@ $ docker trust inspect example/trust-demo
 No signatures for example/trust-demo
 
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb

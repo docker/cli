@@ -21,7 +21,7 @@ import (
 
 const passwd = "password"
 
-func TestTrustSignErrors(t *testing.T) {
+func TestTrustSignCommandErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
@@ -69,7 +69,7 @@ func TestTrustSignErrors(t *testing.T) {
 		{
 			name:          "no-keys",
 			args:          []string{"ubuntu:latest"},
-			expectedError: "failed to sign \"docker.io/library/ubuntu\":latest - you are not authorized to perform this operation: server returned 401.",
+			expectedError: "failed to sign \"docker.io/library/ubuntu\":latest: you are not authorized to perform this operation: server returned 401.",
 		},
 	}
 	// change to a tmpdir

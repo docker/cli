@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTrustRevokeErrors(t *testing.T) {
+func TestTrustRevokeCommandErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
@@ -78,7 +78,7 @@ func TestNewRevokeTrustAllSigConfirmation(t *testing.T) {
 	cmd.SetArgs([]string{"alpine"})
 	assert.NoError(t, cmd.Execute())
 
-	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? (y/n) \nAborting action.")
+	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action.")
 }
 
 func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {

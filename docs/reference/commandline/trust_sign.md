@@ -84,7 +84,7 @@ $ docker trust inspect example/trust-demo
 No signatures for example/trust-demo
 
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -119,7 +119,7 @@ $ docker trust inspect example/trust-demo
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -168,7 +168,7 @@ $ docker trust inspect example/trust-demo
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56   alice
 
-List of signers and their KeyIDs:
+List of signers and their keys:
 
 SIGNER              KEYS
 alice               6d52b29d940f

@@ -230,3 +230,51 @@ func NotaryError(repoName string, err error) error {
 
 	return err
 }
+
+// GetSignableRoles returns a list of roles for which we have valid signing
+// keys, given a notary repository and a target
+func GetSignableRoles(repo *client.NotaryRepository, target *client.Target) ([]data.RoleName, error) {
+	var signableRoles []data.RoleName
+
+	// translate the full key names, which includes the GUN, into just the key IDs
+	allCanonicalKeyIDs := make(map[string]struct{})
+	for fullKeyID := range repo.CryptoService.ListAllKeys() {
+		allCanonicalKeyIDs[path.Base(fullKeyID)] = struct{}{}
+	}
+
+	allDelegationRoles, err := repo.GetDelegationRoles()
+	if err != nil {
+		return signableRoles, err
+	}
+
+	// if there are no delegation roles, then just try to sign it into the targets role
+	if len(allDelegationRoles) == 0 {
+		signableRoles = append(signableRoles, data.CanonicalTargetsRole)
+		return signableRoles, nil
+	}
+
+	// there are delegation roles, find every delegation role we have a key for, and
+	// attempt to sign into into all those roles.
+	for _, delegationRole := range allDelegationRoles {
+		// We do not support signing any delegation role that isn't a direct child of the targets role.
+		// Also don't bother checking the keys if we can't add the target
+		// to this role due to path restrictions
+		if path.Dir(delegationRole.Name.String()) != data.CanonicalTargetsRole.String() || !delegationRole.CheckPaths(target.Name) {
+			continue
+		}
+
+		for _, canonicalKeyID := range delegationRole.KeyIDs {
+			if _, ok := allCanonicalKeyIDs[canonicalKeyID]; ok {
+				signableRoles = append(signableRoles, delegationRole.Name)
+				break
+			}
+		}
+	}
+
+	if len(signableRoles) == 0 {
+		return signableRoles, errors.Errorf("no valid signing keys for delegation roles")
+	}
+
+	return signableRoles, nil
+
+}

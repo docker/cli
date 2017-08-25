@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"sort"
@@ -12,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -28,26 +30,24 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func signImage(cli command.Cli, imageName string) error {
-	ctx, ref, repoInfo, authConfig, err := getImageReferencesAndAuth(cli, imageName)
+	ctx := context.Background()
+	imgRefAndAuth, err := getImageReferencesAndAuth(ctx, cli, imageName)
 	if err != nil {
 		return err
 	}
+	tag := imgRefAndAuth.Tag()
+	if tag == "" {
+		return fmt.Errorf("No tag specified for %s", imageName)
+	}
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, *authConfig, "push", "pull")
+	notaryRepo, err := trust.GetNotaryRepository(cli, imgRefAndAuth.RepoInfo(), *imgRefAndAuth.AuthConfig(), "push", "pull")
 	if err != nil {
-		return trust.NotaryError(ref.Name(), err)
+		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
 	if err = clearChangeList(notaryRepo); err != nil {
 		return err
 	}
 	defer clearChangeList(notaryRepo)
-	tag, err := getTag(ref)
-	if err != nil {
-		return err
-	}
-	if tag == "" {
-		return fmt.Errorf("No tag specified for %s", imageName)
-	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
 	if err = notaryRepo.Update(false); err != nil {
@@ -58,18 +58,18 @@ func signImage(cli command.Cli, imageName string) error {
 				return err
 			}
 
-			userRole := data.RoleName(path.Join(data.CanonicalTargetsRole.String(), authConfig.Username))
+			userRole := data.RoleName(path.Join(data.CanonicalTargetsRole.String(), imgRefAndAuth.AuthConfig().Username))
 			if err := initNotaryRepoWithSigners(notaryRepo, userRole); err != nil {
-				return trust.NotaryError(ref.Name(), err)
+				return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 			}
 
-			fmt.Fprintf(cli.Out(), "Created signer: %s\n", authConfig.Username)
-			fmt.Fprintf(cli.Out(), "Finished initializing %q\n", notaryRepo.GetGUN().String())
+			fmt.Fprintf(cli.Out(), "Created signer: %s\n", imgRefAndAuth.AuthConfig().Username)
+			fmt.Fprintf(cli.Out(), "Finished initializing signed repository for %s\n", imageName)
 		default:
-			return trust.NotaryError(repoInfo.Name.Name(), err)
+			return trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), err)
 		}
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, repoInfo.Index, "push")
+	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "push")
 	target, err := createTarget(notaryRepo, tag)
 	if err != nil {
 		switch err := err.(type) {
@@ -78,7 +78,7 @@ func signImage(cli command.Cli, imageName string) error {
 			if err := checkLocalImageExistence(ctx, cli, imageName); err != nil {
 				return err
 			}
-			return image.TrustedPush(ctx, cli, repoInfo, ref, *authConfig, requestPrivilege)
+			return image.TrustedPush(ctx, cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), requestPrivilege)
 		default:
 			return err
 		}
@@ -95,10 +95,15 @@ func signImage(cli command.Cli, imageName string) error {
 		err = notaryRepo.Publish()
 	}
 	if err != nil {
-		return fmt.Errorf("failed to sign %q:%s - %s", repoInfo.Name.Name(), tag, err.Error())
+		return errors.Wrapf(err, "failed to sign %q:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	}
-	fmt.Fprintf(cli.Out(), "Successfully signed %q:%s\n", repoInfo.Name.Name(), tag)
+	fmt.Fprintf(cli.Out(), "Successfully signed %q:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
+}
+
+func checkLocalImageExistence(ctx context.Context, cli command.Cli, imageName string) error {
+	_, _, err := cli.Client().ImageInspectWithRaw(ctx, imageName)
+	return err
 }
 
 func createTarget(notaryRepo *client.NotaryRepository, tag string) (client.Target, error) {
