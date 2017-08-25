@@ -63,6 +63,7 @@ type buildOptions struct {
 	target         string
 	imageIDFile    string
 	stream         bool
+	platform       string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -143,6 +144,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
 
+	flags.StringVar(&options.platform, "platform", "", "Set platform if server is multi-platform capable")
+	flags.SetAnnotation("platform", "version", []string{"1.30"})
 	return cmd
 }
 
@@ -372,6 +375,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		ExtraHosts:     options.extraHosts.GetAll(),
 		Target:         options.target,
 		RemoteContext:  remote,
+		Platform:       options.platform,
 	}
 
 	if s != nil {
