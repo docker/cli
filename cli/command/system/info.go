@@ -54,7 +54,7 @@ func runInfo(dockerCli *command.DockerCli, opts *infoOptions) error {
 }
 
 // nolint: gocyclo
-func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
+func prettyPrintInfo(dockerCli command.Cli, info types.Info) error {
 	fmt.Fprintf(dockerCli.Out(), "Containers: %d\n", info.Containers)
 	fmt.Fprintf(dockerCli.Out(), " Running: %d\n", info.ContainersRunning)
 	fmt.Fprintf(dockerCli.Out(), " Paused: %d\n", info.ContainersPaused)
@@ -76,7 +76,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 	fprintfIfNotEmpty(dockerCli.Out(), "Logging Driver: %s\n", info.LoggingDriver)
 	fprintfIfNotEmpty(dockerCli.Out(), "Cgroup Driver: %s\n", info.CgroupDriver)
 
-	fmt.Fprintf(dockerCli.Out(), "Plugins: \n")
+	fmt.Fprintf(dockerCli.Out(), "Plugins:\n")
 	fmt.Fprintf(dockerCli.Out(), " Volume:")
 	fmt.Fprintf(dockerCli.Out(), " %s", strings.Join(info.Plugins.Volume, " "))
 	fmt.Fprintf(dockerCli.Out(), "\n")
@@ -130,6 +130,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 					fmt.Fprintf(dockerCli.Out(), "    %s: %s\n", entry.Protocol, entry.URL)
 				}
 			}
+			fmt.Fprintf(dockerCli.Out(), " Autolock Managers: %v\n", info.Swarm.Cluster.Spec.EncryptionConfig.AutoLockManagers)
 			fmt.Fprintf(dockerCli.Out(), " Root Rotation In Progress: %v\n", info.Swarm.Cluster.RootRotationInProgress)
 		}
 		fmt.Fprintf(dockerCli.Out(), " Node Address: %s\n", info.Swarm.NodeAddr)
@@ -325,7 +326,7 @@ func prettyPrintInfo(dockerCli *command.DockerCli, info types.Info) error {
 	return nil
 }
 
-func printStorageDriverWarnings(dockerCli *command.DockerCli, info types.Info) {
+func printStorageDriverWarnings(dockerCli command.Cli, info types.Info) {
 	if info.DriverStatus == nil {
 		return
 	}
