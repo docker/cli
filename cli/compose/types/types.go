@@ -23,6 +23,7 @@ var UnsupportedProperties = []string{
 	"shm_size",
 	"sysctls",
 	"tmpfs",
+	"ulimits",
 	"userns_mode",
 }
 
