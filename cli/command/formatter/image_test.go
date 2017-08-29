@@ -55,6 +55,26 @@ func TestImageContext(t *testing.T) {
 			i:      types.ImageSummary{},
 			digest: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a",
 		}, "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a", ctx.Digest},
+		{
+			imageContext{
+				i: types.ImageSummary{Containers: 10},
+			}, "10", ctx.Containers,
+		},
+		{
+			imageContext{
+				i: types.ImageSummary{VirtualSize: 10000},
+			}, "10kB", ctx.VirtualSize,
+		},
+		{
+			imageContext{
+				i: types.ImageSummary{SharedSize: 10000},
+			}, "10kB", ctx.SharedSize,
+		},
+		{
+			imageContext{
+				i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000},
+			}, "15kB", ctx.UniqueSize,
+		},
 	}
 
 	for _, c := range cases {
@@ -62,8 +82,8 @@ func TestImageContext(t *testing.T) {
 		v := c.call()
 		if strings.Contains(v, ",") {
 			compareMultipleValues(t, v, c.expValue)
-		} else if v != c.expValue {
-			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
+		} else {
+			assert.Equal(t, c.expValue, v)
 		}
 	}
 }

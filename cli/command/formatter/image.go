@@ -86,9 +86,9 @@ func needDigest(ctx ImageContext) bool {
 
 func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subContext subContext) error) error {
 	for _, image := range images {
-		images := []*imageContext{}
+		formatted := []*imageContext{}
 		if isDangling(image) {
-			images = append(images, &imageContext{
+			formatted = append(formatted, &imageContext{
 				trunc:  ctx.Trunc,
 				i:      image,
 				repo:   "<none>",
@@ -96,96 +96,91 @@ func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subC
 				digest: "<none>",
 			})
 		} else {
-			repoTags := map[string][]string{}
-			repoDigests := map[string][]string{}
-
-			for _, refString := range image.RepoTags {
-				ref, err := reference.ParseNormalizedNamed(refString)
-				if err != nil {
-					continue
-				}
-				if nt, ok := ref.(reference.NamedTagged); ok {
-					familiarRef := reference.FamiliarName(ref)
-					repoTags[familiarRef] = append(repoTags[familiarRef], nt.Tag())
-				}
-			}
-			for _, refString := range image.RepoDigests {
-				ref, err := reference.ParseNormalizedNamed(refString)
-				if err != nil {
-					continue
-				}
-				if c, ok := ref.(reference.Canonical); ok {
-					familiarRef := reference.FamiliarName(ref)
-					repoDigests[familiarRef] = append(repoDigests[familiarRef], c.Digest().String())
-				}
-			}
-
-			for repo, tags := range repoTags {
-				digests := repoDigests[repo]
-
-				// Do not display digests as their own row
-				delete(repoDigests, repo)
-
-				if !needDigest(ctx) {
-					// Ignore digest references, just show tag once
-					digests = nil
-				}
-
-				for _, tag := range tags {
-					if len(digests) == 0 {
-						images = append(images, &imageContext{
-							trunc:  ctx.Trunc,
-							i:      image,
-							repo:   repo,
-							tag:    tag,
-							digest: "<none>",
-						})
-						continue
-					}
-					// Display the digests for each tag
-					for _, dgst := range digests {
-						images = append(images, &imageContext{
-							trunc:  ctx.Trunc,
-							i:      image,
-							repo:   repo,
-							tag:    tag,
-							digest: dgst,
-						})
-					}
-
-				}
-			}
-
-			// Show rows for remaining digest only references
-			for repo, digests := range repoDigests {
-				// If digests are displayed, show row per digest
-				if ctx.Digest {
-					for _, dgst := range digests {
-						images = append(images, &imageContext{
-							trunc:  ctx.Trunc,
-							i:      image,
-							repo:   repo,
-							tag:    "<none>",
-							digest: dgst,
-						})
-					}
-				} else {
-					images = append(images, &imageContext{
-						trunc: ctx.Trunc,
-						i:     image,
-						repo:  repo,
-						tag:   "<none>",
-					})
-				}
-			}
+			formatted = imageFormatTaggedAndDigest(ctx, image)
 		}
-		for _, imageCtx := range images {
+		for _, imageCtx := range formatted {
 			if err := format(imageCtx); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func imageFormatTaggedAndDigest(ctx ImageContext, image types.ImageSummary) []*imageContext {
+	repoTags := map[string][]string{}
+	repoDigests := map[string][]string{}
+	images := []*imageContext{}
+
+	for _, refString := range image.RepoTags {
+		ref, err := reference.ParseNormalizedNamed(refString)
+		if err != nil {
+			continue
+		}
+		if nt, ok := ref.(reference.NamedTagged); ok {
+			familiarRef := reference.FamiliarName(ref)
+			repoTags[familiarRef] = append(repoTags[familiarRef], nt.Tag())
+		}
+	}
+	for _, refString := range image.RepoDigests {
+		ref, err := reference.ParseNormalizedNamed(refString)
+		if err != nil {
+			continue
+		}
+		if c, ok := ref.(reference.Canonical); ok {
+			familiarRef := reference.FamiliarName(ref)
+			repoDigests[familiarRef] = append(repoDigests[familiarRef], c.Digest().String())
+		}
+	}
+
+	addImage := func(repo, tag, digest string) {
+		image := &imageContext{
+			trunc:  ctx.Trunc,
+			i:      image,
+			repo:   repo,
+			tag:    tag,
+			digest: digest,
+		}
+		images = append(images, image)
+	}
+
+	for repo, tags := range repoTags {
+		digests := repoDigests[repo]
+
+		// Do not display digests as their own row
+		delete(repoDigests, repo)
+
+		if !needDigest(ctx) {
+			// Ignore digest references, just show tag once
+			digests = nil
+		}
+
+		for _, tag := range tags {
+			if len(digests) == 0 {
+				addImage(repo, tag, "<none>")
+				continue
+			}
+			// Display the digests for each tag
+			for _, dgst := range digests {
+				addImage(repo, tag, dgst)
+			}
+
+		}
+	}
+
+	// Show rows for remaining digest only references
+	for repo, digests := range repoDigests {
+		// If digests are displayed, show row per digest
+		if ctx.Digest {
+			for _, dgst := range digests {
+				addImage(repo, "<none>", dgst)
+			}
+		} else {
+			addImage(repo, "<none>", "")
+
+		}
+	}
+	return images
 }
 
 type imageContext struct {
