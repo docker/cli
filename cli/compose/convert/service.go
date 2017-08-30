@@ -366,7 +366,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return nil, nil
 	}
 	var (
-		err                            error
 		timeout, interval, startPeriod time.Duration
 		retries                        int
 	)
@@ -379,23 +378,14 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		}, nil
 
 	}
-	if healthcheck.Timeout != "" {
-		timeout, err = time.ParseDuration(healthcheck.Timeout)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Timeout != nil {
+		timeout = *healthcheck.Timeout
 	}
-	if healthcheck.Interval != "" {
-		interval, err = time.ParseDuration(healthcheck.Interval)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Interval != nil {
+		interval = *healthcheck.Interval
 	}
-	if healthcheck.StartPeriod != "" {
-		startPeriod, err = time.ParseDuration(healthcheck.StartPeriod)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.StartPeriod != nil {
+		startPeriod = *healthcheck.StartPeriod
 	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
