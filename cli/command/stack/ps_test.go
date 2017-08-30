@@ -60,9 +60,9 @@ func TestStackPsEmptyStack(t *testing.T) {
 	cmd := newPsCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
 
-	assert.NoError(t, cmd.Execute())
+	assert.Error(t, cmd.Execute())
+	assert.EqualError(t, cmd.Execute(), "nothing found in stack: foo")
 	assert.Equal(t, "", fakeCli.OutBuffer().String())
-	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {
