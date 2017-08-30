@@ -169,10 +169,10 @@ type DeployConfig struct {
 // HealthCheckConfig the healthcheck configuration for a service
 type HealthCheckConfig struct {
 	Test        HealthCheckTest
-	Timeout     string
-	Interval    string
+	Timeout     *time.Duration
+	Interval    *time.Duration
 	Retries     *uint64
-	StartPeriod string `mapstructure:"start_period"`
+	StartPeriod *time.Duration `mapstructure:"start_period"`
 	Disable     bool
 }
 

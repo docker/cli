@@ -757,10 +757,10 @@ func TestFullExample(t *testing.T) {
 		},
 		HealthCheck: &types.HealthCheckConfig{
 			Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
-			Interval:    "10s",
-			Timeout:     "1s",
+			Interval:    durationPtr(10 * time.Second),
+			Timeout:     durationPtr(1 * time.Second),
 			Retries:     uint64Ptr(5),
-			StartPeriod: "15s",
+			StartPeriod: durationPtr(15 * time.Second),
 		},
 		Hostname: "foo",
 		Image:    "redis",
