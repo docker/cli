@@ -1,16 +1,23 @@
 package container
 
 import (
+	"io"
+
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 
 type fakeClient struct {
 	client.Client
-	inspectFunc     func(string) (types.ContainerJSON, error)
-	execInspectFunc func(execID string) (types.ContainerExecInspect, error)
-	execCreateFunc  func(container string, config types.ExecConfig) (types.IDResponse, error)
+	inspectFunc         func(string) (types.ContainerJSON, error)
+	execInspectFunc     func(execID string) (types.ContainerExecInspect, error)
+	execCreateFunc      func(container string, config types.ExecConfig) (types.IDResponse, error)
+	createContainerFunc func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
+	imageCreateFunc     func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
+	infoFunc            func() (types.Info, error)
 }
 
 func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (types.ContainerJSON, error) {
@@ -36,4 +43,31 @@ func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (typ
 
 func (f *fakeClient) ContainerExecStart(ctx context.Context, execID string, config types.ExecStartCheck) error {
 	return nil
+}
+
+func (f *fakeClient) ContainerCreate(
+	_ context.Context,
+	config *container.Config,
+	hostConfig *container.HostConfig,
+	networkingConfig *network.NetworkingConfig,
+	containerName string,
+) (container.ContainerCreateCreatedBody, error) {
+	if f.createContainerFunc != nil {
+		return f.createContainerFunc(config, hostConfig, networkingConfig, containerName)
+	}
+	return container.ContainerCreateCreatedBody{}, nil
+}
+
+func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+	if f.imageCreateFunc != nil {
+		return f.imageCreateFunc(parentReference, options)
+	}
+	return nil, nil
+}
+
+func (f *fakeClient) Info(_ context.Context) (types.Info, error) {
+	if f.infoFunc != nil {
+		return f.infoFunc()
+	}
+	return types.Info{}, nil
 }
