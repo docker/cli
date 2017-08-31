@@ -1,4 +1,4 @@
-package container
+package hijack
 
 import (
 	"fmt"
@@ -19,41 +19,37 @@ import (
 // TODO: This could be moved to `pkg/term`.
 var defaultEscapeKeys = []byte{16, 17}
 
-// A hijackedIOStreamer handles copying input to and output from streams to the
-// connection.
-type hijackedIOStreamer struct {
-	streams      command.Streams
-	inputStream  io.ReadCloser
-	outputStream io.Writer
-	errorStream  io.Writer
-
-	resp types.HijackedResponse
-
-	tty        bool
-	detachKeys string
+// StreamOptions used by Stream to configure streaming behaviour
+type StreamOptions struct {
+	Hijacked     types.HijackedResponse
+	AttachStdin  bool
+	AttachStdout bool
+	AttachStderr bool
+	Tty          bool
+	DetachKeys   string
 }
 
-// stream handles setting up the IO and then begins streaming stdin/stdout
+// Stream handles setting up the IO and then begins streaming stdin/stdout
 // to/from the hijacked connection, blocking until it is either done reading
 // output, the user inputs the detach key sequence when in TTY mode, or when
 // the given context is cancelled.
-func (h *hijackedIOStreamer) stream(ctx context.Context) error {
-	restoreInput, err := h.setupInput()
+func Stream(ctx context.Context, streams command.Streams, opts StreamOptions) error {
+	restoreInput, inputStream, err := setupInput(streams, opts)
 	if err != nil {
 		return fmt.Errorf("unable to setup input stream: %s", err)
 	}
 
 	defer restoreInput()
 
-	outputDone := h.beginOutputStream(restoreInput)
-	inputDone, detached := h.beginInputStream(restoreInput)
+	outputDone := beginOutputStream(streams, opts, restoreInput)
+	inputDone, detached := beginInputStream(&opts, inputStream, restoreInput)
 
 	select {
 	case err := <-outputDone:
 		return err
 	case <-inputDone:
-		// Input stream has closed.
-		if h.outputStream != nil || h.errorStream != nil {
+		// Input Stream has closed.
+		if opts.AttachStdout || opts.AttachStderr {
 			// Wait for output to complete streaming.
 			select {
 			case err := <-outputDone:
@@ -71,15 +67,15 @@ func (h *hijackedIOStreamer) stream(ctx context.Context) error {
 	}
 }
 
-func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
-	if h.inputStream == nil || !h.tty {
+func setupInput(streams command.Streams, opts StreamOptions) (restore func(), reader io.Reader, err error) {
+	if !opts.AttachStdin || !opts.Tty {
 		// No need to setup input TTY.
 		// The restore func is a nop.
-		return func() {}, nil
+		return func() {}, streams.In(), nil
 	}
 
-	if err := setRawTerminal(h.streams); err != nil {
-		return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
+	if err := setRawTerminal(streams); err != nil {
+		return nil, nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
 	}
 
 	// Use sync.Once so we may call restore multiple times but ensure we
@@ -87,29 +83,28 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 	var restoreOnce sync.Once
 	restore = func() {
 		restoreOnce.Do(func() {
-			restoreTerminal(h.streams, h.inputStream)
+			restoreTerminal(streams, opts.AttachStdin)
 		})
 	}
 
 	// Wrap the input to detect detach escape sequence.
 	// Use default escape keys if an invalid sequence is given.
 	escapeKeys := defaultEscapeKeys
-	if h.detachKeys != "" {
-		customEscapeKeys, err := term.ToBytes(h.detachKeys)
+	if opts.DetachKeys != "" {
+		customEscapeKeys, err := term.ToBytes(opts.DetachKeys)
 		if err != nil {
 			logrus.Warnf("invalid detach escape keys, using default: %s", err)
 		} else {
 			escapeKeys = customEscapeKeys
 		}
 	}
+	inputStream := ioutils.NewReadCloserWrapper(term.NewEscapeProxy(streams.In(), escapeKeys), streams.In().Close)
 
-	h.inputStream = ioutils.NewReadCloserWrapper(term.NewEscapeProxy(h.inputStream, escapeKeys), h.inputStream.Close)
-
-	return restore, nil
+	return restore, inputStream, nil
 }
 
-func (h *hijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error {
-	if h.outputStream == nil && h.errorStream == nil {
+func beginOutputStream(streams command.Streams, opts StreamOptions, restoreInput func()) <-chan error {
+	if !opts.AttachStdout && !opts.AttachStderr {
 		// There is no need to copy output.
 		return nil
 	}
@@ -119,14 +114,14 @@ func (h *hijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 		var err error
 
 		// When TTY is ON, use regular copy
-		if h.outputStream != nil && h.tty {
-			_, err = io.Copy(h.outputStream, h.resp.Reader)
+		if opts.AttachStdout && opts.Tty {
+			_, err = io.Copy(streams.Out(), opts.Hijacked.Reader)
 			// We should restore the terminal as soon as possible
 			// once the connection ends so any following print
 			// messages will be in normal type.
 			restoreInput()
 		} else {
-			_, err = stdcopy.StdCopy(h.outputStream, h.errorStream, h.resp.Reader)
+			_, err = stdcopy.StdCopy(streams.Out(), streams.Err(), opts.Hijacked.Reader)
 		}
 
 		logrus.Debug("[hijack] End of stdout")
@@ -141,13 +136,13 @@ func (h *hijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 	return outputDone
 }
 
-func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan struct{}, detachedC <-chan error) {
+func beginInputStream(opts *StreamOptions, inputStream io.Reader, restoreInput func()) (doneC <-chan struct{}, detachedC <-chan error) {
 	inputDone := make(chan struct{})
 	detached := make(chan error)
 
 	go func() {
-		if h.inputStream != nil {
-			_, err := io.Copy(h.resp.Conn, h.inputStream)
+		if opts.AttachStdin {
+			_, err := io.Copy(opts.Hijacked.Conn, inputStream)
 			// We should restore the terminal as soon as possible
 			// once the connection ends so any following print
 			// messages will be in normal type.
@@ -168,7 +163,7 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 			}
 		}
 
-		if err := h.resp.CloseWrite(); err != nil {
+		if err := opts.Hijacked.CloseWrite(); err != nil {
 			logrus.Debugf("Couldn't send EOF: %s", err)
 		}
 
@@ -185,7 +180,7 @@ func setRawTerminal(streams command.Streams) error {
 	return streams.Out().SetRawTerminal()
 }
 
-func restoreTerminal(streams command.Streams, in io.Closer) error {
+func restoreTerminal(streams command.Streams, in bool) error {
 	streams.In().RestoreTerminal()
 	streams.Out().RestoreTerminal()
 	// WARNING: DO NOT REMOVE THE OS CHECKS !!!
@@ -200,8 +195,8 @@ func restoreTerminal(streams command.Streams, in io.Closer) error {
 	// not the "legacy" console, and you start the client in a new window. eg
 	// `start docker run --rm -it microsoft/nanoserver cmd /s /c echo foobar`
 	// will hang. Remove start, and it won't repro.
-	if in != nil && runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
-		return in.Close()
+	if in && runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
+		return streams.In().Close()
 	}
 	return nil
 }
