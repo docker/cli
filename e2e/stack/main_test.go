@@ -5,22 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkg/errors"
+	"github.com/docker/cli/internal/test/environment"
 )
 
 func TestMain(m *testing.M) {
-	if err := setupTestEnv(); err != nil {
+	if err := environment.Setup(); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(3)
 	}
 	os.Exit(m.Run())
-}
-
-// TODO: move to shared internal package
-func setupTestEnv() error {
-	dockerHost := os.Getenv("TEST_DOCKER_HOST")
-	if dockerHost == "" {
-		return errors.New("$TEST_DOCKER_HOST must be set")
-	}
-	return os.Setenv("DOCKER_HOST", dockerHost)
 }
