@@ -18,10 +18,8 @@ type testingT interface {
 	Fatalf(string, ...interface{})
 }
 
-const (
-	// None is a token to inform Result.Assert that the output should be empty
-	None string = "<NOTHING>"
-)
+// None is a token to inform Result.Assert that the output should be empty
+const None string = "[NOTHING]"
 
 type lockedBuffer struct {
 	m   sync.RWMutex
@@ -170,8 +168,7 @@ func (r *Result) Combined() string {
 	return r.outBuffer.String() + r.errBuffer.String()
 }
 
-// SetExitError sets Error and ExitCode based on Error
-func (r *Result) SetExitError(err error) {
+func (r *Result) setExitError(err error) {
 	if err == nil {
 		return
 	}
@@ -196,7 +193,7 @@ func Command(command string, args ...string) Cmd {
 }
 
 // RunCmd runs a command and returns a Result
-func RunCmd(cmd Cmd, cmdOperators ...func(*Cmd)) *Result {
+func RunCmd(cmd Cmd, cmdOperators ...CmdOp) *Result {
 	for _, op := range cmdOperators {
 		op(&cmd)
 	}
@@ -207,7 +204,7 @@ func RunCmd(cmd Cmd, cmdOperators ...func(*Cmd)) *Result {
 	return WaitOnCmd(cmd.Timeout, result)
 }
 
-// RunCommand parses a command line and runs it, returning a result
+// RunCommand runs a command with default options, and returns a result
 func RunCommand(command string, args ...string) *Result {
 	return RunCmd(Command(command, args...))
 }
@@ -218,7 +215,7 @@ func StartCmd(cmd Cmd) *Result {
 	if result.Error != nil {
 		return result
 	}
-	result.SetExitError(result.Cmd.Start())
+	result.setExitError(result.Cmd.Start())
 	return result
 }
 
@@ -253,7 +250,7 @@ func buildCmd(cmd Cmd) *Result {
 // only wait until the timeout.
 func WaitOnCmd(timeout time.Duration, result *Result) *Result {
 	if timeout == time.Duration(0) {
-		result.SetExitError(result.Cmd.Wait())
+		result.setExitError(result.Cmd.Wait())
 		return result
 	}
 
@@ -271,7 +268,7 @@ func WaitOnCmd(timeout time.Duration, result *Result) *Result {
 		}
 		result.Timeout = true
 	case err := <-done:
-		result.SetExitError(err)
+		result.setExitError(err)
 	}
 	return result
 }
