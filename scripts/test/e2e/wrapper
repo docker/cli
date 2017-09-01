@@ -27,6 +27,7 @@ testexit=0
 docker run -i --rm \
     -v "$PWD:/go/src/github.com/docker/cli" \
     --network "${unique_id}_default" \
+    -e TESTFLAGS \
     "$dev_image" \
     ./scripts/test/e2e/run test "$engine_host" || testexit="$?"
 run_in_env cleanup
