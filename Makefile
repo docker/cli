@@ -14,6 +14,9 @@ clean: ## remove build artifacts
 test-unit: ## run unit test
 	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
+.PHONY: test
+test: test-unit ## run tests
+
 .PHONY: test-coverage
 test-coverage: ## run test coverage
 	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')

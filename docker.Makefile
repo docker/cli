@@ -46,6 +46,9 @@ clean: build_docker_image
 test-unit: build_docker_image
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make test-unit
 
+.PHONY: test
+test: test-unit test-e2e
+
 # build the CLI for multiple architectures using a container
 .PHONY: cross
 cross: build_cross_image
