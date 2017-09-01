@@ -101,7 +101,13 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "", fakeCli.OutBuffer().String())
+	expectedList := []string{"Removing service bar_service1",
+		"Removing service bar_service2",
+		"Removing secret bar_secret1",
+		"Removing config bar_config1",
+		"Removing network bar_network1\n",
+	}
+	assert.Equal(t, strings.Join(expectedList, "\n"), fakeCli.OutBuffer().String())
 	assert.Contains(t, fakeCli.ErrBuffer().String(), "Nothing found in stack: foo\n")
 	assert.Equal(t, allServiceIDs, fakeClient.removedServices)
 	assert.Equal(t, allNetworkIDs, fakeClient.removedNetworks)
