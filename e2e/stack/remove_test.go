@@ -19,8 +19,8 @@ func TestRemove(t *testing.T) {
 
 	result := icmd.RunCmd(shell(t, "docker stack rm %s", stackname))
 
-	result.Assert(t, icmd.Expected{Out: icmd.None})
-	golden.Assert(t, result.Stderr(), "stack-remove-success.golden")
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	golden.Assert(t, result.Stdout(), "stack-remove-success.golden")
 }
 
 func deployFullStack(t *testing.T, stackname string) {
