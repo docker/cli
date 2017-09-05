@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
@@ -13,6 +12,7 @@ import (
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/promise"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )

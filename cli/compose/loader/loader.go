@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
@@ -19,6 +18,7 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 

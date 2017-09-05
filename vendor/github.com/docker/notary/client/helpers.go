@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary/client/changelist"
 	store "github.com/docker/notary/storage"
 	"github.com/docker/notary/tuf"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // Use this to initialize remote HTTPStores from the config settings

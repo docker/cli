@@ -3,7 +3,7 @@ package trustpinning
 import (
 	"crypto/x509"
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/docker/notary/tuf/utils"
 	"strings"
 )

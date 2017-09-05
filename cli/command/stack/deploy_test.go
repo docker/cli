@@ -45,7 +45,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 							Labels: map[string]string{"com.docker.stack.image": "foobar:1.2.3"},
 						},
 						TaskTemplate: swarm.TaskSpec{
-							ContainerSpec: swarm.ContainerSpec{
+							ContainerSpec: &swarm.ContainerSpec{
 								Image: "foobar:1.2.3@sha256:deadbeef",
 							},
 						},
@@ -86,7 +86,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 		spec := map[string]swarm.ServiceSpec{
 			"myservice": {
 				TaskTemplate: swarm.TaskSpec{
-					ContainerSpec: swarm.ContainerSpec{
+					ContainerSpec: &swarm.ContainerSpec{
 						Image: testcase.image,
 					},
 				},

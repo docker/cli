@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"runtime"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -28,6 +27,7 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
