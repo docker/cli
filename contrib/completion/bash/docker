@@ -441,18 +441,23 @@ __docker_complete_stacks() {
 # precedence over the environment setting.
 # Completions may be added with `--add`, e.g. `--add self`.
 __docker_nodes() {
+	local format
+	if [ "$DOCKER_COMPLETION_SHOW_NODE_IDS" = yes ] ; then
+		format='{{.ID}} {{.Hostname}}'
+	else
+		format='{{.Hostname}}'
+	fi
+
 	local add=()
-	local fields='$2'  # default: node name only
-	[ "${DOCKER_COMPLETION_SHOW_NODE_IDS}" = yes ] && fields='$1,$2' # ID and name
 
 	while true ; do
 		case "$1" in
 			--id)
-				fields='$1' # IDs only
+				format='{{.ID}}'
 				shift
 				;;
 			--name)
-				fields='$2' # names only
+				format='{{.Hostname}}'
 				shift
 				;;
 			--add)
@@ -465,7 +470,7 @@ __docker_nodes() {
 		esac
 	done
 
-	echo "$(__docker_q node ls "$@" | tr -d '*' | awk "NR>1 {print $fields}")" "${add[@]}"
+	echo "$(__docker_q node ls --format "$format" "$@")" "${add[@]}"
 }
 
 # __docker_complete_nodes applies completion of nodes based on the current
