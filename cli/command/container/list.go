@@ -15,6 +15,7 @@ import (
 
 type psOptions struct {
 	quiet   bool
+	name    bool
 	size    bool
 	all     bool
 	noTrunc bool
@@ -40,6 +41,7 @@ func NewPsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display numeric IDs")
+	flags.BoolVar(&options.name, "name", false, "Only display NAMES")
 	flags.BoolVarP(&options.size, "size", "s", false, "Display total file sizes")
 	flags.BoolVarP(&options.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
@@ -123,17 +125,22 @@ func runPs(dockerCli *command.DockerCli, options *psOptions) error {
 	}
 
 	format := options.format
+	quiet := options.quiet
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().PsFormat) > 0 && !options.quiet {
+		if len(dockerCli.ConfigFile().PsFormat) > 0 && !quiet && !options.name {
 			format = dockerCli.ConfigFile().PsFormat
 		} else {
+			if options.name {
+				formatter.QuietFormat = "{{.Names}}"
+				quiet = true
+			}
 			format = formatter.TableFormatKey
 		}
 	}
 
 	containerCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewContainerFormat(format, options.quiet, listOptions.Size),
+		Format: formatter.NewContainerFormat(format, quiet, listOptions.Size),
 		Trunc:  !options.noTrunc,
 	}
 	return formatter.ContainerWrite(containerCtx, containers)

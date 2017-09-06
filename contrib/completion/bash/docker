@@ -1571,7 +1571,7 @@ _docker_container_ls() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--all -a --filter -f --format --help --last -n --latest -l --no-trunc --quiet -q --size -s" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--all -a --filter -f --format --help --last -n --name --latest -l --no-trunc --quiet -q --size -s" -- "$cur" ) )
 			;;
 	esac
 }
