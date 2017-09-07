@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/idresolver"
+	"github.com/docker/cli/service/logs"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -257,7 +258,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 		return 0, errors.Errorf("invalid context in log message: %v", string(buf))
 	}
 	// parse the details out
-	details, err := client.ParseLogDetails(string(parts[detailsIndex]))
+	details, err := logs.ParseLogDetails(string(parts[detailsIndex]))
 	if err != nil {
 		return 0, err
 	}
