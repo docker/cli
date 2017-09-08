@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/docker/cli/internal/test/environment"
 	shlex "github.com/flynn-archive/go-shlex"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/poll"
 	"github.com/stretchr/testify/require"
 )
+
+var pollSettings = environment.DefaultPollSettings
 
 func TestRemove(t *testing.T) {
 	stackname := "test-stack-remove"
@@ -29,21 +32,24 @@ func deployFullStack(t *testing.T, stackname string) {
 		"docker stack deploy --compose-file=./testdata/full-stack.yml %s", stackname))
 	result.Assert(t, icmd.Success)
 
-	waitOn(t, taskCount(stackname, 2), 0)
+	poll.WaitOn(t, taskCount(stackname, 2), pollSettings)
 }
 
 func cleanupFullStack(t *testing.T, stackname string) {
 	result := icmd.RunCmd(shell(t, "docker stack rm %s", stackname))
 	result.Assert(t, icmd.Success)
-	waitOn(t, taskCount(stackname, 0), 0)
+	poll.WaitOn(t, taskCount(stackname, 0), pollSettings)
 }
 
-func taskCount(stackname string, expected int) func() (bool, error) {
-	return func() (bool, error) {
+func taskCount(stackname string, expected int) func(t poll.LogT) poll.Result {
+	return func(poll.LogT) poll.Result {
 		result := icmd.RunCommand(
 			"docker", "stack", "ps", "-f=desired-state=running", stackname)
 		count := lines(result.Stdout()) - 1
-		return count == expected, nil
+		if count == expected {
+			return poll.Success()
+		}
+		return poll.Continue("task count is %d waiting for %d", count, expected)
 	}
 }
 
@@ -56,34 +62,4 @@ func shell(t *testing.T, format string, args ...interface{}) icmd.Cmd {
 	cmd, err := shlex.Split(fmt.Sprintf(format, args...))
 	require.NoError(t, err)
 	return icmd.Cmd{Command: cmd}
-}
-
-// TODO: move to gotestyourself
-func waitOn(t *testing.T, check func() (bool, error), timeout time.Duration) {
-	if timeout == time.Duration(0) {
-		timeout = defaultTimeout()
-	}
-
-	after := time.After(timeout)
-	for {
-		select {
-		case <-after:
-			// TODO: include check function name in error message
-			t.Fatalf("timeout hit after %s", timeout)
-		default:
-			// TODO: maybe return a failure message as well?
-			done, err := check()
-			if done {
-				return
-			}
-			if err != nil {
-				t.Fatal(err.Error())
-			}
-		}
-	}
-}
-
-func defaultTimeout() time.Duration {
-	// TODO: support override from environment variable
-	return 10 * time.Second
 }

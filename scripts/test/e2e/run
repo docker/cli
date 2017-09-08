@@ -39,11 +39,12 @@ function cleanup {
 function runtests {
     local engine_host=$1
 
+    # shellcheck disable=SC2086
     env -i \
         TEST_DOCKER_HOST="$engine_host" \
         GOPATH="$GOPATH" \
         PATH="$PWD/build/" \
-        "$(which go)" test -v ./e2e/...
+        "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
 }
 
 export unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"
