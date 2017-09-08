@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -230,10 +231,7 @@ size: 0B
 		// Special headers for customized table format
 		{
 			Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
-			`CONTAINER ID        IMAGE CREATED/STATUS/  PORTS  .NAMES STATUS
-conta               "ubuntu" 24 hours ago//.FOOBAR_BAZ 
-conta               "ubuntu" 24 hours ago//.FOOBAR_BAR 
-`,
+			string(golden.Get(t, "container-context-write-special-headers.golden")),
 		},
 	}
 

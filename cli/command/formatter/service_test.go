@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -59,21 +60,7 @@ bar
 		// Raw Format
 		{
 			Context{Format: NewServiceListFormat("raw", false)},
-			`id: id_baz
-name: baz
-mode: global
-replicas: 2/4
-image: 
-ports: *:80->8080/tcp
-
-id: id_bar
-name: bar
-mode: replicated
-replicas: 2/4
-image: 
-ports: *:80->8080/tcp
-
-`,
+			string(golden.Get(t, "service-context-write-raw.golden")),
 		},
 		{
 			Context{Format: NewServiceListFormat("raw", true)},

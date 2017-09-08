@@ -8,6 +8,7 @@ import (
 
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/stringutils"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -120,10 +121,7 @@ func TestSearchContextWrite(t *testing.T) {
 		// Table format
 		{
 			Context{Format: NewSearchFormat("table")},
-			`NAME                DESCRIPTION         STARS               OFFICIAL            AUTOMATED
-result1             Official build      5000                [OK]                
-result2             Not official        5                                       [OK]
-`,
+			string(golden.Get(t, "search-context-write-table.golden")),
 		},
 		{
 			Context{Format: NewSearchFormat("table {{.Name}}")},
@@ -210,9 +208,7 @@ func TestSearchContextWriteStars(t *testing.T) {
 		// Table format
 		{
 			Context{Format: NewSearchFormat("table")},
-			`NAME                DESCRIPTION         STARS               OFFICIAL            AUTOMATED
-result1             Official build      5000                [OK]                
-`,
+			string(golden.Get(t, "search-context-write-stars-table.golden")),
 		},
 		{
 			Context{Format: NewSearchFormat("table {{.Name}}")},

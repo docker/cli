@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -83,12 +84,7 @@ Build Cache                                                 0B                  
 					Format: NewDiskUsageFormat("table {{.Type}}\t{{.Active}}"),
 				},
 			},
-			`TYPE                ACTIVE
-Images              0
-Containers          0
-Local Volumes       0
-Build Cache         
-`,
+			string(golden.Get(t, "disk-usage-context-write-custom.golden")),
 		},
 		// Raw Format
 		{
@@ -97,31 +93,7 @@ Build Cache
 					Format: NewDiskUsageFormat("raw"),
 				},
 			},
-			`type: Images
-total: 0
-active: 0
-size: 0B
-reclaimable: 0B
-
-type: Containers
-total: 0
-active: 0
-size: 0B
-reclaimable: 0B
-
-type: Local Volumes
-total: 0
-active: 0
-size: 0B
-reclaimable: 0B
-
-type: Build Cache
-total: 
-active: 
-size: 0B
-reclaimable: 0B
-
-`,
+			string(golden.Get(t, "disk-usage-raw-format.golden")),
 		},
 	}
 
