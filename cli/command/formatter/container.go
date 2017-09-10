@@ -33,8 +33,13 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 	switch source {
 	case TableFormatKey:
 		if quiet {
-			return defaultQuietFormat
+			if QuietFormat == "" {
+				return defaultQuietFormat
+			} else {
+				return Format(QuietFormat)
+			}
 		}
+
 		format := defaultContainerTableFormat
 		if size {
 			format += `\t{{.Size}}`

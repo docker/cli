@@ -43,6 +43,7 @@ Options:
       --help            Print usage
   -n, --last int        Show n last created containers (includes all states) (default -1)
   -l, --latest          Show the latest created container (includes all states)
+      --name            Only display Names
       --no-trunc        Don't truncate output
   -q, --quiet           Only display numeric IDs
   -s, --size            Display total file sizes

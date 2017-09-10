@@ -23,6 +23,8 @@ const (
 // Format is the format string rendered using the Context
 type Format string
 
+var QuietFormat string
+
 // IsTable returns true if the format is a table-type format
 func (f Format) IsTable() bool {
 	return strings.HasPrefix(string(f), TableFormatKey)
