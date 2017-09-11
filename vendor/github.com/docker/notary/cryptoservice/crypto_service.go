@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 	"github.com/docker/notary/trustmanager"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/utils"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -36,6 +36,10 @@ func NewCryptoService(keyStores ...trustmanager.KeyStore) *CryptoService {
 
 // Create is used to generate keys for targets, snapshots and timestamps
 func (cs *CryptoService) Create(role data.RoleName, gun data.GUN, algorithm string) (data.PublicKey, error) {
+	if algorithm == data.RSAKey {
+		return nil, fmt.Errorf("%s keys can only be imported", data.RSAKey)
+	}
+
 	privKey, err := utils.GenerateKey(algorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate %s key: %v", algorithm, err)

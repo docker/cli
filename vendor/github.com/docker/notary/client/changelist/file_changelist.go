@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/uuid"
-	"path/filepath"
+	"github.com/sirupsen/logrus"
 )
 
 // FileChangelist stores all the changes as files

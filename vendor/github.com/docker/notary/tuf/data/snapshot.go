@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/go/canonical/json"
 	"github.com/docker/notary"
+	"github.com/sirupsen/logrus"
 )
 
 // SignedSnapshot is a fully unpacked snapshot.json

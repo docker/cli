@@ -4,26 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 	store "github.com/docker/notary/storage"
 	"github.com/docker/notary/trustpinning"
 	"github.com/docker/notary/tuf"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/signed"
+	"github.com/sirupsen/logrus"
 )
 
-// TUFClient is a usability wrapper around a raw TUF repo
-type TUFClient struct {
+// tufClient is a usability wrapper around a raw TUF repo
+type tufClient struct {
 	remote     store.RemoteStore
 	cache      store.MetadataStore
 	oldBuilder tuf.RepoBuilder
 	newBuilder tuf.RepoBuilder
 }
 
-// NewTUFClient initialized a TUFClient with the given repo, remote source of content, and cache
-func NewTUFClient(oldBuilder, newBuilder tuf.RepoBuilder, remote store.RemoteStore, cache store.MetadataStore) *TUFClient {
-	return &TUFClient{
+// newTufClient initialized a tufClient with the given repo, remote source of content, and cache
+func newTufClient(oldBuilder, newBuilder tuf.RepoBuilder, remote store.RemoteStore, cache store.MetadataStore) *tufClient {
+	return &tufClient{
 		oldBuilder: oldBuilder,
 		newBuilder: newBuilder,
 		remote:     remote,
@@ -32,7 +32,7 @@ func NewTUFClient(oldBuilder, newBuilder tuf.RepoBuilder, remote store.RemoteSto
 }
 
 // Update performs an update to the TUF repo as defined by the TUF spec
-func (c *TUFClient) Update() (*tuf.Repo, *tuf.Repo, error) {
+func (c *tufClient) Update() (*tuf.Repo, *tuf.Repo, error) {
 	// 1. Get timestamp
 	//   a. If timestamp error (verification, expired, etc...) download new root and return to 1.
 	// 2. Check if local snapshot is up to date
@@ -63,7 +63,7 @@ func (c *TUFClient) Update() (*tuf.Repo, *tuf.Repo, error) {
 	return c.newBuilder.Finish()
 }
 
-func (c *TUFClient) update() error {
+func (c *tufClient) update() error {
 	if err := c.downloadTimestamp(); err != nil {
 		logrus.Debugf("Client Update (Timestamp): %s", err.Error())
 		return err
@@ -82,7 +82,7 @@ func (c *TUFClient) update() error {
 
 // updateRoot checks if there is a newer version of the root available, and if so
 // downloads all intermediate root files to allow proper key rotation.
-func (c *TUFClient) updateRoot() error {
+func (c *tufClient) updateRoot() error {
 	// Get current root version
 	currentRootConsistentInfo := c.oldBuilder.GetConsistentInfo(data.CanonicalRootRole)
 	currentVersion := c.oldBuilder.GetLoadedVersion(currentRootConsistentInfo.RoleName)
@@ -147,7 +147,7 @@ func (c *TUFClient) updateRoot() error {
 
 // updateRootVersions updates the root from it's current version to a target, rotating keys
 // as they are found
-func (c *TUFClient) updateRootVersions(fromVersion, toVersion int) error {
+func (c *tufClient) updateRootVersions(fromVersion, toVersion int) error {
 	for v := fromVersion; v <= toVersion; v++ {
 		logrus.Debugf("updating root from version %d to version %d, currently fetching %d", fromVersion, toVersion, v)
 
@@ -170,7 +170,7 @@ func (c *TUFClient) updateRootVersions(fromVersion, toVersion int) error {
 // downloadTimestamp is responsible for downloading the timestamp.json
 // Timestamps are special in that we ALWAYS attempt to download and only
 // use cache if the download fails (and the cache is still valid).
-func (c *TUFClient) downloadTimestamp() error {
+func (c *tufClient) downloadTimestamp() error {
 	logrus.Debug("Loading timestamp...")
 	role := data.CanonicalTimestampRole
 	consistentInfo := c.newBuilder.GetConsistentInfo(role)
@@ -206,7 +206,7 @@ func (c *TUFClient) downloadTimestamp() error {
 }
 
 // downloadSnapshot is responsible for downloading the snapshot.json
-func (c *TUFClient) downloadSnapshot() error {
+func (c *tufClient) downloadSnapshot() error {
 	logrus.Debug("Loading snapshot...")
 	role := data.CanonicalSnapshotRole
 	consistentInfo := c.newBuilder.GetConsistentInfo(role)
@@ -218,7 +218,7 @@ func (c *TUFClient) downloadSnapshot() error {
 // downloadTargets downloads all targets and delegated targets for the repository.
 // It uses a pre-order tree traversal as it's necessary to download parents first
 // to obtain the keys to validate children.
-func (c *TUFClient) downloadTargets() error {
+func (c *tufClient) downloadTargets() error {
 	toDownload := []data.DelegationRole{{
 		BaseRole: data.BaseRole{Name: data.CanonicalTargetsRole},
 		Paths:    []string{""},
@@ -251,7 +251,7 @@ func (c *TUFClient) downloadTargets() error {
 	return nil
 }
 
-func (c TUFClient) getTargetsFile(role data.DelegationRole, ci tuf.ConsistentInfo) ([]data.DelegationRole, error) {
+func (c tufClient) getTargetsFile(role data.DelegationRole, ci tuf.ConsistentInfo) ([]data.DelegationRole, error) {
 	logrus.Debugf("Loading %s...", role.Name)
 	tgs := &data.SignedTargets{}
 
@@ -267,7 +267,7 @@ func (c TUFClient) getTargetsFile(role data.DelegationRole, ci tuf.ConsistentInf
 }
 
 // downloadRoot is responsible for downloading the root.json
-func (c *TUFClient) downloadRoot() ([]byte, error) {
+func (c *tufClient) downloadRoot() ([]byte, error) {
 	role := data.CanonicalRootRole
 	consistentInfo := c.newBuilder.GetConsistentInfo(role)
 
@@ -284,7 +284,7 @@ func (c *TUFClient) downloadRoot() ([]byte, error) {
 	return c.tryLoadCacheThenRemote(consistentInfo)
 }
 
-func (c *TUFClient) tryLoadCacheThenRemote(consistentInfo tuf.ConsistentInfo) ([]byte, error) {
+func (c *tufClient) tryLoadCacheThenRemote(consistentInfo tuf.ConsistentInfo) ([]byte, error) {
 	cachedTS, err := c.cache.GetSized(consistentInfo.RoleName.String(), consistentInfo.Length())
 	if err != nil {
 		logrus.Debugf("no %s in cache, must download", consistentInfo.RoleName)
@@ -300,7 +300,7 @@ func (c *TUFClient) tryLoadCacheThenRemote(consistentInfo tuf.ConsistentInfo) ([
 	return c.tryLoadRemote(consistentInfo, cachedTS)
 }
 
-func (c *TUFClient) tryLoadRemote(consistentInfo tuf.ConsistentInfo, old []byte) ([]byte, error) {
+func (c *tufClient) tryLoadRemote(consistentInfo tuf.ConsistentInfo, old []byte) ([]byte, error) {
 	consistentName := consistentInfo.ConsistentName()
 	raw, err := c.remote.GetSized(consistentName, consistentInfo.Length())
 	if err != nil {

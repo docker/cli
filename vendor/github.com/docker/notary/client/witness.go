@@ -8,7 +8,7 @@ import (
 
 // Witness creates change objects to witness (i.e. re-sign) the given
 // roles on the next publish. One change is created per role
-func (r *NotaryRepository) Witness(roles ...data.RoleName) ([]data.RoleName, error) {
+func (r *repository) Witness(roles ...data.RoleName) ([]data.RoleName, error) {
 	var err error
 	successful := make([]data.RoleName, 0, len(roles))
 	for _, role := range roles {

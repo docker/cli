@@ -66,7 +66,7 @@ func TestAddTargetToAllSignableRolesError(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
 	target := client.Target{}
 	err = AddTargetToAllSignableRoles(notaryRepo, &target)
 	assert.EqualError(t, err, "client is offline")
@@ -77,7 +77,7 @@ func TestGetSignableRolesError(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
 	target := client.Target{}
 	_, err = trust.GetSignableRoles(notaryRepo, &target)
 	assert.EqualError(t, err, "client is offline")

@@ -92,7 +92,7 @@ func notaryRoleToSigner(tufRole data.RoleName) string {
 	return strings.TrimPrefix(tufRole.String(), "targets/")
 }
 
-func clearChangeList(notaryRepo *client.NotaryRepository) error {
+func clearChangeList(notaryRepo client.Repository) error {
 	cl, err := notaryRepo.GetChangelist()
 	if err != nil {
 		return err

@@ -109,18 +109,19 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
-	err = repo.Update(false)
+	// TODO(riyazdf): interface change to get back Update
+	_, err = repo.ListTargets()
 
 	switch err.(type) {
 	case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
-		keys := repo.CryptoService.ListKeys(data.CanonicalRootRole)
+		keys := repo.GetCryptoService().ListKeys(data.CanonicalRootRole)
 		var rootKeyID string
 		// always select the first root key
 		if len(keys) > 0 {
 			sort.Strings(keys)
 			rootKeyID = keys[0]
 		} else {
-			rootPublicKey, err := repo.CryptoService.Create(data.CanonicalRootRole, "", data.ECDSAKey)
+			rootPublicKey, err := repo.GetCryptoService().Create(data.CanonicalRootRole, "", data.ECDSAKey)
 			if err != nil {
 				return err
 			}
@@ -157,7 +158,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 // (based on whether we have the signing key and whether the role's path allows
 // us to).
 // If there are no delegation roles, we add to the targets role.
-func AddTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.Target) error {
+func AddTargetToAllSignableRoles(repo client.Repository, target *client.Target) error {
 	signableRoles, err := trust.GetSignableRoles(repo, target)
 	if err != nil {
 		return err

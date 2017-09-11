@@ -50,7 +50,8 @@ func signImage(cli command.Cli, imageName string) error {
 	defer clearChangeList(notaryRepo)
 
 	// get the latest repository metadata so we can figure out which roles to sign
-	if err = notaryRepo.Update(false); err != nil {
+	// TODO(riyazdf): interface change to get back Update
+	if _, err = notaryRepo.ListTargets(); err != nil {
 		switch err.(type) {
 		case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
 			// before initializing a new repo, check that the image exists locally:
@@ -106,7 +107,7 @@ func checkLocalImageExistence(ctx context.Context, cli command.Cli, imageName st
 	return err
 }
 
-func createTarget(notaryRepo *client.NotaryRepository, tag string) (client.Target, error) {
+func createTarget(notaryRepo client.Repository, tag string) (client.Target, error) {
 	target := &client.Target{}
 	var err error
 	if tag == "" {
@@ -117,7 +118,7 @@ func createTarget(notaryRepo *client.NotaryRepository, tag string) (client.Targe
 	return *target, err
 }
 
-func getSignedManifestHashAndSize(notaryRepo *client.NotaryRepository, tag string) (data.Hashes, int64, error) {
+func getSignedManifestHashAndSize(notaryRepo client.Repository, tag string) (data.Hashes, int64, error) {
 	targets, err := notaryRepo.GetAllTargetMetadataByName(tag)
 	if err != nil {
 		return nil, 0, err
@@ -134,7 +135,7 @@ func getReleasedTargetHashAndSize(targets []client.TargetSignedStruct, tag strin
 	return nil, 0, client.ErrNoSuchTarget(tag)
 }
 
-func getExistingSignatureInfoForReleasedTag(notaryRepo *client.NotaryRepository, tag string) (trustTagRow, error) {
+func getExistingSignatureInfoForReleasedTag(notaryRepo client.Repository, tag string) (trustTagRow, error) {
 	targets, err := notaryRepo.GetAllTargetMetadataByName(tag)
 	if err != nil {
 		return trustTagRow{}, err
@@ -152,7 +153,7 @@ func prettyPrintExistingSignatureInfo(cli command.Cli, existingSigInfo trustTagR
 	fmt.Fprintf(cli.Out(), "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.TagName, existingSigInfo.HashHex, joinedSigners)
 }
 
-func initNotaryRepoWithSigners(notaryRepo *client.NotaryRepository, newSigner data.RoleName) error {
+func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.RoleName) error {
 	rootKey, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
 	if err != nil {
 		return err
@@ -174,25 +175,25 @@ func initNotaryRepoWithSigners(notaryRepo *client.NotaryRepository, newSigner da
 }
 
 // generates an ECDSA key without a GUN for the specified role
-func getOrGenerateNotaryKey(notaryRepo *client.NotaryRepository, role data.RoleName) (data.PublicKey, error) {
+func getOrGenerateNotaryKey(notaryRepo client.Repository, role data.RoleName) (data.PublicKey, error) {
 	// use the signer name in the PEM headers if this is a delegation key
 	if data.IsDelegation(role) {
 		role = data.RoleName(notaryRoleToSigner(role))
 	}
-	keys := notaryRepo.CryptoService.ListKeys(role)
+	keys := notaryRepo.GetCryptoService().ListKeys(role)
 	var err error
 	var key data.PublicKey
 	// always select the first key by ID
 	if len(keys) > 0 {
 		sort.Strings(keys)
 		keyID := keys[0]
-		privKey, _, err := notaryRepo.CryptoService.GetPrivateKey(keyID)
+		privKey, _, err := notaryRepo.GetCryptoService().GetPrivateKey(keyID)
 		if err != nil {
 			return nil, err
 		}
 		key = data.PublicKeyFromPrivate(privKey)
 	} else {
-		key, err = notaryRepo.CryptoService.Create(role, "", data.ECDSAKey)
+		key, err = notaryRepo.GetCryptoService().Create(role, "", data.ECDSAKey)
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +202,7 @@ func getOrGenerateNotaryKey(notaryRepo *client.NotaryRepository, role data.RoleN
 }
 
 // stages changes to add a signer with the specified name and key(s).  Adds to targets/<name> and targets/releases
-func addStagedSigner(notaryRepo *client.NotaryRepository, newSigner data.RoleName, signerKeys []data.PublicKey) {
+func addStagedSigner(notaryRepo client.Repository, newSigner data.RoleName, signerKeys []data.PublicKey) {
 	// create targets/<username>
 	notaryRepo.AddDelegationRoleAndKeys(newSigner, signerKeys)
 	notaryRepo.AddDelegationPaths(newSigner, []string{""})

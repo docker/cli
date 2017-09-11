@@ -65,7 +65,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	return nil
 }
 
-func revokeSignature(notaryRepo *client.NotaryRepository, tag string) error {
+func revokeSignature(notaryRepo client.Repository, tag string) error {
 	if tag != "" {
 		// Revoke signature for the specified tag
 		if err := revokeSingleSig(notaryRepo, tag); err != nil {
@@ -82,7 +82,7 @@ func revokeSignature(notaryRepo *client.NotaryRepository, tag string) error {
 	return notaryRepo.Publish()
 }
 
-func revokeSingleSig(notaryRepo *client.NotaryRepository, tag string) error {
+func revokeSingleSig(notaryRepo client.Repository, tag string) error {
 	releasedTargetWithRole, err := notaryRepo.GetTargetByName(tag, trust.ReleasesRole, data.CanonicalTargetsRole)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func revokeSingleSig(notaryRepo *client.NotaryRepository, tag string) error {
 	return getSignableRolesForTargetAndRemove(releasedTarget, notaryRepo)
 }
 
-func revokeAllSigs(notaryRepo *client.NotaryRepository) error {
+func revokeAllSigs(notaryRepo client.Repository) error {
 	releasedTargetWithRoleList, err := notaryRepo.ListTargets(trust.ReleasesRole, data.CanonicalTargetsRole)
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func revokeAllSigs(notaryRepo *client.NotaryRepository) error {
 }
 
 // get all the roles that signed the target and removes it from all roles.
-func getSignableRolesForTargetAndRemove(releasedTarget client.Target, notaryRepo *client.NotaryRepository) error {
+func getSignableRolesForTargetAndRemove(releasedTarget client.Target, notaryRepo client.Repository) error {
 	signableRoles, err := trust.GetSignableRoles(notaryRepo, &releasedTarget)
 	if err != nil {
 		return err

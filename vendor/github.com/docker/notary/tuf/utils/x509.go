@@ -16,10 +16,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/notary"
 	"github.com/docker/notary/tuf/data"
+	"github.com/sirupsen/logrus"
 )
 
 // CanonicalKeyID returns the ID of the public bytes version of a TUF key.
@@ -339,31 +339,12 @@ func ValidateCertificate(c *x509.Certificate, checkExpiry bool) error {
 // error detailing why the key could not be generated
 func GenerateKey(algorithm string) (data.PrivateKey, error) {
 	switch algorithm {
-	case data.RSAKey:
-		return GenerateRSAKey(rand.Reader, notary.MinRSABitSize)
 	case data.ECDSAKey:
 		return GenerateECDSAKey(rand.Reader)
 	case data.ED25519Key:
 		return GenerateED25519Key(rand.Reader)
 	}
 	return nil, fmt.Errorf("private key type not supported for key generation: %s", algorithm)
-}
-
-// GenerateRSAKey generates an RSA private key and returns a TUF PrivateKey
-func GenerateRSAKey(random io.Reader, bits int) (data.PrivateKey, error) {
-	rsaPrivKey, err := rsa.GenerateKey(random, bits)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate private key: %v", err)
-	}
-
-	tufPrivKey, err := RSAToPrivateKey(rsaPrivKey)
-	if err != nil {
-		return nil, err
-	}
-
-	logrus.Debugf("generated RSA key with keyID: %s", tufPrivKey.ID())
-
-	return tufPrivKey, nil
 }
 
 // RSAToPrivateKey converts an rsa.Private key to a TUF data.PrivateKey type

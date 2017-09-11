@@ -86,7 +86,7 @@ func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
 	target := client.Target{}
 	err = getSignableRolesForTargetAndRemove(target, notaryRepo)
 	assert.EqualError(t, err, "client is offline")

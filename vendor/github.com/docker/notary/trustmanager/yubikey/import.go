@@ -5,6 +5,7 @@ package yubikey
 import (
 	"encoding/pem"
 	"errors"
+
 	"github.com/docker/notary"
 	"github.com/docker/notary/trustmanager"
 	"github.com/docker/notary/tuf/data"

@@ -91,7 +91,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 
 	// repo is empty, try making a root key
@@ -100,9 +100,9 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.NotNil(t, rootKeyA)
 
 	// we should only have one newly generated key
-	allKeys := notaryRepo.CryptoService.ListAllKeys()
+	allKeys := notaryRepo.GetCryptoService().ListAllKeys()
 	assert.Len(t, allKeys, 1)
-	assert.NotNil(t, notaryRepo.CryptoService.GetKey(rootKeyA.ID()))
+	assert.NotNil(t, notaryRepo.GetCryptoService().GetKey(rootKeyA.ID()))
 
 	// this time we should get back the same key if we ask for another root key
 	rootKeyB, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
@@ -110,9 +110,9 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.NotNil(t, rootKeyB)
 
 	// we should only have one newly generated key
-	allKeys = notaryRepo.CryptoService.ListAllKeys()
+	allKeys = notaryRepo.GetCryptoService().ListAllKeys()
 	assert.Len(t, allKeys, 1)
-	assert.NotNil(t, notaryRepo.CryptoService.GetKey(rootKeyB.ID()))
+	assert.NotNil(t, notaryRepo.GetCryptoService().GetKey(rootKeyB.ID()))
 
 	// The key we retrieved should be identical to the one we generated
 	assert.Equal(t, rootKeyA, rootKeyB)
@@ -123,9 +123,9 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.NotNil(t, releasesKey)
 
 	// we should now have two keys
-	allKeys = notaryRepo.CryptoService.ListAllKeys()
+	allKeys = notaryRepo.GetCryptoService().ListAllKeys()
 	assert.Len(t, allKeys, 2)
-	assert.NotNil(t, notaryRepo.CryptoService.GetKey(releasesKey.ID()))
+	assert.NotNil(t, notaryRepo.GetCryptoService().GetKey(releasesKey.ID()))
 	// The key we retrieved should be identical to the one we generated
 	assert.NotEqual(t, releasesKey, rootKeyA)
 	assert.NotEqual(t, releasesKey, rootKeyB)
@@ -136,7 +136,7 @@ func TestAddStageSigners(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 
 	// stage targets/user
@@ -216,7 +216,7 @@ func TestGetSignedManifestHashAndSize(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 	target := &client.Target{}
 	target.Hashes, target.Length, err = getSignedManifestHashAndSize(notaryRepo, "test")
@@ -244,7 +244,7 @@ func TestCreateTarget(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 	_, err = createTarget(notaryRepo, "")
 	assert.EqualError(t, err, "No tag specified")
@@ -257,7 +257,7 @@ func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 	_, err = getExistingSignatureInfoForReleasedTag(notaryRepo, "test")
 	assert.EqualError(t, err, "client is offline")
@@ -284,7 +284,7 @@ func TestChangeList(t *testing.T) {
 	cmd.SetArgs([]string{"ubuntu:latest"})
 	cmd.SetOutput(ioutil.Discard)
 	err = cmd.Execute()
-	notaryRepo, err := client.NewFileCachedNotaryRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 	cl, err := notaryRepo.GetChangelist()
 	assert.Equal(t, len(cl.List()), 0)

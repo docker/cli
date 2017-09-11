@@ -12,9 +12,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/go/canonical/json"
+	"github.com/sirupsen/logrus"
 )
 
 // PublicKey is the necessary interface for public keys

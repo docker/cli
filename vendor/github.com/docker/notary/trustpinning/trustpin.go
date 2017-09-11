@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // TrustPinConfig represents the configuration under the trust_pinning section of the config file

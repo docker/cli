@@ -22,10 +22,10 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/notary"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/validation"
+	"github.com/sirupsen/logrus"
 )
 
 const (

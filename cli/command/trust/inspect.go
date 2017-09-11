@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -16,6 +15,7 @@ import (
 	"github.com/docker/notary"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
