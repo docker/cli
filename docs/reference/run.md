@@ -279,7 +279,7 @@ The following values are accepted:
 | "host"                     | Use the host system's IPC namespace.                                              |
 
 If not specified, daemon default is used, which can either be `"private"`
-or `"shareable"`, depending on the daemon version and configration.
+or `"shareable"`, depending on the daemon version and configuration.
 
 IPC (POSIX/SysV IPC) namespace provides separation of named shared memory
 segments, semaphores and message queues.
