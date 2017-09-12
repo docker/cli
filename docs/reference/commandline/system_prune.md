@@ -18,33 +18,71 @@ keywords: "system, prune, delete, remove"
 ```markdown
 Usage:	docker system prune [OPTIONS]
 
-Delete unused data
+Remove unused data
 
 Options:
   -a, --all             Remove all unused images not just dangling ones
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
+      --filter filter   Provide filter values (e.g. 'label=<key>=<value>')
   -f, --force           Do not prompt for confirmation
       --help            Print usage
+      --volumes         Prune volumes
 ```
 
 ## Description
 
-Remove all unused containers, volumes, networks and images (both dangling and unreferenced).
+Remove all unused containers, networks, images (both dangling and unreferenced),
+and optionally, volumes.
 
 ## Examples
 
 ```bash
-$ docker system prune -a
+$ docker system prune
 
 WARNING! This will remove:
-	- all stopped containers
-	- all volumes not used by at least one container
-	- all networks not used by at least one container
-	- all images without at least one container associated to them
+        - all stopped containers
+        - all networks not used by at least one container
+        - all dangling images
+        - all build cache
 Are you sure you want to continue? [y/N] y
+
+Deleted Containers:
+f44f9b81948b3919590d5f79a680d8378f1139b41952e219830a33027c80c867
+792776e68ac9d75bce4092bc1b5cc17b779bc926ab04f4185aec9bf1c0d4641f
+
+Deleted Networks:
+network1
+network2
+
+Deleted Images:
+untagged: hello-world@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f
+deleted: sha256:1815c82652c03bfd8644afda26fb184f2ed891d921b20a0703b46768f9755c57
+deleted: sha256:45761469c965421a92a69cc50e92c01e0cfa94fe026cdd1233445ea00e96289a
+
+Total reclaimed space: 1.84kB
+```
+
+By default, volumes are not removed to prevent important data from being
+deleted if there is currently no container using the volume. Use the `--volumes`
+flag when running the command to prune volumes as well:
+
+```bash
+$ docker system prune -a --volumes
+
+WARNING! This will remove:
+        - all stopped containers
+        - all networks not used by at least one container
+        - all volumes not used by at least one container
+        - all images without at least one container associated to them
+        - all build cache
+Are you sure you want to continue? [y/N] y
+
 Deleted Containers:
 0998aa37185a1a7036b0e12cf1ac1b6442dcfa30a5c9650a42ed5010046f195b
 73958bfb884fa81fa4cc6baf61055667e940ea2357b4036acbbe25a60f442a4d
+
+Deleted Networks:
+my-network-a
+my-network-b
 
 Deleted Volumes:
 named-vol
@@ -67,6 +105,13 @@ deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
 
 Total reclaimed space: 13.5 MB
 ```
+
+> **Note**: The `--volumes` option was added in Docker 17.06.1. Older versions
+> of Docker prune volumes by default, along with other Docker objects. On older
+> versions, run `docker container prune`, `docker network prune`, and
+> `docker image prune` separately to remove unused containers, networks, and
+> images, without removing volumes.
+
 
 ### Filtering
 
