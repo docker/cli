@@ -14,10 +14,14 @@ import (
 )
 
 type cmdOption struct {
-	Option       string
-	Shorthand    string `yaml:",omitempty"`
-	DefaultValue string `yaml:"default_value,omitempty"`
-	Description  string `yaml:",omitempty"`
+	Option        string
+	Shorthand     string `yaml:",omitempty"`
+	ValueType     string `yaml:"value_type,omitempty"`
+	DefaultValue  string `yaml:"default_value,omitempty"`
+	Description   string `yaml:",omitempty"`
+	Deprecated    bool
+	MinAPIVersion string `yaml:"min_api_version,omitempty"`
+	Experimental  bool
 }
 
 type cmdDoc struct {
@@ -142,28 +146,34 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 }
 
 func genFlagResult(flags *pflag.FlagSet) []cmdOption {
-	var result []cmdOption
+	var (
+		result []cmdOption
+		opt    cmdOption
+	)
 
 	flags.VisitAll(func(flag *pflag.Flag) {
+		opt = cmdOption{
+			Option:       flag.Name,
+			ValueType:    flag.Value.Type(),
+			DefaultValue: forceMultiLine(flag.DefValue),
+			Description:  forceMultiLine(flag.Usage),
+			Deprecated:   len(flag.Deprecated) > 0,
+		}
+
 		// Todo, when we mark a shorthand is deprecated, but specify an empty message.
 		// The flag.ShorthandDeprecated is empty as the shorthand is deprecated.
 		// Using len(flag.ShorthandDeprecated) > 0 can't handle this, others are ok.
 		if !(len(flag.ShorthandDeprecated) > 0) && len(flag.Shorthand) > 0 {
-			opt := cmdOption{
-				Option:       flag.Name,
-				Shorthand:    flag.Shorthand,
-				DefaultValue: flag.DefValue,
-				Description:  forceMultiLine(flag.Usage),
-			}
-			result = append(result, opt)
-		} else {
-			opt := cmdOption{
-				Option:       flag.Name,
-				DefaultValue: forceMultiLine(flag.DefValue),
-				Description:  forceMultiLine(flag.Usage),
-			}
-			result = append(result, opt)
+			opt.Shorthand = flag.Shorthand
 		}
+		if _, ok := flag.Annotations["experimental"]; ok {
+			opt.Experimental = true
+		}
+		if v, ok := flag.Annotations["version"]; ok {
+			opt.MinAPIVersion = v[0]
+		}
+
+		result = append(result, opt)
 	})
 
 	return result
