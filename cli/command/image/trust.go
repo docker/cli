@@ -158,7 +158,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 // (based on whether we have the signing key and whether the role's path allows
 // us to).
 // If there are no delegation roles, we add to the targets role.
-func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.Target) error {
+func addTargetToAllSignableRoles(repo *client.Repository, target *client.Target) error {
 	var signableRoles []string
 
 	// translate the full key names, which includes the GUN, into just the key IDs
@@ -183,7 +183,7 @@ func addTargetToAllSignableRoles(repo *client.NotaryRepository, target *client.T
 		// We do not support signing any delegation role that isn't a direct child of the targets role.
 		// Also don't bother checking the keys if we can't add the target
 		// to this role due to path restrictions
-		if path.Dir(delegationRole.Name) != data.CanonicalTargetsRole || !delegationRole.CheckPaths(target.Name) {
+		if data.RoleName(path.Dir(delegationRole.Name)) != data.CanonicalTargetsRole || !delegationRole.CheckPaths(target.Name) {
 			continue
 		}
 
@@ -228,7 +228,7 @@ func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 
 	if tagged, isTagged := ref.(reference.NamedTagged); !isTagged {
 		// List all targets
-		targets, err := notaryRepo.ListTargets(trust.ReleasesRole, data.CanonicalTargetsRole)
+		targets, err := notaryRepo.ListTargets(data.RoleName(trust.ReleasesRole), data.CanonicalTargetsRole)
 		if err != nil {
 			return trust.NotaryError(ref.Name(), err)
 		}
@@ -240,7 +240,7 @@ func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 			}
 			// Only list tags in the top level targets role or the releases delegation role - ignore
 			// all other delegation roles
-			if tgt.Role != trust.ReleasesRole && tgt.Role != data.CanonicalTargetsRole {
+			if tgt.Role != data.RoleName(trust.ReleasesRole) && data.RoleName(tgt.Role) != data.CanonicalTargetsRole {
 				continue
 			}
 			refs = append(refs, t)
@@ -249,13 +249,13 @@ func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 			return trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
 		}
 	} else {
-		t, err := notaryRepo.GetTargetByName(tagged.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
+		t, err := notaryRepo.GetTargetByName(tagged.Tag(), data.RoleName(trust.ReleasesRole), data.CanonicalTargetsRole)
 		if err != nil {
 			return trust.NotaryError(ref.Name(), err)
 		}
 		// Only get the tag if it's in the top level targets role or the releases delegation role
 		// ignore it if it's in any other delegation roles
-		if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
+		if t.Role != data.RoleName(trust.ReleasesRole) && t.Role != data.CanonicalTargetsRole {
 			return trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
 		}
 
@@ -341,13 +341,13 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 		return nil, err
 	}
 
-	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
+	t, err := notaryRepo.GetTargetByName(ref.Tag(), data.RoleName(trust.ReleasesRole), data.CanonicalTargetsRole)
 	if err != nil {
 		return nil, trust.NotaryError(repoInfo.Name.Name(), err)
 	}
 	// Only list tags in the top level targets role or the releases delegation role - ignore
 	// all other delegation roles
-	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
+	if t.Role != data.RoleName(trust.ReleasesRole) && t.Role != data.CanonicalTargetsRole {
 		return nil, trust.NotaryError(repoInfo.Name.Name(), errors.Errorf("No trust data for %s", ref.Tag()))
 	}
 	r, err := convertTarget(t.Target)

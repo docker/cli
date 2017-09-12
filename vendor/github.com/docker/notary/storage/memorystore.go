@@ -2,25 +2,29 @@ package storage
 
 import (
 	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 
 	"github.com/docker/notary"
+	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/utils"
 )
 
 // NewMemoryStore returns a MetadataStore that operates entirely in memory.
 // Very useful for testing
-func NewMemoryStore(initial map[string][]byte) *MemoryStore {
-	var consistent = make(map[string][]byte)
-	if initial == nil {
-		initial = make(map[string][]byte)
-	} else {
-		// add all seed meta to consistent
-		for name, data := range initial {
-			checksum := sha256.Sum256(data)
-			path := utils.ConsistentName(name, checksum[:])
-			consistent[path] = data
-		}
+func NewMemoryStore(seed map[data.RoleName][]byte) *MemoryStore {
+	var (
+		consistent = make(map[string][]byte)
+		initial    = make(map[string][]byte)
+	)
+	// add all seed meta to consistent
+	for name, d := range seed {
+		checksum := sha256.Sum256(d)
+		path := utils.ConsistentName(name.String(), checksum[:])
+		initial[name.String()] = d
+		consistent[path] = d
 	}
+
 	return &MemoryStore{
 		data:       initial,
 		consistent: consistent,
@@ -74,6 +78,15 @@ func (m MemoryStore) Get(name string) ([]byte, error) {
 // Set sets the metadata value for the given name
 func (m *MemoryStore) Set(name string, meta []byte) error {
 	m.data[name] = meta
+
+	parsedMeta := &data.SignedMeta{}
+	err := json.Unmarshal(meta, parsedMeta)
+	if err == nil {
+		// no parse error means this is metadata and not a key, so store by version
+		version := parsedMeta.Signed.Version
+		versionedName := fmt.Sprintf("%d.%s", version, name)
+		m.data[versionedName] = meta
+	}
 
 	checksum := sha256.Sum256(meta)
 	path := utils.ConsistentName(name, checksum[:])

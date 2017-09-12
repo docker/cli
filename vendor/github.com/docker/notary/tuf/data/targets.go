@@ -26,7 +26,7 @@ type Targets struct {
 // isValidTargetsStructure returns an error, or nil, depending on whether the content of the struct
 // is valid for targets metadata.  This does not check signatures or expiry, just that
 // the metadata content is valid.
-func isValidTargetsStructure(t Targets, roleName string) error {
+func isValidTargetsStructure(t Targets, roleName RoleName) error {
 	if roleName != CanonicalTargetsRole && !IsDelegation(roleName) {
 		return ErrInvalidRole{Role: roleName}
 	}
@@ -43,7 +43,7 @@ func isValidTargetsStructure(t Targets, roleName string) error {
 	}
 
 	for _, roleObj := range t.Delegations.Roles {
-		if !IsDelegation(roleObj.Name) || path.Dir(roleObj.Name) != roleName {
+		if !IsDelegation(roleObj.Name) || path.Dir(roleObj.Name.String()) != roleName.String() {
 			return ErrInvalidMetadata{
 				role: roleName, msg: fmt.Sprintf("delegation role %s invalid", roleObj.Name)}
 		}
@@ -99,7 +99,7 @@ func (t SignedTargets) GetValidDelegations(parent DelegationRole) []DelegationRo
 
 // BuildDelegationRole returns a copy of a DelegationRole using the information in this SignedTargets for the specified role name.
 // Will error for invalid role name or key metadata within this SignedTargets.  Path data is not validated.
-func (t *SignedTargets) BuildDelegationRole(roleName string) (DelegationRole, error) {
+func (t *SignedTargets) BuildDelegationRole(roleName RoleName) (DelegationRole, error) {
 	for _, role := range t.Signed.Delegations.Roles {
 		if role.Name == roleName {
 			pubKeys := make(map[string]PublicKey)
@@ -184,7 +184,7 @@ func (t *SignedTargets) MarshalJSON() ([]byte, error) {
 
 // TargetsFromSigned fully unpacks a Signed object into a SignedTargets, given
 // a role name (so it can validate the SignedTargets object)
-func TargetsFromSigned(s *Signed, roleName string) (*SignedTargets, error) {
+func TargetsFromSigned(s *Signed, roleName RoleName) (*SignedTargets, error) {
 	t := Targets{}
 	if err := defaultSerializer.Unmarshal(*s.Signed, &t); err != nil {
 		return nil, err

@@ -10,7 +10,7 @@ import (
 )
 
 type edCryptoKey struct {
-	role    string
+	role    data.RoleName
 	privKey data.PrivateKey
 }
 
@@ -28,13 +28,13 @@ func NewEd25519() *Ed25519 {
 }
 
 // AddKey allows you to add a private key
-func (e *Ed25519) AddKey(role, gun string, k data.PrivateKey) error {
+func (e *Ed25519) AddKey(role data.RoleName, gun data.GUN, k data.PrivateKey) error {
 	e.addKey(role, k)
 	return nil
 }
 
 // addKey allows you to add a private key
-func (e *Ed25519) addKey(role string, k data.PrivateKey) {
+func (e *Ed25519) addKey(role data.RoleName, k data.PrivateKey) {
 	e.keys[k.ID()] = edCryptoKey{
 		role:    role,
 		privKey: k,
@@ -48,7 +48,7 @@ func (e *Ed25519) RemoveKey(keyID string) error {
 }
 
 // ListKeys returns the list of keys IDs for the role
-func (e *Ed25519) ListKeys(role string) []string {
+func (e *Ed25519) ListKeys(role data.RoleName) []string {
 	keyIDs := make([]string, 0, len(e.keys))
 	for id, edCryptoKey := range e.keys {
 		if edCryptoKey.role == role {
@@ -59,8 +59,8 @@ func (e *Ed25519) ListKeys(role string) []string {
 }
 
 // ListAllKeys returns the map of keys IDs to role
-func (e *Ed25519) ListAllKeys() map[string]string {
-	keys := make(map[string]string)
+func (e *Ed25519) ListAllKeys() map[string]data.RoleName {
+	keys := make(map[string]data.RoleName)
 	for id, edKey := range e.keys {
 		keys[id] = edKey.role
 	}
@@ -68,7 +68,7 @@ func (e *Ed25519) ListAllKeys() map[string]string {
 }
 
 // Create generates a new key and returns the public part
-func (e *Ed25519) Create(role, gun, algorithm string) (data.PublicKey, error) {
+func (e *Ed25519) Create(role data.RoleName, gun data.GUN, algorithm string) (data.PublicKey, error) {
 	if algorithm != data.ED25519Key {
 		return nil, errors.New("only ED25519 supported by this cryptoservice")
 	}
@@ -103,7 +103,7 @@ func (e *Ed25519) GetKey(keyID string) data.PublicKey {
 }
 
 // GetPrivateKey returns a single private key and role if present, based on the ID
-func (e *Ed25519) GetPrivateKey(keyID string) (data.PrivateKey, string, error) {
+func (e *Ed25519) GetPrivateKey(keyID string) (data.PrivateKey, data.RoleName, error) {
 	if k, ok := e.keys[keyID]; ok {
 		return k.privKey, k.role, nil
 	}

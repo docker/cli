@@ -41,11 +41,11 @@ func IsValidTimestampStructure(t Timestamp) error {
 	// from an empty map.
 	//
 	// For now sha256 is required and sha512 is not.
-	if _, ok := t.Meta[CanonicalSnapshotRole].Hashes[notary.SHA256]; !ok {
+	if _, ok := t.Meta[CanonicalSnapshotRole.String()].Hashes[notary.SHA256]; !ok {
 		return ErrInvalidMetadata{
 			role: CanonicalTimestampRole, msg: "missing snapshot sha256 checksum information"}
 	}
-	if err := CheckValidHashStructures(t.Meta[CanonicalSnapshotRole].Hashes); err != nil {
+	if err := CheckValidHashStructures(t.Meta[CanonicalSnapshotRole.String()].Hashes); err != nil {
 		return ErrInvalidMetadata{
 			role: CanonicalTimestampRole, msg: fmt.Sprintf("invalid snapshot checksum information, %v", err)}
 	}
@@ -72,7 +72,7 @@ func NewTimestamp(snapshot *Signed) (*SignedTimestamp, error) {
 				Expires: DefaultExpires(CanonicalTimestampRole),
 			},
 			Meta: Files{
-				CanonicalSnapshotRole: snapshotMeta,
+				CanonicalSnapshotRole.String(): snapshotMeta,
 			},
 		},
 	}, nil
@@ -101,9 +101,9 @@ func (ts *SignedTimestamp) ToSigned() (*Signed, error) {
 // GetSnapshot gets the expected snapshot metadata hashes in the timestamp metadata,
 // or nil if it doesn't exist
 func (ts *SignedTimestamp) GetSnapshot() (*FileMeta, error) {
-	snapshotExpected, ok := ts.Signed.Meta[CanonicalSnapshotRole]
+	snapshotExpected, ok := ts.Signed.Meta[CanonicalSnapshotRole.String()]
 	if !ok {
-		return nil, ErrMissingMeta{Role: CanonicalSnapshotRole}
+		return nil, ErrMissingMeta{Role: CanonicalSnapshotRole.String()}
 	}
 	return &snapshotExpected, nil
 }
