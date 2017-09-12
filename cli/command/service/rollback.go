@@ -7,8 +7,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
@@ -19,7 +19,7 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Revert changes to a service's configuration",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRollback(dockerCli, cmd.Flags(), options, args[0])
+			return runRollback(dockerCli, options, args[0])
 		},
 		Tags: map[string]string{"version": "1.31"},
 	}
@@ -31,7 +31,7 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRollback(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+func runRollback(dockerCli command.Cli, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
 	ctx := context.Background()
 
@@ -56,8 +56,7 @@ func runRollback(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOp
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach {
-		warnDetachDefault(dockerCli.Err(), apiClient.ClientVersion(), flags, "rolled back")
+	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 

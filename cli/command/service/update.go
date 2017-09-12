@@ -216,8 +216,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach {
-		warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "updated")
+	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 

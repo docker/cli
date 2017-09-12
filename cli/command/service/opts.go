@@ -691,7 +691,7 @@ func buildServiceDefaultFlagMapping() flagDefaults {
 }
 
 func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
-	flags.BoolVarP(detach, flagDetach, "d", true, "Exit immediately instead of waiting for the service to converge")
+	flags.BoolVarP(detach, flagDetach, "d", false, "Exit immediately instead of waiting for the service to converge")
 	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
 }
 

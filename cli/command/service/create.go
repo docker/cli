@@ -123,8 +123,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
 
-	if opts.detach {
-		warnDetachDefault(dockerCli.Err(), apiClient.ClientVersion(), flags, "created")
+	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
