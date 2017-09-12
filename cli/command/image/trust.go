@@ -102,14 +102,13 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 
 	fmt.Fprintln(streams.Out(), "Signing and pushing trust metadata")
 
-	repo, err := trust.GetNotaryRepository(streams, repoInfo, authConfig, "push", "pull")
+	repo, err := trust.GetNotaryRepository(streams.In(), streams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
 	if err != nil {
 		fmt.Fprintf(streams.Out(), "Error establishing connection to notary repository: %s\n", err)
 		return err
 	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
-	// TODO(riyazdf): interface change to get back Update
 	_, err = repo.ListTargets()
 
 	switch err.(type) {
@@ -185,7 +184,7 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
 	var refs []target
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
+	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
 		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
 		return err
@@ -300,7 +299,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
+	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
 		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
 		return nil, err

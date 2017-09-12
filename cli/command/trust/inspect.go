@@ -59,12 +59,12 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 
 func lookupTrustInfo(cli command.Cli, remote string) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := getImageReferencesAndAuth(ctx, cli, remote)
+	imgRefAndAuth, err := command.GetImageReferencesAndAuth(ctx, cli, remote)
 	if err != nil {
 		return err
 	}
 	tag := imgRefAndAuth.Tag()
-	notaryRepo, err := trust.GetNotaryRepository(cli, imgRefAndAuth.RepoInfo(), *imgRefAndAuth.AuthConfig(), "pull")
+	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}

@@ -31,16 +31,19 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 
 func signImage(cli command.Cli, imageName string) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := getImageReferencesAndAuth(ctx, cli, imageName)
+	imgRefAndAuth, err := command.GetImageReferencesAndAuth(ctx, cli, imageName)
 	if err != nil {
 		return err
 	}
 	tag := imgRefAndAuth.Tag()
 	if tag == "" {
+		if imgRefAndAuth.Digest() != "" {
+			return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+		}
 		return fmt.Errorf("No tag specified for %s", imageName)
 	}
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, imgRefAndAuth.RepoInfo(), *imgRefAndAuth.AuthConfig(), "push", "pull")
+	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
@@ -50,7 +53,6 @@ func signImage(cli command.Cli, imageName string) error {
 	defer clearChangeList(notaryRepo)
 
 	// get the latest repository metadata so we can figure out which roles to sign
-	// TODO(riyazdf): interface change to get back Update
 	if _, err = notaryRepo.ListTargets(); err != nil {
 		switch err.(type) {
 		case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:

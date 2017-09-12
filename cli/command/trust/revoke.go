@@ -36,11 +36,14 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 
 func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := getImageReferencesAndAuth(ctx, cli, remote)
+	imgRefAndAuth, err := command.GetImageReferencesAndAuth(ctx, cli, remote)
 	if err != nil {
 		return err
 	}
 	tag := imgRefAndAuth.Tag()
+	if imgRefAndAuth.Tag() == "" && imgRefAndAuth.Digest() != "" {
+		return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+	}
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
 		deleteRemote := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
 		if !deleteRemote {
@@ -49,7 +52,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 		}
 	}
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, imgRefAndAuth.RepoInfo(), *imgRefAndAuth.AuthConfig(), "push", "pull")
+	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return err
 	}
