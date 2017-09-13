@@ -79,6 +79,7 @@ type Config struct {
 type ServiceConfig struct {
 	Name string
 
+	Build           BuildConfig
 	CapAdd          []string `mapstructure:"cap_add"`
 	CapDrop         []string `mapstructure:"cap_drop"`
 	CgroupParent    string   `mapstructure:"cgroup_parent"`
@@ -124,6 +125,18 @@ type ServiceConfig struct {
 	User            string
 	Volumes         []ServiceVolumeConfig
 	WorkingDir      string `mapstructure:"working_dir"`
+}
+
+// BuildConfig is a type for build
+// using the same format at libcompose: https://github.com/docker/libcompose/blob/master/yaml/build.go#L12
+type BuildConfig struct {
+	Context    string
+	Dockerfile string
+	Args       MappingWithEquals
+	Labels     Labels
+	CacheFrom  StringList `mapstructure:"cache_from"`
+	Network    string
+	Target     string
 }
 
 // ShellCommand is a string or list of string args

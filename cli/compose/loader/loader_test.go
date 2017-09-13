@@ -517,12 +517,14 @@ version: "3"
 services:
   web:
     image: web
-    build: ./web
+    build: 
+     context: ./web
     links:
       - bar
   db:
     image: db
-    build: ./db
+    build: 
+     context: ./db
 `))
 	assert.NoError(t, err)
 
@@ -686,6 +688,15 @@ func TestFullExample(t *testing.T) {
 	expectedServiceConfig := types.ServiceConfig{
 		Name: "foo",
 
+		Build: types.BuildConfig{
+			Context:    "./dir",
+			Dockerfile: "Dockerfile",
+			Args:       map[string]*string{"foo": strPtr("bar")},
+			Target:     "foo",
+			Network:    "foo",
+			CacheFrom:  []string{"foo", "bar"},
+			Labels:     map[string]string{"FOO": "BAR"},
+		},
 		CapAdd:        []string{"ALL"},
 		CapDrop:       []string{"NET_ADMIN", "SYS_ADMIN"},
 		CgroupParent:  "m-executor-abcd",

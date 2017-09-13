@@ -2,6 +2,21 @@ version: "3.4"
 
 services:
   foo:
+
+    build:
+      context: ./dir
+      dockerfile: Dockerfile
+      args:
+        foo: bar
+      target: foo
+      network: foo
+      cache_from: 
+        - foo
+        - bar
+      labels: [FOO=BAR]
+
+
+    
     cap_add:
       - ALL
 
