@@ -54,6 +54,14 @@ test: test-unit test-e2e
 cross: build_cross_image
 	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
+.PHONY: binary-windows
+binary-windows: build_cross_image
+	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make $@
+
+.PHONY: binary-osx
+binary-osx: build_cross_image
+	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make $@
+
 .PHONY: watch
 watch: build_docker_image
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make watch

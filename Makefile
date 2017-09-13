@@ -34,6 +34,14 @@ binary: ## build executable for Linux
 cross: ## build executable for macOS and Windows
 	./scripts/build/cross
 
+.PHONY: binary-windows
+binary-windows: ## build executable for Windows
+	./scripts/build/windows
+
+.PHONY: binary-osx
+binary-osx: ## build executable for macOS
+	./scripts/build/osx
+
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
 	./scripts/build/dynbinary
