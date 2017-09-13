@@ -52,24 +52,14 @@ func TestTrustSignCommandErrors(t *testing.T) {
 			expectedError: "invalid reference format",
 		},
 		{
-			name:          "no-shell-for-passwd",
-			args:          []string{"riyaz/unsigned-img:latest"},
-			expectedError: "error during connect: Get /images/riyaz/unsigned-img:latest/json",
-		},
-		{
 			name:          "no-tag",
-			args:          []string{"riyaz/unsigned-img"},
-			expectedError: "No tag specified for riyaz/unsigned-img",
+			args:          []string{"reg/img"},
+			expectedError: "No tag specified for reg/img",
 		},
 		{
 			name:          "digest-reference",
 			args:          []string{"ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2"},
 			expectedError: "cannot use a digest reference for IMAGE:TAG",
-		},
-		{
-			name:          "no-keys",
-			args:          []string{"ubuntu:latest"},
-			expectedError: "failed to sign \"docker.io/library/ubuntu\":latest: you are not authorized to perform this operation: server returned 401.",
 		},
 	}
 	// change to a tmpdir
@@ -84,6 +74,15 @@ func TestTrustSignCommandErrors(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
+}
+
+func TestTrustSignCommandOfflineErrors(t *testing.T) {
+	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cmd := newSignCommand(cli)
+	cmd.SetArgs([]string{"reg-name.io/image:tag"})
+	cmd.SetOutput(ioutil.Discard)
+	assert.Error(t, cmd.Execute())
+	testutil.ErrorContains(t, cmd.Execute(), "client is offline")
 }
 
 func TestGetOrGenerateNotaryKey(t *testing.T) {
@@ -274,7 +273,6 @@ func TestPrettyPrintExistingSignatureInfo(t *testing.T) {
 }
 
 func TestChangeList(t *testing.T) {
-
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)

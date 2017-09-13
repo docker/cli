@@ -11,7 +11,10 @@ import (
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/notary"
 	"github.com/docker/notary/client"
+	"github.com/docker/notary/client/changelist"
+	"github.com/docker/notary/storage"
 	"github.com/docker/notary/tuf/data"
+	"github.com/docker/notary/tuf/signed"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,24 +43,9 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 			expectedError: "invalid repository name",
 		},
 		{
-			name:          "nonexistent-reg",
-			args:          []string{"nonexistent-reg-name.io/image"},
-			expectedError: "No signatures or cannot access nonexistent-reg-name.io/image",
-		},
-		{
 			name:          "invalid-img-reference",
 			args:          []string{"ALPINE"},
 			expectedError: "invalid reference format",
-		},
-		{
-			name:          "unsigned-img-reference",
-			args:          []string{"riyaz/unsigned-img"},
-			expectedError: "No signatures or cannot access riyaz/unsigned-img",
-		},
-		{
-			name:          "nonexistent-img-reference",
-			args:          []string{"riyaz/nonexistent-img"},
-			expectedError: "No signatures or cannot access riyaz/nonexistent-img",
 		},
 	}
 	for _, tc := range testCases {
@@ -67,6 +55,52 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
+}
+
+func TestTrustInspectCommandOfflineErrors(t *testing.T) {
+	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cmd := newInspectCommand(cli)
+	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
+	cmd.SetOutput(ioutil.Discard)
+	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+
+	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cmd = newInspectCommand(cli)
+	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
+	cmd.SetOutput(ioutil.Discard)
+	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+}
+
+func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
+	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getUninitializedNotaryRepository)
+	cmd := newInspectCommand(cli)
+	cmd.SetArgs([]string{"reg/unsigned-img"})
+	cmd.SetOutput(ioutil.Discard)
+	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
+
+	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getUninitializedNotaryRepository)
+	cmd = newInspectCommand(cli)
+	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
+	cmd.SetOutput(ioutil.Discard)
+	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
+}
+
+func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
+	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getEmptyTargetsNotaryRepository)
+	cmd := newInspectCommand(cli)
+	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
+	cmd.SetOutput(ioutil.Discard)
+	assert.NoError(t, cmd.Execute())
+	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
+
+	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getEmptyTargetsNotaryRepository)
+	cmd = newInspectCommand(cli)
+	cmd.SetArgs([]string{"reg/img"})
+	cmd.SetOutput(ioutil.Discard)
+	assert.NoError(t, cmd.Execute())
+	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
 }
 
 func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
@@ -433,4 +467,195 @@ func TestFormatAdminRole(t *testing.T) {
 	}
 	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
 	assert.Equal(t, "Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs))
+}
+
+// Sample mock CLI interfaces
+
+func getOfflineNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+	return OfflineNotaryRepository{}, nil
+}
+
+// OfflineNotaryRepository is a mock Notary repository that is offline
+type OfflineNotaryRepository struct{}
+
+func (o OfflineNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
+	return storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
+	return storage.ErrOffline{}
+}
+func (o OfflineNotaryRepository) Publish() error {
+	return storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) AddTarget(target *client.Target, roles ...data.RoleName) error {
+	return nil
+}
+func (o OfflineNotaryRepository) RemoveTarget(targetName string, roles ...data.RoleName) error {
+	return nil
+}
+func (o OfflineNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
+	return nil, storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
+	return nil, storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
+	return nil, storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) GetChangelist() (changelist.Changelist, error) {
+	return changelist.NewMemChangelist(), nil
+}
+
+func (o OfflineNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
+	return nil, storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
+	return nil, storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) AddDelegation(name data.RoleName, delegationKeys []data.PublicKey, paths []string) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) AddDelegationRoleAndKeys(name data.RoleName, delegationKeys []data.PublicKey) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) AddDelegationPaths(name data.RoleName, paths []string) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) RemoveDelegationKeysAndPaths(name data.RoleName, keyIDs, paths []string) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) RemoveDelegationRole(name data.RoleName) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) RemoveDelegationPaths(name data.RoleName, paths []string) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) RemoveDelegationKeys(name data.RoleName, keyIDs []string) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) ClearDelegationPaths(name data.RoleName) error {
+	return nil
+}
+
+func (o OfflineNotaryRepository) Witness(roles ...data.RoleName) ([]data.RoleName, error) {
+	return nil, nil
+}
+
+func (o OfflineNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
+	return storage.ErrOffline{}
+}
+
+func (o OfflineNotaryRepository) GetCryptoService() signed.CryptoService {
+	return nil
+}
+
+func (o OfflineNotaryRepository) SetLegacyVersions(version int) {}
+
+func (o OfflineNotaryRepository) GetGUN() data.GUN {
+	return data.GUN("gun")
+}
+
+func getUninitializedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+	return UninitializedNotaryRepository{}, nil
+}
+
+// UninitializedNotaryRepository is a mock Notary repository that is uninintialized
+// it builds on top of the OfflineNotaryRepository, instead returning ErrRepoNotInitialized
+// for any online operation
+type UninitializedNotaryRepository struct {
+	OfflineNotaryRepository
+}
+
+func (u UninitializedNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
+	return client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
+	return client.ErrRepositoryNotExist{}
+}
+func (u UninitializedNotaryRepository) Publish() error {
+	return client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
+	return nil, client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
+	return nil, client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
+	return nil, client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
+	return nil, client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
+	return nil, client.ErrRepositoryNotExist{}
+}
+
+func (u UninitializedNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
+	return client.ErrRepositoryNotExist{}
+}
+
+func getEmptyTargetsNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+	return EmptyTargetsNotaryRepository{}, nil
+}
+
+// EmptyTargetsNotaryRepository is a mock Notary repository that is initialized
+// but does not have any signed targets
+type EmptyTargetsNotaryRepository struct {
+	OfflineNotaryRepository
+}
+
+func (e EmptyTargetsNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
+	return nil
+}
+
+func (e EmptyTargetsNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
+	return nil
+}
+func (e EmptyTargetsNotaryRepository) Publish() error {
+	return nil
+}
+
+func (e EmptyTargetsNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
+	return []*client.TargetWithRole{}, nil
+}
+
+func (e EmptyTargetsNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
+	return nil, client.ErrNoSuchTarget(name)
+}
+
+func (e EmptyTargetsNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
+	return nil, client.ErrNoSuchTarget(name)
+}
+
+func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
+	return []client.RoleWithSignatures{}, nil
+}
+
+func (e EmptyTargetsNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
+	return []data.Role{}, nil
+}
+
+func (e EmptyTargetsNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
+	return nil
 }

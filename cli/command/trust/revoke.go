@@ -88,6 +88,10 @@ func revokeSignature(notaryRepo client.Repository, tag string) error {
 func revokeSingleSig(notaryRepo client.Repository, tag string) error {
 	releasedTargetWithRole, err := notaryRepo.GetTargetByName(tag, trust.ReleasesRole, data.CanonicalTargetsRole)
 	if err != nil {
+		// if we try to remove the target and it doesn't exist, "succeed" silently
+		if _, ok := err.(client.ErrNoSuchTarget); ok {
+			return nil
+		}
 		return err
 	}
 	releasedTarget := releasedTargetWithRole.Target
