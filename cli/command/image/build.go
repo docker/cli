@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
@@ -243,6 +244,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
+			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err
