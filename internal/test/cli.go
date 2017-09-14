@@ -2,25 +2,31 @@ package test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/client"
+	notaryclient "github.com/docker/notary/client"
 )
+
+type notaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
 	command.DockerCli
-	client     client.APIClient
-	configfile *configfile.ConfigFile
-	out        *command.OutStream
-	outBuffer  *bytes.Buffer
-	err        *bytes.Buffer
-	in         *command.InStream
-	server     command.ServerInfo
+	client           client.APIClient
+	configfile       *configfile.ConfigFile
+	out              *command.OutStream
+	outBuffer        *bytes.Buffer
+	err              *bytes.Buffer
+	in               *command.InStream
+	server           command.ServerInfo
+	notaryClientFunc notaryClientFuncType
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -90,4 +96,17 @@ func (c *FakeCli) OutBuffer() *bytes.Buffer {
 // ErrBuffer Buffer returns the stderr buffer
 func (c *FakeCli) ErrBuffer() *bytes.Buffer {
 	return c.err
+}
+
+// SetNotaryClient sets the internal getter for retrieving a NotaryClient
+func (c *FakeCli) SetNotaryClient(notaryClientFunc notaryClientFuncType) {
+	c.notaryClientFunc = notaryClientFunc
+}
+
+// NotaryClient returns an err for testing unless defined
+func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
+	if c.notaryClientFunc != nil {
+		return c.notaryClientFunc(imgRefAndAuth, actions)
+	}
+	return nil, fmt.Errorf("no notary client available unless defined")
 }

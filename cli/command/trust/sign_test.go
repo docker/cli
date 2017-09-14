@@ -42,11 +42,6 @@ func TestTrustSignCommandErrors(t *testing.T) {
 			expectedError: "invalid repository name",
 		},
 		{
-			name:          "nonexistent-reg",
-			args:          []string{"nonexistent-reg-name.io/image:tag"},
-			expectedError: "no such host",
-		},
-		{
 			name:          "invalid-img-reference",
 			args:          []string{"ALPINE:latest"},
 			expectedError: "invalid reference format",
@@ -77,7 +72,8 @@ func TestTrustSignCommandErrors(t *testing.T) {
 }
 
 func TestTrustSignCommandOfflineErrors(t *testing.T) {
-	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)

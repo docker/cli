@@ -11,10 +11,7 @@ import (
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/notary"
 	"github.com/docker/notary/client"
-	"github.com/docker/notary/client/changelist"
-	"github.com/docker/notary/storage"
 	"github.com/docker/notary/tuf/data"
-	"github.com/docker/notary/tuf/signed"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,13 +55,15 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 }
 
 func TestTrustInspectCommandOfflineErrors(t *testing.T) {
-	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
-	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getOfflineNotaryRepository)
+	cli = test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd = newInspectCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -72,13 +71,15 @@ func TestTrustInspectCommandOfflineErrors(t *testing.T) {
 }
 
 func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
-	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getUninitializedNotaryRepository)
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getUninitializedNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 
-	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getUninitializedNotaryRepository)
+	cli = test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getUninitializedNotaryRepository)
 	cmd = newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -86,7 +87,8 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 }
 
 func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
-	cli := NewFakeCliWithNotaryClient(&fakeClient{}, getEmptyTargetsNotaryRepository)
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -94,7 +96,8 @@ func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag")
 	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
 
-	cli = NewFakeCliWithNotaryClient(&fakeClient{}, getEmptyTargetsNotaryRepository)
+	cli = test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd = newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOutput(ioutil.Discard)
@@ -105,8 +108,9 @@ func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 
 func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"alpine"})
+	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
 	// Check for the signed tag headers
@@ -114,7 +118,7 @@ func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
 	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for alpine:")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
 	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
 	// no delegations on this repo
 	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
@@ -122,66 +126,70 @@ func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 
 func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"alpine:3.5"})
+	cmd.SetArgs([]string{"signed-repo:green"})
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
 	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
 	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for alpine:")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
 	// make sure the tag isn't included
-	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for alpine:3.5")
-	assert.Contains(t, cli.OutBuffer().String(), "3.5")
+	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:green")
+	assert.Contains(t, cli.OutBuffer().String(), "green")
 	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
 	// no delegations on this repo
-	assert.NotContains(t, cli.OutBuffer().String(), "3.6")
+	assert.NotContains(t, cli.OutBuffer().String(), "alice")
+	assert.NotContains(t, cli.OutBuffer().String(), "bob")
 	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
 }
 
 func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"dockerorcadev/trust-fixture"})
+	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
-	// Check for the signed tag headers
+	// Check for the signed tag headers and contents
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
 	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
-	// Check for the signer headers
+	assert.Contains(t, cli.OutBuffer().String(), "blue                626c75652d646967657374     alice")
+	assert.Contains(t, cli.OutBuffer().String(), "green               677265656e2d646967657374   (Repo Admin)")
+	assert.Contains(t, cli.OutBuffer().String(), "red                 7265642d646967657374       alice, bob")
+
+	// Check for the signer headers and contents
 	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
 	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for dockerorcadev/trust-fixture:")
-	assert.Contains(t, cli.OutBuffer().String(), "Repository Key")
-	assert.Contains(t, cli.OutBuffer().String(), "Root Key")
-	// all signers have names
-	assert.NotContains(t, cli.OutBuffer().String(), "(Repo Admin)")
+	assert.Contains(t, cli.OutBuffer().String(), "alice               A")
+	assert.Contains(t, cli.OutBuffer().String(), "bob                 B")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
 }
 
 func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"dockerorcadev/trust-fixture:unsigned"})
+	cmd.SetArgs([]string{"signed-repo:unsigned"})
 	assert.NoError(t, cmd.Execute())
 
 	// Check that the signatures table does not show up, and instead we get the message
-	assert.Contains(t, cli.OutBuffer().String(), "No signatures for dockerorcadev/trust-fixture:unsigned")
+	assert.Contains(t, cli.OutBuffer().String(), "No signatures for signed-repo:unsigned")
 	assert.NotContains(t, cli.OutBuffer().String(), "SIGNED TAG")
 	assert.NotContains(t, cli.OutBuffer().String(), "DIGEST")
 	assert.NotContains(t, cli.OutBuffer().String(), "SIGNERS")
-	// Check for the signer headers
+
+	// Check for the signer headers and contents
 	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
 	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
 	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for dockerorcadev/trust-fixture:")
-	// make sure the tag isn't included
-	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for dockerorcadev/trust-fixture:unsigned")
-	assert.Contains(t, cli.OutBuffer().String(), "Repository Key")
-	assert.Contains(t, cli.OutBuffer().String(), "Root Key")
-	// all signers have names
-	assert.NotContains(t, cli.OutBuffer().String(), "(Repo Admin)")
+	assert.Contains(t, cli.OutBuffer().String(), "alice               A")
+	assert.Contains(t, cli.OutBuffer().String(), "bob                 B")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
+	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:unsigned")
 }
 
 func TestNotaryRoleToSigner(t *testing.T) {
@@ -467,195 +475,4 @@ func TestFormatAdminRole(t *testing.T) {
 	}
 	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
 	assert.Equal(t, "Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs))
-}
-
-// Sample mock CLI interfaces
-
-func getOfflineNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
-	return OfflineNotaryRepository{}, nil
-}
-
-// OfflineNotaryRepository is a mock Notary repository that is offline
-type OfflineNotaryRepository struct{}
-
-func (o OfflineNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
-	return storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
-	return storage.ErrOffline{}
-}
-func (o OfflineNotaryRepository) Publish() error {
-	return storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) AddTarget(target *client.Target, roles ...data.RoleName) error {
-	return nil
-}
-func (o OfflineNotaryRepository) RemoveTarget(targetName string, roles ...data.RoleName) error {
-	return nil
-}
-func (o OfflineNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
-	return nil, storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
-	return nil, storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
-	return nil, storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) GetChangelist() (changelist.Changelist, error) {
-	return changelist.NewMemChangelist(), nil
-}
-
-func (o OfflineNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
-	return nil, storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
-	return nil, storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) AddDelegation(name data.RoleName, delegationKeys []data.PublicKey, paths []string) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) AddDelegationRoleAndKeys(name data.RoleName, delegationKeys []data.PublicKey) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) AddDelegationPaths(name data.RoleName, paths []string) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) RemoveDelegationKeysAndPaths(name data.RoleName, keyIDs, paths []string) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) RemoveDelegationRole(name data.RoleName) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) RemoveDelegationPaths(name data.RoleName, paths []string) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) RemoveDelegationKeys(name data.RoleName, keyIDs []string) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) ClearDelegationPaths(name data.RoleName) error {
-	return nil
-}
-
-func (o OfflineNotaryRepository) Witness(roles ...data.RoleName) ([]data.RoleName, error) {
-	return nil, nil
-}
-
-func (o OfflineNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
-	return storage.ErrOffline{}
-}
-
-func (o OfflineNotaryRepository) GetCryptoService() signed.CryptoService {
-	return nil
-}
-
-func (o OfflineNotaryRepository) SetLegacyVersions(version int) {}
-
-func (o OfflineNotaryRepository) GetGUN() data.GUN {
-	return data.GUN("gun")
-}
-
-func getUninitializedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
-	return UninitializedNotaryRepository{}, nil
-}
-
-// UninitializedNotaryRepository is a mock Notary repository that is uninintialized
-// it builds on top of the OfflineNotaryRepository, instead returning ErrRepoNotInitialized
-// for any online operation
-type UninitializedNotaryRepository struct {
-	OfflineNotaryRepository
-}
-
-func (u UninitializedNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
-	return client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
-	return client.ErrRepositoryNotExist{}
-}
-func (u UninitializedNotaryRepository) Publish() error {
-	return client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
-	return nil, client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
-	return nil, client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
-	return nil, client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
-	return nil, client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
-	return nil, client.ErrRepositoryNotExist{}
-}
-
-func (u UninitializedNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
-	return client.ErrRepositoryNotExist{}
-}
-
-func getEmptyTargetsNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
-	return EmptyTargetsNotaryRepository{}, nil
-}
-
-// EmptyTargetsNotaryRepository is a mock Notary repository that is initialized
-// but does not have any signed targets
-type EmptyTargetsNotaryRepository struct {
-	OfflineNotaryRepository
-}
-
-func (e EmptyTargetsNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
-	return nil
-}
-
-func (e EmptyTargetsNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
-	return nil
-}
-func (e EmptyTargetsNotaryRepository) Publish() error {
-	return nil
-}
-
-func (e EmptyTargetsNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
-	return []*client.TargetWithRole{}, nil
-}
-
-func (e EmptyTargetsNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
-	return nil, client.ErrNoSuchTarget(name)
-}
-
-func (e EmptyTargetsNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
-	return nil, client.ErrNoSuchTarget(name)
-}
-
-func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
-	return []client.RoleWithSignatures{}, nil
-}
-
-func (e EmptyTargetsNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
-	return []data.Role{}, nil
-}
-
-func (e EmptyTargetsNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
-	return nil
 }
