@@ -14,16 +14,13 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/docker/notary"
 	notaryclient "github.com/docker/notary/client"
 	"github.com/docker/notary/passphrase"
-	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -170,46 +167,6 @@ func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(pa
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image
 func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
-}
-
-// GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
-// as a ImageRefAndAuth struct
-func GetImageReferencesAndAuth(ctx context.Context, cli Cli, imgName string) (*trust.ImageRefAndAuth, error) {
-	ref, err := reference.ParseNormalizedNamed(imgName)
-	if err != nil {
-		return nil, err
-	}
-
-	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return nil, err
-	}
-
-	authConfig := ResolveAuthConfig(ctx, cli, repoInfo.Index)
-	return trust.NewImageRefAndAuth(&authConfig, ref, repoInfo, getTag(ref), getDigest(ref)), nil
-}
-
-func getTag(ref reference.Named) string {
-	switch x := ref.(type) {
-	case reference.Canonical, reference.Digested:
-		return ""
-	case reference.NamedTagged:
-		return x.Tag()
-	default:
-		return ""
-	}
-}
-
-func getDigest(ref reference.Named) digest.Digest {
-	switch x := ref.(type) {
-	case reference.Canonical:
-		return x.Digest()
-	case reference.Digested:
-		return x.Digest()
-	default:
-		return digest.Digest("")
-	}
 }
 
 // ServerInfo stores details about the supported features and platform of the

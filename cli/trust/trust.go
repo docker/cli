@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net"
@@ -297,6 +298,46 @@ type ImageRefAndAuth struct {
 // NewImageRefAndAuth creates a new ImageRefAndAuth struct
 func NewImageRefAndAuth(authConfig *types.AuthConfig, reference reference.Named, repoInfo *registry.RepositoryInfo, tag string, digest digest.Digest) *ImageRefAndAuth {
 	return &ImageRefAndAuth{authConfig, reference, repoInfo, tag, digest}
+}
+
+// GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
+// as a ImageRefAndAuth struct
+func GetImageReferencesAndAuth(ctx context.Context, authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig, imgName string) (*ImageRefAndAuth, error) {
+	ref, err := reference.ParseNormalizedNamed(imgName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resolve the Repository name from fqn to RepositoryInfo
+	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	if err != nil {
+		return nil, err
+	}
+
+	authConfig := authResolver(ctx, repoInfo.Index)
+	return NewImageRefAndAuth(&authConfig, ref, repoInfo, getTag(ref), getDigest(ref)), nil
+}
+
+func getTag(ref reference.Named) string {
+	switch x := ref.(type) {
+	case reference.Canonical, reference.Digested:
+		return ""
+	case reference.NamedTagged:
+		return x.Tag()
+	default:
+		return ""
+	}
+}
+
+func getDigest(ref reference.Named) digest.Digest {
+	switch x := ref.(type) {
+	case reference.Canonical:
+		return x.Digest()
+	case reference.Digested:
+		return x.Digest()
+	default:
+		return digest.Digest("")
+	}
 }
 
 // AuthConfig returns the auth information (username, etc) for a given ImageRefAndAuth

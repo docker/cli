@@ -12,6 +12,7 @@ import (
 	"github.com/docker/notary"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -113,15 +114,7 @@ func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
-	// Check for the signed tag headers
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
-	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
-	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
-	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
-	// no delegations on this repo
-	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-no-signers.golden")
 }
 
 func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
@@ -130,19 +123,8 @@ func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:green"})
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
-	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
-	// Check for the signer headers
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
-	// make sure the tag isn't included
-	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:green")
-	assert.Contains(t, cli.OutBuffer().String(), "green")
-	assert.Contains(t, cli.OutBuffer().String(), "(Repo Admin)")
-	// no delegations on this repo
-	assert.NotContains(t, cli.OutBuffer().String(), "alice")
-	assert.NotContains(t, cli.OutBuffer().String(), "bob")
-	assert.NotContains(t, cli.OutBuffer().String(), "List of signers and their keys:")
+
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-one-tag-no-signers.golden")
 }
 
 func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
@@ -152,21 +134,7 @@ func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
-	// Check for the signed tag headers and contents
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNED TAG")
-	assert.Contains(t, cli.OutBuffer().String(), "DIGEST")
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNERS")
-	assert.Contains(t, cli.OutBuffer().String(), "blue                626c75652d646967657374     alice")
-	assert.Contains(t, cli.OutBuffer().String(), "green               677265656e2d646967657374   (Repo Admin)")
-	assert.Contains(t, cli.OutBuffer().String(), "red                 7265642d646967657374       alice, bob")
-
-	// Check for the signer headers and contents
-	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
-	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
-	assert.Contains(t, cli.OutBuffer().String(), "alice               A")
-	assert.Contains(t, cli.OutBuffer().String(), "bob                 B")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-with-signers.golden")
 }
 
 func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
@@ -176,20 +144,7 @@ func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
 	assert.NoError(t, cmd.Execute())
 
-	// Check that the signatures table does not show up, and instead we get the message
-	assert.Contains(t, cli.OutBuffer().String(), "No signatures for signed-repo:unsigned")
-	assert.NotContains(t, cli.OutBuffer().String(), "SIGNED TAG")
-	assert.NotContains(t, cli.OutBuffer().String(), "DIGEST")
-	assert.NotContains(t, cli.OutBuffer().String(), "SIGNERS")
-
-	// Check for the signer headers and contents
-	assert.Contains(t, cli.OutBuffer().String(), "List of signers and their keys:")
-	assert.Contains(t, cli.OutBuffer().String(), "SIGNER")
-	assert.Contains(t, cli.OutBuffer().String(), "KEYS")
-	assert.Contains(t, cli.OutBuffer().String(), "alice               A")
-	assert.Contains(t, cli.OutBuffer().String(), "bob                 B")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:")
-	assert.NotContains(t, cli.OutBuffer().String(), "Administrative keys for signed-repo:unsigned")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-unsigned-tag-with-signers.golden")
 }
 
 func TestNotaryRoleToSigner(t *testing.T) {

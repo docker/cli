@@ -299,6 +299,26 @@ var loadedTargets = []client.TargetSignedStruct{
 	{Target: loadedGreenTarget, Role: loadedReleasesRole},
 }
 
+func (l LoadedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
+	rootRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"rootID"},
+			Threshold: 1,
+		},
+		Name: data.CanonicalRootRole,
+	}
+
+	targetsRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"targetsID"},
+			Threshold: 1,
+		},
+		Name: data.CanonicalTargetsRole,
+	}
+
+	return []client.RoleWithSignatures{{Role: rootRole}, {Role: targetsRole}}, nil
+}
+
 func (l LoadedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	filteredTargets := []*client.TargetWithRole{}
 	for _, tgt := range loadedTargets {

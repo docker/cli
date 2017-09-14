@@ -11,6 +11,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	"github.com/pkg/errors"
@@ -31,7 +33,10 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 
 func signImage(cli command.Cli, imageName string) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := command.GetImageReferencesAndAuth(ctx, cli, imageName)
+	authResolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
+		return command.ResolveAuthConfig(ctx, cli, index)
+	}
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver, imageName)
 	if err != nil {
 		return err
 	}
