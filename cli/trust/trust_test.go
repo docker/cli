@@ -1,9 +1,14 @@
 package trust
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/docker/distribution/reference"
+	"github.com/docker/notary/client"
+	"github.com/docker/notary/passphrase"
+	"github.com/docker/notary/trustpinning"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 )
@@ -40,4 +45,15 @@ func TestGetDigest(t *testing.T) {
 	assert.NoError(t, err)
 	d = getDigest(ref)
 	assert.Equal(t, digest.Digest(""), d)
+}
+
+func TestGetSignableRolesError(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "notary-test-")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	target := client.Target{}
+	_, err = GetSignableRoles(notaryRepo, &target)
+	assert.EqualError(t, err, "client is offline")
 }
