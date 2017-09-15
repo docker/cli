@@ -295,7 +295,13 @@ func convertServiceSecrets(
 		})
 	}
 
-	return servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(secrs, func(i, j int) bool { return secrs[i].SecretName < secrs[j].SecretName })
+	return secrs, err
 }
 
 // TODO: fix configs API so that ConfigsAPIClient is not required here
@@ -346,7 +352,13 @@ func convertServiceConfigObjs(
 		})
 	}
 
-	return servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(confs, func(i, j int) bool { return confs[i].ConfigName < confs[j].ConfigName })
+	return confs, err
 }
 
 func uint32Ptr(value uint32) *uint32 {
