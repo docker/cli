@@ -24,12 +24,11 @@ func TestSecretCreateErrors(t *testing.T) {
 		secretCreateFunc func(swarm.SecretSpec) (types.SecretCreateResponse, error)
 		expectedError    string
 	}{
-		{
-			args:          []string{"too_few"},
-			expectedError: "requires exactly 2 arguments",
-		},
 		{args: []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires at least 1 and at most 2 arguments",
+		},
+		{args: []string{"create", "--driver", "driver", "-"},
+			expectedError: "secret data must be empty",
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", secretDataFile)},
@@ -72,6 +71,35 @@ func TestSecretCreateWithName(t *testing.T) {
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	assert.NoError(t, cmd.Execute())
 	golden.Assert(t, string(actual), secretDataFile)
+	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+}
+
+func TestSecretCreateWithDriver(t *testing.T) {
+	expectedDriver := &swarm.Driver{
+		Name: "secret-driver",
+	}
+	name := "foo"
+
+	cli := test.NewFakeCli(&fakeClient{
+		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+			if spec.Name != name {
+				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
+			}
+
+			if !reflect.DeepEqual(spec.Driver.Name, expectedDriver.Name) {
+				return types.SecretCreateResponse{}, errors.Errorf("expected driver %v, got %v", expectedDriver, spec.Labels)
+			}
+
+			return types.SecretCreateResponse{
+				ID: "ID-" + spec.Name,
+			}, nil
+		},
+	})
+
+	cmd := newSecretCreateCommand(cli)
+	cmd.SetArgs([]string{name})
+	cmd.Flags().Set("driver", expectedDriver.Name)
+	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
 }
 
