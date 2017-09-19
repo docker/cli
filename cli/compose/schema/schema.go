@@ -49,6 +49,8 @@ func normalizeVersion(version string) string {
 	switch version {
 	case "3":
 		return "3.0"
+	case "2":
+		return "2.0"
 	default:
 		return version
 	}
