@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultVersion = "1.0"
+	defaultVersion = "1"
 	versionField   = "version"
 )
 

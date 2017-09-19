@@ -65,6 +65,12 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 		return nil, err
 	}
 
+	if _, ok := configDict["version"]; !ok {
+		configDict = map[string]interface{}{
+			"services": configDict,
+		}
+	}
+
 	cfg := types.Config{}
 
 	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
