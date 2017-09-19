@@ -54,10 +54,10 @@ func TestTrustTag(t *testing.T) {
 			trustTagContext{
 				s: SignedTagInfo{Name: trustedTag,
 					Digest:  digest,
-					Signers: []string{"ashwini", "kyle", "riyaz"},
+					Signers: []string{"alice", "bob", "claire"},
 				},
 			},
-			"ashwini, kyle, riyaz",
+			"alice, bob, claire",
 			ctx.Signers,
 		},
 		// alphabetic signing on Signers
@@ -65,10 +65,10 @@ func TestTrustTag(t *testing.T) {
 			trustTagContext{
 				s: SignedTagInfo{Name: trustedTag,
 					Digest:  digest,
-					Signers: []string{"riyaz", "kyle", "ashwini"},
+					Signers: []string{"claire", "bob", "alice"},
 				},
 			},
-			"ashwini, kyle, riyaz",
+			"alice, bob, claire",
 			ctx.Signers,
 		},
 	}
