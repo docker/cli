@@ -1,7 +1,7 @@
 ---
-title: "trust inspect"
-description: "The inspect command description and usage"
-keywords: "inspect, notary, trust"
+title: "trust view"
+description: "The view command description and usage"
+keywords: "view, notary, trust"
 ---
 
 <!-- This file is maintained within the docker/cli Github
@@ -13,10 +13,10 @@ keywords: "inspect, notary, trust"
      will be rejected.
 -->
 
-# trust inspect
+# trust view
 
 ```markdown
-Usage:  docker trust inspect [OPTIONS] IMAGE[:TAG]
+Usage:  docker trust view [OPTIONS] IMAGE[:TAG]
 
 Display detailed information about keys and signatures
 
@@ -24,11 +24,11 @@ Display detailed information about keys and signatures
 
 ## Description
 
-`docker trust inspect` provides detailed information on signed repositories.
+`docker trust view` provides detailed information on signed repositories.
 This includes all image tags that are signed, who signed them, and who can sign
 new tags.
 
-By default, `docker trust inspect` renders results in a table.
+By default, `docker trust view` renders results in a table.
 
 
 ## Examples
@@ -37,7 +37,7 @@ By default, `docker trust inspect` renders results in a table.
 
 
 ```bash
-$ docker trust inspect alpine:latest
+$ docker trust view alpine:latest
 
 SIGNED TAG          DIGEST                                                             SIGNERS
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
@@ -51,10 +51,10 @@ The `SIGNED TAG` is the signed image tag with a unique content-addressable `DIGE
 
 The administrative keys listed specify the root key of trust, as well as the administrative repository key. These keys are responsible for modifying signers, and rotating keys for the signed repository.
 
-If signers are set up for the repository via other `docker trust` commands, `docker trust inspect` displays them appropriately as a `SIGNER` and specify their `KEYS`:
+If signers are set up for the repository via other `docker trust` commands, `docker trust view` displays them appropriately as a `SIGNER` and specify their `KEYS`:
 
 ```bash
-$ docker trust inspect my-image:purple
+$ docker trust view my-image:purple
 SIGNED TAG          DIGEST                                                              SIGNERS
 purple              941d3dba358621ce3c41ef67b47cf80f701ff80cdf46b5cc86587eaebfe45557    alice, bob, carol
 
@@ -70,17 +70,17 @@ Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
 Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```
 
-If the image tag is unsigned or unavailable, `docker trust inspect` does not display any signed tags.
+If the image tag is unsigned or unavailable, `docker trust view` does not display any signed tags.
 
 ```bash
-$ docker trust inspect unsigned-img
+$ docker trust view unsigned-img
 No signatures or cannot access unsigned-img
 ```
 
-However, if other tags are signed in the same image repository, `docker trust inspect` reports relevant key information.
+However, if other tags are signed in the same image repository, `docker trust view` reports relevant key information.
 
 ```bash
-$ docker trust inspect alpine:unsigned
+$ docker trust view alpine:unsigned
 
 No signatures for alpine:unsigned
 
@@ -93,7 +93,7 @@ Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ### Get details about signatures for all image tags in a repository
 
 ```bash
-$ docker trust inspect alpine
+$ docker trust view alpine
 SIGNED TAG          DIGEST                                                             SIGNERS
 2.6                 9ace551613070689a12857d62c30ef0daa9a376107ec0fff0e34786cedb3399b   (Repo Admin)
 2.7                 9f08005dff552038f0ad2f46b8e65ff3d25641747d3912e3ea8da6785046561a   (Repo Admin)
@@ -114,7 +114,7 @@ Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 Here's an example with signers that are set up by `docker trust` commands:
 
 ```bash
-$ docker trust inspect my-image
+$ docker trust view my-image
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
@@ -123,7 +123,7 @@ yellow              9cc65fc3126790e683d1b92f307a71f48f75fa7dd47a7b03145a123eaf0b
 purple              941d3dba358621ce3c41ef67b47cf80f701ff80cdf46b5cc86587eaebfe45557    alice, bob, carol
 orange              d6c271baa6d271bcc24ef1cbd65abf39123c17d2e83455bdab545a1a9093fc1c    alice
 
-List of signers and their keys:
+List of signers and their keys for my-image:
 
 SIGNER              KEYS
 alice               47caae5b3e61, a85aab9d20a4

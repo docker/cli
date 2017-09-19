@@ -47,7 +47,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newInspectCommand(
+		cmd := newViewCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -58,14 +58,14 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 func TestTrustInspectCommandOfflineErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
-	cmd = newInspectCommand(cli)
+	cmd = newViewCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
@@ -74,14 +74,14 @@ func TestTrustInspectCommandOfflineErrors(t *testing.T) {
 func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
-	cmd = newInspectCommand(cli)
+	cmd = newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
@@ -90,7 +90,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOutput(ioutil.Discard)
 	assert.NoError(t, cmd.Execute())
@@ -99,7 +99,7 @@ func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
-	cmd = newInspectCommand(cli)
+	cmd = newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOutput(ioutil.Discard)
 	assert.NoError(t, cmd.Execute())
@@ -110,7 +110,7 @@ func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
@@ -120,7 +120,7 @@ func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:green"})
 	assert.NoError(t, cmd.Execute())
 
@@ -130,7 +130,7 @@ func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
 func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
@@ -140,7 +140,7 @@ func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
 	assert.NoError(t, cmd.Execute())
 

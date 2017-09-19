@@ -37,12 +37,12 @@ Here's an example of a repo with two signed tags:
 
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their keys:
+List of signers and their keys for example/trust-demo:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -64,11 +64,11 @@ Successfully deleted signature for example/trust-demo:red
 After revocation, the tag is removed from the list of released tags:
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their keys:
+List of signers and their keys for example/trust-demo:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -84,12 +84,12 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 When no tag is specified, `docker trust` revokes all signatures that you have a signing key for.
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
 
-List of signers and their keys:
+List of signers and their keys for example/trust-demo:
 
 SIGNER              KEYS
 alice               05e87edcaecb
@@ -112,12 +112,12 @@ Successfully deleted signature for example/trust-demo
 All tags that have `alice`'s signature on them are removed from the list of released tags:
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 
 No signatures for example/trust-demo
 
 
-List of signers and their keys:
+List of signers and their keys for example/trust-demo:
 
 SIGNER              KEYS
 alice               05e87edcaecb

@@ -47,9 +47,9 @@ func (tagComparator trustTagRowList) Swap(i, j int) {
 	tagComparator[i], tagComparator[j] = tagComparator[j], tagComparator[i]
 }
 
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newViewCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "inspect [OPTIONS] IMAGE[:TAG]",
+		Use:   "view [OPTIONS] IMAGE[:TAG]",
 		Short: "Display detailed information about keys and signatures",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -112,7 +112,7 @@ func lookupTrustInfo(cli command.Cli, remote string) error {
 
 	// If we do not have additional signers, do not display
 	if len(signerRoleToKeyIDs) > 0 {
-		fmt.Fprintf(cli.Out(), "\nList of signers and their keys:\n\n")
+		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s:\n\n", strings.Split(remote, ":")[0])
 		printSignerInfo(cli.Out(), signerRoleToKeyIDs)
 	}
 
