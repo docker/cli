@@ -30,6 +30,8 @@ new tags.
 
 By default, `docker trust view` renders results in a table.
 
+`docker trust view` is currently experimental.
+
 
 ## Examples
 
