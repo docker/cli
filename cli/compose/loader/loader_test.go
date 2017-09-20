@@ -528,6 +528,26 @@ services:
 	assert.Equal(t, []string{"build", "links"}, unsupported)
 }
 
+func TestBuildProperties(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3"
+services:
+  web:
+    image: web
+    build: .
+    links:
+      - bar
+  db:
+    image: db
+    build:
+     context: ./db
+`))
+	require.NoError(t, err)
+	configDetails := buildConfigDetails(dict, nil)
+	_, err = Load(configDetails)
+	require.NoError(t, err)
+}
+
 func TestDeprecatedProperties(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3"

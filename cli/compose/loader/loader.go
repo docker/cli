@@ -221,6 +221,7 @@ func createTransformHook() mapstructure.DecodeHookFuncType {
 		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
+		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
 	}
 
 	return func(_ reflect.Type, target reflect.Type, data interface{}) (interface{}, error) {
@@ -560,6 +561,17 @@ func transformStringSourceMap(data interface{}) (interface{}, error) {
 		return data, nil
 	default:
 		return data, errors.Errorf("invalid type %T for secret", value)
+	}
+}
+
+func transformBuildConfig(data interface{}) (interface{}, error) {
+	switch value := data.(type) {
+	case string:
+		return map[string]interface{}{"context": value}, nil
+	case map[string]interface{}:
+		return data, nil
+	default:
+		return data, errors.Errorf("invalid type %T for service build", value)
 	}
 }
 
