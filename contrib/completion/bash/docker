@@ -4294,14 +4294,14 @@ _docker_search() {
 			__docker_nospace
 			return
 			;;
-		--limit)
+		--format|--limit)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--filter --help --limit --no-trunc" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--filter -f --format --help --limit --no-trunc" -- "$cur" ) )
 			;;
 	esac
 }
