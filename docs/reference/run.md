@@ -623,7 +623,7 @@ the container exits**, you can add the `--rm` flag:
 
     --rm=false: Automatically remove the container when it exits (incompatible with -d)
 
-> **Note**: When you set the `--rm` flag, Docker also removes the volumes
+> **Note**: When you set the `--rm` flag, Docker also removes the anonymous volumes
 associated with the container when the container is removed. This is similar
 to running `docker rm -v my-container`. Only volumes that are specified without a
 name are removed. For example, with
