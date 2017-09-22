@@ -22,9 +22,10 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 	var opts saveOptions
 
 	cmd := &cobra.Command{
-		Use:   "save [OPTIONS] IMAGE [IMAGE...]",
-		Short: "Save one or more images to a tar archive (streamed to STDOUT by default)",
-		Args:  cli.RequiresMinArgs(1),
+		Use: "save [OPTIONS] IMAGE [IMAGE...]",
+		Short: `Save one or more images to a tar archive (streamed to STDOUT by default),
+"docker load" must be used to restore the image from the saved tar archive.`,
+		Args: cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.images = args
 			return runSave(dockerCli, opts)
