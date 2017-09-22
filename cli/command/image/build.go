@@ -378,13 +378,13 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	if s != nil {
 		go func() {
-			logrus.Debugf("running session: %v", s.UUID())
+			logrus.Debugf("running session: %v", s.ID())
 			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
 				logrus.Error(err)
 				cancel() // cancel progress context
 			}
 		}()
-		buildOptions.SessionID = s.UUID()
+		buildOptions.SessionID = s.ID()
 	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
