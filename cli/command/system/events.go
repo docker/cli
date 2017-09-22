@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	eventtypes "github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -104,14 +103,18 @@ func makeTemplate(format string) (*template.Template, error) {
 	return tmpl, tmpl.Execute(ioutil.Discard, &eventtypes.Message{})
 }
 
+// rfc3339NanoFixed is similar to time.RFC3339Nano, except it pads nanoseconds
+// zeros to maintain a fixed number of characters
+const rfc3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
+
 // prettyPrintEvent prints all types of event information.
 // Each output includes the event type, actor id, name and action.
 // Actor attributes are printed at the end if the actor has any.
 func prettyPrintEvent(out io.Writer, event eventtypes.Message) error {
 	if event.TimeNano != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(0, event.TimeNano).Format(jsonlog.RFC3339NanoFixed))
+		fmt.Fprintf(out, "%s ", time.Unix(0, event.TimeNano).Format(rfc3339NanoFixed))
 	} else if event.Time != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(event.Time, 0).Format(jsonlog.RFC3339NanoFixed))
+		fmt.Fprintf(out, "%s ", time.Unix(event.Time, 0).Format(rfc3339NanoFixed))
 	}
 
 	fmt.Fprintf(out, "%s %s %s", event.Type, event.Action, event.Actor.ID)
