@@ -184,7 +184,7 @@ The currently supported filters are:
 * plugin (`plugin=<name or id>`)
 * scope (`scope=<local or swarm>`)
 * type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
-* volume (`volume=<name or id>`)
+* volume (`volume=<name>`)
 
 #### Format
 
