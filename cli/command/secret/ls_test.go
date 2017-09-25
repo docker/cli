@@ -1,7 +1,6 @@
 package secret
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -48,18 +47,24 @@ func TestSecretListErrors(t *testing.T) {
 }
 
 func TestSecretList(t *testing.T) {
-	buf := new(bytes.Buffer)
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
-				*Secret(SecretID("ID-foo"),
-					SecretName("foo"),
+				*Secret(SecretID("ID-1-foo"),
+					SecretName("1-foo"),
 					SecretVersion(swarm.Version{Index: 10}),
 					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
 					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
 				),
-				*Secret(SecretID("ID-bar"),
-					SecretName("bar"),
+				*Secret(SecretID("ID-10-foo"),
+					SecretName("10-foo"),
+					SecretVersion(swarm.Version{Index: 11}),
+					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					SecretDriver("driver"),
+				),
+				*Secret(SecretID("ID-2-foo"),
+					SecretName("2-foo"),
 					SecretVersion(swarm.Version{Index: 11}),
 					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
 					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
@@ -69,9 +74,8 @@ func TestSecretList(t *testing.T) {
 		},
 	})
 	cmd := newSecretListCommand(cli)
-	cmd.SetOutput(buf)
 	assert.NoError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "secret-list.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "secret-list-sort.golden")
 }
 
 func TestSecretListWithQuietOption(t *testing.T) {
