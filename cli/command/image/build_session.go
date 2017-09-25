@@ -53,16 +53,19 @@ func addDirToSession(session *session.Session, contextDir string, progressOutput
 	}
 
 	p := &sizeProgress{out: progressOutput, action: "Streaming build context to Docker daemon"}
+	mapUIDAndGID := func(s *fsutil.Stat) bool {
+		s.Uid = uint32(0)
+		s.Gid = uint32(0)
+
+		return true
+	}
 
 	workdirProvider := filesync.NewFSSyncProvider([]filesync.SyncedDir{
-		{Dir: contextDir},
-		{Excludes: excludes},
-		{Map: func(s *fsutil.Stat) bool {
-			s.Uid = uint32(0)
-			s.Gid = uint32(0)
-
-			return true
-		}},
+		{
+			Dir:      contextDir,
+			Excludes: excludes,
+			Map:      mapUIDAndGID,
+		},
 	})
 	session.Allow(workdirProvider)
 
