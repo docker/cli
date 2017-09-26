@@ -21,7 +21,7 @@ import (
 
 func newSignCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sign [OPTIONS] IMAGE:TAG",
+		Use:   "sign IMAGE:TAG",
 		Short: "Sign an image",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

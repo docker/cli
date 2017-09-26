@@ -16,7 +16,7 @@ keywords: "view, notary, trust"
 # trust view
 
 ```markdown
-Usage:  docker trust view [OPTIONS] IMAGE[:TAG]
+Usage:  docker trust view IMAGE[:TAG]
 
 Display detailed information about keys and signatures
 

@@ -16,7 +16,7 @@ keywords: "sign, notary, trust"
 # trust sign
 
 ```markdown
-Usage:  docker trust sign [OPTIONS] IMAGE:TAG
+Usage:  docker trust sign IMAGE:TAG
 
 Sign an image
 

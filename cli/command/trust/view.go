@@ -49,7 +49,7 @@ func (tagComparator trustTagRowList) Swap(i, j int) {
 
 func newViewCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view [OPTIONS] IMAGE[:TAG]",
+		Use:   "view IMAGE[:TAG]",
 		Short: "Display detailed information about keys and signatures",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
