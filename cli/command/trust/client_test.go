@@ -316,7 +316,39 @@ func (l LoadedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error)
 		Name: data.CanonicalTargetsRole,
 	}
 
-	return []client.RoleWithSignatures{{Role: rootRole}, {Role: targetsRole}}, nil
+	aliceRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"A"},
+			Threshold: 1,
+		},
+		Name: data.RoleName("targets/alice"),
+	}
+
+	bobRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"B"},
+			Threshold: 1,
+		},
+		Name: data.RoleName("targets/bob"),
+	}
+
+	releasesRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"A", "B"},
+			Threshold: 1,
+		},
+		Name: data.RoleName("targets/releases"),
+	}
+	// have releases only signed off by Alice last
+	releasesSig := []data.Signature{{KeyID: "A"}}
+
+	return []client.RoleWithSignatures{
+		{Role: rootRole},
+		{Role: targetsRole},
+		{Role: aliceRole},
+		{Role: bobRole},
+		{Role: releasesRole, Signatures: releasesSig},
+	}, nil
 }
 
 func (l LoadedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
