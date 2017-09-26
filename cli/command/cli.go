@@ -207,6 +207,14 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	return client.NewClient(host, verStr, httpClient, customHeaders)
 }
 
+// Close the docker client used by DockerCli
+func (cli *DockerCli) Close() error {
+	if dockerClient, ok := cli.client.(*client.Client); ok {
+		return dockerClient.Close()
+	}
+	return nil
+}
+
 func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, err error) {
 	switch len(hosts) {
 	case 0:
