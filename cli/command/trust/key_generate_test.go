@@ -24,9 +24,15 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 	}{
 		{
 			name:          "not-enough-args",
-			expectedError: "requires at least 1 argument",
+			expectedError: "requires exactly 1 argument",
+		},
+		{
+			name:          "too-many-args",
+			args:          []string{"key-1", "key-2"},
+			expectedError: "requires exactly 1 argument",
 		},
 	}
+
 	tmpDir, err := ioutil.TempDir("", "docker-key-generate-test-")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
@@ -106,48 +112,19 @@ func TestValidateKeyArgs(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(pubKeyCWD)
 
-	err = validateKeyArgs([]string{"a", "b", "C_123", "key-name"}, pubKeyCWD)
+	err = validateKeyArgs("a", pubKeyCWD)
 	assert.NoError(t, err)
 
-	err = validateKeyArgs([]string{"a", "a"}, pubKeyCWD)
-	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "key names must be unique, found duplicate key name: \"a\"")
-
-	err = validateKeyArgs([]string{"a/b"}, pubKeyCWD)
+	err = validateKeyArgs("a/b", pubKeyCWD)
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "key name \"a/b\" must not contain special characters")
 
-	err = validateKeyArgs([]string{"-"}, pubKeyCWD)
+	err = validateKeyArgs("-", pubKeyCWD)
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "key name \"-\" must not contain special characters")
 
 	assert.NoError(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
-	err = validateKeyArgs([]string{"a"}, pubKeyCWD)
+	err = validateKeyArgs("a", pubKeyCWD)
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "public key file already exists: \"a.pub\"")
-}
-
-func TestGenerateMultipleKeysOutput(t *testing.T) {
-	pubKeyCWD, err := ioutil.TempDir("", "pub-keys-")
-	assert.NoError(t, err)
-	defer os.RemoveAll(pubKeyCWD)
-
-	passwd := "password"
-	cannedPasswordRetriever := func() notary.PassRetriever { return passphrase.ConstantRetriever(passwd) }
-
-	cli := test.NewFakeCli(&fakeClient{})
-	assert.NoError(t, generateKeys(cli, []string{"alice", "bob", "charlie"}, pubKeyCWD, cannedPasswordRetriever))
-
-	// Check the stdout prints:
-	assert.Contains(t, cli.OutBuffer().String(), "\nGenerating key for alice...\n")
-	assert.Contains(t, cli.OutBuffer().String(), "Successfully generated and loaded private key. Corresponding public key available: alice.pub\n")
-	assert.Contains(t, cli.OutBuffer().String(), "\nGenerating key for bob...\n")
-	assert.Contains(t, cli.OutBuffer().String(), "Successfully generated and loaded private key. Corresponding public key available: bob.pub\n")
-	assert.Contains(t, cli.OutBuffer().String(), "\nGenerating key for charlie...\n")
-	assert.Contains(t, cli.OutBuffer().String(), "Successfully generated and loaded private key. Corresponding public key available: charlie.pub\n")
-
-	// Check that we have three key files:
-	cwdKeyFiles, err := ioutil.ReadDir(pubKeyCWD)
-	assert.NoError(t, err)
-	assert.Len(t, cwdKeyFiles, 3)
 }

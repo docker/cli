@@ -23,9 +23,9 @@ func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "key-generate NAME [NAME...]",
 		Short: "Generate and load a signing key-pair",
-		Args:  cli.RequiresMinArgs(1),
+		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return setupPassphraseAndGenerateKeys(dockerCli, args)
+			return setupPassphraseAndGenerateKeys(dockerCli, args[0])
 		},
 	}
 	return cmd
@@ -36,56 +36,41 @@ var validKeyName = regexp.MustCompile(`^[a-zA-Z0-9\_]+[a-zA-Z0-9\_\-]*$`).MatchS
 
 // validate that all of the key names are unique and are alphanumeric + _ + -
 // and that we do not already have public key files in the current dir on disk
-func validateKeyArgs(keyNames []string, cwdPath string) error {
-	uniqueKeyNames := map[string]struct{}{}
-	for _, keyName := range keyNames {
-		if !validKeyName(keyName) {
-			return fmt.Errorf("key name \"%s\" must not contain special characters", keyName)
-		}
+func validateKeyArgs(keyName string, cwdPath string) error {
+	if !validKeyName(keyName) {
+		return fmt.Errorf("key name \"%s\" must not contain special characters", keyName)
+	}
 
-		if _, ok := uniqueKeyNames[keyName]; ok {
-			return fmt.Errorf("key names must be unique, found duplicate key name: \"%s\"", keyName)
-		}
-		uniqueKeyNames[keyName] = struct{}{}
-
-		pubKeyFileName := keyName + ".pub"
-		if _, err := os.Stat(filepath.Join(cwdPath, pubKeyFileName)); err == nil {
-			return fmt.Errorf("public key file already exists: \"%s\"", pubKeyFileName)
-		}
+	pubKeyFileName := keyName + ".pub"
+	if _, err := os.Stat(filepath.Join(cwdPath, pubKeyFileName)); err == nil {
+		return fmt.Errorf("public key file already exists: \"%s\"", pubKeyFileName)
 	}
 	return nil
 }
 
-func setupPassphraseAndGenerateKeys(streams command.Streams, keyNames []string) error {
+func setupPassphraseAndGenerateKeys(streams command.Streams, keyName string) error {
 	// always use a fresh passphrase for each key generation
 	freshPassRetGetter := func() notary.PassRetriever { return trust.GetPassphraseRetriever(streams.In(), streams.Out()) }
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	return generateKeys(streams, keyNames, cwd, freshPassRetGetter)
+	return validateAndGenerateKey(streams, keyName, cwd, freshPassRetGetter)
 }
 
-func generateKeys(streams command.Streams, keyNames []string, workingDir string, passphraseGetter func() notary.PassRetriever) error {
-	var genKeyErrs []string
-	if err := validateKeyArgs(keyNames, workingDir); err != nil {
+func validateAndGenerateKey(streams command.Streams, keyName string, workingDir string, passphraseGetter func() notary.PassRetriever) error {
+	if err := validateKeyArgs(keyName, workingDir); err != nil {
 		return err
 	}
-	for _, keyName := range keyNames {
-		fmt.Fprintf(streams.Out(), "\nGenerating key for %s...\n", keyName)
-		freshPassRet := passphraseGetter()
-		if err := generateKey(keyName, workingDir, trust.GetTrustDirectory(), freshPassRet); err != nil {
-			fmt.Fprintf(streams.Out(), err.Error())
-			genKeyErrs = append(genKeyErrs, keyName)
-		} else {
-			pubFileName := strings.Join([]string{keyName, "pub"}, ".")
-			fmt.Fprintf(streams.Out(), "Successfully generated and loaded private key. Corresponding public key available: %s\n", pubFileName)
-		}
+	fmt.Fprintf(streams.Out(), "\nGenerating key for %s...\n", keyName)
+	freshPassRet := passphraseGetter()
+	if err := generateKey(keyName, workingDir, trust.GetTrustDirectory(), freshPassRet); err != nil {
+		fmt.Fprintf(streams.Out(), err.Error())
+		return fmt.Errorf("Error generating key for: %s", keyName)
 	}
+	pubFileName := strings.Join([]string{keyName, "pub"}, ".")
+	fmt.Fprintf(streams.Out(), "Successfully generated and loaded private key. Corresponding public key available: %s\n", pubFileName)
 
-	if len(genKeyErrs) > 0 {
-		return fmt.Errorf("Error generating keys for: %s", strings.Join(genKeyErrs, ", "))
-	}
 	return nil
 }
 
