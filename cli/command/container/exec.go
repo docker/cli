@@ -2,7 +2,6 @@ package container
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -15,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	"github.com/docker/cli/cli/hijack"
 )
 
 type execOptions struct {
@@ -103,25 +103,7 @@ func runExec(dockerCli command.Cli, options execOptions) error {
 
 func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *types.ExecConfig, execID string) error {
 	// Interactive exec requested.
-	var (
-		out, stderr io.Writer
-		in          io.ReadCloser
-		errCh       chan error
-	)
-
-	if execConfig.AttachStdin {
-		in = dockerCli.In()
-	}
-	if execConfig.AttachStdout {
-		out = dockerCli.Out()
-	}
-	if execConfig.AttachStderr {
-		if execConfig.Tty {
-			stderr = dockerCli.Out()
-		} else {
-			stderr = dockerCli.Err()
-		}
-	}
+	var errCh chan error
 
 	client := dockerCli.Client()
 	resp, err := client.ContainerExecAttach(ctx, execID, *execConfig)
@@ -130,17 +112,17 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 	}
 	defer resp.Close()
 	errCh = promise.Go(func() error {
-		streamer := hijackedIOStreamer{
-			streams:      dockerCli,
-			inputStream:  in,
-			outputStream: out,
-			errorStream:  stderr,
-			resp:         resp,
-			tty:          execConfig.Tty,
-			detachKeys:   execConfig.DetachKeys,
+
+		hijackOpts := hijack.StreamOptions{
+			Hijacked:     resp,
+			AttachStdin:  execConfig.AttachStdin,
+			AttachStdout: execConfig.AttachStdout,
+			AttachStderr: execConfig.AttachStderr,
+			Tty:          execConfig.Tty,
+			DetachKeys:   execConfig.DetachKeys,
 		}
 
-		return streamer.stream(ctx)
+		return hijack.Stream(ctx, dockerCli, hijackOpts)
 	})
 
 	if execConfig.Tty && dockerCli.In().IsTerminal() {

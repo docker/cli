@@ -1,7 +1,6 @@
 package container
 
 import (
-	"io"
 	"net/http/httputil"
 
 	"github.com/docker/cli/cli"
@@ -13,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	"github.com/docker/cli/cli/hijack"
 )
 
 type attachOptions struct {
@@ -87,11 +87,6 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		DetachKeys: dockerCli.ConfigFile().DetachKeys,
 	}
 
-	var in io.ReadCloser
-	if options.Stdin {
-		in = dockerCli.In()
-	}
-
 	if opts.proxy && !c.Config.Tty {
 		sigc := ForwardAllSignals(ctx, dockerCli, opts.container)
 		defer signal.StopCatch(sigc)
@@ -123,17 +118,16 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		resizeTTY(ctx, dockerCli, opts.container)
 	}
 
-	streamer := hijackedIOStreamer{
-		streams:      dockerCli,
-		inputStream:  in,
-		outputStream: dockerCli.Out(),
-		errorStream:  dockerCli.Err(),
-		resp:         resp,
-		tty:          c.Config.Tty,
-		detachKeys:   options.DetachKeys,
+	hijackOpts := hijack.StreamOptions{
+		Hijacked:     resp,
+		AttachStdin:  options.Stdin,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          c.Config.Tty,
+		DetachKeys:   options.DetachKeys,
 	}
 
-	if err := streamer.stream(ctx); err != nil {
+	if err := hijack.Stream(ctx, dockerCli, hijackOpts); err != nil {
 		return err
 	}
 

@@ -2,7 +2,6 @@ package container
 
 import (
 	"fmt"
-	"io"
 	"net/http/httputil"
 	"strings"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	"github.com/docker/cli/cli/hijack"
 )
 
 type startOptions struct {
@@ -89,12 +89,6 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 			DetachKeys: dockerCli.ConfigFile().DetachKeys,
 		}
 
-		var in io.ReadCloser
-
-		if options.Stdin {
-			in = dockerCli.In()
-		}
-
 		resp, errAttach := dockerCli.Client().ContainerAttach(ctx, c.ID, options)
 		if errAttach != nil && errAttach != httputil.ErrPersistEOF {
 			// ContainerAttach return an ErrPersistEOF (connection closed)
@@ -104,17 +98,16 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 		}
 		defer resp.Close()
 		cErr := promise.Go(func() error {
-			streamer := hijackedIOStreamer{
-				streams:      dockerCli,
-				inputStream:  in,
-				outputStream: dockerCli.Out(),
-				errorStream:  dockerCli.Err(),
-				resp:         resp,
-				tty:          c.Config.Tty,
-				detachKeys:   options.DetachKeys,
+			hijackOpts := hijack.StreamOptions{
+				Hijacked:     resp,
+				AttachStdin:  options.Stdin,
+				AttachStdout: true,
+				AttachStderr: true,
+				Tty:          c.Config.Tty,
+				DetachKeys:   options.DetachKeys,
 			}
 
-			errHijack := streamer.stream(ctx)
+			errHijack := hijack.Stream(ctx, dockerCli, hijackOpts)
 			if errHijack == nil {
 				return errAttach
 			}

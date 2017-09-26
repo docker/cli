@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
+	"github.com/docker/cli/cli/hijack"
 )
 
 type runOptions struct {
@@ -256,24 +257,6 @@ func attachContainer(
 	config *container.Config,
 	containerID string,
 ) (func(), error) {
-	stdout, stderr := dockerCli.Out(), dockerCli.Err()
-	var (
-		out, cerr io.Writer
-		in        io.ReadCloser
-	)
-	if config.AttachStdin {
-		in = dockerCli.In()
-	}
-	if config.AttachStdout {
-		out = stdout
-	}
-	if config.AttachStderr {
-		if config.Tty {
-			cerr = stdout
-		} else {
-			cerr = stderr
-		}
-	}
 
 	options := types.ContainerAttachOptions{
 		Stream:     true,
@@ -292,17 +275,16 @@ func attachContainer(
 	}
 
 	*errCh = promise.Go(func() error {
-		streamer := hijackedIOStreamer{
-			streams:      dockerCli,
-			inputStream:  in,
-			outputStream: out,
-			errorStream:  cerr,
-			resp:         resp,
-			tty:          config.Tty,
-			detachKeys:   options.DetachKeys,
+		opts := hijack.StreamOptions{
+			Hijacked:     resp,
+			AttachStdin:  config.AttachStdin,
+			AttachStdout: config.AttachStdout,
+			AttachStderr: config.AttachStderr,
+			Tty:          config.Tty,
+			DetachKeys:   options.DetachKeys,
 		}
 
-		if errHijack := streamer.stream(ctx); errHijack != nil {
+		if errHijack := hijack.Stream(ctx, dockerCli, opts); errHijack != nil {
 			return errHijack
 		}
 		return errAttach
