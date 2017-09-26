@@ -12,12 +12,14 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/docker/notary"
+	notaryclient "github.com/docker/notary/client"
 	"github.com/docker/notary/passphrase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -40,6 +42,7 @@ type Cli interface {
 	SetIn(in *InStream)
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 }
 
 // DockerCli is an instance the docker command line client.
@@ -159,6 +162,11 @@ func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(pa
 			return apiclient, err
 		}
 	}
+}
+
+// NotaryClient provides a Notary Repository to interact with signed metadata for an image
+func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ServerInfo stores details about the supported features and platform of the

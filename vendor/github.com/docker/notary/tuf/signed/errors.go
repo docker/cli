@@ -3,6 +3,8 @@ package signed
 import (
 	"fmt"
 	"strings"
+
+	"github.com/docker/notary/tuf/data"
 )
 
 // ErrInsufficientSignatures - can not create enough signatures on a piece of
@@ -29,12 +31,12 @@ func (e ErrInsufficientSignatures) Error() string {
 
 // ErrExpired indicates a piece of metadata has expired
 type ErrExpired struct {
-	Role    string
+	Role    data.RoleName
 	Expired string
 }
 
 func (e ErrExpired) Error() string {
-	return fmt.Sprintf("%s expired at %v", e.Role, e.Expired)
+	return fmt.Sprintf("%s expired at %v", e.Role.String(), e.Expired)
 }
 
 // ErrLowVersion indicates the piece of metadata has a version number lower than

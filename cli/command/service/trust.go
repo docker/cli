@@ -59,7 +59,7 @@ func trustedResolveDigest(ctx context.Context, cli command.Cli, ref reference.Na
 
 	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
 
-	notaryRepo, err := trust.GetNotaryRepository(cli, repoInfo, authConfig, "pull")
+	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
 		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
