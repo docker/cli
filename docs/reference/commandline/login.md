@@ -63,8 +63,9 @@ $ cat ~/my_password.txt | docker login --username foo --password-stdin
 2.  user is added to the `docker` group.  This will impact the security of your system; the `docker` group is `root` equivalent.  See [Docker Daemon Attack Surface](https://docs.docker.com/security/security/#docker-daemon-attack-surface) for details.
 
 You can log into any public or private repository for which you have
-credentials.  When you log in, the command stores encoded credentials in
-`$HOME/.docker/config.json` on Linux or `%USERPROFILE%/.docker/config.json` on Windows.
+credentials.  When you log in, the command stores credentials in
+`$HOME/.docker/config.json` on Linux or `%USERPROFILE%/.docker/config.json` on
+Windows, via the procedure described below.
 
 ### Credentials store
 
@@ -82,6 +83,7 @@ you can download them from:
 - D-Bus Secret Service: https://github.com/docker/docker-credential-helpers/releases
 - Apple macOS keychain: https://github.com/docker/docker-credential-helpers/releases
 - Microsoft Windows Credential Manager: https://github.com/docker/docker-credential-helpers/releases
+- [pass](https://www.passwordstore.org/): https://github.com/docker/docker-credential-helpers/releases
 
 You need to specify the credentials store in `$HOME/.docker/config.json`
 to tell the docker engine to use it. The value of the config property should be
@@ -96,6 +98,15 @@ For example, to use `docker-credential-osxkeychain`:
 
 If you are currently logged in, run `docker logout` to remove
 the credentials from the file and run `docker login` again.
+
+### Default behavior
+
+By default, Docker looks for the native binary on each of the platforms, i.e.
+"osxkeychain" on macOS, "wincred" on windows, and "pass" on Linux. A special
+case is that on Linux, Docker will fall back to the "secretservice" binary if
+it cannot find the "pass" binary. If none of these binaries are present, it
+stores the credentials (i.e. password) in base64 encoding in the config files
+described above.
 
 ### Credential helper protocol
 
