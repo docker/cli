@@ -26,6 +26,6 @@
     "vet"
   ],
 
-  "Cyclo": 19,
+  "Cyclo": 16,
   "LineLength": 200
 }

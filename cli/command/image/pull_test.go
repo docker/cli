@@ -32,11 +32,6 @@ func TestNewPullCommandErrors(t *testing.T) {
 			expectedError: "tag can't be used with --all-tags/-a",
 			args:          []string{"--all-tags", "image:tag"},
 		},
-		{
-			name:          "pull-error",
-			args:          []string{"--disable-content-trust=false", "image:tag"},
-			expectedError: "you are not authorized to perform this operation: server returned 401.",
-		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
