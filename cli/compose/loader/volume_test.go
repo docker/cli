@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseVolumeAnonymousVolume(t *testing.T) {
@@ -147,6 +148,17 @@ func TestParseVolumeWithRW(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expected, volume)
 	}
+}
+
+func TestParseVolumeWindowsNamedPipe(t *testing.T) {
+	volume, err := ParseVolume(`\\.\pipe\docker_engine:\\.\pipe\inside`)
+	require.NoError(t, err)
+	expected := types.ServiceVolumeConfig{
+		Type:   "bind",
+		Source: `\\.\pipe\docker_engine`,
+		Target: `\\.\pipe\inside`,
+	}
+	assert.Equal(t, expected, volume)
 }
 
 func TestIsFilePath(t *testing.T) {
