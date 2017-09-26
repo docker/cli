@@ -2,7 +2,7 @@ FROM    golang:1.8.3-alpine
 
 RUN     apk add -U git
 
-ARG     GOMETALINTER_SHA=4306381615a2ba2a207f8fcea02c08c6b2b0803f
+ARG     GOMETALINTER_SHA=8eca55135021737bbc65ed68b548b3336853274c
 RUN     go get -d github.com/alecthomas/gometalinter && \
         cd /go/src/github.com/alecthomas/gometalinter && \
         git checkout -q "$GOMETALINTER_SHA" && \

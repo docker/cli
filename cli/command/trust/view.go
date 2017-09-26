@@ -113,7 +113,9 @@ func lookupTrustInfo(cli command.Cli, remote string) error {
 	// If we do not have additional signers, do not display
 	if len(signerRoleToKeyIDs) > 0 {
 		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s:\n\n", strings.Split(remote, ":")[0])
-		printSignerInfo(cli.Out(), signerRoleToKeyIDs)
+		if err := printSignerInfo(cli.Out(), signerRoleToKeyIDs); err != nil {
+			return err
+		}
 	}
 
 	// This will always have the root and targets information

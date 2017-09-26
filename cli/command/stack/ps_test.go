@@ -59,6 +59,7 @@ func TestStackPsEmptyStack(t *testing.T) {
 	})
 	cmd := newPsCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
+	cmd.SetOutput(ioutil.Discard)
 
 	assert.Error(t, cmd.Execute())
 	assert.EqualError(t, cmd.Execute(), "nothing found in stack: foo")

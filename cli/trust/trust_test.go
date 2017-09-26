@@ -11,6 +11,7 @@ import (
 	"github.com/docker/notary/trustpinning"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetTag(t *testing.T) {
@@ -53,6 +54,7 @@ func TestGetSignableRolesError(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	require.NoError(t, err)
 	target := client.Target{}
 	_, err = GetSignableRoles(notaryRepo, &target)
 	assert.EqualError(t, err, "client is offline")

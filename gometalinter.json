@@ -1,8 +1,12 @@
 {
   "Vendor": true,
   "Deadline": "2m",
-  "Sort": ["linter", "severity", "path"],
-  "Exclude": ["cli/compose/schema/bindata.go"],
+  "Sort": ["linter", "severity", "path", "line"],
+  "Exclude": [
+      "cli/compose/schema/bindata.go",
+      "parameter .* always receives"
+  ],
+  "EnableGC": true,
 
   "DisableAll": true,
   "Enable": [
