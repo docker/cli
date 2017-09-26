@@ -9,6 +9,7 @@ import (
 )
 
 const releasedRoleName = "Repo Admin"
+const releasesRoleTUFName = "targets/releases"
 
 // check if a role name is "released": either targets/releases or targets TUF roles
 func isReleasedTarget(role data.RoleName) bool {
@@ -30,4 +31,14 @@ func clearChangeList(notaryRepo client.Repository) error {
 		return err
 	}
 	return cl.Clear("")
+}
+
+func getOrGenerateRootKeyAndInitRepo(notaryRepo client.Repository) error {
+	rootKey, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
+	if err != nil {
+		return err
+	}
+	// Initialize the notary repository with a remotely managed snapshot
+	// key
+	return notaryRepo.Initialize([]string{rootKey.ID()}, data.CanonicalSnapshotRole)
 }
