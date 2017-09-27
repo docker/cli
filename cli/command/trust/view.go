@@ -11,9 +11,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/notary"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
@@ -61,15 +60,12 @@ func newViewCommand(dockerCli command.Cli) *cobra.Command {
 
 func lookupTrustInfo(cli command.Cli, remote string) error {
 	ctx := context.Background()
-	authResolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
-	}
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver, remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
 	if err != nil {
 		return err
 	}
 	tag := imgRefAndAuth.Tag()
-	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPullOnly)
+	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
@@ -113,7 +109,9 @@ func lookupTrustInfo(cli command.Cli, remote string) error {
 	// If we do not have additional signers, do not display
 	if len(signerRoleToKeyIDs) > 0 {
 		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s:\n\n", strings.Split(remote, ":")[0])
-		printSignerInfo(cli.Out(), signerRoleToKeyIDs)
+		if err := printSignerInfo(cli.Out(), signerRoleToKeyIDs); err != nil {
+			return err
+		}
 	}
 
 	// This will always have the root and targets information

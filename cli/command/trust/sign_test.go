@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"bytes"
+
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
@@ -17,6 +19,7 @@ import (
 	"github.com/docker/notary/trustpinning"
 	"github.com/docker/notary/tuf/data"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const passwd = "password"
@@ -151,6 +154,7 @@ func TestAddStageSigners(t *testing.T) {
 		NewThreshold: notary.MinThreshold,
 		AddKeys:      data.KeyList([]data.PublicKey{userKey}),
 	})
+	require.NoError(t, err)
 	expectedChange := changelist.NewTUFChange(
 		changelist.ActionCreate,
 		userRole,
@@ -165,6 +169,7 @@ func TestAddStageSigners(t *testing.T) {
 	expectedJSON, err = json.Marshal(&changelist.TUFDelegation{
 		AddPaths: []string{""},
 	})
+	require.NoError(t, err)
 	expectedChange = changelist.NewTUFChange(
 		changelist.ActionCreate,
 		userRole,
@@ -182,6 +187,7 @@ func TestAddStageSigners(t *testing.T) {
 		NewThreshold: notary.MinThreshold,
 		AddKeys:      data.KeyList([]data.PublicKey{userKey}),
 	})
+	require.NoError(t, err)
 	expectedChange = changelist.NewTUFChange(
 		changelist.ActionCreate,
 		releasesRole,
@@ -196,6 +202,7 @@ func TestAddStageSigners(t *testing.T) {
 	expectedJSON, err = json.Marshal(&changelist.TUFDelegation{
 		AddPaths: []string{""},
 	})
+	require.NoError(t, err)
 	expectedChange = changelist.NewTUFChange(
 		changelist.ActionCreate,
 		releasesRole,
@@ -259,27 +266,32 @@ func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
 }
 
 func TestPrettyPrintExistingSignatureInfo(t *testing.T) {
-	fakeCli := test.NewFakeCli(&fakeClient{})
-
+	buf := bytes.NewBuffer(nil)
 	signers := []string{"Bob", "Alice", "Carol"}
 	existingSig := trustTagRow{trustTagKey{"tagName", "abc123"}, signers}
-	prettyPrintExistingSignatureInfo(fakeCli, existingSig)
+	prettyPrintExistingSignatureInfo(buf, existingSig)
 
-	assert.Contains(t, fakeCli.OutBuffer().String(), "Existing signatures for tag tagName digest abc123 from:\nAlice, Bob, Carol")
+	assert.Contains(t, buf.String(), "Existing signatures for tag tagName digest abc123 from:\nAlice, Bob, Carol")
 }
 
-func TestChangeList(t *testing.T) {
+func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
+
 	config.SetDir(tmpDir)
-	cmd := newSignCommand(
-		test.NewFakeCli(&fakeClient{}))
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"ubuntu:latest"})
 	cmd.SetOutput(ioutil.Discard)
+
 	err = cmd.Execute()
+	require.Error(t, err)
+
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NoError(t, err)
 	cl, err := notaryRepo.GetChangelist()
+	require.NoError(t, err)
 	assert.Equal(t, len(cl.List()), 0)
 }

@@ -1,7 +1,6 @@
 package trust
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net"
@@ -32,6 +31,7 @@ import (
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -288,6 +288,7 @@ func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.Rol
 
 // ImageRefAndAuth contains all reference information and the auth config for an image request
 type ImageRefAndAuth struct {
+	original   string
 	authConfig *types.AuthConfig
 	reference  reference.Named
 	repoInfo   *registry.RepositoryInfo
@@ -295,27 +296,29 @@ type ImageRefAndAuth struct {
 	digest     digest.Digest
 }
 
-// NewImageRefAndAuth creates a new ImageRefAndAuth struct
-func NewImageRefAndAuth(authConfig *types.AuthConfig, reference reference.Named, repoInfo *registry.RepositoryInfo, tag string, digest digest.Digest) *ImageRefAndAuth {
-	return &ImageRefAndAuth{authConfig, reference, repoInfo, tag, digest}
-}
-
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
 // as a ImageRefAndAuth struct
-func GetImageReferencesAndAuth(ctx context.Context, authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig, imgName string) (*ImageRefAndAuth, error) {
+func GetImageReferencesAndAuth(ctx context.Context, authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig, imgName string) (ImageRefAndAuth, error) {
 	ref, err := reference.ParseNormalizedNamed(imgName)
 	if err != nil {
-		return nil, err
+		return ImageRefAndAuth{}, err
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
-		return nil, err
+		return ImageRefAndAuth{}, err
 	}
 
 	authConfig := authResolver(ctx, repoInfo.Index)
-	return NewImageRefAndAuth(&authConfig, ref, repoInfo, getTag(ref), getDigest(ref)), nil
+	return ImageRefAndAuth{
+		original:   imgName,
+		authConfig: &authConfig,
+		reference:  ref,
+		repoInfo:   repoInfo,
+		tag:        getTag(ref),
+		digest:     getDigest(ref),
+	}, nil
 }
 
 func getTag(ref reference.Named) string {
@@ -363,4 +366,10 @@ func (imgRefAuth *ImageRefAndAuth) Tag() string {
 // Digest returns the Image digest for a given ImageRefAndAuth
 func (imgRefAuth *ImageRefAndAuth) Digest() digest.Digest {
 	return imgRefAuth.digest
+}
+
+// Name returns the image name used to initialize the ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Name() string {
+	return imgRefAuth.original
+
 }

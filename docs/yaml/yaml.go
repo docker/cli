@@ -10,7 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type cmdOption struct {
@@ -46,18 +46,17 @@ type cmdDoc struct {
 
 // GenYamlTree creates yaml structured ref files
 func GenYamlTree(cmd *cobra.Command, dir string) error {
-	identity := func(s string) string { return s }
 	emptyStr := func(s string) string { return "" }
-	return GenYamlTreeCustom(cmd, dir, emptyStr, identity)
+	return GenYamlTreeCustom(cmd, dir, emptyStr)
 }
 
 // GenYamlTreeCustom creates yaml structured ref files
-func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string) error {
+func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string) string) error {
 	for _, c := range cmd.Commands() {
 		if !c.IsAvailableCommand() || c.IsHelpCommand() {
 			continue
 		}
-		if err := GenYamlTreeCustom(c, dir, filePrepender, linkHandler); err != nil {
+		if err := GenYamlTreeCustom(c, dir, filePrepender); err != nil {
 			return err
 		}
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/notary/passphrase"
 	"github.com/docker/notary/trustpinning"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func unsetENV() {
@@ -67,6 +68,7 @@ func TestAddTargetToAllSignableRolesError(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	require.NoError(t, err)
 	target := client.Target{}
 	err = AddTargetToAllSignableRoles(notaryRepo, &target)
 	assert.EqualError(t, err, "client is offline")

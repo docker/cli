@@ -43,6 +43,7 @@ func TestValidateAttach(t *testing.T) {
 	}
 }
 
+// nolint: unparam
 func parseRun(args []string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig, error) {
 	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
 	flags.SetOutput(ioutil.Discard)
