@@ -25,6 +25,7 @@ Options:
       --format string   Pretty-print images using a Go template
       --help            Print usage
       --no-stream       Disable streaming stats and only pull the first result
+      --no-trunc        Don't truncate output
 ```
 
 ## Description
@@ -39,30 +40,34 @@ Running `docker stats` on all running containers against a Linux daemon.
 
 ```bash
 $ docker stats
-CONTAINER           CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O
-1285939c1fd3        0.07%               796 KiB / 64 MiB        1.21%               788 B / 648 B       3.568 MB / 512 KB
-9c76f7834ae2        0.07%               2.746 MiB / 64 MiB      4.29%               1.266 KB / 648 B    12.4 MB / 0 B
-d1ea048f04e4        0.03%               4.583 MiB / 64 MiB      6.30%               2.854 KB / 648 B    27.7 MB / 0 B
+
+CONTAINER ID        NAME                                    CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
+b95a83497c91        awesome_brattain                        0.28%               5.629MiB / 1.952GiB   0.28%               916B / 0B           147kB / 0B          9
+67b2525d8ad1        foobar                                  0.00%               1.727MiB / 1.952GiB   0.09%               2.48kB / 0B         4.11MB / 0B         2
+e5c383697914        test-1951.1.kay7x1lh1twk9c0oig50sd5tr   0.00%               196KiB / 1.952GiB     0.01%               71.2kB / 0B         770kB / 0B          1
+4bda148efbc0        random.1.vnc8on831idyr42slu578u3cr      0.00%               1.672MiB / 1.952GiB   0.08%               110kB / 0B          578kB / 0B          2
 ```
 
 Running `docker stats` on multiple containers by name and id against a Linux daemon.
 
 ```bash
-$ docker stats fervent_panini 5acfcb1b4fd1
-CONTAINER           CPU %               MEM USAGE/LIMIT       MEM %               NET I/O
-5acfcb1b4fd1        0.00%               115.2 MiB/1.045 GiB   11.03%              1.422 kB/648 B
-fervent_panini      0.02%               11.08 MiB/1.045 GiB   1.06%               648 B/648 B
+$ docker stats awesome_brattain 67b2525d8ad1
+
+CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
+b95a83497c91        awesome_brattain    0.28%               5.629MiB / 1.952GiB   0.28%               916B / 0B           147kB / 0B          9
+67b2525d8ad1        foobar              0.00%               1.727MiB / 1.952GiB   0.09%               2.48kB / 0B         4.11MB / 0B         2
 ```
 
 Running `docker stats` with customized format on all (Running and Stopped) containers.
 
 ```bash
-$ docker stats --all --format "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
-CONTAINER ID                                                       NAME                     CPU %               MEM USAGE / LIMIT
-c9dfa83f0317f87637d5b7e67aa4223337d947215c5a9947e697e4f7d3e0f834   ecstatic_noether         0.00%               56KiB / 15.57GiB
-8f92d01cf3b29b4f5fca4cd33d907e05def7af5a3684711b20a2369d211ec67f   stoic_goodall            0.07%               32.86MiB / 15.57GiB
-38dd23dba00f307d53d040c1d18a91361bbdcccbf592315927d56cf13d8b7343   drunk_visvesvaraya       0.00%               0B / 0B
-5a8b07ec4cc52823f3cbfdb964018623c1ba307bce2c057ccdbde5f4f6990833   big_heisenberg           0.00%               0B / 0B
+$ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" fervent_panini 5acfcb1b4fd1 drunk_visvesvaraya big_heisenberg
+
+CONTAINER                CPU %               MEM USAGE / LIMIT
+fervent_panini           0.00%               56KiB / 15.57GiB
+5acfcb1b4fd1             0.07%               32.86MiB / 15.57GiB
+drunk_visvesvaraya       0.00%               0B / 0B
+big_heisenberg           0.00%               0B / 0B
 ```
 
 `drunk_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
@@ -71,7 +76,7 @@ Running `docker stats` on all running containers against a Windows daemon.
 
 ```powershell
 PS E:\> docker stats
-CONTAINER           CPU %               PRIV WORKING SET    NET I/O             BLOCK I/O
+CONTAINER ID        CPU %               PRIV WORKING SET    NET I/O             BLOCK I/O
 09d3bb5b1604        6.61%               38.21 MiB           17.1 kB / 7.73 kB   10.7 MB / 3.57 MB
 9db7aa4d986d        9.19%               38.26 MiB           15.2 kB / 7.65 kB   10.6 MB / 3.3 MB
 3f214c61ad1d        0.00%               28.64 MiB           64 kB / 6.84 kB     4.42 MB / 6.93 MB
@@ -81,15 +86,15 @@ Running `docker stats` on multiple containers by name and id against a Windows d
 
 ```powershell
 PS E:\> docker ps -a
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-3f214c61ad1d        nanoserver          "cmd"               2 minutes ago       Up 2 minutes                            big_minsky
-9db7aa4d986d        windowsservercore   "cmd"               2 minutes ago       Up 2 minutes                            mad_wilson
-09d3bb5b1604        windowsservercore   "cmd"               2 minutes ago       Up 2 minutes                            affectionate_easley
+CONTAINER ID        NAME                IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+3f214c61ad1d        awesome_brattain    nanoserver          "cmd"               2 minutes ago       Up 2 minutes                            big_minsky
+9db7aa4d986d        mad_wilson          windowsservercore   "cmd"               2 minutes ago       Up 2 minutes                            mad_wilson
+09d3bb5b1604        fervent_panini      windowsservercore   "cmd"               2 minutes ago       Up 2 minutes                            affectionate_easley
 
 PS E:\> docker stats 3f214c61ad1d mad_wilson
-CONTAINER           CPU %               PRIV WORKING SET    NET I/O             BLOCK I/O
-3f214c61ad1d        0.00%               46.25 MiB           76.3 kB / 7.92 kB   10.3 MB / 14.7 MB
-mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
+CONTAINER ID        NAME                CPU %               PRIV WORKING SET    NET I/O             BLOCK I/O
+3f214c61ad1d        awesome_brattain    0.00%               46.25 MiB           76.3 kB / 7.92 kB   10.3 MB / 14.7 MB
+9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
 ```
 
 ### Formatting
@@ -138,3 +143,17 @@ CONTAINER           CPU %               PRIV WORKING SET
 9c76f7834ae2        0.07%               2.746 MiB / 64 MiB
 d1ea048f04e4        0.03%               4.583 MiB / 64 MiB
 ```
+
+The default format is as follows:
+
+On Linux:
+
+    "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
+
+On Windows:
+
+    "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+
+
+> **Note**: On Docker 17.09 and older, the `{{.Container}}` column was used, in
+> stead of `{{.ID}}\t{{.Name}}`.
