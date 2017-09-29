@@ -53,7 +53,9 @@ func addDirToSession(session *session.Session, contextDir string, progressOutput
 
 	p := &sizeProgress{out: progressOutput, action: "Streaming build context to Docker daemon"}
 
-	workdirProvider := filesync.NewFSSyncProvider(contextDir, excludes)
+	workdirProvider := filesync.NewFSSyncProvider([]filesync.SyncedDir{
+		{Dir: contextDir, Excludes: excludes},
+	})
 	session.Allow(workdirProvider)
 
 	// this will be replaced on parallel build jobs. keep the current

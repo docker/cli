@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
@@ -103,23 +102,28 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 			return errAttach
 		}
 		defer resp.Close()
-		cErr := promise.Go(func() error {
-			streamer := hijackedIOStreamer{
-				streams:      dockerCli,
-				inputStream:  in,
-				outputStream: dockerCli.Out(),
-				errorStream:  dockerCli.Err(),
-				resp:         resp,
-				tty:          c.Config.Tty,
-				detachKeys:   options.DetachKeys,
-			}
 
-			errHijack := streamer.stream(ctx)
-			if errHijack == nil {
-				return errAttach
-			}
-			return errHijack
-		})
+		cErr := make(chan error, 1)
+
+		go func() {
+			cErr <- func() error {
+				streamer := hijackedIOStreamer{
+					streams:      dockerCli,
+					inputStream:  in,
+					outputStream: dockerCli.Out(),
+					errorStream:  dockerCli.Err(),
+					resp:         resp,
+					tty:          c.Config.Tty,
+					detachKeys:   options.DetachKeys,
+				}
+
+				errHijack := streamer.stream(ctx)
+				if errHijack == nil {
+					return errAttach
+				}
+				return errHijack
+			}()
+		}()
 
 		// 3. We should open a channel for receiving status code of the container
 		// no matter it's detached, removed on daemon side(--rm) or exit normally.

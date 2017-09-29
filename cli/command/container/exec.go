@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	apiclient "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/promise"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -106,7 +105,6 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 	var (
 		out, stderr io.Writer
 		in          io.ReadCloser
-		errCh       chan error
 	)
 
 	if execConfig.AttachStdin {
@@ -129,19 +127,25 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 		return err
 	}
 	defer resp.Close()
-	errCh = promise.Go(func() error {
-		streamer := hijackedIOStreamer{
-			streams:      dockerCli,
-			inputStream:  in,
-			outputStream: out,
-			errorStream:  stderr,
-			resp:         resp,
-			tty:          execConfig.Tty,
-			detachKeys:   execConfig.DetachKeys,
-		}
 
-		return streamer.stream(ctx)
-	})
+	errCh := make(chan error, 1)
+
+	go func() {
+		defer close(errCh)
+		errCh <- func() error {
+			streamer := hijackedIOStreamer{
+				streams:      dockerCli,
+				inputStream:  in,
+				outputStream: out,
+				errorStream:  stderr,
+				resp:         resp,
+				tty:          execConfig.Tty,
+				detachKeys:   execConfig.DetachKeys,
+			}
+
+			return streamer.stream(ctx)
+		}()
+	}()
 
 	if execConfig.Tty && dockerCli.In().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, execID, true); err != nil {
