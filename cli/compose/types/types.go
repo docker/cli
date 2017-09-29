@@ -69,6 +69,7 @@ func (cd ConfigDetails) LookupEnv(key string) (string, bool) {
 
 // Config is a full compose file configuration
 type Config struct {
+	Filename string
 	Services []ServiceConfig
 	Networks map[string]NetworkConfig
 	Volumes  map[string]VolumeConfig

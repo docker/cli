@@ -572,6 +572,7 @@ networks:
 	config, err := Load(buildConfigDetails(dict, env))
 	require.NoError(t, err)
 	expected := &types.Config{
+		Filename: "filename.yml",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",
@@ -670,7 +671,7 @@ services:
 	_, err = Load(configDetails)
 	require.NoError(t, err)
 
-	unsupported := GetUnsupportedProperties(configDetails)
+	unsupported := GetUnsupportedProperties(dict)
 	assert.Equal(t, []string{"build", "links", "pid"}, unsupported)
 }
 
@@ -713,7 +714,7 @@ services:
 	_, err = Load(configDetails)
 	require.NoError(t, err)
 
-	deprecated := GetDeprecatedProperties(configDetails)
+	deprecated := GetDeprecatedProperties(dict)
 	assert.Len(t, deprecated, 2)
 	assert.Contains(t, deprecated, "container_name")
 	assert.Contains(t, deprecated, "expose")

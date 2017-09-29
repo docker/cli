@@ -34,7 +34,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.Bundlefile, "bundle-file", "", "Path to a Distributed Application Bundle file")
 	flags.SetAnnotation("bundle-file", "experimental", nil)
 	flags.SetAnnotation("bundle-file", "swarm", nil)
-	flags.StringVarP(&opts.Composefile, "compose-file", "c", "", "Path to a Compose file")
+	flags.StringSliceVarP(&opts.Composefiles, "compose-file", "c", []string{}, "Path to a Compose file")
 	flags.SetAnnotation("compose-file", "version", []string{"1.25"})
 	flags.BoolVar(&opts.SendRegistryAuth, "with-registry-auth", false, "Send registry authentication details to Swarm agents")
 	flags.SetAnnotation("with-registry-auth", "swarm", nil)
