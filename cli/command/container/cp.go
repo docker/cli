@@ -113,7 +113,7 @@ func resolveLocalPath(localPath string) (absPath string, err error) {
 		return
 	}
 
-	return archive.PreserveTrailingDotOrSeparator(absPath, localPath), nil
+	return archive.PreserveTrailingDotOrSeparator(absPath, localPath, filepath.Separator), nil
 }
 
 func copyFromContainer(ctx context.Context, dockerCli *command.DockerCli, srcContainer, srcPath, dstPath string, cpParam *cpConfig) (err error) {

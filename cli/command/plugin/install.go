@@ -65,10 +65,12 @@ func (s pluginRegistryService) ResolveRepository(name reference.Named) (repoInfo
 	return
 }
 
-func newRegistryService() registry.Service {
-	return pluginRegistryService{
-		Service: registry.NewService(registry.ServiceOptions{V2Only: true}),
+func newRegistryService() (registry.Service, error) {
+	svc, err := registry.NewService(registry.ServiceOptions{V2Only: true})
+	if err != nil {
+		return nil, err
 	}
+	return pluginRegistryService{Service: svc}, nil
 }
 
 func buildPullConfig(ctx context.Context, dockerCli *command.DockerCli, opts pluginOptions, cmdName string) (types.PluginInstallOptions, error) {
@@ -96,7 +98,11 @@ func buildPullConfig(ctx context.Context, dockerCli *command.DockerCli, opts plu
 		}
 
 		ctx := context.Background()
-		trusted, err := image.TrustedReference(ctx, dockerCli, nt, newRegistryService())
+		svc, err := newRegistryService()
+		if err != nil {
+			return types.PluginInstallOptions{}, err
+		}
+		trusted, err := image.TrustedReference(ctx, dockerCli, nt, svc)
 		if err != nil {
 			return types.PluginInstallOptions{}, err
 		}

@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
@@ -291,22 +290,24 @@ func attachContainer(
 		return nil, errAttach
 	}
 
-	*errCh = promise.Go(func() error {
-		streamer := hijackedIOStreamer{
-			streams:      dockerCli,
-			inputStream:  in,
-			outputStream: out,
-			errorStream:  cerr,
-			resp:         resp,
-			tty:          config.Tty,
-			detachKeys:   options.DetachKeys,
-		}
+	go func() {
+		*errCh <- func() error {
+			streamer := hijackedIOStreamer{
+				streams:      dockerCli,
+				inputStream:  in,
+				outputStream: out,
+				errorStream:  cerr,
+				resp:         resp,
+				tty:          config.Tty,
+				detachKeys:   options.DetachKeys,
+			}
 
-		if errHijack := streamer.stream(ctx); errHijack != nil {
-			return errHijack
-		}
-		return errAttach
-	})
+			if errHijack := streamer.stream(ctx); errHijack != nil {
+				return errHijack
+			}
+			return errAttach
+		}()
+	}()
 	return resp.Close, nil
 }
 
