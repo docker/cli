@@ -21,6 +21,7 @@ import (
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
+	"github.com/tonistiigi/fsutil"
 	"golang.org/x/time/rate"
 )
 
@@ -52,8 +53,20 @@ func addDirToSession(session *session.Session, contextDir string, progressOutput
 	}
 
 	p := &sizeProgress{out: progressOutput, action: "Streaming build context to Docker daemon"}
+	mapUIDAndGID := func(s *fsutil.Stat) bool {
+		s.Uid = uint32(0)
+		s.Gid = uint32(0)
 
-	workdirProvider := filesync.NewFSSyncProvider(contextDir, excludes)
+		return true
+	}
+
+	workdirProvider := filesync.NewFSSyncProvider([]filesync.SyncedDir{
+		{
+			Dir:      contextDir,
+			Excludes: excludes,
+			Map:      mapUIDAndGID,
+		},
+	})
 	session.Allow(workdirProvider)
 
 	// this will be replaced on parallel build jobs. keep the current
