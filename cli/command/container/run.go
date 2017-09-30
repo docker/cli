@@ -290,8 +290,11 @@ func attachContainer(
 		return nil, errAttach
 	}
 
+	ch := make(chan error, 1)
+	*errCh = ch
+
 	go func() {
-		*errCh <- func() error {
+		ch <- func() error {
 			streamer := hijackedIOStreamer{
 				streams:      dockerCli,
 				inputStream:  in,
