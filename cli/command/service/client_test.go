@@ -14,6 +14,7 @@ type fakeClient struct {
 	serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options types.ServiceInspectOptions) (swarm.Service, []byte, error)
 	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
 	serviceListFunc           func(context.Context, types.ServiceListOptions) ([]swarm.Service, error)
+	taskListFunc              func(context.Context, types.TaskListOptions) ([]swarm.Task, error)
 	infoFunc                  func(ctx context.Context) (types.Info, error)
 }
 
@@ -22,6 +23,9 @@ func (f *fakeClient) NodeList(ctx context.Context, options types.NodeListOptions
 }
 
 func (f *fakeClient) TaskList(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+	if f.taskListFunc != nil {
+		return f.taskListFunc(ctx, options)
+	}
 	return nil, nil
 }
 

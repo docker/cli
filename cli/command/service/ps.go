@@ -69,6 +69,9 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	if len(format) == 0 {
 		format = task.DefaultFormat(dockerCli.ConfigFile(), options.quiet)
 	}
+	if options.quiet {
+		options.noTrunc = true
+	}
 	if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
 		return err
 	}
