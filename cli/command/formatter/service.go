@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -520,19 +521,95 @@ func (c *serviceContext) Image() string {
 	return image
 }
 
+type portRange struct {
+	pStart   uint32
+	pEnd     uint32
+	tStart   uint32
+	tEnd     uint32
+	protocol swarm.PortConfigProtocol
+}
+
+func (pr portRange) String() string {
+	var (
+		pub string
+		tgt string
+	)
+
+	if pr.pEnd > pr.pStart {
+		pub = fmt.Sprintf("%d-%d", pr.pStart, pr.pEnd)
+	} else {
+		pub = fmt.Sprintf("%d", pr.pStart)
+	}
+	if pr.tEnd > pr.tStart {
+		tgt = fmt.Sprintf("%d-%d", pr.tStart, pr.tEnd)
+	} else {
+		tgt = fmt.Sprintf("%d", pr.tStart)
+	}
+	return fmt.Sprintf("*:%s->%s/%s", pub, tgt, pr.protocol)
+}
+
+// Ports formats published ports on the ingress network for output.
+//
+// Where possible, ranges are grouped to produce a compact output:
+// - multiple ports mapped to a single port (80->80, 81->80); is formatted as *:80-81->80
+// - multiple consecutive ports on both sides; (80->80, 81->81) are formatted as: *:80-81->80-81
+//
+// The above should not be grouped together, i.e.:
+// - 80->80, 81->81, 82->80 should be presented as : *:80-81->80-81, *:82->80
+//
+// TODO improve:
+// - combine non-consecutive ports mapped to a single port (80->80, 81->80, 84->80, 86->80, 87->80); to be printed as *:80-81,84,86-87->80
+// - combine tcp and udp mappings if their port-mapping is exactly the same (*:80-81->80-81/tcp+udp instead of *:80-81->80-81/tcp, *:80-81->80-81/udp)
 func (c *serviceContext) Ports() string {
 	if c.service.Endpoint.Ports == nil {
 		return ""
 	}
+
+	pr := portRange{}
 	ports := []string{}
-	for _, pConfig := range c.service.Endpoint.Ports {
-		if pConfig.PublishMode == swarm.PortConfigPublishModeIngress {
-			ports = append(ports, fmt.Sprintf("*:%d->%d/%s",
-				pConfig.PublishedPort,
-				pConfig.TargetPort,
-				pConfig.Protocol,
-			))
+
+	sort.Sort(byProtocolAndPublishedPort(c.service.Endpoint.Ports))
+
+	for _, p := range c.service.Endpoint.Ports {
+		if p.PublishMode == swarm.PortConfigPublishModeIngress {
+			prIsRange := pr.tEnd != pr.tStart
+			tOverlaps := p.TargetPort <= pr.tEnd
+
+			// Start a new port-range if:
+			// - the protocol is different from the current port-range
+			// - published or target port are not consecutive to the current port-range
+			// - the current port-range is a _range_, and the target port overlaps with the current range's target-ports
+			if p.Protocol != pr.protocol || p.PublishedPort-pr.pEnd > 1 || p.TargetPort-pr.tEnd > 1 || prIsRange && tOverlaps {
+				// start a new port-range, and print the previous port-range (if any)
+				if pr.pStart > 0 {
+					ports = append(ports, pr.String())
+				}
+				pr = portRange{
+					pStart:   p.PublishedPort,
+					pEnd:     p.PublishedPort,
+					tStart:   p.TargetPort,
+					tEnd:     p.TargetPort,
+					protocol: p.Protocol,
+				}
+				continue
+			}
+			pr.pEnd = p.PublishedPort
+			pr.tEnd = p.TargetPort
 		}
 	}
-	return strings.Join(ports, ",")
+	if pr.pStart > 0 {
+		ports = append(ports, pr.String())
+	}
+	return strings.Join(ports, ", ")
+}
+
+type byProtocolAndPublishedPort []swarm.PortConfig
+
+func (a byProtocolAndPublishedPort) Len() int      { return len(a) }
+func (a byProtocolAndPublishedPort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a byProtocolAndPublishedPort) Less(i, j int) bool {
+	if a[i].Protocol == a[j].Protocol {
+		return a[i].PublishedPort < a[j].PublishedPort
+	}
+	return a[i].Protocol < a[j].Protocol
 }

@@ -224,3 +224,124 @@ func TestServiceContextWriteJSONField(t *testing.T) {
 		assert.Equal(t, services[i].Spec.Name, s, msg)
 	}
 }
+
+func TestServiceContext_Ports(t *testing.T) {
+	c := serviceContext{
+		service: swarm.Service{
+			Endpoint: swarm.Endpoint{
+				Ports: []swarm.PortConfig{
+					{
+						Protocol:      "tcp",
+						TargetPort:    80,
+						PublishedPort: 81,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    80,
+						PublishedPort: 80,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    95,
+						PublishedPort: 95,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    90,
+						PublishedPort: 90,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    91,
+						PublishedPort: 91,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    92,
+						PublishedPort: 92,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    93,
+						PublishedPort: 93,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    94,
+						PublishedPort: 94,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    95,
+						PublishedPort: 95,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    90,
+						PublishedPort: 90,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    96,
+						PublishedPort: 96,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    91,
+						PublishedPort: 91,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    92,
+						PublishedPort: 92,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    93,
+						PublishedPort: 93,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "udp",
+						TargetPort:    94,
+						PublishedPort: 94,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    60,
+						PublishedPort: 60,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    61,
+						PublishedPort: 61,
+						PublishMode:   "ingress",
+					},
+					{
+						Protocol:      "tcp",
+						TargetPort:    61,
+						PublishedPort: 62,
+						PublishMode:   "ingress",
+					},
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, "*:60-61->60-61/tcp, *:62->61/tcp, *:80-81->80/tcp, *:90-95->90-95/tcp, *:90-96->90-96/udp", c.Ports())
+}
