@@ -90,6 +90,22 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 	assert.EqualError(t, err, "no such service: bar")
 }
 
+func TestRunPSQuiet(t *testing.T) {
+	client := &fakeClient{
+		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+			return []swarm.Service{{ID: "foo"}}, nil
+		},
+		taskListFunc: func(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+			return []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}}, nil
+		},
+	}
+
+	cli := test.NewFakeCli(client)
+	err := runPS(cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
+	require.NoError(t, err)
+	assert.Equal(t, "sxabyp0obqokwekpun4rjo0b3\n", cli.OutBuffer().String())
+}
+
 func TestUpdateNodeFilter(t *testing.T) {
 	selfNodeID := "foofoo"
 	filter := filters.NewArgs()
