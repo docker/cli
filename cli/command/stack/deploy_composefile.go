@@ -224,6 +224,7 @@ func createSecrets(
 			}
 		case apiclient.IsErrNotFound(err):
 			// secret does not exist, then we create a new one.
+			fmt.Fprintf(dockerCli.Out(), "Creating secret %s\n", secretSpec.Name)
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
 				return errors.Wrapf(err, "failed to create secret %s", secretSpec.Name)
 			}
@@ -251,6 +252,7 @@ func createConfigs(
 			}
 		case apiclient.IsErrNotFound(err):
 			// config does not exist, then we create a new one.
+			fmt.Fprintf(dockerCli.Out(), "Creating config %s\n", configSpec.Name)
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
 				errors.Wrapf(err, "failed to create config %s", configSpec.Name)
 			}
