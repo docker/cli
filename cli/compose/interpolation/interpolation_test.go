@@ -3,6 +3,7 @@ package interpolation
 import (
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,7 +42,10 @@ func TestInterpolate(t *testing.T) {
 			},
 		},
 	}
-	result, err := Interpolate(services, "service", defaultMapping)
+	result, err := Interpolate(services, Options{
+		SectionName: "service",
+		LookupValue: defaultMapping,
+	})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
@@ -52,6 +56,27 @@ func TestInvalidInterpolation(t *testing.T) {
 			"image": "${",
 		},
 	}
-	_, err := Interpolate(services, "service", defaultMapping)
+	_, err := Interpolate(services, Options{
+		SectionName: "service",
+		LookupValue: defaultMapping,
+	})
 	assert.EqualError(t, err, `Invalid interpolation format for "image" option in service "servicea": "${". You may need to escape any $ with another $.`)
+}
+
+func TestInterpolateWithDefaults(t *testing.T) {
+	defer env.Patch(t, "FOO", "BARZ")()
+
+	config := map[string]interface{}{
+		"networks": map[string]interface{}{
+			"foo": "thing_${FOO}",
+		},
+	}
+	expected := map[string]interface{}{
+		"networks": map[string]interface{}{
+			"foo": "thing_BARZ",
+		},
+	}
+	result, err := Interpolate(config, Options{})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
 }
