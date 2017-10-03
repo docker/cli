@@ -102,7 +102,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 		}
 		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
-			if client.IsErrTaskNotFound(err) {
+			if client.IsErrNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
 				err = fmt.Errorf("no such task or service: %v", opts.target)
