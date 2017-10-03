@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
@@ -51,14 +50,13 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 
 	configDict := getConfigDict(configDetails)
 
-	if services, ok := configDict["services"]; ok {
-		if servicesDict, ok := services.(map[string]interface{}); ok {
-			forbidden := getProperties(servicesDict, types.ForbiddenProperties)
+	if err := validateForbidden(configDict); err != nil {
+		return nil, err
+	}
 
-			if len(forbidden) > 0 {
-				return nil, &ForbiddenPropertiesError{Properties: forbidden}
-			}
-		}
+	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := schema.Validate(configDict, schema.Version(configDict)); err != nil {
@@ -66,12 +64,6 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	cfg := types.Config{}
-
-	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
-	if err != nil {
-		return nil, err
-	}
-
 	cfg.Services, err = LoadServices(config["services"], configDetails.WorkingDir, configDetails.LookupEnv)
 	if err != nil {
 		return nil, err
@@ -96,22 +88,16 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	return &cfg, err
 }
 
-func interpolateConfig(configDict map[string]interface{}, lookupEnv template.Mapping) (map[string]map[string]interface{}, error) {
-	config := make(map[string]map[string]interface{})
-
-	for _, key := range []string{"services", "networks", "volumes", "secrets", "configs"} {
-		section, ok := configDict[key]
-		if !ok {
-			config[key] = make(map[string]interface{})
-			continue
-		}
-		var err error
-		config[key], err = interpolation.Interpolate(section.(map[string]interface{}), key, lookupEnv)
-		if err != nil {
-			return nil, err
-		}
+func validateForbidden(configDict map[string]interface{}) error {
+	servicesDict, ok := configDict["services"].(map[string]interface{})
+	if !ok {
+		return nil
 	}
-	return config, nil
+	forbidden := getProperties(servicesDict, types.ForbiddenProperties)
+	if len(forbidden) > 0 {
+		return &ForbiddenPropertiesError{Properties: forbidden}
+	}
+	return nil
 }
 
 // GetUnsupportedProperties returns the list of any unsupported properties that are

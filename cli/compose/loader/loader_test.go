@@ -465,7 +465,7 @@ services:
 	assert.Contains(t, err.Error(), "services.dict-env.environment must be a mapping")
 }
 
-func TestEnvironmentInterpolation(t *testing.T) {
+func TestLoadWithEnvironmentInterpolation(t *testing.T) {
 	home := "/home/foo"
 	config, err := loadYAMLWithEnv(`
 version: "3"
@@ -502,19 +502,88 @@ volumes:
 	assert.Equal(t, home, config.Volumes["test"].Driver)
 }
 
+func TestLoadWithInterpolationCastFull(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3.4"
+services:
+  web:
+    configs:
+      - source: appconfig
+        mode: $theint
+    secrets:
+      - source: super
+        mode: $theint
+    healthcheck:
+      retries: ${theint}
+      disable: $thebool
+    deploy:
+      replicas: $theint
+      update_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
+      restart_policy:
+        max_attempts: $theint
+    ports:
+      - $theint
+      - "34567"
+      - target: $theint
+        published: $theint
+    ulimits:
+      - $theint
+      - hard: $theint
+        soft: $theint
+    privileged: $thebool
+    read_only: $thebool
+    stdin_open: ${thebool}
+    tty: $thebool
+    volumes:
+      - source: data
+        read_only: $thebool
+        volume:
+          nocopy: $thebool
+
+configs:
+  appconfig:
+    external: $thebool
+secrets:
+  super:
+    external: $thebool
+volumes:
+  data:
+    external: $thebool
+networks:
+  front:
+    external: $thebool
+    internal: $thebool
+    attachable: $thebool
+
+`))
+	require.NoError(t, err)
+	env := map[string]string{
+		"theint":   "555",
+		"thefloat": "3.14",
+		"thebool":  "true",
+	}
+
+	config, err := Load(buildConfigDetails(dict, env))
+	require.NoError(t, err)
+	expected := &types.Config{}
+	assert.Equal(t, expected, config)
+}
+
 func TestUnsupportedProperties(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3"
 services:
   web:
     image: web
-    build: 
+    build:
      context: ./web
     links:
       - bar
   db:
     image: db
-    build: 
+    build:
      context: ./db
 `))
 	require.NoError(t, err)
