@@ -2,6 +2,7 @@ package stack
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
-	configDetails, err := getConfigDetails(opts.composefile)
+	configDetails, err := getConfigDetails(opts.composefile, dockerCli.In())
 	if err != nil {
 		return err
 	}
@@ -118,16 +119,24 @@ func propertyWarnings(properties map[string]string) string {
 	return strings.Join(msgs, "\n\n")
 }
 
-func getConfigDetails(composefile string) (composetypes.ConfigDetails, error) {
+func getConfigDetails(composefile string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
-	absPath, err := filepath.Abs(composefile)
-	if err != nil {
-		return details, err
+	if composefile == "-" {
+		workingDir, err := os.Getwd()
+		if err != nil {
+			return details, err
+		}
+		details.WorkingDir = workingDir
+	} else {
+		absPath, err := filepath.Abs(composefile)
+		if err != nil {
+			return details, err
+		}
+		details.WorkingDir = filepath.Dir(absPath)
 	}
-	details.WorkingDir = filepath.Dir(absPath)
 
-	configFile, err := getConfigFile(composefile)
+	configFile, err := getConfigFile(composefile, stdin)
 	if err != nil {
 		return details, err
 	}
@@ -150,15 +159,24 @@ func buildEnvironment(env []string) (map[string]string, error) {
 	return result, nil
 }
 
-func getConfigFile(filename string) (*composetypes.ConfigFile, error) {
-	bytes, err := ioutil.ReadFile(filename)
+func getConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile, error) {
+	var bytes []byte
+	var err error
+
+	if filename == "-" {
+		bytes, err = ioutil.ReadAll(stdin)
+	} else {
+		bytes, err = ioutil.ReadFile(filename)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	config, err := loader.ParseYAML(bytes)
 	if err != nil {
 		return nil, err
 	}
+
 	return &composetypes.ConfigFile{
 		Filename: filename,
 		Config:   config,
@@ -204,8 +222,9 @@ func createSecrets(
 			if err := client.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
 				return errors.Wrapf(err, "failed to update secret %s", secretSpec.Name)
 			}
-		case apiclient.IsErrSecretNotFound(err):
+		case apiclient.IsErrNotFound(err):
 			// secret does not exist, then we create a new one.
+			fmt.Fprintf(dockerCli.Out(), "Creating secret %s\n", secretSpec.Name)
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
 				return errors.Wrapf(err, "failed to create secret %s", secretSpec.Name)
 			}
@@ -231,8 +250,9 @@ func createConfigs(
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
 				errors.Wrapf(err, "failed to update config %s", configSpec.Name)
 			}
-		case apiclient.IsErrConfigNotFound(err):
+		case apiclient.IsErrNotFound(err):
 			// config does not exist, then we create a new one.
+			fmt.Fprintf(dockerCli.Out(), "Creating config %s\n", configSpec.Name)
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
 				errors.Wrapf(err, "failed to create config %s", configSpec.Name)
 			}
@@ -318,10 +338,17 @@ func deployServices(
 
 			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
-			if resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]) {
+			switch {
+			case resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]):
+				// image should be updated by the server using QueryRegistry
 				updateOpts.QueryRegistry = true
+			case image == service.Spec.Labels[convert.LabelImage]:
+				// image has not changed; update the serviceSpec with the
+				// existing information that was set by QueryRegistry on the
+				// previous deploy. Otherwise this will trigger an incorrect
+				// service update.
+				serviceSpec.TaskTemplate.ContainerSpec.Image = service.Spec.TaskTemplate.ContainerSpec.Image
 			}
-
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,

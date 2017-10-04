@@ -9,11 +9,10 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"reflect"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/agl/ed25519"
 	"github.com/docker/notary/tuf/data"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -30,24 +29,6 @@ var Verifiers = map[data.SigAlgorithm]Verifier{
 	data.PyCryptoSignature:    RSAPyCryptoVerifier{},
 	data.ECDSASignature:       ECDSAVerifier{},
 	data.EDDSASignature:       Ed25519Verifier{},
-}
-
-// RegisterVerifier provides a convenience function for init() functions
-// to register additional verifiers or replace existing ones.
-func RegisterVerifier(algorithm data.SigAlgorithm, v Verifier) {
-	curr, ok := Verifiers[algorithm]
-	if ok {
-		typOld := reflect.TypeOf(curr)
-		typNew := reflect.TypeOf(v)
-		logrus.Debugf(
-			"replacing already loaded verifier %s:%s with %s:%s",
-			typOld.PkgPath(), typOld.Name(),
-			typNew.PkgPath(), typNew.Name(),
-		)
-	} else {
-		logrus.Debug("adding verifier for: ", algorithm)
-	}
-	Verifiers[algorithm] = v
 }
 
 // Ed25519Verifier used to verify Ed25519 signatures

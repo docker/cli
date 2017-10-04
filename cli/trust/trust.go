@@ -2,6 +2,7 @@ package trust
 
 import (
 	"encoding/json"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -10,9 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/cli/cli/command"
 	cliconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/distribution/reference"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
@@ -28,12 +28,19 @@ import (
 	"github.com/docker/notary/trustpinning"
 	"github.com/docker/notary/tuf/data"
 	"github.com/docker/notary/tuf/signed"
+	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
 )
 
 var (
 	// ReleasesRole is the role named "releases"
-	ReleasesRole = path.Join(data.CanonicalTargetsRole, "releases")
+	ReleasesRole = data.RoleName(path.Join(data.CanonicalTargetsRole.String(), "releases"))
+	// ActionsPullOnly defines the actions for read-only interactions with a Notary Repository
+	ActionsPullOnly = []string{"pull"}
+	// ActionsPushAndPull defines the actions for read-write interactions with a Notary Repository
+	ActionsPushAndPull = []string{"pull", "push"}
 )
 
 func trustDirectory() string {
@@ -86,7 +93,7 @@ func (scs simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
-func GetNotaryRepository(streams command.Streams, repoInfo *registry.RepositoryInfo, authConfig types.AuthConfig, actions ...string) (*client.NotaryRepository, error) {
+func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *types.AuthConfig, actions ...string) (client.Repository, error) {
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
@@ -119,7 +126,7 @@ func GetNotaryRepository(streams command.Streams, repoInfo *registry.RepositoryI
 	}
 
 	// Skip configuration headers since request is not going to Docker daemon
-	modifiers := registry.DockerHeaders(command.UserAgent(), http.Header{})
+	modifiers := registry.DockerHeaders(userAgent, http.Header{})
 	authTransport := transport.NewTransport(base, modifiers...)
 	pingClient := &http.Client{
 		Transport: authTransport,
@@ -152,7 +159,7 @@ func GetNotaryRepository(streams command.Streams, repoInfo *registry.RepositoryI
 		Actions:    actions,
 		Class:      repoInfo.Class,
 	}
-	creds := simpleCredentialStore{auth: authConfig}
+	creds := simpleCredentialStore{auth: *authConfig}
 	tokenHandlerOptions := auth.TokenHandlerOptions{
 		Transport:   authTransport,
 		Credentials: creds,
@@ -164,23 +171,23 @@ func GetNotaryRepository(streams command.Streams, repoInfo *registry.RepositoryI
 	modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
 	tr := transport.NewTransport(base, modifiers...)
 
-	return client.NewNotaryRepository(
+	return client.NewFileCachedRepository(
 		trustDirectory(),
-		repoInfo.Name.Name(),
+		data.GUN(repoInfo.Name.Name()),
 		server,
 		tr,
-		getPassphraseRetriever(streams),
+		getPassphraseRetriever(in, out),
 		trustpinning.TrustPinConfig{})
 }
 
-func getPassphraseRetriever(streams command.Streams) notary.PassRetriever {
+func getPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
 	aliasMap := map[string]string{
 		"root":     "root",
 		"snapshot": "repository",
 		"targets":  "repository",
 		"default":  "repository",
 	}
-	baseRetriever := passphrase.PromptRetrieverWithInOut(streams.In(), streams.Out(), aliasMap)
+	baseRetriever := passphrase.PromptRetrieverWithInOut(in, out, aliasMap)
 	env := map[string]string{
 		"root":     os.Getenv("DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE"),
 		"snapshot": os.Getenv("DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE"),
@@ -193,7 +200,7 @@ func getPassphraseRetriever(streams command.Streams) notary.PassRetriever {
 			return v, numAttempts > 1, nil
 		}
 		// For non-root roles, we can also try the "default" alias if it is specified
-		if v := env["default"]; v != "" && alias != data.CanonicalRootRole {
+		if v := env["default"]; v != "" && alias != data.CanonicalRootRole.String() {
 			return v, numAttempts > 1, nil
 		}
 		return baseRetriever(keyName, alias, createNew, numAttempts)
@@ -229,4 +236,140 @@ func NotaryError(repoName string, err error) error {
 	}
 
 	return err
+}
+
+// GetSignableRoles returns a list of roles for which we have valid signing
+// keys, given a notary repository and a target
+func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.RoleName, error) {
+	var signableRoles []data.RoleName
+
+	// translate the full key names, which includes the GUN, into just the key IDs
+	allCanonicalKeyIDs := make(map[string]struct{})
+	for fullKeyID := range repo.GetCryptoService().ListAllKeys() {
+		allCanonicalKeyIDs[path.Base(fullKeyID)] = struct{}{}
+	}
+
+	allDelegationRoles, err := repo.GetDelegationRoles()
+	if err != nil {
+		return signableRoles, err
+	}
+
+	// if there are no delegation roles, then just try to sign it into the targets role
+	if len(allDelegationRoles) == 0 {
+		signableRoles = append(signableRoles, data.CanonicalTargetsRole)
+		return signableRoles, nil
+	}
+
+	// there are delegation roles, find every delegation role we have a key for, and
+	// attempt to sign into into all those roles.
+	for _, delegationRole := range allDelegationRoles {
+		// We do not support signing any delegation role that isn't a direct child of the targets role.
+		// Also don't bother checking the keys if we can't add the target
+		// to this role due to path restrictions
+		if path.Dir(delegationRole.Name.String()) != data.CanonicalTargetsRole.String() || !delegationRole.CheckPaths(target.Name) {
+			continue
+		}
+
+		for _, canonicalKeyID := range delegationRole.KeyIDs {
+			if _, ok := allCanonicalKeyIDs[canonicalKeyID]; ok {
+				signableRoles = append(signableRoles, delegationRole.Name)
+				break
+			}
+		}
+	}
+
+	if len(signableRoles) == 0 {
+		return signableRoles, errors.Errorf("no valid signing keys for delegation roles")
+	}
+
+	return signableRoles, nil
+
+}
+
+// ImageRefAndAuth contains all reference information and the auth config for an image request
+type ImageRefAndAuth struct {
+	original   string
+	authConfig *types.AuthConfig
+	reference  reference.Named
+	repoInfo   *registry.RepositoryInfo
+	tag        string
+	digest     digest.Digest
+}
+
+// GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
+// as a ImageRefAndAuth struct
+func GetImageReferencesAndAuth(ctx context.Context, authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig, imgName string) (ImageRefAndAuth, error) {
+	ref, err := reference.ParseNormalizedNamed(imgName)
+	if err != nil {
+		return ImageRefAndAuth{}, err
+	}
+
+	// Resolve the Repository name from fqn to RepositoryInfo
+	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	if err != nil {
+		return ImageRefAndAuth{}, err
+	}
+
+	authConfig := authResolver(ctx, repoInfo.Index)
+	return ImageRefAndAuth{
+		original:   imgName,
+		authConfig: &authConfig,
+		reference:  ref,
+		repoInfo:   repoInfo,
+		tag:        getTag(ref),
+		digest:     getDigest(ref),
+	}, nil
+}
+
+func getTag(ref reference.Named) string {
+	switch x := ref.(type) {
+	case reference.Canonical, reference.Digested:
+		return ""
+	case reference.NamedTagged:
+		return x.Tag()
+	default:
+		return ""
+	}
+}
+
+func getDigest(ref reference.Named) digest.Digest {
+	switch x := ref.(type) {
+	case reference.Canonical:
+		return x.Digest()
+	case reference.Digested:
+		return x.Digest()
+	default:
+		return digest.Digest("")
+	}
+}
+
+// AuthConfig returns the auth information (username, etc) for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) AuthConfig() *types.AuthConfig {
+	return imgRefAuth.authConfig
+}
+
+// Reference returns the Image reference for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Reference() reference.Named {
+	return imgRefAuth.reference
+}
+
+// RepoInfo returns the repository information for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) RepoInfo() *registry.RepositoryInfo {
+	return imgRefAuth.repoInfo
+}
+
+// Tag returns the Image tag for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Tag() string {
+	return imgRefAuth.tag
+}
+
+// Digest returns the Image digest for a given ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Digest() digest.Digest {
+	return imgRefAuth.digest
+}
+
+// Name returns the image name used to initialize the ImageRefAndAuth
+func (imgRefAuth *ImageRefAndAuth) Name() string {
+	return imgRefAuth.original
+
 }

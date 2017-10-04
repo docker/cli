@@ -114,7 +114,7 @@ container2  --
 		}
 		var out bytes.Buffer
 		te.context.Output = &out
-		err := ContainerStatsWrite(te.context, stats, "linux")
+		err := ContainerStatsWrite(te.context, stats, "linux", false)
 		if err != nil {
 			assert.EqualError(t, err, te.expected)
 		} else {
@@ -180,7 +180,7 @@ container2  --  --
 		}
 		var out bytes.Buffer
 		te.context.Output = &out
-		err := ContainerStatsWrite(te.context, stats, "windows")
+		err := ContainerStatsWrite(te.context, stats, "windows", false)
 		if err != nil {
 			assert.EqualError(t, err, te.expected)
 		} else {
@@ -220,7 +220,7 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 	}
 
 	for _, context := range contexts {
-		ContainerStatsWrite(context.context, []StatsEntry{}, "linux")
+		ContainerStatsWrite(context.context, []StatsEntry{}, "linux", false)
 		assert.Equal(t, context.expected, out.String())
 		// Clean buffer
 		out.Reset()
@@ -258,7 +258,41 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 	}
 
 	for _, context := range contexts {
-		ContainerStatsWrite(context.context, []StatsEntry{}, "windows")
+		ContainerStatsWrite(context.context, []StatsEntry{}, "windows", false)
+		assert.Equal(t, context.expected, out.String())
+		// Clean buffer
+		out.Reset()
+	}
+}
+
+func TestContainerStatsContextWriteTrunc(t *testing.T) {
+	var out bytes.Buffer
+
+	contexts := []struct {
+		context  Context
+		trunc    bool
+		expected string
+	}{
+		{
+			Context{
+				Format: "{{.ID}}",
+				Output: &out,
+			},
+			false,
+			"b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc\n",
+		},
+		{
+			Context{
+				Format: "{{.ID}}",
+				Output: &out,
+			},
+			true,
+			"b95a83497c91\n",
+		},
+	}
+
+	for _, context := range contexts {
+		ContainerStatsWrite(context.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", context.trunc)
 		assert.Equal(t, context.expected, out.String())
 		// Clean buffer
 		out.Reset()

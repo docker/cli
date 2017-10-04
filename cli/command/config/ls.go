@@ -1,14 +1,26 @@
 package config
 
 import (
+	"sort"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	"vbom.ml/util/sortorder"
 )
+
+type byConfigName []swarm.Config
+
+func (r byConfigName) Len() int      { return len(r) }
+func (r byConfigName) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
+func (r byConfigName) Less(i, j int) bool {
+	return sortorder.NaturalLess(r[i].Spec.Name, r[j].Spec.Name)
+}
 
 type listOptions struct {
 	quiet  bool
@@ -54,6 +66,8 @@ func runConfigList(dockerCli command.Cli, options listOptions) error {
 			format = formatter.TableFormatKey
 		}
 	}
+
+	sort.Sort(byConfigName(configs))
 
 	configCtx := formatter.Context{
 		Output: dockerCli.Out(),

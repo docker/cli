@@ -64,7 +64,7 @@ func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions
 				Labels: convert.AddStackLabel(namespace, service.Labels),
 			},
 			TaskTemplate: swarm.TaskSpec{
-				ContainerSpec: swarm.ContainerSpec{
+				ContainerSpec: &swarm.ContainerSpec{
 					Image:   service.Image,
 					Command: service.Command,
 					Args:    service.Args,

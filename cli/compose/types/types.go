@@ -23,6 +23,7 @@ var UnsupportedProperties = []string{
 	"shm_size",
 	"sysctls",
 	"tmpfs",
+	"ulimits",
 	"userns_mode",
 }
 
@@ -78,6 +79,7 @@ type Config struct {
 type ServiceConfig struct {
 	Name string
 
+	Build           BuildConfig
 	CapAdd          []string `mapstructure:"cap_add"`
 	CapDrop         []string `mapstructure:"cap_drop"`
 	CgroupParent    string   `mapstructure:"cgroup_parent"`
@@ -125,6 +127,18 @@ type ServiceConfig struct {
 	WorkingDir      string `mapstructure:"working_dir"`
 }
 
+// BuildConfig is a type for build
+// using the same format at libcompose: https://github.com/docker/libcompose/blob/master/yaml/build.go#L12
+type BuildConfig struct {
+	Context    string
+	Dockerfile string
+	Args       MappingWithEquals
+	Labels     Labels
+	CacheFrom  StringList `mapstructure:"cache_from"`
+	Network    string
+	Target     string
+}
+
 // ShellCommand is a string or list of string args
 type ShellCommand []string
 
@@ -169,10 +183,10 @@ type DeployConfig struct {
 // HealthCheckConfig the healthcheck configuration for a service
 type HealthCheckConfig struct {
 	Test        HealthCheckTest
-	Timeout     string
-	Interval    string
+	Timeout     *time.Duration
+	Interval    *time.Duration
 	Retries     *uint64
-	StartPeriod string
+	StartPeriod *time.Duration `mapstructure:"start_period"`
 	Disable     bool
 }
 

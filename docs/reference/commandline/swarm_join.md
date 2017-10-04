@@ -94,7 +94,10 @@ for example `--advertise-addr eth0:2377`.
 Specifying a port is optional. If the value is a bare IP address, or interface
 name, the default port 2377 will be used.
 
-This flag is generally not necessary when joining an existing swarm.
+This flag is generally not necessary when joining an existing swarm. If
+you're joining new nodes through a load balancer, you should use this flag to
+ensure the node advertises its IP address and not the IP address of the load
+balancer.
 
 ### `--data-path-addr`
 

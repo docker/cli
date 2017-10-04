@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/idresolver"
+	"github.com/docker/cli/service/logs"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -101,7 +102,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 		}
 		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
-			if client.IsErrTaskNotFound(err) {
+			if client.IsErrNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
 				err = fmt.Errorf("no such task or service: %v", opts.target)
@@ -257,7 +258,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 		return 0, errors.Errorf("invalid context in log message: %v", string(buf))
 	}
 	// parse the details out
-	details, err := client.ParseLogDetails(string(parts[detailsIndex]))
+	details, err := logs.ParseLogDetails(string(parts[detailsIndex]))
 	if err != nil {
 		return 0, err
 	}

@@ -10,14 +10,18 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type cmdOption struct {
-	Option       string
-	Shorthand    string `yaml:",omitempty"`
-	DefaultValue string `yaml:"default_value,omitempty"`
-	Description  string `yaml:",omitempty"`
+	Option        string
+	Shorthand     string `yaml:",omitempty"`
+	ValueType     string `yaml:"value_type,omitempty"`
+	DefaultValue  string `yaml:"default_value,omitempty"`
+	Description   string `yaml:",omitempty"`
+	Deprecated    bool
+	MinAPIVersion string `yaml:"min_api_version,omitempty"`
+	Experimental  bool
 }
 
 type cmdDoc struct {
@@ -35,22 +39,24 @@ type cmdDoc struct {
 	Options          []cmdOption `yaml:",omitempty"`
 	InheritedOptions []cmdOption `yaml:"inherited_options,omitempty"`
 	Example          string      `yaml:"examples,omitempty"`
+	Deprecated       bool
+	MinAPIVersion    string `yaml:"min_api_version,omitempty"`
+	Experimental     bool
 }
 
 // GenYamlTree creates yaml structured ref files
 func GenYamlTree(cmd *cobra.Command, dir string) error {
-	identity := func(s string) string { return s }
 	emptyStr := func(s string) string { return "" }
-	return GenYamlTreeCustom(cmd, dir, emptyStr, identity)
+	return GenYamlTreeCustom(cmd, dir, emptyStr)
 }
 
 // GenYamlTreeCustom creates yaml structured ref files
-func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string) error {
+func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string) string) error {
 	for _, c := range cmd.Commands() {
 		if !c.IsAvailableCommand() || c.IsHelpCommand() {
 			continue
 		}
-		if err := GenYamlTreeCustom(c, dir, filePrepender, linkHandler); err != nil {
+		if err := GenYamlTreeCustom(c, dir, filePrepender); err != nil {
 			return err
 		}
 	}
@@ -73,11 +79,10 @@ func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandle
 }
 
 // GenYamlCustom creates custom yaml output
+// nolint: gocyclo
 func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 	cliDoc := cmdDoc{}
 	cliDoc.Name = cmd.CommandPath()
-
-	// Check experimental: ok := cmd.Tags["experimental"]
 
 	cliDoc.Aliases = strings.Join(cmd.Aliases, ", ")
 	cliDoc.Short = cmd.Short
@@ -92,6 +97,18 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 
 	if len(cmd.Example) > 0 {
 		cliDoc.Example = cmd.Example
+	}
+	if len(cmd.Deprecated) > 0 {
+		cliDoc.Deprecated = true
+	}
+	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
+	for curr := cmd; curr != nil; curr = curr.Parent() {
+		if v, ok := curr.Tags["version"]; ok && cliDoc.MinAPIVersion == "" {
+			cliDoc.MinAPIVersion = v
+		}
+		if _, ok := curr.Tags["experimental"]; ok && !cliDoc.Experimental {
+			cliDoc.Experimental = true
+		}
 	}
 
 	flags := cmd.NonInheritedFlags()
@@ -142,28 +159,34 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 }
 
 func genFlagResult(flags *pflag.FlagSet) []cmdOption {
-	var result []cmdOption
+	var (
+		result []cmdOption
+		opt    cmdOption
+	)
 
 	flags.VisitAll(func(flag *pflag.Flag) {
+		opt = cmdOption{
+			Option:       flag.Name,
+			ValueType:    flag.Value.Type(),
+			DefaultValue: forceMultiLine(flag.DefValue),
+			Description:  forceMultiLine(flag.Usage),
+			Deprecated:   len(flag.Deprecated) > 0,
+		}
+
 		// Todo, when we mark a shorthand is deprecated, but specify an empty message.
 		// The flag.ShorthandDeprecated is empty as the shorthand is deprecated.
 		// Using len(flag.ShorthandDeprecated) > 0 can't handle this, others are ok.
 		if !(len(flag.ShorthandDeprecated) > 0) && len(flag.Shorthand) > 0 {
-			opt := cmdOption{
-				Option:       flag.Name,
-				Shorthand:    flag.Shorthand,
-				DefaultValue: flag.DefValue,
-				Description:  forceMultiLine(flag.Usage),
-			}
-			result = append(result, opt)
-		} else {
-			opt := cmdOption{
-				Option:       flag.Name,
-				DefaultValue: forceMultiLine(flag.DefValue),
-				Description:  forceMultiLine(flag.Usage),
-			}
-			result = append(result, opt)
+			opt.Shorthand = flag.Shorthand
 		}
+		if _, ok := flag.Annotations["experimental"]; ok {
+			opt.Experimental = true
+		}
+		if v, ok := flag.Annotations["version"]; ok {
+			opt.MinAPIVersion = v[0]
+		}
+
+		result = append(result, opt)
 	})
 
 	return result

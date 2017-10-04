@@ -17,9 +17,9 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client/session"
-	"github.com/docker/docker/client/session/filesync"
 	"github.com/docker/docker/pkg/progress"
+	"github.com/moby/buildkit/session"
+	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 )
@@ -53,7 +53,9 @@ func addDirToSession(session *session.Session, contextDir string, progressOutput
 
 	p := &sizeProgress{out: progressOutput, action: "Streaming build context to Docker daemon"}
 
-	workdirProvider := filesync.NewFSSyncProvider(contextDir, excludes)
+	workdirProvider := filesync.NewFSSyncProvider([]filesync.SyncedDir{
+		{Dir: contextDir, Excludes: excludes},
+	})
 	session.Allow(workdirProvider)
 
 	// this will be replaced on parallel build jobs. keep the current

@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"runtime"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -22,12 +21,14 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -243,6 +244,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
+			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err
@@ -376,13 +378,13 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	if s != nil {
 		go func() {
-			logrus.Debugf("running session: %v", s.UUID())
+			logrus.Debugf("running session: %v", s.ID())
 			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
 				logrus.Error(err)
 				cancel() // cancel progress context
 			}
 		}()
-		buildOptions.SessionID = s.UUID()
+		buildOptions.SessionID = s.ID()
 	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)

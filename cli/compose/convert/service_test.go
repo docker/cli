@@ -109,16 +109,18 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 
 func TestConvertHealthcheck(t *testing.T) {
 	retries := uint64(10)
+	timeout := 30 * time.Second
+	interval := 2 * time.Millisecond
 	source := &composetypes.HealthCheckConfig{
 		Test:     []string{"EXEC", "touch", "/foo"},
-		Timeout:  "30s",
-		Interval: "2ms",
+		Timeout:  &timeout,
+		Interval: &interval,
 		Retries:  &retries,
 	}
 	expected := &container.HealthConfig{
 		Test:     source.Test,
-		Timeout:  30 * time.Second,
-		Interval: 2 * time.Millisecond,
+		Timeout:  timeout,
+		Interval: interval,
 		Retries:  10,
 	}
 

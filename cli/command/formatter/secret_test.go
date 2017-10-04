@@ -28,9 +28,9 @@ func TestSecretContextFormatWrite(t *testing.T) {
 		},
 		// Table format
 		{Context{Format: NewSecretFormat("table", false)},
-			`ID                  NAME                CREATED                  UPDATED
-1                   passwords           Less than a second ago   Less than a second ago
-2                   id_rsa              Less than a second ago   Less than a second ago
+			`ID                  NAME                DRIVER              CREATED                  UPDATED
+1                   passwords                               Less than a second ago   Less than a second ago
+2                   id_rsa                                  Less than a second ago   Less than a second ago
 `},
 		{Context{Format: NewSecretFormat("table {{.Name}}", true)},
 			`NAME

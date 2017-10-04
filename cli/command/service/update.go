@@ -216,8 +216,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach {
-		warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "updated")
+	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
@@ -270,7 +269,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		}
 	}
 
-	cspec := &spec.TaskTemplate.ContainerSpec
+	cspec := spec.TaskTemplate.ContainerSpec
 	task := &spec.TaskTemplate
 
 	taskResources := func() *swarm.ResourceRequirements {

@@ -2,6 +2,21 @@ version: "3.4"
 
 services:
   foo:
+
+    build:
+      context: ./dir
+      dockerfile: Dockerfile
+      args:
+        foo: bar
+      target: foo
+      network: foo
+      cache_from: 
+        - foo
+        - bar
+      labels: [FOO=BAR]
+
+
+    
     cap_add:
       - ALL
 
@@ -114,6 +129,7 @@ services:
       interval: 10s
       timeout: 1s
       retries: 5
+      start_period: 15s
 
     # Any valid image reference - repo, tag, id, sha
     image: redis

@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseVolumeAnonymousVolume(t *testing.T) {
@@ -149,6 +150,17 @@ func TestParseVolumeWithRW(t *testing.T) {
 	}
 }
 
+func TestParseVolumeWindowsNamedPipe(t *testing.T) {
+	volume, err := ParseVolume(`\\.\pipe\docker_engine:\\.\pipe\inside`)
+	require.NoError(t, err)
+	expected := types.ServiceVolumeConfig{
+		Type:   "bind",
+		Source: `\\.\pipe\docker_engine`,
+		Target: `\\.\pipe\inside`,
+	}
+	assert.Equal(t, expected, volume)
+}
+
 func TestIsFilePath(t *testing.T) {
 	assert.False(t, isFilePath("a界"))
 }
@@ -199,4 +211,14 @@ func TestParseVolumeSplitCases(t *testing.T) {
 		msg := fmt.Sprintf("Case %d: %s", casenumber, x.input)
 		assert.Equal(t, expected, parsed.Source != "", msg)
 	}
+}
+
+func TestParseVolumeInvalidEmptySpec(t *testing.T) {
+	_, err := ParseVolume("")
+	testutil.ErrorContains(t, err, "invalid empty volume spec")
+}
+
+func TestParseVolumeInvalidSections(t *testing.T) {
+	_, err := ParseVolume("/foo::rw")
+	testutil.ErrorContains(t, err, "invalid spec")
 }

@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/cli/internal/test/builders"
-	"github.com/docker/docker/pkg/testutil"
+	. "github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,14 +50,20 @@ func TestConfigList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
-				*Config(ConfigID("ID-foo"),
-					ConfigName("foo"),
+				*Config(ConfigID("ID-1-foo"),
+					ConfigName("1-foo"),
 					ConfigVersion(swarm.Version{Index: 10}),
 					ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
 					ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
 				),
-				*Config(ConfigID("ID-bar"),
-					ConfigName("bar"),
+				*Config(ConfigID("ID-10-foo"),
+					ConfigName("10-foo"),
+					ConfigVersion(swarm.Version{Index: 11}),
+					ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+					ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+				),
+				*Config(ConfigID("ID-2-foo"),
+					ConfigName("2-foo"),
 					ConfigVersion(swarm.Version{Index: 11}),
 					ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
 					ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
@@ -66,9 +72,8 @@ func TestConfigList(t *testing.T) {
 		},
 	})
 	cmd := newConfigListCommand(cli)
-	cmd.SetOutput(cli.OutBuffer())
 	assert.NoError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "config-list.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "config-list-sort.golden")
 }
 
 func TestConfigListWithQuietOption(t *testing.T) {

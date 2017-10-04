@@ -21,6 +21,11 @@ func (cl *memChangelist) Add(c Change) error {
 	return nil
 }
 
+// Location returns the string "memory"
+func (cl memChangelist) Location() string {
+	return "memory"
+}
+
 // Remove deletes the changes found at the given indices
 func (cl *memChangelist) Remove(idxs []int) error {
 	remove := make(map[int]struct{})

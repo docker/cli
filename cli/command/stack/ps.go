@@ -57,8 +57,7 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	}
 
 	if len(tasks) == 0 {
-		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
-		return nil
+		return fmt.Errorf("nothing found in stack: %s", namespace)
 	}
 
 	format := options.format

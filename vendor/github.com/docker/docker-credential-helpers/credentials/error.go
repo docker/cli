@@ -8,7 +8,7 @@ const (
 	// ErrCredentialsMissingServerURL and ErrCredentialsMissingUsername standardize
 	// invalid credentials or credentials management operations
 	errCredentialsMissingServerURLMessage = "no credentials server URL"
-	errCredentialsMissingUsernameMessage = "no credentials username"
+	errCredentialsMissingUsernameMessage  = "no credentials username"
 )
 
 // errCredentialsNotFound represents an error
@@ -43,7 +43,6 @@ func IsErrCredentialsNotFoundMessage(err string) bool {
 	return err == errCredentialsNotFoundMessage
 }
 
-
 // errCredentialsMissingServerURL represents an error raised
 // when the credentials object has no server URL or when no
 // server URL is provided to a credentials operation requiring
@@ -64,7 +63,6 @@ func (errCredentialsMissingUsername) Error() string {
 	return errCredentialsMissingUsernameMessage
 }
 
-
 // NewErrCredentialsMissingServerURL creates a new error for
 // errCredentialsMissingServerURL.
 func NewErrCredentialsMissingServerURL() error {
@@ -76,7 +74,6 @@ func NewErrCredentialsMissingServerURL() error {
 func NewErrCredentialsMissingUsername() error {
 	return errCredentialsMissingUsername{}
 }
-
 
 // IsCredentialsMissingServerURL returns true if the error
 // was an errCredentialsMissingServerURL.

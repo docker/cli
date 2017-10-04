@@ -21,6 +21,7 @@ import (
 type statsOptions struct {
 	all        bool
 	noStream   bool
+	noTrunc    bool
 	format     string
 	containers []string
 }
@@ -42,6 +43,7 @@ func NewStatsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&opts.noStream, "no-stream", false, "Disable streaming stats and only pull the first result")
+	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
 	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
 	return cmd
 }
@@ -214,7 +216,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 			ccstats = append(ccstats, c.GetStatistics())
 		}
 		cStats.mu.Unlock()
-		if err = formatter.ContainerStatsWrite(statsCtx, ccstats, daemonOSType); err != nil {
+		if err = formatter.ContainerStatsWrite(statsCtx, ccstats, daemonOSType, !opts.noTrunc); err != nil {
 			break
 		}
 		if len(cStats.cs) == 0 && !showAll {

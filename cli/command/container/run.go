@@ -10,16 +10,15 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/promise"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
@@ -291,22 +290,27 @@ func attachContainer(
 		return nil, errAttach
 	}
 
-	*errCh = promise.Go(func() error {
-		streamer := hijackedIOStreamer{
-			streams:      dockerCli,
-			inputStream:  in,
-			outputStream: out,
-			errorStream:  cerr,
-			resp:         resp,
-			tty:          config.Tty,
-			detachKeys:   options.DetachKeys,
-		}
+	ch := make(chan error, 1)
+	*errCh = ch
 
-		if errHijack := streamer.stream(ctx); errHijack != nil {
-			return errHijack
-		}
-		return errAttach
-	})
+	go func() {
+		ch <- func() error {
+			streamer := hijackedIOStreamer{
+				streams:      dockerCli,
+				inputStream:  in,
+				outputStream: out,
+				errorStream:  cerr,
+				resp:         resp,
+				tty:          config.Tty,
+				detachKeys:   options.DetachKeys,
+			}
+
+			if errHijack := streamer.stream(ctx); errHijack != nil {
+				return errHijack
+			}
+			return errAttach
+		}()
+	}()
 	return resp.Close, nil
 }
 

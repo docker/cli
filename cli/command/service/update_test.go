@@ -19,8 +19,12 @@ func TestUpdateServiceArgs(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("args", "the \"new args\"")
 
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 	cspec.Args = []string{"old", "args"}
 
 	updateService(nil, nil, flags, spec)
@@ -452,8 +456,12 @@ func TestUpdateSecretUpdateInPlace(t *testing.T) {
 }
 
 func TestUpdateReadOnly(t *testing.T) {
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 
 	// Update with --read-only=true, changed to true
 	flags := newUpdateCommand(nil).Flags()
@@ -474,8 +482,12 @@ func TestUpdateReadOnly(t *testing.T) {
 }
 
 func TestUpdateStopSignal(t *testing.T) {
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 
 	// Update with --stop-signal=SIGUSR1
 	flags := newUpdateCommand(nil).Flags()

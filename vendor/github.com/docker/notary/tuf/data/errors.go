@@ -4,12 +4,12 @@ import "fmt"
 
 // ErrInvalidMetadata is the error to be returned when metadata is invalid
 type ErrInvalidMetadata struct {
-	role string
+	role RoleName
 	msg  string
 }
 
 func (e ErrInvalidMetadata) Error() string {
-	return fmt.Sprintf("%s type metadata invalid: %s", e.role, e.msg)
+	return fmt.Sprintf("%s type metadata invalid: %s", e.role.String(), e.msg)
 }
 
 // ErrMissingMeta - couldn't find the FileMeta object for the given Role, or

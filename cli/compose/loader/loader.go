@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
@@ -19,6 +18,7 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -93,11 +93,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	cfg.Configs, err = LoadConfigObjs(config["configs"], configDetails.WorkingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
+	return &cfg, err
 }
 
 func interpolateConfig(configDict map[string]interface{}, lookupEnv template.Mapping) (map[string]map[string]interface{}, error) {
@@ -225,6 +221,7 @@ func createTransformHook() mapstructure.DecodeHookFuncType {
 		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
+		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
 	}
 
 	return func(_ reflect.Type, target reflect.Type, data interface{}) (interface{}, error) {
@@ -567,6 +564,17 @@ func transformStringSourceMap(data interface{}) (interface{}, error) {
 	}
 }
 
+func transformBuildConfig(data interface{}) (interface{}, error) {
+	switch value := data.(type) {
+	case string:
+		return map[string]interface{}{"context": value}, nil
+	case map[string]interface{}:
+		return data, nil
+	default:
+		return data, errors.Errorf("invalid type %T for service build", value)
+	}
+}
+
 func transformServiceVolumeConfig(data interface{}) (interface{}, error) {
 	switch value := data.(type) {
 	case string:
@@ -576,7 +584,6 @@ func transformServiceVolumeConfig(data interface{}) (interface{}, error) {
 	default:
 		return data, errors.Errorf("invalid type %T for service volume", value)
 	}
-
 }
 
 func transformServiceNetworkMap(value interface{}) (interface{}, error) {

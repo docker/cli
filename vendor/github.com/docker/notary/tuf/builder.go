@@ -28,7 +28,7 @@ func (e ErrInvalidBuilderInput) Error() string {
 // ConsistentInfo is the consistent name and size of a role, or just the name
 // of the role and a -1 if no file metadata for the role is known
 type ConsistentInfo struct {
-	RoleName string
+	RoleName data.RoleName
 	fileMeta data.FileMeta
 }
 
@@ -42,7 +42,7 @@ func (c ConsistentInfo) ChecksumKnown() bool {
 // ConsistentName returns the consistent name (rolename.sha256) for the role
 // given this consistent information
 func (c ConsistentInfo) ConsistentName() string {
-	return utils.ConsistentName(c.RoleName, c.fileMeta.Hashes[notary.SHA256])
+	return utils.ConsistentName(c.RoleName.String(), c.fileMeta.Hashes[notary.SHA256])
 }
 
 // Length returns the expected length of the role as per this consistent
@@ -56,7 +56,8 @@ func (c ConsistentInfo) Length() int64 {
 
 // RepoBuilder is an interface for an object which builds a tuf.Repo
 type RepoBuilder interface {
-	Load(roleName string, content []byte, minVersion int, allowExpired bool) error
+	Load(roleName data.RoleName, content []byte, minVersion int, allowExpired bool) error
+	LoadRootForUpdate(content []byte, minVersion int, isFinal bool) error
 	GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int, error)
 	GenerateTimestamp(prev *data.SignedTimestamp) ([]byte, int, error)
 	Finish() (*Repo, *Repo, error)
@@ -64,15 +65,18 @@ type RepoBuilder interface {
 	BootstrapNewBuilderWithNewTrustpin(trustpin trustpinning.TrustPinConfig) RepoBuilder
 
 	// informative functions
-	IsLoaded(roleName string) bool
-	GetLoadedVersion(roleName string) int
-	GetConsistentInfo(roleName string) ConsistentInfo
+	IsLoaded(roleName data.RoleName) bool
+	GetLoadedVersion(roleName data.RoleName) int
+	GetConsistentInfo(roleName data.RoleName) ConsistentInfo
 }
 
 // finishedBuilder refuses any more input or output
 type finishedBuilder struct{}
 
-func (f finishedBuilder) Load(roleName string, content []byte, minVersion int, allowExpired bool) error {
+func (f finishedBuilder) Load(roleName data.RoleName, content []byte, minVersion int, allowExpired bool) error {
+	return ErrBuildDone
+}
+func (f finishedBuilder) LoadRootForUpdate(content []byte, minVersion int, isFinal bool) error {
 	return ErrBuildDone
 }
 func (f finishedBuilder) GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int, error) {
@@ -86,27 +90,27 @@ func (f finishedBuilder) BootstrapNewBuilder() RepoBuilder { return f }
 func (f finishedBuilder) BootstrapNewBuilderWithNewTrustpin(trustpin trustpinning.TrustPinConfig) RepoBuilder {
 	return f
 }
-func (f finishedBuilder) IsLoaded(roleName string) bool        { return false }
-func (f finishedBuilder) GetLoadedVersion(roleName string) int { return 0 }
-func (f finishedBuilder) GetConsistentInfo(roleName string) ConsistentInfo {
+func (f finishedBuilder) IsLoaded(roleName data.RoleName) bool        { return false }
+func (f finishedBuilder) GetLoadedVersion(roleName data.RoleName) int { return 0 }
+func (f finishedBuilder) GetConsistentInfo(roleName data.RoleName) ConsistentInfo {
 	return ConsistentInfo{RoleName: roleName}
 }
 
 // NewRepoBuilder is the only way to get a pre-built RepoBuilder
-func NewRepoBuilder(gun string, cs signed.CryptoService, trustpin trustpinning.TrustPinConfig) RepoBuilder {
+func NewRepoBuilder(gun data.GUN, cs signed.CryptoService, trustpin trustpinning.TrustPinConfig) RepoBuilder {
 	return NewBuilderFromRepo(gun, NewRepo(cs), trustpin)
 }
 
 // NewBuilderFromRepo allows us to bootstrap a builder given existing repo data.
 // YOU PROBABLY SHOULDN'T BE USING THIS OUTSIDE OF TESTING CODE!!!
-func NewBuilderFromRepo(gun string, repo *Repo, trustpin trustpinning.TrustPinConfig) RepoBuilder {
+func NewBuilderFromRepo(gun data.GUN, repo *Repo, trustpin trustpinning.TrustPinConfig) RepoBuilder {
 	return &repoBuilderWrapper{
 		RepoBuilder: &repoBuilder{
 			repo:                 repo,
 			invalidRoles:         NewRepo(nil),
 			gun:                  gun,
 			trustpin:             trustpin,
-			loadedNotChecksummed: make(map[string][]byte),
+			loadedNotChecksummed: make(map[data.RoleName][]byte),
 		},
 	}
 }
@@ -134,13 +138,13 @@ type repoBuilder struct {
 	invalidRoles *Repo
 
 	// needed for root trust pininng verification
-	gun      string
+	gun      data.GUN
 	trustpin trustpinning.TrustPinConfig
 
 	// in case we load root and/or targets before snapshot and timestamp (
 	// or snapshot and not timestamp), so we know what to verify when the
 	// data with checksums come in
-	loadedNotChecksummed map[string][]byte
+	loadedNotChecksummed map[data.RoleName][]byte
 
 	// bootstrapped values to validate a new root
 	prevRoot                 *data.SignedRoot
@@ -159,7 +163,7 @@ func (rb *repoBuilder) BootstrapNewBuilder() RepoBuilder {
 		repo:                 NewRepo(rb.repo.cryptoService),
 		invalidRoles:         NewRepo(nil),
 		gun:                  rb.gun,
-		loadedNotChecksummed: make(map[string][]byte),
+		loadedNotChecksummed: make(map[data.RoleName][]byte),
 		trustpin:             rb.trustpin,
 
 		prevRoot:                 rb.repo.Root,
@@ -171,7 +175,7 @@ func (rb *repoBuilder) BootstrapNewBuilderWithNewTrustpin(trustpin trustpinning.
 	return &repoBuilderWrapper{RepoBuilder: &repoBuilder{
 		repo:                 NewRepo(rb.repo.cryptoService),
 		gun:                  rb.gun,
-		loadedNotChecksummed: make(map[string][]byte),
+		loadedNotChecksummed: make(map[data.RoleName][]byte),
 		trustpin:             trustpin,
 
 		prevRoot:                 rb.repo.Root,
@@ -180,7 +184,7 @@ func (rb *repoBuilder) BootstrapNewBuilderWithNewTrustpin(trustpin trustpinning.
 }
 
 // IsLoaded returns whether a particular role has already been loaded
-func (rb *repoBuilder) IsLoaded(roleName string) bool {
+func (rb *repoBuilder) IsLoaded(roleName data.RoleName) bool {
 	switch roleName {
 	case data.CanonicalRootRole:
 		return rb.repo.Root != nil
@@ -195,7 +199,7 @@ func (rb *repoBuilder) IsLoaded(roleName string) bool {
 
 // GetLoadedVersion returns the metadata version, if it is loaded, or 1 (the
 // minimum valid version number) otherwise
-func (rb *repoBuilder) GetLoadedVersion(roleName string) int {
+func (rb *repoBuilder) GetLoadedVersion(roleName data.RoleName) int {
 	switch {
 	case roleName == data.CanonicalRootRole && rb.repo.Root != nil:
 		return rb.repo.Root.Signed.Version
@@ -215,7 +219,7 @@ func (rb *repoBuilder) GetLoadedVersion(roleName string) int {
 // GetConsistentInfo returns the consistent name and size of a role, if it is known,
 // otherwise just the rolename and a -1 for size (both of which are inside a
 // ConsistentInfo object)
-func (rb *repoBuilder) GetConsistentInfo(roleName string) ConsistentInfo {
+func (rb *repoBuilder) GetConsistentInfo(roleName data.RoleName) ConsistentInfo {
 	info := ConsistentInfo{RoleName: roleName} // starts out with unknown filemeta
 	switch roleName {
 	case data.CanonicalTimestampRole:
@@ -224,29 +228,45 @@ func (rb *repoBuilder) GetConsistentInfo(roleName string) ConsistentInfo {
 		info.fileMeta.Length = notary.MaxTimestampSize
 	case data.CanonicalSnapshotRole:
 		if rb.repo.Timestamp != nil {
-			info.fileMeta = rb.repo.Timestamp.Signed.Meta[roleName]
+			info.fileMeta = rb.repo.Timestamp.Signed.Meta[roleName.String()]
 		}
 	case data.CanonicalRootRole:
 		switch {
 		case rb.bootstrappedRootChecksum != nil:
 			info.fileMeta = *rb.bootstrappedRootChecksum
 		case rb.repo.Snapshot != nil:
-			info.fileMeta = rb.repo.Snapshot.Signed.Meta[roleName]
+			info.fileMeta = rb.repo.Snapshot.Signed.Meta[roleName.String()]
 		}
 	default:
 		if rb.repo.Snapshot != nil {
-			info.fileMeta = rb.repo.Snapshot.Signed.Meta[roleName]
+			info.fileMeta = rb.repo.Snapshot.Signed.Meta[roleName.String()]
 		}
 	}
 	return info
 }
 
-func (rb *repoBuilder) Load(roleName string, content []byte, minVersion int, allowExpired bool) error {
+func (rb *repoBuilder) Load(roleName data.RoleName, content []byte, minVersion int, allowExpired bool) error {
+	return rb.loadOptions(roleName, content, minVersion, allowExpired, false, false)
+}
+
+// LoadRootForUpdate adds additional flags for updating the root.json file
+func (rb *repoBuilder) LoadRootForUpdate(content []byte, minVersion int, isFinal bool) error {
+	if err := rb.loadOptions(data.CanonicalRootRole, content, minVersion, !isFinal, !isFinal, true); err != nil {
+		return err
+	}
+	if !isFinal {
+		rb.prevRoot = rb.repo.Root
+	}
+	return nil
+}
+
+// loadOptions adds additional flags that should only be used for updating the root.json
+func (rb *repoBuilder) loadOptions(roleName data.RoleName, content []byte, minVersion int, allowExpired, skipChecksum, allowLoaded bool) error {
 	if !data.ValidRole(roleName) {
 		return ErrInvalidBuilderInput{msg: fmt.Sprintf("%s is an invalid role", roleName)}
 	}
 
-	if rb.IsLoaded(roleName) {
+	if !allowLoaded && rb.IsLoaded(roleName) {
 		return ErrInvalidBuilderInput{msg: fmt.Sprintf("%s has already been loaded", roleName)}
 	}
 
@@ -255,9 +275,9 @@ func (rb *repoBuilder) Load(roleName string, content []byte, minVersion int, all
 	case data.CanonicalRootRole:
 		break
 	case data.CanonicalTimestampRole, data.CanonicalSnapshotRole, data.CanonicalTargetsRole:
-		err = rb.checkPrereqsLoaded([]string{data.CanonicalRootRole})
+		err = rb.checkPrereqsLoaded([]data.RoleName{data.CanonicalRootRole})
 	default: // delegations
-		err = rb.checkPrereqsLoaded([]string{data.CanonicalRootRole, data.CanonicalTargetsRole})
+		err = rb.checkPrereqsLoaded([]data.RoleName{data.CanonicalRootRole, data.CanonicalTargetsRole})
 	}
 	if err != nil {
 		return err
@@ -265,7 +285,7 @@ func (rb *repoBuilder) Load(roleName string, content []byte, minVersion int, all
 
 	switch roleName {
 	case data.CanonicalRootRole:
-		return rb.loadRoot(content, minVersion, allowExpired)
+		return rb.loadRoot(content, minVersion, allowExpired, skipChecksum)
 	case data.CanonicalSnapshotRole:
 		return rb.loadSnapshot(content, minVersion, allowExpired)
 	case data.CanonicalTimestampRole:
@@ -277,7 +297,7 @@ func (rb *repoBuilder) Load(roleName string, content []byte, minVersion int, all
 	}
 }
 
-func (rb *repoBuilder) checkPrereqsLoaded(prereqRoles []string) error {
+func (rb *repoBuilder) checkPrereqsLoaded(prereqRoles []data.RoleName) error {
 	for _, req := range prereqRoles {
 		if !rb.IsLoaded(req) {
 			return ErrInvalidBuilderInput{msg: fmt.Sprintf("%s must be loaded first", req)}
@@ -301,7 +321,7 @@ func (rb *repoBuilder) GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int,
 		return nil, 0, ErrInvalidBuilderInput{msg: "cannot generate snapshot if timestamp has already been loaded"}
 	}
 
-	if err := rb.checkPrereqsLoaded([]string{data.CanonicalRootRole}); err != nil {
+	if err := rb.checkPrereqsLoaded([]data.RoleName{data.CanonicalRootRole}); err != nil {
 		return nil, 0, err
 	}
 
@@ -310,7 +330,7 @@ func (rb *repoBuilder) GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int,
 	// valid (it has a targets meta), we're good.
 	switch prev {
 	case nil:
-		if err := rb.checkPrereqsLoaded([]string{data.CanonicalTargetsRole}); err != nil {
+		if err := rb.checkPrereqsLoaded([]data.RoleName{data.CanonicalTargetsRole}); err != nil {
 			return nil, 0, err
 		}
 
@@ -342,7 +362,7 @@ func (rb *repoBuilder) GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int,
 	// the root and targets data (there may not be any) that that have been loaded,
 	// remove all of them from rb.loadedNotChecksummed
 	for tgtName := range rb.repo.Targets {
-		delete(rb.loadedNotChecksummed, tgtName)
+		delete(rb.loadedNotChecksummed, data.RoleName(tgtName))
 	}
 	delete(rb.loadedNotChecksummed, data.CanonicalRootRole)
 
@@ -367,7 +387,7 @@ func (rb *repoBuilder) GenerateTimestamp(prev *data.SignedTimestamp) ([]byte, in
 
 	// SignTimestamp always serializes the loaded snapshot and signs in the data, so we must always
 	// have the snapshot loaded first
-	if err := rb.checkPrereqsLoaded([]string{data.CanonicalRootRole, data.CanonicalSnapshotRole}); err != nil {
+	if err := rb.checkPrereqsLoaded([]data.RoleName{data.CanonicalRootRole, data.CanonicalSnapshotRole}); err != nil {
 		return nil, 0, err
 	}
 
@@ -408,10 +428,10 @@ func (rb *repoBuilder) GenerateTimestamp(prev *data.SignedTimestamp) ([]byte, in
 }
 
 // loadRoot loads a root if one has not been loaded
-func (rb *repoBuilder) loadRoot(content []byte, minVersion int, allowExpired bool) error {
+func (rb *repoBuilder) loadRoot(content []byte, minVersion int, allowExpired, skipChecksum bool) error {
 	roleName := data.CanonicalRootRole
 
-	signedObj, err := rb.bytesToSigned(content, data.CanonicalRootRole)
+	signedObj, err := rb.bytesToSigned(content, data.CanonicalRootRole, skipChecksum)
 	if err != nil {
 		return err
 	}
@@ -511,7 +531,7 @@ func (rb *repoBuilder) loadSnapshot(content []byte, minVersion int, allowExpired
 	// this snapshot to bootstrap the next builder if needed - and we don't need to do
 	// the 2-value assignment since we've already validated the signedSnapshot, which MUST
 	// have root metadata
-	rootMeta := signedSnapshot.Signed.Meta[data.CanonicalRootRole]
+	rootMeta := signedSnapshot.Signed.Meta[data.CanonicalRootRole.String()]
 	rb.nextRootChecksum = &rootMeta
 
 	if err := rb.validateChecksumsFromSnapshot(signedSnapshot); err != nil {
@@ -555,14 +575,14 @@ func (rb *repoBuilder) loadTargets(content []byte, minVersion int, allowExpired 
 	return nil
 }
 
-func (rb *repoBuilder) loadDelegation(roleName string, content []byte, minVersion int, allowExpired bool) error {
+func (rb *repoBuilder) loadDelegation(roleName data.RoleName, content []byte, minVersion int, allowExpired bool) error {
 	delegationRole, err := rb.repo.GetDelegationRole(roleName)
 	if err != nil {
 		return err
 	}
 
 	// bytesToSigned checks checksum
-	signedObj, err := rb.bytesToSigned(content, roleName)
+	signedObj, err := rb.bytesToSigned(content, roleName, false)
 	if err != nil {
 		return err
 	}
@@ -599,8 +619,8 @@ func (rb *repoBuilder) validateChecksumsFromTimestamp(ts *data.SignedTimestamp) 
 	sn, ok := rb.loadedNotChecksummed[data.CanonicalSnapshotRole]
 	if ok {
 		// by this point, the SignedTimestamp has been validated so it must have a snapshot hash
-		snMeta := ts.Signed.Meta[data.CanonicalSnapshotRole].Hashes
-		if err := data.CheckHashes(sn, data.CanonicalSnapshotRole, snMeta); err != nil {
+		snMeta := ts.Signed.Meta[data.CanonicalSnapshotRole.String()].Hashes
+		if err := data.CheckHashes(sn, data.CanonicalSnapshotRole.String(), snMeta); err != nil {
 			return err
 		}
 		delete(rb.loadedNotChecksummed, data.CanonicalSnapshotRole)
@@ -609,13 +629,13 @@ func (rb *repoBuilder) validateChecksumsFromTimestamp(ts *data.SignedTimestamp) 
 }
 
 func (rb *repoBuilder) validateChecksumsFromSnapshot(sn *data.SignedSnapshot) error {
-	var goodRoles []string
+	var goodRoles []data.RoleName
 	for roleName, loadedBytes := range rb.loadedNotChecksummed {
 		switch roleName {
 		case data.CanonicalSnapshotRole, data.CanonicalTimestampRole:
 			break
 		default:
-			if err := data.CheckHashes(loadedBytes, roleName, sn.Signed.Meta[roleName].Hashes); err != nil {
+			if err := data.CheckHashes(loadedBytes, roleName.String(), sn.Signed.Meta[roleName.String()].Hashes); err != nil {
 				return err
 			}
 			goodRoles = append(goodRoles, roleName)
@@ -627,10 +647,10 @@ func (rb *repoBuilder) validateChecksumsFromSnapshot(sn *data.SignedSnapshot) er
 	return nil
 }
 
-func (rb *repoBuilder) validateChecksumFor(content []byte, roleName string) error {
+func (rb *repoBuilder) validateChecksumFor(content []byte, roleName data.RoleName) error {
 	// validate the bootstrap checksum for root, if provided
 	if roleName == data.CanonicalRootRole && rb.bootstrappedRootChecksum != nil {
-		if err := data.CheckHashes(content, roleName, rb.bootstrappedRootChecksum.Hashes); err != nil {
+		if err := data.CheckHashes(content, roleName.String(), rb.bootstrappedRootChecksum.Hashes); err != nil {
 			return err
 		}
 	}
@@ -639,7 +659,7 @@ func (rb *repoBuilder) validateChecksumFor(content []byte, roleName string) erro
 	// loaded it is validated (to make sure everything in the repo is self-consistent)
 	checksums := rb.getChecksumsFor(roleName)
 	if checksums != nil { // as opposed to empty, in which case hash check should fail
-		if err := data.CheckHashes(content, roleName, *checksums); err != nil {
+		if err := data.CheckHashes(content, roleName.String(), *checksums); err != nil {
 			return err
 		}
 	} else if roleName != data.CanonicalTimestampRole {
@@ -655,9 +675,11 @@ func (rb *repoBuilder) validateChecksumFor(content []byte, roleName string) erro
 // Checksums the given bytes, and if they validate, convert to a data.Signed object.
 // If a checksums are nil (as opposed to empty), adds the bytes to the list of roles that
 // haven't been checksummed (unless it's a timestamp, which has no checksum reference).
-func (rb *repoBuilder) bytesToSigned(content []byte, roleName string) (*data.Signed, error) {
-	if err := rb.validateChecksumFor(content, roleName); err != nil {
-		return nil, err
+func (rb *repoBuilder) bytesToSigned(content []byte, roleName data.RoleName, skipChecksum bool) (*data.Signed, error) {
+	if !skipChecksum {
+		if err := rb.validateChecksumFor(content, roleName); err != nil {
+			return nil, err
+		}
 	}
 
 	// unmarshal to signed
@@ -671,7 +693,7 @@ func (rb *repoBuilder) bytesToSigned(content []byte, roleName string) (*data.Sig
 
 func (rb *repoBuilder) bytesToSignedAndValidateSigs(role data.BaseRole, content []byte) (*data.Signed, error) {
 
-	signedObj, err := rb.bytesToSigned(content, role.Name)
+	signedObj, err := rb.bytesToSigned(content, role.Name, false)
 	if err != nil {
 		return nil, err
 	}
@@ -690,7 +712,7 @@ func (rb *repoBuilder) bytesToSignedAndValidateSigs(role data.BaseRole, content 
 // available.  If the checksum reference *is* loaded, then always returns the
 // Hashes object for the given role - if it doesn't exist, returns an empty Hash
 // object (against which any checksum validation would fail).
-func (rb *repoBuilder) getChecksumsFor(role string) *data.Hashes {
+func (rb *repoBuilder) getChecksumsFor(role data.RoleName) *data.Hashes {
 	var hashes data.Hashes
 	switch role {
 	case data.CanonicalTimestampRole:
@@ -699,12 +721,12 @@ func (rb *repoBuilder) getChecksumsFor(role string) *data.Hashes {
 		if rb.repo.Timestamp == nil {
 			return nil
 		}
-		hashes = rb.repo.Timestamp.Signed.Meta[data.CanonicalSnapshotRole].Hashes
+		hashes = rb.repo.Timestamp.Signed.Meta[data.CanonicalSnapshotRole.String()].Hashes
 	default:
 		if rb.repo.Snapshot == nil {
 			return nil
 		}
-		hashes = rb.repo.Snapshot.Signed.Meta[role].Hashes
+		hashes = rb.repo.Snapshot.Signed.Meta[role.String()].Hashes
 	}
 	return &hashes
 }

@@ -12,11 +12,14 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
+	"github.com/docker/notary"
+	notaryclient "github.com/docker/notary/client"
 	"github.com/docker/notary/passphrase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -39,6 +42,7 @@ type Cli interface {
 	SetIn(in *InStream)
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 }
 
 // DockerCli is an instance the docker command line client.
@@ -111,44 +115,58 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	var err error
 	cli.client, err = NewAPIClientFromFlags(opts.Common, cli.configFile)
 	if tlsconfig.IsErrEncryptedKey(err) {
-		var (
-			passwd string
-			giveup bool
-		)
 		passRetriever := passphrase.PromptRetrieverWithInOut(cli.In(), cli.Out(), nil)
-
-		for attempts := 0; tlsconfig.IsErrEncryptedKey(err); attempts++ {
-			// some code and comments borrowed from notary/trustmanager/keystore.go
-			passwd, giveup, err = passRetriever("private", "encrypted TLS private", false, attempts)
-			// Check if the passphrase retriever got an error or if it is telling us to give up
-			if giveup || err != nil {
-				return errors.Wrap(err, "private key is encrypted, but could not get passphrase")
-			}
-
-			opts.Common.TLSOptions.Passphrase = passwd
-			cli.client, err = NewAPIClientFromFlags(opts.Common, cli.configFile)
+		newClient := func(password string) (client.APIClient, error) {
+			opts.Common.TLSOptions.Passphrase = password
+			return NewAPIClientFromFlags(opts.Common, cli.configFile)
 		}
+		cli.client, err = getClientWithPassword(passRetriever, newClient)
 	}
-
 	if err != nil {
 		return err
 	}
+	cli.initializeFromClient()
+	return nil
+}
 
+func (cli *DockerCli) initializeFromClient() {
 	cli.defaultVersion = cli.client.ClientVersion()
 
-	if ping, err := cli.client.Ping(context.Background()); err == nil {
-		cli.server = ServerInfo{
-			HasExperimental: ping.Experimental,
-			OSType:          ping.OSType,
-		}
-
-		cli.client.NegotiateAPIVersionPing(ping)
-	} else {
+	ping, err := cli.client.Ping(context.Background())
+	if err != nil {
 		// Default to true if we fail to connect to daemon
 		cli.server = ServerInfo{HasExperimental: true}
+
+		if ping.APIVersion != "" {
+			cli.client.NegotiateAPIVersionPing(ping)
+		}
+		return
 	}
 
-	return nil
+	cli.server = ServerInfo{
+		HasExperimental: ping.Experimental,
+		OSType:          ping.OSType,
+	}
+	cli.client.NegotiateAPIVersionPing(ping)
+}
+
+func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(password string) (client.APIClient, error)) (client.APIClient, error) {
+	for attempts := 0; ; attempts++ {
+		passwd, giveup, err := passRetriever("private", "encrypted TLS private", false, attempts)
+		if giveup || err != nil {
+			return nil, errors.Wrap(err, "private key is encrypted, but could not get passphrase")
+		}
+
+		apiclient, err := newClient(passwd)
+		if !tlsconfig.IsErrEncryptedKey(err) {
+			return apiclient, err
+		}
+	}
+}
+
+// NotaryClient provides a Notary Repository to interact with signed metadata for an image
+func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ServerInfo stores details about the supported features and platform of the

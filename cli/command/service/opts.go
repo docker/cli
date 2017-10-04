@@ -592,7 +592,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:      options.image,
 				Args:       options.args,
 				Command:    options.entrypoint.Value(),
@@ -691,7 +691,7 @@ func buildServiceDefaultFlagMapping() flagDefaults {
 }
 
 func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
-	flags.BoolVarP(detach, flagDetach, "d", true, "Exit immediately instead of waiting for the service to converge")
+	flags.BoolVarP(detach, flagDetach, "d", false, "Exit immediately instead of waiting for the service to converge")
 	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
 }
 

@@ -16,9 +16,9 @@ type SignedRoot struct {
 // Root is the Signed component of a root.json
 type Root struct {
 	SignedCommon
-	Keys               Keys                 `json:"keys"`
-	Roles              map[string]*RootRole `json:"roles"`
-	ConsistentSnapshot bool                 `json:"consistent_snapshot"`
+	Keys               Keys                   `json:"keys"`
+	Roles              map[RoleName]*RootRole `json:"roles"`
+	ConsistentSnapshot bool                   `json:"consistent_snapshot"`
 }
 
 // isValidRootStructure returns an error, or nil, depending on whether the content of the struct
@@ -51,7 +51,7 @@ func isValidRootStructure(r Root) error {
 	return nil
 }
 
-func isValidRootRoleStructure(metaContainingRole, rootRoleName string, r RootRole, validKeys Keys) error {
+func isValidRootRoleStructure(metaContainingRole, rootRoleName RoleName, r RootRole, validKeys Keys) error {
 	if r.Threshold < 1 {
 		return ErrInvalidMetadata{
 			role: metaContainingRole,
@@ -70,7 +70,7 @@ func isValidRootRoleStructure(metaContainingRole, rootRoleName string, r RootRol
 }
 
 // NewRoot initializes a new SignedRoot with a set of keys, roles, and the consistent flag
-func NewRoot(keys map[string]PublicKey, roles map[string]*RootRole, consistent bool) (*SignedRoot, error) {
+func NewRoot(keys map[string]PublicKey, roles map[RoleName]*RootRole, consistent bool) (*SignedRoot, error) {
 	signedRoot := &SignedRoot{
 		Signatures: make([]Signature, 0),
 		Signed: Root{
@@ -91,7 +91,7 @@ func NewRoot(keys map[string]PublicKey, roles map[string]*RootRole, consistent b
 
 // BuildBaseRole returns a copy of a BaseRole using the information in this SignedRoot for the specified role name.
 // Will error for invalid role name or key metadata within this SignedRoot
-func (r SignedRoot) BuildBaseRole(roleName string) (BaseRole, error) {
+func (r SignedRoot) BuildBaseRole(roleName RoleName) (BaseRole, error) {
 	roleData, ok := r.Signed.Roles[roleName]
 	if !ok {
 		return BaseRole{}, ErrInvalidRole{Role: roleName, Reason: "role not found in root file"}

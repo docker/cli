@@ -136,7 +136,7 @@ that the rolling restart happens gradually.
 
 ### Add or remove mounts
 
-Use the `--mount-add` or `--mount-rm` options add or remove a service's bind-mounts
+Use the `--mount-add` or `--mount-rm` options add or remove a service's bind mounts
 or volumes.
 
 The following example creates a service which mounts the `test-data` volume to
@@ -147,7 +147,7 @@ service name.
 
 - The `--mount-add` flag takes the same parameters as the `--mount` flag on
   `service create`. Refer to the [volumes and
-  bind-mounts](service_create.md#volumes-and-bind-mounts-mount) section in the
+  bind mounts](service_create.md#volumes-and-bind-mounts-mount) section in the
   `service create` reference for details.
 
 - The `--mount-rm` flag takes the `target` path of the mount.

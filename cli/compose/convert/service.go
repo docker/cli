@@ -128,7 +128,7 @@ func Service(
 			Labels: AddStackLabel(namespace, service.Deploy.Labels),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:           service.Image,
 				Command:         service.Entrypoint,
 				Args:            service.Command,
@@ -295,7 +295,13 @@ func convertServiceSecrets(
 		})
 	}
 
-	return servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(secrs, func(i, j int) bool { return secrs[i].SecretName < secrs[j].SecretName })
+	return secrs, err
 }
 
 // TODO: fix configs API so that ConfigsAPIClient is not required here
@@ -346,7 +352,13 @@ func convertServiceConfigObjs(
 		})
 	}
 
-	return servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(confs, func(i, j int) bool { return confs[i].ConfigName < confs[j].ConfigName })
+	return confs, err
 }
 
 func uint32Ptr(value uint32) *uint32 {
@@ -366,7 +378,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return nil, nil
 	}
 	var (
-		err                            error
 		timeout, interval, startPeriod time.Duration
 		retries                        int
 	)
@@ -379,23 +390,14 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		}, nil
 
 	}
-	if healthcheck.Timeout != "" {
-		timeout, err = time.ParseDuration(healthcheck.Timeout)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Timeout != nil {
+		timeout = *healthcheck.Timeout
 	}
-	if healthcheck.Interval != "" {
-		interval, err = time.ParseDuration(healthcheck.Interval)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Interval != nil {
+		interval = *healthcheck.Interval
 	}
-	if healthcheck.StartPeriod != "" {
-		startPeriod, err = time.ParseDuration(healthcheck.StartPeriod)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.StartPeriod != nil {
+		startPeriod = *healthcheck.StartPeriod
 	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)

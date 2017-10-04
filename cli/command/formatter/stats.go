@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 )
 
 const (
 	winOSType                  = "windows"
-	defaultStatsTableFormat    = "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
-	winDefaultStatsTableFormat = "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+	defaultStatsTableFormat    = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
+	winDefaultStatsTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
 	containerHeader = "CONTAINER"
 	cpuPercHeader   = "CPU %"
@@ -114,12 +115,13 @@ func NewContainerStats(container string) *ContainerStats {
 }
 
 // ContainerStatsWrite renders the context for a list of containers statistics
-func ContainerStatsWrite(ctx Context, containerStats []StatsEntry, osType string) error {
+func ContainerStatsWrite(ctx Context, containerStats []StatsEntry, osType string, trunc bool) error {
 	render := func(format func(subContext subContext) error) error {
 		for _, cstats := range containerStats {
 			containerStatsCtx := &containerStatsContext{
-				s:  cstats,
-				os: osType,
+				s:     cstats,
+				os:    osType,
+				trunc: trunc,
 			}
 			if err := format(containerStatsCtx); err != nil {
 				return err
@@ -149,8 +151,9 @@ func ContainerStatsWrite(ctx Context, containerStats []StatsEntry, osType string
 
 type containerStatsContext struct {
 	HeaderContext
-	s  StatsEntry
-	os string
+	s     StatsEntry
+	os    string
+	trunc bool
 }
 
 func (c *containerStatsContext) MarshalJSON() ([]byte, error) {
@@ -169,6 +172,9 @@ func (c *containerStatsContext) Name() string {
 }
 
 func (c *containerStatsContext) ID() string {
+	if c.trunc {
+		return stringid.TruncateID(c.s.ID)
+	}
 	return c.s.ID
 }
 
