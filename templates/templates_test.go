@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Github #32120
+// GitHub #32120
 func TestParseJSONFunctions(t *testing.T) {
 	tm, err := Parse(`{{json .Ports}}`)
 	assert.NoError(t, err)
