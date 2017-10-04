@@ -54,7 +54,8 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 		return nil, err
 	}
 
-	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
+	var err error
+	configDict, err = interpolateConfig(configDict, configDetails.LookupEnv)
 	if err != nil {
 		return nil, err
 	}
@@ -62,30 +63,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	if err := schema.Validate(configDict, schema.Version(configDict)); err != nil {
 		return nil, err
 	}
-
-	cfg := types.Config{}
-	cfg.Services, err = LoadServices(config["services"], configDetails.WorkingDir, configDetails.LookupEnv)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Networks, err = LoadNetworks(config["networks"])
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Volumes, err = LoadVolumes(config["volumes"])
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Secrets, err = LoadSecrets(config["secrets"], configDetails.WorkingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Configs, err = LoadConfigObjs(config["configs"], configDetails.WorkingDir)
-	return &cfg, err
+	return loadSections(configDict, configDetails)
 }
 
 func validateForbidden(configDict map[string]interface{}) error {
@@ -98,6 +76,66 @@ func validateForbidden(configDict map[string]interface{}) error {
 		return &ForbiddenPropertiesError{Properties: forbidden}
 	}
 	return nil
+}
+
+func loadSections(config map[string]interface{}, configDetails types.ConfigDetails) (*types.Config, error) {
+	var err error
+	cfg := types.Config{}
+
+	var loaders = []struct {
+		key string
+		fnc func(config map[string]interface{}) error
+	}{
+		{
+			key: "services",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Services, err = LoadServices(config, configDetails.WorkingDir, configDetails.LookupEnv)
+				return err
+			},
+		},
+		{
+			key: "networks",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Networks, err = LoadNetworks(config)
+				return err
+			},
+		},
+		{
+			key: "volumes",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Volumes, err = LoadVolumes(config)
+				return err
+			},
+		},
+		{
+			key: "secrets",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Secrets, err = LoadSecrets(config, configDetails.WorkingDir)
+				return err
+			},
+		},
+		{
+			key: "configs",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Configs, err = LoadConfigObjs(config, configDetails.WorkingDir)
+				return err
+			},
+		},
+	}
+	for _, loader := range loaders {
+		if err := loader.fnc(getSection(config, loader.key)); err != nil {
+			return nil, err
+		}
+	}
+	return &cfg, nil
+}
+
+func getSection(config map[string]interface{}, key string) map[string]interface{} {
+	section, ok := config[key]
+	if !ok {
+		return make(map[string]interface{})
+	}
+	return section.(map[string]interface{})
 }
 
 // GetUnsupportedProperties returns the list of any unsupported properties that are

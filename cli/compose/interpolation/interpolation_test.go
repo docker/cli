@@ -45,10 +45,7 @@ func TestInterpolate(t *testing.T) {
 			},
 		},
 	}
-	result, err := Interpolate(services, Options{
-		SectionName: "service",
-		LookupValue: defaultMapping,
-	})
+	result, err := Interpolate(services, Options{LookupValue: defaultMapping})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
@@ -59,11 +56,8 @@ func TestInvalidInterpolation(t *testing.T) {
 			"image": "${",
 		},
 	}
-	_, err := Interpolate(services, Options{
-		SectionName: "service",
-		LookupValue: defaultMapping,
-	})
-	assert.EqualError(t, err, `Invalid interpolation format for "image" option in service "servicea": "${". You may need to escape any $ with another $.`)
+	_, err := Interpolate(services, Options{LookupValue: defaultMapping})
+	assert.EqualError(t, err, `invalid interpolation format for servicea.image: "${". You may need to escape any $ with another $.`)
 }
 
 func TestInterpolateWithDefaults(t *testing.T) {
@@ -95,7 +89,7 @@ func TestInterpolateWithCast(t *testing.T) {
 	}
 	result, err := Interpolate(config, Options{
 		LookupValue:     defaultMapping,
-		TypeCastMapping: map[Path]Cast{NewPath("*", "replicas"): toInt},
+		TypeCastMapping: map[Path]Cast{NewPath(PathMatchAll, "replicas"): toInt},
 	})
 	assert.NoError(t, err)
 	expected := map[string]interface{}{

@@ -529,8 +529,9 @@ services:
       - target: $theint
         published: $theint
     ulimits:
-      - $theint
-      - hard: $theint
+      nproc: $theint
+      nofile:
+        hard: $theint
         soft: $theint
     privileged: $thebool
     read_only: $thebool
@@ -538,6 +539,7 @@ services:
     tty: $thebool
     volumes:
       - source: data
+        type: volume
         read_only: $thebool
         volume:
           nocopy: $thebool
@@ -567,7 +569,78 @@ networks:
 
 	config, err := Load(buildConfigDetails(dict, env))
 	require.NoError(t, err)
-	expected := &types.Config{}
+	expected := &types.Config{
+		Services: []types.ServiceConfig{
+			{
+				Name: "web",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "appconfig",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "super",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				HealthCheck: &types.HealthCheckConfig{
+					Retries: uint64Ptr(555),
+					Disable: true,
+				},
+				Deploy: types.DeployConfig{
+					Replicas: uint64Ptr(555),
+					UpdateConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
+					RestartPolicy: &types.RestartPolicy{
+						MaxAttempts: uint64Ptr(555),
+					},
+				},
+				Ports: []types.ServicePortConfig{
+					{Target: 555, Mode: "ingress", Protocol: "tcp"},
+					{Target: 34567, Mode: "ingress", Protocol: "tcp"},
+					{Target: 555, Published: 555},
+				},
+				Ulimits: map[string]*types.UlimitsConfig{
+					"nproc":  {Single: 555},
+					"nofile": {Hard: 555, Soft: 555},
+				},
+				Privileged: true,
+				ReadOnly:   true,
+				StdinOpen:  true,
+				Tty:        true,
+				Volumes: []types.ServiceVolumeConfig{
+					{
+						Source:   "data",
+						Type:     "volume",
+						ReadOnly: true,
+						Volume:   &types.ServiceVolumeVolume{NoCopy: true},
+					},
+				},
+				Environment: types.MappingWithEquals{},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"appconfig": {External: types.External{External: true, Name: "appconfig"}},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"super": {External: types.External{External: true, Name: "super"}},
+		},
+		Volumes: map[string]types.VolumeConfig{
+			"data": {External: types.External{External: true, Name: "data"}},
+		},
+		Networks: map[string]types.NetworkConfig{
+			"front": {
+				External:   types.External{External: true, Name: "front"},
+				Internal:   true,
+				Attachable: true,
+			},
+		},
+	}
+
 	assert.Equal(t, expected, config)
 }
 
@@ -745,6 +818,10 @@ func durationPtr(value time.Duration) *time.Duration {
 }
 
 func uint64Ptr(value uint64) *uint64 {
+	return &value
+}
+
+func uint32Ptr(value uint32) *uint32 {
 	return &value
 }
 

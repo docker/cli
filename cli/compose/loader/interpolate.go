@@ -8,46 +8,40 @@ import (
 	"github.com/pkg/errors"
 )
 
-var interpolateTypeCastMapping = map[string]map[interp.Path]interp.Cast{
-	"services": {
-		iPath("configs", "mode"):                              toInt,
-		iPath("secrets", "mode"):                              toInt,
-		iPath("healthcheck", "retries"):                       toInt,
-		iPath("healthcheck", "disable"):                       toBoolean,
-		iPath("deploy", "replicas"):                           toInt,
-		iPath("deploy", "update_config", "parallelism:"):      toInt,
-		iPath("deploy", "update_config", "max_failure_ratio"): toFloat,
-		iPath("deploy", "restart_policy", "max_attempts"):     toInt,
-		iPath("ports", "target"):                              toInt,
-		iPath("ports", "published"):                           toInt,
-		iPath("ulimits", interp.PathMatchAll):                 toInt,
-		iPath("ulimits", interp.PathMatchAll, "hard"):         toInt,
-		iPath("ulimits", interp.PathMatchAll, "soft"):         toInt,
-		iPath("privileged"):                                   toBoolean,
-		iPath("read_only"):                                    toBoolean,
-		iPath("stdin_open"):                                   toBoolean,
-		iPath("tty"):                                          toBoolean,
-		iPath("volumes", "read_only"):                         toBoolean,
-		iPath("volumes", "volume", "nocopy"):                  toBoolean,
-	},
-	"networks": {
-		iPath("external"):   toBoolean,
-		iPath("internal"):   toBoolean,
-		iPath("attachable"): toBoolean,
-	},
-	"volumes": {
-		iPath("external"): toBoolean,
-	},
-	"secrets": {
-		iPath("external"): toBoolean,
-	},
-	"configs": {
-		iPath("external"): toBoolean,
-	},
+var interpolateTypeCastMapping = map[interp.Path]interp.Cast{
+	servicePath("configs", interp.PathMatchList, "mode"):             toInt,
+	servicePath("secrets", interp.PathMatchList, "mode"):             toInt,
+	servicePath("healthcheck", "retries"):                            toInt,
+	servicePath("healthcheck", "disable"):                            toBoolean,
+	servicePath("deploy", "replicas"):                                toInt,
+	servicePath("deploy", "update_config", "parallelism"):            toInt,
+	servicePath("deploy", "update_config", "max_failure_ratio"):      toFloat,
+	servicePath("deploy", "restart_policy", "max_attempts"):          toInt,
+	servicePath("ports", interp.PathMatchList, "target"):             toInt,
+	servicePath("ports", interp.PathMatchList, "published"):          toInt,
+	servicePath("ulimits", interp.PathMatchAll):                      toInt,
+	servicePath("ulimits", interp.PathMatchAll, "hard"):              toInt,
+	servicePath("ulimits", interp.PathMatchAll, "soft"):              toInt,
+	servicePath("privileged"):                                        toBoolean,
+	servicePath("read_only"):                                         toBoolean,
+	servicePath("stdin_open"):                                        toBoolean,
+	servicePath("tty"):                                               toBoolean,
+	servicePath("volumes", interp.PathMatchList, "read_only"):        toBoolean,
+	servicePath("volumes", interp.PathMatchList, "volume", "nocopy"): toBoolean,
+	iPath("networks", interp.PathMatchAll, "external"):               toBoolean,
+	iPath("networks", interp.PathMatchAll, "internal"):               toBoolean,
+	iPath("networks", interp.PathMatchAll, "attachable"):             toBoolean,
+	iPath("volumes", interp.PathMatchAll, "external"):                toBoolean,
+	iPath("secrets", interp.PathMatchAll, "external"):                toBoolean,
+	iPath("configs", interp.PathMatchAll, "external"):                toBoolean,
 }
 
 func iPath(parts ...string) interp.Path {
-	return interp.NewPath(append([]string{interp.PathMatchAll}, parts...)...)
+	return interp.NewPath(parts...)
+}
+
+func servicePath(parts ...string) interp.Path {
+	return iPath(append([]string{"services", interp.PathMatchAll}, parts...)...)
 }
 
 func toInt(value string) (interface{}, error) {
@@ -70,26 +64,11 @@ func toBoolean(value string) (interface{}, error) {
 	}
 }
 
-func interpolateConfig(configDict map[string]interface{}, lookupEnv interp.LookupValue) (map[string]map[string]interface{}, error) {
-	config := make(map[string]map[string]interface{})
-
-	for _, key := range []string{"services", "networks", "volumes", "secrets", "configs"} {
-		section, ok := configDict[key]
-		if !ok {
-			config[key] = make(map[string]interface{})
-			continue
-		}
-		var err error
-		config[key], err = interp.Interpolate(
-			section.(map[string]interface{}),
-			interp.Options{
-				SectionName:     key,
-				LookupValue:     lookupEnv,
-				TypeCastMapping: interpolateTypeCastMapping[key],
-			})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return config, nil
+func interpolateConfig(configDict map[string]interface{}, lookupEnv interp.LookupValue) (map[string]interface{}, error) {
+	return interp.Interpolate(
+		configDict,
+		interp.Options{
+			LookupValue:     lookupEnv,
+			TypeCastMapping: interpolateTypeCastMapping,
+		})
 }

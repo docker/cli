@@ -2,7 +2,6 @@ package interpolation
 
 import (
 	"os"
-
 	"strings"
 
 	"github.com/docker/cli/cli/compose/template"
@@ -11,8 +10,6 @@ import (
 
 // Options supported by Interpolate
 type Options struct {
-	// SectionName of the configuration section
-	SectionName string
 	// LookupValue from a key
 	LookupValue LookupValue
 	// TypeCastMapping maps key paths to functions to cast to a type
@@ -30,8 +27,6 @@ type Cast func(value string) (interface{}, error)
 
 // Interpolate replaces variables in a string with the values from a mapping
 func Interpolate(config map[string]interface{}, opts Options) (map[string]interface{}, error) {
-	out := map[string]interface{}{}
-
 	if opts.LookupValue == nil {
 		opts.LookupValue = os.LookupEnv
 	}
@@ -39,43 +34,12 @@ func Interpolate(config map[string]interface{}, opts Options) (map[string]interf
 		opts.TypeCastMapping = make(map[Path]Cast)
 	}
 
-	for key, item := range config {
-		if item == nil {
-			out[key] = nil
-			continue
-		}
-		mapItem, ok := item.(map[string]interface{})
-		if !ok {
-			return nil, errors.Errorf("Invalid type for %s : %T instead of %T", key, item, out)
-		}
-		interpolatedItem, err := interpolateSectionItem(NewPath(key), mapItem, opts)
-		if err != nil {
-			return nil, err
-		}
-		out[key] = interpolatedItem
-	}
-
-	return out, nil
-}
-
-func interpolateSectionItem(
-	path Path,
-	item map[string]interface{},
-	opts Options,
-) (map[string]interface{}, error) {
 	out := map[string]interface{}{}
 
-	for key, value := range item {
-		interpolatedValue, err := recursiveInterpolate(value, path.Next(key), opts)
-		switch err := err.(type) {
-		case nil:
-		case *template.InvalidTemplateError:
-			return nil, errors.Errorf(
-				"Invalid interpolation format for %#v option in %s %#v: %#v. You may need to escape any $ with another $.",
-				key, opts.SectionName, path.root(), err.Template,
-			)
-		default:
-			return nil, errors.Wrapf(err, "error while interpolating %s in %s %s", key, opts.SectionName, path.root())
+	for key, value := range config {
+		interpolatedValue, err := recursiveInterpolate(value, NewPath(key), opts)
+		if err != nil {
+			return out, err
 		}
 		out[key] = interpolatedValue
 	}
@@ -89,13 +53,14 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 	case string:
 		newValue, err := template.Substitute(value, template.Mapping(opts.LookupValue))
 		if err != nil || newValue == value {
-			return value, err
+			return value, newPathError(path, err)
 		}
 		caster, ok := opts.getCasterForPath(path)
 		if !ok {
 			return newValue, nil
 		}
-		return caster(newValue)
+		casted, err := caster(newValue)
+		return casted, newPathError(path, errors.Wrap(err, "failed to cast to expected type"))
 
 	case map[string]interface{}:
 		out := map[string]interface{}{}
@@ -111,7 +76,7 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 	case []interface{}:
 		out := make([]interface{}, len(value))
 		for i, elem := range value {
-			interpolatedElem, err := recursiveInterpolate(elem, path, opts)
+			interpolatedElem, err := recursiveInterpolate(elem, path.Next(PathMatchList), opts)
 			if err != nil {
 				return nil, err
 			}
@@ -125,11 +90,27 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 	}
 }
 
+func newPathError(path Path, err error) error {
+	switch err := err.(type) {
+	case nil:
+		return nil
+	case *template.InvalidTemplateError:
+		return errors.Errorf(
+			"invalid interpolation format for %s: %#v. You may need to escape any $ with another $.",
+			path, err.Template)
+	default:
+		return errors.Wrapf(err, "error while interpolating %s", path)
+	}
+}
+
 const pathSeparator = "."
 
 // PathMatchAll is a token used as part of a Path to match any key at that level
 // in the nested structure
 const PathMatchAll = "*"
+
+// PathMatchList is a token used as part of a Path to match items in a list
+const PathMatchList = "[]"
 
 // Path is a dotted path of keys to a value in a nested mapping structure. A *
 // section in a path will match any key in the mapping structure.
@@ -143,14 +124,6 @@ func NewPath(items ...string) Path {
 // Next returns a new path by append part to the current path
 func (p Path) Next(part string) Path {
 	return Path(string(p) + pathSeparator + part)
-}
-
-func (p Path) root() string {
-	parts := p.parts()
-	if len(parts) == 0 {
-		return ""
-	}
-	return parts[0]
 }
 
 func (p Path) parts() []string {
