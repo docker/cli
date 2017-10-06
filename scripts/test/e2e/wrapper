@@ -23,7 +23,7 @@ docker build \
     -f dockerfiles/Dockerfile.dev .
 
 notary_volume="${unique_id}_notary-fixtures"
-docker volume create "$notary_volume"
+docker volume create --name "$notary_volume"
 docker run --rm \
     -v "$PWD:/go/src/github.com/docker/cli" \
     -v "$notary_volume:/data" \

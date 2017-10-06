@@ -23,6 +23,7 @@ function setup {
         export DOCKER_HOST="$engine_host"
         timeout -t 200 ./scripts/test/e2e/wait-on-daemon
         ./scripts/test/e2e/load-alpine
+        ./scripts/test/e2e/load-busybox
         is_swarm_enabled || docker swarm init
     ) >&2
     echo "$engine_host"
