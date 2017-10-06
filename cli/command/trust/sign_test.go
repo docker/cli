@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"bytes"
-
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
@@ -266,12 +264,13 @@ func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
 }
 
 func TestPrettyPrintExistingSignatureInfo(t *testing.T) {
-	buf := bytes.NewBuffer(nil)
+	fakeCli := test.NewFakeCli(&fakeClient{})
+
 	signers := []string{"Bob", "Alice", "Carol"}
 	existingSig := trustTagRow{trustTagKey{"tagName", "abc123"}, signers}
-	prettyPrintExistingSignatureInfo(buf, existingSig)
+	prettyPrintExistingSignatureInfo(fakeCli, existingSig)
 
-	assert.Contains(t, buf.String(), "Existing signatures for tag tagName digest abc123 from:\nAlice, Bob, Carol")
+	assert.Contains(t, fakeCli.OutBuffer().String(), "Existing signatures for tag tagName digest abc123 from:\nAlice, Bob, Carol")
 }
 
 func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {

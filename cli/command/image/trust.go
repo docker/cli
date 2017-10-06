@@ -11,12 +11,11 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -182,13 +181,57 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 }
 
 // trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) error {
-	refs, err := getTrustedPullTargets(cli, imgRefAndAuth)
+func trustedPull(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
+	var refs []target
+
+	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
+		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
 		return err
 	}
 
-	ref := imgRefAndAuth.Reference()
+	if tagged, isTagged := ref.(reference.NamedTagged); !isTagged {
+		// List all targets
+		targets, err := notaryRepo.ListTargets(trust.ReleasesRole, data.CanonicalTargetsRole)
+		if err != nil {
+			return trust.NotaryError(ref.Name(), err)
+		}
+		for _, tgt := range targets {
+			t, err := convertTarget(tgt.Target)
+			if err != nil {
+				fmt.Fprintf(cli.Out(), "Skipping target for %q\n", reference.FamiliarName(ref))
+				continue
+			}
+			// Only list tags in the top level targets role or the releases delegation role - ignore
+			// all other delegation roles
+			if tgt.Role != trust.ReleasesRole && tgt.Role != data.CanonicalTargetsRole {
+				continue
+			}
+			refs = append(refs, t)
+		}
+		if len(refs) == 0 {
+			return trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
+		}
+	} else {
+		t, err := notaryRepo.GetTargetByName(tagged.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
+		if err != nil {
+			return trust.NotaryError(ref.Name(), err)
+		}
+		// Only get the tag if it's in the top level targets role or the releases delegation role
+		// ignore it if it's in any other delegation roles
+		if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
+			return trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
+		}
+
+		logrus.Debugf("retrieving target for %s role\n", t.Role)
+		r, err := convertTarget(t.Target)
+		if err != nil {
+			return err
+
+		}
+		refs = append(refs, r)
+	}
+
 	for i, r := range refs {
 		displayTag := r.name
 		if displayTag != "" {
@@ -200,7 +243,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, imgRefAndAuth, false); err != nil {
+		if err := imagePullPrivileged(ctx, cli, authConfig, reference.FamiliarString(trustedRef), requestPrivilege, false); err != nil {
 			return err
 		}
 
@@ -216,65 +259,13 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 	return nil
 }
 
-func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
-	if err != nil {
-		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
-		return nil, err
-	}
-
-	ref := imgRefAndAuth.Reference()
-	tagged, isTagged := ref.(reference.NamedTagged)
-	if !isTagged {
-		// List all targets
-		targets, err := notaryRepo.ListTargets(trust.ReleasesRole, data.CanonicalTargetsRole)
-		if err != nil {
-			return nil, trust.NotaryError(ref.Name(), err)
-		}
-		var refs []target
-		for _, tgt := range targets {
-			t, err := convertTarget(tgt.Target)
-			if err != nil {
-				fmt.Fprintf(cli.Out(), "Skipping target for %q\n", reference.FamiliarName(ref))
-				continue
-			}
-			// Only list tags in the top level targets role or the releases delegation role - ignore
-			// all other delegation roles
-			if tgt.Role != trust.ReleasesRole && tgt.Role != data.CanonicalTargetsRole {
-				continue
-			}
-			refs = append(refs, t)
-		}
-		if len(refs) == 0 {
-			return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
-		}
-		return refs, nil
-	}
-
-	t, err := notaryRepo.GetTargetByName(tagged.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
-	if err != nil {
-		return nil, trust.NotaryError(ref.Name(), err)
-	}
-	// Only get the tag if it's in the top level targets role or the releases delegation role
-	// ignore it if it's in any other delegation roles
-	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
-	}
-
-	logrus.Debugf("retrieving target for %s role\n", t.Role)
-	r, err := convertTarget(t.Target)
-	return []target{r}, err
-}
-
 // imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, all bool) error {
-	ref := reference.FamiliarString(imgRefAndAuth.Reference())
+func imagePullPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref string, requestPrivilege types.RequestPrivilegeFunc, all bool) error {
 
-	encodedAuth, err := command.EncodeAuthToBase64(*imgRefAndAuth.AuthConfig())
+	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return err
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
 	options := types.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
@@ -354,11 +345,4 @@ func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canon
 	fmt.Fprintf(cli.Out(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
 
 	return cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef)
-}
-
-// AuthResolver returns an auth resolver function from a command.Cli
-func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
-	return func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
-	}
 }
