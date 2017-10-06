@@ -14,5 +14,8 @@ services:
       ports:
         - 4443:4443
       volumes:
-       - ./testdata/notary:/fixtures
+       - notary-fixtures:/fixtures
       command: ['notary-server', '-config=/fixtures/notary-config.json']
+
+volumes:
+  notary-fixtures: {}
