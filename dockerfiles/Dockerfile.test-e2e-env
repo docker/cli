@@ -1,6 +1,6 @@
 FROM    docker/compose:1.15.0
 
-RUN     apk add -U bash curl
+RUN     apk add -U bash curl ca-certificates
 
 ARG     DOCKER_CHANNEL=edge
 ARG     DOCKER_VERSION=17.06.0-ce
@@ -13,5 +13,8 @@ ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /work
 COPY    scripts/test/e2e scripts/test/e2e
 COPY    e2e/compose-env.yaml e2e/compose-env.yaml
+COPY    e2e/testdata e2e/testdata
+COPY    e2e/testdata/notary/root-ca.cert /usr/local/share/ca-certificates/notary.cert
+RUN     update-ca-certificates
 
 ENTRYPOINT ["bash", "/work/scripts/test/e2e/run"]
