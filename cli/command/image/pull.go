@@ -54,6 +54,10 @@ func runPull(cli command.Cli, opts pullOptions) error {
 
 	if !opts.all && reference.IsNameOnly(distributionRef) {
 		distributionRef = reference.TagNameOnly(distributionRef)
+		imgRefAndAuth, err = trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), distributionRef.String())
+		if err != nil {
+			return err
+		}
 		if tagged, ok := distributionRef.(reference.Tagged); ok {
 			fmt.Fprintf(cli.Out(), "Using default tag: %s\n", tagged.Tag())
 		}

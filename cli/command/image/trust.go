@@ -200,7 +200,11 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, imgRefAndAuth, false); err != nil {
+		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), trustedRef.String())
+		if err != nil {
+			return err
+		}
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, false); err != nil {
 			return err
 		}
 
