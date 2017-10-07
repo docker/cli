@@ -4505,7 +4505,7 @@ _docker_system() {
 		info
 		prune
 	"
-	__docker_subcommands "$subcommands $aliases" && return
+	__docker_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
