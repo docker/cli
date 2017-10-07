@@ -3224,7 +3224,7 @@ _docker_service_rm() {
 _docker_service_rollback() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--detach=false -d --help --quit -q" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach -d --help --quit -q" -- "$cur" ) )
 			;;
 		*)
 			local counter=$( __docker_pos_first_nonflag )
@@ -3238,7 +3238,7 @@ _docker_service_rollback() {
 _docker_service_scale() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--detach=false -d=false --help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach -d --help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_services
@@ -3339,7 +3339,7 @@ _docker_service_update_and_create() {
 	"
 
 	local boolean_options="
-		--detach=false -d=false
+		--detach -d
 		--help
 		--no-healthcheck
 		--read-only
