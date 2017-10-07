@@ -4660,6 +4660,68 @@ _docker_tag() {
 	_docker_image_tag
 }
 
+
+_docker_trust() {
+	local subcommands="
+		revoke
+		sign
+		view
+	"
+	__docker_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_trust_revoke() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --yes -y" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_images
+			fi
+			;;
+	esac
+}
+
+_docker_trust_sign() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_images
+			fi
+			;;
+	esac
+}
+
+_docker_trust_view() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_images
+			fi
+			;;
+	esac
+}
+
+
 _docker_unpause() {
 	_docker_container_unpause
 }
@@ -4887,6 +4949,7 @@ _docker() {
 	local experimental_commands=(
 		checkpoint
 		deploy
+		trust
 	)
 
 	local commands=(${management_commands[*]} ${top_level_commands[*]})
