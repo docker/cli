@@ -3,7 +3,6 @@ package trust
 import (
 	"context"
 	"fmt"
-	"io"
 	"path"
 	"sort"
 	"strings"
@@ -12,6 +11,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	"github.com/pkg/errors"
@@ -24,23 +25,30 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Sign an image",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSignImage(dockerCli, args[0])
+			return signImage(dockerCli, args[0])
 		},
 	}
 	return cmd
 }
 
-func runSignImage(cli command.Cli, imageName string) error {
+func signImage(cli command.Cli, imageName string) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
+	authResolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
+		return command.ResolveAuthConfig(ctx, cli, index)
+	}
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver, imageName)
 	if err != nil {
 		return err
 	}
-	if err := validateTag(imgRefAndAuth); err != nil {
-		return err
+	tag := imgRefAndAuth.Tag()
+	if tag == "" {
+		if imgRefAndAuth.Digest() != "" {
+			return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+		}
+		return fmt.Errorf("No tag specified for %s", imageName)
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
@@ -70,7 +78,7 @@ func runSignImage(cli command.Cli, imageName string) error {
 		}
 	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "push")
-	target, err := createTarget(notaryRepo, imgRefAndAuth.Tag())
+	target, err := createTarget(notaryRepo, tag)
 	if err != nil {
 		switch err := err.(type) {
 		case client.ErrNoSuchTarget, client.ErrRepositoryNotExist:
@@ -83,36 +91,21 @@ func runSignImage(cli command.Cli, imageName string) error {
 			return err
 		}
 	}
-	return signAndPublishToTarget(cli.Out(), imgRefAndAuth, notaryRepo, target)
-}
 
-func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, notaryRepo client.Repository, target client.Target) error {
-	tag := imgRefAndAuth.Tag()
-	fmt.Fprintf(out, "Signing and pushing trust metadata for %s\n", imgRefAndAuth.Name())
+	fmt.Fprintf(cli.Out(), "Signing and pushing trust metadata for %s\n", imageName)
 	existingSigInfo, err := getExistingSignatureInfoForReleasedTag(notaryRepo, tag)
 	if err != nil {
 		return err
 	}
 	err = image.AddTargetToAllSignableRoles(notaryRepo, &target)
 	if err == nil {
-		prettyPrintExistingSignatureInfo(out, existingSigInfo)
+		prettyPrintExistingSignatureInfo(cli, existingSigInfo)
 		err = notaryRepo.Publish()
 	}
 	if err != nil {
 		return errors.Wrapf(err, "failed to sign %q:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	}
-	fmt.Fprintf(out, "Successfully signed %q:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
-	return nil
-}
-
-func validateTag(imgRefAndAuth trust.ImageRefAndAuth) error {
-	tag := imgRefAndAuth.Tag()
-	if tag == "" {
-		if imgRefAndAuth.Digest() != "" {
-			return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
-		}
-		return fmt.Errorf("No tag specified for %s", imgRefAndAuth.Name())
-	}
+	fmt.Fprintf(cli.Out(), "Successfully signed %q:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
 }
 
@@ -161,10 +154,10 @@ func getExistingSignatureInfoForReleasedTag(notaryRepo client.Repository, tag st
 	return releasedTargetInfoList[0], nil
 }
 
-func prettyPrintExistingSignatureInfo(out io.Writer, existingSigInfo trustTagRow) {
+func prettyPrintExistingSignatureInfo(cli command.Cli, existingSigInfo trustTagRow) {
 	sort.Strings(existingSigInfo.Signers)
 	joinedSigners := strings.Join(existingSigInfo.Signers, ", ")
-	fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.TagName, existingSigInfo.HashHex, joinedSigners)
+	fmt.Fprintf(cli.Out(), "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.TagName, existingSigInfo.HashHex, joinedSigners)
 }
 
 func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.RoleName) error {
