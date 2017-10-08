@@ -2201,6 +2201,7 @@ _docker_daemon() {
 		--max-concurrent-uploads
 		--metrics-addr
 		--mtu
+		--network-control-plane-mtu
 		--oom-score-adjust
 		--pidfile -p
 		--registry-mirror
