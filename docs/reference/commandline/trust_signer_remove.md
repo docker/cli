@@ -1,6 +1,6 @@
 ---
-title: "signer-remove"
-description: "The signer-remove command description and usage"
+title: "signer remove"
+description: "The signer remove command description and usage"
 keywords: "signer, notary, trust"
 ---
 
@@ -13,10 +13,10 @@ keywords: "signer, notary, trust"
      will be rejected.
 -->
 
-# trust signer-remove
+# trust signer remove
 
 ```markdown
-Usage:  docker trust signer-remove [OPTIONS] NAME IMAGE [IMAGE...]
+Usage:  docker trust signer remove [OPTIONS] NAME IMAGE [IMAGE...]
 
 Remove a signer from one or more repositories
 
@@ -24,9 +24,9 @@ Remove a signer from one or more repositories
 
 ## Description
 
-`docker trust signer-remove` removes signers from signed repositories.
+`docker trust signer remove` removes signers from signed repositories.
 
-`docker trust signer-remove` is currently experimental.
+`docker trust signer remove` is currently experimental.
 
 ## Examples
 
@@ -51,10 +51,10 @@ Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-Remove `alice` with `docker trust signer-remove`:
+Remove `alice` with `docker trust signer remove`:
 
 ```bash
-$ docker trust signer-remove alice example/trust-demo
+$ docker trust signer remove alice example/trust-demo
   Enter passphrase for repository key with ID 642692c: 
   Successfully removed alice from example/trust-demo
 
@@ -112,10 +112,10 @@ Administrative keys for example/trust-demo2:
 Repository Key:	ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d9268
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
-Remove `alice` from both images with a single `docker trust signer-remove` command:
+Remove `alice` from both images with a single `docker trust signer remove` command:
 
 ```bash
-$ docker trust signer-remove alice example/trust-demo example/trust-demo2
+$ docker trust signer remove alice example/trust-demo example/trust-demo2
 Enter passphrase for repository key with ID 95b9e55: 
 Successfully removed alice from example/trust-demo
 Enter passphrase for repository key with ID ece554f: 
@@ -151,10 +151,10 @@ Repository Key:	ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d926
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-`docker trust signer-remove` removes signers to repositories on a best effort basis, so it will continue to remove the signer from subsequent repositories if one attempt fails:
+`docker trust signer remove` removes signers to repositories on a best effort basis, so it will continue to remove the signer from subsequent repositories if one attempt fails:
 
 ```bash
-$ docker trust signer-remove alice example/unauthorized example/authorized
+$ docker trust signer remove alice example/unauthorized example/authorized
 
 Removing signer "alice" from image example/unauthorized...
 No signer alice for image example/unauthorized

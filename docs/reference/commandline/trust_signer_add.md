@@ -1,6 +1,6 @@
 ---
-title: "signer-add"
-description: "The signer-add command description and usage"
+title: "signer add"
+description: "The signer add command description and usage"
 keywords: "signer, notary, trust"
 ---
 
@@ -13,10 +13,10 @@ keywords: "signer, notary, trust"
      will be rejected.
 -->
 
-# trust signer-add
+# trust signer add
 
 ```markdown
-Usage:  docker trust signer-add [OPTIONS] NAME IMAGE [IMAGE...]
+Usage:  docker trust signer add [OPTIONS] NAME IMAGE [IMAGE...]
 
 Add a signer to one or more repositories
 
@@ -24,9 +24,9 @@ Add a signer to one or more repositories
 
 ## Description
 
-`docker trust signer-add` adds signers to signed repositories.
+`docker trust signer add` adds signers to signed repositories.
 
-`docker trust signer-add` is currently experimental.
+`docker trust signer add` is currently experimental.
 
 ## Examples
 
@@ -50,10 +50,10 @@ Repository Key:	642692c14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-Add `alice` with `docker trust signer-add`:
+Add `alice` with `docker trust signer add`:
 
 ```bash
-$ docker trust signer-add alice example/trust-demo --key alice.crt
+$ docker trust signer add alice example/trust-demo --key alice.crt
   
   Adding signer "alice" to example/trust-demo...
   Enter passphrase for repository key with ID 642692c: 
@@ -81,7 +81,7 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 ## Initialize a new repo and add a signer
 
-When adding a signer on a repo for the first time, `docker trust signer-add` sets up a new repo if it doesn't exist.
+When adding a signer on a repo for the first time, `docker trust signer add` sets up a new repo if it doesn't exist.
 
 ```bash
 $ docker trust inspect example/trust-demo
@@ -89,7 +89,7 @@ No signatures or cannot access example/trust-demo
 ```
 
 ```bash
-$ docker trust signer-add alice example/trust-demo --key alice.crt
+$ docker trust signer add alice example/trust-demo --key alice.crt
  Initializing signed repository for example/trust-demo...
  Enter passphrase for root key with ID 748121c: 
  Enter passphrase for new repository key with ID 95b9e55: 
@@ -149,10 +149,10 @@ Administrative keys for example/trust-demo2:
 Repository Key:	ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d9268
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
-Add `alice` to both repositories with a single `docker trust signer-add` command:
+Add `alice` to both repositories with a single `docker trust signer add` command:
 
 ```bash
-$ docker trust signer-add alice example/trust-demo example/trust-demo2 -k alice.crt
+$ docker trust signer add alice example/trust-demo example/trust-demo2 -k alice.crt
 
 Adding signer "alice" to example/trust-demo...
 Enter passphrase for repository key with ID 95b9e55: 
@@ -197,10 +197,10 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
 
-`docker trust signer-add` adds signers to repositories on a best effort basis, so it will continue to add the signer to subsequent repositories if one attempt fails:
+`docker trust signer add` adds signers to repositories on a best effort basis, so it will continue to add the signer to subsequent repositories if one attempt fails:
 
 ```bash
-$ docker trust signer-add alice example/unauthorized example/authorized -k alice.crt
+$ docker trust signer add alice example/unauthorized example/authorized -k alice.crt
 
 Adding signer "alice" to example/unauthorized...
 you are not authorized to perform this operation: server returned 401.

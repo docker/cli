@@ -30,7 +30,7 @@ type signerAddOptions struct {
 func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 	var options signerAddOptions
 	cmd := &cobra.Command{
-		Use:   "signer-add [OPTIONS] NAME IMAGE [IMAGE...] ",
+		Use:   "add [OPTIONS] NAME IMAGE [IMAGE...] ",
 		Short: "Add a signer",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

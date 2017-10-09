@@ -28,7 +28,7 @@ type keyLoadOptions struct {
 func newKeyLoadCommand(dockerCli command.Streams) *cobra.Command {
 	var options keyLoadOptions
 	cmd := &cobra.Command{
-		Use:   "key-load [OPTIONS] KEY",
+		Use:   "load [OPTIONS] KEY",
 		Short: "Load a private key file for signing",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -79,7 +79,7 @@ func loadPrivKeyFromPath(privKeyImporters []utils.Importer, keyPath, keyName str
 		return err
 	}
 	if _, _, err := tufutils.ExtractPrivateKeyAttributes(keyBytes); err != nil {
-		return fmt.Errorf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer-add", keyPath)
+		return fmt.Errorf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", keyPath)
 	}
 	// Rewind the file pointer
 	if _, err := from.Seek(0, 0); err != nil {

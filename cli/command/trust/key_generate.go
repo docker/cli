@@ -21,7 +21,7 @@ import (
 
 func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "key-generate NAME [NAME...]",
+		Use:   "generate NAME [NAME...]",
 		Short: "Generate and load a signing key-pair",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -1,6 +1,6 @@
 ---
-title: "key-generate"
-description: "The key-generate command description and usage"
+title: "key generate"
+description: "The key generate command description and usage"
 keywords: "Key, notary, trust"
 ---
 
@@ -13,10 +13,10 @@ keywords: "Key, notary, trust"
      will be rejected.
 -->
 
-# trust key-generate
+# trust key generate
 
 ```markdown
-Usage:  docker trust key-generate NAME
+Usage:  docker trust key generate NAME
 
 Generate and load a signing key-pair
 
@@ -24,17 +24,17 @@ Generate and load a signing key-pair
 
 ## Description
 
-`docker trust key-generate` generates a key-pair to be used with signing,
+`docker trust key generate` generates a key-pair to be used with signing,
  and loads the private key into the local docker trust keystore.
 
-`docker trust key-generate` is currently experimental.
+`docker trust key generate` is currently experimental.
 
 ## Examples
 
 ### Generate a key-pair
 
 ```bash
-$ docker trust key-generate alice
+$ docker trust key generate alice
 
 Generating key for alice...
 Enter passphrase for new alice key with ID 17acf3c:
@@ -49,4 +49,4 @@ The private signing key is encrypted by the passphrase and loaded into the docke
 All passphrase requests to sign with the key will be referred to by the provided `NAME`.
 
 The public key component `alice.pub` will be available in the current working directory, and can
-be used directly by `docker trust signer-add`.
+be used directly by `docker trust signer add`.

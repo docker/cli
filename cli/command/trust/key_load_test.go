@@ -204,5 +204,5 @@ func TestLoadPubKeyFailure(t *testing.T) {
 	// import the key to our keyStorageDir - it should fail
 	err = loadPrivKeyFromPath(privKeyImporters, pubKeyFilepath, "signer", cannedPasswordRetriever)
 	assert.Error(t, err)
-	assert.Contains(t, fmt.Sprintf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer-add", pubKeyFilepath), err.Error())
+	assert.Contains(t, fmt.Sprintf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", pubKeyFilepath), err.Error())
 }

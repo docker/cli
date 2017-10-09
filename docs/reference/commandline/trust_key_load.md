@@ -1,6 +1,6 @@
 ---
-title: "key-load"
-description: "The key-load command description and usage"
+title: "key load"
+description: "The key load command description and usage"
 keywords: "Key, notary, trust"
 ---
 
@@ -13,10 +13,10 @@ keywords: "Key, notary, trust"
      will be rejected.
 -->
 
-# trust key-load
+# trust key load
 
 ```markdown
-Usage:  docker trust key-load [OPTIONS] KEY 
+Usage:  docker trust key load [OPTIONS] KEY
 
 Load a signing key
 
@@ -24,9 +24,9 @@ Load a signing key
 
 ## Description
 
-`docker trust key-load` adds private keys to the local docker trust keystore. To add a signer to a repository use `docker trust signer-add`.
+`docker trust key load` adds private keys to the local docker trust keystore. To add a signer to a repository use `docker trust signer add`.
 
-`docker trust key-load` is currently experimental.
+`docker trust key load` is currently experimental.
 
 ## Examples
 
@@ -35,7 +35,7 @@ Load a signing key
 For a private key `alice.pem` with permissions `-rw-------`
 
 ```bash
-$ docker trust key-load alice.pem
+$ docker trust key load alice.pem
 
 Loading key from "alice.pem"...
 Enter passphrase for new signer key with ID f8097df: 
@@ -46,7 +46,7 @@ Successfully imported key from alice.pem
 to specify a name use the `--name` flag
 
 ```bash
-$ docker trust key-load --name alice-key alice.pem
+$ docker trust key load --name alice-key alice.pem
 
 Loading key from "alice.pem"...
 Enter passphrase for new alice-key key with ID f8097df: 

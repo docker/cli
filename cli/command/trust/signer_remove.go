@@ -23,7 +23,7 @@ type signerRemoveOptions struct {
 func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	options := signerRemoveOptions{}
 	cmd := &cobra.Command{
-		Use:   "signer-remove [OPTIONS] NAME IMAGE [IMAGE...]",
+		Use:   "remove [OPTIONS] NAME IMAGE [IMAGE...]",
 		Short: "Remove a signer",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
