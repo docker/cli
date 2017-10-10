@@ -41,26 +41,23 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runPull(cli command.Cli, opts pullOptions) error {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), opts.remote)
-	if err != nil {
+	distributionRef, err := reference.ParseNormalizedNamed(opts.remote)
+	switch {
+	case err != nil:
 		return err
-	}
-
-	distributionRef := imgRefAndAuth.Reference()
-	if opts.all && !reference.IsNameOnly(distributionRef) {
+	case opts.all && !reference.IsNameOnly(distributionRef):
 		return errors.New("tag can't be used with --all-tags/-a")
-	}
-
-	if !opts.all && reference.IsNameOnly(distributionRef) {
+	case !opts.all && reference.IsNameOnly(distributionRef):
 		distributionRef = reference.TagNameOnly(distributionRef)
-		imgRefAndAuth, err = trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), distributionRef.String())
-		if err != nil {
-			return err
-		}
 		if tagged, ok := distributionRef.(reference.Tagged); ok {
 			fmt.Fprintf(cli.Out(), "Using default tag: %s\n", tagged.Tag())
 		}
+	}
+
+	ctx := context.Background()
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), distributionRef.String())
+	if err != nil {
+		return err
 	}
 
 	// Check if reference has a digest
