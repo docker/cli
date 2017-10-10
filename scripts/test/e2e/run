@@ -80,6 +80,9 @@ case "$cmd" in
         cleanup "$unique_id" "$compose_env_file"
         exit $testexit
         ;;
+    shell)
+        $SHELL
+        ;;
     *)
         echo "Unknown command: $cmd"
         echo "Usage: "
