@@ -31,10 +31,7 @@ func TestPullWithContentTrust(t *testing.T) {
 	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
 
 	// push an unsigned image on the same reference name, but with different content (busybox)
-	icmd.RunCommand("docker", "pull", busyboxImage).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "tag", busyboxImage, image).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "push", image).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
+	createNamedUnsignedImageFromBusyBox(t, image)
 
 	// now pull with content trust
 	result = icmd.RunCmd(trustedCmdNoPassphrases(icmd.Command("docker", "pull", image)))
@@ -52,6 +49,13 @@ func createTrustedRemoteImage(t *testing.T, repo, tag string) string {
 	icmd.RunCmd(trustedCmdWithPassphrases(icmd.Command("docker", "push", image), "root_password", "repo_password")).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
 	return image
+}
+
+func createNamedUnsignedImageFromBusyBox(t *testing.T, image string) {
+	icmd.RunCommand("docker", "pull", busyboxImage).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "tag", busyboxImage, image).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "push", image).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
 }
 
 func trustedCmdWithPassphrases(cmd icmd.Cmd, rootPwd, repositoryPwd string) icmd.Cmd {
