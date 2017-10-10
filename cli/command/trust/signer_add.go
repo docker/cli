@@ -18,6 +18,7 @@ import (
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	tufutils "github.com/docker/notary/tuf/utils"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +37,7 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.images = args[1:]
-			return addSigner(dockerCli, &options)
+			return addSigner(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -47,7 +48,7 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 
 var validSignerName = regexp.MustCompile(`^[a-z0-9]+[a-z0-9\_\-]*$`).MatchString
 
-func addSigner(cli command.Cli, options *signerAddOptions) error {
+func addSigner(cli command.Cli, options signerAddOptions) error {
 	signerName := options.signer
 	if !validSignerName(signerName) {
 		return fmt.Errorf("signer name \"%s\" must not contain uppercase or special characters", signerName)
@@ -111,7 +112,9 @@ func addSignerToImage(cli command.Cli, signerName string, imageName string, keyP
 	if err != nil {
 		return err
 	}
-	addStagedSigner(notaryRepo, newSignerRoleName, signerPubKeys)
+	if err := addStagedSigner(notaryRepo, newSignerRoleName, signerPubKeys); err != nil {
+		return errors.Wrapf(err, "could not add signer to repo: %s", strings.TrimPrefix(newSignerRoleName.String(), "targets/"))
+	}
 
 	return notaryRepo.Publish()
 }

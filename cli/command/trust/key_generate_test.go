@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/notary"
 	"github.com/docker/notary/passphrase"
+	"github.com/docker/notary/trustmanager"
 	tufutils "github.com/docker/notary/tuf/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -60,27 +61,17 @@ func TestGenerateKeySuccess(t *testing.T) {
 	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
 	// generate a single key
 	keyName := "alice"
-	assert.NoError(t, generateKey(keyName, pubKeyCWD, privKeyStorageDir, cannedPasswordRetriever))
-
-	// check that the public key exists:
-	expectedPubKeyPath := filepath.Join(pubKeyCWD, keyName+".pub")
-	_, err = os.Stat(expectedPubKeyPath)
+	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, cannedPasswordRetriever)
 	assert.NoError(t, err)
-	// check that the public key is the only file output in CWD
-	cwdKeyFiles, err := ioutil.ReadDir(pubKeyCWD)
-	assert.NoError(t, err)
-	assert.Len(t, cwdKeyFiles, 1)
 
-	// verify the key header is set with the specified name
-	from, _ := os.OpenFile(expectedPubKeyPath, os.O_RDONLY, notary.PrivExecPerms)
-	defer from.Close()
-	fromBytes, _ := ioutil.ReadAll(from)
-	keyPEM, _ := pem.Decode(fromBytes)
-	assert.Equal(t, keyName, keyPEM.Headers["role"])
+	pubKeyPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
+	assert.NoError(t, err)
+
+	assert.Equal(t, keyName, pubKeyPEM.Headers["role"])
 	// the default GUN is empty
-	assert.Equal(t, "", keyPEM.Headers["gun"])
+	assert.Equal(t, "", pubKeyPEM.Headers["gun"])
 	// assert public key header
-	assert.Equal(t, "PUBLIC KEY", keyPEM.Type)
+	assert.Equal(t, "PUBLIC KEY", pubKeyPEM.Type)
 
 	// check that an appropriate ~/<trust_dir>/private/<key_id>.key file exists
 	expectedPrivKeyDir := filepath.Join(privKeyStorageDir, notary.PrivDir)
@@ -95,16 +86,28 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// verify the key content
 	privFrom, _ := os.OpenFile(privKeyFilePath, os.O_RDONLY, notary.PrivExecPerms)
 	defer privFrom.Close()
-	fromBytes, _ = ioutil.ReadAll(privFrom)
-	keyPEM, _ = pem.Decode(fromBytes)
-	assert.Equal(t, keyName, keyPEM.Headers["role"])
+	fromBytes, _ := ioutil.ReadAll(privFrom)
+	privKeyPEM, _ := pem.Decode(fromBytes)
+	assert.Equal(t, keyName, privKeyPEM.Headers["role"])
 	// the default GUN is empty
-	assert.Equal(t, "", keyPEM.Headers["gun"])
+	assert.Equal(t, "", privKeyPEM.Headers["gun"])
 	// assert encrypted header
-	assert.Equal(t, "ENCRYPTED PRIVATE KEY", keyPEM.Type)
+	assert.Equal(t, "ENCRYPTED PRIVATE KEY", privKeyPEM.Type)
 	// check that the passphrase matches
-	_, err = tufutils.ParsePKCS8ToTufKey(keyPEM.Bytes, []byte(passwd))
+	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(passwd))
 	assert.NoError(t, err)
+
+	// check that the public key exists at the correct path if we use the helper:
+	returnedPath, err := writePubKeyPEMToDir(pubKeyPEM, keyName, pubKeyCWD)
+	assert.NoError(t, err)
+	expectedPubKeyPath := filepath.Join(pubKeyCWD, keyName+".pub")
+	assert.Equal(t, returnedPath, expectedPubKeyPath)
+	_, err = os.Stat(expectedPubKeyPath)
+	assert.NoError(t, err)
+	// check that the public key is the only file output in CWD
+	cwdKeyFiles, err := ioutil.ReadDir(pubKeyCWD)
+	assert.NoError(t, err)
+	assert.Len(t, cwdKeyFiles, 1)
 }
 
 func TestValidateKeyArgs(t *testing.T) {

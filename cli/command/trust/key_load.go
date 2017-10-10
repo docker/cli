@@ -1,10 +1,10 @@
 package trust
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -42,7 +42,7 @@ func newKeyLoadCommand(dockerCli command.Streams) *cobra.Command {
 
 func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions) error {
 	trustDir := trust.GetTrustDirectory()
-	keyFileStore, err := storage.NewPrivateKeyFileStorage(filepath.Join(trustDir, notary.PrivDir), notary.KeyExtension)
+	keyFileStore, err := storage.NewPrivateKeyFileStorage(trustDir, notary.KeyExtension)
 	if err != nil {
 		return err
 	}
@@ -52,39 +52,43 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 
 	// Always use a fresh passphrase retriever for each import
 	passRet := trust.GetPassphraseRetriever(streams.In(), streams.Out())
-	if err := loadPrivKeyFromPath(privKeyImporters, keyPath, options.keyName, passRet); err != nil {
+	keyBytes, err := getPrivKeyBytesFromPath(keyPath)
+	if err != nil {
+		return fmt.Errorf("error reading key from %s: %s", keyPath, err)
+	}
+	if err := loadPrivKeyBytesToStore(keyBytes, privKeyImporters, keyPath, options.keyName, passRet); err != nil {
 		return fmt.Errorf("error importing key from %s: %s", keyPath, err)
 	}
 	fmt.Fprintf(streams.Out(), "Successfully imported key from %s\n", keyPath)
 	return nil
 }
 
-func loadPrivKeyFromPath(privKeyImporters []utils.Importer, keyPath, keyName string, passRet notary.PassRetriever) error {
+func getPrivKeyBytesFromPath(keyPath string) ([]byte, error) {
 	fileInfo, err := os.Stat(keyPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if fileInfo.Mode() != ownerReadOnlyPerms && fileInfo.Mode() != ownerReadAndWritePerms {
-		return fmt.Errorf("private key permission from %s should be set to 400 or 600", keyPath)
+		return nil, fmt.Errorf("private key permission from %s should be set to 400 or 600", keyPath)
 	}
 
 	from, err := os.OpenFile(keyPath, os.O_RDONLY, notary.PrivExecPerms)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer from.Close()
 
 	keyBytes, err := ioutil.ReadAll(from)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, _, err := tufutils.ExtractPrivateKeyAttributes(keyBytes); err != nil {
+	return keyBytes, nil
+}
+
+func loadPrivKeyBytesToStore(privKeyBytes []byte, privKeyImporters []utils.Importer, keyPath, keyName string, passRet notary.PassRetriever) error {
+	if _, _, err := tufutils.ExtractPrivateKeyAttributes(privKeyBytes); err != nil {
 		return fmt.Errorf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", keyPath)
 	}
-	// Rewind the file pointer
-	if _, err := from.Seek(0, 0); err != nil {
-		return err
-	}
-
-	return utils.ImportKeys(from, privKeyImporters, keyName, "", passRet)
+	// Make a reader, rewind the file pointer
+	return utils.ImportKeys(bytes.NewReader(privKeyBytes), privKeyImporters, keyName, "", passRet)
 }

@@ -17,6 +17,8 @@ import (
 )
 
 type signerRemoveOptions struct {
+	signer   string
+	images   []string
 	forceYes bool
 }
 
@@ -27,18 +29,20 @@ func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove a signer",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeSigner(dockerCli, args[0], args[1:], &options)
+			options.signer = args[0]
+			options.images = args[1:]
+			return removeSigner(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVarP(&options.forceYes, "yes", "y", false, "Answer yes to removing most recent signer (no confirmation)")
+	flags.BoolVarP(&options.forceYes, "yes", "y", false, "Do not prompt for confirmation before removing the most recent signer")
 	return cmd
 }
 
-func removeSigner(cli command.Cli, signer string, images []string, options *signerRemoveOptions) error {
+func removeSigner(cli command.Cli, options signerRemoveOptions) error {
 	var errImages []string
-	for _, image := range images {
-		if err := removeSingleSigner(cli, image, signer, options.forceYes); err != nil {
+	for _, image := range options.images {
+		if err := removeSingleSigner(cli, image, options.signer, options.forceYes); err != nil {
 			fmt.Fprintln(cli.Out(), err.Error())
 			errImages = append(errImages, image)
 		}

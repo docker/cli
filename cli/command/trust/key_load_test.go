@@ -40,7 +40,7 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 		{
 			name:           "not-a-key",
 			args:           []string{"iamnotakey"},
-			expectedError:  "error importing key from iamnotakey: stat iamnotakey: no such file or directory",
+			expectedError:  "error reading key from iamnotakey: stat iamnotakey: no such file or directory",
 			expectedOutput: "\nLoading key from \"iamnotakey\"...\n",
 		},
 	}
@@ -59,7 +59,7 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 	}
 }
 
-var privKeyFixture = []byte(`-----BEGIN RSA PRIVATE KEY-----
+var rsaPrivKeyFixture = []byte(`-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAs7yVMzCw8CBZPoN+QLdx3ZzbVaHnouHIKu+ynX60IZ3stpbb
 6rowu78OWON252JcYJqe++2GmdIgbBhg+mZDwhX0ZibMVztJaZFsYL+Ch/2J9KqD
 A5NtE1s/XdhYoX5hsv7W4ok9jLFXRYIMj+T4exJRlR4f4GP9p0fcqPWd9/enPnlJ
@@ -87,9 +87,30 @@ GIhbizeGJ3h4cUdozKmt8ZWIt6uFDEYCqEA7XF4RH75dW25x86mpIPO7iRl9eisY
 IsLeMYqTIwXAwGx6Ka9v5LOL1kzcHQ2iVj6+QX+yoptSft1dYa9jOA==
 -----END RSA PRIVATE KEY-----`)
 
-const privKeyID = "ee69e8e07a14756ad5ff0aca2336b37f86b0ac1710d1f3e94440081e080aecd7"
+const rsaPrivKeyID = "ee69e8e07a14756ad5ff0aca2336b37f86b0ac1710d1f3e94440081e080aecd7"
+
+var ecPrivKeyFixture = []byte(`-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEINfxKtDH3ug7ZIQPDyeAzujCdhw36D+bf9ToPE1A7YEyoAoGCCqGSM49
+AwEHoUQDQgAEUIH9AYtrcDFzZrFJBdJZkn21d+4cH3nzy2O6Q/ct4BjOBKa+WCdR
+tPo78bA+C/7t81ADQO8Jqaj59W50rwoqDQ==
+-----END EC PRIVATE KEY-----`)
+
+const ecPrivKeyID = "46157cb0becf9c72c3219e11d4692424fef9bf4460812ccc8a71a3dfcafc7e60"
+
+var testKeys = map[string][]byte{
+	ecPrivKeyID:  ecPrivKeyFixture,
+	rsaPrivKeyID: rsaPrivKeyFixture,
+}
 
 func TestLoadKeyFromPath(t *testing.T) {
+	for keyID, keyBytes := range testKeys {
+		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
+			testLoadKeyFromPath(t, keyID, keyBytes)
+		})
+	}
+}
+
+func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) {
 	privKeyDir, err := ioutil.TempDir("", "key-load-test-")
 	assert.NoError(t, err)
 	defer os.RemoveAll(privKeyDir)
@@ -106,8 +127,12 @@ func TestLoadKeyFromPath(t *testing.T) {
 	assert.NoError(t, err)
 	privKeyImporters := []utils.Importer{keyFileStore}
 
+	// get the privKeyBytes
+	privKeyBytes, err := getPrivKeyBytesFromPath(privKeyFilepath)
+	assert.NoError(t, err)
+
 	// import the key to our keyStorageDir
-	assert.NoError(t, loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer-name", cannedPasswordRetriever))
+	assert.NoError(t, loadPrivKeyBytesToStore(privKeyBytes, privKeyImporters, privKeyFilepath, "signer-name", cannedPasswordRetriever))
 
 	// check that the appropriate ~/<trust_dir>/private/<key_id>.key file exists
 	expectedImportKeyPath := filepath.Join(keyStorageDir, notary.PrivDir, privKeyID+"."+notary.KeyExtension)
@@ -132,6 +157,14 @@ func TestLoadKeyFromPath(t *testing.T) {
 }
 
 func TestLoadKeyTooPermissive(t *testing.T) {
+	for keyID, keyBytes := range testKeys {
+		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
+			testLoadKeyTooPermissive(t, keyBytes)
+		})
+	}
+}
+
+func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	privKeyDir, err := ioutil.TempDir("", "key-load-test-")
 	assert.NoError(t, err)
 	defer os.RemoveAll(privKeyDir)
@@ -142,41 +175,35 @@ func TestLoadKeyTooPermissive(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(keyStorageDir)
 
-	passwd := "password"
-	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
-	keyFileStore, err := storage.NewPrivateKeyFileStorage(keyStorageDir, notary.KeyExtension)
-	assert.NoError(t, err)
-	privKeyImporters := []utils.Importer{keyFileStore}
-
 	// import the key to our keyStorageDir
-	err = loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer", cannedPasswordRetriever)
+	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
 	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0677))
 
-	err = loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer", cannedPasswordRetriever)
+	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
 	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0777))
 
-	err = loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer", cannedPasswordRetriever)
+	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
 	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0400))
 
-	err = loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer", cannedPasswordRetriever)
+	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NoError(t, err)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey600.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0600))
 
-	err = loadPrivKeyFromPath(privKeyImporters, privKeyFilepath, "signer", cannedPasswordRetriever)
+	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NoError(t, err)
 }
 
@@ -201,8 +228,11 @@ func TestLoadPubKeyFailure(t *testing.T) {
 	assert.NoError(t, err)
 	privKeyImporters := []utils.Importer{keyFileStore}
 
+	pubKeyBytes, err := getPrivKeyBytesFromPath(pubKeyFilepath)
+	assert.NoError(t, err)
+
 	// import the key to our keyStorageDir - it should fail
-	err = loadPrivKeyFromPath(privKeyImporters, pubKeyFilepath, "signer", cannedPasswordRetriever)
+	err = loadPrivKeyBytesToStore(pubKeyBytes, privKeyImporters, pubKeyFilepath, "signer-name", cannedPasswordRetriever)
 	assert.Error(t, err)
 	assert.Contains(t, fmt.Sprintf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", pubKeyFilepath), err.Error())
 }
