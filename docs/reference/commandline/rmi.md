@@ -29,7 +29,7 @@ Options:
 ## Examples
 
 You can remove an image using its short or long ID, its tag, or its digest. If
-an image has one or more tag referencing it, you must remove all of them before
+an image has one or more tags referencing it, you must remove all of them before
 the image is removed. Digest references are removed automatically when an image
 is removed by tag.
 
