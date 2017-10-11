@@ -28,6 +28,8 @@ Options:
   -c, --compose-file string   Path to a Compose file
       --help                  Print usage
       --prune                 Prune services that are no longer referenced
+      --resolve-image string  Query the registry to resolve image digest and supported platforms
+                              ("always"|"changed"|"never") (default "always")
       --with-registry-auth    Send registry authentication details to Swarm agents
 ```
 
