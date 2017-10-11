@@ -83,6 +83,7 @@ default foreground mode:
 
     -d=false: Detached mode: Run container in the background, print new container id
 
+<a id="detached--d"></a>
 ### Detached (-d)
 
 To start a container in detached mode, you use `-d=true` or just `-d` option. By
@@ -145,6 +146,7 @@ is receiving its standard input from a pipe, as in:
 
 ## Container identification
 
+<a id="name---name"></a>
 ### Name (--name)
 
 The operator can identify a container in three ways:
@@ -248,6 +250,7 @@ $ docker run -it --pid=container:my-redis my_strace_docker_image bash
 $ strace -p 1
 ```
 
+<a id="uts-settings---uts"></a>
 ## UTS settings (--uts)
 
     --uts=""  : Set the UTS namespace mode for the container,
@@ -263,6 +266,7 @@ You may wish to share the UTS namespace with the host if you would like the
 hostname of the container to change as the hostname of the host changes.  A
 more advanced use case would be changing the host's hostname from a container.
 
+<a id="ipc-settings---ipc"></a>
 ## IPC settings (--ipc)
 
     --ipc="MODE"  : Set the IPC mode for the container
@@ -475,6 +479,7 @@ may be situations when processes inside the container can end up reading an
 empty or incomplete `/etc/hosts` file. In most cases, retrying the read again
 should fix the problem.
 
+<a id="restart-policies---restart"></a>
 ## Restart policies (--restart)
 
 Using the `--restart` flag on Docker run you can specify a restart policy for
@@ -611,6 +616,7 @@ the exit codes follow the `chroot` standard, see below:
     $ docker run busybox /bin/sh -c 'exit 3'; echo $?
     # 3
 
+<a id="clean-up---rm"></a>
 ## Clean up (--rm)
 
 By default a container's file system persists even after the container
