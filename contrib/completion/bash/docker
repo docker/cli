@@ -4189,17 +4189,17 @@ _docker_secret() {
 
 _docker_secret_create() {
 	case "$prev" in
-		--label|-l)
+		--driver|-d|--label|-l)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --label -l" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--driver -d --help --label -l" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--label|-l')
+			local counter=$(__docker_pos_first_nonflag '--driver|-d|--label|-l')
 			if [ "$cword" -eq "$((counter + 1))" ]; then
 				_filedir
 			fi
