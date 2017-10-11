@@ -13,6 +13,7 @@
         "Pattern": "^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$"
       }
   },
+  "WarnUnmatchedDirective": true,
 
   "DisableAll": true,
   "Enable": [

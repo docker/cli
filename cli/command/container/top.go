@@ -18,7 +18,7 @@ type topOptions struct {
 }
 
 // NewTopCommand creates a new cobra.Command for `docker top`
-func NewTopCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewTopCommand(dockerCli command.Cli) *cobra.Command {
 	var opts topOptions
 
 	cmd := &cobra.Command{
@@ -38,7 +38,7 @@ func NewTopCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runTop(dockerCli *command.DockerCli, opts *topOptions) error {
+func runTop(dockerCli command.Cli, opts *topOptions) error {
 	ctx := context.Background()
 
 	procList, err := dockerCli.Client().ContainerTop(ctx, opts.container, opts.args)

@@ -27,7 +27,7 @@ type startOptions struct {
 }
 
 // NewStartCommand creates a new cobra.Command for `docker start`
-func NewStartCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 	var opts startOptions
 
 	cmd := &cobra.Command{
@@ -53,7 +53,7 @@ func NewStartCommand(dockerCli *command.DockerCli) *cobra.Command {
 }
 
 // nolint: gocyclo
-func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
+func runStart(dockerCli command.Cli, opts *startOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 
 	if opts.attach || opts.openStdin {
@@ -181,7 +181,7 @@ func runStart(dockerCli *command.DockerCli, opts *startOptions) error {
 	return nil
 }
 
-func startContainersWithoutAttachments(ctx context.Context, dockerCli *command.DockerCli, containers []string) error {
+func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string) error {
 	var failedContainers []string
 	for _, container := range containers {
 		if err := dockerCli.Client().ContainerStart(ctx, container, types.ContainerStartOptions{}); err != nil {

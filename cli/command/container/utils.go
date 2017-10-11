@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func waitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, containerID string, waitRemove bool) <-chan int {
+func waitExitOrRemoved(ctx context.Context, dockerCli command.Cli, containerID string, waitRemove bool) <-chan int {
 	if len(containerID) == 0 {
 		// containerID can never be empty
 		panic("Internal Error: waitExitOrRemoved needs a containerID as parameter")
@@ -47,7 +47,7 @@ func waitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, contai
 	return statusC
 }
 
-func legacyWaitExitOrRemoved(ctx context.Context, dockerCli *command.DockerCli, containerID string, waitRemove bool) <-chan int {
+func legacyWaitExitOrRemoved(ctx context.Context, dockerCli command.Cli, containerID string, waitRemove bool) <-chan int {
 	var removeErr error
 	statusChan := make(chan int)
 	exitCode := 125

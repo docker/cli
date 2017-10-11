@@ -13,7 +13,7 @@ type inspectOptions struct {
 	format      string
 }
 
-func newInspectCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -31,7 +31,7 @@ func newInspectCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli *command.DockerCli, opts inspectOptions) error {
+func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 	getRef := func(ref string) (interface{}, []byte, error) {

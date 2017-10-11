@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newUpgradeCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
 	var options pluginOptions
 	cmd := &cobra.Command{
 		Use:   "upgrade [OPTIONS] PLUGIN [REMOTE]",
@@ -35,7 +35,7 @@ func newUpgradeCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runUpgrade(dockerCli *command.DockerCli, opts pluginOptions) error {
+func runUpgrade(dockerCli command.Cli, opts pluginOptions) error {
 	ctx := context.Background()
 	p, _, err := dockerCli.Client().PluginInspectWithRaw(ctx, opts.localName)
 	if err != nil {

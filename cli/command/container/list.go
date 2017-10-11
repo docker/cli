@@ -25,7 +25,7 @@ type psOptions struct {
 }
 
 // NewPsCommand creates a new cobra.Command for `docker ps`
-func NewPsCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -51,7 +51,7 @@ func NewPsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := *NewPsCommand(dockerCli)
 	cmd.Aliases = []string{"ps", "list"}
 	cmd.Use = "ls [OPTIONS]"
@@ -109,7 +109,7 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 	return options, nil
 }
 
-func runPs(dockerCli *command.DockerCli, options *psOptions) error {
+func runPs(dockerCli command.Cli, options *psOptions) error {
 	ctx := context.Background()
 
 	listOptions, err := buildContainerListOptions(options)

@@ -8,8 +8,7 @@ import (
 )
 
 // NewServiceCommand returns a cobra command for `service` subcommands
-// nolint: interfacer
-func NewServiceCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "service",
 		Short:       "Manage services",

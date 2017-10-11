@@ -8,7 +8,6 @@ import (
 )
 
 // NewSwarmCommand returns a cobra command for `swarm` subcommands
-// nolint: interfacer
 func NewSwarmCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "swarm",

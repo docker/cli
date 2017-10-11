@@ -37,7 +37,7 @@ type logsOptions struct {
 	target string
 }
 
-func newLogsCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 	var opts logsOptions
 
 	cmd := &cobra.Command{
@@ -68,7 +68,7 @@ func newLogsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
+func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	ctx := context.Background()
 
 	options := types.ContainerLogsOptions{

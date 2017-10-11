@@ -63,7 +63,7 @@ type pluginCreateOptions struct {
 	compress bool
 }
 
-func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	options := pluginCreateOptions{}
 
 	cmd := &cobra.Command{
@@ -84,7 +84,7 @@ func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli *command.DockerCli, options pluginCreateOptions) error {
+func runCreate(dockerCli command.Cli, options pluginCreateOptions) error {
 	var (
 		createCtx io.ReadCloser
 		err       error
