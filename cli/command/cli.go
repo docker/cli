@@ -207,7 +207,8 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	return client.NewClient(host, verStr, httpClient, customHeaders)
 }
 
-func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, err error) {
+func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error) {
+	var host string
 	switch len(hosts) {
 	case 0:
 		host = os.Getenv("DOCKER_HOST")
@@ -217,8 +218,7 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (host string, 
 		return "", errors.New("Please specify only one -H")
 	}
 
-	host, err = dopts.ParseHost(tlsOptions != nil, host)
-	return
+	return dopts.ParseHost(tlsOptions != nil, host)
 }
 
 func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, error) {

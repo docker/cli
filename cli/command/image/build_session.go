@@ -128,18 +128,18 @@ func getBuildSharedKey(dir string) (string, error) {
 	return hex.EncodeToString(s[:]), nil
 }
 
-func tryNodeIdentifier() (out string) {
-	out = cliconfig.Dir() // return config dir as default on permission error
+func tryNodeIdentifier() string {
+	out := cliconfig.Dir() // return config dir as default on permission error
 	if err := os.MkdirAll(cliconfig.Dir(), 0700); err == nil {
 		sessionFile := filepath.Join(cliconfig.Dir(), ".buildNodeID")
 		if _, err := os.Lstat(sessionFile); err != nil {
 			if os.IsNotExist(err) { // create a new file with stored randomness
 				b := make([]byte, 32)
 				if _, err := rand.Read(b); err != nil {
-					return
+					return out
 				}
 				if err := ioutil.WriteFile(sessionFile, []byte(hex.EncodeToString(b)), 0600); err != nil {
-					return
+					return out
 				}
 			}
 		}
@@ -149,5 +149,5 @@ func tryNodeIdentifier() (out string) {
 			return string(dt)
 		}
 	}
-	return
+	return out
 }
