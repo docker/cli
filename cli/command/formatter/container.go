@@ -10,7 +10,6 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/stringutils"
 	"github.com/docker/go-units"
 )
 
@@ -165,7 +164,7 @@ func (c *containerContext) Image() string {
 func (c *containerContext) Command() string {
 	command := c.c.Command
 	if c.trunc {
-		command = stringutils.Ellipsis(command, 20)
+		command = Ellipsis(command, 20)
 	}
 	return strconv.Quote(command)
 }
@@ -227,7 +226,7 @@ func (c *containerContext) Mounts() string {
 			name = m.Name
 		}
 		if c.trunc {
-			name = stringutils.Ellipsis(name, 15)
+			name = Ellipsis(name, 15)
 		}
 		mounts = append(mounts, name)
 	}
