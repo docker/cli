@@ -225,7 +225,7 @@ func parseMDContent(mdString string) (description string, examples string) {
 			examples = strings.Trim(s, "Examples\n")
 		}
 	}
-	return
+	return description, examples
 }
 
 type byName []*cobra.Command

@@ -57,12 +57,12 @@ type pluginRegistryService struct {
 	registry.Service
 }
 
-func (s pluginRegistryService) ResolveRepository(name reference.Named) (repoInfo *registry.RepositoryInfo, err error) {
-	repoInfo, err = s.Service.ResolveRepository(name)
+func (s pluginRegistryService) ResolveRepository(name reference.Named) (*registry.RepositoryInfo, error) {
+	repoInfo, err := s.Service.ResolveRepository(name)
 	if repoInfo != nil {
 		repoInfo.Class = "plugin"
 	}
-	return
+	return repoInfo, err
 }
 
 func newRegistryService() (registry.Service, error) {
