@@ -97,7 +97,7 @@ func runLogs(dockerCli *command.DockerCli, opts *logsOptions) error {
 	service, _, err := cli.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
-		if !client.IsErrServiceNotFound(err) {
+		if !client.IsErrNotFound(err) {
 			return err
 		}
 		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
