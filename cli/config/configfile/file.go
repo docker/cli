@@ -11,8 +11,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/cli/config/types"
 	"github.com/pkg/errors"
 )
 
@@ -196,7 +195,7 @@ func (configFile *ConfigFile) Save() error {
 
 // ParseProxyConfig computes proxy configuration by retrieving the config for the provided host and
 // then checking this against any environment variables provided to the container
-func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts []string) map[string]*string {
+func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*string) map[string]*string {
 	var cfgKey string
 
 	if _, ok := configFile.Proxies[host]; !ok {
@@ -212,7 +211,10 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts []string) ma
 		"NO_PROXY":    &config.NoProxy,
 		"FTP_PROXY":   &config.FTPProxy,
 	}
-	m := opts.ConvertKVStringsToMapWithNil(runOpts)
+	m := runOpts
+	if m == nil {
+		m = make(map[string]*string)
+	}
 	for k := range permitted {
 		if *permitted[k] == "" {
 			continue

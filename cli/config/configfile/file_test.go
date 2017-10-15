@@ -1,13 +1,12 @@
 package configfile
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -41,7 +40,7 @@ func TestProxyConfig(t *testing.T) {
 		},
 	}
 
-	proxyConfig := cfg.ParseProxyConfig("/var/run/docker.sock", []string{})
+	proxyConfig := cfg.ParseProxyConfig("/var/run/docker.sock", nil)
 	expected := map[string]*string{
 		"HTTP_PROXY":  &httpProxy,
 		"http_proxy":  &httpProxy,
@@ -75,9 +74,14 @@ func TestProxyConfigOverride(t *testing.T) {
 		},
 	}
 
-	ropts := []string{
-		fmt.Sprintf("HTTP_PROXY=%s", overrideHTTPProxy),
-		"NO_PROXY=",
+	clone := func(s string) *string {
+		s2 := s
+		return &s2
+	}
+
+	ropts := map[string]*string{
+		"HTTP_PROXY": clone(overrideHTTPProxy),
+		"NO_PROXY":   clone(overrideNoProxy),
 	}
 	proxyConfig := cfg.ParseProxyConfig("/var/run/docker.sock", ropts)
 	expected := map[string]*string{
@@ -124,7 +128,7 @@ func TestProxyConfigPerHost(t *testing.T) {
 		},
 	}
 
-	proxyConfig := cfg.ParseProxyConfig("tcp://example.docker.com:2376", []string{})
+	proxyConfig := cfg.ParseProxyConfig("tcp://example.docker.com:2376", nil)
 	expected := map[string]*string{
 		"HTTP_PROXY":  &extHTTPProxy,
 		"http_proxy":  &extHTTPProxy,
