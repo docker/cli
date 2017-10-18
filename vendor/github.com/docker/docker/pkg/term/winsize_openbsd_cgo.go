@@ -1,21 +1,23 @@
-// +build solaris,cgo,openbsd
+// +build openbsd,cgo
 
 package term
 
 import (
 	"unsafe"
-
-	"golang.org/x/sys/unix"
 )
 
 /*
 #include <unistd.h>
-#include <stropts.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 // Small wrapper to get rid of variadic args of ioctl()
-int my_ioctl(int fd, int cmd, struct winsize *ws) {
-	return ioctl(fd, cmd, ws);
+int set_winsize(int fd, struct winsize *ws) {
+	return ioctl(fd, TIOCGWINSZ, ws);
+}
+
+int get_winsize(int fd, struct winsize *ws) {
+    return ioctl(fd, TIOCSWINSZ, ws);
 }
 */
 import "C"
@@ -23,7 +25,7 @@ import "C"
 // GetWinsize returns the window size based on the specified file descriptor.
 func GetWinsize(fd uintptr) (*Winsize, error) {
 	ws := &Winsize{}
-	ret, err := C.my_ioctl(C.int(fd), C.int(unix.TIOCGWINSZ), (*C.struct_winsize)(unsafe.Pointer(ws)))
+	ret, err := C.get_winsize(C.int(fd), (*C.struct_winsize)(unsafe.Pointer(ws)))
 	// Skip retval = 0
 	if ret == 0 {
 		return ws, nil
@@ -33,7 +35,7 @@ func GetWinsize(fd uintptr) (*Winsize, error) {
 
 // SetWinsize tries to set the specified window size for the specified file descriptor.
 func SetWinsize(fd uintptr, ws *Winsize) error {
-	ret, err := C.my_ioctl(C.int(fd), C.int(unix.TIOCSWINSZ), (*C.struct_winsize)(unsafe.Pointer(ws)))
+	ret, err := C.set_winsize(C.int(fd), (*C.struct_winsize)(unsafe.Pointer(ws)))
 	// Skip retval = 0
 	if ret == 0 {
 		return nil

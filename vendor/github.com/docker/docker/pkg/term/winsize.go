@@ -1,4 +1,4 @@
-// +build !solaris,!windows
+// +build !solaris,!windows,!openbsd
 
 package term
 

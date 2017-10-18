@@ -30,6 +30,11 @@ binary: ## build executable for Linux
 	@echo "WARNING: binary creates a Linux executable. Use cross for macOS or Windows."
 	./scripts/build/binary
 
+.PHONY: binary-openbsd
+openbsd: ## build executable for openbsd
+	@echo "Building our OpenBSD hack..."
+	./scripts/build/openbsd
+
 .PHONY: cross
 cross: ## build executable for macOS and Windows
 	./scripts/build/cross
