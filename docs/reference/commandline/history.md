@@ -37,9 +37,9 @@ To see how the `docker:latest` image was built:
 $ docker history docker
 
 IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
-3e23a5875458        8 days ago          /bin/sh -c #(nop) ENV LC_ALL=C.UTF-8            0 B
-8578938dd170        8 days ago          /bin/sh -c dpkg-reconfigure locales &&    loc   1.245 MB
-be51b77efb42        8 days ago          /bin/sh -c apt-get update && apt-get install    338.3 MB
+3e23a5875458                            /bin/sh -c #(nop) ENV LC_ALL=C.UTF-8            0 B
+8578938dd170                            /bin/sh -c dpkg-reconfigure locales &&    loc   1.245 MB
+be51b77efb42                            /bin/sh -c apt-get update && apt-get install    338.3 MB
 4b137612be55        6 weeks ago         /bin/sh -c #(nop) ADD jessie.tar.xz in /        121 MB
 750d58736b4b        6 weeks ago         /bin/sh -c #(nop) MAINTAINER Tianon Gravi <ad   0 B
 511136ea3c5a        9 months ago                                                        0 B                 Imported from -
