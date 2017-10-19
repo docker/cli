@@ -3,5 +3,5 @@
 package credentials
 
 func defaultCredentialsStore() string {
-    return ""
+	return ""
 }
