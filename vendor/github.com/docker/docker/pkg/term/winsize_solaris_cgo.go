@@ -1,4 +1,4 @@
-// +build solaris,cgo,openbsd
+// +build solaris,cgo
 
 package term
 
