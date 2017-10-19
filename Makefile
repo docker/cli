@@ -31,8 +31,7 @@ binary: ## build executable for Linux
 	./scripts/build/binary
 
 .PHONY: binary-openbsd
-openbsd: ## build executable for openbsd
-	@echo "Building our OpenBSD hack..."
+binary-openbsd: ## build executable for openbsd
 	./scripts/build/openbsd
 
 .PHONY: cross
