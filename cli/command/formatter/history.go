@@ -79,7 +79,7 @@ func (c *historyContext) ID() string {
 }
 
 func (c *historyContext) CreatedAt() string {
-	return time.Unix(c.h.Created, 0).Format(time.RFC3339)
+	return time.Unix(c.h.Created, 0).UTC().Format(time.RFC3339)
 }
 
 func (c *historyContext) CreatedSince() string {
