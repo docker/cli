@@ -20,9 +20,9 @@ see [Feature Deprecation Policy](https://docs.docker.com/engine/#feature-depreca
 
 ### Asynchronous `service create` and `service update`
 
-## Deprecated In Release: v17.05.0
+#### Deprecated in Docker 17.05.0
 
-## Disabled by default in release: v17.09
+#### Disabled by default in Docker 17.09
 
 Docker 17.05.0 added an optional `--detach=false` option to make the
 `docker service create` and `docker service update` work synchronously. This
@@ -31,7 +31,7 @@ flag can be used to use the previous (asynchronous) behavior.
 
 ### `-g` and `--graph` flags on `dockerd`
 
-## Deprecated In Release: v17.05.0
+#### Deprecated in Docker 17.05.0
 
 The `-g` or `--graph` flag for the `dockerd` or `docker daemon` command was
 used to indicate the directory in which to store persistent data and resource
@@ -43,9 +43,11 @@ _hidden_, to discourage their use.
 
 ### Top-level network properties in NetworkSettings
 
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0 
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 When inspecting a container, `NetworkSettings` contains top-level information
 about the default ("bridge") network;
@@ -61,52 +63,66 @@ Refer to [#17538](https://github.com/docker/docker/pull/17538) for further
 information.
 
 ### `filter` param for `/images/json` endpoint
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 The `filter` param to filter the list of image by reference (name or name:tag) is now implemented as a regular filter, named `reference`.
 
 ### `repository:shortid` image references
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target For removal in Docker 17.12
 
 `repository:shortid` syntax for referencing images is very little used, collides with tag references can be confused with digest references.
 
 ### `docker daemon` subcommand
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 The daemon is moved to a separate binary (`dockerd`), and should be used instead.
 
 ### Duplicate keys with conflicting values in engine labels
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 Duplicate keys with conflicting values have been deprecated. A warning is displayed
 in the output, and an error will be returned in the future.
 
 ### `MAINTAINER` in Dockerfile
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0 
+
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
 `MAINTAINER` was an early very limited form of `LABEL` which should be used instead.
 
 ### API calls without a version
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 API versions should be supplied to all API calls to ensure compatibility with
 future Engine versions. Instead of just requesting, for example, the URL
 `/containers/json`, you must now request `/v1.25/containers/json`.
 
 ### Backing filesystem without `d_type` support for overlay/overlay2
-## Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+#### Deprecated in Docker 1.13.0 
 
-## Target For Removal In Release: v17.12
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
+
+#### Target for removal in Docker 17.12
 
 The overlay and overlay2 storage driver does not work as expected if the backing
 filesystem does not support `d_type`. For example, XFS does not support `d_type`
@@ -116,17 +132,23 @@ Please also refer to [#27358](https://github.com/docker/docker/issues/27358) for
 further information.
 
 ### Three arguments form in `docker import`
-## Deprecated In Release: [v0.6.7](https://github.com/docker/docker/releases/tag/v0.6.7)
+#### Deprecated in Docker 0.6.7 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v0.6.7 release notes](https://github.com/docker/docker/releases/tag/v0.6.7)
+
+#### Removed in Docker 1.12.0
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 The `docker import` command format `file|URL|- [REPOSITORY [TAG]]` is deprecated since November 2013. It's no more supported.
 
 ### `-h` shorthand for `--help`
 
-## Deprecated In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+#### Deprecated in Docker 1.12.0 
 
-## Target For Removal In Release: v17.09
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
+
+#### Target for removal in Docker 17.09
 
 The shorthand (`-h`) is less common than `--help` on Linux and cannot be used
 on all subcommands (due to it conflicting with, e.g. `-h` / `--hostname` on
@@ -134,70 +156,100 @@ on all subcommands (due to it conflicting with, e.g. `-h` / `--hostname` on
 "usage" output of subcommands, nor documented, and is now marked "deprecated".
 
 ### `-e` and `--email` flags on `docker login`
-## Deprecated In Release: [v1.11.0](https://github.com/docker/docker/releases/tag/v1.11.0)
+#### Deprecated in Docker 1.11.0
 
-## Removed In Release: [v17.06](https://github.com/docker/docker-ce/releases/tag/v17.06.0-ce)
+[Docker CE v1.11.0 release notes](https://github.com/docker/docker/releases/tag/v1.11.0)
+
+#### Removed in Docker 17.06
+
+[Docker CE v17.06 release notes](https://github.com/docker/docker-ce/releases/tag/v17.06.0-ce)
 
 The docker login command is removing the ability to automatically register for an account with the target registry if the given username doesn't exist. Due to this change, the email flag is no longer required, and will be deprecated.
 
 ### Separator (`:`) of `--security-opt` flag on `docker run`
-## Deprecated In Release: [v1.11.0](https://github.com/docker/docker/releases/tag/v1.11.0)
+#### Deprecated in Docker 1.11.0 
 
-## Target For Removal In Release: v17.06
+[Docker CE v1.11.0 release notes](https://github.com/docker/docker/releases/tag/v1.11.0)
+
+#### Target for removal in Docker 17.06
 
 The flag `--security-opt` doesn't use the colon separator(`:`) anymore to divide keys and values, it uses the equal symbol(`=`) for consistency with other similar flags, like `--storage-opt`.
 
 ### `/containers/(id or name)/copy` endpoint
 
-## Deprecated In Release: [v1.8.0](https://github.com/docker/docker/releases/tag/v1.8.0)
+#### Deprecated in Docker 1.8.0 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.8.0 release notes](https://github.com/docker/docker/releases/tag/v1.8.0)
+
+#### Removed in Docker 1.12.0 
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 The endpoint `/containers/(id or name)/copy` is deprecated in favor of `/containers/(id or name)/archive`.
 
 ### Ambiguous event fields in API
-## Deprecated In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+#### Deprecated in Docker 1.10.0 
+
+[Docer CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
 
 The fields `ID`, `Status` and `From` in the events API have been deprecated in favor of a more rich structure.
 See the events API documentation for the new format.
 
 ### `-f` flag on `docker tag`
-## Deprecated In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+#### Deprecated in Docker 1.10.0 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
+
+#### Removed in Docker 1.12.0 
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 To make tagging consistent across the various `docker` commands, the `-f` flag on the `docker tag` command is deprecated. It is not longer necessary to specify `-f` to move a tag from one image to another. Nor will `docker` generate an error if the `-f` flag is missing and the specified tag is already in use.
 
 ### HostConfig at API container start
-## Deprecated In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+#### Deprecated in Docker 1.10.0 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
+
+#### Removed in Docker 1.12.0 
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 Passing an `HostConfig` to `POST /containers/{name}/start` is deprecated in favor of
 defining it at container creation (`POST /containers/create`).
 
 ### `--before` and `--since` flags on `docker ps`
 
-## Deprecated In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+#### Deprecated in Docker 1.10.0 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
+
+#### Removed in Docker 1.12.0 
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 The `docker ps --before` and `docker ps --since` options are deprecated.
 Use `docker ps --filter=before=...` and `docker ps --filter=since=...` instead.
 
 ### `--automated` and `--stars` flags on `docker search`
 
-## Deprecated in Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+#### Deprecated in Docker 1.12.0 
 
-## Target For Removal In Release: v17.09
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
+
+#### Target for removal in Docker 17.09
 
 The `docker search --automated` and `docker search --stars` options are deprecated.
 Use `docker search --filter=is-automated=...` and `docker search --filter=stars=...` instead.
 
 ### Driver Specific Log Tags
-## Deprecated In Release: [v1.9.0](https://github.com/docker/docker/releases/tag/v1.9.0)
+#### Deprecated in Docker 1.9.0 
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.9.0 release notes](https://github.com/docker/docker/releases/tag/v1.9.0)
+
+#### Removed in Docker 1.12.0 
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 Log tags are now generated in a standard way across different logging drivers.
 Because of which, the driver specific log tag options `syslog-tag`, `gelf-tag` and
@@ -210,16 +262,24 @@ docker --log-driver=syslog --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}"
 ```
 
 ### LXC built-in exec driver
-## Deprecated In Release: [v1.8.0](https://github.com/docker/docker/releases/tag/v1.8.0)
+#### Deprecated in Docker 1.8.0 
 
-## Removed In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+[Docker CE v1.8.0 release notes](https://github.com/docker/docker/releases/tag/v1.8.0)
+
+#### Removed in Docker 1.10.0 
+
+[Docker CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
 
 The built-in LXC execution driver, the lxc-conf flag, and API fields have been removed.
 
 ### Old Command Line Options
-## Deprecated In Release: [v1.8.0](https://github.com/docker/docker/releases/tag/v1.8.0)
+#### Deprecated in Docker 1.8.0
 
-## Removed In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)
+[Docker CE v1.8.0 release notes](https://github.com/docker/docker/releases/tag/v1.8.0)
+
+#### Removed in Docker 1.10.0
+
+[Docker CE v1.10.0 release notes](https://github.com/docker/docker/releases/tag/v1.10.0)
 
 The flags `-d` and `--daemon` are deprecated in favor of the `daemon` subcommand:
 
@@ -265,9 +325,13 @@ The following double-dash options are deprecated and have no replacement:
     docker ps --before-id
     docker search --trusted
 
-## Deprecated In Release: [v1.5.0](https://github.com/docker/docker/releases/tag/v1.5.0)
+#### Deprecated in Docker 1.5.0
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.5.0 release notes](https://github.com/docker/docker/releases/tag/v1.5.0)
+
+#### Removed in Docker 1.12.0
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 The single-dash (`-help`) was removed, in favor of the double-dash `--help`
 
@@ -276,9 +340,13 @@ The single-dash (`-help`) was removed, in favor of the double-dash `--help`
 
 ### `--run` flag on docker commit
 
-## Deprecated In Release: [v0.10.0](https://github.com/docker/docker/releases/tag/v0.10.0)
+#### Deprecated in Docker 1.10.0
 
-## Removed In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)
+[Docker CE v0.10.0 release notes](https://github.com/docker/docker/releases/tag/v0.10.0)
+
+#### Removed in Docker 1.13.0
+
+[Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
 The flag `--run` of the docker commit (and its short version `-run`) were deprecated in favor
 of the `--changes` flag that allows to pass `Dockerfile` commands.
@@ -286,9 +354,9 @@ of the `--changes` flag that allows to pass `Dockerfile` commands.
 
 ### Interacting with V1 registries
 
-## Disabled By Default In Release: v17.06
+#### Disabled by default in Docker 17.06
 
-## Target For Removal In Release: v17.12
+#### Target for removal in Docker 17.12
 
 Version 1.8.3 added a flag (`--disable-legacy-registry=false`) which prevents the
 docker daemon from `pull`, `push`, and `login` operations against v1
@@ -300,9 +368,13 @@ mirror configurations using v1 should be updated to use a
 [v2 registry mirror](https://docs.docker.com/registry/recipes/mirror/).
 
 ### Docker Content Trust ENV passphrase variables name change
-## Deprecated In Release: [v1.9.0](https://github.com/docker/docker/releases/tag/v1.9.0)
+#### Deprecated in Docker 1.9.0
 
-## Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)
+[Docker CE v1.9.0 release notes](https://github.com/docker/docker/releases/tag/v1.9.0)
+
+#### Removed in Docker 1.12.0
+
+[Docker CE v1.12.0 release notes](https://github.com/docker/docker/releases/tag/v1.12.0)
 
 Since 1.9, Docker Content Trust Offline key has been renamed to Root key and the Tagging key has been renamed to Repository key. Due to this renaming, we're also changing the corresponding environment variables
 
@@ -311,9 +383,11 @@ Since 1.9, Docker Content Trust Offline key has been renamed to Root key and the
 
 ### `--api-enable-cors` flag on dockerd
 
-## Deprecated In Release: [v1.6.0](https://github.com/docker/docker/releases/tag/v1.6.0)
+#### Deprecated in Docker 1.6.0
 
-## Target For Removal In Release: v17.09
+[Docker CE v1.6.0 release notes](https://github.com/docker/docker/releases/tag/v1.6.0)
+
+#### Target for removal in Docker 17.09
 
 The flag `--api-enable-cors` is deprecated since v1.6.0. Use the flag
 `--api-cors-header` instead.
