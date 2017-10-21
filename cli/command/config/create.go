@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
+	"path"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -28,11 +30,15 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] CONFIG file|-",
-		Short: "Create a configuration file from a file or STDIN as content",
-		Args:  cli.ExactArgs(2),
+		Short: "Create a configuration file from a file, directory or STDIN",
+		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			createOpts.name = args[0]
-			createOpts.file = args[1]
+			if len(args) == 1 {
+				createOpts.file = args[0]
+			} else if len(args) > 1 {
+				createOpts.name = args[0]
+				createOpts.file = args[1]
+			}
 			return runConfigCreate(dockerCli, createOpts)
 		},
 	}
@@ -43,28 +49,62 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runConfigCreate(dockerCli command.Cli, options createOptions) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
 
 	var in io.Reader = dockerCli.In()
-	if options.file != "-" {
-		file, err := system.OpenSequential(options.file)
-		if err != nil {
-			return err
-		}
-		in = file
-		defer file.Close()
+	labels := opts.ConvertKVStringsToMap(options.labels.GetAll())
+	if options.file == "-" {
+		return configCreate(dockerCli, in, options.name, labels)
 	}
+	info, err := os.Stat(options.file)
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		if options.name != "" {
+			return fmt.Errorf("cannot give a config name for a directory path")
+		}
+		files, err := ioutil.ReadDir(options.file)
+		if err != nil {
+			return fmt.Errorf("error listing files in %s: %v", options.file, err)
+		}
+		for _, file := range files {
+			filePath := path.Join(options.file, file.Name())
+			if file.Mode().IsRegular() {
+				if err = configCreateFromFile(dockerCli, filePath, file.Name(), labels); err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		return configCreateFromFile(dockerCli, options.file, options.name, labels)
+	}
+	return nil
+}
 
+func configCreateFromFile(dockerCli command.Cli, fileName string, configName string, labels map[string]string) error {
+
+	file, err := system.OpenSequential(fileName)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+	return configCreate(dockerCli, file, configName, labels)
+
+}
+
+func configCreate(dockerCli command.Cli, in io.Reader, configName string, labels map[string]string) error {
+	client := dockerCli.Client()
+
+	ctx := context.Background()
 	configData, err := ioutil.ReadAll(in)
 	if err != nil {
-		return errors.Errorf("Error reading content from %q: %v", options.file, err)
+		return errors.Errorf("Error reading config %q content: %v", configName, err)
 	}
 
 	spec := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
-			Name:   options.name,
-			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
+			Name:   configName,
+			Labels: labels,
 		},
 		Data: configData,
 	}
