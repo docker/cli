@@ -159,6 +159,16 @@ read the [`dockerd`](dockerd.md) reference page.
 | [secret ls](secret_ls.md) | List secrets in the swarm                        |
 | [secret rm](secret_rm.md) | Remove the specified secrets from the swarm      |
 
+### Swarm configuration files commands
+
+| Command | Description                                                        |
+|:--------|:-------------------------------------------------------------------|
+| [config create](config_create.md) | Create a config from a file or STDIN as content |
+| config inspect | Display detailed information on one or more configuration 
+files |
+| config ls | List configuration files in the swarm            |
+| config rm | Remove the specified configs from the swarm      |
+
 ### Swarm stack commands
 
 | Command | Description                                                        |
