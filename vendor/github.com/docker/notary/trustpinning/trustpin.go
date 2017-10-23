@@ -12,9 +12,24 @@ import (
 
 // TrustPinConfig represents the configuration under the trust_pinning section of the config file
 // This struct represents the preferred way to bootstrap trust for this repository
+// This is fully optional. If left at the default, uninitialized value Notary will use TOFU over
+// HTTPS.
+// You can use this to provide certificates or a CA to pin to as a root of trust for a GUN.
+// These are used with the following precedence:
+//
+// 1. Certs
+// 2. CA
+// 3. TOFUS (TOFU over HTTPS)
+//
+// Only one trust pinning option will be used to validate a particular GUN.
 type TrustPinConfig struct {
-	CA          map[string]string
-	Certs       map[string][]string
+	// CA maps a GUN prefix to file paths containing the root CA.
+	// This file can contain multiple root certificates, bundled in separate PEM blocks.
+	CA map[string]string
+	// Certs maps a GUN to a list of certificate IDs
+	Certs map[string][]string
+	// DisableTOFU, when true, disables "Trust On First Use" of new key data
+	// This is false by default, which means new key data will always be trusted the first time it is seen.
 	DisableTOFU bool
 }
 

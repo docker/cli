@@ -8,9 +8,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	"github.com/spf13/cobra"
@@ -75,14 +74,11 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 	return counter < releasesRoleWithSigs.Threshold, nil
 }
 
-func removeSingleSigner(cli command.Cli, image, signerName string, forceYes bool) error {
-	fmt.Fprintf(cli.Out(), "\nRemoving signer \"%s\" from %s...\n", signerName, image)
+func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes bool) error {
+	fmt.Fprintf(cli.Out(), "\nRemoving signer \"%s\" from %s...\n", signerName, imageName)
 
 	ctx := context.Background()
-	authResolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
-	}
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver, image)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
 	if err != nil {
 		return err
 	}
@@ -91,13 +87,13 @@ func removeSingleSigner(cli command.Cli, image, signerName string, forceYes bool
 	if signerDelegation == releasesRoleTUFName {
 		return fmt.Errorf("releases is a reserved keyword and cannot be removed")
 	}
-	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		return fmt.Errorf("Error retrieving signers for %s", image)
+		return fmt.Errorf("Error retrieving signers for %s", imageName)
 	}
 	var role data.Role
 	for _, delRole := range delegationRoles {
@@ -107,7 +103,7 @@ func removeSingleSigner(cli command.Cli, image, signerName string, forceYes bool
 		}
 	}
 	if role.Name == "" {
-		return fmt.Errorf("No signer %s for image %s", signerName, image)
+		return fmt.Errorf("No signer %s for image %s", signerName, imageName)
 	}
 	allRoles, err := notaryRepo.ListRoles()
 	if err != nil {
@@ -117,7 +113,7 @@ func removeSingleSigner(cli command.Cli, image, signerName string, forceYes bool
 		removeSigner := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("The signer \"%s\" signed the last released version of %s. "+
 			"Removing this signer will make %s unpullable. "+
 			"Are you sure you want to continue?",
-			signerName, image, image,
+			signerName, imageName, imageName,
 		))
 
 		if !removeSigner {
@@ -136,6 +132,6 @@ func removeSingleSigner(cli command.Cli, image, signerName string, forceYes bool
 	if err = notaryRepo.Publish(); err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n", signerName, image)
+	fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n", signerName, imageName)
 	return nil
 }

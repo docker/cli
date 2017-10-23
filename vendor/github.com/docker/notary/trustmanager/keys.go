@@ -1,4 +1,4 @@
-package utils
+package trustmanager
 
 import (
 	"encoding/pem"

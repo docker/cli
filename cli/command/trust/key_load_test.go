@@ -14,8 +14,8 @@ import (
 	"github.com/docker/notary"
 	"github.com/docker/notary/passphrase"
 	"github.com/docker/notary/storage"
+	"github.com/docker/notary/trustmanager"
 	tufutils "github.com/docker/notary/tuf/utils"
-	"github.com/docker/notary/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -125,7 +125,7 @@ func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) 
 	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
 	keyFileStore, err := storage.NewPrivateKeyFileStorage(keyStorageDir, notary.KeyExtension)
 	assert.NoError(t, err)
-	privKeyImporters := []utils.Importer{keyFileStore}
+	privKeyImporters := []trustmanager.Importer{keyFileStore}
 
 	// get the privKeyBytes
 	privKeyBytes, err := getPrivKeyBytesFromPath(privKeyFilepath)
@@ -226,7 +226,7 @@ func TestLoadPubKeyFailure(t *testing.T) {
 	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
 	keyFileStore, err := storage.NewPrivateKeyFileStorage(keyStorageDir, notary.KeyExtension)
 	assert.NoError(t, err)
-	privKeyImporters := []utils.Importer{keyFileStore}
+	privKeyImporters := []trustmanager.Importer{keyFileStore}
 
 	pubKeyBytes, err := getPrivKeyBytesFromPath(pubKeyFilepath)
 	assert.NoError(t, err)

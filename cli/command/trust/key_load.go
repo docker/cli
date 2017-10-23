@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/notary"
 	"github.com/docker/notary/storage"
+	"github.com/docker/notary/trustmanager"
 	tufutils "github.com/docker/notary/tuf/utils"
-	"github.com/docker/notary/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +46,7 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 	if err != nil {
 		return err
 	}
-	privKeyImporters := []utils.Importer{keyFileStore}
+	privKeyImporters := []trustmanager.Importer{keyFileStore}
 
 	fmt.Fprintf(streams.Out(), "\nLoading key from \"%s\"...\n", keyPath)
 
@@ -85,10 +85,10 @@ func getPrivKeyBytesFromPath(keyPath string) ([]byte, error) {
 	return keyBytes, nil
 }
 
-func loadPrivKeyBytesToStore(privKeyBytes []byte, privKeyImporters []utils.Importer, keyPath, keyName string, passRet notary.PassRetriever) error {
+func loadPrivKeyBytesToStore(privKeyBytes []byte, privKeyImporters []trustmanager.Importer, keyPath, keyName string, passRet notary.PassRetriever) error {
 	if _, _, err := tufutils.ExtractPrivateKeyAttributes(privKeyBytes); err != nil {
 		return fmt.Errorf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", keyPath)
 	}
 	// Make a reader, rewind the file pointer
-	return utils.ImportKeys(bytes.NewReader(privKeyBytes), privKeyImporters, keyName, "", passRet)
+	return trustmanager.ImportKeys(bytes.NewReader(privKeyBytes), privKeyImporters, keyName, "", passRet)
 }

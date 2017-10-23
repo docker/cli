@@ -11,10 +11,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
 	tufutils "github.com/docker/notary/tuf/utils"
@@ -80,15 +79,12 @@ func addSignerToImage(cli command.Cli, signerName string, imageName string, keyP
 	fmt.Fprintf(cli.Out(), "\nAdding signer \"%s\" to %s...\n", signerName, imageName)
 
 	ctx := context.Background()
-	authResolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
-	}
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver, imageName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
 	if err != nil {
 		return err
 	}
 
-	notaryRepo, err := cli.NotaryClient(*imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
