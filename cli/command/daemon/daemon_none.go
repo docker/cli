@@ -1,6 +1,6 @@
 // +build !daemon
 
-package main
+package daemon
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newDaemonCommand() *cobra.Command {
+func NewDaemonCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:                "daemon",
 		Hidden:             true,

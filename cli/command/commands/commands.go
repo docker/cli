@@ -22,8 +22,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Command represents the root command
+type Command interface {
+	AddCommand(cmds ...*cobra.Command)
+}
+
 // AddCommands adds all the commands from cli/command to the root command
-func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
+func AddCommands(cmd Command, dockerCli *command.DockerCli) {
 	cmd.AddCommand(
 		// checkpoint
 		checkpoint.NewCheckpointCommand(dockerCli),

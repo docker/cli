@@ -1,6 +1,6 @@
 // +build daemon
 
-package main
+package daemon
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 const daemonBinary = "dockerd"
 
-func newDaemonCommand() *cobra.Command {
+func NewDaemonCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                "daemon",
 		Hidden:             true,
