@@ -24,7 +24,7 @@ import (
 
 func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	skip.IfCondition(t, runtime.GOOS == "windows", "uid and gid not relevant on windows")
-	skip.IfCondition(t, runtime.GOOS == "openbsd", "gotestyourself/fs not working right on openbsd")
+	skip.IfCondition(t, runtime.GOOS != "windows" && os.Getuid() != 0, "test requires elevated privileges")
 
 	dest := fs.NewDir(t, "test-build-context-dest")
 	defer dest.Remove()
@@ -60,7 +60,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	}
 }
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
-	skip.IfCondition(t, runtime.GOOS == "openbsd", "not working right on openbsd")
+	skip.IfCondition(t, runtime.GOOS != "windows" && os.Getuid() != 0, "test requires elevated privileges")
 	dest, err := ioutil.TempDir("", "test-build-compress-dest")
 	require.NoError(t, err)
 	defer os.RemoveAll(dest)
