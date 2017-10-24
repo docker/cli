@@ -17,6 +17,7 @@ import (
 )
 
 const configDataFile = "config-create-with-name.golden"
+const fileCountInTestDataDir = 11
 
 func TestConfigCreateErrors(t *testing.T) {
 	testCases := []struct {
@@ -25,11 +26,15 @@ func TestConfigCreateErrors(t *testing.T) {
 		expectedError    string
 	}{
 		{
-			args:          []string{"too_few"},
-			expectedError: "requires exactly 2 arguments",
+			args:          []string{},
+			expectedError: "requires at least 1 and at most 2 argument",
 		},
 		{args: []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires at least 1 and at most 2 argument",
+		},
+		{
+			args:          []string{"name", "testdata"},
+			expectedError: "cannot give a config name for a directory path",
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", configDataFile)},
@@ -104,4 +109,22 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	cmd.Flags().Set("label", "lbl2=Label-bar")
 	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+}
+
+func TestConfigCreateFromDirectory(t *testing.T) {
+	configCount := 0
+	cli := test.NewFakeCli(&fakeClient{
+		configCreateFunc: func(spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+			configCount++
+			return types.ConfigCreateResponse{
+				ID: "ID-" + spec.Name,
+			}, nil
+		},
+	})
+
+	cmd := newConfigCreateCommand(cli)
+	cmd.SetArgs([]string{"testdata"})
+	assert.NoError(t, cmd.Execute())
+	assert.Equal(t, configCount, fileCountInTestDataDir)
+	assert.Contains(t, strings.TrimSpace(cli.OutBuffer().String()), "ID-"+configDataFile)
 }
