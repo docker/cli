@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -68,7 +68,7 @@ func runConfigCreate(dockerCli command.Cli, options createOptions) error {
 			return fmt.Errorf("error listing files in %s: %v", options.file, err)
 		}
 		for _, file := range files {
-			filePath := path.Join(options.file, file.Name())
+			filePath := filepath.Join(options.file, file.Name())
 			if file.Mode().IsRegular() {
 				if err = configCreateFromFile(dockerCli, filePath, file.Name(), labels); err != nil {
 					return err
