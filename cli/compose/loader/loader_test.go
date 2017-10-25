@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"path/filepath"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
@@ -20,7 +21,7 @@ func buildConfigDetails(source map[string]interface{}, env map[string]string) ty
 	}
 
 	return types.ConfigDetails{
-		WorkingDir: workingDir,
+		WorkingDir: filepath.Join(workingDir, "testdata"),
 		ConfigFiles: []types.ConfigFile{
 			{Filename: "filename.yml", Config: source},
 		},
@@ -299,26 +300,6 @@ services:
 	require.NoError(t, err)
 }
 
-func TestUnsupportedVersion(t *testing.T) {
-	_, err := loadYAML(`
-version: "2"
-services:
-  foo:
-    image: busybox
-`)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version")
-
-	_, err = loadYAML(`
-version: "2.0"
-services:
-  foo:
-    image: busybox
-`)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version")
-}
-
 func TestInvalidVersion(t *testing.T) {
 	_, err := loadYAML(`
 version: 3
@@ -328,14 +309,6 @@ services:
 `)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "version must be a string")
-}
-
-func TestV1Unsupported(t *testing.T) {
-	_, err := loadYAML(`
-foo:
-  image: busybox
-`)
-	assert.Error(t, err)
 }
 
 func TestNonMappingObject(t *testing.T) {
@@ -680,7 +653,7 @@ func uint64Ptr(value uint64) *uint64 {
 }
 
 func TestFullExample(t *testing.T) {
-	bytes, err := ioutil.ReadFile("full-example.yml")
+	bytes, err := ioutil.ReadFile("testdata/v3-full-example.yml")
 	require.NoError(t, err)
 
 	homeDir := "/home/foo"
@@ -690,6 +663,7 @@ func TestFullExample(t *testing.T) {
 
 	workingDir, err := os.Getwd()
 	require.NoError(t, err)
+	workingDir = filepath.Join(workingDir, "testdata")
 
 	stopGracePeriod := time.Duration(20 * time.Second)
 
@@ -761,8 +735,8 @@ func TestFullExample(t *testing.T) {
 			"QUX": strPtr("qux_from_environment"),
 		},
 		EnvFile: []string{
-			"./example1.env",
-			"./example2.env",
+			"example1.env",
+			"example2.env",
 		},
 		Expose: []string{"3000", "8000"},
 		ExternalLinks: []string{

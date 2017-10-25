@@ -48,7 +48,7 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 
 func TestValidateInvalidVersion(t *testing.T) {
 	config := dict{
-		"version": "2.1",
+		"version": "0.1",
 		"services": dict{
 			"foo": dict{
 				"image": "busybox",
@@ -56,9 +56,9 @@ func TestValidateInvalidVersion(t *testing.T) {
 		},
 	}
 
-	err := Validate(config, "2.1")
+	err := Validate(config, "0.1")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported Compose file version: 2.1")
+	assert.Contains(t, err.Error(), "unsupported Compose file version: 0.1")
 }
 
 type array []interface{}

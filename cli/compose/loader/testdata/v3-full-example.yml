@@ -89,8 +89,8 @@ services:
     # String or list
     # env_file: .env
     env_file:
-      - ./example1.env
-      - ./example2.env
+      - example1.env
+      - example2.env
 
     # Mapping or list
     # Mapping values can be strings, numbers or null

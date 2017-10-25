@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultVersion = "1.0"
+	defaultVersion = "1"
 	versionField   = "version"
 )
 
@@ -49,6 +49,8 @@ func normalizeVersion(version string) string {
 	switch version {
 	case "3":
 		return "3.0"
+	case "2":
+		return "2.0"
 	default:
 		return version
 	}
