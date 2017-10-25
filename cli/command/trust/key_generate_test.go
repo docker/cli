@@ -2,6 +2,7 @@ package trust
 
 import (
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -120,14 +121,18 @@ func TestValidateKeyArgs(t *testing.T) {
 
 	err = validateKeyArgs("a/b", pubKeyCWD)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "key name \"a/b\" must not contain special characters")
+	assert.Equal(t, err.Error(), "key name \"a/b\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
 	err = validateKeyArgs("-", pubKeyCWD)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "key name \"-\" must not contain special characters")
+	assert.Equal(t, err.Error(), "key name \"-\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
 	assert.NoError(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
 	err = validateKeyArgs("a", pubKeyCWD)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "public key file already exists: \"a.pub\"")
+	assert.Equal(t, err.Error(), fmt.Sprintf("public key file already exists: \"%s/a.pub\"", pubKeyCWD))
+
+	err = validateKeyArgs("a", "/random/dir/")
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "public key path does not exist: \"/random/dir/\"")
 }

@@ -40,8 +40,14 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 		{
 			name:           "not-a-key",
 			args:           []string{"iamnotakey"},
-			expectedError:  "error reading key from iamnotakey: stat iamnotakey: no such file or directory",
-			expectedOutput: "\nLoading key from \"iamnotakey\"...\n",
+			expectedError:  "refusing to load key from iamnotakey: stat iamnotakey: no such file or directory",
+			expectedOutput: "Loading key from \"iamnotakey\"...\n",
+		},
+		{
+			name:           "bad-key-name",
+			args:           []string{"iamnotakey", "--name", "KEYNAME"},
+			expectedError:  "key name \"KEYNAME\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character",
+			expectedOutput: "",
 		},
 	}
 	tmpDir, err := ioutil.TempDir("", "docker-key-load-test-")
@@ -178,21 +184,21 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	// import the key to our keyStorageDir
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
-	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
+	assert.Contains(t, fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0677))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
-	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
+	assert.Contains(t, fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0777))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.Error(t, err)
-	assert.Contains(t, fmt.Sprintf("private key permission from %s should be set to 400 or 600", privKeyFilepath), err.Error())
+	assert.Contains(t, fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error())
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
 	assert.NoError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0400))
@@ -208,9 +214,9 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 }
 
 var pubKeyFixture = []byte(`-----BEGIN PUBLIC KEY-----
-	MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUIH9AYtrcDFzZrFJBdJZkn21d+4c
-	H3nzy2O6Q/ct4BjOBKa+WCdRtPo78bA+C/7t81ADQO8Jqaj59W50rwoqDQ==
-	-----END PUBLIC KEY-----`)
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUIH9AYtrcDFzZrFJBdJZkn21d+4c
+H3nzy2O6Q/ct4BjOBKa+WCdRtPo78bA+C/7t81ADQO8Jqaj59W50rwoqDQ==
+-----END PUBLIC KEY-----`)
 
 func TestLoadPubKeyFailure(t *testing.T) {
 	pubKeyDir, err := ioutil.TempDir("", "key-load-test-pubkey-")

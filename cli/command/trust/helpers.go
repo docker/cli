@@ -11,12 +11,13 @@ import (
 const releasedRoleName = "Repo Admin"
 const releasesRoleTUFName = "targets/releases"
 
-// check if a role name is "released": either targets/releases or targets TUF roles
+// isReleasedTarget checks if a role name is "released":
+// either targets/releases or targets TUF roles
 func isReleasedTarget(role data.RoleName) bool {
 	return role == data.CanonicalTargetsRole || role == trust.ReleasesRole
 }
 
-// convert TUF role name to a human-understandable signer name
+// notaryRoleToSigner converts TUF role name to a human-understandable signer name
 func notaryRoleToSigner(tufRole data.RoleName) string {
 	//  don't show a signer for "targets" or "targets/releases"
 	if isReleasedTarget(data.RoleName(tufRole.String())) {
@@ -25,6 +26,7 @@ func notaryRoleToSigner(tufRole data.RoleName) string {
 	return strings.TrimPrefix(tufRole.String(), "targets/")
 }
 
+// clearChangelist clears the notary staging changelist.
 func clearChangeList(notaryRepo client.Repository) error {
 	cl, err := notaryRepo.GetChangelist()
 	if err != nil {
@@ -33,12 +35,13 @@ func clearChangeList(notaryRepo client.Repository) error {
 	return cl.Clear("")
 }
 
+// getOrGenerateRootKeyAndInitRepo initializes the notary repository
+// with a remotely managed snapshot key. The initialization will use
+// an existing root key if one is found, else a new one will be generated.
 func getOrGenerateRootKeyAndInitRepo(notaryRepo client.Repository) error {
 	rootKey, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
 	if err != nil {
 		return err
 	}
-	// Initialize the notary repository with a remotely managed snapshot
-	// key
 	return notaryRepo.Initialize([]string{rootKey.ID()}, data.CanonicalSnapshotRole)
 }

@@ -16,10 +16,13 @@ keywords: "signer, notary, trust"
 # trust signer remove
 
 ```markdown
-Usage:  docker trust signer remove [OPTIONS] NAME IMAGE [IMAGE...]
+Usage:	docker trust signer remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]
 
-Remove a signer from one or more repositories
+Remove a signer
 
+Options:
+  -f, --force   Do not prompt for confirmation before removing the most recent signer
+  --help        Print usage
 ```
 
 ## Description
@@ -35,7 +38,7 @@ Remove a signer from one or more repositories
 To remove an existing signer, `alice`, from this repository: 
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 
 No signatures for example/trust-demo
 
@@ -55,15 +58,16 @@ Remove `alice` with `docker trust signer remove`:
 
 ```bash
 $ docker trust signer remove alice example/trust-demo
+  Removing signer "alice" from image example/trust-demo...
   Enter passphrase for repository key with ID 642692c: 
   Successfully removed alice from example/trust-demo
 
 ```
 
-`docker trust inspect` now does not list `alice` as a valid signer:
+`docker trust view` now does not list `alice` as a valid signer:
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 
 No signatures for example/trust-demo
 
@@ -83,7 +87,7 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 To remove an existing signer, `alice`, from multiple repositories: 
 
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice, bob
 
@@ -98,7 +102,7 @@ Repository Key:	95b9e5514c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 ```bash
-$ docker trust inspect example/trust-demo2
+$ docker trust view example/trust-demo2
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice, bob
 
@@ -116,14 +120,17 @@ Remove `alice` from both images with a single `docker trust signer remove` comma
 
 ```bash
 $ docker trust signer remove alice example/trust-demo example/trust-demo2
+Removing signer "alice" from image example/trust-demo...
 Enter passphrase for repository key with ID 95b9e55: 
 Successfully removed alice from example/trust-demo
+
+Removing signer "alice" from image example/trust-demo2...
 Enter passphrase for repository key with ID ece554f: 
 Successfully removed alice from example/trust-demo2
 ```
-`docker trust inspect` no longer lists `alice` as a valid signer of either `example/trust-demo` or `example/trust-demo2`:
+`docker trust view` no longer lists `alice` as a valid signer of either `example/trust-demo` or `example/trust-demo2`:
 ```bash
-$ docker trust inspect example/trust-demo
+$ docker trust view example/trust-demo
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   bob
 
@@ -137,7 +144,7 @@ Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 ```bash
-$ docker trust inspect example/trust-demo2
+$ docker trust view example/trust-demo2
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   bob
 
@@ -155,7 +162,6 @@ Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 ```bash
 $ docker trust signer remove alice example/unauthorized example/authorized
-
 Removing signer "alice" from image example/unauthorized...
 No signer alice for image example/unauthorized
 

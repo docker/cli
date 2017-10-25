@@ -18,37 +18,40 @@ import (
 
 type signerRemoveOptions struct {
 	signer   string
-	images   []string
+	repos    []string
 	forceYes bool
 }
 
 func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	options := signerRemoveOptions{}
 	cmd := &cobra.Command{
-		Use:   "remove [OPTIONS] NAME IMAGE [IMAGE...]",
+		Use:   "remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]",
 		Short: "Remove a signer",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
-			options.images = args[1:]
+			options.repos = args[1:]
 			return removeSigner(dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVarP(&options.forceYes, "yes", "y", false, "Do not prompt for confirmation before removing the most recent signer")
+	flags.BoolVarP(&options.forceYes, "force", "f", false, "Do not prompt for confirmation before removing the most recent signer")
 	return cmd
 }
 
 func removeSigner(cli command.Cli, options signerRemoveOptions) error {
-	var errImages []string
-	for _, image := range options.images {
-		if err := removeSingleSigner(cli, image, options.signer, options.forceYes); err != nil {
-			fmt.Fprintln(cli.Err(), err.Error())
-			errImages = append(errImages, image)
+	var errRepos []string
+	for _, repo := range options.repos {
+		fmt.Fprintf(cli.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
+		if err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
+			fmt.Fprintln(cli.Err(), err.Error()+"\n")
+			errRepos = append(errRepos, repo)
+		} else {
+			fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", options.signer, repo)
 		}
 	}
-	if len(errImages) > 0 {
-		return fmt.Errorf("Error removing signer from: %s", strings.Join(errImages, ", "))
+	if len(errRepos) > 0 {
+		return fmt.Errorf("Error removing signer from: %s", strings.Join(errRepos, ", "))
 	}
 	return nil
 }
@@ -75,11 +78,9 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 	return counter < releasesRoleWithSigs.Threshold, nil
 }
 
-func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes bool) error {
-	fmt.Fprintf(cli.Out(), "\nRemoving signer \"%s\" from %s...\n", signerName, imageName)
-
+func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), repoName)
 	if err != nil {
 		return err
 	}
@@ -94,7 +95,7 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 	}
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		return errors.Wrapf(err, "error retrieving signers for %s", imageName)
+		return errors.Wrapf(err, "error retrieving signers for %s", repoName)
 	}
 	var role data.Role
 	for _, delRole := range delegationRoles {
@@ -104,7 +105,7 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 		}
 	}
 	if role.Name == "" {
-		return fmt.Errorf("No signer %s for image %s", signerName, imageName)
+		return fmt.Errorf("No signer %s for repository %s", signerName, repoName)
 	}
 	allRoles, err := notaryRepo.ListRoles()
 	if err != nil {
@@ -114,7 +115,7 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 		removeSigner := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("The signer \"%s\" signed the last released version of %s. "+
 			"Removing this signer will make %s unpullable. "+
 			"Are you sure you want to continue?",
-			signerName, imageName, imageName,
+			signerName, repoName, repoName,
 		))
 
 		if !removeSigner {
@@ -133,6 +134,5 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 	if err = notaryRepo.Publish(); err != nil {
 		return err
 	}
-	fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n", signerName, imageName)
 	return nil
 }

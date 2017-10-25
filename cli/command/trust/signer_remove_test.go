@@ -71,26 +71,25 @@ func TestRemoveSingleSigner(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	err := removeSingleSigner(cli, "signed-repo", "test", true)
-	assert.EqualError(t, err, "No signer test for image signed-repo")
-	assert.Contains(t, cli.OutBuffer().String(), "\nRemoving signer \"test\" from signed-repo...\n")
+	assert.EqualError(t, err, "No signer test for repository signed-repo")
 	err = removeSingleSigner(cli, "signed-repo", "releases", true)
 	assert.EqualError(t, err, "releases is a reserved keyword and cannot be removed")
-	assert.Contains(t, cli.OutBuffer().String(), "\nRemoving signer \"releases\" from signed-repo...\n")
 }
 
 func TestRemoveMultipleSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
-	err := removeSigner(cli, signerRemoveOptions{signer: "test", images: []string{"signed-repo", "signed-repo"}, forceYes: true})
+	err := removeSigner(cli, signerRemoveOptions{signer: "test", repos: []string{"signed-repo", "signed-repo"}, forceYes: true})
 	assert.EqualError(t, err, "Error removing signer from: signed-repo, signed-repo")
 	assert.Contains(t, cli.ErrBuffer().String(),
-		"No signer test for image signed-repo")
+		"No signer test for repository signed-repo")
+	assert.Contains(t, cli.OutBuffer().String(), "Removing signer \"test\" from signed-repo...\n")
 }
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 
-	err := removeSigner(cli, signerRemoveOptions{signer: "alice", images: []string{"signed-repo"}, forceYes: false})
+	err := removeSigner(cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
 	assert.NoError(t, err)
 	assert.Contains(t, cli.OutBuffer().String(),
 		"The signer \"alice\" signed the last released version of signed-repo. "+

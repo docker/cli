@@ -20,6 +20,9 @@ Usage:  docker trust key generate NAME
 
 Generate and load a signing key-pair
 
+Options:
+      --dir string   Directory to generate key in, defaults to current directory
+      --help         Print usage
 ```
 
 ## Description
@@ -50,3 +53,17 @@ All passphrase requests to sign with the key will be referred to by the provided
 
 The public key component `alice.pub` will be available in the current working directory, and can
 be used directly by `docker trust signer add`.
+
+Provide the `--dir` argument to specify a directory to generate the key in:
+
+```bash
+$ docker trust key generate alice --dir /foo
+
+Generating key for alice...
+Enter passphrase for new alice key with ID 17acf3c:
+Repeat passphrase for new alice key with ID 17acf3c:
+Successfully generated and loaded private key. Corresponding public key available: alice.pub
+$ ls /foo
+alice.pub
+
+```

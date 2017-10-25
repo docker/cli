@@ -28,7 +28,7 @@ type keyGenerateOptions struct {
 func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
 	options := keyGenerateOptions{}
 	cmd := &cobra.Command{
-		Use:   "generate NAME [NAME...]",
+		Use:   "generate NAME",
 		Short: "Generate and load a signing key-pair",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,30 +37,33 @@ func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&options.directory, "dir", "d", "", "Directory to generate key in, defaults to current directory")
+	flags.StringVar(&options.directory, "dir", "", "Directory to generate key in, defaults to current directory")
 	return cmd
 }
 
-// key names can use alphanumeric + _ + - characters
-var validKeyName = regexp.MustCompile(`^[a-zA-Z0-9\_]+[a-zA-Z0-9\_\-]*$`).MatchString
+// key names can use lowercase alphanumeric + _ + - characters
+var validKeyName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
 // validate that all of the key names are unique and are alphanumeric + _ + -
-// and that we do not already have public key files in the current dir on disk
-func validateKeyArgs(keyName string, cwdPath string) error {
+// and that we do not already have public key files in the target dir on disk
+func validateKeyArgs(keyName string, targetDir string) error {
 	if !validKeyName(keyName) {
-		return fmt.Errorf("key name \"%s\" must not contain special characters", keyName)
+		return fmt.Errorf("key name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", keyName)
 	}
 
 	pubKeyFileName := keyName + ".pub"
-	if _, err := os.Stat(filepath.Join(cwdPath, pubKeyFileName)); err == nil {
-		return fmt.Errorf("public key file already exists: \"%s\"", pubKeyFileName)
+	if _, err := os.Stat(targetDir); err != nil {
+		return fmt.Errorf("public key path does not exist: \"%s\"", targetDir)
+	}
+	targetPath := filepath.Join(targetDir, pubKeyFileName)
+	if _, err := os.Stat(targetPath); err == nil {
+		return fmt.Errorf("public key file already exists: \"%s\"", targetPath)
 	}
 	return nil
 }
 
 func setupPassphraseAndGenerateKeys(streams command.Streams, opts keyGenerateOptions) error {
 	targetDir := opts.directory
-	// if the target dir is empty, default to CWD
 	if targetDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -76,7 +79,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 	if err := validateKeyArgs(keyName, workingDir); err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out(), "\nGenerating key for %s...\n", keyName)
+	fmt.Fprintf(streams.Out(), "Generating key for %s...\n", keyName)
 	// Automatically load the private key to local storage for use
 	privKeyFileStore, err := trustmanager.NewKeyFileStore(trust.GetTrustDirectory(), freshPassRetGetter())
 	if err != nil {
