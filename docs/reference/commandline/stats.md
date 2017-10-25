@@ -34,6 +34,8 @@ The `docker stats` command returns a live data stream for running containers. To
 
 If you want more detailed information about a container's resource usage, use the `/containers/(id)/stats` API endpoint.
 
+> **Note**: On Linux, the Docker CLI reports memory usage by subtracting page cache usage from the total memory usage. The API does not perform such a calculation but rather provides the total memory usage and the amount from the page cache so that clients can use the data as needed.
+
 ## Examples
 
 Running `docker stats` on all running containers against a Linux daemon.
