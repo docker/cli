@@ -11,11 +11,11 @@ import (
 // nolint: interfacer
 func NewSecretCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "secret",
-		Short: "Manage Docker secrets",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.25"},
+		Use:         "secret",
+		Short:       "Manage Docker secrets",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.25"},
 	}
 	cmd.AddCommand(
 		newSecretListCommand(dockerCli),

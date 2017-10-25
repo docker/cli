@@ -48,7 +48,7 @@ func newLogsCommand(dockerCli *command.DockerCli) *cobra.Command {
 			opts.target = args[0]
 			return runLogs(dockerCli, &opts)
 		},
-		Tags: map[string]string{"version": "1.29"},
+		Annotations: map[string]string{"version": "1.29"},
 	}
 
 	flags := cmd.Flags()

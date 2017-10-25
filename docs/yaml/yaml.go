@@ -53,7 +53,7 @@ func GenYamlTree(cmd *cobra.Command, dir string) error {
 // GenYamlTreeCustom creates yaml structured ref files
 func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string) string) error {
 	for _, c := range cmd.Commands() {
-		if !c.IsAvailableCommand() || c.IsHelpCommand() {
+		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
 			continue
 		}
 		if err := GenYamlTreeCustom(c, dir, filePrepender); err != nil {
@@ -103,10 +103,10 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 	}
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
-		if v, ok := curr.Tags["version"]; ok && cliDoc.MinAPIVersion == "" {
+		if v, ok := curr.Annotations["version"]; ok && cliDoc.MinAPIVersion == "" {
 			cliDoc.MinAPIVersion = v
 		}
-		if _, ok := curr.Tags["experimental"]; ok && !cliDoc.Experimental {
+		if _, ok := curr.Annotations["experimental"]; ok && !cliDoc.Experimental {
 			cliDoc.Experimental = true
 		}
 	}
@@ -137,7 +137,7 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 		sort.Sort(byName(children))
 
 		for _, child := range children {
-			if !child.IsAvailableCommand() || child.IsHelpCommand() {
+			if !child.IsAvailableCommand() || child.IsAdditionalHelpTopicCommand() {
 				continue
 			}
 			currentChild := cliDoc.Name + " " + child.Name()
@@ -207,7 +207,7 @@ func hasSeeAlso(cmd *cobra.Command) bool {
 		return true
 	}
 	for _, c := range cmd.Commands() {
-		if !c.IsAvailableCommand() || c.IsHelpCommand() {
+		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
 			continue
 		}
 		return true
