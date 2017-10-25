@@ -13,6 +13,7 @@ import (
 	"github.com/docker/notary/storage"
 	"github.com/docker/notary/trustmanager"
 	tufutils "github.com/docker/notary/tuf/utils"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -54,10 +55,10 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 	passRet := trust.GetPassphraseRetriever(streams.In(), streams.Out())
 	keyBytes, err := getPrivKeyBytesFromPath(keyPath)
 	if err != nil {
-		return fmt.Errorf("error reading key from %s: %s", keyPath, err)
+		return errors.Wrapf(err, "error reading key from %s", keyPath)
 	}
 	if err := loadPrivKeyBytesToStore(keyBytes, privKeyImporters, keyPath, options.keyName, passRet); err != nil {
-		return fmt.Errorf("error importing key from %s: %s", keyPath, err)
+		return errors.Wrapf(err, "error importing key from %s", keyPath)
 	}
 	fmt.Fprintf(streams.Out(), "Successfully imported key from %s\n", keyPath)
 	return nil
@@ -78,11 +79,7 @@ func getPrivKeyBytesFromPath(keyPath string) ([]byte, error) {
 	}
 	defer from.Close()
 
-	keyBytes, err := ioutil.ReadAll(from)
-	if err != nil {
-		return nil, err
-	}
-	return keyBytes, nil
+	return ioutil.ReadAll(from)
 }
 
 func loadPrivKeyBytesToStore(privKeyBytes []byte, privKeyImporters []trustmanager.Importer, keyPath, keyName string, passRet notary.PassRetriever) error {

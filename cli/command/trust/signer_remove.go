@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/tuf/data"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +43,7 @@ func removeSigner(cli command.Cli, options signerRemoveOptions) error {
 	var errImages []string
 	for _, image := range options.images {
 		if err := removeSingleSigner(cli, image, options.signer, options.forceYes); err != nil {
-			fmt.Fprintln(cli.Out(), err.Error())
+			fmt.Fprintln(cli.Err(), err.Error())
 			errImages = append(errImages, image)
 		}
 	}
@@ -93,7 +94,7 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 	}
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		return fmt.Errorf("Error retrieving signers for %s", imageName)
+		return errors.Wrapf(err, "error retrieving signers for %s", imageName)
 	}
 	var role data.Role
 	for _, delRole := range delegationRoles {
@@ -121,7 +122,7 @@ func removeSingleSigner(cli command.Cli, imageName, signerName string, forceYes 
 			return nil
 		}
 	} else if err != nil {
-		fmt.Fprintln(cli.Out(), err.Error())
+		return err
 	}
 	if err = notaryRepo.RemoveDelegationKeys(releasesRoleTUFName, role.KeyIDs); err != nil {
 		return err

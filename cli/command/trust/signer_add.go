@@ -63,7 +63,7 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 	var errImages []string
 	for _, imageName := range options.images {
 		if err := addSignerToImage(cli, signerName, imageName, options.keys.GetAll()); err != nil {
-			fmt.Fprintln(cli.Out(), err.Error())
+			fmt.Fprintln(cli.Err(), err.Error())
 			errImages = append(errImages, imageName)
 		} else {
 			fmt.Fprintf(cli.Out(), "Successfully added signer: %s to %s\n", signerName, imageName)
@@ -124,7 +124,7 @@ func ingestPublicKeys(pubKeyPaths []string) ([]data.PublicKey, error) {
 			if os.IsNotExist(err) {
 				return nil, fmt.Errorf("file for public key does not exist: %s", pubKeyPath)
 			}
-			return nil, fmt.Errorf("unable to read public key from file: %s", pubKeyPath)
+			return nil, errors.Wrapf(err, "unable to read public key from file: %s", pubKeyPath)
 		}
 
 		// Parse PEM bytes into type PublicKey

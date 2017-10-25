@@ -42,7 +42,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		{
 			name:          "not-an-image",
 			args:          []string{"user", "notanimage"},
-			expectedError: "Error retrieving signers for notanimage",
+			expectedError: "error retrieving signers for notanimage",
 		},
 		{
 			name:          "sha-reference",
@@ -62,7 +62,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.Execute()
-		assert.Contains(t, cli.OutBuffer().String(), tc.expectedError)
+		assert.Contains(t, cli.ErrBuffer().String(), tc.expectedError)
 	}
 
 }
@@ -83,8 +83,8 @@ func TestRemoveMultipleSigners(t *testing.T) {
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	err := removeSigner(cli, signerRemoveOptions{signer: "test", images: []string{"signed-repo", "signed-repo"}, forceYes: true})
 	assert.EqualError(t, err, "Error removing signer from: signed-repo, signed-repo")
-	assert.Contains(t, cli.OutBuffer().String(),
-		"\nRemoving signer \"test\" from signed-repo...\nNo signer test for image signed-repo\n\nRemoving signer \"test\" from signed-repo...\nNo signer test for image signed-repo")
+	assert.Contains(t, cli.ErrBuffer().String(),
+		"No signer test for image signed-repo")
 }
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})

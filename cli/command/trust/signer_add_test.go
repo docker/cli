@@ -82,10 +82,10 @@ func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	assert.EqualError(t, cmd.Execute(), "Failed to add signer to: alpine, linuxkit/alpine")
 
 	assert.Contains(t, cli.OutBuffer().String(), "Adding signer \"alice\" to alpine...")
-	assert.Contains(t, cli.OutBuffer().String(), "no valid public key found")
+	assert.Contains(t, cli.ErrBuffer().String(), "no valid public key found")
 
 	assert.Contains(t, cli.OutBuffer().String(), "Adding signer \"alice\" to linuxkit/alpine...")
-	assert.Contains(t, cli.OutBuffer().String(), "no valid public key found")
+	assert.Contains(t, cli.ErrBuffer().String(), "no valid public key found")
 }
 
 func TestSignerAddCommandBadKeyPath(t *testing.T) {
@@ -102,8 +102,8 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.EqualError(t, cmd.Execute(), "Failed to add signer to: alpine")
 
-	expectedError := "\nAdding signer \"alice\" to alpine...\nfile for public key does not exist: /path/to/key.pem"
-	assert.Contains(t, cli.OutBuffer().String(), expectedError)
+	expectedError := "file for public key does not exist: /path/to/key.pem"
+	assert.Contains(t, cli.ErrBuffer().String(), expectedError)
 }
 
 func TestSignerAddCommandInvalidRepoName(t *testing.T) {
@@ -120,11 +120,9 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 
 	cmd.SetOutput(ioutil.Discard)
 	assert.EqualError(t, cmd.Execute(), "Failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
-	expectedOutput := fmt.Sprintf("\nAdding signer \"alice\" to %s...\n"+
-		"invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n",
-		imageName, imageName)
+	expectedErr := fmt.Sprintf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n", imageName)
 
-	assert.Equal(t, expectedOutput, cli.OutBuffer().String())
+	assert.Equal(t, expectedErr, cli.ErrBuffer().String())
 }
 
 func TestIngestPublicKeys(t *testing.T) {

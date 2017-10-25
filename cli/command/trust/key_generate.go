@@ -16,6 +16,7 @@ import (
 	"github.com/docker/notary/trustmanager"
 	"github.com/docker/notary/tuf/data"
 	tufutils "github.com/docker/notary/tuf/utils"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +86,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 	pubPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
 	if err != nil {
 		fmt.Fprintf(streams.Out(), err.Error())
-		return fmt.Errorf("Error generating key for: %s", keyName)
+		return errors.Wrapf(err, "failed to generate key for %s", keyName)
 	}
 
 	// Output the public key to a file in the CWD or specified dir
@@ -124,7 +125,7 @@ func writePubKeyPEMToDir(pubPEM pem.Block, keyName, workingDir string) (string, 
 	pubFileName := strings.Join([]string{keyName, "pub"}, ".")
 	pubFilePath := filepath.Join(workingDir, pubFileName)
 	if err := ioutil.WriteFile(pubFilePath, pem.EncodeToMemory(&pubPEM), notary.PrivNoExecPerms); err != nil {
-		return "", fmt.Errorf("Error writing public key to location: %s", pubFilePath)
+		return "", errors.Wrapf(err, "failed to write public key to %s", pubFilePath)
 	}
 	return pubFilePath, nil
 }
