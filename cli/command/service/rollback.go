@@ -21,7 +21,7 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRollback(dockerCli, options, args[0])
 		},
-		Tags: map[string]string{"version": "1.31"},
+		Annotations: map[string]string{"version": "1.31"},
 	}
 
 	flags := cmd.Flags()

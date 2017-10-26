@@ -22,13 +22,31 @@ docker build \
     -t "$dev_image" \
     -f dockerfiles/Dockerfile.dev .
 
+notary_volume="${unique_id}_notary-fixtures"
+docker volume create --name "$notary_volume"
+docker run --rm \
+    -v "$PWD:/go/src/github.com/docker/cli" \
+    -v "$notary_volume:/data" \
+    "$dev_image" \
+    cp -r ./e2e/testdata/notary/* /data/
+
 engine_host=$(run_in_env setup)
 testexit=0
+
+
+test_cmd="test"
+if [[ -n "${TEST_DEBUG-}" ]]; then
+    test_cmd="shell"
+fi
+
 docker run -i --rm \
     -v "$PWD:/go/src/github.com/docker/cli" \
+    -v "$PWD/e2e/testdata/notary/root-ca.cert:/usr/local/share/ca-certificates/notary.cert" \
     --network "${unique_id}_default" \
     -e TESTFLAGS \
+    -e ENGINE_HOST="$engine_host" \
     "$dev_image" \
-    ./scripts/test/e2e/run test "$engine_host" || testexit="$?"
+    ./scripts/test/e2e/run "$test_cmd" "$engine_host" || testexit="$?"
+
 run_in_env cleanup
 exit "$testexit"

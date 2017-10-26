@@ -4,7 +4,7 @@ description: "The stack deploy command description and usage"
 keywords: "stack, deploy, up"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -28,6 +28,8 @@ Options:
   -c, --compose-file string   Path to a Compose file
       --help                  Print usage
       --prune                 Prune services that are no longer referenced
+      --resolve-image string  Query the registry to resolve image digest and supported platforms
+                              ("always"|"changed"|"never") (default "always")
       --with-registry-auth    Send registry authentication details to Swarm agents
 ```
 

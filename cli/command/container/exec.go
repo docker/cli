@@ -122,7 +122,10 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 	}
 
 	client := dockerCli.Client()
-	resp, err := client.ContainerExecAttach(ctx, execID, *execConfig)
+	execStartCheck := types.ExecStartCheck{
+		Tty: execConfig.Tty,
+	}
+	resp, err := client.ContainerExecAttach(ctx, execID, execStartCheck)
 	if err != nil {
 		return err
 	}

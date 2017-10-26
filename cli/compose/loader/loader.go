@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
@@ -51,67 +50,92 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 
 	configDict := getConfigDict(configDetails)
 
-	if services, ok := configDict["services"]; ok {
-		if servicesDict, ok := services.(map[string]interface{}); ok {
-			forbidden := getProperties(servicesDict, types.ForbiddenProperties)
+	if err := validateForbidden(configDict); err != nil {
+		return nil, err
+	}
 
-			if len(forbidden) > 0 {
-				return nil, &ForbiddenPropertiesError{Properties: forbidden}
-			}
-		}
+	var err error
+	configDict, err = interpolateConfig(configDict, configDetails.LookupEnv)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := schema.Validate(configDict, schema.Version(configDict)); err != nil {
 		return nil, err
 	}
-
-	cfg := types.Config{}
-
-	config, err := interpolateConfig(configDict, configDetails.LookupEnv)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Services, err = LoadServices(config["services"], configDetails.WorkingDir, configDetails.LookupEnv)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Networks, err = LoadNetworks(config["networks"])
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Volumes, err = LoadVolumes(config["volumes"])
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Secrets, err = LoadSecrets(config["secrets"], configDetails.WorkingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.Configs, err = LoadConfigObjs(config["configs"], configDetails.WorkingDir)
-	return &cfg, err
+	return loadSections(configDict, configDetails)
 }
 
-func interpolateConfig(configDict map[string]interface{}, lookupEnv template.Mapping) (map[string]map[string]interface{}, error) {
-	config := make(map[string]map[string]interface{})
+func validateForbidden(configDict map[string]interface{}) error {
+	servicesDict, ok := configDict["services"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	forbidden := getProperties(servicesDict, types.ForbiddenProperties)
+	if len(forbidden) > 0 {
+		return &ForbiddenPropertiesError{Properties: forbidden}
+	}
+	return nil
+}
 
-	for _, key := range []string{"services", "networks", "volumes", "secrets", "configs"} {
-		section, ok := configDict[key]
-		if !ok {
-			config[key] = make(map[string]interface{})
-			continue
-		}
-		var err error
-		config[key], err = interpolation.Interpolate(section.(map[string]interface{}), key, lookupEnv)
-		if err != nil {
+func loadSections(config map[string]interface{}, configDetails types.ConfigDetails) (*types.Config, error) {
+	var err error
+	cfg := types.Config{}
+
+	var loaders = []struct {
+		key string
+		fnc func(config map[string]interface{}) error
+	}{
+		{
+			key: "services",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Services, err = LoadServices(config, configDetails.WorkingDir, configDetails.LookupEnv)
+				return err
+			},
+		},
+		{
+			key: "networks",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Networks, err = LoadNetworks(config)
+				return err
+			},
+		},
+		{
+			key: "volumes",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Volumes, err = LoadVolumes(config)
+				return err
+			},
+		},
+		{
+			key: "secrets",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Secrets, err = LoadSecrets(config, configDetails.WorkingDir)
+				return err
+			},
+		},
+		{
+			key: "configs",
+			fnc: func(config map[string]interface{}) error {
+				cfg.Configs, err = LoadConfigObjs(config, configDetails.WorkingDir)
+				return err
+			},
+		},
+	}
+	for _, loader := range loaders {
+		if err := loader.fnc(getSection(config, loader.key)); err != nil {
 			return nil, err
 		}
 	}
-	return config, nil
+	return &cfg, nil
+}
+
+func getSection(config map[string]interface{}, key string) map[string]interface{} {
+	section, ok := config[key]
+	if !ok {
+		return make(map[string]interface{})
+	}
+	return section.(map[string]interface{})
 }
 
 // GetUnsupportedProperties returns the list of any unsupported properties that are

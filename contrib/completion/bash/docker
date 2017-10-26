@@ -2201,6 +2201,7 @@ _docker_daemon() {
 		--max-concurrent-uploads
 		--metrics-addr
 		--mtu
+		--network-control-plane-mtu
 		--oom-score-adjust
 		--pidfile -p
 		--registry-mirror
@@ -3224,7 +3225,7 @@ _docker_service_rm() {
 _docker_service_rollback() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--detach=false -d --help --quit -q" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach -d --help --quit -q" -- "$cur" ) )
 			;;
 		*)
 			local counter=$( __docker_pos_first_nonflag )
@@ -3238,7 +3239,7 @@ _docker_service_rollback() {
 _docker_service_scale() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--detach=false -d=false --help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach -d --help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_services
@@ -3339,7 +3340,7 @@ _docker_service_update_and_create() {
 	"
 
 	local boolean_options="
-		--detach=false -d=false
+		--detach -d
 		--help
 		--no-healthcheck
 		--read-only
@@ -4188,17 +4189,17 @@ _docker_secret() {
 
 _docker_secret_create() {
 	case "$prev" in
-		--label|-l)
+		--driver|-d|--label|-l)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --label -l" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--driver -d --help --label -l" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--label|-l')
+			local counter=$(__docker_pos_first_nonflag '--driver|-d|--label|-l')
 			if [ "$cword" -eq "$((counter + 1))" ]; then
 				_filedir
 			fi
@@ -4345,16 +4346,20 @@ _docker_stack_deploy() {
 			_filedir yml
 			return
 			;;
+		--resolve-image)
+			COMPREPLY=( $( compgen -W "always changed never" -- "$cur" ) )
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			local options="--compose-file -c --help --prune --with-registry-auth"
+			local options="--compose-file -c --help --prune --resolve-image --with-registry-auth"
 			__docker_daemon_is_experimental && options+=" --bundle-file"
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--compose-file|-c|--bundle-file')
+			local counter=$(__docker_pos_first_nonflag '--bundle-file|--compose-file|-c|--resolve-image')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi

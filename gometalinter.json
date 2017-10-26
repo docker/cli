@@ -7,6 +7,13 @@
       "parameter .* always receives"
   ],
   "EnableGC": true,
+  "Linters": {
+      "nakedret": {
+        "Command": "nakedret",
+        "Pattern": "^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$"
+      }
+  },
+  "WarnUnmatchedDirective": true,
 
   "DisableAll": true,
   "Enable": [
@@ -20,6 +27,7 @@
     "interfacer",
     "lll",
     "misspell",
+    "nakedret",
     "unconvert",
     "unparam",
     "unused",

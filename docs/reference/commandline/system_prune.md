@@ -4,7 +4,7 @@ description: "Remove unused data"
 keywords: "system, prune, delete, remove"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -115,7 +115,7 @@ Total reclaimed space: 13.5 MB
 
 ### Filtering
 
-The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
+The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
 
 The currently supported filters are:

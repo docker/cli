@@ -16,7 +16,7 @@ type enableOpts struct {
 	name    string
 }
 
-func newEnableCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 	var opts enableOpts
 
 	cmd := &cobra.Command{
@@ -34,7 +34,7 @@ func newEnableCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runEnable(dockerCli *command.DockerCli, opts *enableOpts) error {
+func runEnable(dockerCli command.Cli, opts *enableOpts) error {
 	name := opts.name
 	if opts.timeout < 0 {
 		return errors.Errorf("negative timeout %d is invalid", opts.timeout)

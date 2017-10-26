@@ -5,7 +5,7 @@ description: "Deprecated Features."
 keywords: "docker, documentation, about, technology, deprecate"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -24,12 +24,15 @@ see [Feature Deprecation Policy](https://docs.docker.com/engine/#feature-depreca
 
 **Deprecated In Release: v17.05.0**
 
-**Disabled by default in release: [v17.09](https://github.com/docker/docker-ce/releases/tag/v17.09.0-ce)**
+**Disabled by default in release: [v17.10](https://github.com/docker/docker-ce/releases/tag/v17.10.0-ce)**
 
 Docker 17.05.0 added an optional `--detach=false` option to make the
 `docker service create` and `docker service update` work synchronously. This
-option will be enable by default in Docker 17.09, at which point the `--detach`
+option will be enabled by default in Docker 17.10, at which point the `--detach`
 flag can be used to use the previous (asynchronous) behavior.
+
+The default for this option will also be changed accordingly for `docker service rollback`
+and `docker service scale` in Docker 17.10.
 
 ### `-g` and `--graph` flags on `dockerd`
 

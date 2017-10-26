@@ -77,7 +77,7 @@ func MaximumNArgs(n int) PositionalArgs {
 	}
 }
 
-// ExactArgs returns an error if there are not exactly n args 
+// ExactArgs returns an error if there are not exactly n args
 func ExactArgs(n int) PositionalArgs {
 	return func(cmd *Command, args []string) error {
 		if len(args) != n {
@@ -87,7 +87,7 @@ func ExactArgs(n int) PositionalArgs {
 	}
 }
 
-// RangeArgs returns an error if the number of args is not within the expected range 
+// RangeArgs returns an error if the number of args is not within the expected range
 func RangeArgs(min int, max int) PositionalArgs {
 	return func(cmd *Command, args []string) error {
 		if len(args) < min || len(args) > max {

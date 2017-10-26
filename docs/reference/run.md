@@ -4,7 +4,7 @@ description: "Configure containers at runtime"
 keywords: "docker, run, configure, runtime"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -623,7 +623,7 @@ the container exits**, you can add the `--rm` flag:
 
     --rm=false: Automatically remove the container when it exits (incompatible with -d)
 
-> **Note**: When you set the `--rm` flag, Docker also removes the volumes
+> **Note**: When you set the `--rm` flag, Docker also removes the anonymous volumes
 associated with the container when the container is removed. This is similar
 to running `docker rm -v my-container`. Only volumes that are specified without a
 name are removed. For example, with

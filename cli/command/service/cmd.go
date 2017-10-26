@@ -8,14 +8,13 @@ import (
 )
 
 // NewServiceCommand returns a cobra command for `service` subcommands
-// nolint: interfacer
-func NewServiceCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "service",
-		Short: "Manage services",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.24"},
+		Use:         "service",
+		Short:       "Manage services",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.24"},
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),

@@ -45,10 +45,7 @@ func TestValidateAttach(t *testing.T) {
 
 // nolint: unparam
 func parseRun(args []string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig, error) {
-	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
-	flags.SetOutput(ioutil.Discard)
-	flags.Usage = nil
-	copts := addFlags(flags)
+	flags, copts := setupRunFlags()
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, nil, err
 	}
@@ -58,6 +55,14 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 		return nil, nil, nil, err
 	}
 	return containerConfig.Config, containerConfig.HostConfig, containerConfig.NetworkingConfig, err
+}
+
+func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
+	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
+	flags.SetOutput(ioutil.Discard)
+	flags.Usage = nil
+	copts := addFlags(flags)
+	return flags, copts
 }
 
 func parseMustError(t *testing.T, args string) {
@@ -227,20 +232,21 @@ func TestParseWithMacAddress(t *testing.T) {
 	}
 }
 
-func TestParseWithMemory(t *testing.T) {
-	invalidMemory := "--memory=invalid"
-	_, _, _, err := parseRun([]string{invalidMemory, "img", "cmd"})
-	testutil.ErrorContains(t, err, invalidMemory)
+func TestRunFlagsParseWithMemory(t *testing.T) {
+	flags, _ := setupRunFlags()
+	args := []string{"--memory=invalid", "img", "cmd"}
+	err := flags.Parse(args)
+	testutil.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
 
 	_, hostconfig := mustParse(t, "--memory=1G")
 	assert.Equal(t, int64(1073741824), hostconfig.Memory)
 }
 
 func TestParseWithMemorySwap(t *testing.T) {
-	invalidMemory := "--memory-swap=invalid"
-
-	_, _, _, err := parseRun([]string{invalidMemory, "img", "cmd"})
-	testutil.ErrorContains(t, err, invalidMemory)
+	flags, _ := setupRunFlags()
+	args := []string{"--memory-swap=invalid", "img", "cmd"}
+	err := flags.Parse(args)
+	testutil.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
 
 	_, hostconfig := mustParse(t, "--memory-swap=1G")
 	assert.Equal(t, int64(1073741824), hostconfig.MemorySwap)
@@ -365,7 +371,10 @@ func TestParseDevice(t *testing.T) {
 
 func TestParseModes(t *testing.T) {
 	// pid ko
-	_, _, _, err := parseRun([]string{"--pid=container:", "img", "cmd"})
+	flags, copts := setupRunFlags()
+	args := []string{"--pid=container:", "img", "cmd"}
+	require.NoError(t, flags.Parse(args))
+	_, err := parse(flags, copts)
 	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
@@ -385,14 +394,18 @@ func TestParseModes(t *testing.T) {
 	if !hostconfig.UTSMode.Valid() {
 		t.Fatalf("Expected a valid UTSMode, got %v", hostconfig.UTSMode)
 	}
+}
 
+func TestRunFlagsParseShmSize(t *testing.T) {
 	// shm-size ko
-	expectedErr := `invalid argument "a128m" for --shm-size=a128m: invalid size: 'a128m'`
-	_, _, _, err = parseRun([]string{"--shm-size=a128m", "img", "cmd"})
+	flags, _ := setupRunFlags()
+	args := []string{"--shm-size=a128m", "img", "cmd"}
+	expectedErr := `invalid argument "a128m" for "--shm-size" flag: invalid size: 'a128m'`
+	err := flags.Parse(args)
 	testutil.ErrorContains(t, err, expectedErr)
 
 	// shm-size ok
-	_, hostconfig, _, err = parseRun([]string{"--shm-size=128m", "img", "cmd"})
+	_, hostconfig, _, err := parseRun([]string{"--shm-size=128m", "img", "cmd"})
 	require.NoError(t, err)
 	if hostconfig.ShmSize != 134217728 {
 		t.Fatalf("Expected a valid ShmSize, got %d", hostconfig.ShmSize)

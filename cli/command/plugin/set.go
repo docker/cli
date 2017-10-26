@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newSetCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newSetCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set PLUGIN KEY=VALUE [KEY=VALUE...]",
 		Short: "Change settings for a plugin",

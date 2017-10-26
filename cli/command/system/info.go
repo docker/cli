@@ -22,7 +22,7 @@ type infoOptions struct {
 }
 
 // NewInfoCommand creates a new cobra.Command for `docker info`
-func NewInfoCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 	var opts infoOptions
 
 	cmd := &cobra.Command{
@@ -41,7 +41,7 @@ func NewInfoCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runInfo(dockerCli *command.DockerCli, opts *infoOptions) error {
+func runInfo(dockerCli command.Cli, opts *infoOptions) error {
 	ctx := context.Background()
 	info, err := dockerCli.Client().Info(ctx)
 	if err != nil {
@@ -357,7 +357,7 @@ func getBackingFs(info types.Info) string {
 	return ""
 }
 
-func formatInfo(dockerCli *command.DockerCli, info types.Info, format string) error {
+func formatInfo(dockerCli command.Cli, info types.Info, format string) error {
 	tmpl, err := templates.Parse(format)
 	if err != nil {
 		return cli.StatusError{StatusCode: 64,

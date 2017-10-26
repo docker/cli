@@ -20,7 +20,7 @@ type stopOptions struct {
 }
 
 // NewStopCommand creates a new cobra.Command for `docker stop`
-func NewStopCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 	var opts stopOptions
 
 	cmd := &cobra.Command{
@@ -39,7 +39,7 @@ func NewStopCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runStop(dockerCli *command.DockerCli, opts *stopOptions) error {
+func runStop(dockerCli command.Cli, opts *stopOptions) error {
 	ctx := context.Background()
 
 	var timeout *time.Duration

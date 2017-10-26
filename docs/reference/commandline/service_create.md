@@ -4,7 +4,7 @@ description: "The service create command description and usage"
 keywords: "service, create"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -294,8 +294,9 @@ volumes in a service:
     <td>
       <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, or <tt>tmpfs</tt>. Defaults to <tt>volume</tt> if no type is specified.
       <ul>
-        <li><tt>volume</tt>: mounts a [managed volume](volume_create.md) into the container.</li>
-        <li><tt>bind</tt>: bind-mounts a directory or file from the host into the container.</li>
+        <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
+        into the container.</li> <li><tt>bind</tt>:
+        bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
       </ul></p>
     </td>

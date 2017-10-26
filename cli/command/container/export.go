@@ -16,7 +16,7 @@ type exportOptions struct {
 }
 
 // NewExportCommand creates a new `docker export` command
-func NewExportCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewExportCommand(dockerCli command.Cli) *cobra.Command {
 	var opts exportOptions
 
 	cmd := &cobra.Command{
@@ -36,7 +36,7 @@ func NewExportCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runExport(dockerCli *command.DockerCli, opts exportOptions) error {
+func runExport(dockerCli command.Cli, opts exportOptions) error {
 	if opts.output == "" && dockerCli.Out().IsTerminal() {
 		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
 	}

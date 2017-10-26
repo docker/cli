@@ -23,6 +23,7 @@ function setup {
         export DOCKER_HOST="$engine_host"
         timeout -t 200 ./scripts/test/e2e/wait-on-daemon
         ./scripts/test/e2e/load-alpine
+        ./scripts/test/e2e/load-busybox
         is_swarm_enabled || docker swarm init
     ) >&2
     echo "$engine_host"
@@ -33,12 +34,14 @@ function is_swarm_enabled {
 }
 
 function cleanup {
-    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down >&2
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v >&2
 }
 
 function runtests {
     local engine_host=$1
 
+    # TODO: only run if inside a container
+    update-ca-certificates
     # shellcheck disable=SC2086
     env -i \
         TEST_DOCKER_HOST="$engine_host" \
@@ -76,6 +79,9 @@ case "$cmd" in
         runtests "$engine_host" || testexit=$?
         cleanup "$unique_id" "$compose_env_file"
         exit $testexit
+        ;;
+    shell)
+        $SHELL
         ;;
     *)
         echo "Unknown command: $cmd"
