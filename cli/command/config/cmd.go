@@ -11,11 +11,11 @@ import (
 // nolint: interfacer
 func NewConfigCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Manage Docker configs",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.30"},
+		Use:         "config",
+		Short:       "Manage Docker configs",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.30"},
 	}
 	cmd.AddCommand(
 		newConfigListCommand(dockerCli),

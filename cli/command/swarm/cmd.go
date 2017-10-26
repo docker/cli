@@ -11,11 +11,11 @@ import (
 // nolint: interfacer
 func NewSwarmCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "swarm",
-		Short: "Manage Swarm",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.24"},
+		Use:         "swarm",
+		Short:       "Manage Swarm",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.24"},
 	}
 	cmd.AddCommand(
 		newInitCommand(dockerCli),
