@@ -27,7 +27,7 @@ type eventsOptions struct {
 }
 
 // NewEventsCommand creates a new cobra.Command for `docker events`
-func NewEventsCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 	options := eventsOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -48,7 +48,7 @@ func NewEventsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runEvents(dockerCli *command.DockerCli, options *eventsOptions) error {
+func runEvents(dockerCli command.Cli, options *eventsOptions) error {
 	tmpl, err := makeTemplate(options.format)
 	if err != nil {
 		return cli.StatusError{

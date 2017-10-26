@@ -354,7 +354,7 @@ func convertNetworks(ctx context.Context, apiClient client.NetworkAPIClient, net
 		if err != nil {
 			return nil, err
 		}
-		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{ // nolint: gosimple
+		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{
 			Target:     net.Target,
 			Aliases:    net.Aliases,
 			DriverOpts: net.DriverOpts,

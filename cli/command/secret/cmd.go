@@ -8,8 +8,7 @@ import (
 )
 
 // NewSecretCommand returns a cobra command for `secret` subcommands
-// nolint: interfacer
-func NewSecretCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "secret",
 		Short:       "Manage Docker secrets",

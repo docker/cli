@@ -7,8 +7,7 @@ import (
 )
 
 // NewStackCommand returns a cobra command for `stack` subcommands
-// nolint: interfacer
-func NewStackCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "stack",
 		Short:       "Manage Docker stacks",

@@ -32,7 +32,7 @@ type runOptions struct {
 }
 
 // NewRunCommand create a new `docker run` command
-func NewRunCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	var opts runOptions
 	var copts *containerOptions
 
@@ -96,7 +96,7 @@ func isLocalhost(ip string) bool {
 	return localhostIPRegexp.MatchString(ip)
 }
 
-func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), copts.env.GetAll())
 	newEnv := []string{}
 	for k, v := range proxyConfig {
@@ -117,7 +117,7 @@ func runRun(dockerCli *command.DockerCli, flags *pflag.FlagSet, ropts *runOption
 }
 
 // nolint: gocyclo
-func runContainer(dockerCli *command.DockerCli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) error {
+func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) error {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()

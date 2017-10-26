@@ -8,8 +8,7 @@ import (
 )
 
 // NewConfigCommand returns a cobra command for `config` subcommands
-// nolint: interfacer
-func NewConfigCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "config",
 		Short:       "Manage Docker configs",

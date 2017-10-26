@@ -7,8 +7,7 @@ import (
 )
 
 // NewPluginCommand returns a cobra command for `plugin` subcommands
-// nolint: interfacer
-func NewPluginCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPluginCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "plugin",
 		Short:       "Manage plugins",

@@ -22,7 +22,7 @@ type commitOptions struct {
 }
 
 // NewCommitCommand creates a new cobra.Command for `docker commit`
-func NewCommitCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 	var options commitOptions
 
 	cmd := &cobra.Command{
@@ -51,7 +51,7 @@ func NewCommitCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCommit(dockerCli *command.DockerCli, options *commitOptions) error {
+func runCommit(dockerCli command.Cli, options *commitOptions) error {
 	ctx := context.Background()
 
 	name := options.container

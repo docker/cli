@@ -36,7 +36,7 @@ type cpConfig struct {
 }
 
 // NewCopyCommand creates a new `docker cp` command
-func NewCopyCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	var opts copyOptions
 
 	cmd := &cobra.Command{
@@ -72,7 +72,7 @@ func NewCopyCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runCopy(dockerCli *command.DockerCli, opts copyOptions) error {
+func runCopy(dockerCli command.Cli, opts copyOptions) error {
 	srcContainer, srcPath := splitCpArg(opts.source)
 	dstContainer, dstPath := splitCpArg(opts.destination)
 
@@ -104,7 +104,7 @@ func runCopy(dockerCli *command.DockerCli, opts copyOptions) error {
 	}
 }
 
-func statContainerPath(ctx context.Context, dockerCli *command.DockerCli, containerName, path string) (types.ContainerPathStat, error) {
+func statContainerPath(ctx context.Context, dockerCli command.Cli, containerName, path string) (types.ContainerPathStat, error) {
 	return dockerCli.Client().ContainerStatPath(ctx, containerName, path)
 }
 
@@ -116,7 +116,7 @@ func resolveLocalPath(localPath string) (absPath string, err error) {
 	return archive.PreserveTrailingDotOrSeparator(absPath, localPath, filepath.Separator), nil
 }
 
-func copyFromContainer(ctx context.Context, dockerCli *command.DockerCli, srcContainer, srcPath, dstPath string, cpParam *cpConfig) (err error) {
+func copyFromContainer(ctx context.Context, dockerCli command.Cli, srcContainer, srcPath, dstPath string, cpParam *cpConfig) (err error) {
 	if dstPath != "-" {
 		// Get an absolute destination path.
 		dstPath, err = resolveLocalPath(dstPath)
@@ -177,7 +177,7 @@ func copyFromContainer(ctx context.Context, dockerCli *command.DockerCli, srcCon
 	return archive.CopyTo(preArchive, srcInfo, dstPath)
 }
 
-func copyToContainer(ctx context.Context, dockerCli *command.DockerCli, srcPath, dstContainer, dstPath string, cpParam *cpConfig, copyUIDGID bool) (err error) {
+func copyToContainer(ctx context.Context, dockerCli command.Cli, srcPath, dstContainer, dstPath string, cpParam *cpConfig, copyUIDGID bool) (err error) {
 	if srcPath != "-" {
 		// Get an absolute source path.
 		srcPath, err = resolveLocalPath(srcPath)
