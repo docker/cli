@@ -465,7 +465,7 @@ services:
 	assert.Contains(t, err.Error(), "services.dict-env.environment must be a mapping")
 }
 
-func TestEnvironmentInterpolation(t *testing.T) {
+func TestLoadWithEnvironmentInterpolation(t *testing.T) {
 	home := "/home/foo"
 	config, err := loadYAMLWithEnv(`
 version: "3"
@@ -502,19 +502,161 @@ volumes:
 	assert.Equal(t, home, config.Volumes["test"].Driver)
 }
 
+func TestLoadWithInterpolationCastFull(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3.4"
+services:
+  web:
+    configs:
+      - source: appconfig
+        mode: $theint
+    secrets:
+      - source: super
+        mode: $theint
+    healthcheck:
+      retries: ${theint}
+      disable: $thebool
+    deploy:
+      replicas: $theint
+      update_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
+      restart_policy:
+        max_attempts: $theint
+    ports:
+      - $theint
+      - "34567"
+      - target: $theint
+        published: $theint
+    ulimits:
+      nproc: $theint
+      nofile:
+        hard: $theint
+        soft: $theint
+    privileged: $thebool
+    read_only: $thebool
+    stdin_open: ${thebool}
+    tty: $thebool
+    volumes:
+      - source: data
+        type: volume
+        read_only: $thebool
+        volume:
+          nocopy: $thebool
+
+configs:
+  appconfig:
+    external: $thebool
+secrets:
+  super:
+    external: $thebool
+volumes:
+  data:
+    external: $thebool
+networks:
+  front:
+    external: $thebool
+    internal: $thebool
+    attachable: $thebool
+
+`))
+	require.NoError(t, err)
+	env := map[string]string{
+		"theint":   "555",
+		"thefloat": "3.14",
+		"thebool":  "true",
+	}
+
+	config, err := Load(buildConfigDetails(dict, env))
+	require.NoError(t, err)
+	expected := &types.Config{
+		Services: []types.ServiceConfig{
+			{
+				Name: "web",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "appconfig",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "super",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				HealthCheck: &types.HealthCheckConfig{
+					Retries: uint64Ptr(555),
+					Disable: true,
+				},
+				Deploy: types.DeployConfig{
+					Replicas: uint64Ptr(555),
+					UpdateConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
+					RestartPolicy: &types.RestartPolicy{
+						MaxAttempts: uint64Ptr(555),
+					},
+				},
+				Ports: []types.ServicePortConfig{
+					{Target: 555, Mode: "ingress", Protocol: "tcp"},
+					{Target: 34567, Mode: "ingress", Protocol: "tcp"},
+					{Target: 555, Published: 555},
+				},
+				Ulimits: map[string]*types.UlimitsConfig{
+					"nproc":  {Single: 555},
+					"nofile": {Hard: 555, Soft: 555},
+				},
+				Privileged: true,
+				ReadOnly:   true,
+				StdinOpen:  true,
+				Tty:        true,
+				Volumes: []types.ServiceVolumeConfig{
+					{
+						Source:   "data",
+						Type:     "volume",
+						ReadOnly: true,
+						Volume:   &types.ServiceVolumeVolume{NoCopy: true},
+					},
+				},
+				Environment: types.MappingWithEquals{},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"appconfig": {External: types.External{External: true, Name: "appconfig"}},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"super": {External: types.External{External: true, Name: "super"}},
+		},
+		Volumes: map[string]types.VolumeConfig{
+			"data": {External: types.External{External: true, Name: "data"}},
+		},
+		Networks: map[string]types.NetworkConfig{
+			"front": {
+				External:   types.External{External: true, Name: "front"},
+				Internal:   true,
+				Attachable: true,
+			},
+		},
+	}
+
+	assert.Equal(t, expected, config)
+}
+
 func TestUnsupportedProperties(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3"
 services:
   web:
     image: web
-    build: 
+    build:
      context: ./web
     links:
       - bar
   db:
     image: db
-    build: 
+    build:
      context: ./db
 `))
 	require.NoError(t, err)
@@ -676,6 +818,10 @@ func durationPtr(value time.Duration) *time.Duration {
 }
 
 func uint64Ptr(value uint64) *uint64 {
+	return &value
+}
+
+func uint32Ptr(value uint32) *uint32 {
 	return &value
 }
 
