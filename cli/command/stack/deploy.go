@@ -44,9 +44,9 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	addBundlefileFlag(&opts.bundlefile, flags)
-	addComposefileFlag(&opts.composefile, flags)
-	addRegistryAuthFlag(&opts.sendRegistryAuth, flags)
+	AddBundlefileFlag(&opts.bundlefile, flags)
+	AddComposefileFlag(&opts.composefile, flags)
+	AddRegistryAuthFlag(&opts.sendRegistryAuth, flags)
 	flags.BoolVar(&opts.prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
 	flags.StringVar(&opts.resolveImage, "resolve-image", resolveImageAlways,
