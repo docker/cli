@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/stringutils"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
@@ -79,7 +78,7 @@ func TestSearchContextDescription(t *testing.T) {
 		{searchContext{
 			s:     registrytypes.SearchResult{Description: longDescription},
 			trunc: true,
-		}, stringutils.Ellipsis(longDescription, 45), ctx.Description},
+		}, Ellipsis(longDescription, 45), ctx.Description},
 		{searchContext{
 			s:     registrytypes.SearchResult{Description: descriptionWReturns},
 			trunc: false,
@@ -87,7 +86,7 @@ func TestSearchContextDescription(t *testing.T) {
 		{searchContext{
 			s:     registrytypes.SearchResult{Description: descriptionWReturns},
 			trunc: true,
-		}, stringutils.Ellipsis(longDescription, 45), ctx.Description},
+		}, Ellipsis(longDescription, 45), ctx.Description},
 	}
 
 	for _, c := range cases {

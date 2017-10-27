@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	registry "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/stringutils"
 )
 
 const (
@@ -73,7 +72,7 @@ func (c *searchContext) Description() string {
 	desc := strings.Replace(c.s.Description, "\n", " ", -1)
 	desc = strings.Replace(desc, "\r", " ", -1)
 	if c.trunc {
-		desc = stringutils.Ellipsis(desc, 45)
+		desc = Ellipsis(desc, 45)
 	}
 	return desc
 }
