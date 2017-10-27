@@ -84,7 +84,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		if err := jsonmessage.DisplayJSONMessagesToStream(in, streams.Out(), nil); err != nil {
 			return err
 		}
-		fmt.Fprintln(streams.Out(), "No tag specified, skipping trust metadata push")
+		fmt.Fprintln(streams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
 	}
 
@@ -97,16 +97,14 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	}
 
 	if target == nil {
-		fmt.Fprintln(streams.Out(), "No targets found, please provide a specific tag in order to sign it")
-		return nil
+		return errors.Errorf("no targets found, please provide a specific tag in order to sign it")
 	}
 
 	fmt.Fprintln(streams.Out(), "Signing and pushing trust metadata")
 
 	repo, err := trust.GetNotaryRepository(streams.In(), streams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
 	if err != nil {
-		fmt.Fprintf(streams.Out(), "Error establishing connection to notary repository: %s\n", err)
-		return err
+		return errors.Wrap(err, "error establishing connection to trust repository")
 	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
@@ -146,7 +144,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	}
 
 	if err != nil {
-		fmt.Fprintf(streams.Out(), "Failed to sign %q:%s - %s\n", repoInfo.Name.Name(), tag, err.Error())
+		err = errors.Wrapf(err, "failed to sign %s:%s", repoInfo.Name.Name(), tag)
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
 
@@ -223,8 +221,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
 	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
-		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
-		return nil, err
+		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
 
 	ref := imgRefAndAuth.Reference()
@@ -239,7 +236,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 		for _, tgt := range targets {
 			t, err := convertTarget(tgt.Target)
 			if err != nil {
-				fmt.Fprintf(cli.Out(), "Skipping target for %q\n", reference.FamiliarName(ref))
+				fmt.Fprintf(cli.Err(), "Skipping target for %q\n", reference.FamiliarName(ref))
 				continue
 			}
 			// Only list tags in the top level targets role or the releases delegation role - ignore
@@ -265,7 +262,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
 	}
 
-	logrus.Debugf("retrieving target for %s role\n", t.Role)
+	logrus.Debugf("retrieving target for %s role", t.Role)
 	r, err := convertTarget(t.Target)
 	return []target{r}, err
 }
@@ -314,8 +311,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 
 	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
-		fmt.Fprintf(cli.Out(), "Error establishing connection to trust repository: %s\n", err)
-		return nil, err
+		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
 
 	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
@@ -332,7 +328,6 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 		return nil, err
 
 	}
-
 	return reference.WithDigest(reference.TrimNamed(ref), r.digest)
 }
 
@@ -355,7 +350,7 @@ func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canon
 	familiarRef := reference.FamiliarString(ref)
 	trustedFamiliarRef := reference.FamiliarString(trustedRef)
 
-	fmt.Fprintf(cli.Out(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
+	fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
 
 	return cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef)
 }
