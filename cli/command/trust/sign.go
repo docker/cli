@@ -99,9 +99,9 @@ func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, 
 		err = notaryRepo.Publish()
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to sign %q:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+		return errors.Wrapf(err, "failed to sign %s:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	}
-	fmt.Fprintf(out, "Successfully signed %q:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+	fmt.Fprintf(out, "Successfully signed %s:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
 }
 

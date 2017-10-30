@@ -148,7 +148,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
 
-	fmt.Fprintf(streams.Out(), "Successfully signed %q:%s\n", repoInfo.Name.Name(), tag)
+	fmt.Fprintf(streams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
 	return nil
 }
 
