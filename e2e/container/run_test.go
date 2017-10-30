@@ -24,6 +24,11 @@ func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 	golden.Assert(t, result.Stderr(), "run-attached-from-remote-and-remove.golden")
 }
 
+func TestForceRemoveImage(t *testing.T) {
+	result := icmd.RunCmd(shell(t, "docker rmi -f badb33f99donteatme"))
+	result.Assert(t, icmd.Success)
+}
+
 // TODO: create this with registry API instead of engine API
 func createRemoteImage(t *testing.T) string {
 	image := "registry:5000/alpine:test-run-pulls"
