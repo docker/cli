@@ -1,6 +1,6 @@
 // +build !daemon
 
-package main
+package daemon
 
 import (
 	"testing"

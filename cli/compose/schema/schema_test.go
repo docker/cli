@@ -46,6 +46,22 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidateAllowsXBelowServices(t *testing.T) {
+	config := dict{
+		"version": "3.4",
+		"services": dict{
+			"foo": dict{
+				"image":   "busybox",
+				"x-extra": dict{},
+			},
+		},
+		"x-extra-stuff": dict{},
+	}
+
+	err := Validate(config, "3.4")
+	assert.NoError(t, err)
+}
+
 func TestValidateInvalidVersion(t *testing.T) {
 	config := dict{
 		"version": "2.1",

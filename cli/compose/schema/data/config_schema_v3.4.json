@@ -307,6 +307,7 @@
         },
         "working_dir": {"type": "string"}
       },
+      "patternProperties": {"^x-": {}},
       "additionalProperties": false
     },
 
