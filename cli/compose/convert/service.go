@@ -133,7 +133,7 @@ func Service(
 				Command:         service.Entrypoint,
 				Args:            service.Command,
 				Hostname:        service.Hostname,
-				Hosts:           sortStrings(convertExtraHosts(service.ExtraHosts)),
+				Hosts:           convertExtraHosts(service.ExtraHosts),
 				DNSConfig:       dnsConfig,
 				Healthcheck:     healthcheck,
 				Env:             sortStrings(convertEnvironment(service.Environment)),
@@ -365,10 +365,15 @@ func uint32Ptr(value uint32) *uint32 {
 	return &value
 }
 
-func convertExtraHosts(extraHosts map[string]string) []string {
+// convertExtraHosts converts <host>:<ip> mappings to SwarmKit notation:
+// "IP-address hostname(s)". The original order of mappings is preserved.
+func convertExtraHosts(extraHosts composetypes.HostsList) []string {
 	hosts := []string{}
-	for host, ip := range extraHosts {
-		hosts = append(hosts, fmt.Sprintf("%s %s", ip, host))
+	for _, hostIP := range extraHosts {
+		if v := strings.SplitN(hostIP, ":", 2); len(v) == 2 {
+			// Convert to SwarmKit notation: IP-address hostname(s)
+			hosts = append(hosts, fmt.Sprintf("%s %s", v[1], v[0]))
+		}
 	}
 	return hosts
 }
