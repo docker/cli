@@ -13,11 +13,11 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/notary"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/theupdateframework/notary"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
 )
 
 // trustTagKey represents a unique signed tag and hex-encoded hash pair

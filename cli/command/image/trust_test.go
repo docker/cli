@@ -8,11 +8,11 @@ import (
 	"github.com/docker/cli/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/passphrase"
-	"github.com/docker/notary/trustpinning"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/passphrase"
+	"github.com/theupdateframework/notary/trustpinning"
 )
 
 func unsetENV() {

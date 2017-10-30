@@ -6,9 +6,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
 	"github.com/stretchr/testify/assert"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
 )
 
 func TestTrustSignerRemoveErrors(t *testing.T) {

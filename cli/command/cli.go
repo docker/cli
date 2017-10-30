@@ -18,11 +18,11 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/docker/notary"
-	notaryclient "github.com/docker/notary/client"
-	"github.com/docker/notary/passphrase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/theupdateframework/notary"
+	notaryclient "github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/passphrase"
 	"golang.org/x/net/context"
 )
 

@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
-	"github.com/docker/notary"
 	"github.com/stretchr/testify/assert"
+	"github.com/theupdateframework/notary"
 )
 
 func TestTrustSignerAddErrors(t *testing.T) {

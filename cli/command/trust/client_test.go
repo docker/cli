@@ -2,14 +2,14 @@ package trust
 
 import (
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/client/changelist"
-	"github.com/docker/notary/cryptoservice"
-	"github.com/docker/notary/passphrase"
-	"github.com/docker/notary/storage"
-	"github.com/docker/notary/trustmanager"
-	"github.com/docker/notary/tuf/data"
-	"github.com/docker/notary/tuf/signed"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/client/changelist"
+	"github.com/theupdateframework/notary/cryptoservice"
+	"github.com/theupdateframework/notary/passphrase"
+	"github.com/theupdateframework/notary/storage"
+	"github.com/theupdateframework/notary/trustmanager"
+	"github.com/theupdateframework/notary/tuf/data"
+	"github.com/theupdateframework/notary/tuf/signed"
 )
 
 // Sample mock CLI interfaces

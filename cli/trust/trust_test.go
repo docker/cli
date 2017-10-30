@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/reference"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/passphrase"
-	"github.com/docker/notary/trustpinning"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/passphrase"
+	"github.com/theupdateframework/notary/trustpinning"
 )
 
 func TestGetTag(t *testing.T) {

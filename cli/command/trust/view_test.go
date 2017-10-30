@@ -9,11 +9,11 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	dockerClient "github.com/docker/docker/client"
-	"github.com/docker/notary"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
+	"github.com/theupdateframework/notary"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
 )
 
 type fakeClient struct {

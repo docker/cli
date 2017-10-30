@@ -14,11 +14,11 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
 	"golang.org/x/net/context"
 )
 
