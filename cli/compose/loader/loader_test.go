@@ -916,9 +916,9 @@ func TestFullExample(t *testing.T) {
 			"project_db_1:mysql",
 			"project_db_1:postgresql",
 		},
-		ExtraHosts: map[string]string{
-			"otherhost": "50.31.209.229",
-			"somehost":  "162.242.195.82",
+		ExtraHosts: []string{
+			"somehost:162.242.195.82",
+			"otherhost:50.31.209.229",
 		},
 		HealthCheck: &types.HealthCheckConfig{
 			Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
@@ -1361,4 +1361,48 @@ volumes:
 	require.Len(t, config.Services, 1)
 	assert.Len(t, config.Services[0].Volumes, 1)
 	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadExtraHostsMap(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.2"
+services:
+  web:
+    image: busybox
+    extra_hosts:
+      "zulu": "162.242.195.82"
+      "alpha": "50.31.209.229"
+`)
+	require.NoError(t, err)
+
+	expected := types.HostsList{
+		"alpha:50.31.209.229",
+		"zulu:162.242.195.82",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+}
+
+func TestLoadExtraHostsList(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.2"
+services:
+  web:
+    image: busybox
+    extra_hosts:
+      - "zulu:162.242.195.82"
+      - "alpha:50.31.209.229"
+      - "zulu:ff02::1"
+`)
+	require.NoError(t, err)
+
+	expected := types.HostsList{
+		"zulu:162.242.195.82",
+		"alpha:50.31.209.229",
+		"zulu:ff02::1",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Equal(t, expected, config.Services[0].ExtraHosts)
 }

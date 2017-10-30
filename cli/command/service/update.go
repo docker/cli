@@ -868,6 +868,10 @@ func updateReplicas(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error 
 	return nil
 }
 
+// updateHosts performs a diff between existing host entries, entries to be
+// removed, and entries to be added. Host entries preserve the order in which they
+// were added, as the specification mentions that in case multiple entries for a
+// host exist, the first entry should be used (by default).
 func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 	// Combine existing Hosts (in swarmkit format) with the host to add (convert to swarmkit format)
 	if flags.Changed(flagHostAdd) {
@@ -901,9 +905,6 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 			newHosts = append(newHosts, entry)
 		}
 	}
-
-	// Sort so that result is predictable.
-	sort.Strings(newHosts)
 
 	*hosts = newHosts
 	return nil

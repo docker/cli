@@ -366,12 +366,23 @@ func TestUpdateHosts(t *testing.T) {
 	testutil.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
 	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net"}
+	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 ipv6.net"}
 
-	updateHosts(flags, &hosts)
-	require.Len(t, hosts, 3)
-	assert.Equal(t, "1.2.3.4 example.com", hosts[0])
-	assert.Equal(t, "2001:db8:abc8::1 ipv6.net", hosts[1])
-	assert.Equal(t, "4.3.2.1 example.org", hosts[2])
+	err := updateHosts(flags, &hosts)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, hosts)
+}
+
+func TestUpdateHostsPreservesOrder(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	flags.Set("host-add", "foobar:127.0.0.2")
+	flags.Set("host-add", "foobar:127.0.0.1")
+	flags.Set("host-add", "foobar:127.0.0.3")
+
+	hosts := []string{}
+	err := updateHosts(flags, &hosts)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"127.0.0.2 foobar", "127.0.0.1 foobar", "127.0.0.3 foobar"}, hosts)
 }
 
 func TestUpdatePortsRmWithProtocol(t *testing.T) {
