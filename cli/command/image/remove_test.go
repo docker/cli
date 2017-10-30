@@ -64,12 +64,14 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
-			imageRemoveFunc: tc.imageRemoveFunc,
-		}))
-		cmd.SetOutput(ioutil.Discard)
-		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
+				imageRemoveFunc: tc.imageRemoveFunc,
+			}))
+			cmd.SetOutput(ioutil.Discard)
+			cmd.SetArgs(tc.args)
+			testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -78,7 +80,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		name            string
 		args            []string
 		imageRemoveFunc func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error)
-		expectedErrMsg  string
+		expectedStderr  string
 	}{
 		{
 			name: "Image Deleted",
@@ -96,7 +98,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 				assert.Equal(t, true, options.Force)
 				return []types.ImageDeleteResponseItem{}, notFound{"image1"}
 			},
-			expectedErrMsg: "Error: No such image: image1",
+			expectedStderr: "Error: No such image: image1",
 		},
 
 		{
@@ -119,14 +121,14 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
-		cmd := NewRemoveCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
-		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
-		if tc.expectedErrMsg != "" {
-			assert.Equal(t, tc.expectedErrMsg, cli.ErrBuffer().String())
-		}
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("remove-command-success.%s.golden", tc.name))
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
+			cmd := NewRemoveCommand(cli)
+			cmd.SetOutput(ioutil.Discard)
+			cmd.SetArgs(tc.args)
+			assert.NoError(t, cmd.Execute())
+			assert.Equal(t, tc.expectedStderr, cli.ErrBuffer().String())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("remove-command-success.%s.golden", tc.name))
+		})
 	}
 }
