@@ -92,7 +92,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagDNSOptionAdd, "version", []string{"1.25"})
 	flags.Var(&options.dnsSearch, flagDNSSearchAdd, "Add or update a custom DNS search domain")
 	flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
-	flags.Var(&options.hosts, flagHostAdd, "Add or update a custom host-to-IP mapping (host:ip)")
+	flags.Var(&options.hosts, flagHostAdd, "Add a custom host-to-IP mapping (host:ip)")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
 
 	return cmd
