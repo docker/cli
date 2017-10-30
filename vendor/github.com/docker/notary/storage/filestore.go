@@ -206,10 +206,7 @@ func (f *FilesystemStore) Set(name string, meta []byte) error {
 	os.RemoveAll(fp)
 
 	// Write the file to disk
-	if err = ioutil.WriteFile(fp, meta, notary.PrivNoExecPerms); err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(fp, meta, notary.PrivNoExecPerms)
 }
 
 // RemoveAll clears the existing filestore by removing its base directory

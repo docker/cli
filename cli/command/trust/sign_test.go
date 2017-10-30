@@ -140,7 +140,8 @@ func TestAddStageSigners(t *testing.T) {
 	// stage targets/user
 	userRole := data.RoleName("targets/user")
 	userKey := data.NewPublicKey("algoA", []byte("a"))
-	addStagedSigner(notaryRepo, userRole, []data.PublicKey{userKey})
+	err = addStagedSigner(notaryRepo, userRole, []data.PublicKey{userKey})
+	assert.NoError(t, err)
 	// check the changelist for four total changes: two on targets/releases and two on targets/user
 	cl, err := notaryRepo.GetChangelist()
 	assert.NoError(t, err)

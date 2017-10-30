@@ -1,5 +1,4 @@
 ---
-title: "Docker run reference"
 description: "Configure containers at runtime"
 keywords: "docker, run, configure, runtime"
 ---

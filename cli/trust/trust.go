@@ -43,7 +43,8 @@ var (
 	ActionsPushAndPull = []string{"pull", "push"}
 )
 
-func trustDirectory() string {
+// GetTrustDirectory returns the base trust directory name
+func GetTrustDirectory() string {
 	return filepath.Join(cliconfig.Dir(), "trust")
 }
 
@@ -172,15 +173,16 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	tr := transport.NewTransport(base, modifiers...)
 
 	return client.NewFileCachedRepository(
-		trustDirectory(),
+		GetTrustDirectory(),
 		data.GUN(repoInfo.Name.Name()),
 		server,
 		tr,
-		getPassphraseRetriever(in, out),
+		GetPassphraseRetriever(in, out),
 		trustpinning.TrustPinConfig{})
 }
 
-func getPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
+// GetPassphraseRetriever returns a passphrase retriever that utilizes Content Trust env vars
+func GetPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
 	aliasMap := map[string]string{
 		"root":     "root",
 		"snapshot": "repository",

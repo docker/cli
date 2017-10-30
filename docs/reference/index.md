@@ -1,5 +1,4 @@
 ---
-title: "Engine reference"
 description: "Docker Engine reference"
 keywords: "Engine"
 ---

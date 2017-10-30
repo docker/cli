@@ -66,7 +66,7 @@ func TestContainerPsContext(t *testing.T) {
 					Source: "/a/path",
 				},
 			},
-		}, true, "this-is-a-lo...", ctx.Mounts},
+		}, true, "this-is-a-long…", ctx.Mounts},
 		{types.Container{
 			Mounts: []types.MountPoint{
 				{
