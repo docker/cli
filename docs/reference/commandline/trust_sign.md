@@ -60,7 +60,7 @@ a3fbb648f0bd: Layer already exists
 v2: digest: sha256:8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56 size: 1787
 Signing and pushing trust metadata
 Enter passphrase for repository key with ID 36d4c36:
-Successfully signed "docker.io/example/trust-demo":v2
+Successfully signed docker.io/example/trust-demo:v2
 ```
 
 `docker trust view` lists the new signature:
@@ -111,7 +111,7 @@ e5d2f035d7a4: Layer already exists
 v1: digest: sha256:74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4 size: 1357
 Signing and pushing trust metadata
 Enter passphrase for delegation key with ID 27d42a8:
-Successfully signed "docker.io/example/trust-demo":v1
+Successfully signed docker.io/example/trust-demo:v1
 ```
 
 `docker trust view` lists the new signature:
@@ -162,7 +162,7 @@ a3fbb648f0bd: Layer already exists
 v1: digest: sha256:8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56 size: 1787
 Signing and pushing trust metadata
 Enter passphrase for alice key with ID 6d52b29:
-Successfully signed "docker.io/example/trust-demo":v1
+Successfully signed docker.io/example/trust-demo:v1
 ```
 
 ```bash
