@@ -10,12 +10,12 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/notary"
-	"github.com/docker/notary/storage"
-	"github.com/docker/notary/trustmanager"
-	tufutils "github.com/docker/notary/tuf/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/theupdateframework/notary"
+	"github.com/theupdateframework/notary/storage"
+	"github.com/theupdateframework/notary/trustmanager"
+	tufutils "github.com/theupdateframework/notary/tuf/utils"
 )
 
 const (

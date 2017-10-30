@@ -15,11 +15,11 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
-	tufutils "github.com/docker/notary/tuf/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
+	tufutils "github.com/theupdateframework/notary/tuf/utils"
 )
 
 type signerAddOptions struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/client"
-	notaryclient "github.com/docker/notary/client"
+	notaryclient "github.com/theupdateframework/notary/client"
 )
 
 type notaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
