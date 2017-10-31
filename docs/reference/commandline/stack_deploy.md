@@ -82,7 +82,7 @@ you can combine these by passing them to `docker-compose config` with the `-f` o
 and redirecting the merged output into a new file.
 
 ```bash
-$ docker-compose -f docker-compose.yml -f docker-compose.prod.yml config > docker-stack.yml
+$ docker-compose config -f docker-compose.yml -f docker-compose.prod.yml config > docker-stack.yml
 $ docker stack deploy --compose-file docker-stack.yml vossibility
 
 Ignoring unsupported options: links
