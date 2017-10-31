@@ -305,8 +305,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		progressOutput = &lastProgressOutput{output: progressOutput}
 	}
 
-	// if up to this point nothing has set the context then we must have have
-	// another way for sending it(streaming) and set the context to the Dockerfile
+	// if up to this point nothing has set the context then we must have another
+	// way for sending it(streaming) and set the context to the Dockerfile
 	if dockerfileCtx != nil && buildCtx == nil {
 		buildCtx = dockerfileCtx
 	}

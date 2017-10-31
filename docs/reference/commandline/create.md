@@ -217,7 +217,7 @@ For the `devicemapper`, `btrfs`, `windowsfilter` and `zfs` graph drivers,
 user cannot pass a size less than the Default BaseFS Size.
 For the `overlay2` storage driver, the size option is only available if the
 backing fs is `xfs` and mounted with the `pquota` mount option.
-Under these conditions, user can pass any size less then the backing fs size.
+Under these conditions, user can pass any size less than the backing fs size.
 
 ### Specify isolation technology for container (--isolation)
 

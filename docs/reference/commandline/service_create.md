@@ -353,7 +353,7 @@ volumes in a service:
            <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
            <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
            <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
-           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are are visible on the host.</li>
+           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
         </ul>
      </p>
     </td>
