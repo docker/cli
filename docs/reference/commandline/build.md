@@ -512,7 +512,7 @@ The `--squash` option has a number of known limitations:
   layers in tact, and one for the squashed version.
 - While squashing layers may produce smaller images, it may have a negative
   impact on performance, as a single layer takes longer to extract, and
-  downloading a single layer cannot be paralellized.
+  downloading a single layer cannot be parallelized.
 - When attempting to squash an image that does not make changes to the
   filesystem (for example, the Dockerfile only contains `ENV` instructions),
   the squash step will fail (see [issue #33823](https://github.com/moby/moby/issues/33823)

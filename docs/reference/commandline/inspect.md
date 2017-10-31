@@ -47,7 +47,7 @@ describes all the details of the format.
 
 The `docker inspect` command matches any type of object by either ID or name.
 In some cases multiple type of objects (for example, a container and a volume)
-exist with the same name, making the result ambigious.
+exist with the same name, making the result ambiguous.
 
 To restrict `docker inspect` to a specific type of object, use the `--type`
 option.

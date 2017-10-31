@@ -582,7 +582,7 @@ incompatible with any restart policy other than `none`.
    This option is only available for the `devicemapper`, `btrfs`, `overlay2`  and `zfs` graph drivers.
    For the `devicemapper`, `btrfs` and `zfs` storage drivers, user cannot pass a size less than the Default BaseFS Size.
    For the `overlay2` storage driver, the size option is only available if the backing fs is `xfs` and mounted with the `pquota` mount option.
-   Under these conditions, user can pass any size less then the backing fs size.
+   Under these conditions, user can pass any size less than the backing fs size.
 
 **--stop-signal**=*SIGTERM*
   Signal to stop a container. Default is SIGTERM.
