@@ -67,6 +67,12 @@ func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string
 }
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	progressChan := pruneProgressChan{
+		errorChan: make(chan error),
+	}
+
 	// TODO version this once "until" filter is supported for volumes
 	if options.pruneVolumes && options.filter.Value().Include("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
@@ -77,6 +83,16 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
+
+	if err := startPruneProgress(dockerCli, &progressChan, options, ctx); err != nil {
+		return err
+	}
+
+	return runAllPrunes(dockerCli, options)
+}
+
+func runAllPrunes(dockerCli command.Cli, options pruneOptions) error {
+
 	imagePrune := func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
 		return image.RunPrune(dockerCli, options.all, options.filter)
 	}
@@ -93,6 +109,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	}
 
 	var spaceReclaimed uint64
+	var generalOutput bytes.Buffer
 	for _, pruneFn := range pruneFuncs {
 		spc, output, err := pruneFn(dockerCli, options.filter)
 		if err != nil {
@@ -100,11 +117,12 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		}
 		spaceReclaimed += spc
 		if output != "" {
-			fmt.Fprintln(dockerCli.Out(), output)
+			generalOutput.WriteString(fmt.Sprintln(output))
 		}
 	}
 
-	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+	generalOutput.WriteString(fmt.Sprintln("Total reclaimed space:", units.HumanSize(float64(spaceReclaimed))))
+	fmt.Fprintln(dockerCli.Out(), generalOutput.String())
 
 	return nil
 }
