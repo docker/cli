@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 
@@ -264,7 +265,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	// if streaming and dockerfile was not from stdin then read from file
 	// to the same reader that is usually stdin
 	if options.stream && dockerfileCtx == nil {
-		dockerfileCtx, err = os.Open(relDockerfile)
+		dockerfileCtx, err = os.Open(filepath.Join(contextDir, relDockerfile))
 		if err != nil {
 			return errors.Wrapf(err, "failed to open %s", relDockerfile)
 		}
