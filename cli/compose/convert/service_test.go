@@ -57,6 +57,15 @@ func TestConvertEnvironment(t *testing.T) {
 	assert.Equal(t, []string{"foo=bar", "key=value"}, env)
 }
 
+func TestConvertExtraHosts(t *testing.T) {
+	source := composetypes.HostsList{
+		"zulu:127.0.0.2",
+		"alpha:127.0.0.1",
+		"zulu:ff02::1",
+	}
+	assert.Equal(t, []string{"127.0.0.2 zulu", "127.0.0.1 alpha", "ff02::1 zulu"}, convertExtraHosts(source))
+}
+
 func TestConvertResourcesFull(t *testing.T) {
 	source := composetypes.Resources{
 		Limits: &composetypes.Resource{

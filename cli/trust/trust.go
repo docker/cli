@@ -20,17 +20,17 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/docker/notary"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/passphrase"
-	"github.com/docker/notary/storage"
-	"github.com/docker/notary/trustmanager"
-	"github.com/docker/notary/trustpinning"
-	"github.com/docker/notary/tuf/data"
-	"github.com/docker/notary/tuf/signed"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/theupdateframework/notary"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/passphrase"
+	"github.com/theupdateframework/notary/storage"
+	"github.com/theupdateframework/notary/trustmanager"
+	"github.com/theupdateframework/notary/trustpinning"
+	"github.com/theupdateframework/notary/tuf/data"
+	"github.com/theupdateframework/notary/tuf/signed"
 	"golang.org/x/net/context"
 )
 
@@ -43,7 +43,8 @@ var (
 	ActionsPushAndPull = []string{"pull", "push"}
 )
 
-func trustDirectory() string {
+// GetTrustDirectory returns the base trust directory name
+func GetTrustDirectory() string {
 	return filepath.Join(cliconfig.Dir(), "trust")
 }
 
@@ -172,15 +173,16 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	tr := transport.NewTransport(base, modifiers...)
 
 	return client.NewFileCachedRepository(
-		trustDirectory(),
+		GetTrustDirectory(),
 		data.GUN(repoInfo.Name.Name()),
 		server,
 		tr,
-		getPassphraseRetriever(in, out),
+		GetPassphraseRetriever(in, out),
 		trustpinning.TrustPinConfig{})
 }
 
-func getPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
+// GetPassphraseRetriever returns a passphrase retriever that utilizes Content Trust env vars
+func GetPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
 	aliasMap := map[string]string{
 		"root":     "root",
 		"snapshot": "repository",
@@ -297,7 +299,7 @@ type ImageRefAndAuth struct {
 }
 
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
-// as a ImageRefAndAuth struct
+// as an ImageRefAndAuth struct
 func GetImageReferencesAndAuth(ctx context.Context, authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig, imgName string) (ImageRefAndAuth, error) {
 	ref, err := reference.ParseNormalizedNamed(imgName)
 	if err != nil {

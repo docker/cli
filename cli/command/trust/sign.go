@@ -12,10 +12,10 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/notary/client"
-	"github.com/docker/notary/tuf/data"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/theupdateframework/notary/client"
+	"github.com/theupdateframework/notary/tuf/data"
 )
 
 func newSignCommand(dockerCli command.Cli) *cobra.Command {
@@ -99,9 +99,9 @@ func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, 
 		err = notaryRepo.Publish()
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to sign %q:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+		return errors.Wrapf(err, "failed to sign %s:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	}
-	fmt.Fprintf(out, "Successfully signed %q:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+	fmt.Fprintf(out, "Successfully signed %s:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
 }
 
@@ -183,7 +183,9 @@ func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.Role
 	if err != nil {
 		return err
 	}
-	addStagedSigner(notaryRepo, newSigner, []data.PublicKey{signerKey})
+	if err := addStagedSigner(notaryRepo, newSigner, []data.PublicKey{signerKey}); err != nil {
+		return errors.Wrapf(err, "could not add signer to repo: %s", strings.TrimPrefix(newSigner.String(), "targets/"))
+	}
 
 	return notaryRepo.Publish()
 }
@@ -216,12 +218,21 @@ func getOrGenerateNotaryKey(notaryRepo client.Repository, role data.RoleName) (d
 }
 
 // stages changes to add a signer with the specified name and key(s).  Adds to targets/<name> and targets/releases
-func addStagedSigner(notaryRepo client.Repository, newSigner data.RoleName, signerKeys []data.PublicKey) {
+func addStagedSigner(notaryRepo client.Repository, newSigner data.RoleName, signerKeys []data.PublicKey) error {
 	// create targets/<username>
-	notaryRepo.AddDelegationRoleAndKeys(newSigner, signerKeys)
-	notaryRepo.AddDelegationPaths(newSigner, []string{""})
+	if err := notaryRepo.AddDelegationRoleAndKeys(newSigner, signerKeys); err != nil {
+		return err
+	}
+	if err := notaryRepo.AddDelegationPaths(newSigner, []string{""}); err != nil {
+		return err
+	}
 
 	// create targets/releases
-	notaryRepo.AddDelegationRoleAndKeys(trust.ReleasesRole, signerKeys)
-	notaryRepo.AddDelegationPaths(trust.ReleasesRole, []string{""})
+	if err := notaryRepo.AddDelegationRoleAndKeys(trust.ReleasesRole, signerKeys); err != nil {
+		return err
+	}
+	if err := notaryRepo.AddDelegationPaths(trust.ReleasesRole, []string{""}); err != nil {
+		return err
+	}
+	return nil
 }

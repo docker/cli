@@ -19,7 +19,8 @@ func TestPullWithContentTrust(t *testing.T) {
 	image := createMaskedTrustedRemoteImage(t, "trust", "latest")
 
 	result := icmd.RunCmd(icmd.Command("docker", "pull", image), withTrustNoPassphrase)
-	result.Assert(t, icmd.Expected{Err: icmd.None})
+	result.Assert(t, icmd.Success)
+	golden.Assert(t, result.Stderr(), "pull-with-content-trust-err.golden")
 	golden.Assert(t, result.Stdout(), "pull-with-content-trust.golden")
 }
 

@@ -26,6 +26,7 @@ func SetupRootCommand(rootCmd *cobra.Command) {
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
+	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 }
 
 // FlagErrorFunc prints an error message which matches the format of the
@@ -100,7 +101,7 @@ func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 
 // UseLine returns the usage line for a command. This implementation is different
 // from the default Command.UseLine in that it does not add a `[flags]` to the
-// of the line.
+// end of the line.
 func UseLine(cmd *cobra.Command) string {
 	if cmd.HasParent() {
 		return cmd.Parent().CommandPath() + " " + cmd.Use

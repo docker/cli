@@ -37,6 +37,7 @@ for further details.
 
 ```bash
 $ docker unpause my_container
+my_container
 ```
 
 ## Related commands

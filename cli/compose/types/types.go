@@ -97,8 +97,8 @@ type ServiceConfig struct {
 	Environment     MappingWithEquals
 	EnvFile         StringList `mapstructure:"env_file"`
 	Expose          StringOrNumberList
-	ExternalLinks   []string         `mapstructure:"external_links"`
-	ExtraHosts      MappingWithColon `mapstructure:"extra_hosts"`
+	ExternalLinks   []string  `mapstructure:"external_links"`
+	ExtraHosts      HostsList `mapstructure:"extra_hosts"`
 	Hostname        string
 	HealthCheck     *HealthCheckConfig
 	Image           string
@@ -161,6 +161,9 @@ type Labels map[string]string
 // MappingWithColon is a mapping type that can be converted from a list of
 // 'key: value' strings
 type MappingWithColon map[string]string
+
+// HostsList is a list of colon-separated host-ip mappings
+type HostsList []string
 
 // LoggingConfig the logging configuration for a service
 type LoggingConfig struct {
