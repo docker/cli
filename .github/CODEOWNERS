@@ -5,5 +5,5 @@ cli/command/stack/**        @dnephin @vdemeester
 cli/compose/**              @dnephin @vdemeester
 contrib/completion/bash/**  @albers
 contrib/completion/zsh/**   @sdurrheimer
-docs/**                     @mstanleyjones @vdemeester @thaJeztah
+docs/**                     @mistyhacks @vdemeester @thaJeztah
 scripts/**                  @dnephin
