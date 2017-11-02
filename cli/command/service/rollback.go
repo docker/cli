@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/service/progress"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
@@ -60,8 +61,8 @@ func runRollback(dockerCli command.Cli, options *serviceOptions, serviceID strin
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, waitOnServiceOptions{
-		quiet:   options.quiet,
-		timeout: options.detach.Timeout(),
+	return progress.WaitOnService(ctx, dockerCli, serviceID, progress.WaitOnServiceOptions{
+		Quiet:   options.quiet,
+		Timeout: options.detach.Timeout(),
 	})
 }

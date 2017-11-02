@@ -854,7 +854,7 @@ const (
 	flagContainerLabel          = "container-label"
 	flagContainerLabelRemove    = "container-label-rm"
 	flagContainerLabelAdd       = "container-label-add"
-	flagDetach                  = "immediate"
+	flagDetach                  = "detach"
 	flagDNS                     = "dns"
 	flagDNSRemove               = "dns-rm"
 	flagDNSAdd                  = "dns-add"

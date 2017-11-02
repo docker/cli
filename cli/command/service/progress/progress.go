@@ -47,6 +47,8 @@ const (
 	maxProgressBars = 20
 )
 
+const msgOperationContinuingInBackground = "Operation continuing in background."
+
 type progressUpdater interface {
 	update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error)
 }
@@ -196,7 +198,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 		case <-time.After(200 * time.Millisecond):
 		case <-sigint:
 			if !converged {
-				progress.Message(progressOut, "", "Operation continuing in background.")
+				progress.Message(progressOut, "", msgOperationContinuingInBackground)
 				progress.Messagef(progressOut, "", "Use `docker service ps %s` to check progress.", serviceID)
 			}
 			return nil
@@ -220,17 +222,14 @@ func getActiveNodes(ctx context.Context, client client.APIClient) (map[string]st
 }
 
 func initializeUpdater(service swarm.Service, progressOut progress.Output) (progressUpdater, error) {
-	if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
-		return &replicatedProgressUpdater{
-			progressOut: progressOut,
-		}, nil
+	switch {
+	case service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil:
+		return &replicatedProgressUpdater{progressOut: progressOut}, nil
+	case service.Spec.Mode.Global != nil:
+		return &globalProgressUpdater{progressOut: progressOut}, nil
+	default:
+		return nil, errors.New("unrecognized service mode")
 	}
-	if service.Spec.Mode.Global != nil {
-		return &globalProgressUpdater{
-			progressOut: progressOut,
-		}, nil
-	}
-	return nil, errors.New("unrecognized service mode")
 }
 
 func writeOverallProgress(progressOut progress.Output, numerator, denominator int, rollback bool) {

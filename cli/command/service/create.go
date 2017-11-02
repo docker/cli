@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/service/progress"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
@@ -131,8 +132,8 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, response.ID, waitOnServiceOptions{
-		quiet:   opts.quiet,
-		timeout: opts.detach.Timeout(),
+	return progress.WaitOnService(ctx, dockerCli, response.ID, progress.WaitOnServiceOptions{
+		Quiet:   opts.quiet,
+		Timeout: opts.detach.Timeout(),
 	})
 }
