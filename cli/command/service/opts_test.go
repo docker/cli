@@ -121,5 +121,57 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, r.Reservations.GenericResources, len(opt.resGenericResources))
 	}
+}
 
+func durationPtr(duration time.Duration) *time.Duration {
+	return &duration
+}
+
+func TestDetachOptSet(t *testing.T) {
+	var testcases = []struct {
+		value       string
+		expectedErr string
+		expected    detachOpt
+	}{
+		{value: "true", expected: detachOpt{immediate: true}},
+		{value: "false", expected: detachOpt{}},
+		{
+			value:    "10s",
+			expected: detachOpt{timeout: durationPtr(10 * time.Second)},
+		},
+		{
+			value:       "invalid",
+			expectedErr: "invalid bool or duration: invalid",
+		},
+	}
+
+	for _, testcase := range testcases {
+		opt := detachOpt{}
+		err := opt.Set(testcase.value)
+		if testcase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testcase.expected, opt)
+		} else {
+			assert.EqualError(t, err, testcase.expectedErr)
+		}
+	}
+}
+
+func TestDetachOptString(t *testing.T) {
+	var testcases = []struct {
+		value    string
+		expected string
+	}{
+		{value: "true", expected: "true"},
+		{value: "false", expected: "false"},
+		{value: "10s", expected: "timeout=10s"},
+		{value: "2m", expected: "timeout=2m0s"},
+	}
+
+	for _, testcase := range testcases {
+		opt := &detachOpt{}
+		if assert.NoError(t, opt.Set(testcase.value)) {
+			assert.Equal(t, testcase.expected, opt.String())
+		}
+	}
 }

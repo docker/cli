@@ -465,7 +465,7 @@ func convertExtraHostsToSwarmHosts(extraHosts []string) []string {
 }
 
 type serviceOptions struct {
-	detach bool
+	detach detachOpt
 	quiet  bool
 
 	name            string
@@ -705,8 +705,48 @@ func buildServiceDefaultFlagMapping() flagDefaults {
 	return defaultFlagValues
 }
 
-func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
-	flags.BoolVarP(detach, flagDetach, "d", false, "Exit immediately instead of waiting for the service to converge")
+type detachOpt struct {
+	timeout   *time.Duration
+	immediate bool
+}
+
+func (o *detachOpt) Set(value string) error {
+	val, err := strconv.ParseBool(value)
+	if err == nil {
+		o.immediate = val
+		return nil
+	}
+
+	timeout, err := time.ParseDuration(value)
+	if err == nil {
+		o.timeout = &timeout
+		return nil
+	}
+
+	return errors.Errorf("invalid bool or duration: %s", value)
+}
+
+func (o *detachOpt) String() string {
+	if o.timeout != nil {
+		return fmt.Sprintf("timeout=%s", o.timeout)
+	}
+	return fmt.Sprintf("%v", o.immediate)
+}
+
+func (o *detachOpt) Type() string {
+	return "bool|duration"
+}
+
+func (o *detachOpt) Immediate() bool {
+	return o.immediate
+}
+
+func (o *detachOpt) Timeout() *time.Duration {
+	return o.timeout
+}
+
+func addDetachFlag(flags *pflag.FlagSet, detach *detachOpt) {
+	flags.VarP(detach, flagDetach, "d", "Exit after timeout, or immediately if set to true")
 	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
 }
 
@@ -814,7 +854,7 @@ const (
 	flagContainerLabel          = "container-label"
 	flagContainerLabelRemove    = "container-label-rm"
 	flagContainerLabelAdd       = "container-label-add"
-	flagDetach                  = "detach"
+	flagDetach                  = "immediate"
 	flagDNS                     = "dns"
 	flagDNSRemove               = "dns-rm"
 	flagDNSAdd                  = "dns-add"

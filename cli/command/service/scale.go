@@ -16,7 +16,7 @@ import (
 )
 
 type scaleOptions struct {
-	detach bool
+	detach detachOpt
 }
 
 func newScaleCommand(dockerCli command.Cli) *cobra.Command {
@@ -79,9 +79,12 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 	}
 
 	if len(serviceIDs) > 0 {
-		if !options.detach && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
+		if !options.detach.Immediate() && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
 			for _, serviceID := range serviceIDs {
-				if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
+				if err := waitOnService(ctx, dockerCli, serviceID, waitOnServiceOptions{
+					quiet:   false,
+					timeout: options.detach.Timeout(),
+				}); err != nil {
 					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
 				}
 			}

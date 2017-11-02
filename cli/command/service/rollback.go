@@ -56,9 +56,12 @@ func runRollback(dockerCli command.Cli, options *serviceOptions, serviceID strin
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach.Immediate() || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return waitOnService(ctx, dockerCli, serviceID, waitOnServiceOptions{
+		quiet:   options.quiet,
+		timeout: options.detach.Timeout(),
+	})
 }

@@ -127,9 +127,12 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
 
-	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if opts.detach.Immediate() || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, response.ID, opts.quiet)
+	return waitOnService(ctx, dockerCli, response.ID, waitOnServiceOptions{
+		quiet:   opts.quiet,
+		timeout: opts.detach.Timeout(),
+	})
 }
