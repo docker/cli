@@ -16,6 +16,7 @@ import (
 type pullOptions struct {
 	remote string
 	all    bool
+	quiet  bool
 }
 
 // NewPullCommand creates a new `docker pull` command
@@ -35,6 +36,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Download all tagged images in the repository")
+	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 	command.AddTrustVerificationFlags(flags)
 
 	return cmd

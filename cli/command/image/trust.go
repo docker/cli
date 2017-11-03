@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -279,7 +280,8 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	options := types.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
-		All:           all,
+		All:           opts.all,
+		Quiet:         opts.quiet,
 	}
 
 	responseBody, err := cli.Client().ImagePull(ctx, ref, options)
