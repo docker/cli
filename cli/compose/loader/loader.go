@@ -112,14 +112,14 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "secrets",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Secrets, err = LoadSecrets(config, configDetails.WorkingDir)
+				cfg.Secrets, err = LoadSecrets(config, configDetails)
 				return err
 			},
 		},
 		{
 			key: "configs",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Configs, err = LoadConfigObjs(config, configDetails.WorkingDir)
+				cfg.Configs, err = LoadConfigObjs(config, configDetails)
 				return err
 			},
 		},
@@ -484,40 +484,46 @@ func LoadVolumes(source map[string]interface{}, version string) (map[string]type
 
 // LoadSecrets produces a SecretConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadSecrets(source map[string]interface{}, workingDir string) (map[string]types.SecretConfig, error) {
+func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (map[string]types.SecretConfig, error) {
 	secrets := make(map[string]types.SecretConfig)
 	if err := transform(source, &secrets); err != nil {
 		return secrets, err
 	}
 	for name, secret := range secrets {
-		if secret.External.External && secret.External.Name == "" {
-			secret.External.Name = name
-			secrets[name] = secret
+		obj, err := loadFileObjectConfig(name, types.FileObjectConfig(secret), details)
+		if err != nil {
+			return nil, err
 		}
-		if secret.File != "" {
-			secret.File = absPath(workingDir, secret.File)
-		}
+		secrets[name] = types.SecretConfig(obj)
 	}
 	return secrets, nil
 }
 
 // LoadConfigObjs produces a ConfigObjConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadConfigObjs(source map[string]interface{}, workingDir string) (map[string]types.ConfigObjConfig, error) {
+func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) (map[string]types.ConfigObjConfig, error) {
 	configs := make(map[string]types.ConfigObjConfig)
 	if err := transform(source, &configs); err != nil {
 		return configs, err
 	}
 	for name, config := range configs {
-		if config.External.External && config.External.Name == "" {
-			config.External.Name = name
-			configs[name] = config
+		obj, err := loadFileObjectConfig(name, types.FileObjectConfig(config), details)
+		if err != nil {
+			return nil, err
 		}
-		if config.File != "" {
-			config.File = absPath(workingDir, config.File)
-		}
+		configs[name] = types.ConfigObjConfig(obj)
 	}
 	return configs, nil
+}
+
+func loadFileObjectConfig(name string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
+	if obj.External.External && obj.External.Name == "" {
+		obj.External.Name = name
+	}
+	if obj.File != "" {
+		obj.File = absPath(details.WorkingDir, obj.File)
+	}
+	return obj, nil
 }
 
 func absPath(workingDir string, filePath string) string {

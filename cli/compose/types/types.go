@@ -344,14 +344,15 @@ type CredentialSpecConfig struct {
 	Registry string
 }
 
-type fileObjectConfig struct {
+// FileObjectConfig is a config type for a file used by a service
+type FileObjectConfig struct {
 	File     string
 	External External
 	Labels   Labels
 }
 
 // SecretConfig for a secret
-type SecretConfig fileObjectConfig
+type SecretConfig FileObjectConfig
 
 // ConfigObjConfig is the config for the swarm "Config" object
-type ConfigObjConfig fileObjectConfig
+type ConfigObjConfig FileObjectConfig
