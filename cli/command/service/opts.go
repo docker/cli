@@ -717,7 +717,8 @@ func (o *detachOpt) Set(value string) error {
 		return nil
 	}
 
-	timeout, err := time.ParseDuration(value)
+	duration := strings.TrimPrefix(value, "after=")
+	timeout, err := time.ParseDuration(duration)
 	if err == nil {
 		o.timeout = &timeout
 		return nil
@@ -748,6 +749,7 @@ func (o *detachOpt) Timeout() *time.Duration {
 func addDetachFlag(flags *pflag.FlagSet, detach *detachOpt) {
 	flags.VarP(detach, flagDetach, "d", "Exit after timeout, or immediately if set to true")
 	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
+	flags.Lookup(flagDetach).NoOptDefVal = "true"
 }
 
 // addServiceFlags adds all flags that are common to both `create` and `update`.

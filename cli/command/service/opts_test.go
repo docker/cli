@@ -6,7 +6,9 @@ import (
 
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMemBytesString(t *testing.T) {
@@ -143,6 +145,14 @@ func TestDetachOptSet(t *testing.T) {
 			value:       "invalid",
 			expectedErr: "invalid bool or duration: invalid",
 		},
+		{
+			value:    "after=20s",
+			expected: detachOpt{timeout: durationPtr(20 * time.Second)},
+		},
+		{
+			value:       "after=",
+			expectedErr: "invalid bool or duration: after=",
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -174,4 +184,14 @@ func TestDetachOptString(t *testing.T) {
 			assert.Equal(t, testcase.expected, opt.String())
 		}
 	}
+}
+
+func TestAddDetachFlagDefaultFlagValue(t *testing.T) {
+	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
+	detach := detachOpt{}
+	addDetachFlag(flags, &detach)
+
+	err := flags.Parse([]string{"--detach"})
+	require.NoError(t, err)
+	assert.Equal(t, detachOpt{immediate: true}, detach)
 }
