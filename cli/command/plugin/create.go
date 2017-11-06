@@ -63,7 +63,8 @@ type pluginCreateOptions struct {
 	compress bool
 }
 
-func newCreateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newCreateCommand(dockerCli *command.
+DockerCli) *cobra.Command {
 	options := pluginCreateOptions{}
 
 	cmd := &cobra.Command{

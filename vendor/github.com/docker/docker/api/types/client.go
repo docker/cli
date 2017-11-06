@@ -91,6 +91,7 @@ type ContainerRemoveOptions struct {
 type ContainerStartOptions struct {
 	CheckpointID  string
 	CheckpointDir string
+	Portmap 	  []string
 }
 
 // CopyToContainerOptions holds information
