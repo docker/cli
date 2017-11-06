@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -630,7 +632,7 @@ networks:
 			"super": {External: types.External{External: true, Name: "super"}},
 		},
 		Volumes: map[string]types.VolumeConfig{
-			"data": {External: types.External{External: true, Name: "data"}},
+			"data": {External: types.External{External: true}, Name: "data"},
 		},
 		Networks: map[string]types.NetworkConfig{
 			"front": {
@@ -1190,23 +1192,16 @@ func TestFullExample(t *testing.T) {
 			},
 		},
 		"external-volume": {
-			External: types.External{
-				Name:     "external-volume",
-				External: true,
-			},
+			Name:     "external-volume",
+			External: types.External{External: true},
 		},
 		"other-external-volume": {
-			External: types.External{
-				Name:     "my-cool-volume",
-				External: true,
-			},
+			Name:     "my-cool-volume",
+			External: types.External{External: true},
 		},
 		"external-volume3": {
-			Name: "this-is-volume3",
-			External: types.External{
-				Name:     "external-volume3",
-				External: true,
-			},
+			Name:     "this-is-volume3",
+			External: types.External{External: true},
 		},
 	}
 
@@ -1405,4 +1400,59 @@ services:
 
 	require.Len(t, config.Services, 1)
 	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+}
+
+func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	volumes, err := LoadVolumes(source, "3.4")
+	require.NoError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, volumes)
+	assert.Contains(t, buf.String(), "volume.external.name is deprecated")
+
+}
+
+func patchLogrus() (*bytes.Buffer, func()) {
+	buf := new(bytes.Buffer)
+	out := logrus.StandardLogger().Out
+	logrus.SetOutput(buf)
+	return buf, func() { logrus.SetOutput(out) }
+}
+
+func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	volumes, err := LoadVolumes(source, "3.3")
+	require.NoError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, volumes)
+	assert.Equal(t, "", buf.String())
+
 }

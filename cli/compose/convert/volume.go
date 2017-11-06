@@ -68,14 +68,13 @@ func convertVolumeToMount(
 		result.VolumeOptions.NoCopy = volume.Volume.NoCopy
 	}
 
-	// External named volumes
-	if stackVolume.External.External {
-		result.Source = stackVolume.External.Name
-		return result, nil
-	}
-
 	if stackVolume.Name != "" {
 		result.Source = stackVolume.Name
+	}
+
+	// External named volumes
+	if stackVolume.External.External {
+		return result, nil
 	}
 
 	result.VolumeOptions.Labels = AddStackLabel(namespace, stackVolume.Labels)

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"
 	shellwords "github.com/mattn/go-shellwords"
@@ -49,6 +50,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	configDict := getConfigDict(configDetails)
+	configDetails.Version = schema.Version(configDict)
 
 	if err := validateForbidden(configDict); err != nil {
 		return nil, err
@@ -60,7 +62,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 		return nil, err
 	}
 
-	if err := schema.Validate(configDict, schema.Version(configDict)); err != nil {
+	if err := schema.Validate(configDict, configDetails.Version); err != nil {
 		return nil, err
 	}
 	return loadSections(configDict, configDetails)
@@ -103,7 +105,7 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "volumes",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Volumes, err = LoadVolumes(config)
+				cfg.Volumes, err = LoadVolumes(config, configDetails.Version)
 				return err
 			},
 		},
@@ -446,34 +448,36 @@ func externalVolumeError(volume, key string) error {
 
 // LoadVolumes produces a VolumeConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadVolumes(source map[string]interface{}) (map[string]types.VolumeConfig, error) {
+func LoadVolumes(source map[string]interface{}, version string) (map[string]types.VolumeConfig, error) {
 	volumes := make(map[string]types.VolumeConfig)
-	err := transform(source, &volumes)
-	if err != nil {
+	if err := transform(source, &volumes); err != nil {
 		return volumes, err
 	}
-	for name, volume := range volumes {
-		if volume.External.External {
-			if volume.Driver != "" {
-				return nil, externalVolumeError(name, "driver")
-			}
-			if len(volume.DriverOpts) > 0 {
-				return nil, externalVolumeError(name, "driver_opts")
-			}
-			if len(volume.Labels) > 0 {
-				return nil, externalVolumeError(name, "labels")
-			}
-			if volume.External.Name == "" {
-				volume.External.Name = name
-				volumes[name] = volume
-			} else {
-				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
 
-				if volume.Name != "" {
-					return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
-				}
-			}
+	for name, volume := range volumes {
+		if !volume.External.External {
+			continue
 		}
+		switch {
+		case volume.Driver != "":
+			return nil, externalVolumeError(name, "driver")
+		case len(volume.DriverOpts) > 0:
+			return nil, externalVolumeError(name, "driver_opts")
+		case len(volume.Labels) > 0:
+			return nil, externalVolumeError(name, "labels")
+		case volume.External.Name != "":
+			if volume.Name != "" {
+				return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
+			}
+			if versions.GreaterThanOrEqualTo(version, "3.4") {
+				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
+			}
+			volume.Name = volume.External.Name
+			volume.External.Name = ""
+		case volume.Name == "":
+			volume.Name = name
+		}
+		volumes[name] = volume
 	}
 	return volumes, nil
 }

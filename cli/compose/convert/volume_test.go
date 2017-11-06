@@ -148,20 +148,16 @@ func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
 func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "special",
-			},
+			Name:     "special",
+			External: composetypes.External{External: true},
 		},
 	}
 	namespace := NewNamespace("foo")
 	expected := mount.Mount{
-		Type:   mount.TypeVolume,
-		Source: "special",
-		Target: "/foo",
-		VolumeOptions: &mount.VolumeOptions{
-			NoCopy: false,
-		},
+		Type:          mount.TypeVolume,
+		Source:        "special",
+		Target:        "/foo",
+		VolumeOptions: &mount.VolumeOptions{NoCopy: false},
 	}
 	config := composetypes.ServiceVolumeConfig{
 		Type:   "volume",
@@ -176,10 +172,8 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "special",
-			},
+			Name:     "special",
+			External: composetypes.External{External: true},
 		},
 	}
 	namespace := NewNamespace("foo")
