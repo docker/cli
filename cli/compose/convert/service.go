@@ -255,43 +255,24 @@ func convertServiceSecrets(
 	secretSpecs map[string]composetypes.SecretConfig,
 ) ([]*swarm.SecretReference, error) {
 	refs := []*swarm.SecretReference{}
-	for _, secret := range secrets {
-		target := secret.Target
-		if target == "" {
-			target = secret.Source
-		}
 
-		secretSpec, exists := secretSpecs[secret.Source]
+	lookup := func(key string) (composetypes.FileObjectConfig, error) {
+		configSpec, exists := secretSpecs[key]
 		if !exists {
-			return nil, errors.Errorf("undefined secret %q", secret.Source)
+			return composetypes.FileObjectConfig{}, errors.Errorf("undefined secret %q", key)
+		}
+		return composetypes.FileObjectConfig(configSpec), nil
+	}
+	for _, config := range secrets {
+		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(config), lookup)
+		if err != nil {
+			return nil, err
 		}
 
-		source := namespace.Scope(secret.Source)
-		if secretSpec.External.External {
-			source = secretSpec.External.Name
-		}
-
-		uid := secret.UID
-		gid := secret.GID
-		if uid == "" {
-			uid = "0"
-		}
-		if gid == "" {
-			gid = "0"
-		}
-		mode := secret.Mode
-		if mode == nil {
-			mode = uint32Ptr(0444)
-		}
-
+		file := swarm.SecretReferenceFileTarget(obj.File)
 		refs = append(refs, &swarm.SecretReference{
-			File: &swarm.SecretReferenceFileTarget{
-				Name: target,
-				UID:  uid,
-				GID:  gid,
-				Mode: os.FileMode(*mode),
-			},
-			SecretName: source,
+			File:       &file,
+			SecretName: obj.Name,
 		})
 	}
 
@@ -312,43 +293,24 @@ func convertServiceConfigObjs(
 	configSpecs map[string]composetypes.ConfigObjConfig,
 ) ([]*swarm.ConfigReference, error) {
 	refs := []*swarm.ConfigReference{}
-	for _, config := range configs {
-		target := config.Target
-		if target == "" {
-			target = config.Source
-		}
 
-		configSpec, exists := configSpecs[config.Source]
+	lookup := func(key string) (composetypes.FileObjectConfig, error) {
+		configSpec, exists := configSpecs[key]
 		if !exists {
-			return nil, errors.Errorf("undefined config %q", config.Source)
+			return composetypes.FileObjectConfig{}, errors.Errorf("undefined config %q", key)
+		}
+		return composetypes.FileObjectConfig(configSpec), nil
+	}
+	for _, config := range configs {
+		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(config), lookup)
+		if err != nil {
+			return nil, err
 		}
 
-		source := namespace.Scope(config.Source)
-		if configSpec.External.External {
-			source = configSpec.External.Name
-		}
-
-		uid := config.UID
-		gid := config.GID
-		if uid == "" {
-			uid = "0"
-		}
-		if gid == "" {
-			gid = "0"
-		}
-		mode := config.Mode
-		if mode == nil {
-			mode = uint32Ptr(0444)
-		}
-
+		file := swarm.ConfigReferenceFileTarget(obj.File)
 		refs = append(refs, &swarm.ConfigReference{
-			File: &swarm.ConfigReferenceFileTarget{
-				Name: target,
-				UID:  uid,
-				GID:  gid,
-				Mode: os.FileMode(*mode),
-			},
-			ConfigName: source,
+			File:       &file,
+			ConfigName: obj.Name,
 		})
 	}
 
@@ -359,6 +321,63 @@ func convertServiceConfigObjs(
 	// sort to ensure idempotence (don't restart services just because the entries are in different order)
 	sort.SliceStable(confs, func(i, j int) bool { return confs[i].ConfigName < confs[j].ConfigName })
 	return confs, err
+}
+
+type swarmReferenceTarget struct {
+	Name string
+	UID  string
+	GID  string
+	Mode os.FileMode
+}
+
+type swarmReferenceObject struct {
+	File swarmReferenceTarget
+	ID   string
+	Name string
+}
+
+func convertFileObject(
+	namespace Namespace,
+	config composetypes.FileReferenceConfig,
+	lookup func(key string) (composetypes.FileObjectConfig, error),
+) (swarmReferenceObject, error) {
+	target := config.Target
+	if target == "" {
+		target = config.Source
+	}
+
+	obj, err := lookup(config.Source)
+	if err != nil {
+		return swarmReferenceObject{}, err
+	}
+
+	source := namespace.Scope(config.Source)
+	if obj.External.External {
+		source = obj.External.Name
+	}
+
+	uid := config.UID
+	gid := config.GID
+	if uid == "" {
+		uid = "0"
+	}
+	if gid == "" {
+		gid = "0"
+	}
+	mode := config.Mode
+	if mode == nil {
+		mode = uint32Ptr(0444)
+	}
+
+	return swarmReferenceObject{
+		File: swarmReferenceTarget{
+			Name: target,
+			UID:  uid,
+			GID:  gid,
+			Mode: os.FileMode(*mode),
+		},
+		Name: source,
+	}, nil
 }
 
 func uint32Ptr(value uint32) *uint32 {

@@ -278,7 +278,8 @@ type ServiceVolumeVolume struct {
 	NoCopy bool `mapstructure:"nocopy"`
 }
 
-type fileReferenceConfig struct {
+// FileReferenceConfig for a reference to a swarm file object
+type FileReferenceConfig struct {
 	Source string
 	Target string
 	UID    string
@@ -287,10 +288,10 @@ type fileReferenceConfig struct {
 }
 
 // ServiceConfigObjConfig is the config obj configuration for a service
-type ServiceConfigObjConfig fileReferenceConfig
+type ServiceConfigObjConfig FileReferenceConfig
 
 // ServiceSecretConfig is the secret configuration for a service
-type ServiceSecretConfig fileReferenceConfig
+type ServiceSecretConfig FileReferenceConfig
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
