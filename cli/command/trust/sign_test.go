@@ -296,3 +296,13 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(cl.List()), 0)
 }
+
+func TestSignCommandLocalFlag(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
+	cmd := newSignCommand(cli)
+	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
+	cmd.SetOutput(ioutil.Discard)
+	testutil.ErrorContains(t, cmd.Execute(), "error during connect: Get /images/reg-name.io/image:red/json: unsupported protocol scheme")
+
+}
