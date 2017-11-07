@@ -3,7 +3,11 @@ set -eu
 
 VERSION=${VERSION:-"unknown-version"}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
-BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')}
+if [ "$(uname)" == "OpenBSD" ]; then
+    BUILDTIME=${BUILDTIME:-$(date -u +%Y-%m-%dT%H:%M.%S 2> /dev/null)}
+else
+    BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')}
+fi
 
 export LDFLAGS="\
     -w \
