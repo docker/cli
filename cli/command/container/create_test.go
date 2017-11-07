@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -106,7 +107,7 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 		},
 		HostConfig: &container.HostConfig{},
 	}
-	body, err := createContainer(context.Background(), cli, config, "name")
+	body, err := createContainer(context.Background(), cli, config, "name", runtime.GOOS)
 	require.NoError(t, err)
 	expected := container.ContainerCreateCreatedBody{ID: containerID}
 	assert.Equal(t, expected, *body)

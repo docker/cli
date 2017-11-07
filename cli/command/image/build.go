@@ -64,6 +64,7 @@ type buildOptions struct {
 	target         string
 	imageIDFile    string
 	stream         bool
+	platform       string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -135,6 +136,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
 	command.AddTrustVerificationFlags(flags)
+	command.AddPlatformFlag(flags, &options.platform)
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
@@ -374,6 +376,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		ExtraHosts:     options.extraHosts.GetAll(),
 		Target:         options.target,
 		RemoteContext:  remote,
+		Platform:       options.platform,
 	}
 
 	if s != nil {

@@ -21,7 +21,8 @@ import (
 )
 
 type createOptions struct {
-	name string
+	name     string
+	platform string
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -51,6 +52,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
+	command.AddPlatformFlag(flags, &opts.platform)
 	command.AddTrustVerificationFlags(flags)
 	copts = addFlags(flags)
 	return cmd
@@ -62,7 +64,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions,
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts.name)
+	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts.name, opts.platform)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions,
 	return nil
 }
 
-func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.Writer) error {
+func pullImage(ctx context.Context, dockerCli command.Cli, image string, platform string, out io.Writer) error {
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return err
@@ -90,6 +92,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.
 
 	options := types.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
+		Platform:     platform,
 	}
 
 	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, options)
@@ -155,7 +158,7 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
-func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, name string) (*container.ContainerCreateCreatedBody, error) {
+func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, name string, platform string) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig
@@ -198,7 +201,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 
 			// we don't want to write to stdout anything apart from container.ID
-			if err := pullImage(ctx, dockerCli, config.Image, stderr); err != nil {
+			if err := pullImage(ctx, dockerCli, config.Image, platform, stderr); err != nil {
 				return nil, err
 			}
 			if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
