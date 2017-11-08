@@ -837,7 +837,7 @@ __docker_complete_log_options() {
 
 	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries tag"
 	local gcplogs_options="$common_options1 $common_options2 gcp-log-cmd gcp-meta-id gcp-meta-name gcp-meta-zone gcp-project"
-	local gelf_options="$common_options1 $common_options2 gelf-address gelf-compression-level gelf-compression-type tag"
+	local gelf_options="$common_options1 $common_options2 gelf-address gelf-compression-level gelf-compression-type gelf-tcp-max-reconnect gelf-tcp-reconnect-delay tag"
 	local journald_options="$common_options1 $common_options2 tag"
 	local json_file_options="$common_options1 $common_options2 max-file max-size"
 	local logentries_options="$common_options1 $common_options2 logentries-token tag"
@@ -897,7 +897,7 @@ __docker_complete_log_driver_options() {
 			return
 			;;
 		gelf-address)
-			COMPREPLY=( $( compgen -W "udp" -S "://" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "tcp udp" -S "://" -- "${cur##*=}" ) )
 			__docker_nospace
 			return
 			;;
