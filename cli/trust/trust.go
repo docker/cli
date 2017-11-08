@@ -127,7 +127,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	}
 
 	// Skip configuration headers since request is not going to Docker daemon
-	modifiers := registry.DockerHeaders(userAgent, http.Header{})
+	modifiers := registry.Headers(userAgent, http.Header{})
 	authTransport := transport.NewTransport(base, modifiers...)
 	pingClient := &http.Client{
 		Transport: authTransport,
