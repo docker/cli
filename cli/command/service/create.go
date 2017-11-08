@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
@@ -57,6 +58,9 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagDNSSearch, "version", []string{"1.25"})
 	flags.Var(&opts.hosts, flagHost, "Set one or more custom host-to-IP mappings (host:ip)")
 	flags.SetAnnotation(flagHost, "version", []string{"1.25"})
+
+	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
+	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 
 	flags.SetInterspersed(false)
 	return cmd

@@ -222,23 +222,30 @@ func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConf
 }
 
 type resourceOptions struct {
-	limitCPU      opts.NanoCPUs
-	limitMemBytes opts.MemBytes
-	resCPU        opts.NanoCPUs
-	resMemBytes   opts.MemBytes
+	limitCPU            opts.NanoCPUs
+	limitMemBytes       opts.MemBytes
+	resCPU              opts.NanoCPUs
+	resMemBytes         opts.MemBytes
+	resGenericResources []string
 }
 
-func (r *resourceOptions) ToResourceRequirements() *swarm.ResourceRequirements {
+func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements, error) {
+	generic, err := ParseGenericResources(r.resGenericResources)
+	if err != nil {
+		return nil, err
+	}
+
 	return &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
 		},
 		Reservations: &swarm.Resources{
-			NanoCPUs:    r.resCPU.Value(),
-			MemoryBytes: r.resMemBytes.Value(),
+			NanoCPUs:         r.resCPU.Value(),
+			MemoryBytes:      r.resMemBytes.Value(),
+			GenericResources: generic,
 		},
-	}
+	}, nil
 }
 
 type restartPolicyOptions struct {
@@ -588,6 +595,11 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
+	resources, err := options.resources.ToResourceRequirements()
+	if err != nil {
+		return service, err
+	}
+
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
@@ -619,7 +631,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Isolation:       container.Isolation(options.isolation),
 			},
 			Networks:      networks,
-			Resources:     options.resources.ToResourceRequirements(),
+			Resources:     resources,
 			RestartPolicy: options.restartPolicy.ToRestartPolicy(flags),
 			Placement: &swarm.Placement{
 				Constraints: options.constraints.GetAll(),
