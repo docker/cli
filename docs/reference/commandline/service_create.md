@@ -588,27 +588,27 @@ follows:
   <tr>
     <td><tt>node.id</tt></td>
     <td>Node ID</td>
-    <td><tt>node.id == 2ivku8v2gvtg4</tt></td>
+    <td><tt>node.id==2ivku8v2gvtg4</tt></td>
   </tr>
   <tr>
     <td><tt>node.hostname</tt></td>
     <td>Node hostname</td>
-    <td><tt>node.hostname != node-2</tt></td>
+    <td><tt>node.hostname!=node-2</tt></td>
   </tr>
   <tr>
     <td><tt>node.role</tt></td>
     <td>Node role</td>
-    <td><tt>node.role == manager</tt></td>
+    <td><tt>node.role==manager</tt></td>
   </tr>
   <tr>
     <td><tt>node.labels</tt></td>
     <td>user defined node labels</td>
-    <td><tt>node.labels.security == high</tt></td>
+    <td><tt>node.labels.security==high</tt></td>
   </tr>
   <tr>
     <td><tt>engine.labels</tt></td>
     <td>Docker Engine's labels</td>
-    <td><tt>engine.labels.operatingsystem == ubuntu 14.04</tt></td>
+    <td><tt>engine.labels.operatingsystem==ubuntu 14.04</tt></td>
   </tr>
 </table>
 
