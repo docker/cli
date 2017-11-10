@@ -46,6 +46,25 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidateSecretConfigNames(t *testing.T) {
+	config := dict{
+		"version":       "3.5",
+		"configs": dict{
+            "bar": dict{
+                "name": "foobar",
+            },
+        },
+        "secrets": dict{
+            "baz": dict{
+                "name": "foobaz",
+            },
+        },
+	}
+
+	err := Validate(config, "3.5")
+	assert.NoError(t, err)
+}
+
 func TestValidateInvalidVersion(t *testing.T) {
 	config := dict{
 		"version": "2.1",

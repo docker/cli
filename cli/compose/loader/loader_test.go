@@ -214,6 +214,26 @@ configs:
 	require.Len(t, actual.Configs, 1)
 }
 
+func TestLoadV35(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.5"
+services:
+  foo:
+    image: busybox
+    secrets: [foo, bar, baz]
+secrets:
+  foo:
+    name: fooqux
+    external: true
+  bar:
+    name: barqux
+    file: ./full-example.yml
+`)
+	require.NoError(t, err)
+	assert.Len(t, actual.Services, 1)
+	assert.Len(t, actual.Secrets, 2)
+}
+
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
 	require.NoError(t, err)
@@ -626,10 +646,10 @@ networks:
 			},
 		},
 		Configs: map[string]types.ConfigObjConfig{
-			"appconfig": {External: types.External{External: true, Name: "appconfig"}},
+			"appconfig": {External: types.External{External: true}, Name: "appconfig"},
 		},
 		Secrets: map[string]types.SecretConfig{
-			"super": {External: types.External{External: true, Name: "super"}},
+			"super": {External: types.External{External: true}, Name: "super"},
 		},
 		Volumes: map[string]types.VolumeConfig{
 			"data": {External: types.External{External: true}, Name: "data"},
@@ -1487,4 +1507,45 @@ configs:
 	require.NoError(t, err)
 	require.Len(t, actual.Services, 1)
 	assert.Equal(t, "invalid", actual.Services[0].Isolation)
+}
+
+func TestInvalidSecretExternalNameAndNameCombination(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+secrets:
+  external_secret:
+    name: user_specified_name
+    external:
+      name:	external_name
+`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "secret.external.name and secret.name conflict; only use secret.name")
+	assert.Contains(t, err.Error(), "external_secret")
+}
+
+func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+    details := types.ConfigDetails{
+        Version: "3.5",
+	}
+	secrets, err := LoadSecrets(source, details)
+	require.NoError(t, err)
+	expected := map[string]types.SecretConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, secrets)
+	assert.Contains(t, buf.String(), "secret.external.name is deprecated")
 }
