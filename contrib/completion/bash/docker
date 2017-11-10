@@ -3408,37 +3408,12 @@ _docker_service_update_and_create() {
 		"
 
 		case "$prev" in
-			--config)
-				__docker_complete_configs
-				return
-				;;
 			--env-file)
 				_filedir
 				return
 				;;
-			--group)
-				COMPREPLY=( $(compgen -g -- "$cur") )
-				return
-				;;
-			--host)
-				case "$cur" in
-					*:)
-						__docker_complete_resolved_hostname
-						return
-						;;
-				esac
-				;;
 			--mode)
 				COMPREPLY=( $( compgen -W "global replicated" -- "$cur" ) )
-				return
-				;;
-			--placement-pref)
-				COMPREPLY=( $( compgen -W "spread" -S = -- "$cur" ) )
-				__docker_nospace
-				return
-				;;
-			--secret)
-				__docker_complete_secrets
 				return
 				;;
 		esac
@@ -3483,41 +3458,12 @@ _docker_service_update_and_create() {
 		"
 
 		case "$prev" in
-			--config-add|--config-rm)
-				__docker_complete_configs
-				return
-				;;
 			--env-rm)
 				COMPREPLY=( $( compgen -e -- "$cur" ) )
 				return
 				;;
-			--group-add|--group-rm)
-				COMPREPLY=( $(compgen -g -- "$cur") )
-				return
-				;;
-			--host-add|--host-rm)
-				case "$cur" in
-					*:)
-						__docker_complete_resolved_hostname
-						return
-						;;
-				esac
-				;;
 			--image)
 				__docker_complete_image_repos_and_tags
-				return
-				;;
-			--network-add|--network-rm)
-				__docker_complete_networks
-				return
-				;;
-			--placement-pref-add|--placement-pref-rm)
-				COMPREPLY=( $( compgen -W "spread" -S = -- "$cur" ) )
-				__docker_nospace
-				return
-				;;
-			--secret-add|--secret-rm)
-				__docker_complete_secrets
 				return
 				;;
 		esac
@@ -3533,6 +3479,10 @@ _docker_service_update_and_create() {
 	esac
 
 	case "$prev" in
+		--config|--config-add|--config-rm)
+			__docker_complete_configs
+			return
+			;;
 		--endpoint-mode)
 			COMPREPLY=( $( compgen -W "dnsrr vip" -- "$cur" ) )
 			return
@@ -3542,6 +3492,18 @@ _docker_service_update_and_create() {
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
 			__docker_nospace
 			return
+			;;
+		--group|--group-add|--group-rm)
+			COMPREPLY=( $(compgen -g -- "$cur") )
+			return
+			;;
+		--host|--host-add|--host-rm)
+			case "$cur" in
+				*:)
+					__docker_complete_resolved_hostname
+					return
+					;;
+			esac
 			;;
 		--isolation)
 			__docker_complete_isolation
@@ -3555,8 +3517,13 @@ _docker_service_update_and_create() {
 			__docker_complete_log_options
 			return
 			;;
-		--network)
+		--network|--network-add|--network-rm)
 			__docker_complete_networks
+			return
+			;;
+		--placement-pref|--placement-pref-add|--placement-pref-rm)
+			COMPREPLY=( $( compgen -W "spread" -S = -- "$cur" ) )
+			__docker_nospace
 			return
 			;;
 		--restart-condition)
@@ -3565,6 +3532,10 @@ _docker_service_update_and_create() {
 			;;
 		--rollback-failure-action)
 			COMPREPLY=( $( compgen -W "continue pause" -- "$cur" ) )
+			return
+			;;
+		--secret|--secret-add|--secret-rm)
+			__docker_complete_secrets
 			return
 			;;
 		--stop-signal)
