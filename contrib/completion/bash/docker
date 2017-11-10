@@ -3333,7 +3333,6 @@ _docker_service_update_and_create() {
 	local options_with_args="
 		--endpoint-mode
 		--entrypoint
-		--env -e
 		--force
 		--health-cmd
 		--health-interval
@@ -3342,12 +3341,10 @@ _docker_service_update_and_create() {
 		--health-timeout
 		--hostname
 		--isolation
-		--label -l
 		--limit-cpu
 		--limit-memory
 		--log-driver
 		--log-opt
-		--mount
 		--replicas
 		--reserve-cpu
 		--reserve-memory
@@ -3395,11 +3392,14 @@ _docker_service_update_and_create() {
 			--dns
 			--dns-option
 			--dns-search
+			--env -e
 			--env-file
 			--generic-resource
 			--group
 			--host
+			--label -l
 			--mode
+			--mount
 			--name
 			--network
 			--placement-pref
@@ -3458,6 +3458,8 @@ _docker_service_update_and_create() {
 			--dns-rm
 			--dns-search-add
 			--dns-search-rm
+			--env-add
+			--env-rm
 			--generic-resource-add
 			--generic-resource-rm
 			--group-add
@@ -3465,6 +3467,10 @@ _docker_service_update_and_create() {
 			--host-add
 			--host-rm
 			--image
+			--label-add
+			--label-rm
+			--mount-add
+			--mount-rm
 			--network-add
 			--network-rm
 			--placement-pref-add
@@ -3479,6 +3485,10 @@ _docker_service_update_and_create() {
 		case "$prev" in
 			--config-add|--config-rm)
 				__docker_complete_configs
+				return
+				;;
+			--env-rm)
+				COMPREPLY=( $( compgen -e -- "$cur" ) )
 				return
 				;;
 			--group-add|--group-rm)
@@ -3527,7 +3537,7 @@ _docker_service_update_and_create() {
 			COMPREPLY=( $( compgen -W "dnsrr vip" -- "$cur" ) )
 			return
 			;;
-		--env|-e)
+		--env|-e|--env-add)
 			# we do not append a "=" here because "-e VARNAME" is legal systax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
 			__docker_nospace
