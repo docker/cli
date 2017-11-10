@@ -1,12 +1,11 @@
 package trust
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
-
-	"bytes"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
