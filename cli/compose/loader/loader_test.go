@@ -214,26 +214,6 @@ configs:
 	require.Len(t, actual.Configs, 1)
 }
 
-func TestLoadV35(t *testing.T) {
-	actual, err := loadYAML(`
-version: "3.5"
-services:
-  foo:
-    image: busybox
-    secrets: [foo, bar, baz]
-secrets:
-  foo:
-    name: fooqux
-    external: true
-  bar:
-    name: barqux
-    file: ./full-example.yml
-`)
-	require.NoError(t, err)
-	assert.Len(t, actual.Services, 1)
-	assert.Len(t, actual.Secrets, 2)
-}
-
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
 	require.NoError(t, err)
@@ -1484,11 +1464,24 @@ services:
     image: busybox
     isolation: process
 configs:
-  super:
+  foo:
+    name: fooqux
     external: true
+  bar:
+    name: barqux
+    file: ./example1.env
+secrets:
+  foo:
+    name: fooqux
+    external: true
+  bar:
+    name: barqux
+    file: ./full-example.yml
 `)
 	require.NoError(t, err)
-	require.Len(t, actual.Services, 1)
+	assert.Len(t, actual.Services, 1)
+	assert.Len(t, actual.Secrets, 2)
+	assert.Len(t, actual.Configs, 2)
 	assert.Equal(t, "process", actual.Services[0].Isolation)
 }
 
@@ -1535,8 +1528,8 @@ func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 			},
 		},
 	}
-    details := types.ConfigDetails{
-        Version: "3.5",
+	details := types.ConfigDetails{
+		Version: "3.5",
 	}
 	secrets, err := LoadSecrets(source, details)
 	require.NoError(t, err)

@@ -536,9 +536,6 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 		}
 		// if not "external: true"
 	} else {
-		if obj.File == "" {
-			return obj, errors.Errorf("%[1]s %[2]s: specify a file or \"external: true\"", objType, name)
-		}
 		obj.File = absPath(details.WorkingDir, obj.File)
 	}
 

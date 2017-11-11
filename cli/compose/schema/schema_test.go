@@ -48,17 +48,17 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 
 func TestValidateSecretConfigNames(t *testing.T) {
 	config := dict{
-		"version":       "3.5",
+		"version": "3.5",
 		"configs": dict{
-            "bar": dict{
-                "name": "foobar",
-            },
-        },
-        "secrets": dict{
-            "baz": dict{
-                "name": "foobaz",
-            },
-        },
+			"bar": dict{
+				"name": "foobar",
+			},
+		},
+		"secrets": dict{
+			"baz": dict{
+				"name": "foobaz",
+			},
+		},
 	}
 
 	err := Validate(config, "3.5")

@@ -348,7 +348,7 @@ type CredentialSpecConfig struct {
 
 // FileObjectConfig is a config type for a file used by a service
 type FileObjectConfig struct {
-    Name     string
+	Name     string
 	File     string
 	External External
 	Labels   Labels
