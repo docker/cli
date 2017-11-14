@@ -13,18 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
+	return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
+		return ioutil.NopCloser(strings.NewReader(expectedOut)), nil
+	}
+}
+
 func TestRunLogs(t *testing.T) {
 	inspectFn := func(containerID string) (types.ContainerJSON, error) {
 		return types.ContainerJSON{
 			Config:            &container.Config{Tty: true},
 			ContainerJSONBase: &types.ContainerJSONBase{State: &types.ContainerState{Running: false}},
 		}, nil
-	}
-
-	logFn := func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
-		return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
-			return ioutil.NopCloser(strings.NewReader(expectedOut)), nil
-		}
 	}
 
 	var testcases = []struct {
