@@ -20,6 +20,7 @@ type fakeClient struct {
 	infoFunc              func() (types.Info, error)
 	containerStatPathFunc func(container, path string) (types.ContainerPathStat, error)
 	containerCopyFromFunc func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
+	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
 }
 
 func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (types.ContainerJSON, error) {
@@ -86,4 +87,11 @@ func (f *fakeClient) CopyFromContainer(_ context.Context, container, srcPath str
 		return f.containerCopyFromFunc(container, srcPath)
 	}
 	return nil, types.ContainerPathStat{}, nil
+}
+
+func (f *fakeClient) ContainerLogs(_ context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
+	if f.logFunc != nil {
+		return f.logFunc(container, options)
+	}
+	return nil, nil
 }
