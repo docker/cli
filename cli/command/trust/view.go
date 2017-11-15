@@ -22,8 +22,8 @@ import (
 
 // trustTagKey represents a unique signed tag and hex-encoded hash pair
 type trustTagKey struct {
-	TagName string
-	HashHex string
+	SignedTag string
+	Digest    string
 }
 
 // trustTagRow encodes all human-consumable information for a signed tag, including signers
@@ -39,7 +39,7 @@ func (tagComparator trustTagRowList) Len() int {
 }
 
 func (tagComparator trustTagRowList) Less(i, j int) bool {
-	return tagComparator[i].TagName < tagComparator[j].TagName
+	return tagComparator[i].SignedTag < tagComparator[j].SignedTag
 }
 
 func (tagComparator trustTagRowList) Swap(i, j int) {
@@ -52,57 +52,24 @@ func newViewCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display detailed information about keys and signatures",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return lookupTrustInfo(dockerCli, args[0])
+			return viewTrustInfo(dockerCli, args[0])
 		},
 	}
 	return cmd
 }
 
-func lookupTrustInfo(cli command.Cli, remote string) error {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+func viewTrustInfo(cli command.Cli, remote string) error {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
 	if err != nil {
 		return err
 	}
-	tag := imgRefAndAuth.Tag()
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
-	if err != nil {
-		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
-	}
 
-	if err = clearChangeList(notaryRepo); err != nil {
-		return err
-	}
-	defer clearChangeList(notaryRepo)
-
-	// Retrieve all released signatures, match them, and pretty print them
-	allSignedTargets, err := notaryRepo.GetAllTargetMetadataByName(tag)
-	if err != nil {
-		logrus.Debug(trust.NotaryError(imgRefAndAuth.Reference().Name(), err))
-		// print an empty table if we don't have signed targets, but have an initialized notary repo
-		if _, ok := err.(client.ErrNoSuchTarget); !ok {
-			return fmt.Errorf("No signatures or cannot access %s", remote)
-		}
-	}
-	signatureRows := matchReleasedSignatures(allSignedTargets)
 	if len(signatureRows) > 0 {
 		if err := printSignatures(cli.Out(), signatureRows); err != nil {
 			return err
 		}
 	} else {
 		fmt.Fprintf(cli.Out(), "\nNo signatures for %s\n\n", remote)
-	}
-
-	// get the administrative roles
-	adminRolesWithSigs, err := notaryRepo.ListRoles()
-	if err != nil {
-		return fmt.Errorf("No signers for %s", remote)
-	}
-
-	// get delegation roles with the canonical key IDs
-	delegationRoles, err := notaryRepo.GetDelegationRoles()
-	if err != nil {
-		logrus.Debugf("no delegation roles found, or error fetching them for %s: %v", remote, err)
 	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(delegationRoles)
 
@@ -117,8 +84,52 @@ func lookupTrustInfo(cli command.Cli, remote string) error {
 	// This will always have the root and targets information
 	fmt.Fprintf(cli.Out(), "\nAdministrative keys for %s:\n", strings.Split(remote, ":")[0])
 	printSortedAdminKeys(cli.Out(), adminRolesWithSigs)
-
 	return nil
+}
+
+// lookupTrustInfo returns processed signature and role information about a notary repository.
+// This information is to be pretty printed or serialized into a machine-readable format.
+func lookupTrustInfo(cli command.Cli, remote string) (trustTagRowList, []client.RoleWithSignatures, []data.Role, error) {
+	ctx := context.Background()
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+	if err != nil {
+		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, err
+	}
+	tag := imgRefAndAuth.Tag()
+	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
+	if err != nil {
+		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
+	}
+
+	if err = clearChangeList(notaryRepo); err != nil {
+		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, err
+	}
+	defer clearChangeList(notaryRepo)
+
+	// Retrieve all released signatures, match them, and pretty print them
+	allSignedTargets, err := notaryRepo.GetAllTargetMetadataByName(tag)
+	if err != nil {
+		logrus.Debug(trust.NotaryError(remote, err))
+		// print an empty table if we don't have signed targets, but have an initialized notary repo
+		if _, ok := err.(client.ErrNoSuchTarget); !ok {
+			return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signatures or cannot access %s", remote)
+		}
+	}
+	signatureRows := matchReleasedSignatures(allSignedTargets)
+
+	// get the administrative roles
+	adminRolesWithSigs, err := notaryRepo.ListRoles()
+	if err != nil {
+		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signers for %s", remote)
+	}
+
+	// get delegation roles with the canonical key IDs
+	delegationRoles, err := notaryRepo.GetDelegationRoles()
+	if err != nil {
+		logrus.Debugf("no delegation roles found, or error fetching them for %s: %v", remote, err)
+	}
+
+	return signatureRows, adminRolesWithSigs, delegationRoles, nil
 }
 
 func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures) {
@@ -201,8 +212,8 @@ func printSignatures(out io.Writer, signatureRows trustTagRowList) error {
 			formattedSigners = append(formattedSigners, fmt.Sprintf("(%s)", releasedRoleName))
 		}
 		formattedTags = append(formattedTags, formatter.SignedTagInfo{
-			Name:    sigRow.TagName,
-			Digest:  sigRow.HashHex,
+			Name:    sigRow.SignedTag,
+			Digest:  sigRow.Digest,
 			Signers: formattedSigners,
 		})
 	}

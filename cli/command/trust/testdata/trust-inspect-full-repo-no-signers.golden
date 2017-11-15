@@ -1,6 +1,1 @@
-SIGNED TAG          DIGEST                     SIGNERS
-green               677265656e2d646967657374   (Repo Admin)
-
-Administrative keys for signed-repo:
-Repository Key:	targetsID
-Root Key:	rootID
+{"SignedTags":[{"SignedTag":"green","Digest":"677265656e2d646967657374","Signers":["Repo Admin"]}],"AdminstrativeKeys":[{"Name":"Root","Keys":["rootID"]},{"Name":"Repository","Keys":["targetsID"]}]}
