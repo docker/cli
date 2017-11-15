@@ -101,18 +101,11 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 			continue
 		}
 
-		data, err := ioutil.ReadFile(secret.File)
+		obj, err := fileObjectConfig(namespace, name, composetypes.FileObjectConfig(secret))
 		if err != nil {
 			return nil, err
 		}
-
-		result = append(result, swarm.SecretSpec{
-			Annotations: swarm.Annotations{
-				Name:   namespace.Scope(name),
-				Labels: AddStackLabel(namespace, secret.Labels),
-			},
-			Data: data,
-		})
+		result = append(result, swarm.SecretSpec{Annotations: obj.Annotations, Data: obj.Data})
 	}
 	return result, nil
 }
@@ -125,18 +118,31 @@ func Configs(namespace Namespace, configs map[string]composetypes.ConfigObjConfi
 			continue
 		}
 
-		data, err := ioutil.ReadFile(config.File)
+		obj, err := fileObjectConfig(namespace, name, composetypes.FileObjectConfig(config))
 		if err != nil {
 			return nil, err
 		}
-
-		result = append(result, swarm.ConfigSpec{
-			Annotations: swarm.Annotations{
-				Name:   namespace.Scope(name),
-				Labels: AddStackLabel(namespace, config.Labels),
-			},
-			Data: data,
-		})
+		result = append(result, swarm.ConfigSpec{Annotations: obj.Annotations, Data: obj.Data})
 	}
 	return result, nil
+}
+
+type swarmFileObject struct {
+	Annotations swarm.Annotations
+	Data        []byte
+}
+
+func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObjectConfig) (swarmFileObject, error) {
+	data, err := ioutil.ReadFile(obj.File)
+	if err != nil {
+		return swarmFileObject{}, err
+	}
+
+	return swarmFileObject{
+		Annotations: swarm.Annotations{
+			Name:   namespace.Scope(name),
+			Labels: AddStackLabel(namespace, obj.Labels),
+		},
+		Data: data,
+	}, nil
 }

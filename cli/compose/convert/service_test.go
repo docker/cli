@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -9,7 +10,9 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
@@ -371,4 +374,53 @@ func TestConvertUpdateConfigOrder(t *testing.T) {
 		Order: "stop-first",
 	})
 	assert.Equal(t, updateConfig.Order, "stop-first")
+}
+
+func TestConvertFileObject(t *testing.T) {
+	namespace := NewNamespace("testing")
+	config := composetypes.FileReferenceConfig{
+		Source: "source",
+		Target: "target",
+		UID:    "user",
+		GID:    "group",
+		Mode:   uint32Ptr(0644),
+	}
+	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
+	require.NoError(t, err)
+
+	expected := swarmReferenceObject{
+		Name: "testing_source",
+		File: swarmReferenceTarget{
+			Name: config.Target,
+			UID:  config.UID,
+			GID:  config.GID,
+			Mode: os.FileMode(0644),
+		},
+	}
+	assert.Equal(t, expected, swarmRef)
+}
+
+func lookupConfig(key string) (composetypes.FileObjectConfig, error) {
+	if key != "source" {
+		return composetypes.FileObjectConfig{}, errors.New("bad key")
+	}
+	return composetypes.FileObjectConfig{}, nil
+}
+
+func TestConvertFileObjectDefaults(t *testing.T) {
+	namespace := NewNamespace("testing")
+	config := composetypes.FileReferenceConfig{Source: "source"}
+	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
+	require.NoError(t, err)
+
+	expected := swarmReferenceObject{
+		Name: "testing_source",
+		File: swarmReferenceTarget{
+			Name: config.Source,
+			UID:  "0",
+			GID:  "0",
+			Mode: os.FileMode(0444),
+		},
+	}
+	assert.Equal(t, expected, swarmRef)
 }
