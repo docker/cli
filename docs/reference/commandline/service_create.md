@@ -735,51 +735,75 @@ Containers on the same network can access each other using
 ### Publish service ports externally to the swarm (-p, --publish)
 
 You can publish service ports to make them available externally to the swarm
-using the `--publish` flag:
-
-```bash
-$ docker service create --publish <TARGET-PORT>:<SERVICE-PORT> nginx
-```
-
-For example:
+using the `--publish` flag. The `--publish` flag can take two different styles
+of arguments. The short version is positional, and allows you to specify the
+target port and container port separated by a colon.
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
 ```
 
-When you publish a service port, the swarm routing mesh makes the service
-accessible at the target port on every node regardless if there is a task for
-the service running on the node. For more information refer to
+There is also a long format, which is easier to read and allows you to specify
+more options. The long format is preferred. You cannot specify the service's
+mode when using the short format. Here is an example of using the long format
+for the same service as above:
+
+```bash
+$ docker service create --name my_web --replicas 3 --publish target=8080,port=80 nginx
+```
+
+The options you can specify are:
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Short syntax</th>
+  <th>Long syntax</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>target and container port </td>
+  <td><tt></tt></td>
+  <td><tt></tt></td>
+  <td></td>
+</tr>
+<tr>
+  <td>protocol</td>
+  <td><tt>--publish 8080:80</tt></td>
+  <td><tt>--publish target=8080,port=80</tt></td>
+  <td><p>
+    The container port to publish and the target port to bind it to on the
+    routing mesh or directly on the node.
+  </p></td>
+</tr>
+<tr>
+  <td>mode</td>
+  <td>Not possible to set using short syntax.</td>
+  <td><tt>--publish target=8080,port=80,mode=host</tt></td>
+  <td><p>
+    The mode to use for binding the port, either `ingress` or `host`. Defaults
+    to `ingress` to use the routing mesh.
+  </p></td>
+</tr>
+<tr>
+  <td>protocol</td>
+  <td><tt>--publish 8080:80/tcp</tt></td>
+  <td><tt>--publish target=8080,port=80,protocol=tcp</tt></td>
+  <td><p>
+    The protocol to use, either `tcp` or `udp`. Defaults to `tcp`. To bind a
+    port for both protocols, specify the `-p` or `--publish` flag twice.
+  </p></td>
+</tr>
+</table>
+
+When you publish a service port using `ingres` mode, the swarm routing mesh
+makes the service accessible at the target port on every node regardless if
+there is a task for the service running on the node. If you use `host` mode,
+the port is only bound on nodes where the service is running, and a given port
+on a node can only be bound once. You can only set the publication mode using
+the long syntax. For more information refer to
 [Use swarm mode routing mesh](https://docs.docker.com/engine/swarm/ingress/).
-
-### Publish a port for TCP only or UDP only
-
-By default, when you publish a port, it is a TCP port. You can
-specifically publish a UDP port instead of or in addition to a TCP port. When
-you publish both TCP and UDP ports, Docker 1.12.2 and earlier require you to
-add the suffix `/tcp` for TCP ports. Otherwise it is optional.
-
-#### TCP only
-
-The following two commands are equivalent.
-
-```bash
-$ docker service create --name dns-cache -p 53:53 dns-cache
-
-$ docker service create --name dns-cache -p 53:53/tcp dns-cache
-```
-
-#### TCP and UDP
-
-```bash
-$ docker service create --name dns-cache -p 53:53/tcp -p 53:53/udp dns-cache
-```
-
-#### UDP only
-
-```bash
-$ docker service create --name dns-cache -p 53:53/udp dns-cache
-```
 
 ### Provide credential specs for managed service accounts (Windows only)
 
