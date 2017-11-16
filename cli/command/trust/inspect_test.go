@@ -114,6 +114,15 @@ func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-with-signers.golden")
 }
 
+func TestTrustInspectCommandMultipleFullReposWithSigners(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cmd := newInspectCommand(cli)
+	cmd.SetArgs([]string{"signed-repo", "signed-repo"})
+	assert.NoError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-multiple-repos-with-signers.golden")
+}
+
 func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)

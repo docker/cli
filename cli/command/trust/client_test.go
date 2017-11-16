@@ -192,7 +192,24 @@ func (e EmptyTargetsNotaryRepository) GetAllTargetMetadataByName(name string) ([
 }
 
 func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
-	return []client.RoleWithSignatures{}, nil
+	rootRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"rootID"},
+			Threshold: 1,
+		},
+		Name: data.CanonicalRootRole,
+	}
+
+	targetsRole := data.Role{
+		RootRole: data.RootRole{
+			KeyIDs:    []string{"targetsID"},
+			Threshold: 1,
+		},
+		Name: data.CanonicalTargetsRole,
+	}
+	return []client.RoleWithSignatures{
+		{Role: rootRole},
+		{Role: targetsRole}}, nil
 }
 
 func (e EmptyTargetsNotaryRepository) GetDelegationRoles() ([]data.Role, error) {

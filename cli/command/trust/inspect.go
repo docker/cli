@@ -14,20 +14,40 @@ import (
 
 func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "inspect IMAGE[:TAG]",
+		Use:   "inspect IMAGE[:TAG] [IMAGE[:TAG]...]",
 		Short: "Return low-level information about keys and signatures",
-		Args:  cli.ExactArgs(1),
+		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return inspectTrustInfo(dockerCli, args[0])
+			return inspectTrustInfo(dockerCli, args)
 		},
 	}
 	return cmd
 }
 
-func inspectTrustInfo(cli command.Cli, remote string) error {
+func inspectTrustInfo(cli command.Cli, remotes []string) error {
+	trustRepoInfoList := []trustRepo{}
+	for _, remote := range remotes {
+		trustInfo, err := getRepoTrustInfo(cli, remote)
+		if err != nil {
+			return err
+		}
+		if trustInfo == nil {
+			continue
+		}
+		trustRepoInfoList = append(trustRepoInfoList, *trustInfo)
+	}
+	trustInspectJSON, err := json.Marshal(trustRepoInfoList)
+	if err != nil {
+		return errors.Wrap(err, "error while serializing trusted repository info")
+	}
+	fmt.Fprintf(cli.Out(), string(trustInspectJSON))
+	return nil
+}
+
+func getRepoTrustInfo(cli command.Cli, remote string) (*trustRepo, error) {
 	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// process the signatures to include repo admin if signed by the base targets role
 	for idx, sig := range signatureRows {
@@ -55,17 +75,11 @@ func inspectTrustInfo(cli command.Cli, remote string) error {
 	}
 	sort.Slice(adminList, func(i, j int) bool { return adminList[i].Name > adminList[j].Name })
 
-	trustRepoInfo := &trustRepo{
+	return &trustRepo{
 		SignedTags:        signatureRows,
 		Signers:           signerList,
 		AdminstrativeKeys: adminList,
-	}
-	trustInspectJSON, err := json.Marshal(trustRepoInfo)
-	if err != nil {
-		return errors.Wrap(err, "error while serializing trusted repository info")
-	}
-	fmt.Fprintf(cli.Out(), string(trustInspectJSON))
-	return nil
+	}, nil
 }
 
 // trustRepo represents consumable information about a trusted repository
