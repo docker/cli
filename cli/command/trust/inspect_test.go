@@ -68,6 +68,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
@@ -75,6 +76,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
 }
 
 func TestTrustInspectCommandEmptyNotaryRepo(t *testing.T) {

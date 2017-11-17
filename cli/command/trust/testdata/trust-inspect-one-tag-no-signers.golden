@@ -1,1 +1,33 @@
-[{"SignedTags":[{"SignedTag":"green","Digest":"677265656e2d646967657374","Signers":["Repo Admin"]}],"AdminstrativeKeys":[{"Name":"Root","Keys":["rootID"]},{"Name":"Repository","Keys":["targetsID"]}]}]
+[
+    {
+        "Name": "signed-repo:green",
+        "SignedTags": [
+            {
+                "SignedTag": "green",
+                "Digest": "677265656e2d646967657374",
+                "Signers": [
+                    "Repo Admin"
+                ]
+            }
+        ],
+        "Signers": [],
+        "AdminstrativeKeys": [
+            {
+                "Name": "Root",
+                "Keys": [
+                    {
+                        "ID": "rootID"
+                    }
+                ]
+            },
+            {
+                "Name": "Repository",
+                "Keys": [
+                    {
+                        "ID": "targetsID"
+                    }
+                ]
+            }
+        ]
+    }
+]

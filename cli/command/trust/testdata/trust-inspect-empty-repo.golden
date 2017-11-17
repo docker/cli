@@ -1,1 +1,25 @@
-[{"AdminstrativeKeys":[{"Name":"Root","Keys":["rootID"]},{"Name":"Repository","Keys":["targetsID"]}]}]
+[
+    {
+        "Name": "reg/img:unsigned-tag",
+        "SignedTags": [],
+        "Signers": [],
+        "AdminstrativeKeys": [
+            {
+                "Name": "Root",
+                "Keys": [
+                    {
+                        "ID": "rootID"
+                    }
+                ]
+            },
+            {
+                "Name": "Repository",
+                "Keys": [
+                    {
+                        "ID": "targetsID"
+                    }
+                ]
+            }
+        ]
+    }
+]
