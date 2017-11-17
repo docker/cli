@@ -77,6 +77,8 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		return err
 	}
 
+	fmt.Printf("%v\n", service.TaskTemplate.Resources)
+
 	specifiedSecrets := opts.secrets.Value()
 	if len(specifiedSecrets) > 0 {
 		// parse and validate secrets

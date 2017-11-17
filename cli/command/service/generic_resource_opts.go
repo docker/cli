@@ -74,3 +74,32 @@ func genericResourcesFromGRPC(genericRes []*swarmapi.GenericResource) []swarm.Ge
 
 	return generic
 }
+
+func buildGenericResourceMap(genericRes []swarm.GenericResource) (map[string]swarm.GenericResource, error) {
+	m := make(map[string]swarm.GenericResource)
+
+	for _, res := range genericRes {
+		if res.DiscreteResourceSpec == nil {
+			return nil, fmt.Errorf("invalid generic-resource `%+v` for service task", res)
+		}
+
+		_, ok := m[res.DiscreteResourceSpec.Kind]
+		if ok {
+			return nil, fmt.Errorf("duplicate generic-resource `%+v` for service task", res.DiscreteResourceSpec.Kind)
+		}
+
+		m[res.DiscreteResourceSpec.Kind] = res
+	}
+
+	return m, nil
+}
+
+func buildGenericResourceList(genericRes map[string]swarm.GenericResource) []swarm.GenericResource {
+	var l []swarm.GenericResource
+
+	for _, res := range genericRes {
+		l = append(l, res)
+	}
+
+	return l
+}

@@ -830,6 +830,8 @@ const (
 	flagEnvFile                 = "env-file"
 	flagEnvRemove               = "env-rm"
 	flagEnvAdd                  = "env-add"
+	flagGenericResourcesRemove  = "generic-resource-rm"
+	flagGenericResourcesAdd     = "generic-resource-add"
 	flagGroup                   = "group"
 	flagGroupAdd                = "group-add"
 	flagGroupRemove             = "group-rm"
