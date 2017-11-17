@@ -42,6 +42,7 @@ Options:
       --help                               Print usage
       --host list                          Set one or more custom host-to-IP mappings (host:ip)
       --hostname string                    Container hostname
+      --isolation string                   Service container isolation mode
   -l, --label list                         Service labels
       --limit-cpu decimal                  Limit CPUs
       --limit-memory bytes                 Limit Memory
@@ -898,6 +899,22 @@ $ docker inspect --format="{{.Config.Hostname}}" 2e7a8a9c4da2-wo41w8hg8qanxwjwsg
 
 x3ti0erg11rjpg64m75kej2mz-hosttempl
 ```
+
+### Specify isolation mode (Windows)
+
+By default, tasks scheduled on Windows nodes are run using the default isolation mode 
+configured for this particular node. To force a specific isolation mode, you can use 
+the `--isolation` flag: 
+
+```bash
+$ docker service create --name myservice --isolation=process microsoft/nanoserver
+```
+
+Supported isolation modes on Windows are:
+- `default`: use default settings specified on the node running the task
+- `process`: use process isolation (Windows server only)
+- `hyperv`: use Hyper-V isolation
+
 
 ## Related commands
 

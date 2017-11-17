@@ -149,6 +149,7 @@ func Service(
 				Configs:         configs,
 				ReadOnly:        service.ReadOnly,
 				Privileges:      &privileges,
+				Isolation:       container.Isolation(service.Isolation),
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,

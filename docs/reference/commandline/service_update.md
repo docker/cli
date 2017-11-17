@@ -53,6 +53,7 @@ Options:
       --host-rm list                       Remove a custom host-to-IP mapping (host:ip)
       --hostname string                    Container hostname
       --image string                       Service image tag
+      --isolation string                   Service container isolation mode
       --label-add list                     Add or update a service label
       --label-rm list                      Remove a label by its key
       --limit-cpu decimal                  Limit CPUs
@@ -272,6 +273,12 @@ $ docker service update \
 
 Some flags of `service update` support the use of templating.
 See [`service create`](./service_create.md#templating) for the reference.
+
+
+### Specify isolation mode (Windows)
+
+`service update` supports the same `--isolation` flag as `service create`
+See [`service create`](./service_create.md) for the reference.
 
 ## Related commands
 

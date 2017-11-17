@@ -1955,6 +1955,7 @@ __docker_service_subcommand() {
         "($help)--health-retries=[Consecutive failures needed to report unhealthy]:retries:(1 2 3 4 5)"
         "($help)--health-timeout=[Maximum time to allow one check to run]:time: "
         "($help)--hostname=[Service container hostname]:hostname: " \
+        "($help)--isolation=[Service container isolation mode]:isolation:(default process hyperv)" \
         "($help)*--label=[Service labels]:label: "
         "($help)--limit-cpu=[Limit CPUs]:value: "
         "($help)--limit-memory=[Limit Memory]:value: "
