@@ -354,8 +354,23 @@
         "resources": {
           "type": "object",
           "properties": {
-            "limits": {"$ref": "#/definitions/resource"},
-            "reservations": {"$ref": "#/definitions/resource"}
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpus": {"type": "string"},
+                "memory": {"type": "string"}
+              },
+              "additionalProperties": false
+            },
+            "reservations": {
+              "type": "object",
+              "properties": {
+                "cpus": {"type": "string"},
+                "memory": {"type": "string"},
+                "generic_resources": {"$ref": "#/definitions/generic_resources"}
+              },
+              "additionalProperties": false
+            }
           },
           "additionalProperties": false
         },
@@ -390,14 +405,23 @@
       "additionalProperties": false
     },
 
-    "resource": {
-      "id": "#/definitions/resource",
-      "type": "object",
-      "properties": {
-        "cpus": {"type": "string"},
-        "memory": {"type": "string"}
-      },
-      "additionalProperties": false
+    "generic_resources": {
+      "id": "#/definitions/generic_resources",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "discrete_resource_spec": {
+            "type": "object",
+            "properties": {
+              "kind": {"type": "string"},
+              "value": {"type": "number"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
     },
 
     "network": {
