@@ -424,3 +424,12 @@ func TestConvertFileObjectDefaults(t *testing.T) {
 	}
 	assert.Equal(t, expected, swarmRef)
 }
+
+func TestServiceConvertsIsolation(t *testing.T) {
+	src := composetypes.ServiceConfig{
+		Isolation: "hyperv",
+	}
+	result, err := Service("1.35", Namespace{name: "foo"}, src, nil, nil, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation)
+}

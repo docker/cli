@@ -269,6 +269,14 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		}
 	}
 
+	updateIsolation := func(flag string, field *container.Isolation) error {
+		if flags.Changed(flag) {
+			val, _ := flags.GetString(flag)
+			*field = container.Isolation(val)
+		}
+		return nil
+	}
+
 	cspec := spec.TaskTemplate.ContainerSpec
 	task := &spec.TaskTemplate
 
@@ -288,6 +296,9 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	updateString(flagWorkdir, &cspec.Dir)
 	updateString(flagUser, &cspec.User)
 	updateString(flagHostname, &cspec.Hostname)
+	if err := updateIsolation(flagIsolation, &cspec.Isolation); err != nil {
+		return err
+	}
 	if err := updateMounts(flags, &cspec.Mounts); err != nil {
 		return err
 	}

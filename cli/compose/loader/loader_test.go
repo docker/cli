@@ -1454,5 +1454,37 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {
 	}
 	assert.Equal(t, expected, volumes)
 	assert.Equal(t, "", buf.String())
+}
 
+func TestLoadV35(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.5"
+services:
+  foo:
+    image: busybox
+    isolation: process
+configs:
+  super:
+    external: true
+`)
+	require.NoError(t, err)
+	require.Len(t, actual.Services, 1)
+	assert.Equal(t, "process", actual.Services[0].Isolation)
+}
+
+func TestLoadV35InvalidIsolation(t *testing.T) {
+	// validation should be done only on the daemon side
+	actual, err := loadYAML(`
+version: "3.5"
+services:
+  foo:
+    image: busybox
+    isolation: invalid
+configs:
+  super:
+    external: true
+`)
+	require.NoError(t, err)
+	require.Len(t, actual.Services, 1)
+	assert.Equal(t, "invalid", actual.Services[0].Isolation)
 }

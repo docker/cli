@@ -518,3 +518,32 @@ func TestUpdateStopSignal(t *testing.T) {
 	updateService(nil, nil, flags, spec)
 	assert.Equal(t, "SIGWINCH", cspec.StopSignal)
 }
+
+func TestUpdateIsolationValid(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set("isolation", "process")
+	require.NoError(t, err)
+	spec := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	err = updateService(context.Background(), nil, flags, &spec)
+	require.NoError(t, err)
+	assert.Equal(t, container.IsolationProcess, spec.TaskTemplate.ContainerSpec.Isolation)
+}
+
+func TestUpdateIsolationInvalid(t *testing.T) {
+	// validation depends on daemon os / version so validation should be done on the daemon side
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set("isolation", "test")
+	require.NoError(t, err)
+	spec := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	err = updateService(context.Background(), nil, flags, &spec)
+	require.NoError(t, err)
+	assert.Equal(t, container.Isolation("test"), spec.TaskTemplate.ContainerSpec.Isolation)
+}

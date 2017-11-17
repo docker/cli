@@ -84,3 +84,16 @@ func TestValidatePlacement(t *testing.T) {
 
 	assert.NoError(t, Validate(config, "3.3"))
 }
+
+func TestValidateIsolation(t *testing.T) {
+	config := dict{
+		"version": "3.5",
+		"services": dict{
+			"foo": dict{
+				"image":     "busybox",
+				"isolation": "some-isolation-value",
+			},
+		},
+	}
+	assert.NoError(t, Validate(config, "3.5"))
+}
