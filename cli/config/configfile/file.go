@@ -45,6 +45,7 @@ type ConfigFile struct {
 	PruneFilters         []string                    `json:"pruneFilters,omitempty"`
 	Proxies              map[string]ProxyConfig      `json:"proxies,omitempty"`
 	Experimental         string                      `json:"experimental,omitempty"`
+	Orchestrator         string                      `json:"orchestrator,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
