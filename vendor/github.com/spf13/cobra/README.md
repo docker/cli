@@ -224,10 +224,6 @@ func init() {
   viper.SetDefault("license", "apache")
 }
 
-func Execute() {
-  RootCmd.Execute()
-}
-
 func initConfig() {
   // Don't forget to read config either from cfgFile or from home directory!
   if cfgFile != "" {
@@ -522,7 +518,7 @@ around it. In fact, you can provide your own if you want.
 ### Defining your own help
 
 You can provide your own Help command or your own template for the default command to use
-with followind functions:
+with following functions:
 
 ```go
 cmd.SetHelpCommand(cmd *Command)

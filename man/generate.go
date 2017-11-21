@@ -34,6 +34,7 @@ func generateManPages(opts *options) error {
 	}
 
 	cmd.DisableAutoGenTag = true
+	cmd.DisableFlagsInUseLine = true
 	return doc.GenManTreeFromOpts(cmd, doc.GenManTreeOptions{
 		Header:           header,
 		Path:             opts.target,
@@ -43,6 +44,7 @@ func generateManPages(opts *options) error {
 
 func loadLongDescription(cmd *cobra.Command, path string) error {
 	for _, cmd := range cmd.Commands() {
+		cmd.DisableFlagsInUseLine = true
 		if cmd.Name() == "" {
 			continue
 		}
