@@ -636,7 +636,8 @@ networks:
 		},
 		Networks: map[string]types.NetworkConfig{
 			"front": {
-				External:   types.External{External: true, Name: "front"},
+				External:   types.External{External: true},
+				Name:       "front",
 				Internal:   true,
 				Attachable: true,
 			},
@@ -800,7 +801,7 @@ volumes:
 	assert.Contains(t, err.Error(), "external_volume")
 }
 
-func TestInvalidExternalNameAndNameCombination(t *testing.T) {
+func TestLoadVolumeInvalidExternalNameAndNameCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3.4"
 volumes:
@@ -1172,17 +1173,13 @@ func TestFullExample(t *testing.T) {
 		},
 
 		"external-network": {
-			External: types.External{
-				Name:     "external-network",
-				External: true,
-			},
+			Name:     "external-network",
+			External: types.External{External: true},
 		},
 
 		"other-external-network": {
-			External: types.External{
-				Name:     "my-cool-network",
-				External: true,
-			},
+			Name:     "my-cool-network",
+			External: types.External{External: true},
 		},
 	}
 
@@ -1516,7 +1513,7 @@ configs:
 	assert.Equal(t, "invalid", actual.Services[0].Isolation)
 }
 
-func TestInvalidSecretExternalNameAndNameCombination(t *testing.T) {
+func TestLoadSecretInvalidExternalNameAndNameCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3.5"
 secrets:
@@ -1555,4 +1552,66 @@ func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 	}
 	assert.Equal(t, expected, secrets)
 	assert.Contains(t, buf.String(), "secret.external.name is deprecated")
+}
+
+func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	networks, err := LoadNetworks(source, "3.5")
+	require.NoError(t, err)
+	expected := map[string]types.NetworkConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, networks)
+	assert.Contains(t, buf.String(), "network.external.name is deprecated")
+
+}
+
+func TestLoadNetworksWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	networks, err := LoadNetworks(source, "3.4")
+	require.NoError(t, err)
+	expected := map[string]types.NetworkConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, networks)
+	assert.Equal(t, "", buf.String())
+}
+
+func TestLoadNetworkInvalidExternalNameAndNameCombination(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+networks:
+  foo:
+    name: user_specified_name
+    external:
+      name:	external_name
+`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "network.external.name and network.name conflict; only use network.name")
+	assert.Contains(t, err.Error(), "foo")
 }

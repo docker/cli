@@ -319,6 +319,7 @@ type UlimitsConfig struct {
 
 // NetworkConfig for a network
 type NetworkConfig struct {
+	Name       string
 	Driver     string
 	DriverOpts map[string]string `mapstructure:"driver_opts"`
 	Ipam       IPAMConfig
