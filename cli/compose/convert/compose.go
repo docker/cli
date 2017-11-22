@@ -101,6 +101,12 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 			continue
 		}
 
+		if secret.Name != "" {
+			name = secret.Name
+		} else {
+			name = namespace.Scope(name)
+		}
+
 		obj, err := fileObjectConfig(namespace, name, composetypes.FileObjectConfig(secret))
 		if err != nil {
 			return nil, err
@@ -116,6 +122,12 @@ func Configs(namespace Namespace, configs map[string]composetypes.ConfigObjConfi
 	for name, config := range configs {
 		if config.External.External {
 			continue
+		}
+
+		if config.Name != "" {
+			name = config.Name
+		} else {
+			name = namespace.Scope(name)
 		}
 
 		obj, err := fileObjectConfig(namespace, name, composetypes.FileObjectConfig(config))
@@ -140,7 +152,7 @@ func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObj
 
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
-			Name:   namespace.Scope(name),
+			Name:   name,
 			Labels: AddStackLabel(namespace, obj.Labels),
 		},
 		Data: data,

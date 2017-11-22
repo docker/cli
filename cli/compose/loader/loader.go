@@ -490,7 +490,7 @@ func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (ma
 		return secrets, err
 	}
 	for name, secret := range secrets {
-		obj, err := loadFileObjectConfig(name, types.FileObjectConfig(secret), details)
+		obj, err := loadFileObjectConfig(name, "secret", types.FileObjectConfig(secret), details)
 		if err != nil {
 			return nil, err
 		}
@@ -507,7 +507,7 @@ func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) 
 		return configs, err
 	}
 	for name, config := range configs {
-		obj, err := loadFileObjectConfig(name, types.FileObjectConfig(config), details)
+		obj, err := loadFileObjectConfig(name, "config", types.FileObjectConfig(config), details)
 		if err != nil {
 			return nil, err
 		}
@@ -516,13 +516,32 @@ func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) 
 	return configs, nil
 }
 
-func loadFileObjectConfig(name string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
-	if obj.External.External && obj.External.Name == "" {
-		obj.External.Name = name
-	}
-	if obj.File != "" {
+func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
+	// if "external: true"
+	if obj.External.External {
+		// handle deprecated external.name
+		if obj.External.Name != "" {
+			if obj.Name != "" {
+				return obj, errors.Errorf("%[1]s %[2]s: %[1]s.external.name and %[1]s.name conflict; only use %[1]s.name", objType, name)
+			}
+			if versions.GreaterThanOrEqualTo(details.Version, "3.5") {
+				logrus.Warnf("%[1]s %[2]s: %[1]s.external.name is deprecated in favor of %[1]s.name", objType, name)
+			}
+			obj.Name = obj.External.Name
+			obj.External.Name = ""
+		} else {
+			if obj.Name == "" {
+				obj.Name = name
+			}
+		}
+		// if not "external: true"
+	} else {
+		if obj.File == "" {
+			return obj, errors.Errorf("%[1]s %[2]s: specify a file or \"external: true\"", objType, name)
+		}
 		obj.File = absPath(details.WorkingDir, obj.File)
 	}
+
 	return obj, nil
 }
 
