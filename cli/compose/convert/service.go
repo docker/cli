@@ -258,14 +258,14 @@ func convertServiceSecrets(
 	refs := []*swarm.SecretReference{}
 
 	lookup := func(key string) (composetypes.FileObjectConfig, error) {
-		configSpec, exists := secretSpecs[key]
+		secretSpec, exists := secretSpecs[key]
 		if !exists {
 			return composetypes.FileObjectConfig{}, errors.Errorf("undefined secret %q", key)
 		}
-		return composetypes.FileObjectConfig(configSpec), nil
+		return composetypes.FileObjectConfig(secretSpec), nil
 	}
-	for _, config := range secrets {
-		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(config), lookup)
+	for _, secret := range secrets {
+		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(secret), lookup)
 		if err != nil {
 			return nil, err
 		}
@@ -353,8 +353,8 @@ func convertFileObject(
 	}
 
 	source := namespace.Scope(config.Source)
-	if obj.External.External {
-		source = obj.External.Name
+	if obj.Name != "" {
+		source = obj.Name
 	}
 
 	uid := config.UID

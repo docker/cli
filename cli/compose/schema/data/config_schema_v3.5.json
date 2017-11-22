@@ -470,6 +470,7 @@
       "id": "#/definitions/secret",
       "type": "object",
       "properties": {
+        "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
           "type": ["boolean", "object"],
@@ -486,6 +487,7 @@
       "id": "#/definitions/config",
       "type": "object",
       "properties": {
+        "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
           "type": ["boolean", "object"],

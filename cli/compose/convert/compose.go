@@ -138,9 +138,15 @@ func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObj
 		return swarmFileObject{}, err
 	}
 
+	if obj.Name != "" {
+		name = obj.Name
+	} else {
+		name = namespace.Scope(name)
+	}
+
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
-			Name:   namespace.Scope(name),
+			Name:   name,
 			Labels: AddStackLabel(namespace, obj.Labels),
 		},
 		Data: data,
