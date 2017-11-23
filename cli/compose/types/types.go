@@ -350,6 +350,7 @@ type CredentialSpecConfig struct {
 type FileObjectConfig struct {
 	Name     string
 	File     string
+	Raw	 string
 	External External
 	Labels   Labels
 }

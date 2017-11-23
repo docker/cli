@@ -470,6 +470,7 @@
       "id": "#/definitions/secret",
       "type": "object",
       "properties": {
+        "raw": {"type": "string"},
         "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
@@ -487,6 +488,7 @@
       "id": "#/definitions/config",
       "type": "object",
       "properties": {
+        "raw": {"type": "string"},
         "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
