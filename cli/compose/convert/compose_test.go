@@ -121,7 +121,7 @@ func TestSecrets(t *testing.T) {
 			},
 		},
 		"raw": {
-                        Raw: secretText,
+			Raw: secretText,
 		},
 	}
 
@@ -155,8 +155,8 @@ func TestConfigs(t *testing.T) {
 			},
 		},
 		"raw": {
-                        Raw: configText,
-                },
+			Raw: configText,
+		},
 	}
 
 	specs, err := Configs(namespace, source)
