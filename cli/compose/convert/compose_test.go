@@ -120,6 +120,9 @@ func TestSecrets(t *testing.T) {
 				External: true,
 			},
 		},
+		"raw": {
+                        Raw: secretText
+		},
 	}
 
 	specs, err := Secrets(namespace, source)
@@ -151,6 +154,9 @@ func TestConfigs(t *testing.T) {
 				External: true,
 			},
 		},
+		"raw": {
+                        Raw: configText
+                },
 	}
 
 	specs, err := Configs(namespace, source)
