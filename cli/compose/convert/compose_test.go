@@ -128,7 +128,10 @@ func TestSecrets(t *testing.T) {
 	specs, err := Secrets(namespace, source)
 	assert.NoError(t, err)
 	require.Len(t, specs, 2)
-	secret := specs[0]
+	secret := specs[1]
+	assert.Equal(t, "foo_raw", secret.Name)
+	assert.Equal(t, []byte(secretText), secret.Data)
+	secret = specs[0]
 	assert.Equal(t, "foo_one", secret.Name)
 	assert.Equal(t, map[string]string{
 		"monster":      "mash",
@@ -162,7 +165,10 @@ func TestConfigs(t *testing.T) {
 	specs, err := Configs(namespace, source)
 	assert.NoError(t, err)
 	require.Len(t, specs, 2)
-	config := specs[0]
+	config := specs[1]
+	assert.Equal(t, "foo_raw", config.Name)
+	assert.Equal(t, []byte(configText), config.Data)
+	config = specs[0]
 	assert.Equal(t, "foo_one", config.Name)
 	assert.Equal(t, map[string]string{
 		"monster":      "mash",
