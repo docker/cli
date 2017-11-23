@@ -127,7 +127,7 @@ func TestSecrets(t *testing.T) {
 
 	specs, err := Secrets(namespace, source)
 	assert.NoError(t, err)
-	require.Len(t, specs, 1)
+	require.Len(t, specs, 2)
 	secret := specs[0]
 	assert.Equal(t, "foo_one", secret.Name)
 	assert.Equal(t, map[string]string{
@@ -161,7 +161,7 @@ func TestConfigs(t *testing.T) {
 
 	specs, err := Configs(namespace, source)
 	assert.NoError(t, err)
-	require.Len(t, specs, 1)
+	require.Len(t, specs, 2)
 	config := specs[0]
 	assert.Equal(t, "foo_one", config.Name)
 	assert.Equal(t, map[string]string{
