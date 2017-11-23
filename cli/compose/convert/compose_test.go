@@ -121,23 +121,21 @@ func TestSecrets(t *testing.T) {
 			},
 		},
 		"raw": {
-			Raw: secretText,
+			Raw:    secretText,
+			Labels: map[string]string{"monster": "mash"},
 		},
 	}
 
 	specs, err := Secrets(namespace, source)
 	assert.NoError(t, err)
 	require.Len(t, specs, 2)
-	secret := specs[1]
-	assert.Equal(t, "foo_raw", secret.Name)
-	assert.Equal(t, []byte(secretText), secret.Data)
-	secret = specs[0]
-	assert.Equal(t, "foo_one", secret.Name)
-	assert.Equal(t, map[string]string{
-		"monster":      "mash",
-		LabelNamespace: "foo",
-	}, secret.Labels)
-	assert.Equal(t, []byte(secretText), secret.Data)
+	for _, secret := range specs {
+		assert.Equal(t, []byte(secretText), secret.Data)
+		assert.Equal(t, map[string]string{
+			"monster":      "mash",
+			LabelNamespace: "foo",
+		}, secret.Labels)
+	}
 }
 
 func TestConfigs(t *testing.T) {
@@ -158,21 +156,20 @@ func TestConfigs(t *testing.T) {
 			},
 		},
 		"raw": {
-			Raw: configText,
+			Raw:    configText,
+			Labels: map[string]string{"monster": "mash"},
 		},
 	}
 
 	specs, err := Configs(namespace, source)
 	assert.NoError(t, err)
 	require.Len(t, specs, 2)
-	config := specs[1]
-	assert.Equal(t, "foo_raw", config.Name)
-	assert.Equal(t, []byte(configText), config.Data)
-	config = specs[0]
-	assert.Equal(t, "foo_one", config.Name)
-	assert.Equal(t, map[string]string{
-		"monster":      "mash",
-		LabelNamespace: "foo",
-	}, config.Labels)
-	assert.Equal(t, []byte(configText), config.Data)
+	for _, config := range specs {
+		assert.Equal(t, []byte(configText), config.Data)
+		assert.Equal(t, map[string]string{
+			"monster":      "mash",
+			LabelNamespace: "foo",
+		}, config.Labels)
+		assert.Equal(t, []byte(configText), config.Data)
+	}
 }
