@@ -499,6 +499,16 @@
         },
         "labels": {"$ref": "#/definitions/list_or_dict"}
       },
+      "oneOf": [
+        {
+          "required": ["file"],
+          "not": {"required": ["raw"]}
+        },
+        {
+          "required": ["raw"],
+          "not": {"required": ["file"]}
+        }
+      ],
       "additionalProperties": false
     },
 
