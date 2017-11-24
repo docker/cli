@@ -178,52 +178,78 @@ __docker_complete_container_ids() {
 	COMPREPLY=( $(compgen -W "${containers[*]}" -- "$cur") )
 }
 
+# __docker_images returns a list of images. For each image, up to three representations
+# can be generated: the repository (e.g. busybox), repository:tag (e.g. busybox:latest)
+# and the ID (e.g. sha256:ee22cbbd4ea3dff63c86ba60c7691287c321e93adfc1009604eb1dde7ec88645).
+#
+# The optional arguments `--repo`, `--tag` and `--id` select the representations that
+# may be returned. Whether or not a particular representation is actually returned
+# depends on the user's customization through several environment variables:
+# - image IDs are only shown if DOCKER_COMPLETION_SHOW_IMAGE_IDS=all|non-intermediate.
+# - tags can be excluded by setting DOCKER_COMPLETION_SHOW_TAGS=no.
+# - repositories are always shown.
+#
+# In cases where an exact image specification is needed, `--force-tag` can be used.
+# It ignores DOCKER_COMPLETION_SHOW_TAGS and only lists valid repository:tag combinations,
+# avoiding repository names that would default to a potentially missing default tag.
+#
+# Additional arguments to `docker image ls` may be specified in order to filter the list,
+# e.g. `__docker_images --filter dangling=true`.
+#
 __docker_images() {
-	local images_args=""
+	local repo_format='{{.Repository}}'
+	local tag_format='{{.Repository}}:{{.Tag}}'
+	local id_format='{{.ID}}'
+	local all
+	local format
 
-	case "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" in
-		all)
-			images_args="--no-trunc -a"
-			;;
-		non-intermediate)
-			images_args="--no-trunc"
-			;;
-	esac
-
-	local repo_print_command
-	if [ "${DOCKER_COMPLETION_SHOW_TAGS:-yes}" = "yes" ]; then
-		repo_print_command='print $1; print $1":"$2'
-	else
-		repo_print_command='print $1'
+	if [ "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" = "all" ] ; then
+		all='--all'
 	fi
 
-	local awk_script
-	case "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" in
-		all|non-intermediate)
-			awk_script='NR>1 { print $3; if ($1 != "<none>") { '"$repo_print_command"' } }'
-			;;
-		none|*)
-			awk_script='NR>1 && $1 != "<none>" { '"$repo_print_command"' }'
-			;;
-	esac
+	while true ; do
+		case "$1" in
+			--repo)
+				format+="$repo_format\n"
+				shift
+				;;
+			--tag)
+				if [ "${DOCKER_COMPLETION_SHOW_TAGS:-yes}" = "yes" ]; then
+					format+="$tag_format\n"
+				fi
+				shift
+				;;
+			--id)
+				if [[ $DOCKER_COMPLETION_SHOW_IMAGE_IDS =~ ^(all|non-intermediate)$ ]] ; then
+					format+="$id_format\n"
+				fi
+				shift
+				;;
+			--force-tag)
+				# like `--tag` but ignores environment setting
+				format+="$tag_format\n"
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
 
-	__docker_q images $images_args | awk "$awk_script" | grep -v '<none>$'
+	__docker_q image ls --no-trunc --format "${format%\\n}" $all "$@" | grep -v '<none>$'
 }
 
+# __docker_complete_images applies completion of images based on the current value of `$cur` or
+# the value of the optional first option `--cur`, if given.
+# See __docker_images for customization of the returned items.
 __docker_complete_images() {
-	COMPREPLY=( $(compgen -W "$(__docker_images)" -- "$cur") )
-	__ltrim_colon_completions "$cur"
-}
-
-__docker_complete_image_repos() {
-	local repos="$(__docker_q images | awk 'NR>1 && $1 != "<none>" { print $1 }')"
-	COMPREPLY=( $(compgen -W "$repos" -- "$cur") )
-}
-
-__docker_complete_image_repos_and_tags() {
-	local reposAndTags="$(__docker_q images | awk 'NR>1 && $1 != "<none>" { print $1; print $1":"$2 }')"
-	COMPREPLY=( $(compgen -W "$reposAndTags" -- "$cur") )
-	__ltrim_colon_completions "$cur"
+	local current="$cur"
+	if [ "$1" = "--cur" ] ; then
+		current="$2"
+		shift 2
+	fi
+	COMPREPLY=( $(compgen -W "$(__docker_images "$@")" -- "$current") )
+	__ltrim_colon_completions "$current"
 }
 
 # __docker_networks returns a list of all networks. Additional options to
@@ -1350,7 +1376,7 @@ _docker_container_commit() {
 			(( counter++ ))
 
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag
 				return
 			fi
 			;;
@@ -1518,8 +1544,7 @@ _docker_container_ls() {
 	local key=$(__docker_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		ancestor)
-			cur="${cur##*=}"
-			__docker_complete_images
+			__docker_complete_images --cur "${cur##*=}" --repo --tag --id
 			return
 			;;
 		before)
@@ -1984,7 +2009,7 @@ _docker_container_run_and_create() {
 		*)
 			local counter=$( __docker_pos_first_nonflag "$( __docker_to_alternatives "$options_with_args" )" )
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images
+				__docker_complete_images --repo --tag --id
 			fi
 			;;
 	esac
@@ -2494,7 +2519,7 @@ _docker_image_build() {
 			return
 			;;
 		--cache-from)
-			__docker_complete_image_repos_and_tags
+			__docker_complete_images --repo --tag --id
 			return
 			;;
 		--file|-f|--iidfile)
@@ -2522,7 +2547,7 @@ _docker_image_build() {
 			return
 			;;
 		--tag|-t)
-			__docker_complete_image_repos_and_tags
+			__docker_complete_images --repo --tag
 			return
 			;;
 		--target)
@@ -2570,7 +2595,7 @@ _docker_image_history() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images
+				__docker_complete_images --force-tag --id
 			fi
 			;;
 	esac
@@ -2599,7 +2624,7 @@ _docker_image_import() {
 			(( counter++ ))
 
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag
 				return
 			fi
 			;;
@@ -2632,9 +2657,8 @@ _docker_image_list() {
 _docker_image_ls() {
 	local key=$(__docker_map_key_of_current_option '--filter|-f')
 	case "$key" in
-		before|since|reference)
-			cur="${cur##*=}"
-			__docker_complete_images
+		before|since)
+			__docker_complete_images --cur "${cur##*=}" --force-tag --id
 			return
 			;;
 		dangling)
@@ -2642,6 +2666,10 @@ _docker_image_ls() {
 			return
 			;;
 		label)
+			return
+			;;
+		reference)
+			__docker_complete_images --cur "${cur##*=}" --repo --tag
 			return
 			;;
 	esac
@@ -2665,7 +2693,7 @@ _docker_image_ls() {
 			return
 			;;
 		*)
-			__docker_complete_image_repos
+			__docker_complete_images --repo --tag
 			;;
 	esac
 }
@@ -2697,12 +2725,12 @@ _docker_image_pull() {
 				for arg in "${COMP_WORDS[@]}"; do
 					case "$arg" in
 						--all-tags|-a)
-							__docker_complete_image_repos
+							__docker_complete_images --repo
 							return
 							;;
 					esac
 				done
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag
 			fi
 			;;
 	esac
@@ -2716,7 +2744,7 @@ _docker_image_push() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag
 			fi
 			;;
 	esac
@@ -2732,7 +2760,7 @@ _docker_image_rm() {
 			COMPREPLY=( $( compgen -W "--force -f --help --no-prune" -- "$cur" ) )
 			;;
 		*)
-			__docker_complete_images
+			__docker_complete_images --force-tag --id
 			;;
 	esac
 }
@@ -2754,7 +2782,7 @@ _docker_image_save() {
 			COMPREPLY=( $( compgen -W "--help --output -o" -- "$cur" ) )
 			;;
 		*)
-			__docker_complete_images
+			__docker_complete_images --repo --tag --id
 			;;
 	esac
 }
@@ -2768,13 +2796,13 @@ _docker_image_tag() {
 			local counter=$(__docker_pos_first_nonflag)
 
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --force-tag --id
 				return
 			fi
 			(( counter++ ))
 
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag
 				return
 			fi
 			;;
@@ -2830,7 +2858,7 @@ _docker_inspect() {
 				'')
 					COMPREPLY=( $( compgen -W "
 						$(__docker_containers --all)
-						$(__docker_images)
+						$(__docker_images --force-tag --id)
 						$(__docker_networks)
 						$(__docker_nodes)
 						$(__docker_plugins_installed)
@@ -2843,7 +2871,7 @@ _docker_inspect() {
 					__docker_complete_containers_all
 					;;
 				image)
-					__docker_complete_images
+					__docker_complete_images --force-tag --id
 					;;
 				network)
 					__docker_complete_networks
@@ -3463,7 +3491,7 @@ _docker_service_update_and_create() {
 				esac
 				;;
 			--image)
-				__docker_complete_image_repos_and_tags
+				__docker_complete_images --repo --tag --id
 				return
 				;;
 			--network-add|--network-rm)
@@ -3559,7 +3587,7 @@ _docker_service_update_and_create() {
 				fi
 			else
 				if [ "$cword" -eq "$counter" ]; then
-					__docker_complete_images
+					__docker_complete_images --repo --tag --id
 				fi
 			fi
 			;;
@@ -4607,8 +4635,7 @@ _docker_system_events() {
 			return
 			;;
 		image)
-			cur="${cur##*=}"
-			__docker_complete_images
+			__docker_complete_images --cur "${cur##*=}" --repo --tag
 			return
 			;;
 		network)
@@ -4705,7 +4732,7 @@ _docker_trust_revoke() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images
+				__docker_complete_images --repo --tag
 			fi
 			;;
 	esac
@@ -4719,7 +4746,7 @@ _docker_trust_sign() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images
+				__docker_complete_images --force-tag --id
 			fi
 			;;
 	esac
@@ -4733,7 +4760,7 @@ _docker_trust_view() {
 		*)
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images
+				__docker_complete_images --repo --tag
 			fi
 			;;
 	esac
