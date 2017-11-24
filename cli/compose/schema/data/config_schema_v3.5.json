@@ -507,6 +507,9 @@
         {
           "required": ["raw"],
           "not": {"required": ["file"]}
+        },
+        {
+          "required": ["external"]
         }
       ],
       "additionalProperties": false

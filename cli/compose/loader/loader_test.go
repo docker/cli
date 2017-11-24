@@ -1470,6 +1470,9 @@ configs:
   bar:
     name: barqux
     file: ./example1.env
+  baz:
+    name: bazqux
+    raw: rawdata1
 secrets:
   foo:
     name: fooqux
@@ -1477,11 +1480,14 @@ secrets:
   bar:
     name: barqux
     file: ./full-example.yml
+  baz:
+    name: bazqux
+    raw: rawdata2
 `)
 	require.NoError(t, err)
 	assert.Len(t, actual.Services, 1)
-	assert.Len(t, actual.Secrets, 2)
-	assert.Len(t, actual.Configs, 2)
+	assert.Len(t, actual.Secrets, 3)
+	assert.Len(t, actual.Configs, 3)
 	assert.Equal(t, "process", actual.Services[0].Isolation)
 }
 

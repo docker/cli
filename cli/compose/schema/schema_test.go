@@ -51,11 +51,13 @@ func TestValidateSecretConfigNames(t *testing.T) {
 		"version": "3.5",
 		"configs": dict{
 			"bar": dict{
+				"file": "myfile",
 				"name": "foobar",
 			},
 		},
 		"secrets": dict{
 			"baz": dict{
+				"raw": "mydata",
 				"name": "foobaz",
 			},
 		},
@@ -63,6 +65,46 @@ func TestValidateSecretConfigNames(t *testing.T) {
 
 	err := Validate(config, "3.5")
 	assert.NoError(t, err)
+}
+
+func TestValidateSecretConfigFileRawRequired(t *testing.T) {
+	config := dict{
+                "version": "3.5",
+                "configs": dict{
+                        "bar": dict{
+				"name": "foobar",
+                        },
+                },
+                "secrets": dict{
+                        "baz": dict{
+				"name": "foobaz",
+                        },
+                },
+        }
+
+        err := Validate(config, "3.5")
+        assert.Error(t, err)
+}
+
+func TestValidateSecretConfigFileRawExclusive(t *testing.T) {
+        config := dict{
+                "version": "3.5",
+                "configs": dict{
+                        "bar": dict{
+				"file": "myfile",
+				"raw": "mydata",
+			},
+                },
+                "secrets": dict{
+                        "baz": dict{
+				"file": "myfile",
+                                "raw": "mydata",
+                        },
+                },
+	}
+
+        err := Validate(config, "3.5")
+        assert.Error(t, err)
 }
 
 func TestValidateInvalidVersion(t *testing.T) {
