@@ -83,7 +83,7 @@ func TestValidateSecretConfigFileRawRequired(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.Error(t, err)
+	assert.EqualError(t, err, "configs.bar file is required")
 }
 
 func TestValidateSecretConfigFileRawExclusive(t *testing.T) {
@@ -104,7 +104,7 @@ func TestValidateSecretConfigFileRawExclusive(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.Error(t, err)
+	assert.EqualError(t, err, "configs.bar Must not validate the schema (not)")
 }
 
 func TestValidateInvalidVersion(t *testing.T) {
