@@ -176,7 +176,7 @@ func getExistingSignatureInfoForReleasedTag(notaryRepo client.Repository, tag st
 func prettyPrintExistingSignatureInfo(out io.Writer, existingSigInfo trustTagRow) {
 	sort.Strings(existingSigInfo.Signers)
 	joinedSigners := strings.Join(existingSigInfo.Signers, ", ")
-	fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.TagName, existingSigInfo.HashHex, joinedSigners)
+	fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.SignedTag, existingSigInfo.Digest, joinedSigners)
 }
 
 func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.RoleName) error {
