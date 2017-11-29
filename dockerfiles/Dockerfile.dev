@@ -1,5 +1,5 @@
 
-FROM    golang:1.8.5-alpine3.6
+FROM    golang:1.9.2-alpine3.6
 
 RUN     apk add -U git make bash coreutils ca-certificates
 

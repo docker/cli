@@ -1,3 +1,3 @@
-FROM    dockercore/golang-cross@sha256:25ff84377e9d7f40639c33cc374166a3b0f1829b8462cf7001d742a846de2687
+FROM    dockercore/golang-cross@sha256:2e843a0e4d82b6bab34d2cb7abe26d1a6cda23226ecc3869100c8db553603f9b
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /go/src/github.com/docker/cli
