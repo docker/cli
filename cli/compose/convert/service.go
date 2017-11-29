@@ -510,9 +510,25 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 				return nil, err
 			}
 		}
+
+		var generic []swarm.GenericResource
+		for _, res := range source.Reservations.GenericResources {
+			var r swarm.GenericResource
+
+			if res.DiscreteResourceSpec != nil {
+				r.DiscreteResourceSpec = &swarm.DiscreteGenericResource{
+					Kind:  res.DiscreteResourceSpec.Kind,
+					Value: res.DiscreteResourceSpec.Value,
+				}
+			}
+
+			generic = append(generic, r)
+		}
+
 		resources.Reservations = &swarm.Resources{
-			NanoCPUs:    cpus,
-			MemoryBytes: int64(source.Reservations.MemoryBytes),
+			NanoCPUs:         cpus,
+			MemoryBytes:      int64(source.Reservations.MemoryBytes),
+			GenericResources: generic,
 		}
 	}
 	return resources, nil

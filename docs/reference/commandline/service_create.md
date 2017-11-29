@@ -33,6 +33,7 @@ Options:
       --entrypoint command                 Overwrite the default ENTRYPOINT of the image
   -e, --env list                           Set environment variables
       --env-file list                      Read in a file of environment variables
+      --generic-resource list              User defined resources request
       --group list                         Set one or more supplementary user groups for the container
       --health-cmd string                  Command to run to check health
       --health-interval duration           Time between running the check (ms|s|m|h)
@@ -915,6 +916,17 @@ Supported isolation modes on Windows are:
 - `process`: use process isolation (Windows server only)
 - `hyperv`: use Hyper-V isolation
 
+### Create services requesting Generic Resources
+
+You can narrow the kind of nodes your task can land on through the using the
+`--generic-resource` flag (if the nodes advertise these resources):
+
+```bash
+$ docker service create --name cuda \
+                        --generic-resource "NVIDIA-GPU=2" \
+                        --generic-resource "SSD=1" \
+                        nvidia/cuda
+```
 
 ## Related commands
 

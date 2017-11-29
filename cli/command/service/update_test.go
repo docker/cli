@@ -547,3 +547,42 @@ func TestUpdateIsolationInvalid(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, container.Isolation("test"), spec.TaskTemplate.ContainerSpec.Isolation)
 }
+
+func TestAddGenericResources(t *testing.T) {
+	task := &swarm.TaskSpec{}
+	flags := newUpdateCommand(nil).Flags()
+
+	assert.Nil(t, addGenericResources(flags, task))
+
+	flags.Set(flagGenericResourcesAdd, "foo=1")
+	assert.NoError(t, addGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 1)
+
+	// Checks that foo isn't added a 2nd time
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "bar=1")
+	assert.NoError(t, addGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 2)
+}
+
+func TestRemoveGenericResources(t *testing.T) {
+	task := &swarm.TaskSpec{}
+	flags := newUpdateCommand(nil).Flags()
+
+	assert.Nil(t, removeGenericResources(flags, task))
+
+	flags.Set(flagGenericResourcesRemove, "foo")
+	assert.Error(t, removeGenericResources(flags, task))
+
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "foo=1")
+	addGenericResources(flags, task)
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "bar=1")
+	addGenericResources(flags, task)
+
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesRemove, "foo")
+	assert.NoError(t, removeGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 1)
+}

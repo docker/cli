@@ -217,8 +217,24 @@ type Resources struct {
 // Resource is a resource to be limited or reserved
 type Resource struct {
 	// TODO: types to convert from units and ratios
-	NanoCPUs    string    `mapstructure:"cpus"`
-	MemoryBytes UnitBytes `mapstructure:"memory"`
+	NanoCPUs         string            `mapstructure:"cpus"`
+	MemoryBytes      UnitBytes         `mapstructure:"memory"`
+	GenericResources []GenericResource `mapstructure:"generic_resources"`
+}
+
+// GenericResource represents a "user defined" resource which can
+// only be an integer (e.g: SSD=3) for a service
+type GenericResource struct {
+	DiscreteResourceSpec *DiscreteGenericResource `mapstructure:"discrete_resource_spec"`
+}
+
+// DiscreteGenericResource represents a "user defined" resource which is defined
+// as an integer
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to count the resource (SSD=5, HDD=3, ...)
+type DiscreteGenericResource struct {
+	Kind  string
+	Value int64
 }
 
 // UnitBytes is the bytes type
