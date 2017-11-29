@@ -1,25 +1,8 @@
 [
     {
-        "Name": "signed-repo:unsigned",
+        "Name": "reg/img:unsigned-tag",
         "SignedTags": [],
-        "Signers": [
-            {
-                "Name": "bob",
-                "Keys": [
-                    {
-                        "ID": "B"
-                    }
-                ]
-            },
-            {
-                "Name": "alice",
-                "Keys": [
-                    {
-                        "ID": "A"
-                    }
-                ]
-            }
-        ],
+        "Signers": [],
         "AdminstrativeKeys": [
             {
                 "Name": "Root",

@@ -34,8 +34,8 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		3:  equals("Step 2/4 : COPY\trun /usr/bin/run"),
 		5:  equals("Step 3/4 : RUN\t\trun"),
 		7:  equals("running"),
-		9:  equals("Step 4/4 : COPY\tdata /data"),
-		11: prefix("Removing intermediate container "),
+		8:  prefix("Removing intermediate container "),
+		10: equals("Step 4/4 : COPY\tdata /data"),
 		12: prefix("Successfully built "),
 		13: equals("Successfully tagged myimage:latest"),
 	})

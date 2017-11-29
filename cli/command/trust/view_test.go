@@ -20,7 +20,7 @@ type fakeClient struct {
 	dockerClient.Client
 }
 
-func TestTrustInspectCommandErrors(t *testing.T) {
+func TestTrustViewCommandErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
@@ -55,7 +55,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 	}
 }
 
-func TestTrustInspectCommandOfflineErrors(t *testing.T) {
+func TestTrustViewCommandOfflineErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd := newViewCommand(cli)
@@ -71,7 +71,7 @@ func TestTrustInspectCommandOfflineErrors(t *testing.T) {
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 }
 
-func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
+func TestTrustViewCommandUninitializedErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
 	cmd := newViewCommand(cli)
@@ -87,7 +87,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
 }
 
-func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
+func TestTrustViewCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd := newViewCommand(cli)
@@ -107,44 +107,44 @@ func TestTrustInspectCommandEmptyNotaryRepoErrors(t *testing.T) {
 	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
 }
 
-func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
+func TestTrustViewCommandFullRepoWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-no-signers.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-view-full-repo-no-signers.golden")
 }
 
-func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
+func TestTrustViewCommandOneTagWithoutSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:green"})
 	assert.NoError(t, cmd.Execute())
 
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-one-tag-no-signers.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-view-one-tag-no-signers.golden")
 }
 
-func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
+func TestTrustViewCommandFullRepoWithSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
 	assert.NoError(t, cmd.Execute())
 
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-with-signers.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-view-full-repo-with-signers.golden")
 }
 
-func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
+func TestTrustViewCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
 	assert.NoError(t, cmd.Execute())
 
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-unsigned-tag-with-signers.golden")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-view-unsigned-tag-with-signers.golden")
 }
 
 func TestNotaryRoleToSigner(t *testing.T) {
@@ -224,8 +224,8 @@ func TestMatchOneReleasedSingleSignature(t *testing.T) {
 	outputRow := matchedSigRows[0]
 	// Empty signers because "targets/releases" doesn't show up
 	assert.Empty(t, outputRow.Signers)
-	assert.Equal(t, releasedTgt.Name, outputRow.TagName)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.HashHex)
+	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
+	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
 }
 
 func TestMatchOneReleasedMultiSignature(t *testing.T) {
@@ -249,8 +249,8 @@ func TestMatchOneReleasedMultiSignature(t *testing.T) {
 	outputRow := matchedSigRows[0]
 	// We should have three signers
 	assert.Equal(t, outputRow.Signers, []string{"a", "b", "c"})
-	assert.Equal(t, releasedTgt.Name, outputRow.TagName)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.HashHex)
+	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
+	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
 }
 
 func TestMatchMultiReleasedMultiSignature(t *testing.T) {
@@ -288,18 +288,18 @@ func TestMatchMultiReleasedMultiSignature(t *testing.T) {
 	// note that the output is sorted by tag name, so we can reliably index to validate data:
 	outputTargetA := matchedSigRows[0]
 	assert.Equal(t, outputTargetA.Signers, []string{"a"})
-	assert.Equal(t, targetA.Name, outputTargetA.TagName)
-	assert.Equal(t, hex.EncodeToString(targetA.Hashes[notary.SHA256]), outputTargetA.HashHex)
+	assert.Equal(t, targetA.Name, outputTargetA.SignedTag)
+	assert.Equal(t, hex.EncodeToString(targetA.Hashes[notary.SHA256]), outputTargetA.Digest)
 
 	outputTargetB := matchedSigRows[1]
 	assert.Equal(t, outputTargetB.Signers, []string{"a", "b"})
-	assert.Equal(t, targetB.Name, outputTargetB.TagName)
-	assert.Equal(t, hex.EncodeToString(targetB.Hashes[notary.SHA256]), outputTargetB.HashHex)
+	assert.Equal(t, targetB.Name, outputTargetB.SignedTag)
+	assert.Equal(t, hex.EncodeToString(targetB.Hashes[notary.SHA256]), outputTargetB.Digest)
 
 	outputTargetC := matchedSigRows[2]
 	assert.Equal(t, outputTargetC.Signers, []string{"a", "b", "c"})
-	assert.Equal(t, targetC.Name, outputTargetC.TagName)
-	assert.Equal(t, hex.EncodeToString(targetC.Hashes[notary.SHA256]), outputTargetC.HashHex)
+	assert.Equal(t, targetC.Name, outputTargetC.SignedTag)
+	assert.Equal(t, hex.EncodeToString(targetC.Hashes[notary.SHA256]), outputTargetC.Digest)
 }
 
 func TestMatchReleasedSignatureFromTargets(t *testing.T) {
@@ -313,8 +313,8 @@ func TestMatchReleasedSignatureFromTargets(t *testing.T) {
 	outputRow := matchedSigRows[0]
 	// Empty signers because "targets" doesn't show up
 	assert.Empty(t, outputRow.Signers)
-	assert.Equal(t, releasedTgt.Name, outputRow.TagName)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.HashHex)
+	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
+	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
 }
 
 func TestGetSignerRolesWithKeyIDs(t *testing.T) {

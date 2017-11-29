@@ -41,6 +41,8 @@ Options:
       --env-add list                       Add or update an environment variable
       --env-rm list                        Remove an environment variable
       --force                              Force update even if no changes require it
+      --generic-resource-add list          Add an additional generic resource to the service's resources requirements
+      --generic-resource-rm list           Remove a previously added generic resource to the service's resources requirements
       --group-add list                     Add an additional supplementary user group to the container
       --group-rm list                      Remove a previously added supplementary user group from the container
       --health-cmd string                  Command to run to check health

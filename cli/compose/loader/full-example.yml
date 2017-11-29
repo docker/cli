@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.5"
 
 services:
   foo:
@@ -16,7 +16,6 @@ services:
       labels: [FOO=BAR]
 
 
-    
     cap_add:
       - ALL
 
@@ -54,6 +53,13 @@ services:
         reservations:
           cpus: '0.0001'
           memory: 20M
+          generic_resources:
+            - discrete_resource_spec:
+                kind: 'gpu'
+                value: 2
+            - discrete_resource_spec:
+                kind: 'ssd'
+                value: 1
       restart_policy:
         condition: on-failure
         delay: 5s

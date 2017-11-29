@@ -879,6 +879,20 @@ func TestFullExample(t *testing.T) {
 				Reservations: &types.Resource{
 					NanoCPUs:    "0.0001",
 					MemoryBytes: 20 * 1024 * 1024,
+					GenericResources: []types.GenericResource{
+						{
+							DiscreteResourceSpec: &types.DiscreteGenericResource{
+								Kind:  "gpu",
+								Value: 2,
+							},
+						},
+						{
+							DiscreteResourceSpec: &types.DiscreteGenericResource{
+								Kind:  "ssd",
+								Value: 1,
+							},
+						},
+					},
 				},
 			},
 			RestartPolicy: &types.RestartPolicy{
