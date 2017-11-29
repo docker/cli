@@ -2,6 +2,7 @@ package container
 
 import (
 	"io/ioutil"
+	"errors"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -120,6 +121,9 @@ func runPs(dockerCli command.Cli, options *psOptions) error {
 	containers, err := dockerCli.Client().ContainerList(ctx, *listOptions)
 	if err != nil {
 		return err
+	}
+	if len(containers) == 0 {
+		return errors.New("no containers")
 	}
 
 	format := options.format
