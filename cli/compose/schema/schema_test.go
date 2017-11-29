@@ -104,7 +104,7 @@ func TestValidateSecretConfigFileRawExclusive(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.EqualError(t, err, "configs.bar Must not validate the schema (not)")
+	assert.EqualError(t, err, "configs.bar file and raw are mutually exclusive")
 }
 
 func TestValidateInvalidVersion(t *testing.T) {
