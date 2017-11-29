@@ -2467,7 +2467,10 @@ _docker_image_build() {
 		--quiet -q
 		--rm
 	"
-	__docker_daemon_is_experimental && boolean_options+="--squash"
+	__docker_daemon_is_experimental && boolean_options+="
+		--squash
+		--stream
+	"
 
 	local all_options="$options_with_args $boolean_options"
 
