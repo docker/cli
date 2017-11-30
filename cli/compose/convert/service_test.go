@@ -8,11 +8,14 @@ import (
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
@@ -432,4 +435,122 @@ func TestServiceConvertsIsolation(t *testing.T) {
 	result, err := Service("1.35", Namespace{name: "foo"}, src, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation)
+}
+
+func TestConvertServiceSecrets(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+	secrets := []composetypes.ServiceSecretConfig{
+		{Source: "foo_secret"},
+		{Source: "bar_secret"},
+	}
+	secretSpecs := map[string]composetypes.SecretConfig{
+		"foo_secret": {
+			Name: "foo_secret",
+		},
+		"bar_secret": {
+			Name: "bar_secret",
+		},
+	}
+	client := &fakeClient{
+		secretListFunc: func(opts types.SecretListOptions) ([]swarm.Secret, error) {
+			assert.Contains(t, opts.Filters.Get("name"), "foo_secret")
+			assert.Contains(t, opts.Filters.Get("name"), "bar_secret")
+			return []swarm.Secret{
+				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
+				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
+			}, nil
+		},
+	}
+	refs, err := convertServiceSecrets(client, namespace, secrets, secretSpecs)
+	require.NoError(t, err)
+	expected := []*swarm.SecretReference{
+		{
+			SecretName: "bar_secret",
+			File: &swarm.SecretReferenceFileTarget{
+				Name: "bar_secret",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		{
+			SecretName: "foo_secret",
+			File: &swarm.SecretReferenceFileTarget{
+				Name: "foo_secret",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+	}
+	require.Equal(t, expected, refs)
+}
+
+func TestConvertServiceConfigs(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+	configs := []composetypes.ServiceConfigObjConfig{
+		{Source: "foo_config"},
+		{Source: "bar_config"},
+	}
+	configSpecs := map[string]composetypes.ConfigObjConfig{
+		"foo_config": {
+			Name: "foo_config",
+		},
+		"bar_config": {
+			Name: "bar_config",
+		},
+	}
+	client := &fakeClient{
+		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
+			assert.Contains(t, opts.Filters.Get("name"), "foo_config")
+			assert.Contains(t, opts.Filters.Get("name"), "bar_config")
+			return []swarm.Config{
+				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
+				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
+			}, nil
+		},
+	}
+	refs, err := convertServiceConfigObjs(client, namespace, configs, configSpecs)
+	require.NoError(t, err)
+	expected := []*swarm.ConfigReference{
+		{
+			ConfigName: "bar_config",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "bar_config",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		{
+			ConfigName: "foo_config",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "foo_config",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+	}
+	require.Equal(t, expected, refs)
+}
+
+type fakeClient struct {
+	client.Client
+	secretListFunc func(types.SecretListOptions) ([]swarm.Secret, error)
+	configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
+}
+
+func (c *fakeClient) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+	if c.secretListFunc != nil {
+		return c.secretListFunc(options)
+	}
+	return []swarm.Secret{}, nil
+}
+
+func (c *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+	if c.configListFunc != nil {
+		return c.configListFunc(options)
+	}
+	return []swarm.Config{}, nil
 }
