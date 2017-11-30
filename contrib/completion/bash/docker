@@ -1492,17 +1492,17 @@ _docker_container_kill() {
 
 _docker_container_logs() {
 	case "$prev" in
-		--since|--tail)
+		--since|--tail|--until)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--details --follow -f --help --since --tail --timestamps -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--details --follow -f --help --since --tail --timestamps -t --until" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--since|--tail')
+			local counter=$(__docker_pos_first_nonflag '--since|--tail|--until')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
