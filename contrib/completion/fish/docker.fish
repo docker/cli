@@ -174,6 +174,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s d -l detach -d
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s i -l interactive -d 'Keep STDIN open even if not attached'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s t -l tty -d 'Allocate a pseudo-TTY'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s w -l workdir -d 'Working directory inside the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # export
