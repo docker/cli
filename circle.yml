@@ -37,7 +37,6 @@ jobs:
             docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
             name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
             docker run \
-                -e VERSION=$VERSION \
                 -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
                 --name $name cli-builder:$CIRCLE_BUILD_NUM \
                 make cross
