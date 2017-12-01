@@ -1,34 +1,49 @@
 package system
 
 import (
+	"fmt"
 	"runtime"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
-var versionTemplate = `Client:
- Version:      {{.Client.Version}}
- API version:  {{.Client.APIVersion}}{{if ne .Client.APIVersion .Client.DefaultAPIVersion}} (downgraded from {{.Client.DefaultAPIVersion}}){{end}}
- Go version:   {{.Client.GoVersion}}
- Git commit:   {{.Client.GitCommit}}
- Built:        {{.Client.BuildTime}}
- OS/Arch:      {{.Client.Os}}/{{.Client.Arch}}{{if .ServerOK}}
+var versionTemplate = `{{with .Client -}}
+Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
+ Version:	{{.Version}}
+ API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
+ Go version:	{{.GoVersion}}
+ Git commit:	{{.GitCommit}}
+ Built:	{{.BuildTime}}
+ OS/Arch:	{{.Os}}/{{.Arch}}
+{{- end}}
 
-Server:
- Version:      {{.Server.Version}}
- API version:  {{.Server.APIVersion}} (minimum version {{.Server.MinAPIVersion}})
- Go version:   {{.Server.GoVersion}}
- Git commit:   {{.Server.GitCommit}}
- Built:        {{.Server.BuildTime}}
- OS/Arch:      {{.Server.Os}}/{{.Server.Arch}}
- Experimental: {{.Server.Experimental}}{{end}}`
+{{- if .ServerOK}}{{with .Server}}
+
+Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
+ {{- range $component := .Components}}
+ {{$component.Name}}:
+  {{- if eq $component.Name "Engine" }}
+  Version:	{{.Version}}
+  API version:	{{index .Details "ApiVersion"}} (minimum version {{index .Details "MinAPIVersion"}})
+  Go version:	{{index .Details "GoVersion"}}
+  Git commit:	{{index .Details "GitCommit"}}
+  Built:	{{index .Details "BuildTime"}}
+  OS/Arch:	{{index .Details "Os"}}/{{index .Details "Arch"}}
+  Experimental:	{{index .Details "Experimental"}}
+  {{- else -}}
+  Version:	{{$component.Version}}
+   {{- range $k, $v := $component.Details}}
+  {{$k}}:	{{$v}}
+   {{- end}}
+  {{- end}}
+ {{- end}}
+{{- end}}{{end}}`
 
 type versionOptions struct {
 	format string
@@ -41,6 +56,8 @@ type versionInfo struct {
 }
 
 type clientVersion struct {
+	Platform struct{ Name string } `json:",omitempty"`
+
 	Version           string
 	APIVersion        string `json:"ApiVersion"`
 	DefaultAPIVersion string `json:"DefaultAPIVersion,omitempty"`
@@ -77,6 +94,14 @@ func NewVersionCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
+func reformatDate(buildTime string) string {
+	t, errTime := time.Parse(time.RFC3339Nano, buildTime)
+	if errTime == nil {
+		return t.Format(time.ANSIC)
+	}
+	return buildTime
+}
+
 func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 	ctx := context.Background()
 
@@ -103,22 +128,41 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 			Arch:              runtime.GOARCH,
 		},
 	}
-
-	serverVersion, err := dockerCli.Client().ServerVersion(ctx)
-	if err == nil {
-		vd.Server = &serverVersion
-	}
+	vd.Client.Platform.Name = cli.PlatformName
 
 	// first we need to make BuildTime more human friendly
-	t, errTime := time.Parse(time.RFC3339Nano, vd.Client.BuildTime)
-	if errTime == nil {
-		vd.Client.BuildTime = t.Format(time.ANSIC)
-	}
+	vd.Client.BuildTime = reformatDate(vd.Client.BuildTime)
 
-	if vd.ServerOK() {
-		t, errTime = time.Parse(time.RFC3339Nano, vd.Server.BuildTime)
-		if errTime == nil {
-			vd.Server.BuildTime = t.Format(time.ANSIC)
+	sv, err := dockerCli.Client().ServerVersion(ctx)
+	if err == nil {
+		vd.Server = &sv
+		foundEngine := false
+		for _, component := range sv.Components {
+			if component.Name == "Engine" {
+				foundEngine = true
+				buildTime, ok := component.Details["BuildTime"]
+				if ok {
+					component.Details["BuildTime"] = reformatDate(buildTime)
+				}
+				break
+			}
+		}
+
+		if !foundEngine {
+			vd.Server.Components = append(vd.Server.Components, types.ComponentVersion{
+				Name:    "Engine",
+				Version: sv.Version,
+				Details: map[string]string{
+					"ApiVersion":    sv.APIVersion,
+					"MinAPIVersion": sv.MinAPIVersion,
+					"GitCommit":     sv.GitCommit,
+					"GoVersion":     sv.GoVersion,
+					"Os":            sv.Os,
+					"Arch":          sv.Arch,
+					"BuildTime":     reformatDate(vd.Server.BuildTime),
+					"Experimental":  fmt.Sprintf("%t", sv.Experimental),
+				},
+			})
 		}
 	}
 

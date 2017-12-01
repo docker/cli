@@ -10,7 +10,7 @@ CROSS_IMAGE_NAME = docker-cli-cross$(IMAGE_TAG)
 VALIDATE_IMAGE_NAME = docker-cli-shell-validate$(IMAGE_TAG)
 MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
-ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
+ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM
 
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
