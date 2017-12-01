@@ -79,7 +79,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 
 func TestGetExitStatus(t *testing.T) {
 	containerID := "the exec id"
-	expecatedErr := errors.New("unexpected error")
+	expectedErr := errors.New("unexpected error")
 
 	testcases := []struct {
 		inspectError  error
@@ -91,8 +91,8 @@ func TestGetExitStatus(t *testing.T) {
 			exitCode:     0,
 		},
 		{
-			inspectError:  expecatedErr,
-			expectedError: expecatedErr,
+			inspectError:  expectedErr,
+			expectedError: expectedErr,
 		},
 		{
 			exitCode:      15,
