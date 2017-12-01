@@ -226,7 +226,7 @@ __docker_get_log_options() {
     common_options=("max-buffer-size" "mode")
     common_options2=("env" "env-regex" "labels")
     awslogs_options=($common_options "awslogs-create-group" "awslogs-datetime-format" "awslogs-group" "awslogs-multiline-pattern" "awslogs-region" "awslogs-stream" "tag")
-    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "tag")
+    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "fluentd-sub-second-precision" "tag")
     gcplogs_options=($common_options $common_options2 "gcp-log-cmd" "gcp-meta-id" "gcp-meta-name" "gcp-meta-zone" "gcp-project")
     gelf_options=($common_options $common_options2 "gelf-address" "gelf-compression-level" "gelf-compression-type" "tag")
     journald_options=($common_options $common_options2 "tag")
