@@ -5,38 +5,18 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
-type removeOptions struct {
-	namespaces []string
-}
-
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
-	var opts removeOptions
-
-	cmd := &cobra.Command{
-		Use:     "rm STACK [STACK...]",
-		Aliases: []string{"remove", "down"},
-		Short:   "Remove one or more stacks",
-		Args:    cli.RequiresMinArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.namespaces = args
-			return runRemove(dockerCli, opts)
-		},
-	}
-	return cmd
-}
-
-func runRemove(dockerCli command.Cli, opts removeOptions) error {
-	namespaces := opts.namespaces
+// RunRemove is the swarm implementation of docker stack remove
+func RunRemove(dockerCli command.Cli, opts options.Remove) error {
+	namespaces := opts.Namespaces
 	client := dockerCli.Client()
 	ctx := context.Background()
 

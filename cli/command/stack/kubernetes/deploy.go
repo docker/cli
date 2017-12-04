@@ -5,51 +5,26 @@ import (
 	"io/ioutil"
 	"path"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/common"
+	"github.com/docker/cli/cli/command/stack/options"
 	composeTypes "github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-type deployOptions struct {
-	composefile string
-	stack       string
-}
-
-func newDeployCommand(dockerCli command.Cli, kubeCli *kubeCli) *cobra.Command {
-	var opts deployOptions
-	cmd := &cobra.Command{
-		Use:     "deploy [OPTIONS] STACK",
-		Aliases: []string{"up"},
-		Short:   "Deploy a new stack or update an existing stack",
-		Args:    cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.stack = args[0]
-			return runDeploy(dockerCli, kubeCli, opts)
-		},
-	}
-	flags := cmd.Flags()
-	common.AddComposefileFlag(&opts.composefile, flags)
-	// FIXME(vdemeester) other flags ? (bundlefile, registry-auth, prune, resolve-image) ?
-	return cmd
-}
-
-func runDeploy(dockerCli command.Cli, kubeCli *kubeCli, opts deployOptions) error {
+// RunDeploy is the kubernetes implementation of docker stack deploy
+func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	cmdOut := dockerCli.Out()
 	// Check arguments
-	if opts.composefile == "" {
+	if opts.Composefile == "" {
 		return errors.Errorf("Please specify a Compose file (with --compose-file).")
 	}
 	// Initialize clients
-	stacks, err := kubeCli.Stacks()
+	stacks, err := dockerCli.stacks()
 	if err != nil {
 		return err
 	}
-	composeClient, err := kubeCli.ComposeClient()
+	composeClient, err := dockerCli.composeClient()
 	if err != nil {
 		return err
 	}
@@ -62,7 +37,7 @@ func runDeploy(dockerCli command.Cli, kubeCli *kubeCli, opts deployOptions) erro
 	}
 
 	// Parse the compose file
-	stack, cfg, err := LoadStack(opts.stack, opts.composefile)
+	stack, cfg, err := LoadStack(opts.Namespace, opts.Composefile)
 	if err != nil {
 		return err
 	}

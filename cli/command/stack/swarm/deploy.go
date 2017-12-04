@@ -3,60 +3,25 @@ package swarm
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/common"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
+// Resolve image constants
 const (
 	defaultNetworkDriver = "overlay"
-	resolveImageAlways   = "always"
-	resolveImageChanged  = "changed"
-	resolveImageNever    = "never"
+	ResolveImageAlways   = "always"
+	ResolveImageChanged  = "changed"
+	ResolveImageNever    = "never"
 )
 
-type deployOptions struct {
-	bundlefile       string
-	composefile      string
-	namespace        string
-	resolveImage     string
-	sendRegistryAuth bool
-	prune            bool
-}
-
-func newDeployCommand(dockerCli command.Cli) *cobra.Command {
-	var opts deployOptions
-
-	cmd := &cobra.Command{
-		Use:     "deploy [OPTIONS] STACK",
-		Aliases: []string{"up"},
-		Short:   "Deploy a new stack or update an existing stack",
-		Args:    cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.namespace = args[0]
-			return runDeploy(dockerCli, opts)
-		},
-	}
-
-	flags := cmd.Flags()
-	common.AddBundlefileFlag(&opts.bundlefile, flags)
-	common.AddComposefileFlag(&opts.composefile, flags)
-	common.AddRegistryAuthFlag(&opts.sendRegistryAuth, flags)
-	flags.BoolVar(&opts.prune, "prune", false, "Prune services that are no longer referenced")
-	flags.SetAnnotation("prune", "version", []string{"1.27"})
-	flags.StringVar(&opts.resolveImage, "resolve-image", resolveImageAlways,
-		`Query the registry to resolve image digest and supported platforms ("`+resolveImageAlways+`"|"`+resolveImageChanged+`"|"`+resolveImageNever+`")`)
-	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
-	return cmd
-}
-
-func runDeploy(dockerCli command.Cli, opts deployOptions) error {
+// RunDeploy is the swarm implementation of docker stack deploy
+func RunDeploy(dockerCli command.Cli, opts options.Deploy) error {
 	ctx := context.Background()
 
 	if err := validateResolveImageFlag(dockerCli, &opts); err != nil {
@@ -64,11 +29,11 @@ func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 	}
 
 	switch {
-	case opts.bundlefile == "" && opts.composefile == "":
+	case opts.Bundlefile == "" && opts.Composefile == "":
 		return errors.Errorf("Please specify either a bundle file (with --bundle-file) or a Compose file (with --compose-file).")
-	case opts.bundlefile != "" && opts.composefile != "":
+	case opts.Bundlefile != "" && opts.Composefile != "":
 		return errors.Errorf("You cannot specify both a bundle file and a Compose file.")
-	case opts.bundlefile != "":
+	case opts.Bundlefile != "":
 		return deployBundle(ctx, dockerCli, opts)
 	default:
 		return deployCompose(ctx, dockerCli, opts)
@@ -77,14 +42,14 @@ func runDeploy(dockerCli command.Cli, opts deployOptions) error {
 
 // validateResolveImageFlag validates the opts.resolveImage command line option
 // and also turns image resolution off if the version is older than 1.30
-func validateResolveImageFlag(dockerCli command.Cli, opts *deployOptions) error {
-	if opts.resolveImage != resolveImageAlways && opts.resolveImage != resolveImageChanged && opts.resolveImage != resolveImageNever {
-		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.resolveImage)
+func validateResolveImageFlag(dockerCli command.Cli, opts *options.Deploy) error {
+	if opts.ResolveImage != ResolveImageAlways && opts.ResolveImage != ResolveImageChanged && opts.ResolveImage != ResolveImageNever {
+		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
 	}
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
 	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
-		opts.resolveImage = resolveImageNever
+		opts.ResolveImage = ResolveImageNever
 	}
 	return nil
 }

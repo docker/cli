@@ -1,17 +1,23 @@
 package swarm
 
 import (
+	"fmt"
+	"io"
+	"os"
+
 	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/common"
+	"github.com/docker/cli/cli/command/bundlefile"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/pkg/errors"
 )
 
-func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
-	bundle, err := common.LoadBundlefile(dockerCli.Err(), opts.namespace, opts.bundlefile)
+func deployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
+	bundle, err := loadBundlefile(dockerCli.Err(), opts.Namespace, opts.Bundlefile)
 	if err != nil {
 		return err
 	}
@@ -20,9 +26,9 @@ func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions
 		return err
 	}
 
-	namespace := convert.NewNamespace(opts.namespace)
+	namespace := convert.NewNamespace(opts.Namespace)
 
-	if opts.prune {
+	if opts.Prune {
 		services := map[string]struct{}{}
 		for service := range bundle.Services {
 			services[service] = struct{}{}
@@ -88,5 +94,31 @@ func deployBundle(ctx context.Context, dockerCli command.Cli, opts deployOptions
 	if err := createNetworks(ctx, dockerCli, namespace, networks); err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.resolveImage)
+	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
+}
+
+func loadBundlefile(stderr io.Writer, namespace string, path string) (*bundlefile.Bundlefile, error) {
+	defaultPath := fmt.Sprintf("%s.dab", namespace)
+
+	if path == "" {
+		path = defaultPath
+	}
+	if _, err := os.Stat(path); err != nil {
+		return nil, errors.Errorf(
+			"Bundle %s not found. Specify the path with --file",
+			path)
+	}
+
+	fmt.Fprintf(stderr, "Loading bundle from %s\n", path)
+	reader, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	bundle, err := bundlefile.LoadFile(reader)
+	if err != nil {
+		return nil, errors.Errorf("Error reading %s: %v\n", path, err)
+	}
+	return bundle, err
 }

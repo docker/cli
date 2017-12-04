@@ -92,7 +92,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			},
 		}
-		err := deployServices(ctx, client, spec, namespace, false, resolveImageChanged)
+		err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
 		assert.NoError(t, err)
 		assert.Equal(t, testcase.expectedQueryRegistry, receivedOptions.QueryRegistry)
 		assert.Equal(t, testcase.expectedImage, receivedService.TaskTemplate.ContainerSpec.Image)

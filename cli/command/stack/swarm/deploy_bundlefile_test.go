@@ -1,4 +1,4 @@
-package common
+package swarm
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ func TestLoadBundlefileErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		_, err := LoadBundlefile(&bytes.Buffer{}, tc.namespace, tc.path)
+		_, err := loadBundlefile(&bytes.Buffer{}, tc.namespace, tc.path)
 		assert.Error(t, err, tc.expectedError)
 	}
 }
@@ -42,7 +42,7 @@ func TestLoadBundlefile(t *testing.T) {
 
 	namespace := ""
 	path := filepath.Join("testdata", "bundlefile_with_two_services.dab")
-	bundleFile, err := LoadBundlefile(buf, namespace, path)
+	bundleFile, err := loadBundlefile(buf, namespace, path)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(bundleFile.Services), 2)

@@ -3,42 +3,19 @@ package kubernetes
 import (
 	"sort"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/spf13/cobra"
+	"github.com/docker/cli/cli/command/stack/options"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"vbom.ml/util/sortorder"
 )
 
-type listOptions struct {
-	format string
-}
-
-func newListCommand(dockerCli command.Cli, kubeCli *kubeCli) *cobra.Command {
-	opts := listOptions{}
-	cmd := &cobra.Command{
-		Use:     "ls",
-		Aliases: []string{"list"},
-		Short:   "List stacks",
-		Args:    cli.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, kubeCli, opts)
-		},
-	}
-
-	flags := cmd.Flags()
-	flags.StringVar(&opts.format, "format", "", "Pretty-print stacks using a Go template")
-
-	return cmd
-}
-
-func runList(dockerCli command.Cli, kubeCli *kubeCli, opts listOptions) error {
-	stacks, err := getStacks(kubeCli)
+// RunList is the kubernetes implementation of docker stack ls
+func RunList(dockerCli *KubeCli, opts options.List) error {
+	stacks, err := getStacks(dockerCli)
 	if err != nil {
 		return err
 	}
-	format := opts.format
+	format := opts.Format
 	if len(format) == 0 {
 		format = formatter.TableFormatKey
 	}
@@ -56,8 +33,8 @@ func (n byName) Len() int           { return len(n) }
 func (n byName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n byName) Less(i, j int) bool { return sortorder.NaturalLess(n[i].Name, n[j].Name) }
 
-func getStacks(kubeCli *kubeCli) ([]*formatter.Stack, error) {
-	stackSvc, err := kubeCli.Stacks()
+func getStacks(kubeCli *KubeCli) ([]*formatter.Stack, error) {
+	stackSvc, err := kubeCli.stacks()
 	if err != nil {
 		return nil, err
 	}

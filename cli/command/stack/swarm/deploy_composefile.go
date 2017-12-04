@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -22,8 +23,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOptions) error {
-	configDetails, err := getConfigDetails(opts.composefile, dockerCli.In())
+func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
+	configDetails, err := getConfigDetails(opts.Composefile, dockerCli.In())
 	if err != nil {
 		return err
 	}
@@ -54,9 +55,9 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 		return err
 	}
 
-	namespace := convert.NewNamespace(opts.namespace)
+	namespace := convert.NewNamespace(opts.Namespace)
 
-	if opts.prune {
+	if opts.Prune {
 		services := map[string]struct{}{}
 		for _, service := range config.Services {
 			services[service.Name] = struct{}{}
@@ -93,7 +94,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.resolveImage)
+	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -339,7 +340,7 @@ func deployServices(
 			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
 			switch {
-			case resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]):
+			case resolveImage == ResolveImageAlways || (resolveImage == ResolveImageChanged && image != service.Spec.Labels[convert.LabelImage]):
 				// image should be updated by the server using QueryRegistry
 				updateOpts.QueryRegistry = true
 			case image == service.Spec.Labels[convert.LabelImage]:
@@ -369,7 +370,7 @@ func deployServices(
 			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
 
 			// query registry if flag disabling it was not set
-			if resolveImage == resolveImageAlways || resolveImage == resolveImageChanged {
+			if resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged {
 				createOpts.QueryRegistry = true
 			}
 

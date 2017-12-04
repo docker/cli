@@ -3,17 +3,15 @@ package command
 import (
 	"os"
 	"strings"
-
-	cliconfig "github.com/docker/cli/cli/config"
 )
 
 // Orchestrator type acts as an enum describing supported orchestrators.
 type Orchestrator string
 
 const (
-	// Kubernetes orchestrator
+	// OrchestratorKubernetes orchestrator
 	OrchestratorKubernetes = Orchestrator("kubernetes")
-	// Swarm orchestrator
+	// OrchestratorSwarm orchestrator
 	OrchestratorSwarm = Orchestrator("swarm")
 	orchestratorUnset = Orchestrator("unset")
 
@@ -34,17 +32,15 @@ func normalize(flag string) Orchestrator {
 
 // GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(dockerCli Cli) Orchestrator {
+func GetOrchestrator(orchestrator string) Orchestrator {
 	// Check environment variable
 	env := os.Getenv(dockerOrchestrator)
 	if o := normalize(env); o != orchestratorUnset {
 		return o
 	}
-	// Check config file
-	if configFile := cliconfig.LoadDefaultConfigFile(dockerCli.Err()); configFile != nil {
-		if o := normalize(configFile.Orchestrator); o != orchestratorUnset {
-			return o
-		}
+	// Check specified orchestrator
+	if o := normalize(orchestrator); o != orchestratorUnset {
+		return o
 	}
 
 	// Nothing set, use default orchestrator

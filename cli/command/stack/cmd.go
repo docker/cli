@@ -3,8 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
-	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
 )
 
@@ -17,26 +15,24 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:        command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{"version": "1.25"},
 	}
-	switch command.GetOrchestrator(dockerCli) {
-	case command.OrchestratorKubernetes:
-		kubernetes.AddStackCommands(cmd, dockerCli)
-	case command.OrchestratorSwarm:
-		swarm.AddStackCommands(cmd, dockerCli)
-	}
+	cmd.AddCommand(
+		newDeployCommand(dockerCli),
+		newListCommand(dockerCli),
+		newPsCommand(dockerCli),
+		newRemoveCommand(dockerCli),
+		newServicesCommand(dockerCli),
+	)
+	flags := cmd.PersistentFlags()
+	flags.String("namespace", "default", "Kubernetes namespace to use")
+	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.String("kubeconfig", "", "Kubernetes config file")
+	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
 	return cmd
 }
 
 // NewTopLevelDeployCommand returns a command for `docker deploy`
 func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
-	var cmd *cobra.Command
-	switch command.GetOrchestrator(dockerCli) {
-	case command.OrchestratorKubernetes:
-		cmd = kubernetes.NewTopLevelDeployCommand(dockerCli)
-	case command.OrchestratorSwarm:
-		cmd = swarm.NewTopLevelDeployCommand(dockerCli)
-	default:
-		cmd = swarm.NewTopLevelDeployCommand(dockerCli)
-	}
+	cmd := newDeployCommand(dockerCli)
 	// Remove the aliases at the top level
 	cmd.Aliases = []string{}
 	cmd.Annotations = map[string]string{"experimental": "", "version": "1.25"}

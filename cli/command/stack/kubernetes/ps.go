@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/task"
-	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/spf13/cobra"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -18,46 +16,16 @@ import (
 	"k8s.io/kubernetes/pkg/api"
 )
 
-type psOptions struct {
-	filter    opts.FilterOpt
-	noTrunc   bool
-	namespace string
-	noResolve bool
-	quiet     bool
-	format    string
-}
-
-func newPsCommand(dockerCli command.Cli, kubeCli *kubeCli) *cobra.Command {
-	options := psOptions{filter: opts.NewFilterOpt()}
-
-	cmd := &cobra.Command{
-		Use:   "ps [OPTIONS] STACK",
-		Short: "List the tasks in the stack",
-		Args:  cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			options.namespace = args[0]
-			return runPS(dockerCli, kubeCli, options)
-		},
-	}
-	flags := cmd.Flags()
-	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.BoolVar(&options.noResolve, "no-resolve", false, "Do not map IDs to Names")
-	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
-	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
-
-	return cmd
-}
-
-func runPS(dockerCli command.Cli, kubeCli *kubeCli, options psOptions) error {
-	namespace := options.namespace
+// RunPS is the kubernetes implementation of docker stack ps
+func RunPS(dockerCli *KubeCli, options options.PS) error {
+	namespace := options.Namespace
 
 	// Initialize clients
-	client, err := kubeCli.ComposeClient()
+	client, err := dockerCli.composeClient()
 	if err != nil {
 		return err
 	}
-	stacks, err := kubeCli.Stacks()
+	stacks, err := dockerCli.stacks()
 	if err != nil {
 		return err
 	}
@@ -77,17 +45,17 @@ func runPS(dockerCli command.Cli, kubeCli *kubeCli, options psOptions) error {
 		return fmt.Errorf("nothing found in stack: %s", namespace)
 	}
 
-	format := options.format
+	format := options.Format
 	if len(format) == 0 {
-		format = task.DefaultFormat(dockerCli.ConfigFile(), options.quiet)
+		format = task.DefaultFormat(dockerCli.ConfigFile(), options.Quiet)
 	}
-	nodeResolver := makeNodeResolver(options.noResolve, client.Nodes())
+	nodeResolver := makeNodeResolver(options.NoResolve, client.Nodes())
 
 	tasks := make([]swarm.Task, len(pods))
 	for i, pod := range pods {
 		tasks[i] = podToTask(pod)
 	}
-	return print(dockerCli, tasks, pods, nodeResolver, !options.noTrunc, options.quiet, format)
+	return print(dockerCli, tasks, pods, nodeResolver, !options.NoTrunc, options.Quiet, format)
 }
 
 type idResolver func(name string) (string, error)

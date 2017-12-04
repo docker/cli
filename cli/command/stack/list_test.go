@@ -1,4 +1,4 @@
-package swarm
+package stack
 
 import (
 	"io/ioutil"

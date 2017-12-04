@@ -3,53 +3,21 @@ package swarm
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/idresolver"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/task"
-	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
-type psOptions struct {
-	filter    opts.FilterOpt
-	noTrunc   bool
-	namespace string
-	noResolve bool
-	quiet     bool
-	format    string
-}
-
-func newPsCommand(dockerCli command.Cli) *cobra.Command {
-	options := psOptions{filter: opts.NewFilterOpt()}
-
-	cmd := &cobra.Command{
-		Use:   "ps [OPTIONS] STACK",
-		Short: "List the tasks in the stack",
-		Args:  cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			options.namespace = args[0]
-			return runPS(dockerCli, options)
-		},
-	}
-	flags := cmd.Flags()
-	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.BoolVar(&options.noResolve, "no-resolve", false, "Do not map IDs to Names")
-	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
-	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
-
-	return cmd
-}
-
-func runPS(dockerCli command.Cli, options psOptions) error {
-	namespace := options.namespace
+// RunPS is the swarm implementation of docker stack ps
+func RunPS(dockerCli command.Cli, opts options.PS) error {
+	namespace := opts.Namespace
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-	filter := getStackFilterFromOpt(options.namespace, options.filter)
+	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 
 	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
 	if err != nil {
@@ -60,10 +28,10 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 		return fmt.Errorf("nothing found in stack: %s", namespace)
 	}
 
-	format := options.format
+	format := opts.Format
 	if len(format) == 0 {
-		format = task.DefaultFormat(dockerCli.ConfigFile(), options.quiet)
+		format = task.DefaultFormat(dockerCli.ConfigFile(), opts.Quiet)
 	}
 
-	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format)
+	return task.Print(ctx, dockerCli, tasks, idresolver.New(client, opts.NoResolve), !opts.NoTrunc, opts.Quiet, format)
 }

@@ -3,62 +3,36 @@ package kubernetes
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/kubernetes/labels"
-	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type servicesOptions struct {
-	quiet     bool
-	format    string
-	namespace string
-}
-
-func newServicesCommand(dockerCli command.Cli, kubeCli *kubeCli) *cobra.Command {
-	var options servicesOptions
-
-	cmd := &cobra.Command{
-		Use:   "services [OPTIONS] STACK",
-		Short: "List the services in the stack",
-		Args:  cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			options.namespace = args[0]
-			return runServices(dockerCli, kubeCli, options)
-		},
-	}
-	flags := cmd.Flags()
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVar(&options.format, "format", "", "Pretty-print services using a Go template")
-
-	return cmd
-}
-
-func runServices(dockerCli command.Cli, kubeCli *kubeCli, options servicesOptions) error {
+// RunServices is the kubernetes implementation of docker stack services
+func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	// Initialize clients
-	client, err := kubeCli.ComposeClient()
+	client, err := dockerCli.composeClient()
 	if err != nil {
 		return nil
 	}
-	stacks, err := kubeCli.Stacks()
+	stacks, err := dockerCli.stacks()
 	if err != nil {
 		return err
 	}
 	replicas := client.ReplicaSets()
 
-	if _, err := stacks.Get(options.namespace, metav1.GetOptions{}); err != nil {
-		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", options.namespace)
+	if _, err := stacks.Get(opts.Namespace, metav1.GetOptions{}); err != nil {
+		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", opts.Namespace)
 		return nil
 	}
 
-	replicasList, err := replicas.List(metav1.ListOptions{LabelSelector: labels.SelectorForStack(options.namespace)})
+	replicasList, err := replicas.List(metav1.ListOptions{LabelSelector: labels.SelectorForStack(opts.Namespace)})
 	if err != nil {
 		return err
 	}
 
-	servicesList, err := client.Services().List(metav1.ListOptions{LabelSelector: labels.SelectorForStack(options.namespace)})
+	servicesList, err := client.Services().List(metav1.ListOptions{LabelSelector: labels.SelectorForStack(opts.Namespace)})
 	if err != nil {
 		return err
 	}
@@ -69,13 +43,13 @@ func runServices(dockerCli command.Cli, kubeCli *kubeCli, options servicesOption
 		return err
 	}
 
-	if options.quiet {
+	if opts.Quiet {
 		info = map[string]formatter.ServiceListInfo{}
 	}
 
-	format := options.format
+	format := opts.Format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !options.quiet {
+		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
 			format = dockerCli.ConfigFile().ServicesFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -84,7 +58,7 @@ func runServices(dockerCli command.Cli, kubeCli *kubeCli, options servicesOption
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, options.quiet),
+		Format: formatter.NewServiceListFormat(format, opts.Quiet),
 	}
 	return formatter.ServiceListWrite(servicesCtx, services, info)
 }

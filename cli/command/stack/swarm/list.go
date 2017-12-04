@@ -3,41 +3,19 @@ package swarm
 import (
 	"sort"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 	"vbom.ml/util/sortorder"
 )
 
-type listOptions struct {
-	format string
-}
-
-func newListCommand(dockerCli command.Cli) *cobra.Command {
-	opts := listOptions{}
-
-	cmd := &cobra.Command{
-		Use:     "ls",
-		Aliases: []string{"list"},
-		Short:   "List stacks",
-		Args:    cli.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
-		},
-	}
-
-	flags := cmd.Flags()
-	flags.StringVar(&opts.format, "format", "", "Pretty-print stacks using a Go template")
-	return cmd
-}
-
-func runList(dockerCli command.Cli, opts listOptions) error {
+// RunList is the swarm implementation of docker stack ls
+func RunList(dockerCli command.Cli, opts options.List) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
@@ -45,7 +23,7 @@ func runList(dockerCli command.Cli, opts listOptions) error {
 	if err != nil {
 		return err
 	}
-	format := opts.format
+	format := opts.Format
 	if len(format) == 0 {
 		format = formatter.TableFormatKey
 	}

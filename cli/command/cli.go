@@ -135,9 +135,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return errors.Wrap(err, "Experimental field")
 	}
+	orchestrator := GetOrchestrator(cli.configFile.Orchestrator)
 	cli.clientInfo = ClientInfo{
 		DefaultVersion:  cli.client.ClientVersion(),
 		HasExperimental: hasExperimental,
+		HasKubernetes:   orchestrator == OrchestratorKubernetes,
 	}
 	cli.initializeFromClient()
 	return nil
@@ -202,6 +204,7 @@ type ServerInfo struct {
 // ClientInfo stores details about the supported features of the client
 type ClientInfo struct {
 	HasExperimental bool
+	HasKubernetes   bool
 	DefaultVersion  string
 }
 
