@@ -1,10 +1,9 @@
-package orchestrator
+package command
 
 import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
 	cliconfig "github.com/docker/cli/cli/config"
 )
 
@@ -13,37 +12,37 @@ type Orchestrator string
 
 const (
 	// Kubernetes orchestrator
-	Kubernetes = Orchestrator("kubernetes")
+	OrchestratorKubernetes = Orchestrator("kubernetes")
 	// Swarm orchestrator
-	Swarm = Orchestrator("swarm")
-	unset = Orchestrator("unset")
+	OrchestratorSwarm = Orchestrator("swarm")
+	orchestratorUnset = Orchestrator("unset")
 
-	defaultOrchestrator = Swarm
+	defaultOrchestrator = OrchestratorSwarm
 	dockerOrchestrator  = "DOCKER_ORCHESTRATOR"
 )
 
 func normalize(flag string) Orchestrator {
 	switch strings.ToLower(flag) {
 	case "kubernetes", "k8s":
-		return Kubernetes
+		return OrchestratorKubernetes
 	case "swarm", "swarmkit":
-		return Swarm
+		return OrchestratorSwarm
 	default:
-		return unset
+		return orchestratorUnset
 	}
 }
 
 // GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(dockerCli command.Cli) Orchestrator {
+func GetOrchestrator(dockerCli Cli) Orchestrator {
 	// Check environment variable
 	env := os.Getenv(dockerOrchestrator)
-	if o := normalize(env); o != unset {
+	if o := normalize(env); o != orchestratorUnset {
 		return o
 	}
 	// Check config file
 	if configFile := cliconfig.LoadDefaultConfigFile(dockerCli.Err()); configFile != nil {
-		if o := normalize(configFile.Orchestrator); o != unset {
+		if o := normalize(configFile.Orchestrator); o != orchestratorUnset {
 			return o
 		}
 	}

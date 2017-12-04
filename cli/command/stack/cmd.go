@@ -3,7 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/orchestrator"
 	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
@@ -18,10 +17,10 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:        command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{"version": "1.25"},
 	}
-	switch orchestrator.GetOrchestrator(dockerCli) {
-	case orchestrator.Kubernetes:
+	switch command.GetOrchestrator(dockerCli) {
+	case command.OrchestratorKubernetes:
 		kubernetes.AddStackCommands(cmd, dockerCli)
-	case orchestrator.Swarm:
+	case command.OrchestratorSwarm:
 		swarm.AddStackCommands(cmd, dockerCli)
 	}
 	return cmd
@@ -30,10 +29,12 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 // NewTopLevelDeployCommand returns a command for `docker deploy`
 func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
 	var cmd *cobra.Command
-	switch orchestrator.GetOrchestrator(dockerCli) {
-	case orchestrator.Kubernetes:
+	switch command.GetOrchestrator(dockerCli) {
+	case command.OrchestratorKubernetes:
 		cmd = kubernetes.NewTopLevelDeployCommand(dockerCli)
-	case orchestrator.Swarm:
+	case command.OrchestratorSwarm:
+		cmd = swarm.NewTopLevelDeployCommand(dockerCli)
+	default:
 		cmd = swarm.NewTopLevelDeployCommand(dockerCli)
 	}
 	// Remove the aliases at the top level
