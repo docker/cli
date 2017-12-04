@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/command/stack/kubernetes/api/labels"
+	"github.com/docker/cli/kubernetes/labels"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

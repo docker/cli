@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/command/stack/kubernetes/api/labels"
+	"github.com/docker/cli/kubernetes/labels"
 	"github.com/docker/docker/api/types/swarm"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	apiv1 "k8s.io/api/core/v1"

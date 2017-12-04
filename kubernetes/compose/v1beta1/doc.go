@@ -5,7 +5,7 @@
 //
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/docker/cli/cli/command/stack/kubernetes/api/compose
+// +k8s:conversion-gen=github.com/docker/cli/kubernetes/compose
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=compose.docker.com
-package v1beta1 // import "github.com/docker/cli/cli/command/stack/kubernetes/api/compose/v1beta1"
+package v1beta1 // import "github.com/docker/cli/kubernetes/compose/v1beta1"

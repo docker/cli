@@ -1,8 +1,8 @@
 package v1beta1
 
 import (
-	scheme "github.com/docker/cli/cli/command/stack/kubernetes/api/client/clientset_generated/clientset/scheme"
-	v1beta1 "github.com/docker/cli/cli/command/stack/kubernetes/api/compose/v1beta1"
+	scheme "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/scheme"
+	v1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

@@ -1,4 +1,4 @@
 //
 // +domain=docker.com
 
-package apis
+package kubernetes

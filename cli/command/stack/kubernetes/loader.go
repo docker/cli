@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	apiv1beta1 "github.com/docker/cli/cli/command/stack/kubernetes/api/compose/v1beta1"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/template"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

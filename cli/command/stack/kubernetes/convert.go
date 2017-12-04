@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"github.com/docker/cli/cli/command/stack/kubernetes/api/labels"
+	"github.com/docker/cli/kubernetes/labels"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

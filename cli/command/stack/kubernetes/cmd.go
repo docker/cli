@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/docker/cli/cli/command"
-	composev1beta1 "github.com/docker/cli/cli/command/stack/kubernetes/api/client/clientset_generated/clientset/typed/compose/v1beta1"
+	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

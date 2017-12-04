@@ -3,7 +3,7 @@ package v1beta1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/docker/cli/cli/command/stack/kubernetes/api/compose"
+	"github.com/docker/cli/kubernetes/compose"
 )
 
 // Owner defines the owner of a stack. It is used to impersonate the controller calls

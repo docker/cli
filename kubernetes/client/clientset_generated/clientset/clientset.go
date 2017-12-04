@@ -1,7 +1,7 @@
 package clientset
 
 import (
-	composev1beta1 "github.com/docker/cli/cli/command/stack/kubernetes/api/client/clientset_generated/clientset/typed/compose/v1beta1"
+	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
 	glog "github.com/golang/glog"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

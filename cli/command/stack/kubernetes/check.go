@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"fmt"
 
-	apiv1beta1 "github.com/docker/cli/cli/command/stack/kubernetes/api/compose/v1beta1"
+	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
