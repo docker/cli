@@ -835,7 +835,7 @@ __docker_complete_log_options() {
 	# awslogs does not implement the $common_options2.
 	local awslogs_options="$common_options1 awslogs-create-group awslogs-credentials-endpoint awslogs-datetime-format awslogs-group awslogs-multiline-pattern awslogs-region awslogs-stream tag"
 
-	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries tag"
+	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries fluentd-sub-second-precision tag"
 	local gcplogs_options="$common_options1 $common_options2 gcp-log-cmd gcp-meta-id gcp-meta-name gcp-meta-zone gcp-project"
 	local gelf_options="$common_options1 $common_options2 gelf-address gelf-compression-level gelf-compression-type gelf-tcp-max-reconnect gelf-tcp-reconnect-delay tag"
 	local journald_options="$common_options1 $common_options2 tag"
@@ -898,6 +898,10 @@ __docker_complete_log_driver_options() {
 			return
 			;;
 		fluentd-async-connect)
+			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
+			return
+			;;
+		fluentd-sub-second-precision)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
 			return
 			;;
