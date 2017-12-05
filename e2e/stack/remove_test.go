@@ -39,9 +39,19 @@ func deployFullStack(t *testing.T, stackname string) {
 }
 
 func cleanupFullStack(t *testing.T, stackname string) {
-	result := icmd.RunCmd(shell(t, "docker stack rm %s", stackname))
-	result.Assert(t, icmd.Success)
+	// FIXME(vdemeester) we shouldn't have to do that. it is hidding a race on docker stack rm
+	poll.WaitOn(t, stackRm(stackname), pollSettings)
 	poll.WaitOn(t, taskCount(stackname, 0), pollSettings)
+}
+
+func stackRm(stackname string) func(t poll.LogT) poll.Result {
+	return func(poll.LogT) poll.Result {
+		result := icmd.RunCommand("docker", "stack", "rm", stackname)
+		if result.Error != nil {
+			return poll.Continue("docker stack rm %s failed : %v", stackname, result.Error)
+		}
+		return poll.Success()
+	}
 }
 
 func taskCount(stackname string, expected int) func(t poll.LogT) poll.Result {
