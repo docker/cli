@@ -5,6 +5,8 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/docker/cli/cli/compose/loader"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"vbom.ml/util/sortorder"
 )
@@ -45,14 +47,28 @@ func getStacks(kubeCli *KubeCli) ([]*formatter.Stack, error) {
 	}
 	var formattedStacks []*formatter.Stack
 	for _, stack := range stacks.Items {
-		services, err := getServices(stack.Spec.ComposeFile)
+		cfg, err := loadStack(stack.Spec.ComposeFile)
 		if err != nil {
 			return nil, err
 		}
 		formattedStacks = append(formattedStacks, &formatter.Stack{
 			Name:     stack.Name,
-			Services: len(services),
+			Services: len(getServices(cfg)),
 		})
 	}
 	return formattedStacks, nil
+}
+
+func loadStack(composefile string) (*composetypes.Config, error) {
+	parsed, err := loader.ParseYAML([]byte(composefile))
+	if err != nil {
+		return nil, err
+	}
+	return loader.Load(composetypes.ConfigDetails{
+		ConfigFiles: []composetypes.ConfigFile{
+			{
+				Config: parsed,
+			},
+		},
+	})
 }

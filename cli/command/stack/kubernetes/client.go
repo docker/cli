@@ -1,9 +1,6 @@
 package kubernetes
 
 import (
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
 	appsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	typesappsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -36,23 +33,6 @@ func NewFactory(namespace string, config *restclient.Config) (*Factory, error) {
 		coreClientSet: coreClientSet,
 		appsClientSet: appsClientSet,
 	}, nil
-}
-
-// RESTMapper returns a PriorityRESTMapper based on the discovered
-// groups and resources passed in.
-func (s *Factory) RESTMapper() (meta.RESTMapper, error) {
-	clientSet, err := kubernetes.NewForConfig(s.config)
-	if err != nil {
-		return nil, err
-	}
-
-	groupResources, err := discovery.GetAPIGroupResources(clientSet.DiscoveryClient)
-	if err != nil {
-		return nil, err
-	}
-	mapper := discovery.NewRESTMapper(groupResources, meta.InterfacesForUnstructured)
-
-	return mapper, nil
 }
 
 // ConfigMaps returns a client for kubernetes's config maps

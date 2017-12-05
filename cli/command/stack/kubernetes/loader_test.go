@@ -27,7 +27,7 @@ func TestPlaceholders(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output, _, err := load("stack", []byte(test.input), env)
+		output, _, err := load("stack", []byte(test.input), ".", env)
 		require.NoError(t, err)
 		assert.Equal(t, test.expectedOutput, output.Spec.ComposeFile)
 	}

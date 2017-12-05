@@ -19,7 +19,7 @@ type KubeCli struct {
 	kubeNamespace string
 }
 
-// WrapCli wraps command.Cli with kubernetes specifiecs
+// WrapCli wraps command.Cli with kubernetes specifics
 func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
 	var err error
 	cli := &KubeCli{
@@ -34,7 +34,7 @@ func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
 	}
 	kubeConfig := ""
 	if cmd.PersistentFlags().Changed("kubeconfig") {
-		kubeConfig, err = cmd.PersistentFlags().GetString("namespace")
+		kubeConfig, err = cmd.PersistentFlags().GetString("kubeconfig")
 		if err != nil {
 			return nil, err
 		}

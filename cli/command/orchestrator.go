@@ -3,6 +3,8 @@ package command
 import (
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Orchestrator type acts as an enum describing supported orchestrators.
@@ -43,6 +45,7 @@ func GetOrchestrator(orchestrator string) Orchestrator {
 		return o
 	}
 
+	logrus.Infof("Specified orchestrator %q is invalid. Please use either kubernetes or swarm", orchestrator)
 	// Nothing set, use default orchestrator
 	return defaultOrchestrator
 }

@@ -17,6 +17,7 @@ import (
 )
 
 // LoadStack loads a stack from a Compose file, with a given name.
+// FIXME(vdemeester) remove this and use cli/compose/loader for both swarm and kubernetes
 func LoadStack(name, composeFile string) (*apiv1beta1.Stack, *composetypes.Config, error) {
 	if composeFile == "" {
 		return nil, nil, errors.New("compose-file must be set")
@@ -38,13 +39,14 @@ func LoadStack(name, composeFile string) (*apiv1beta1.Stack, *composetypes.Confi
 
 	binary, err := ioutil.ReadFile(composePath)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot load compose file")
+		return nil, nil, errors.Wrap(err, "cannot read compose file")
 	}
 
-	return load(name, binary, env())
+	env := env(workingDir)
+	return load(name, binary, workingDir, env)
 }
 
-func load(name string, binary []byte, env map[string]string) (*apiv1beta1.Stack, *composetypes.Config, error) {
+func load(name string, binary []byte, workingDir string, env map[string]string) (*apiv1beta1.Stack, *composetypes.Config, error) {
 	processed, err := template.Substitute(string(binary), func(key string) (string, bool) { return env[key], true })
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "cannot load compose file")
@@ -56,7 +58,7 @@ func load(name string, binary []byte, env map[string]string) (*apiv1beta1.Stack,
 	}
 
 	cfg, err := loader.Load(composetypes.ConfigDetails{
-		WorkingDir: ".",
+		WorkingDir: workingDir,
 		ConfigFiles: []composetypes.ConfigFile{
 			{
 				Config: parsed,
@@ -111,9 +113,9 @@ func processEnvFiles(input string, parsed map[string]interface{}, config *compos
 	return string(res), nil
 }
 
-func env() map[string]string {
+func env(workingDir string) map[string]string {
 	// Apply .env file first
-	config := readEnvFile(".env")
+	config := readEnvFile(filepath.Join(workingDir, ".env"))
 
 	// Apply env variables
 	for k, v := range envToMap(os.Environ()) {

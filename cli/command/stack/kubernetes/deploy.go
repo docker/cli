@@ -20,7 +20,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 		return errors.Errorf("Please specify a Compose file (with --compose-file).")
 	}
 	// Initialize clients
-	stacks, err := dockerCli.stacks()
+	stackInterface, err := dockerCli.stacks()
 	if err != nil {
 		return err
 	}
@@ -28,12 +28,12 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if err != nil {
 		return err
 	}
-	configMaps := composeClient.ConfigMaps()
-	secrets := composeClient.Secrets()
-	services := composeClient.Services()
-	pods := composeClient.Pods()
+	configMapInterface := composeClient.ConfigMaps()
+	secretInterface := composeClient.Secrets()
+	serviceInterface := composeClient.Services()
+	podInterface := composeClient.Pods()
 	watcher := DeployWatcher{
-		Pods: pods,
+		Pods: podInterface,
 	}
 
 	// Parse the compose file
@@ -43,29 +43,28 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	// FIXME(vdemeester) handle warnings server-side
-
-	if err = IsColliding(services, stack); err != nil {
+	if err = IsColliding(serviceInterface, stack, cfg); err != nil {
 		return err
 	}
 
-	if err = createFileBasedConfigMaps(stack.Name, cfg.Configs, configMaps); err != nil {
+	if err = createFileBasedConfigMaps(stack.Name, cfg.Configs, configMapInterface); err != nil {
 		return err
 	}
 
-	if err = createFileBasedSecrets(stack.Name, cfg.Secrets, secrets); err != nil {
+	if err = createFileBasedSecrets(stack.Name, cfg.Secrets, secretInterface); err != nil {
 		return err
 	}
 
-	if in, err := stacks.Get(stack.Name, metav1.GetOptions{}); err == nil {
+	if in, err := stackInterface.Get(stack.Name, metav1.GetOptions{}); err == nil {
 		in.Spec = stack.Spec
 
-		if _, err = stacks.Update(in); err != nil {
+		if _, err = stackInterface.Update(in); err != nil {
 			return err
 		}
 
 		fmt.Printf("Stack %s was updated\n", stack.Name)
 	} else {
-		if _, err = stacks.Create(stack); err != nil {
+		if _, err = stackInterface.Create(stack); err != nil {
 			return err
 		}
 

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/docker/cli/kubernetes/labels"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,11 +12,8 @@ import (
 )
 
 // IsColliding verify that services defined in the stack collides with already deployed services
-func IsColliding(services corev1.ServiceInterface, stack *apiv1beta1.Stack) error {
-	stackObjects, err := getServices(stack.Spec.ComposeFile)
-	if err != nil {
-		return err
-	}
+func IsColliding(services corev1.ServiceInterface, stack *apiv1beta1.Stack, cfg *composetypes.Config) error {
+	stackObjects := getServices(cfg)
 
 	for _, srv := range stackObjects {
 		if err := verify(services, stack.Name, srv); err != nil {
@@ -28,6 +24,9 @@ func IsColliding(services corev1.ServiceInterface, stack *apiv1beta1.Stack) erro
 	return nil
 }
 
+// verify checks wether the service is already present in kubernetes.
+// If we find the service by name but it doesn't have our label or it has a different value
+// than the stack name for the label, we fail (i.e. it will collide)
 func verify(services corev1.ServiceInterface, stackName string, service string) error {
 	svc, err := services.Get(service, metav1.GetOptions{})
 	if err == nil {
@@ -45,27 +44,11 @@ func verify(services corev1.ServiceInterface, stackName string, service string) 
 	return nil
 }
 
-func getServices(composeFile string) ([]string, error) {
-	parsed, err := loader.ParseYAML([]byte(composeFile))
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := loader.Load(types.ConfigDetails{
-		WorkingDir: ".",
-		ConfigFiles: []types.ConfigFile{
-			{
-				Config: parsed,
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	services := make([]string, len(config.Services))
-	for i := range config.Services {
-		services[i] = config.Services[i].Name
+func getServices(cfg *composetypes.Config) []string {
+	services := make([]string, len(cfg.Services))
+	for i := range cfg.Services {
+		services[i] = cfg.Services[i].Name
 	}
 	sort.Strings(services)
-	return services, nil
+	return services
 }
