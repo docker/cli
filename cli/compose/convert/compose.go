@@ -133,9 +133,15 @@ type swarmFileObject struct {
 }
 
 func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObjectConfig) (swarmFileObject, error) {
-	data, err := ioutil.ReadFile(obj.File)
-	if err != nil {
-		return swarmFileObject{}, err
+	var data []byte
+	var err error
+	if obj.Raw == "" {
+		data, err = ioutil.ReadFile(obj.File)
+		if err != nil {
+			return swarmFileObject{}, err
+		}
+	} else {
+		data = []byte(obj.Raw)
 	}
 
 	if obj.Name != "" {

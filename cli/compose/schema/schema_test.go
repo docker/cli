@@ -51,6 +51,27 @@ func TestValidateSecretConfigNames(t *testing.T) {
 		"version": "3.5",
 		"configs": dict{
 			"bar": dict{
+				"file": "myfile",
+				"name": "foobar",
+			},
+		},
+		"secrets": dict{
+			"baz": dict{
+				"raw":  "mydata",
+				"name": "foobaz",
+			},
+		},
+	}
+
+	err := Validate(config, "3.5")
+	assert.NoError(t, err)
+}
+
+func TestValidateSecretConfigFileRawRequired(t *testing.T) {
+	config := dict{
+		"version": "3.5",
+		"configs": dict{
+			"bar": dict{
 				"name": "foobar",
 			},
 		},
@@ -62,7 +83,28 @@ func TestValidateSecretConfigNames(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "configs.bar file is required")
+}
+
+func TestValidateSecretConfigFileRawExclusive(t *testing.T) {
+	config := dict{
+		"version": "3.5",
+		"configs": dict{
+			"bar": dict{
+				"file": "myfile",
+				"raw":  "mydata",
+			},
+		},
+		"secrets": dict{
+			"baz": dict{
+				"file": "myfile",
+				"raw":  "mydata",
+			},
+		},
+	}
+
+	err := Validate(config, "3.5")
+	assert.EqualError(t, err, "configs.bar file and raw are mutually exclusive")
 }
 
 func TestValidateInvalidVersion(t *testing.T) {

@@ -494,6 +494,7 @@
       "id": "#/definitions/secret",
       "type": "object",
       "properties": {
+        "raw": {"type": "string"},
         "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
@@ -511,6 +512,7 @@
       "id": "#/definitions/config",
       "type": "object",
       "properties": {
+        "raw": {"type": "string"},
         "name": {"type": "string"},
         "file": {"type": "string"},
         "external": {
@@ -521,6 +523,19 @@
         },
         "labels": {"$ref": "#/definitions/list_or_dict"}
       },
+      "oneOf": [
+        {
+          "required": ["file"],
+          "not": {"required": ["raw"]}
+        },
+        {
+          "required": ["raw"],
+          "not": {"required": ["file"]}
+        },
+        {
+          "required": ["external"]
+        }
+      ],
       "additionalProperties": false
     },
 

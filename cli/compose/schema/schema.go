@@ -82,8 +82,10 @@ func toError(result *gojsonschema.Result) error {
 }
 
 const (
-	jsonschemaOneOf = "number_one_of"
-	jsonschemaAnyOf = "number_any_of"
+	jsonschemaOneOf          = "number_one_of"
+	jsonschemaAnyOf          = "number_any_of"
+	jsonschemaNot            = "number_not"
+	jsonschemaNotDescription = "file and raw are mutually exclusive"
 )
 
 func getDescription(err validationError) string {
@@ -95,6 +97,11 @@ func getDescription(err validationError) string {
 	case jsonschemaOneOf, jsonschemaAnyOf:
 		if err.child == nil {
 			return err.parent.Description()
+		}
+		if err.child.Type() == jsonschemaNot {
+			if strings.HasPrefix(err.child.Field(), "configs.") || strings.HasPrefix(err.child.Field(), "secrets.") {
+				return jsonschemaNotDescription
+			}
 		}
 		return err.child.Description()
 	}

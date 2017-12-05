@@ -120,18 +120,22 @@ func TestSecrets(t *testing.T) {
 				External: true,
 			},
 		},
+		"raw": {
+			Raw:    secretText,
+			Labels: map[string]string{"monster": "mash"},
+		},
 	}
 
 	specs, err := Secrets(namespace, source)
 	assert.NoError(t, err)
-	require.Len(t, specs, 1)
-	secret := specs[0]
-	assert.Equal(t, "foo_one", secret.Name)
-	assert.Equal(t, map[string]string{
-		"monster":      "mash",
-		LabelNamespace: "foo",
-	}, secret.Labels)
-	assert.Equal(t, []byte(secretText), secret.Data)
+	require.Len(t, specs, 2)
+	for _, secret := range specs {
+		assert.Equal(t, []byte(secretText), secret.Data)
+		assert.Equal(t, map[string]string{
+			"monster":      "mash",
+			LabelNamespace: "foo",
+		}, secret.Labels)
+	}
 }
 
 func TestConfigs(t *testing.T) {
@@ -151,16 +155,21 @@ func TestConfigs(t *testing.T) {
 				External: true,
 			},
 		},
+		"raw": {
+			Raw:    configText,
+			Labels: map[string]string{"monster": "mash"},
+		},
 	}
 
 	specs, err := Configs(namespace, source)
 	assert.NoError(t, err)
-	require.Len(t, specs, 1)
-	config := specs[0]
-	assert.Equal(t, "foo_one", config.Name)
-	assert.Equal(t, map[string]string{
-		"monster":      "mash",
-		LabelNamespace: "foo",
-	}, config.Labels)
-	assert.Equal(t, []byte(configText), config.Data)
+	require.Len(t, specs, 2)
+	for _, config := range specs {
+		assert.Equal(t, []byte(configText), config.Data)
+		assert.Equal(t, map[string]string{
+			"monster":      "mash",
+			LabelNamespace: "foo",
+		}, config.Labels)
+		assert.Equal(t, []byte(configText), config.Data)
+	}
 }
