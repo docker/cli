@@ -44,6 +44,7 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	ClientInfo() ClientInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+	DefaultVersion() string
 }
 
 // DockerCli is an instance the docker command line client.

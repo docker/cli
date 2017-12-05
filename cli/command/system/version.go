@@ -24,7 +24,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Experimental:	{{.Experimental}}
- Orchestrator:	{{.Client.Orchestrator}}
+ Orchestrator:	{{.Orchestrator}}
 {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
@@ -82,7 +82,7 @@ func (v versionInfo) ServerOK() bool {
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
-func NewVersionCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 	var opts versionOptions
 
 	cmd := &cobra.Command{
@@ -109,9 +109,7 @@ func reformatDate(buildTime string) string {
 	return buildTime
 }
 
-func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
-	ctx := context.Background()
-
+func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	templateFormat := versionTemplate
 	tmpl := templates.New("version")
 	if opts.format != "" {
@@ -129,28 +127,21 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 
 	vd := versionInfo{
 		Client: clientVersion{
+			Platform:          struct{ Name string }{cli.PlatformName},
 			Version:           cli.Version,
 			APIVersion:        dockerCli.Client().ClientVersion(),
 			DefaultAPIVersion: dockerCli.DefaultVersion(),
 			GoVersion:         runtime.Version(),
 			GitCommit:         cli.GitCommit,
-			BuildTime:         cli.BuildTime,
+			BuildTime:         reformatDate(cli.BuildTime),
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
-<<<<<<< HEAD
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
-			Orchestrator:      string(command.GetOrchestrator(dockerCli)),
-=======
 			Orchestrator:      string(command.GetOrchestrator(dockerCli.ConfigFile().Orchestrator)),
->>>>>>> Refactor stack command
 		},
 	}
-	vd.Client.Platform.Name = cli.PlatformName
 
-	// first we need to make BuildTime more human friendly
-	vd.Client.BuildTime = reformatDate(vd.Client.BuildTime)
-
-	sv, err := dockerCli.Client().ServerVersion(ctx)
+	sv, err := dockerCli.Client().ServerVersion(context.Background())
 	if err == nil {
 		vd.Server = &sv
 		foundEngine := false
