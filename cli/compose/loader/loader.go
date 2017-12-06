@@ -98,7 +98,7 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "networks",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Networks, err = LoadNetworks(config)
+				cfg.Networks, err = LoadNetworks(config, configDetails.Version)
 				return err
 			},
 		},
@@ -425,17 +425,30 @@ func transformUlimits(data interface{}) (interface{}, error) {
 
 // LoadNetworks produces a NetworkConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadNetworks(source map[string]interface{}) (map[string]types.NetworkConfig, error) {
+func LoadNetworks(source map[string]interface{}, version string) (map[string]types.NetworkConfig, error) {
 	networks := make(map[string]types.NetworkConfig)
 	err := transform(source, &networks)
 	if err != nil {
 		return networks, err
 	}
 	for name, network := range networks {
-		if network.External.External && network.External.Name == "" {
-			network.External.Name = name
-			networks[name] = network
+		if !network.External.External {
+			continue
 		}
+		switch {
+		case network.External.Name != "":
+			if network.Name != "" {
+				return nil, errors.Errorf("network %s: network.external.name and network.name conflict; only use network.name", name)
+			}
+			if versions.GreaterThanOrEqualTo(version, "3.5") {
+				logrus.Warnf("network %s: network.external.name is deprecated in favor of network.name", name)
+			}
+			network.Name = network.External.Name
+			network.External.Name = ""
+		case network.Name == "":
+			network.Name = name
+		}
+		networks[name] = network
 	}
 	return networks, nil
 }
