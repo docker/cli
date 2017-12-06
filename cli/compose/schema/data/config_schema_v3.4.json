@@ -299,7 +299,8 @@
                       "nocopy": {"type": "boolean"}
                     }
                   }
-                }
+                },
+                "additionalProperties": false
               }
             ],
             "uniqueItems": true
