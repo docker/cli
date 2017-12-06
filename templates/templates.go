@@ -55,10 +55,16 @@ func Parse(format string) (*template.Template, error) {
 	return NewParse("", format)
 }
 
+// New creates a new empty template with the provided tag and built-in
+// template functions.
+func New(tag string) *template.Template {
+	return template.New(tag).Funcs(basicFunctions)
+}
+
 // NewParse creates a new tagged template with the basic functions
 // and parses the given format.
 func NewParse(tag, format string) (*template.Template, error) {
-	return template.New(tag).Funcs(basicFunctions).Parse(format)
+	return New(tag).Parse(format)
 }
 
 // padWithSpace adds whitespace to the input if the input is non-empty

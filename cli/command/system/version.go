@@ -3,6 +3,8 @@ package system
 import (
 	"fmt"
 	"runtime"
+	"sort"
+	"text/template"
 	"time"
 
 	"github.com/docker/cli/cli"
@@ -36,10 +38,11 @@ Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
   Built:	{{index .Details "BuildTime"}}
   OS/Arch:	{{index .Details "Os"}}/{{index .Details "Arch"}}
   Experimental:	{{index .Details "Experimental"}}
-  {{- else -}}
+  {{- else }}
   Version:	{{$component.Version}}
-   {{- range $k, $v := $component.Details}}
-  {{$k}}:	{{$v}}
+  {{- $detailsOrder := getDetailsOrder $component}}
+  {{- range $key := $detailsOrder}}
+  {{$key}}:		{{index $component.Details $key}}
    {{- end}}
   {{- end}}
  {{- end}}
@@ -106,11 +109,15 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 	ctx := context.Background()
 
 	templateFormat := versionTemplate
+	tmpl := templates.New("version")
 	if opts.format != "" {
 		templateFormat = opts.format
+	} else {
+		tmpl = tmpl.Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	}
 
-	tmpl, err := templates.Parse(templateFormat)
+	var err error
+	tmpl, err = tmpl.Parse(templateFormat)
 	if err != nil {
 		return cli.StatusError{StatusCode: 64,
 			Status: "Template parsing error: " + err.Error()}
@@ -171,4 +178,13 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 	}
 	dockerCli.Out().Write([]byte{'\n'})
 	return err
+}
+
+func getDetailsOrder(v types.ComponentVersion) []string {
+	out := make([]string, 0, len(v.Details))
+	for k := range v.Details {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
