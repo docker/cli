@@ -24,6 +24,7 @@ type execOptions struct {
 	user        string
 	privileged  bool
 	env         opts.ListOpts
+	workdir     string
 	container   string
 	command     []string
 }
@@ -58,6 +59,8 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.privileged, "privileged", "", false, "Give extended privileges to the command")
 	flags.VarP(&options.env, "env", "e", "Set environment variables")
 	flags.SetAnnotation("env", "version", []string{"1.25"})
+	flags.StringVarP(&options.workdir, "workdir", "w", "", "Working directory inside the container")
+	flags.SetAnnotation("workdir", "version", []string{"1.35"})
 
 	return cmd
 }
@@ -190,6 +193,7 @@ func parseExec(opts execOptions, configFile *configfile.ConfigFile) *types.ExecC
 		Cmd:        opts.command,
 		Detach:     opts.detach,
 		Env:        opts.env.GetAll(),
+		WorkingDir: opts.workdir,
 	}
 
 	// If -d is not set, attach to everything by default
