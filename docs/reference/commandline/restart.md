@@ -25,6 +25,10 @@ Options:
   -t, --time int   Seconds to wait for stop before killing the container (default 10)
 ```
 
+## Description
+
+The main process inside the container will sleep before stopping the container.
+
 ## Examples
 
 ```bash
