@@ -1394,7 +1394,7 @@ __docker_nodes() {
     # Names
     if [[ $type = (names|all) ]]; then
         for line in $lines; do
-            s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
+            s="${line[${begin[HOSTNAME]},${end[HOSTNAME]}]%% ##}"
             nodes=($nodes $s)
         done
     fi
@@ -2170,9 +2170,9 @@ __docker_stacks() {
     end[${header[$i,$((j-1))]}]=-1
     lines=(${lines[2,-1]})
 
-    # Service ID
+    # Service NAME
     for line in $lines; do
-        s="${line[${begin[ID]},${end[ID]}]%% ##}"
+        s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
         stacks=($stacks $s)
     done
 
