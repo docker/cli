@@ -62,7 +62,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 	for internalName := range servicesNetworks {
 		network := networks[internalName]
 		if network.External.External {
-			externalNetworks = append(externalNetworks, network.External.Name)
+			externalNetworks = append(externalNetworks, network.Name)
 			continue
 		}
 
