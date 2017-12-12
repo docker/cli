@@ -230,7 +230,7 @@ func convertServiceNetworks(
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.External.External {
-			target = networkConfig.External.Name
+			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
 			Target:  target,

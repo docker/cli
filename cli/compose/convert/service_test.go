@@ -219,10 +219,8 @@ func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
 func TestConvertServiceNetworks(t *testing.T) {
 	networkConfigs := networkMap{
 		"front": composetypes.NetworkConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "fronttier",
-			},
+			External: composetypes.External{External: true},
+			Name:     "fronttier",
 		},
 		"back": composetypes.NetworkConfig{},
 	}
@@ -259,10 +257,8 @@ func TestConvertServiceNetworks(t *testing.T) {
 func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	networkConfigs := networkMap{
 		"default": composetypes.NetworkConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "custom",
-			},
+			External: composetypes.External{External: true},
+			Name:     "custom",
 		},
 	}
 	networks := map[string]*composetypes.ServiceNetworkConfig{}
