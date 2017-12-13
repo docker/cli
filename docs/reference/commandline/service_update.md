@@ -177,18 +177,18 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
-### Add or remove port mappings
+### Add or remove published service ports
 
-Use the `--port-add` or `--port-rm` flags to add or remove port mappings to or
-from a service. You can use the short or long syntax discussed in the
-[docker service update](service_create/#attach-a-service-to-an-existing-network-network)
+Use the `--publish-add` or `--publish-rm` flags to add or remove a published
+port for a service. You can use the short or long syntax discussed in the
+[docker service create](service_create/#attach-a-service-to-an-existing-network-network)
 reference.
 
-The following example adds a port mapping to an existing service.
+The following example adds a published service port to an existing service.
 
 ```bash
 $ docker service update \
-  --port-add port=80,target=8080 \
+  --publish-add published=8080,target=80 \
   myservice
 ```
 

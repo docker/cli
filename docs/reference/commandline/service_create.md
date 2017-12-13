@@ -739,7 +739,7 @@ Containers on the same network can access each other using
 You can publish service ports to make them available externally to the swarm
 using the `--publish` flag. The `--publish` flag can take two different styles
 of arguments. The short version is positional, and allows you to specify the
-target port and container port separated by a colon.
+published port and target port separated by a colon.
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
@@ -751,7 +751,7 @@ mode when using the short format. Here is an example of using the long format
 for the same service as above:
 
 ```bash
-$ docker service create --name my_web --replicas 3 --publish target=8080,port=80 nginx
+$ docker service create --name my_web --replicas 3 --publish published=8080,target=80 nginx
 ```
 
 The options you can specify are:
@@ -765,7 +765,7 @@ The options you can specify are:
   <th>Description</th>
 </tr>
 <tr>
-  <td>target and container port </td>
+  <td>published and target port </td>
   <td><tt></tt></td>
   <td><tt></tt></td>
   <td></td>
@@ -773,16 +773,16 @@ The options you can specify are:
 <tr>
   <td>protocol</td>
   <td><tt>--publish 8080:80</tt></td>
-  <td><tt>--publish target=8080,port=80</tt></td>
+  <td><tt>--publish published=8080,target=80</tt></td>
   <td><p>
-    The container port to publish and the target port to bind it to on the
-    routing mesh or directly on the node.
+    The port to publish the service to on the routing mesh or directly on
+    the node, and the target port on the container.
   </p></td>
 </tr>
 <tr>
   <td>mode</td>
   <td>Not possible to set using short syntax.</td>
-  <td><tt>--publish target=8080,port=80,mode=host</tt></td>
+  <td><tt>--publish published=8080,target=80,mode=host</tt></td>
   <td><p>
     The mode to use for binding the port, either `ingress` or `host`. Defaults
     to `ingress` to use the routing mesh.
@@ -791,7 +791,7 @@ The options you can specify are:
 <tr>
   <td>protocol</td>
   <td><tt>--publish 8080:80/tcp</tt></td>
-  <td><tt>--publish target=8080,port=80,protocol=tcp</tt></td>
+  <td><tt>--publish published=8080,target=80,protocol=tcp</tt></td>
   <td><p>
     The protocol to use, either `tcp` or `udp`. Defaults to `tcp`. To bind a
     port for both protocols, specify the `-p` or `--publish` flag twice.
@@ -800,7 +800,7 @@ The options you can specify are:
 </table>
 
 When you publish a service port using `ingres` mode, the swarm routing mesh
-makes the service accessible at the target port on every node regardless if
+makes the service accessible at the published port on every node regardless if
 there is a task for the service running on the node. If you use `host` mode,
 the port is only bound on nodes where the service is running, and a given port
 on a node can only be bound once. You can only set the publication mode using
