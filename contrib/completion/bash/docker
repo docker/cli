@@ -2866,6 +2866,7 @@ _docker_inspect() {
 						$(__docker_services)
 						$(__docker_volumes)
 					" -- "$cur" ) )
+					__ltrim_colon_completions "$cur"
 					;;
 				container)
 					__docker_complete_containers_all
