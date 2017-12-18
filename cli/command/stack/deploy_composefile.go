@@ -248,13 +248,13 @@ func createConfigs(
 		case err == nil:
 			// config already exists, then we update that
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
-				errors.Wrapf(err, "failed to update config %s", configSpec.Name)
+				return errors.Wrapf(err, "failed to update config %s", configSpec.Name)
 			}
 		case apiclient.IsErrNotFound(err):
 			// config does not exist, then we create a new one.
 			fmt.Fprintf(dockerCli.Out(), "Creating config %s\n", configSpec.Name)
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
-				errors.Wrapf(err, "failed to create config %s", configSpec.Name)
+				return errors.Wrapf(err, "failed to create config %s", configSpec.Name)
 			}
 		default:
 			return err
