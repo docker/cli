@@ -2,7 +2,6 @@ package loader
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -738,13 +737,13 @@ services:
 `)
 
 	require.Error(t, err)
-	assert.IsType(t, &ForbiddenPropertiesError{}, err)
-	fmt.Println(err)
-	forbidden := err.(*ForbiddenPropertiesError).Properties
+	forbidden, ok := err.(*ForbiddenPropertiesError)
+	assert.True(t, ok, "error type is %T instead of ForbiddenPropertiesError", err)
 
-	assert.Len(t, forbidden, 2)
-	assert.Contains(t, forbidden, "volume_driver")
-	assert.Contains(t, forbidden, "extends")
+	props := forbidden.Properties
+	assert.Len(t, props, 2)
+	assert.Contains(t, props, "volume_driver")
+	assert.Contains(t, props, "extends")
 }
 
 func TestInvalidResource(t *testing.T) {

@@ -47,7 +47,6 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name             string
 		args             []string
-		outputRegex      string
 		imageHistoryFunc func(img string) ([]image.HistoryResponseItem, error)
 	}{
 		{
@@ -64,16 +63,17 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 			name: "quiet",
 			args: []string{"--quiet", "image:tag"},
 		},
-		// TODO: This test is failing since the output does not contain an RFC3339 date
-		//{
-		//	name:        "non-human",
-		//	args:        []string{"--human=false", "image:tag"},
-		//	outputRegex: "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}", // RFC3339 date format match
-		//},
 		{
-			name:        "non-human-header",
-			args:        []string{"--human=false", "image:tag"},
-			outputRegex: "CREATED\\sAT",
+			name: "non-human",
+			args: []string{"--human=false", "image:tag"},
+			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
+				return []image.HistoryResponseItem{{
+					ID:        "abcdef",
+					Created:   time.Date(2017, 1, 1, 12, 0, 3, 0, time.UTC).Unix(),
+					CreatedBy: "rose",
+					Comment:   "new history item!",
+				}}, nil
+			},
 		},
 		{
 			name: "quiet-no-trunc",
@@ -94,10 +94,6 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		err := cmd.Execute()
 		assert.NoError(t, err)
 		actual := cli.OutBuffer().String()
-		if tc.outputRegex == "" {
-			golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
-		} else {
-			assert.Regexp(t, tc.outputRegex, actual)
-		}
+		golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
 	}
 }

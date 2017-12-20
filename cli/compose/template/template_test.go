@@ -20,7 +20,7 @@ func defaultMapping(name string) (string, bool) {
 
 func TestEscaped(t *testing.T) {
 	result, err := Substitute("$${foo}", defaultMapping)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "${foo}", result)
 }
 
@@ -44,14 +44,14 @@ func TestInvalid(t *testing.T) {
 	for _, template := range invalidTemplates {
 		_, err := Substitute(template, defaultMapping)
 		assert.Error(t, err)
-		assert.IsType(t, &InvalidTemplateError{}, err)
+		assert.Contains(t, err.Error(), "Invalid template")
 	}
 }
 
 func TestNoValueNoDefault(t *testing.T) {
 	for _, template := range []string{"This ${missing} var", "This ${BAR} var"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "This  var", result)
 	}
 }
@@ -59,7 +59,7 @@ func TestNoValueNoDefault(t *testing.T) {
 func TestValueNoDefault(t *testing.T) {
 	for _, template := range []string{"This $FOO var", "This ${FOO} var"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "This first var", result)
 	}
 }
@@ -67,26 +67,26 @@ func TestValueNoDefault(t *testing.T) {
 func TestNoValueWithDefault(t *testing.T) {
 	for _, template := range []string{"ok ${missing:-def}", "ok ${missing-def}"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "ok def", result)
 	}
 }
 
 func TestEmptyValueWithSoftDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR:-def}", defaultMapping)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "ok def", result)
 }
 
 func TestEmptyValueWithHardDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR-def}", defaultMapping)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "ok ", result)
 }
 
 func TestNonAlphanumericDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR:-/non:-alphanumeric}", defaultMapping)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "ok /non:-alphanumeric", result)
 }
 

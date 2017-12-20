@@ -48,8 +48,8 @@ func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, buildObjectIDs(client.services), client.removedServices)
 	assert.Equal(t, buildObjectIDs(client.networks), client.removedNetworks)
-	assert.Nil(t, client.removedSecrets)
-	assert.Nil(t, client.removedConfigs)
+	assert.Len(t, client.removedSecrets, 0)
+	assert.Len(t, client.removedConfigs, 0)
 }
 
 func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
@@ -61,7 +61,7 @@ func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 	assert.Equal(t, buildObjectIDs(client.services), client.removedServices)
 	assert.Equal(t, buildObjectIDs(client.networks), client.removedNetworks)
 	assert.Equal(t, buildObjectIDs(client.secrets), client.removedSecrets)
-	assert.Nil(t, client.removedConfigs)
+	assert.Len(t, client.removedConfigs, 0)
 }
 
 func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
