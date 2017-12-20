@@ -33,19 +33,23 @@ func normalize(flag string) Orchestrator {
 
 // GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(orchestrator string) Orchestrator {
+func GetOrchestrator(flagValue, value string) Orchestrator {
+	// Check flag
+	if o := normalize(flagValue); o != orchestratorUnset {
+		return o
+	}
 	// Check environment variable
 	env := os.Getenv(dockerOrchestrator)
 	if o := normalize(env); o != orchestratorUnset {
 		return o
 	}
 	// Check specified orchestrator
-	if o := normalize(orchestrator); o != orchestratorUnset {
+	if o := normalize(value); o != orchestratorUnset {
 		return o
 	}
 
-	if orchestrator != "" {
-		fmt.Fprintf(os.Stderr, "Specified orchestrator %q is invalid. Please use either kubernetes or swarm\n", orchestrator)
+	if value != "" {
+		fmt.Fprintf(os.Stderr, "Specified orchestrator %q is invalid. Please use either kubernetes or swarm\n", value)
 	}
 	// Nothing set, use default orchestrator
 	return defaultOrchestrator

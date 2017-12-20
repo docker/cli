@@ -279,7 +279,7 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 	clientVersion := details.Client().ClientVersion()
 	osType := details.ServerInfo().OSType
 	hasExperimental := details.ServerInfo().HasExperimental
-	hasKubernetes := details.ClientInfo().HasKubernetes
+	hasKubernetes := details.ClientInfo().HasKubernetes()
 
 	errs := []string{}
 

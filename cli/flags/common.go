@@ -30,12 +30,13 @@ var (
 
 // CommonOptions are options common to both the client and the daemon.
 type CommonOptions struct {
-	Debug      bool
-	Hosts      []string
-	LogLevel   string
-	TLS        bool
-	TLSVerify  bool
-	TLSOptions *tlsconfig.Options
+	Debug        bool
+	Hosts        []string
+	Orchestrator string
+	LogLevel     string
+	TLS          bool
+	TLSVerify    bool
+	TLSOptions   *tlsconfig.Options
 }
 
 // NewCommonOptions returns a new CommonOptions
@@ -53,6 +54,7 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(&commonOpts.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
 	flags.BoolVar(&commonOpts.TLS, "tls", false, "Use TLS; implied by --tlsverify")
 	flags.BoolVar(&commonOpts.TLSVerify, FlagTLSVerify, dockerTLSVerify, "Use TLS and verify the remote")
+	flags.StringVar(&commonOpts.Orchestrator, "orchestrator", "", "Which orchestrator to use with the docker cli (swarm|kubernetes)")
 
 	// TODO use flag flags.String("identity"}, "i", "", "Path to libtrust key file")
 
