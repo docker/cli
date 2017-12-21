@@ -1198,8 +1198,8 @@ The next table shows the capabilities which are not granted by default and may b
 | SYS_TIME        | Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.                      |
 | SYS_TTY_CONFIG  | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                             |
 | AUDIT_CONTROL   | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules. |
-| MAC_OVERRIDE    | Allow MAC configuration or state changes. Implemented for the Smack LSM.                                        |
-| MAC_ADMIN       | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                 |
+| MAC_ADMIN       | Allow MAC configuration or state changes. Implemented for the Smack LSM.                                        |
+| MAC_OVERRIDE    | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                 |
 | NET_ADMIN       | Perform various network-related operations.                                                                     |
 | SYSLOG          | Perform privileged syslog(2) operations.                                                                        |
 | DAC_READ_SEARCH | Bypass file read permission checks and directory read and execute permission checks.                            |
