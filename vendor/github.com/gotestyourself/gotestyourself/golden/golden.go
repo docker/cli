@@ -40,11 +40,21 @@ func Path(filename string) string {
 	return filepath.Join("testdata", filename)
 }
 
-func update(filename string, actual []byte) error {
+func update(filename string, actual []byte, normalize normalize) error {
 	if *flagUpdate {
-		return ioutil.WriteFile(Path(filename), actual, 0644)
+		return ioutil.WriteFile(Path(filename), normalize(actual), 0644)
 	}
 	return nil
+}
+
+type normalize func([]byte) []byte
+
+func removeCarriageReturn(in []byte) []byte {
+	return bytes.Replace(in, []byte("\r\n"), []byte("\n"), -1)
+}
+
+func exactBytes(in []byte) []byte {
+	return in
 }
 
 // Assert compares the actual content to the expected content in the golden file.
@@ -66,15 +76,23 @@ func Assert(t assert.TestingT, actual string, filename string, msgAndArgs ...int
 
 // String compares actual to the contents of filename and returns success
 // if the strings are equal.
+// If the `-test.update-golden` flag is set then the actual content is written
+// to the golden file.
+//
+// Any \r\n substrings in actual are converted to a single \n character
+// before comparing it to the expected string. When updating the golden file the
+// normalized version will be written to the file. This allows Windows to use
+// the same golden files as other operating systems.
 func String(actual string, filename string) cmp.Comparison {
 	return func() cmp.Result {
-		result, expected := compare([]byte(actual), filename)
+		actualBytes := removeCarriageReturn([]byte(actual))
+		result, expected := compare(actualBytes, filename, removeCarriageReturn)
 		if result != nil {
 			return result
 		}
 		diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 			A:        difflib.SplitLines(string(expected)),
-			B:        difflib.SplitLines(actual),
+			B:        difflib.SplitLines(string(actualBytes)),
 			FromFile: "expected",
 			ToFile:   "actual",
 			Context:  3,
@@ -110,9 +128,11 @@ func AssertBytes(
 
 // Bytes compares actual to the contents of filename and returns success
 // if the bytes are equal.
+// If the `-test.update-golden` flag is set then the actual content is written
+// to the golden file.
 func Bytes(actual []byte, filename string) cmp.Comparison {
 	return func() cmp.Result {
-		result, expected := compare(actual, filename)
+		result, expected := compare(actual, filename, exactBytes)
 		if result != nil {
 			return result
 		}
@@ -121,8 +141,8 @@ func Bytes(actual []byte, filename string) cmp.Comparison {
 	}
 }
 
-func compare(actual []byte, filename string) (cmp.Result, []byte) {
-	if err := update(filename, actual); err != nil {
+func compare(actual []byte, filename string, normalize normalize) (cmp.Result, []byte) {
+	if err := update(filename, actual, normalize); err != nil {
 		return cmp.ResultFromError(err), nil
 	}
 	expected, err := ioutil.ReadFile(Path(filename))
