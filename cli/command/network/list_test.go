@@ -1,17 +1,15 @@
 package network
 
 import (
-	"testing"
-
 	"io/ioutil"
-
 	"strings"
+	"testing"
 
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
@@ -39,23 +37,18 @@ func TestNetworkListErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
-
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
 func TestNetworkListWithFlags(t *testing.T) {
-
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("image.name", "ubuntu")
-
 	expectedOpts := types.NetworkListOptions{
-		Filters: filterArgs,
+		Filters: filters.NewArgs(filters.Arg("image.name", "ubuntu")),
 	}
 
 	cli := test.NewFakeCli(&fakeClient{
 		networkListFunc: func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
-			assert.Check(t, is.DeepEqual(expectedOpts, options), "not expected options error")
+			assert.Check(t, is.DeepEqual(expectedOpts, options, cmp.AllowUnexported(filters.Args{})))
 			return []types.NetworkResource{*NetworkResource(NetworkResourceID("123454321"),
 				NetworkResourceName("network_1"),
 				NetworkResourceDriver("09.7.01"),

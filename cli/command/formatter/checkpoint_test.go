@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestCheckpointContextFormatWrite(t *testing.T) {
@@ -47,10 +46,7 @@ checkpoint-3:
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		err := CheckpointWrite(testcase.context, checkpoints)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
+		assert.NilError(t, err)
+		assert.Equal(t, out.String(), testcase.expected)
 	}
 }

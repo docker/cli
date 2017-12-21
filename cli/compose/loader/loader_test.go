@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -225,16 +226,13 @@ func TestParseAndLoad(t *testing.T) {
 
 func TestInvalidTopLevelObjectType(t *testing.T) {
 	_, err := loadYAML("1")
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
+	assert.ErrorContains(t, err, "Top-level object must be a mapping")
 
 	_, err = loadYAML("\"hello\"")
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
+	assert.ErrorContains(t, err, "Top-level object must be a mapping")
 
 	_, err = loadYAML("[\"hello\"]")
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
+	assert.ErrorContains(t, err, "Top-level object must be a mapping")
 }
 
 func TestNonStringKeys(t *testing.T) {
@@ -244,8 +242,7 @@ version: "3"
   foo:
     image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Non-string key at top level: 123"))
+	assert.ErrorContains(t, err, "Non-string key at top level: 123")
 
 	_, err = loadYAML(`
 version: "3"
@@ -255,8 +252,7 @@ services:
   123:
     image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Non-string key in services: 123"))
+	assert.ErrorContains(t, err, "Non-string key in services: 123")
 
 	_, err = loadYAML(`
 version: "3"
@@ -269,8 +265,7 @@ networks:
       config:
         - 123: oh dear
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Non-string key in networks.default.ipam.config[0]: 123"))
+	assert.ErrorContains(t, err, "Non-string key in networks.default.ipam.config[0]: 123")
 
 	_, err = loadYAML(`
 version: "3"
@@ -280,8 +275,7 @@ services:
     environment:
       1: FOO
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Non-string key in services.dict-env.environment: 1"))
+	assert.ErrorContains(t, err, "Non-string key in services.dict-env.environment: 1")
 }
 
 func TestSupportedVersion(t *testing.T) {
@@ -309,8 +303,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "version"))
+	assert.ErrorContains(t, err, "version")
 
 	_, err = loadYAML(`
 version: "2.0"
@@ -318,8 +311,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "version"))
+	assert.ErrorContains(t, err, "version")
 }
 
 func TestInvalidVersion(t *testing.T) {
@@ -329,8 +321,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "version must be a string"))
+	assert.ErrorContains(t, err, "version must be a string")
 }
 
 func TestV1Unsupported(t *testing.T) {
@@ -338,7 +329,7 @@ func TestV1Unsupported(t *testing.T) {
 foo:
   image: busybox
 `)
-	assert.Check(t, is.ErrorContains(err, ""))
+	assert.ErrorContains(t, err, "unsupported Compose file version: 1.0")
 }
 
 func TestNonMappingObject(t *testing.T) {
@@ -348,16 +339,14 @@ services:
   - foo:
       image: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services must be a mapping"))
+	assert.ErrorContains(t, err, "services must be a mapping")
 
 	_, err = loadYAML(`
 version: "3"
 services:
   foo: busybox
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.foo must be a mapping"))
+	assert.ErrorContains(t, err, "services.foo must be a mapping")
 
 	_, err = loadYAML(`
 version: "3"
@@ -365,16 +354,14 @@ networks:
   - default:
       driver: bridge
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "networks must be a mapping"))
+	assert.ErrorContains(t, err, "networks must be a mapping")
 
 	_, err = loadYAML(`
 version: "3"
 networks:
   default: bridge
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "networks.default must be a mapping"))
+	assert.ErrorContains(t, err, "networks.default must be a mapping")
 
 	_, err = loadYAML(`
 version: "3"
@@ -382,16 +369,14 @@ volumes:
   - data:
       driver: local
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "volumes must be a mapping"))
+	assert.ErrorContains(t, err, "volumes must be a mapping")
 
 	_, err = loadYAML(`
 version: "3"
 volumes:
   data: local
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "volumes.data must be a mapping"))
+	assert.ErrorContains(t, err, "volumes.data must be a mapping")
 }
 
 func TestNonStringImage(t *testing.T) {
@@ -401,8 +386,7 @@ services:
   foo:
     image: ["busybox", "latest"]
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.foo.image must be a string"))
+	assert.ErrorContains(t, err, "services.foo.image must be a string")
 }
 
 func TestLoadWithEnvironment(t *testing.T) {
@@ -452,8 +436,7 @@ services:
     environment:
       FOO: ["1"]
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.dict-env.environment.FOO must be a string, number or null"))
+	assert.ErrorContains(t, err, "services.dict-env.environment.FOO must be a string, number or null")
 }
 
 func TestInvalidEnvironmentObject(t *testing.T) {
@@ -464,8 +447,7 @@ services:
     image: busybox
     environment: "FOO=1"
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.dict-env.environment must be a mapping"))
+	assert.ErrorContains(t, err, "services.dict-env.environment must be a mapping")
 }
 
 func TestLoadWithEnvironmentInterpolation(t *testing.T) {
@@ -736,11 +718,9 @@ services:
       service: foo
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	forbidden, ok := err.(*ForbiddenPropertiesError)
-	assert.Check(t, ok, "error type is %T instead of ForbiddenPropertiesError", err)
+	assert.ErrorType(t, err, reflect.TypeOf(&ForbiddenPropertiesError{}))
 
-	props := forbidden.Properties
+	props := err.(*ForbiddenPropertiesError).Properties
 	assert.Check(t, is.Len(props, 2))
 	assert.Check(t, is.Contains(props, "volume_driver"))
 	assert.Check(t, is.Contains(props, "extends"))
@@ -757,8 +737,7 @@ func TestInvalidResource(t *testing.T) {
                 impossible:
                   x: 1
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Additional property impossible is not allowed"))
+	assert.ErrorContains(t, err, "Additional property impossible is not allowed")
 }
 
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
@@ -770,9 +749,8 @@ volumes:
     driver: foobar
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"driver\" specified for volume"))
-	assert.Check(t, is.Contains(err.Error(), "external_volume"))
+	assert.ErrorContains(t, err, "conflicting parameters \"external\" and \"driver\" specified for volume")
+	assert.ErrorContains(t, err, "external_volume")
 }
 
 func TestInvalidExternalAndDirverOptsCombination(t *testing.T) {
@@ -785,9 +763,8 @@ volumes:
       beep: boop
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"driver_opts\" specified for volume"))
-	assert.Check(t, is.Contains(err.Error(), "external_volume"))
+	assert.ErrorContains(t, err, "conflicting parameters \"external\" and \"driver_opts\" specified for volume")
+	assert.ErrorContains(t, err, "external_volume")
 }
 
 func TestInvalidExternalAndLabelsCombination(t *testing.T) {
@@ -800,9 +777,8 @@ volumes:
       - beep=boop
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"labels\" specified for volume"))
-	assert.Check(t, is.Contains(err.Error(), "external_volume"))
+	assert.ErrorContains(t, err, "conflicting parameters \"external\" and \"labels\" specified for volume")
+	assert.ErrorContains(t, err, "external_volume")
 }
 
 func TestLoadVolumeInvalidExternalNameAndNameCombination(t *testing.T) {
@@ -815,9 +791,8 @@ volumes:
       name:	external_name
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "volume.external.name and volume.name conflict; only use volume.name"))
-	assert.Check(t, is.Contains(err.Error(), "external_volume"))
+	assert.ErrorContains(t, err, "volume.external.name and volume.name conflict; only use volume.name")
+	assert.ErrorContains(t, err, "external_volume")
 }
 
 func durationPtr(value time.Duration) *time.Duration {
@@ -890,8 +865,7 @@ services:
         tmpfs:
           size: 10000
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed"))
+	assert.ErrorContains(t, err, "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
 }
 
 func TestLoadBindMountSourceMustNotBeEmpty(t *testing.T) {
@@ -971,8 +945,7 @@ services:
         tmpfs:
           size: -1
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0"))
+	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0")
 }
 
 func TestLoadTmpfsVolumeSizeMustBeInteger(t *testing.T) {
@@ -987,8 +960,7 @@ services:
         tmpfs:
           size: 0.0001
 `)
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0.tmpfs.size must be a integer"))
+	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size must be a integer")
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
@@ -1295,9 +1267,8 @@ secrets:
       name:	external_name
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "secret.external.name and secret.name conflict; only use secret.name"))
-	assert.Check(t, is.Contains(err.Error(), "external_secret"))
+	assert.ErrorContains(t, err, "secret.external.name and secret.name conflict; only use secret.name")
+	assert.ErrorContains(t, err, "external_secret")
 }
 
 func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
@@ -1383,7 +1354,6 @@ networks:
       name:	external_name
 `)
 
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "network.external.name and network.name conflict; only use network.name"))
-	assert.Check(t, is.Contains(err.Error(), "foo"))
+	assert.ErrorContains(t, err, "network.external.name and network.name conflict; only use network.name")
+	assert.ErrorContains(t, err, "foo")
 }

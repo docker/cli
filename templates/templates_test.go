@@ -82,7 +82,7 @@ func TestParseTruncateFunction(t *testing.T) {
 
 		t.Run("Nil Source Test with template: "+testCase.template, func(t *testing.T) {
 			var c bytes.Buffer
-			assert.Check(t, is.ErrorContains(tm.Execute(&c, nil), ""))
+			assert.Check(t, tm.Execute(&c, nil) != nil)
 			assert.Check(t, is.Equal("", c.String()))
 		})
 	}

@@ -184,22 +184,22 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 
 	// import the key to our keyStorageDir
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error()))
+	expected := fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
 	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0677))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error()))
+	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
 	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0777))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath), err.Error()))
+	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
 	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0400))
@@ -240,6 +240,6 @@ func TestLoadPubKeyFailure(t *testing.T) {
 
 	// import the key to our keyStorageDir - it should fail
 	err = loadPrivKeyBytesToStore(pubKeyBytes, privKeyImporters, pubKeyFilepath, "signer-name", cannedPasswordRetriever)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(fmt.Sprintf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", pubKeyFilepath), err.Error()))
+	expected := fmt.Sprintf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", pubKeyFilepath)
+	assert.Error(t, err, expected)
 }

@@ -67,7 +67,7 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 
 func parseMustError(t *testing.T, args string) {
 	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
-	assert.Check(t, is.ErrorContains(err, ""), args)
+	assert.ErrorContains(t, err, "", args)
 }
 
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {

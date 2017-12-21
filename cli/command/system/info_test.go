@@ -227,7 +227,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 	} {
 		cli := test.NewFakeCli(&fakeClient{})
-		assert.Check(t, prettyPrintInfo(cli, tc.dockerInfo))
+		assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
 		golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
 		if tc.warningsGolden != "" {
 			golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")

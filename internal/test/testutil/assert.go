@@ -2,14 +2,18 @@ package testutil
 
 import (
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
+
+type helperT interface {
+	Helper()
+}
 
 // ErrorContains checks that the error is not nil, and contains the expected
 // substring.
-// TODO: replace with testify if https://github.com/stretchr/testify/pull/486
-// is accepted.
+// Deprecated: use assert.Assert(t, cmp.ErrorContains(err, expected))
 func ErrorContains(t assert.TestingT, err error, expectedError string) {
-	assert.Assert(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), expectedError))
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
+	assert.ErrorContains(t, err, expectedError)
 }

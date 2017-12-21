@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"golang.org/x/net/context"
@@ -36,12 +37,13 @@ func TestCreateFilter(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(notfound, []string{"no such service: notfound"}))
 
-	expected := filters.NewArgs()
-	expected.Add("service", "idmatch")
-	expected.Add("service", "idprefixmatch")
-	expected.Add("service", "cccccccc")
-	expected.Add("node", "somenode")
-	assert.Check(t, is.DeepEqual(expected, actual))
+	expected := filters.NewArgs(
+		filters.Arg("service", "idmatch"),
+		filters.Arg("service", "idprefixmatch"),
+		filters.Arg("service", "cccccccc"),
+		filters.Arg("node", "somenode"),
+	)
+	assert.DeepEqual(t, expected, actual, cmpFilters)
 }
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
@@ -108,10 +110,11 @@ func TestRunPSQuiet(t *testing.T) {
 
 func TestUpdateNodeFilter(t *testing.T) {
 	selfNodeID := "foofoo"
-	filter := filters.NewArgs()
-	filter.Add("node", "one")
-	filter.Add("node", "two")
-	filter.Add("node", "self")
+	filter := filters.NewArgs(
+		filters.Arg("node", "one"),
+		filters.Arg("node", "two"),
+		filters.Arg("node", "self"),
+	)
 
 	client := &fakeClient{
 		infoFunc: func(_ context.Context) (types.Info, error) {
@@ -121,9 +124,12 @@ func TestUpdateNodeFilter(t *testing.T) {
 
 	updateNodeFilter(context.Background(), client, filter)
 
-	expected := filters.NewArgs()
-	expected.Add("node", "one")
-	expected.Add("node", "two")
-	expected.Add("node", selfNodeID)
-	assert.Check(t, is.DeepEqual(expected, filter))
+	expected := filters.NewArgs(
+		filters.Arg("node", "one"),
+		filters.Arg("node", "two"),
+		filters.Arg("node", selfNodeID),
+	)
+	assert.DeepEqual(t, expected, filter, cmpFilters)
 }
+
+var cmpFilters = cmp.AllowUnexported(filters.Args{})

@@ -56,7 +56,7 @@ id_rsa
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		if err := ConfigWrite(testcase.context, configs); err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
+			assert.ErrorContains(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}

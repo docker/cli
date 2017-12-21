@@ -121,19 +121,15 @@ func TestValidateKeyArgs(t *testing.T) {
 	assert.Check(t, err)
 
 	err = validateKeyArgs("a/b", pubKeyCWD)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Equal(err.Error(), "key name \"a/b\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character"))
+	assert.Error(t, err, "key name \"a/b\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
 	err = validateKeyArgs("-", pubKeyCWD)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Equal(err.Error(), "key name \"-\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character"))
+	assert.Error(t, err, "key name \"-\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
 	assert.Check(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
 	err = validateKeyArgs("a", pubKeyCWD)
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Equal(err.Error(), fmt.Sprintf("public key file already exists: \"%s/a.pub\"", pubKeyCWD)))
+	assert.Error(t, err, fmt.Sprintf("public key file already exists: \"%s/a.pub\"", pubKeyCWD))
 
 	err = validateKeyArgs("a", "/random/dir/")
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Equal(err.Error(), "public key path does not exist: \"/random/dir/\""))
+	assert.Error(t, err, "public key path does not exist: \"/random/dir/\"")
 }

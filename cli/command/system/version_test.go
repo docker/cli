@@ -23,12 +23,15 @@ func TestVersionWithoutServer(t *testing.T) {
 	})
 	cmd := NewVersionCommand(cli)
 	cmd.SetOutput(cli.Err())
-	assert.Check(t, is.ErrorContains(cmd.Execute(), ""))
-	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Client:"))
-	assert.NotContains(t, cleanTabs(cli.OutBuffer().String()), "Server:")
+	assert.ErrorContains(t, cmd.Execute(), "no server")
+	out := cli.OutBuffer().String()
+	// TODO: use an assertion like e2e/image/build_test.go:assertBuildOutput()
+	// instead of contains/not contains
+	assert.Check(t, is.Contains(out, "Client:"))
+	assert.Assert(t, !strings.Contains(out, "Server:"), "actual: %s", out)
 }
 
-func fakeServerVersion(ctx context.Context) (types.Version, error) {
+func fakeServerVersion(_ context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,
@@ -39,7 +42,7 @@ func TestVersionWithOrchestrator(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
 	cli.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "swarm"} })
 	cmd := NewVersionCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))
 }
 

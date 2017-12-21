@@ -1,9 +1,9 @@
 package template
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
@@ -43,8 +43,7 @@ func TestInvalid(t *testing.T) {
 
 	for _, template := range invalidTemplates {
 		_, err := Substitute(template, defaultMapping)
-		assert.Check(t, is.ErrorContains(err, ""))
-		assert.Check(t, is.Contains(err.Error(), "Invalid template"))
+		assert.ErrorContains(t, err, "Invalid template")
 	}
 }
 
@@ -119,9 +118,8 @@ func TestMandatoryVariableErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		_, err := Substitute(tc.template, defaultMapping)
-		assert.Check(t, is.ErrorContains(err, ""))
-		assert.IsType(t, &InvalidTemplateError{}, err)
-		testutil.ErrorContains(t, err, tc.expectedError)
+		assert.ErrorContains(t, err, tc.expectedError)
+		assert.ErrorType(t, err, reflect.TypeOf(&InvalidTemplateError{}))
 	}
 }
 

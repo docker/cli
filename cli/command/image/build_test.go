@@ -166,8 +166,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	cmd.SetArgs([]string{"github.com/docker/no-such-repository"})
 	cmd.SetOutput(ioutil.Discard)
 	err := cmd.Execute()
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "unable to prepare context: unable to 'git clone'"))
+	assert.ErrorContains(t, err, "unable to prepare context: unable to 'git clone'")
 }
 
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that a local directory

@@ -198,7 +198,7 @@ func TestGetExecExitStatus(t *testing.T) {
 			},
 		}
 		err := getExecExitStatus(context.Background(), client, execID)
-		assert.Check(t, is.DeepEqual(testcase.expectedError, err))
+		assert.Check(t, is.Equal(testcase.expectedError, err))
 	}
 }
 

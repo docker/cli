@@ -155,7 +155,7 @@ result2 5
 		testcase.context.Output = out
 		err := SearchWrite(testcase.context, results, false, 0)
 		if err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
+			assert.Check(t, is.ErrorContains(err, testcase.expected))
 		} else {
 			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}
@@ -192,7 +192,7 @@ result2
 		testcase.context.Output = out
 		err := SearchWrite(testcase.context, results, true, 0)
 		if err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
+			assert.Check(t, is.ErrorContains(err, testcase.expected))
 		} else {
 			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}
@@ -227,7 +227,7 @@ result1
 		testcase.context.Output = out
 		err := SearchWrite(testcase.context, results, false, 6)
 		if err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
+			assert.Check(t, is.ErrorContains(err, testcase.expected))
 		} else {
 			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}

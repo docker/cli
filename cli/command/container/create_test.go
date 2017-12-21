@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
@@ -23,7 +23,7 @@ import (
 func TestCIDFileNoOPWithNoFilename(t *testing.T) {
 	file, err := newCIDFile("")
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(&cidFile{}, file))
+	assert.DeepEqual(t, &cidFile{}, file, cmp.AllowUnexported(cidFile{}))
 
 	assert.Check(t, file.Write("id"))
 	assert.Check(t, file.Close())
@@ -34,7 +34,7 @@ func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
 	defer tempfile.Remove()
 
 	_, err := newCIDFile(tempfile.Path())
-	testutil.ErrorContains(t, err, "Container ID file found")
+	assert.ErrorContains(t, err, "Container ID file found")
 }
 
 func TestCIDFileCloseWithNoWrite(t *testing.T) {

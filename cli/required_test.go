@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/spf13/cobra"
 )
 
@@ -123,9 +122,7 @@ func runTestCases(t *testing.T, testCases []testCase) {
 		cmd.SetOutput(ioutil.Discard)
 
 		err := cmd.Execute()
-
-		assert.Assert(t, is.ErrorContains(err, ""), "Expected an error: %s", tc.expectedError)
-		assert.Check(t, is.Contains(err.Error(), tc.expectedError))
+		assert.ErrorContains(t, err, tc.expectedError)
 	}
 }
 

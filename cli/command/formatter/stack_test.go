@@ -57,7 +57,7 @@ bar
 		testcase.context.Output = out
 		err := StackWrite(testcase.context, stacks)
 		if err != nil {
-			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
+			assert.Check(t, is.ErrorContains(err, testcase.expected))
 		} else {
 			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}

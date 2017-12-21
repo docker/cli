@@ -79,8 +79,7 @@ func TestTrustSignCommandOfflineErrors(t *testing.T) {
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, is.ErrorContains(cmd.Execute(), ""))
-	testutil.ErrorContains(t, cmd.Execute(), "client is offline")
+	assert.ErrorContains(t, cmd.Execute(), "client is offline")
 }
 
 func TestGetOrGenerateNotaryKey(t *testing.T) {
@@ -112,7 +111,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.Check(t, notaryRepo.GetCryptoService().GetKey(rootKeyB.ID()) != nil)
 
 	// The key we retrieved should be identical to the one we generated
-	assert.Check(t, is.DeepEqual(rootKeyA, rootKeyB))
+	assert.Check(t, is.DeepEqual(rootKeyA.Public(), rootKeyB.Public()))
 
 	// Now also try with a delegation key
 	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, data.RoleName(trust.ReleasesRole))

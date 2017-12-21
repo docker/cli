@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 type dict map[string]interface{}
@@ -33,8 +32,7 @@ func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	}
 
 	err := Validate(config, "3.0")
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "Additional property helicopters is not allowed"))
+	assert.ErrorContains(t, err, "Additional property helicopters is not allowed")
 }
 
 func TestValidateAllowsXTopLevelFields(t *testing.T) {
@@ -77,8 +75,7 @@ func TestValidateInvalidVersion(t *testing.T) {
 	}
 
 	err := Validate(config, "2.1")
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Contains(err.Error(), "unsupported Compose file version: 2.1"))
+	assert.ErrorContains(t, err, "unsupported Compose file version: 2.1")
 }
 
 type array []interface{}

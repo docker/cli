@@ -22,7 +22,7 @@ func TestGetStackAPIVersion(t *testing.T) {
 	for _, test := range tests {
 		version, err := getAPIVersion(test.groups)
 		if test.err {
-			assert.Assert(t, is.ErrorContains(err, ""))
+			assert.ErrorContains(t, err, "")
 		} else {
 			assert.NilError(t, err)
 		}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
@@ -92,18 +93,22 @@ func TestStoreSaveAndGet(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		actual, err := store.Get(testcase.listRef, testcase.manifestRef)
-		if testcase.expectedErr != "" {
-			assert.Check(t, is.Error(err, testcase.expectedErr))
-			assert.Check(t, IsNotFound(err))
-			continue
-		}
-		if !assert.Check(t, err, testcase.manifestRef.String()) {
-			continue
-		}
-		assert.Check(t, is.DeepEqual(testcase.expected, actual), testcase.manifestRef.String())
+		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
+			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
+			if testcase.expectedErr != "" {
+				assert.Check(t, is.Error(err, testcase.expectedErr))
+				assert.Check(t, IsNotFound(err))
+				return
+			}
+			assert.NilError(t, err)
+			assert.DeepEqual(t, testcase.expected, actual, cmpReferenceNamed)
+		})
 	}
 }
+
+var cmpReferenceNamed = cmp.Transformer("namedref", func(r reference.Named) string {
+	return r.String()
+})
 
 func TestStoreGetList(t *testing.T) {
 	store, cleanup := newTestStore(t)
