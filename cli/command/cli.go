@@ -42,24 +42,25 @@ type Cli interface {
 	SetIn(in *InStream)
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
+	ClientInfo() ClientInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 }
 
 // DockerCli is an instance the docker command line client.
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
-	configFile     *configfile.ConfigFile
-	in             *InStream
-	out            *OutStream
-	err            io.Writer
-	client         client.APIClient
-	defaultVersion string
-	server         ServerInfo
+	configFile *configfile.ConfigFile
+	in         *InStream
+	out        *OutStream
+	err        io.Writer
+	client     client.APIClient
+	serverInfo ServerInfo
+	clientInfo ClientInfo
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
 func (cli *DockerCli) DefaultVersion() string {
-	return cli.defaultVersion
+	return cli.clientInfo.DefaultVersion
 }
 
 // Client returns the APIClient
@@ -104,7 +105,12 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
-	return cli.server
+	return cli.serverInfo
+}
+
+// ClientInfo returns the client details for the cli
+func (cli *DockerCli) ClientInfo() ClientInfo {
+	return cli.clientInfo
 }
 
 // Initialize the dockerCli runs initialization that must happen after command
@@ -125,17 +131,34 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return err
 	}
+	hasExperimental, err := isEnabled(cli.configFile.Experimental)
+	if err != nil {
+		return errors.Wrap(err, "Experimental field")
+	}
+	cli.clientInfo = ClientInfo{
+		DefaultVersion:  cli.client.ClientVersion(),
+		HasExperimental: hasExperimental,
+	}
 	cli.initializeFromClient()
 	return nil
 }
 
-func (cli *DockerCli) initializeFromClient() {
-	cli.defaultVersion = cli.client.ClientVersion()
+func isEnabled(value string) (bool, error) {
+	switch value {
+	case "enabled":
+		return true, nil
+	case "", "disabled":
+		return false, nil
+	default:
+		return false, errors.Errorf("%q is not valid, should be either enabled or disabled", value)
+	}
+}
 
+func (cli *DockerCli) initializeFromClient() {
 	ping, err := cli.client.Ping(context.Background())
 	if err != nil {
 		// Default to true if we fail to connect to daemon
-		cli.server = ServerInfo{HasExperimental: true}
+		cli.serverInfo = ServerInfo{HasExperimental: true}
 
 		if ping.APIVersion != "" {
 			cli.client.NegotiateAPIVersionPing(ping)
@@ -143,7 +166,7 @@ func (cli *DockerCli) initializeFromClient() {
 		return
 	}
 
-	cli.server = ServerInfo{
+	cli.serverInfo = ServerInfo{
 		HasExperimental: ping.Experimental,
 		OSType:          ping.OSType,
 	}
@@ -174,6 +197,12 @@ func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions 
 type ServerInfo struct {
 	HasExperimental bool
 	OSType          string
+}
+
+// ClientInfo stores details about the supported features of the client
+type ClientInfo struct {
+	HasExperimental bool
+	DefaultVersion  string
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.

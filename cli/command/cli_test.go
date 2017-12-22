@@ -1,17 +1,18 @@
 package command
 
 import (
+	"crypto/x509"
 	"os"
 	"testing"
 
-	"crypto/x509"
-
+	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -124,9 +125,47 @@ func TestInitializeFromClient(t *testing.T) {
 
 			cli := &DockerCli{client: apiclient}
 			cli.initializeFromClient()
-			assert.Equal(t, defaultVersion, cli.defaultVersion)
-			assert.Equal(t, testcase.expectedServer, cli.server)
+			assert.Equal(t, testcase.expectedServer, cli.serverInfo)
 			assert.Equal(t, testcase.negotiated, apiclient.negotiated)
+		})
+	}
+}
+
+func TestExperimentalCLI(t *testing.T) {
+	defaultVersion := "v1.55"
+
+	var testcases = []struct {
+		doc                     string
+		configfile              string
+		expectedExperimentalCLI bool
+	}{
+		{
+			doc:                     "default",
+			configfile:              `{}`,
+			expectedExperimentalCLI: false,
+		},
+		{
+			doc: "experimental",
+			configfile: `{
+	"experimental": "enabled"
+}`,
+			expectedExperimentalCLI: true,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
+			defer dir.Remove()
+			apiclient := &fakeClient{
+				version: defaultVersion,
+			}
+
+			cli := &DockerCli{client: apiclient, err: os.Stderr}
+			cliconfig.SetDir(dir.Path())
+			err := cli.Initialize(flags.NewClientOptions())
+			assert.NoError(t, err)
+			assert.Equal(t, testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental)
 		})
 	}
 }

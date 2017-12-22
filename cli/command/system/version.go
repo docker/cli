@@ -23,6 +23,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Git commit:	{{.GitCommit}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
+ Experimental:	{{.Experimental}}
 {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
@@ -69,6 +70,7 @@ type clientVersion struct {
 	Os                string
 	Arch              string
 	BuildTime         string `json:",omitempty"`
+	Experimental      bool
 }
 
 // ServerOK returns true when the client could connect to the docker server
@@ -133,6 +135,7 @@ func runVersion(dockerCli *command.DockerCli, opts *versionOptions) error {
 			BuildTime:         cli.BuildTime,
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
+			Experimental:      dockerCli.ClientInfo().HasExperimental,
 		},
 	}
 	vd.Client.Platform.Name = cli.PlatformName
