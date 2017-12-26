@@ -19,7 +19,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
-			if dockerCli.ClientInfo().HasKubernetes() {
+			if dockerCli.ClientInfo().HasKubernetes {
 				kli, err := kubernetes.WrapCli(dockerCli, cmd)
 				if err != nil {
 					return err

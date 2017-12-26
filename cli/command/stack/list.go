@@ -18,7 +18,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if dockerCli.ClientInfo().HasKubernetes() {
+			if dockerCli.ClientInfo().HasKubernetes {
 				kli, err := kubernetes.WrapCli(dockerCli, cmd)
 				if err != nil {
 					return err

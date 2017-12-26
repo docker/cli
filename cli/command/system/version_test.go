@@ -5,7 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/command"
+
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -33,21 +34,12 @@ func fakeServerVersion(ctx context.Context) (types.Version, error) {
 	}, nil
 }
 
-func TestVersionWithDefaultOrchestrator(t *testing.T) {
+func TestVersionWithOrchestrator(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
+	cli.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "swarm"} })
 	cmd := NewVersionCommand(cli)
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm")
-}
-
-func TestVersionWithOverridenOrchestrator(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
-	config := configfile.New("configfile")
-	config.Orchestrator = "Kubernetes"
-	cli.SetConfigFile(config)
-	cmd := NewVersionCommand(cli)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cleanTabs(cli.OutBuffer().String()), "Orchestrator: kubernetes")
 }
 
 func cleanTabs(line string) string {

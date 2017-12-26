@@ -136,11 +136,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return errors.Wrap(err, "Experimental field")
 	}
-	orchestrator := GetOrchestrator(opts.Common.Orchestrator, cli.configFile.Orchestrator)
+	orchestrator := GetOrchestrator(hasExperimental, opts.Common.Orchestrator, cli.configFile.Orchestrator)
 	cli.clientInfo = ClientInfo{
 		DefaultVersion:  cli.client.ClientVersion(),
 		HasExperimental: hasExperimental,
-		HasKubernetes:   orchestrator == OrchestratorKubernetes,
+		HasKubernetes:   hasExperimental && orchestrator == OrchestratorKubernetes,
 		Orchestrator:    orchestrator,
 	}
 	cli.initializeFromClient()

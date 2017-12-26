@@ -15,6 +15,7 @@ import (
 )
 
 type notaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+type clientInfoFuncType func() command.ClientInfo
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
@@ -26,6 +27,7 @@ type FakeCli struct {
 	err              *bytes.Buffer
 	in               *command.InStream
 	server           command.ServerInfo
+	clientInfoFunc   clientInfoFuncType
 	notaryClientFunc notaryClientFuncType
 }
 
@@ -86,6 +88,19 @@ func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 // ServerInfo returns API server information for the server used by this client
 func (c *FakeCli) ServerInfo() command.ServerInfo {
 	return c.server
+}
+
+// ClientInfo returns client information
+func (c *FakeCli) ClientInfo() command.ClientInfo {
+	if c.clientInfoFunc != nil {
+		return c.clientInfoFunc()
+	}
+	return c.DockerCli.ClientInfo()
+}
+
+// SetClientInfo sets the internal getter for retrieving a ClientInfo
+func (c *FakeCli) SetClientInfo(clientInfoFunc clientInfoFuncType) {
+	c.clientInfoFunc = clientInfoFunc
 }
 
 // OutBuffer returns the stdout buffer

@@ -33,7 +33,11 @@ func normalize(flag string) Orchestrator {
 
 // GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(flagValue, value string) Orchestrator {
+func GetOrchestrator(isExperimental bool, flagValue, value string) Orchestrator {
+	// Non experimental CLI has kubernetes disabled
+	if !isExperimental {
+		return defaultOrchestrator
+	}
 	// Check flag
 	if o := normalize(flagValue); o != orchestratorUnset {
 		return o

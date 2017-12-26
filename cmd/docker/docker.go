@@ -195,7 +195,24 @@ type versionDetails interface {
 	Client() client.APIClient
 	ClientInfo() command.ClientInfo
 	ServerInfo() command.ServerInfo
-	ClientInfo() command.ClientInfo
+}
+
+func hideFeatureFlag(f *pflag.Flag, hasFeature bool, annotation string) {
+	if hasFeature {
+		return
+	}
+	if _, ok := f.Annotations[annotation]; ok {
+		f.Hidden = true
+	}
+}
+
+func hideFeatureSubCommand(subcmd *cobra.Command, hasFeature bool, annotation string) {
+	if hasFeature {
+		return
+	}
+	if _, ok := subcmd.Annotations[annotation]; ok {
+		subcmd.Hidden = true
+	}
 }
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
@@ -206,27 +223,10 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 	hasKubernetes := details.ClientInfo().HasKubernetes
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// hide experimental flags
-		if !hasExperimental {
-			if _, ok := f.Annotations["experimental"]; ok {
-				f.Hidden = true
-			}
-		}
-		if !hasExperimentalCLI {
-			if _, ok := f.Annotations["experimentalCLI"]; ok {
-				f.Hidden = true
-			}
-		}
-		if !hasKubernetes {
-			if _, ok := f.Annotations["kubernetes"]; ok {
-				f.Hidden = true
-			}
-		} else {
-			if _, ok := f.Annotations["swarm"]; ok {
-				f.Hidden = true
-			}
-		}
-
+		hideFeatureFlag(f, hasExperimental, "experimental")
+		hideFeatureFlag(f, hasExperimentalCLI, "experimentalCLI")
+		hideFeatureFlag(f, hasKubernetes, "kubernetes")
+		hideFeatureFlag(f, !hasKubernetes, "swarm")
 		// hide flags not supported by the server
 		if !isOSTypeSupported(f, osType) || !isVersionSupported(f, clientVersion) {
 			f.Hidden = true
@@ -234,28 +234,10 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 	})
 
 	for _, subcmd := range cmd.Commands() {
-		// hide experimental subcommands
-		if !hasExperimental {
-			if _, ok := subcmd.Annotations["experimental"]; ok {
-				subcmd.Hidden = true
-			}
-		}
-		if !hasExperimentalCLI {
-			if _, ok := subcmd.Annotations["experimentalCLI"]; ok {
-				subcmd.Hidden = true
-			}
-		}
-
-		if !hasKubernetes {
-			if _, ok := subcmd.Annotations["kubernetes"]; ok {
-				subcmd.Hidden = true
-			}
-		} else {
-			if _, ok := subcmd.Annotations["swarm"]; ok {
-				subcmd.Hidden = true
-			}
-		}
-
+		hideFeatureSubCommand(subcmd, hasExperimental, "experimental")
+		hideFeatureSubCommand(subcmd, hasExperimentalCLI, "experimentalCLI")
+		hideFeatureSubCommand(subcmd, hasKubernetes, "kubernetes")
+		hideFeatureSubCommand(subcmd, !hasKubernetes, "swarm")
 		// hide subcommands not supported by the server
 		if subcmdVersion, ok := subcmd.Annotations["version"]; ok && versions.LessThan(clientVersion, subcmdVersion) {
 			subcmd.Hidden = true
@@ -279,7 +261,8 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 	clientVersion := details.Client().ClientVersion()
 	osType := details.ServerInfo().OSType
 	hasExperimental := details.ServerInfo().HasExperimental
-	hasKubernetes := details.ClientInfo().HasKubernetes()
+	hasKubernetes := details.ClientInfo().HasKubernetes
+	hasExperimentalCLI := details.ClientInfo().HasExperimental
 
 	errs := []string{}
 

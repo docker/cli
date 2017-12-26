@@ -170,6 +170,110 @@ func TestExperimentalCLI(t *testing.T) {
 	}
 }
 
+func TestOrchestratorSwitch(t *testing.T) {
+	defaultVersion := "v1.55"
+
+	var testcases = []struct {
+		doc                  string
+		configfile           string
+		envOrchestrator      string
+		flagOrchestrator     string
+		expectedOrchestrator string
+		expectedKubernetes   bool
+	}{
+		{
+			doc: "default",
+			configfile: `{
+				"experimental": "enabled"
+			}`,
+			expectedOrchestrator: "swarm",
+			expectedKubernetes:   false,
+		},
+		{
+			doc: "kubernetesIsExperimental",
+			configfile: `{
+				"experimental": "disabled",
+				"orchestrator": "kubernetes"
+			}`,
+			envOrchestrator:      "kubernetes",
+			flagOrchestrator:     "kubernetes",
+			expectedOrchestrator: "swarm",
+			expectedKubernetes:   false,
+		},
+		{
+			doc: "kubernetesConfigFile",
+			configfile: `{
+				"experimental": "enabled",
+				"orchestrator": "kubernetes"
+			}`,
+			expectedOrchestrator: "kubernetes",
+			expectedKubernetes:   true,
+		},
+		{
+			doc: "kubernetesEnv",
+			configfile: `{
+				"experimental": "enabled"
+			}`,
+			envOrchestrator:      "kubernetes",
+			expectedOrchestrator: "kubernetes",
+			expectedKubernetes:   true,
+		},
+		{
+			doc: "kubernetesFlag",
+			configfile: `{
+				"experimental": "enabled"
+			}`,
+			flagOrchestrator:     "kubernetes",
+			expectedOrchestrator: "kubernetes",
+			expectedKubernetes:   true,
+		},
+		{
+			doc: "envOverridesConfigFile",
+			configfile: `{
+				"experimental": "enabled",
+				"orchestrator": "kubernetes"
+			}`,
+			envOrchestrator:      "swarm",
+			expectedOrchestrator: "swarm",
+			expectedKubernetes:   false,
+		},
+		{
+			doc: "flagOverridesEnv",
+			configfile: `{
+				"experimental": "enabled"
+			}`,
+			envOrchestrator:      "kubernetes",
+			flagOrchestrator:     "swarm",
+			expectedOrchestrator: "swarm",
+			expectedKubernetes:   false,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
+			defer dir.Remove()
+			apiclient := &fakeClient{
+				version: defaultVersion,
+			}
+			if testcase.envOrchestrator != "" {
+				defer patchEnvVariable(t, "DOCKER_ORCHESTRATOR", testcase.envOrchestrator)()
+			}
+
+			cli := &DockerCli{client: apiclient, err: os.Stderr}
+			cliconfig.SetDir(dir.Path())
+			options := flags.NewClientOptions()
+			if testcase.flagOrchestrator != "" {
+				options.Common.Orchestrator = testcase.flagOrchestrator
+			}
+			err := cli.Initialize(options)
+			assert.NoError(t, err)
+			assert.Equal(t, testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes)
+			assert.Equal(t, testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator))
+		})
+	}
+}
+
 func TestGetClientWithPassword(t *testing.T) {
 	expected := "password"
 
