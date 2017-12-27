@@ -17,6 +17,7 @@ var UnsupportedProperties = []string{
 	"links",
 	"mac_address",
 	"network_mode",
+	"pid",
 	"privileged",
 	"restart",
 	"security_opt",
