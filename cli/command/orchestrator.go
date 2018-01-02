@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"os"
-	"strings"
 )
 
 // Orchestrator type acts as an enum describing supported orchestrators.
@@ -16,12 +15,12 @@ const (
 	OrchestratorSwarm = Orchestrator("swarm")
 	orchestratorUnset = Orchestrator("unset")
 
-	defaultOrchestrator = OrchestratorSwarm
-	dockerOrchestrator  = "DOCKER_ORCHESTRATOR"
+	defaultOrchestrator      = OrchestratorSwarm
+	envVarDockerOrchestrator = "DOCKER_ORCHESTRATOR"
 )
 
 func normalize(flag string) Orchestrator {
-	switch strings.ToLower(flag) {
+	switch flag {
 	case "kubernetes", "k8s":
 		return OrchestratorKubernetes
 	case "swarm", "swarmkit":
@@ -43,7 +42,7 @@ func GetOrchestrator(isExperimental bool, flagValue, value string) Orchestrator 
 		return o
 	}
 	// Check environment variable
-	env := os.Getenv(dockerOrchestrator)
+	env := os.Getenv(envVarDockerOrchestrator)
 	if o := normalize(env); o != orchestratorUnset {
 		return o
 	}

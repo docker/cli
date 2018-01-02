@@ -20,7 +20,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 		return errors.Errorf("Please specify a Compose file (with --compose-file).")
 	}
 	// Initialize clients
-	stackInterface, err := dockerCli.stacks()
+	stacks, err := dockerCli.stacks()
 	if err != nil {
 		return err
 	}
@@ -28,12 +28,12 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if err != nil {
 		return err
 	}
-	configMapInterface := composeClient.ConfigMaps()
-	secretInterface := composeClient.Secrets()
-	serviceInterface := composeClient.Services()
-	podInterface := composeClient.Pods()
+	configMaps := composeClient.ConfigMaps()
+	secrets := composeClient.Secrets()
+	services := composeClient.Services()
+	pods := composeClient.Pods()
 	watcher := DeployWatcher{
-		Pods: podInterface,
+		Pods: pods,
 	}
 
 	// Parse the compose file
@@ -43,28 +43,28 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	// FIXME(vdemeester) handle warnings server-side
-	if err = IsColliding(serviceInterface, stack, cfg); err != nil {
+	if err = IsColliding(services, stack, cfg); err != nil {
 		return err
 	}
 
-	if err = createFileBasedConfigMaps(stack.Name, cfg.Configs, configMapInterface); err != nil {
+	if err = createFileBasedConfigMaps(stack.Name, cfg.Configs, configMaps); err != nil {
 		return err
 	}
 
-	if err = createFileBasedSecrets(stack.Name, cfg.Secrets, secretInterface); err != nil {
+	if err = createFileBasedSecrets(stack.Name, cfg.Secrets, secrets); err != nil {
 		return err
 	}
 
-	if in, err := stackInterface.Get(stack.Name, metav1.GetOptions{}); err == nil {
+	if in, err := stacks.Get(stack.Name, metav1.GetOptions{}); err == nil {
 		in.Spec = stack.Spec
 
-		if _, err = stackInterface.Update(in); err != nil {
+		if _, err = stacks.Update(in); err != nil {
 			return err
 		}
 
 		fmt.Printf("Stack %s was updated\n", stack.Name)
 	} else {
-		if _, err = stackInterface.Create(stack); err != nil {
+		if _, err = stacks.Create(stack); err != nil {
 			return err
 		}
 
@@ -76,7 +76,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	<-watcher.Watch(stack, serviceNames(cfg))
 
 	fmt.Fprintf(cmdOut, "Stack %s is stable and running\n\n", stack.Name)
-	// fmt.Fprintf(cmdOut, "Read the logs with:\n  $ %s stack logs %s\n", filepath.Base(os.Args[0]), stack.Name)
+	// TODO: fmt.Fprintf(cmdOut, "Read the logs with:\n  $ %s stack logs %s\n", filepath.Base(os.Args[0]), stack.Name)
 
 	return nil
 }

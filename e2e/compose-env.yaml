@@ -8,8 +8,6 @@ services:
       image: 'docker:${TEST_ENGINE_VERSION:-edge-dind}'
       privileged: true
       command: ['--insecure-registry=registry:5000']
-      depends_on:
-          - registry
 
   notary-server:
       image: 'notary:server-0.4.2'

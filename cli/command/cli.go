@@ -140,7 +140,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	cli.clientInfo = ClientInfo{
 		DefaultVersion:  cli.client.ClientVersion(),
 		HasExperimental: hasExperimental,
-		HasKubernetes:   hasExperimental && orchestrator == OrchestratorKubernetes,
 		Orchestrator:    orchestrator,
 	}
 	cli.initializeFromClient()
@@ -206,9 +205,13 @@ type ServerInfo struct {
 // ClientInfo stores details about the supported features of the client
 type ClientInfo struct {
 	HasExperimental bool
-	HasKubernetes   bool
 	DefaultVersion  string
 	Orchestrator    Orchestrator
+}
+
+// HasKubernetes checks if kubernetes orchestrator is enabled
+func (c ClientInfo) HasKubernetes() bool {
+	return c.HasExperimental && c.Orchestrator == OrchestratorKubernetes
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.

@@ -25,8 +25,10 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.PersistentFlags()
 	flags.String("namespace", "default", "Kubernetes namespace to use")
 	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.SetAnnotation("namespace", "experimentalCLI", nil)
 	flags.String("kubeconfig", "", "Kubernetes config file")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
+	flags.SetAnnotation("kubeconfig", "experimentalCLI", nil)
 	return cmd
 }
 

@@ -126,12 +126,16 @@ func replicasToServices(replicas *appsv1beta2.ReplicaSetList, services *apiv1.Se
 		if !ok {
 			return nil, nil, fmt.Errorf("could not find service '%s'", r.Labels[labels.ForServiceName])
 		}
+		stack, ok := service.Labels[labels.ForStackName]
+		if ok {
+			stack += "_"
+		}
 		uid := string(service.UID)
 		s := swarm.Service{
 			ID: uid,
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{
-					Name: service.Name,
+					Name: stack + service.Name,
 				},
 				TaskTemplate: swarm.TaskSpec{
 					ContainerSpec: &swarm.ContainerSpec{

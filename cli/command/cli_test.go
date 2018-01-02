@@ -171,7 +171,7 @@ func TestExperimentalCLI(t *testing.T) {
 }
 
 func TestOrchestratorSwitch(t *testing.T) {
-	defaultVersion := "v1.55"
+	defaultVersion := "v0.00"
 
 	var testcases = []struct {
 		doc                  string
@@ -268,7 +268,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			}
 			err := cli.Initialize(options)
 			assert.NoError(t, err)
-			assert.Equal(t, testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes)
+			assert.Equal(t, testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes())
 			assert.Equal(t, testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator))
 		})
 	}

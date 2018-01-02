@@ -55,12 +55,12 @@ func RunPS(dockerCli *KubeCli, options options.PS) error {
 	for i, pod := range pods {
 		tasks[i] = podToTask(pod)
 	}
-	return print(dockerCli, tasks, pods, nodeResolver, !options.NoTrunc, options.Quiet, format)
+	return print(dockerCli, namespace, tasks, pods, nodeResolver, !options.NoTrunc, options.Quiet, format)
 }
 
 type idResolver func(name string) (string, error)
 
-func print(dockerCli command.Cli, tasks []swarm.Task, pods []apiv1.Pod, nodeResolver idResolver, trunc, quiet bool, format string) error {
+func print(dockerCli command.Cli, namespace string, tasks []swarm.Task, pods []apiv1.Pod, nodeResolver idResolver, trunc, quiet bool, format string) error {
 	sort.Stable(tasksBySlot(tasks))
 
 	names := map[string]string{}
@@ -78,7 +78,7 @@ func print(dockerCli command.Cli, tasks []swarm.Task, pods []apiv1.Pod, nodeReso
 			return err
 		}
 
-		names[task.ID] = pods[i].Name
+		names[task.ID] = fmt.Sprintf("%s_%s", namespace, pods[i].Name)
 		nodes[task.ID] = nodeValue
 	}
 

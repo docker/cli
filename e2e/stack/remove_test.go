@@ -2,7 +2,6 @@ package stack
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -21,9 +20,7 @@ func TestRemove(t *testing.T) {
 	deployFullStack(t, stackname)
 	defer cleanupFullStack(t, stackname)
 
-	result := icmd.RunCmd(shell(t, "docker version"))
-	fmt.Println(result.Stdout(), os.Getenv("DOCKER_HOST"), os.Getenv("TEST_DOCKER_HOST"))
-	result = icmd.RunCmd(shell(t, "docker stack rm %s", stackname))
+	result := icmd.RunCmd(shell(t, "docker stack rm %s", stackname))
 
 	result.Assert(t, icmd.Expected{Err: icmd.None})
 	golden.Assert(t, result.Stdout(), "stack-remove-success.golden")

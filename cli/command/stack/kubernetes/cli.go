@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -49,7 +50,7 @@ func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to load kubernetes configuration file '%s'", kubeConfig)
 	}
 	cli.kubeConfig = config
 
