@@ -54,6 +54,10 @@ vendor: vendor.conf ## check that vendor matches vendor.conf
 	vndr 2> /dev/null
 	scripts/validate/check-git-diff vendor
 
+.PHONY: authors
+authors: ## generate AUTHORS file from git history
+	scripts/docs/generate-authors.sh
+
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown
 	scripts/docs/generate-man.sh

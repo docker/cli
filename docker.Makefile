@@ -88,6 +88,10 @@ vendor: build_docker_image vendor.conf
 dynbinary: build_cross_image
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary
 
+.PHONY: authors
+authors: ## generate AUTHORS file from git history
+	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make authors
+
 ## generate man pages from go source and markdown
 .PHONY: manpages
 manpages: build_docker_image
