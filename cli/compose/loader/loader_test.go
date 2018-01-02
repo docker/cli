@@ -657,6 +657,7 @@ services:
      context: ./web
     links:
       - bar
+    pid: host
   db:
     image: db
     build:
@@ -670,7 +671,7 @@ services:
 	require.NoError(t, err)
 
 	unsupported := GetUnsupportedProperties(configDetails)
-	assert.Equal(t, []string{"build", "links"}, unsupported)
+	assert.Equal(t, []string{"build", "links", "pid"}, unsupported)
 }
 
 func TestBuildProperties(t *testing.T) {
