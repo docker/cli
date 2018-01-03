@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -585,4 +586,70 @@ func TestRemoveGenericResources(t *testing.T) {
 	flags.Set(flagGenericResourcesRemove, "foo")
 	assert.NoError(t, removeGenericResources(flags, task))
 	assert.Len(t, task.Resources.Reservations.GenericResources, 1)
+}
+
+func TestUpdateNetworks(t *testing.T) {
+	ctx := context.Background()
+	nws := []types.NetworkResource{
+		{Name: "aaa-network", ID: "id555"},
+		{Name: "mmm-network", ID: "id999"},
+		{Name: "zzz-network", ID: "id111"},
+	}
+
+	client := &fakeClient{
+		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
+			for _, network := range nws {
+				if network.ID == networkID || network.Name == networkID {
+					return network, nil
+				}
+			}
+			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+		},
+	}
+
+	svc := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+			Networks: []swarm.NetworkAttachmentConfig{
+				{Target: "id999"},
+			},
+		},
+	}
+
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set(flagNetworkAdd, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	require.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.EqualError(t, err, "service is already attached to network aaa-network")
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "id555")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.EqualError(t, err, "service is already attached to network id555")
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkRemove, "id999")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "mmm-network")
+	require.NoError(t, err)
+	err = flags.Set(flagNetworkRemove, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id999"}}, svc.TaskTemplate.Networks)
 }

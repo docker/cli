@@ -1119,14 +1119,16 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 
 	if flags.Changed(flagNetworkAdd) {
 		values := flags.Lookup(flagNetworkAdd).Value.(*opts.NetworkOpt)
-		networks, err := convertNetworks(ctx, apiClient, *values)
-		if err != nil {
-			return err
-		}
+		networks := convertNetworks(*values)
 		for _, network := range networks {
-			if _, exists := existingNetworks[network.Target]; exists {
+			nwID, err := resolveNetworkID(ctx, apiClient, network.Target)
+			if err != nil {
+				return err
+			}
+			if _, exists := existingNetworks[nwID]; exists {
 				return errors.Errorf("service is already attached to network %s", network.Target)
 			}
+			network.Target = nwID
 			newNetworks = append(newNetworks, network)
 			existingNetworks[network.Target] = struct{}{}
 		}
