@@ -94,8 +94,9 @@ func createFileBasedConfigMaps(stackName string, globalConfigs map[string]compos
 			return err
 		}
 
-		configMap := toConfigMap(stackName, name, fileName, content)
-		configMaps.Create(configMap)
+		if _, err := configMaps.Create(toConfigMap(stackName, name, fileName, content)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -124,8 +125,9 @@ func createFileBasedSecrets(stackName string, globalSecrets map[string]composeTy
 			return err
 		}
 
-		secret := toSecret(stackName, name, fileName, content)
-		secrets.Create(secret)
+		if _, err := secrets.Create(toSecret(stackName, name, fileName, content)); err != nil {
+			return err
+		}
 	}
 
 	return nil

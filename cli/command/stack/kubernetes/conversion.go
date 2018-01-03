@@ -37,7 +37,6 @@ func podToTask(pod apiv1.Pod) swarm.Task {
 		},
 	}
 
-	pod.GetLabels()
 	return task
 }
 
