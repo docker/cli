@@ -1,0 +1,11 @@
+version: "3.2"
+services:
+  redis:
+    image: redis:alpine
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 64M
+      replicas: 5

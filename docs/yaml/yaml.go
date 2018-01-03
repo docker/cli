@@ -15,14 +15,17 @@ import (
 )
 
 type cmdOption struct {
-	Option        string
-	Shorthand     string `yaml:",omitempty"`
-	ValueType     string `yaml:"value_type,omitempty"`
-	DefaultValue  string `yaml:"default_value,omitempty"`
-	Description   string `yaml:",omitempty"`
-	Deprecated    bool
-	MinAPIVersion string `yaml:"min_api_version,omitempty"`
-	Experimental  bool
+	Option          string
+	Shorthand       string `yaml:",omitempty"`
+	ValueType       string `yaml:"value_type,omitempty"`
+	DefaultValue    string `yaml:"default_value,omitempty"`
+	Description     string `yaml:",omitempty"`
+	Deprecated      bool
+	MinAPIVersion   string `yaml:"min_api_version,omitempty"`
+	Experimental    bool
+	ExperimentalCLI bool
+	Kubernetes      bool
+	Swarm           bool
 }
 
 type cmdDoc struct {
@@ -43,6 +46,9 @@ type cmdDoc struct {
 	Deprecated       bool
 	MinAPIVersion    string `yaml:"min_api_version,omitempty"`
 	Experimental     bool
+	ExperimentalCLI  bool
+	Kubernetes       bool
+	Swarm            bool
 }
 
 // GenYamlTree creates yaml structured ref files
@@ -109,6 +115,15 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 		}
 		if _, ok := curr.Annotations["experimental"]; ok && !cliDoc.Experimental {
 			cliDoc.Experimental = true
+		}
+		if _, ok := curr.Annotations["experimentalCLI"]; ok && !cliDoc.ExperimentalCLI {
+			cliDoc.ExperimentalCLI = true
+		}
+		if _, ok := curr.Annotations["kubernetes"]; ok && !cliDoc.Kubernetes {
+			cliDoc.Kubernetes = true
+		}
+		if _, ok := curr.Annotations["swarm"]; ok && !cliDoc.Swarm {
+			cliDoc.Kubernetes = true
 		}
 	}
 
@@ -185,6 +200,15 @@ func genFlagResult(flags *pflag.FlagSet) []cmdOption {
 		}
 		if v, ok := flag.Annotations["version"]; ok {
 			opt.MinAPIVersion = v[0]
+		}
+		if _, ok := flag.Annotations["experimentalCLI"]; ok {
+			opt.ExperimentalCLI = true
+		}
+		if _, ok := flag.Annotations["kubernetes"]; ok {
+			opt.Kubernetes = true
+		}
+		if _, ok := flag.Annotations["swarm"]; ok {
+			opt.Kubernetes = true
 		}
 
 		result = append(result, opt)

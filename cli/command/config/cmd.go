@@ -10,11 +10,14 @@ import (
 // NewConfigCommand returns a cobra command for `config` subcommands
 func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:         "config",
-		Short:       "Manage Docker configs",
-		Args:        cli.NoArgs,
-		RunE:        command.ShowHelp(dockerCli.Err()),
-		Annotations: map[string]string{"version": "1.30"},
+		Use:   "config",
+		Short: "Manage Docker configs",
+		Args:  cli.NoArgs,
+		RunE:  command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{
+			"version": "1.30",
+			"swarm":   "",
+		},
 	}
 	cmd.AddCommand(
 		newConfigListCommand(dockerCli),

@@ -44,6 +44,7 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	ClientInfo() ClientInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+	DefaultVersion() string
 }
 
 // DockerCli is an instance the docker command line client.
@@ -135,9 +136,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return errors.Wrap(err, "Experimental field")
 	}
+	orchestrator := GetOrchestrator(hasExperimental, opts.Common.Orchestrator, cli.configFile.Orchestrator)
 	cli.clientInfo = ClientInfo{
 		DefaultVersion:  cli.client.ClientVersion(),
 		HasExperimental: hasExperimental,
+		Orchestrator:    orchestrator,
 	}
 	cli.initializeFromClient()
 	return nil
@@ -203,6 +206,12 @@ type ServerInfo struct {
 type ClientInfo struct {
 	HasExperimental bool
 	DefaultVersion  string
+	Orchestrator    Orchestrator
+}
+
+// HasKubernetes checks if kubernetes orchestrator is enabled
+func (c ClientInfo) HasKubernetes() bool {
+	return c.HasExperimental && c.Orchestrator == OrchestratorKubernetes
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
