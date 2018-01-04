@@ -21,7 +21,7 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 	opts := inspectOptions{}
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] CONFIG [CONFIG...]",
-		Short: "Display detailed information on one or more configuration files",
+		Short: "Display detailed information on one or more configs",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
