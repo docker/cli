@@ -764,6 +764,7 @@ The options you can specify are:
   <th>Long syntax</th>
   <th>Description</th>
 </tr>
+</thead>
 <tr>
   <td>published and target port </td>
   <td><tt></tt></td>
