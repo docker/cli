@@ -5,9 +5,10 @@
 package v1beta1
 
 import (
+	reflect "reflect"
+
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	reflect "reflect"
 )
 
 // Deprecated: register deep-copy functions.
