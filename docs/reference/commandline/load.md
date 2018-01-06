@@ -18,7 +18,8 @@ keywords: "stdin, tarred, repository"
 ```markdown
 Usage:  docker load [OPTIONS]
 
-Load an image from a tar archive or STDIN
+Load an image or repository from a tar archive (even if compressed with gzip,
+bzip2, or xz) from a file or STDIN.
 
 Options:
       --help           Print usage
@@ -28,13 +29,13 @@ Options:
 ```
 ## Description
 
-`docker load` loads a tarred repository from a file or the standard input stream.
-It restores both images and tags.
+Load an image or repository from a tar archive (even if compressed with gzip,
+bzip2, or xz) from a file or STDIN. It restores both images and tags.
 
 ## Examples
 
 ```bash
-$ docker images
+$ docker docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 
