@@ -17,6 +17,20 @@ function setup {
     # TODO: only run if inside a container
     docker network connect "$network" "$(hostname)"
 
+    # [k8s] post setup dind
+    docker exec "${project}_engine_1" sh -c "
+            mkdir -p /var/lib/kubelet &&
+			mount -o bind /var/lib/kubelet /var/lib/kubelet &&
+			mount -o bind /run /run &&
+			mount --make-shared /var/lib/kubelet &&
+			mount --make-shared /run
+            mkdir -p /etc/cni /opt/cni/bin /var/log/pods /var/log/containers
+    "
+    # [k8s] fetch default cni plugins
+    # FIXME(vdemeester) put this into the Dockerfile.dev
+    # FIXME(vdemeester) pre-load images
+    docker cp /tmp/cni/bin "${project}_engine_1":/opt/cni
+
     engine_ip="$(container_ip "${project}_engine_1" "$network")"
     engine_host="tcp://$engine_ip:2375"
     (
@@ -24,6 +38,12 @@ function setup {
         timeout -t 200 ./scripts/test/e2e/wait-on-daemon
         ./scripts/test/e2e/load-alpine
         ./scripts/test/e2e/load-busybox
+
+        # [k8s] fetch required images
+        docker pull gcr.io/google-containers/hyperkube-amd64:v1.8.1
+        docker pull quay.io/coreos/etcd:v3.2.9
+        docker pull busybox:latest
+
         is_swarm_enabled || docker swarm init
     ) >&2
     echo "$engine_host"
