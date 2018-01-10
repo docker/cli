@@ -1,9 +1,12 @@
 package fixtures
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
 )
@@ -22,20 +25,26 @@ const (
 )
 
 //SetupConfigFile creates a config.json file for testing
-func SetupConfigFile(t *testing.T) fs.Dir {
-	dir := fs.NewDir(t, "trust_test", fs.WithMode(0700), fs.WithFile("config.json", `
-	{
-		"auths": {
+func SetupConfigFile(t *testing.T, configOps ...func(*configfile.ConfigFile)) fs.Dir {
+	config := &configfile.ConfigFile{
+		AuthConfigs: map[string]types.AuthConfig{
 			"registry:5000": {
-				"auth": "ZWlhaXM6cGFzc3dvcmQK"
+				Auth: "ZWlhaXM6cGFzc3dvcmQK",
 			},
 			"https://notary-server:4443": {
-				"auth": "ZWlhaXM6cGFzc3dvcmQK"
-			}
+				Auth: "ZWlhaXM6cGFzc3dvcmQK",
+			},
 		},
-		"experimental": "enabled"
+		Experimental: "enabled",
 	}
-	`))
+	for _, op := range configOps {
+		op(config)
+	}
+	json, err := json.Marshal(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := fs.NewDir(t, "trust_test", fs.WithMode(0700), fs.WithFile("config.json", string(json)))
 	return *dir
 }
 
