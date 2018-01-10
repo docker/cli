@@ -36,6 +36,8 @@ If you want more detailed information about a container's resource usage, use th
 
 > **Note**: On Linux, the Docker CLI reports memory usage by subtracting page cache usage from the total memory usage. The API does not perform such a calculation but rather provides the total memory usage and the amount from the page cache so that clients can use the data as needed.
 
+> **Note**: PIDS count contains the processes and kernel threads created by that process. Depending on OS, threads can be called light-weight process, kernel tasks, etc. A large number of PIDS and a small number processes (reported by `ps` or `top`) means that one process is creating lots of threads.
+
 ## Examples
 
 Running `docker stats` on all running containers against a Linux daemon.
