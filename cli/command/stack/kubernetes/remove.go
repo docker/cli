@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/docker/cli/cli/command/stack/options"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -18,6 +19,9 @@ func RunRemove(dockerCli *KubeCli, opts options.Remove) error {
 		err := stacks.Delete(stack, &metav1.DeleteOptions{})
 		if err != nil {
 			fmt.Fprintf(dockerCli.Out(), "Failed to remove stack %s: %s\n", stack, err)
+			if errors.IsNotFound(err) {
+				return nil
+			}
 			return err
 		}
 	}
