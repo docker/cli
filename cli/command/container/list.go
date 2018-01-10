@@ -14,14 +14,15 @@ import (
 )
 
 type psOptions struct {
-	quiet   bool
-	size    bool
-	all     bool
-	noTrunc bool
-	nLatest bool
-	last    int
-	format  string
-	filter  opts.FilterOpt
+	quiet      bool
+	size       bool
+	all        bool
+	noTrunc    bool
+	nLatest    bool
+	last       int
+	format     string
+	filter     opts.FilterOpt
+	namespaces bool
 }
 
 // NewPsCommand creates a new cobra.Command for `docker ps`
@@ -47,6 +48,7 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.IntVarP(&options.last, "last", "n", -1, "Show n last created containers (includes all states)")
 	flags.StringVarP(&options.format, "format", "", "", "Pretty-print containers using a Go template")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&options.namespaces, "namespaces", "N", false, "Print Linux namespaces info of running container")
 
 	return cmd
 }
@@ -131,10 +133,21 @@ func runPs(dockerCli command.Cli, options *psOptions) error {
 		}
 	}
 
+	if options.namespaces {
+		containerCtx := formatter.Context{
+			Output: dockerCli.Out(),
+			Format: formatter.NewNamespacesFormat(format),
+			Trunc:  !options.noTrunc,
+		}
+
+		return formatter.NamespacesWrite(containerCtx, containers, dockerCli)
+	}
+
 	containerCtx := formatter.Context{
 		Output: dockerCli.Out(),
 		Format: formatter.NewContainerFormat(format, options.quiet, listOptions.Size),
 		Trunc:  !options.noTrunc,
 	}
+
 	return formatter.ContainerWrite(containerCtx, containers)
 }
