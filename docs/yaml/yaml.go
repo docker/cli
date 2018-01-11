@@ -123,7 +123,7 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 			cliDoc.Kubernetes = true
 		}
 		if _, ok := curr.Annotations["swarm"]; ok && !cliDoc.Swarm {
-			cliDoc.Kubernetes = true
+			cliDoc.Swarm = true
 		}
 	}
 
@@ -208,7 +208,7 @@ func genFlagResult(flags *pflag.FlagSet) []cmdOption {
 			opt.Kubernetes = true
 		}
 		if _, ok := flag.Annotations["swarm"]; ok {
-			opt.Kubernetes = true
+			opt.Swarm = true
 		}
 
 		result = append(result, opt)
