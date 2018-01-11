@@ -277,10 +277,12 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 			if _, ok := f.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
 				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported when experimental cli features are enabled", f.Name))
 			}
-			if _, ok := f.Annotations["kubernetes"]; ok && !hasKubernetes {
+			_, isKubernetesAnnotated := f.Annotations["kubernetes"]
+			_, isSwarmAnnotated := f.Annotations["swarm"]
+			if isKubernetesAnnotated && !isSwarmAnnotated && !hasKubernetes {
 				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker cli with kubernetes features enabled", f.Name))
 			}
-			if _, ok := f.Annotations["swarm"]; ok && hasKubernetes {
+			if isSwarmAnnotated && !isKubernetesAnnotated && hasKubernetes {
 				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker cli with swarm features enabled", f.Name))
 			}
 		}
@@ -309,10 +311,13 @@ func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 		if _, ok := curr.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
 			return fmt.Errorf("%s is only supported when experimental cli features are enabled", cmd.CommandPath())
 		}
-		if _, ok := curr.Annotations["kubernetes"]; ok && !hasKubernetes {
+		_, isKubernetesAnnotated := curr.Annotations["kubernetes"]
+		_, isSwarmAnnotated := curr.Annotations["swarm"]
+
+		if isKubernetesAnnotated && !isSwarmAnnotated && !hasKubernetes {
 			return fmt.Errorf("%s is only supported on a Docker cli with kubernetes features enabled", cmd.CommandPath())
 		}
-		if _, ok := curr.Annotations["swarm"]; ok && hasKubernetes {
+		if isSwarmAnnotated && !isKubernetesAnnotated && hasKubernetes {
 			return fmt.Errorf("%s is only supported on a Docker cli with swarm features enabled", cmd.CommandPath())
 		}
 	}
