@@ -21,9 +21,9 @@ const (
 
 func normalize(flag string) Orchestrator {
 	switch flag {
-	case "kubernetes", "k8s":
+	case "kubernetes":
 		return OrchestratorKubernetes
-	case "swarm", "swarmkit":
+	case "swarm":
 		return OrchestratorSwarm
 	default:
 		return orchestratorUnset
