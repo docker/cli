@@ -60,13 +60,7 @@ by the `docker` command line:
 
 * `DOCKER_API_VERSION` The API version to use (e.g. `1.19`)
 * `DOCKER_CONFIG` The location of your client configuration files.
-* `DOCKER_CERT_PATH` The location of your authentication keys.
-* `DOCKER_DRIVER` The graph driver to use.
 * `DOCKER_HOST` Daemon socket to connect to.
-* `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
-  unsuitable for Docker.
-* `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
-* `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
 * `DOCKER_CONTENT_TRUST` When set Docker uses notary to sign and verify images.
   Equates to `--disable-content-trust=false` for build, create, pull, push, run.
 * `DOCKER_CONTENT_TRUST_SERVER` The URL of the Notary server to use. This defaults
@@ -74,7 +68,12 @@ by the `docker` command line:
 * `DOCKER_HIDE_LEGACY_COMMANDS` When set, Docker hides "legacy" top-level commands (such as `docker rm`, and
   `docker pull`) in `docker help` output, and only `Management commands` per object-type (e.g., `docker container`) are
   printed. This may become the default in a future release, at which point this environment-variable is removed.
-* `DOCKER_TMPDIR` Location for temporary Docker files.
+
+#### Shared Environment variables
+These environment variables can be used both with the `docker` command line and `dockerd` command line:
+* `DOCKER_CERT_PATH` The location of your authentication keys.
+* `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
+
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:

@@ -110,6 +110,17 @@ the `daemon.json` file.
 > `daemon.json` file. In earlier Docker versions, a different build was required
 > to enable experimental features.
 
+### Environment variables
+
+For easy reference, the following list of environment variables are supported
+by the `dockerd` command line:
+
+* `DOCKER_DRIVER` The graph driver to use.
+* `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
+  unsuitable for Docker.
+* `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
+* `DOCKER_TMPDIR` Location for temporary Docker files.
+
 ## Examples
 
 ### Daemon socket option
