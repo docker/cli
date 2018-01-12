@@ -120,6 +120,7 @@ by the `dockerd` command line:
   unsuitable for Docker.
 * `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
 * `DOCKER_TMPDIR` Location for temporary Docker files.
+* `MOBY_DISABLE_PIGZ` Do not use unpigz to decompress layers, even if it is installed
 
 ## Examples
 
