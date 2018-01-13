@@ -249,12 +249,7 @@ func isSupported(cmd *cobra.Command, details versionDetails) error {
 	if err := areSubcommandsSupported(cmd, details); err != nil {
 		return err
 	}
-
-	if err := areFlagsSupported(cmd, details); err != nil {
-		return err
-	}
-
-	return nil
+	return areFlagsSupported(cmd, details)
 }
 
 func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {

@@ -79,10 +79,7 @@ func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string
 	if _, err := io.WriteString(f, filePrepender(filename)); err != nil {
 		return err
 	}
-	if err := GenYamlCustom(cmd, f); err != nil {
-		return err
-	}
-	return nil
+	return GenYamlCustom(cmd, f)
 }
 
 // GenYamlCustom creates custom yaml output

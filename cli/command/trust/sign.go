@@ -243,8 +243,5 @@ func addStagedSigner(notaryRepo client.Repository, newSigner data.RoleName, sign
 	if err := notaryRepo.AddDelegationRoleAndKeys(trust.ReleasesRole, signerKeys); err != nil {
 		return err
 	}
-	if err := notaryRepo.AddDelegationPaths(trust.ReleasesRole, []string{""}); err != nil {
-		return err
-	}
-	return nil
+	return notaryRepo.AddDelegationPaths(trust.ReleasesRole, []string{""})
 }
