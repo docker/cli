@@ -131,8 +131,5 @@ func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes b
 	if err = notaryRepo.RemoveDelegationRole(signerDelegation); err != nil {
 		return err
 	}
-	if err = notaryRepo.Publish(); err != nil {
-		return err
-	}
-	return nil
+	return notaryRepo.Publish()
 }
