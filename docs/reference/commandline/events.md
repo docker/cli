@@ -31,7 +31,12 @@ Options:
 ## Description
 
 Use `docker events` to get real-time events from the server. These events differ
-per Docker object type.
+per Docker object type. Different event types have different scopes. Local 
+scoped events are only seen on the node they take place on, and swarm scoped 
+events are seen on all managers.
+
+Only the last 1000 log events are returned. You can use filters to further limit 
+the number of events returned.
 
 ### Object types
 
@@ -159,6 +164,9 @@ timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
 that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
+
+Only the last 1000 log events are returned. You can use filters to further limit 
+the number of events returned.
 
 #### Filtering
 
