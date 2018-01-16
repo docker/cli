@@ -98,7 +98,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 				assert.Equal(t, true, options.Force)
 				return []types.ImageDeleteResponseItem{}, notFound{"image1"}
 			},
-			expectedStderr: "Error: No such image: image1",
+			expectedStderr: "Error: No such image: image1\n",
 		},
 
 		{
