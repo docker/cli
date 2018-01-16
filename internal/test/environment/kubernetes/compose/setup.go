@@ -167,7 +167,7 @@ func createCustomResourceDefinition(crds *apiextensionsclient.Clientset, plural 
 		}
 
 		for _, cond := range crd.Status.Conditions {
-			if cond.Type == apiextensionsv1beta1.Established && cond.Status == apiextensionsv1beta1.ConditionTrue { // TODO: replace ExtensionConditionTrue by ConditionTrue
+			if cond.Type == apiextensionsv1beta1.Established && cond.Status == apiextensionsv1beta1.ConditionTrue {
 				return true, err
 			}
 		}

@@ -15,8 +15,12 @@ import (
 	"time"
 )
 
+const (
+	certValidityDuration = 365 * 24 * time.Hour
+)
+
 func generateCertificates(hostname string) (*certAuthority, map[string]cert, error) {
-	ca, err := newCertAuthority("docker-kube", 10*365*24*time.Hour)
+	ca, err := newCertAuthority("docker-kube", certValidityDuration)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -29,7 +33,7 @@ func generateCertificates(hostname string) (*certAuthority, map[string]cert, err
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		hostnames,
 		ips,
-		10*365*24*time.Hour)
+		certValidityDuration)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,12 +43,12 @@ func generateCertificates(hostname string) (*certAuthority, map[string]cert, err
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		nil,
 		nil,
-		10*365*24*time.Hour)
+		certValidityDuration)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	frontCA, err := newCertAuthority("docker-kube-front", 10*365*24*time.Hour)
+	frontCA, err := newCertAuthority("docker-kube-front", certValidityDuration)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -54,7 +58,7 @@ func generateCertificates(hostname string) (*certAuthority, map[string]cert, err
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		nil,
 		nil,
-		10*365*24*time.Hour)
+		certValidityDuration)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -98,7 +102,7 @@ func newPVK() (*rsa.PrivateKey, error) {
 }
 
 func newCertAuthority(commonName string, validity time.Duration) (*certAuthority, error) {
-	privateKey, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	privateKey, err := newPVK()
 	if err != nil {
 		return nil, err
 	}

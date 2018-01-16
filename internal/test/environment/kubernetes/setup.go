@@ -19,6 +19,12 @@ import (
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/gotestyourself/gotestyourself/poll"
+	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -98,7 +104,105 @@ func Setup(ctx context.Context, w io.Writer, kubeconfig string) error {
 	fmt.Fprintln(w, "Starting kube-dns...")
 	poll.WaitOn(t, applyYaml(ctx, kubeconfig, kubeDNSYaml), poll.WithDelay(500*time.Millisecond), poll.WithTimeout(15*time.Second))
 
-	return starter.startContainer("kube-proxy", proxyContainerConfig(hyperkubeImage), proxyHostConfig)
+	if err := starter.startContainer("kube-proxy", proxyContainerConfig(hyperkubeImage), proxyHostConfig); err != nil {
+		return err
+	}
+	return isKubernetesRunning(t, kubeconfig)
+}
+
+func isKubernetesRunning(t poll.TestingT, kubeconfigPath string) error {
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return err
+	}
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	toCheck, err := parseLabels([]string{"k8s-app=kube-dns"})
+	// toCheck, err := parseLabels([]string{"k8s-app=kube-dns", "component=kube-controller-manager", "component=kube-apiserver"})
+	if err != nil {
+		return err
+	}
+	poll.WaitOn(t, isKubernetesNodeReady(client), poll.WithDelay(1*time.Second), poll.WithTimeout(1*time.Minute))
+	poll.WaitOn(t, isSystemPodsReady(client, toCheck), poll.WithDelay(1*time.Second), poll.WithTimeout(1*time.Minute))
+	return nil
+}
+
+func isKubernetesNodeReady(client kubernetes.Interface) func(poll.LogT) poll.Result {
+	return func(poll.LogT) poll.Result {
+		condition, err := lastCondition(client.CoreV1().Nodes().List(metav1.ListOptions{}))
+		if err != nil {
+			return poll.Continue("node is not ready")
+		}
+		if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {
+			return poll.Success()
+		}
+		return poll.Continue("node is not ready")
+	}
+}
+
+func isSystemPodsReady(client kubernetes.Interface, toCheck []labels.Selector) func(poll.LogT) poll.Result {
+	return func(poll.LogT) poll.Result {
+		pods, err := client.CoreV1().Pods("kube-system").List(metav1.ListOptions{})
+		if err != nil {
+			return poll.Continue("system pods not ready")
+		}
+		seen := make(map[string]bool)
+		for _, pod := range pods.Items {
+			for _, label := range toCheck {
+				if label.Matches(labels.Set(pod.ObjectMeta.Labels)) {
+					if isRunning(pod) {
+						seen[label.String()] = true
+					} else {
+						return poll.Continue("system pods not ready, " + pod.GetName() + " not running")
+					}
+				}
+			}
+		}
+		if len(seen) == len(toCheck) {
+			return poll.Success()
+		}
+		return poll.Continue("systemd pods not ready")
+	}
+}
+
+func lastCondition(nodes *corev1.NodeList, err error) (*corev1.NodeCondition, error) {
+	if err != nil {
+		return nil, err
+	}
+	if len(nodes.Items) != 1 {
+		return nil, errors.New("Size of node list != 1")
+	}
+	conditions := nodes.Items[0].Status.Conditions
+	if len(conditions) == 0 {
+		return nil, errors.New("No condition in node status")
+	}
+	return &conditions[len(conditions)-1], nil
+}
+
+func isRunning(pod corev1.Pod) bool {
+	for _, cs := range pod.Status.ContainerStatuses {
+		if cs.State.Running == nil {
+			return false
+		}
+	}
+	return true
+}
+
+func parseLabels(input []string) ([]labels.Selector, error) {
+	var parsed []labels.Selector
+	for _, label := range input {
+		f, err := labels.Parse(label)
+		if err != nil {
+			return parsed, err
+		}
+		parsed = append(parsed, f)
+	}
+	return parsed, nil
 }
 
 func writeKubeConfig(hostname, kubeconfig string, ca *certAuthority) error {
@@ -331,7 +435,7 @@ type fakeT struct {
 
 func (t *fakeT) Fatalf(format string, args ...interface{}) {
 	t.failed = fmt.Sprintf(format, args...)
-	panic("exit wait on")
+	panic("exit wait on: " + t.failed)
 }
 
 func (t *fakeT) Log(args ...interface{}) {
