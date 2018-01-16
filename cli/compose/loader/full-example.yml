@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.6"
 
 services:
   foo:
@@ -10,7 +10,7 @@ services:
         foo: bar
       target: foo
       network: foo
-      cache_from: 
+      cache_from:
         - foo
         - bar
       labels: [FOO=BAR]
@@ -249,6 +249,10 @@ services:
         source: ./opt
         target: /opt
         consistency: cached
+      - type: tmpfs
+        target: /opt
+        tmpfs:
+          size: 10000
 
     working_dir: /code
 
