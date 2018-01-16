@@ -22,43 +22,37 @@ func Volumes(serviceVolumes []composetypes.ServiceVolumeConfig, stackVolumes vol
 	return mounts, nil
 }
 
-func convertVolumeToMount(
+func createMountFromVolume(volume composetypes.ServiceVolumeConfig) mount.Mount {
+	return mount.Mount{
+		Type:        mount.Type(volume.Type),
+		Target:      volume.Target,
+		ReadOnly:    volume.ReadOnly,
+		Source:      volume.Source,
+		Consistency: mount.Consistency(volume.Consistency),
+	}
+}
+
+func handleVolumeToMount(
 	volume composetypes.ServiceVolumeConfig,
 	stackVolumes volumes,
 	namespace Namespace,
 ) (mount.Mount, error) {
-	result := mount.Mount{
-		Type:        mount.Type(volume.Type),
-		Source:      volume.Source,
-		Target:      volume.Target,
-		ReadOnly:    volume.ReadOnly,
-		Consistency: mount.Consistency(volume.Consistency),
-	}
+	result := createMountFromVolume(volume)
 
+	if volume.Tmpfs != nil {
+		return mount.Mount{}, errors.New("tmpfs options are incompatible with type volume")
+	}
+	if volume.Bind != nil {
+		return mount.Mount{}, errors.New("bind options are incompatible with type volume")
+	}
 	// Anonymous volumes
 	if volume.Source == "" {
-		return result, nil
-	}
-	if volume.Type == "volume" && volume.Bind != nil {
-		return result, errors.New("bind options are incompatible with type volume")
-	}
-	if volume.Type == "bind" && volume.Volume != nil {
-		return result, errors.New("volume options are incompatible with type bind")
-	}
-
-	if volume.Bind != nil {
-		result.BindOptions = &mount.BindOptions{
-			Propagation: mount.Propagation(volume.Bind.Propagation),
-		}
-	}
-	// Binds volumes
-	if volume.Type == "bind" {
 		return result, nil
 	}
 
 	stackVolume, exists := stackVolumes[volume.Source]
 	if !exists {
-		return result, errors.Errorf("undefined volume %q", volume.Source)
+		return mount.Mount{}, errors.Errorf("undefined volume %q", volume.Source)
 	}
 
 	result.Source = namespace.Scope(volume.Source)
@@ -85,6 +79,62 @@ func convertVolumeToMount(
 		}
 	}
 
-	// Named volumes
 	return result, nil
+}
+
+func handleBindToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, error) {
+	result := createMountFromVolume(volume)
+
+	if volume.Source == "" {
+		return mount.Mount{}, errors.New("invalid bind source, source cannot be empty")
+	}
+	if volume.Volume != nil {
+		return mount.Mount{}, errors.New("volume options are incompatible with type bind")
+	}
+	if volume.Tmpfs != nil {
+		return mount.Mount{}, errors.New("tmpfs options are incompatible with type bind")
+	}
+	if volume.Bind != nil {
+		result.BindOptions = &mount.BindOptions{
+			Propagation: mount.Propagation(volume.Bind.Propagation),
+		}
+	}
+	return result, nil
+}
+
+func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, error) {
+	result := createMountFromVolume(volume)
+
+	if volume.Source != "" {
+		return mount.Mount{}, errors.New("invalid tmpfs source, source must be empty")
+	}
+	if volume.Bind != nil {
+		return mount.Mount{}, errors.New("bind options are incompatible with type tmpfs")
+	}
+	if volume.Volume != nil {
+		return mount.Mount{}, errors.New("volume options are incompatible with type tmpfs")
+	}
+	if volume.Tmpfs != nil {
+		result.TmpfsOptions = &mount.TmpfsOptions{
+			SizeBytes: volume.Tmpfs.Size,
+		}
+	}
+	return result, nil
+}
+
+func convertVolumeToMount(
+	volume composetypes.ServiceVolumeConfig,
+	stackVolumes volumes,
+	namespace Namespace,
+) (mount.Mount, error) {
+
+	switch volume.Type {
+	case "volume", "":
+		return handleVolumeToMount(volume, stackVolumes, namespace)
+	case "bind":
+		return handleBindToMount(volume)
+	case "tmpfs":
+		return handleTmpfsToMount(volume)
+	}
+	return mount.Mount{}, errors.New("volume type must be volume, bind, or tmpfs")
 }

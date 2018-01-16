@@ -23,7 +23,6 @@ var UnsupportedProperties = []string{
 	"security_opt",
 	"shm_size",
 	"sysctls",
-	"tmpfs",
 	"ulimits",
 	"userns_mode",
 }
@@ -284,6 +283,7 @@ type ServiceVolumeConfig struct {
 	Consistency string
 	Bind        *ServiceVolumeBind
 	Volume      *ServiceVolumeVolume
+	Tmpfs       *ServiceVolumeTmpfs
 }
 
 // ServiceVolumeBind are options for a service volume of type bind
@@ -294,6 +294,11 @@ type ServiceVolumeBind struct {
 // ServiceVolumeVolume are options for a service volume of type volume
 type ServiceVolumeVolume struct {
 	NoCopy bool `mapstructure:"nocopy"`
+}
+
+// ServiceVolumeTmpfs are options for a service volume of type tmpfs
+type ServiceVolumeTmpfs struct {
+	Size int64
 }
 
 // FileReferenceConfig for a reference to a swarm file object

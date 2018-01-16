@@ -1149,6 +1149,9 @@ func TestFullExample(t *testing.T) {
 			{Source: homeDir + "/configs", Target: "/etc/configs/", Type: "bind", ReadOnly: true},
 			{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
 			{Source: workingDir + "/opt", Target: "/opt", Consistency: "cached", Type: "bind"},
+			{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
+				Size: int64(10000),
+			}},
 		},
 		WorkingDir: "/code",
 	}
@@ -1218,6 +1221,106 @@ func TestFullExample(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedVolumeConfig, config.Volumes)
+}
+
+func TestLoadTmpfsVolume(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 10000
+`)
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Target: "/app",
+		Type:   "tmpfs",
+		Tmpfs: &types.ServiceVolumeTmpfs{
+			Size: int64(10000),
+		},
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadTmpfsVolumeAdditionalPropertyNotAllowed(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 10000
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
+}
+
+func TestLoadTmpfsVolumeSizeCanBeZero(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 0
+`)
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Target: "/app",
+		Type:   "tmpfs",
+		Tmpfs:  &types.ServiceVolumeTmpfs{},
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadTmpfsVolumeSizeMustBeGTEQZero(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: -1
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0")
+}
+
+func TestLoadTmpfsVolumeSizeMustBeInteger(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 0.0001
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size must be a integer")
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
