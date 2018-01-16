@@ -300,6 +300,15 @@
                     "properties": {
                       "nocopy": {"type": "boolean"}
                     }
+                  },
+                  "tmpfs": {
+                    "type": "object",
+                    "properties": {
+                      "size": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
                   }
                 },
                 "additionalProperties": false
