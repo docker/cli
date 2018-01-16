@@ -34,11 +34,8 @@ function setup {
         timeout -t 200 ./scripts/test/e2e/wait-on-daemon
         ./scripts/test/e2e/load-alpine
         ./scripts/test/e2e/load-busybox
-
         # [k8s] fetch required images
-        docker pull gcr.io/google-containers/hyperkube-amd64:v1.8.1
-        docker pull quay.io/coreos/etcd:v3.2.9
-        docker pull busybox:latest
+        ./scripts/test/e2e/load-kube
 
         is_swarm_enabled || docker swarm init
     ) >&2

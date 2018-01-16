@@ -5,4 +5,5 @@ src=busybox@sha256:3e8fa85ddfef1af9ca85a5cfb714148956984e02f00bec3f7f49d3925a91e
 dest=registry:5000/busybox:1.27.2
 docker pull $src
 docker tag $src $dest
+docker tag $src busybox:latest
 docker push $dest
