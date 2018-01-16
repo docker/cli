@@ -10,10 +10,6 @@ RUN     export URL=https://download.docker.com/linux/static; \
         mv docker/docker /usr/local/bin/ && \
         rmdir docker
 
-ARG     CNI_PLUGINS_VERSION=v0.6.0
-RUN     mkdir -p /tmp/cni/bin && \
-        curl -Ls https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-amd64-${CNI_PLUGINS_VERSION}.tgz | tar -xz -C /tmp/cni/bin
-
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /work
 COPY    scripts/test/e2e scripts/test/e2e

@@ -1,0 +1,14 @@
+FROM    golang:1.9.2-alpine3.6
+
+RUN     apk add -U git make bash coreutils ca-certificates curl
+
+ARG     KUBECTL_VERSION=v1.8.0
+RUN     export URL=https://storage.googleapis.com; \
+        curl -Ls $URL/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
+        chmod +x /usr/local/bin/kubectl
+
+ENV     CGO_ENABLED=0 \
+        PATH=$PATH:/go/src/github.com/docker/cli/build \
+        DISABLE_WARN_OUTSIDE_CONTAINER=1
+WORKDIR /go/src/github.com/docker/cli
+CMD     sh

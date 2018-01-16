@@ -26,10 +26,6 @@ function setup {
 			mount --make-shared /run
             mkdir -p /etc/cni /opt/cni/bin /var/log/pods /var/log/containers
     "
-    # [k8s] fetch default cni plugins
-    # FIXME(vdemeester) put this into the Dockerfile.dev
-    # FIXME(vdemeester) pre-load images
-    docker cp /tmp/cni/bin "${project}_engine_1":/opt/cni
 
     engine_ip="$(container_ip "${project}_engine_1" "$network")"
     engine_host="tcp://$engine_ip:2375"

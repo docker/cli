@@ -24,11 +24,6 @@ RUN     go get -d github.com/dnephin/filewatcher && \
         go build -v -o /usr/bin/filewatcher . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     KUBECTL_VERSION=v1.8.0
-RUN     export URL=https://storage.googleapis.com; \
-        curl -Ls $URL/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
-        chmod +x /usr/local/bin/kubectl
-
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
         DISABLE_WARN_OUTSIDE_CONTAINER=1
