@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/manifest"
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/plugin"
@@ -39,11 +40,14 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 		image.NewImageCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
 
-		// node
-		node.NewNodeCommand(dockerCli),
+		// manifest
+		manifest.NewManifestCommand(dockerCli),
 
 		// network
 		network.NewNetworkCommand(dockerCli),
+
+		// node
+		node.NewNodeCommand(dockerCli),
 
 		// plugin
 		plugin.NewPluginCommand(dockerCli),

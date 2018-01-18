@@ -9,6 +9,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
+	manifeststore "github.com/docker/cli/cli/manifest/store"
+	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/client"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -29,6 +31,8 @@ type FakeCli struct {
 	server           command.ServerInfo
 	clientInfoFunc   clientInfoFuncType
 	notaryClientFunc notaryClientFuncType
+	manifestStore    manifeststore.Store
+	registryClient   registryclient.RegistryClient
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -124,4 +128,24 @@ func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []st
 		return c.notaryClientFunc(imgRefAndAuth, actions)
 	}
 	return nil, fmt.Errorf("no notary client available unless defined")
+}
+
+// ManifestStore returns a fake store used for testing
+func (c *FakeCli) ManifestStore() manifeststore.Store {
+	return c.manifestStore
+}
+
+// RegistryClient returns a fake client for testing
+func (c *FakeCli) RegistryClient(insecure bool) registryclient.RegistryClient {
+	return c.registryClient
+}
+
+// SetManifestStore on the fake cli
+func (c *FakeCli) SetManifestStore(store manifeststore.Store) {
+	c.manifestStore = store
+}
+
+// SetRegistryClient on the fake cli
+func (c *FakeCli) SetRegistryClient(client registryclient.RegistryClient) {
+	c.registryClient = client
 }
