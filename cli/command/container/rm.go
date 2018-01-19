@@ -67,7 +67,11 @@ func runRm(dockerCli command.Cli, opts *rmOptions) error {
 		fmt.Fprintln(dockerCli.Out(), name)
 	}
 	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+		msg := strings.Join(errs, "\n")
+		if !opts.force {
+			return errors.New(msg)
+		}
+		fmt.Fprintln(dockerCli.Err(), msg)
 	}
 	return nil
 }
