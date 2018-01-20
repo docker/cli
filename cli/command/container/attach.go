@@ -1,12 +1,14 @@
 package container
 
 import (
+	"fmt"
 	"io"
 	"net/http/httputil"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/pkg/errors"
@@ -65,6 +67,9 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
+
+	// request channel to wait for client
+	resultC, errC := client.ContainerWait(ctx, opts.container, "")
 
 	c, err := inspectContainerAndCheckState(ctx, client, opts.container)
 	if err != nil {
@@ -140,7 +145,24 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	if errAttach != nil {
 		return errAttach
 	}
-	return getExitStatus(ctx, dockerCli.Client(), opts.container)
+
+	return getExitStatus(errC, resultC)
+}
+
+func getExitStatus(errC <-chan error, resultC <-chan container.ContainerWaitOKBody) error {
+	select {
+	case result := <-resultC:
+		if result.Error != nil {
+			return fmt.Errorf(result.Error.Message)
+		}
+		if result.StatusCode != 0 {
+			return cli.StatusError{StatusCode: int(result.StatusCode)}
+		}
+	case err := <-errC:
+		return err
+	}
+
+	return nil
 }
 
 func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
@@ -156,20 +178,4 @@ func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
 	if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
 		logrus.Debugf("Error monitoring TTY size: %s", err)
 	}
-}
-
-func getExitStatus(ctx context.Context, apiclient client.ContainerAPIClient, containerID string) error {
-	container, err := apiclient.ContainerInspect(ctx, containerID)
-	if err != nil {
-		// If we can't connect, then the daemon probably died.
-		if !client.IsErrConnectionFailed(err) {
-			return err
-		}
-		return cli.StatusError{StatusCode: -1}
-	}
-	status := container.State.ExitCode
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
-	}
-	return nil
 }
