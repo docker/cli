@@ -337,7 +337,9 @@ func LoadService(name string, serviceDict map[string]interface{}, workingDir str
 		return nil, err
 	}
 
-	resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv)
+	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv); err != nil {
+		return nil, err
+	}
 	return serviceConfig, nil
 }
 
@@ -376,10 +378,14 @@ func resolveEnvironment(serviceConfig *types.ServiceConfig, workingDir string, l
 	return nil
 }
 
-func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, lookupEnv template.Mapping) {
+func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, lookupEnv template.Mapping) error {
 	for i, volume := range volumes {
 		if volume.Type != "bind" {
 			continue
+		}
+
+		if volume.Source == "" {
+			return errors.New(`invalid mount config for type "bind": field Source must not be empty`)
 		}
 
 		filePath := expandUser(volume.Source, lookupEnv)
@@ -394,6 +400,7 @@ func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, 
 		volume.Source = filePath
 		volumes[i] = volume
 	}
+	return nil
 }
 
 // TODO: make this more robust

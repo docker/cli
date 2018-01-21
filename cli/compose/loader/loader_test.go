@@ -1266,6 +1266,46 @@ services:
 	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
 }
 
+func TestLoadBindMountSourceMustNotBeEmpty(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: bind
+        target: /app
+`)
+	require.EqualError(t, err, `invalid mount config for type "bind": field Source must not be empty`)
+}
+
+func TestLoadBindMountWithSource(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.5"
+services:
+  bind:
+    image: nginx:latest
+    volumes:
+      - type: bind
+        target: /app
+        source: "."
+`)
+	require.NoError(t, err)
+
+	workingDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Type:   "bind",
+		Source: workingDir,
+		Target: "/app",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
 func TestLoadTmpfsVolumeSizeCanBeZero(t *testing.T) {
 	config, err := loadYAML(`
 version: "3.6"
