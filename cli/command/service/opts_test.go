@@ -1,12 +1,17 @@
 package service
 
 import (
+	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMemBytesString(t *testing.T) {
@@ -122,4 +127,38 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		assert.Len(t, r.Reservations.GenericResources, len(opt.resGenericResources))
 	}
 
+}
+
+func TestToServiceNetwork(t *testing.T) {
+	nws := []types.NetworkResource{
+		{Name: "aaa-network", ID: "id555"},
+		{Name: "mmm-network", ID: "id999"},
+		{Name: "zzz-network", ID: "id111"},
+	}
+
+	client := &fakeClient{
+		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
+			for _, network := range nws {
+				if network.ID == networkID || network.Name == networkID {
+					return network, nil
+				}
+			}
+			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+		},
+	}
+
+	nwo := opts.NetworkOpt{}
+	nwo.Set("zzz-network")
+	nwo.Set("mmm-network")
+	nwo.Set("aaa-network")
+
+	o := newServiceOptions()
+	o.mode = "replicated"
+	o.networks = nwo
+
+	ctx := context.Background()
+	flags := newCreateCommand(nil).Flags()
+	service, err := o.ToService(ctx, client, flags)
+	require.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks)
 }
