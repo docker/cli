@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/service/progress"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
@@ -56,9 +57,12 @@ func runRollback(dockerCli command.Cli, options *serviceOptions, serviceID strin
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach.Immediate() || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return progress.WaitOnService(ctx, dockerCli, serviceID, progress.WaitOnServiceOptions{
+		Quiet:   options.quiet,
+		Timeout: options.detach.Timeout(),
+	})
 }

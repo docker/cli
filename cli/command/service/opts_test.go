@@ -6,7 +6,9 @@ import (
 
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMemBytesString(t *testing.T) {
@@ -121,5 +123,75 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, r.Reservations.GenericResources, len(opt.resGenericResources))
 	}
+}
 
+func durationPtr(duration time.Duration) *time.Duration {
+	return &duration
+}
+
+func TestDetachOptSet(t *testing.T) {
+	var testcases = []struct {
+		value       string
+		expectedErr string
+		expected    detachOpt
+	}{
+		{value: "true", expected: detachOpt{immediate: true}},
+		{value: "false", expected: detachOpt{}},
+		{
+			value:    "10s",
+			expected: detachOpt{timeout: durationPtr(10 * time.Second)},
+		},
+		{
+			value:       "invalid",
+			expectedErr: "invalid bool or duration: invalid",
+		},
+		{
+			value:    "after=20s",
+			expected: detachOpt{timeout: durationPtr(20 * time.Second)},
+		},
+		{
+			value:       "after=",
+			expectedErr: "invalid bool or duration: after=",
+		},
+	}
+
+	for _, testcase := range testcases {
+		opt := detachOpt{}
+		err := opt.Set(testcase.value)
+		if testcase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testcase.expected, opt)
+		} else {
+			assert.EqualError(t, err, testcase.expectedErr)
+		}
+	}
+}
+
+func TestDetachOptString(t *testing.T) {
+	var testcases = []struct {
+		value    string
+		expected string
+	}{
+		{value: "true", expected: "true"},
+		{value: "false", expected: "false"},
+		{value: "10s", expected: "timeout=10s"},
+		{value: "2m", expected: "timeout=2m0s"},
+	}
+
+	for _, testcase := range testcases {
+		opt := &detachOpt{}
+		if assert.NoError(t, opt.Set(testcase.value)) {
+			assert.Equal(t, testcase.expected, opt.String())
+		}
+	}
+}
+
+func TestAddDetachFlagDefaultFlagValue(t *testing.T) {
+	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
+	detach := detachOpt{}
+	addDetachFlag(flags, &detach)
+
+	err := flags.Parse([]string{"--detach"})
+	require.NoError(t, err)
+	assert.Equal(t, detachOpt{immediate: true}, detach)
 }

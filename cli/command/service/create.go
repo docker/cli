@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/service/progress"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
@@ -127,9 +128,12 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
 
-	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if opts.detach.Immediate() || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, response.ID, opts.quiet)
+	return progress.WaitOnService(ctx, dockerCli, response.ID, progress.WaitOnServiceOptions{
+		Quiet:   opts.quiet,
+		Timeout: opts.detach.Timeout(),
+	})
 }
