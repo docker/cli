@@ -27,15 +27,15 @@ func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
 		Cli:           dockerCli,
 		kubeNamespace: "default",
 	}
-	if cmd.PersistentFlags().Changed("namespace") {
-		cli.kubeNamespace, err = cmd.PersistentFlags().GetString("namespace")
+	if cmd.Flags().Changed("namespace") {
+		cli.kubeNamespace, err = cmd.Flags().GetString("namespace")
 		if err != nil {
 			return nil, err
 		}
 	}
 	kubeConfig := ""
-	if cmd.PersistentFlags().Changed("kubeconfig") {
-		kubeConfig, err = cmd.PersistentFlags().GetString("kubeconfig")
+	if cmd.Flags().Changed("kubeconfig") {
+		kubeConfig, err = cmd.Flags().GetString("kubeconfig")
 		if err != nil {
 			return nil, err
 		}
