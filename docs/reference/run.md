@@ -1590,6 +1590,23 @@ For example, you can specify either `/foo` or `foo` for a `host-src` value.
 If you supply the `/foo` value, Docker creates a bind mount. If you supply
 the `foo` specification, Docker creates a named volume.
 
+The `z` and `Z` modifiers will change the SELinux labels on the mount points.
+The `z` option will make the files available to any container, using the `s0` label,
+while the `Z` option will label the files with the same label as the container, so
+that they are exclusive to that container.
+
+WARNING Use of :z or :Z can have impacts on your system if used too broadly.
+For example, the use of these options against a users HOME directory or other top
+level system directory would result in the relabeling of those directories for use
+by containers. There are some blacklisted paths, but this could cause issues such
+as being unable to SSH back into a system. When using the relabel options, it should
+only be used on directories that are intended for use by containers, and not the
+host system itself. In most cases, such as shared access,  it is better to label
+in advance. If your container does require broader access to system directories,
+then use of '--security-opt label:disable' with the 'docker run' command is a better
+alternative. Note that using the above option instead will disable SELinux checks
+for that container.
+
 ### USER
 
 `root` (id = 0) is the default user within a container. The image developer can
