@@ -145,7 +145,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		expose:            opts.NewListOpts(nil),
 		extraHosts:        opts.NewListOpts(opts.ValidateExtraHost),
 		groupAdd:          opts.NewListOpts(nil),
-		labels:            opts.NewListOpts(opts.ValidateEnv),
+		labels:            opts.NewListOpts(opts.ValidateLabel),
 		labelsFile:        opts.NewListOpts(nil),
 		linkLocalIPs:      opts.NewListOpts(nil),
 		links:             opts.NewListOpts(opts.ValidateLink),
@@ -410,7 +410,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 	}
 
 	// collect all the environment variables for the container
-	envVariables, err := opts.ReadKVStrings(copts.envFile.GetAll(), copts.env.GetAll())
+	envVariables, err := opts.ReadKVEnvStrings(copts.envFile.GetAll(), copts.env.GetAll())
 	if err != nil {
 		return nil, err
 	}
