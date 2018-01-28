@@ -179,7 +179,7 @@ The currently supported filters are:
 * container (`container=<name or id>`)
 * daemon (`daemon=<name or id>`)
 * event (`event=<event action>`)
-* image (`image=<tag or id>`)
+* image (`image=<repository or tag>`)
 * label (`label=<key>` or `label=<key>=<value>`)
 * network (`network=<name or id>`)
 * node (`node=<id>`)
