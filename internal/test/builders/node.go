@@ -125,3 +125,10 @@ func ManagerStatus(managerStatusBuilders ...func(*swarm.ManagerStatus)) *swarm.M
 
 	return managerStatus
 }
+
+// EngineVersion sets the node's engine version
+func EngineVersion(version string) func(*swarm.Node) {
+	return func(node *swarm.Node) {
+		node.Description.Engine.EngineVersion = version
+	}
+}

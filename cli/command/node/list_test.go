@@ -56,8 +56,8 @@ func TestNodeList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1"), Hostname("node-2-foo"), Manager(Leader())),
-				*Node(NodeID("nodeID2"), Hostname("node-10-foo"), Manager()),
+				*Node(NodeID("nodeID1"), Hostname("node-2-foo"), Manager(Leader()), EngineVersion(".")),
+				*Node(NodeID("nodeID2"), Hostname("node-10-foo"), Manager(), EngineVersion("18.03.0-ce")),
 				*Node(NodeID("nodeID3"), Hostname("node-1-foo")),
 			}, nil
 		},
