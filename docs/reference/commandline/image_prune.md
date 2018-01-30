@@ -95,6 +95,19 @@ which removes images with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 images without the specified labels.
 
+> **Predicting what will be removed**
+>
+> If you are using positive filtering (testing for the existence of a label or
+> that a label has a specific value), you can use `docker image ls` with the
+> same filtering syntax to see which images match your filter.
+>
+> However, if you are using negative filtering (testing for the absence of a
+> label or that a label does *not* have a specific value), this type of filter
+> does not work with `docker image ls` so you cannot easily predict which images
+> will be removed. In addition, the confirmation prompt for `docker image prune`
+> always warns that *all* dangling images will be removed, even if you are using
+> `--filter`.
+
 The following removes images created before `2017-01-04T00:00:00`:
 
 ```bash
@@ -161,6 +174,35 @@ foo                 latest              2f287ac753da        About a minute ago  
 alpine              latest              88e169ea8f46        8 days ago           3.98 MB
 busybox             latest              e02e811dd08f        2 months ago         1.09 MB
 ```
+
+The following example removes images with the label `deprecated`:
+
+```bash
+$ docker image prune --filter="label=deprecated"
+```
+
+The following example removes images with the label `maintainer` set to `john`:
+
+```bash
+$ docker image prune --filter="label=maintainer=john"
+```
+
+This example removes images which have no `maintainer` label:
+
+```bash
+$ docker image prune --filter="label!=maintainer"
+```
+
+This example removes images which have a maintainer label not set to `john`:
+
+```bash
+$ docker image prune --filter="label!=maintainer=john"
+```
+
+> **Note**: You are prompted for confirmation before the `prune` removes
+> anything, but you are not shown a list of what will potentially be removed.
+> In addition, `docker image ls` does not support negative filtering, so it
+> difficult to predict what images will actually be removed.
 
 ## Related commands
 
