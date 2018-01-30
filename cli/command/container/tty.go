@@ -9,6 +9,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/exec"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/sirupsen/logrus"
@@ -43,6 +45,21 @@ func MonitorTtySize(ctx context.Context, cli command.Cli, id string, isExec bool
 	resizeTty := func() {
 		height, width := cli.Out().GetTtySize()
 		resizeTtyTo(ctx, cli.Client(), id, height, width, isExec)
+	}
+
+	// Wait for the target to have actually started to send the initial resize
+	if isExec {
+		waitC, errC := cli.Client().ContainerExecWait(ctx, id, exec.WaitConditionRunning)
+		select {
+		case <-waitC:
+		case <-errC:
+		}
+	} else {
+		waitC, errC := cli.Client().ContainerWait(ctx, id, container.WaitConditionRunning)
+		select {
+		case <-waitC:
+		case <-errC:
+		}
 	}
 
 	resizeTty()
