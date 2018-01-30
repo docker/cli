@@ -766,18 +766,14 @@ The options you can specify are:
 </tr>
 </thead>
 <tr>
-  <td>published and target port </td>
-  <td><tt></tt></td>
-  <td><tt></tt></td>
-  <td></td>
-</tr>
-<tr>
-  <td>protocol</td>
+  <td>published and target port</td>
   <td><tt>--publish 8080:80</tt></td>
   <td><tt>--publish published=8080,target=80</tt></td>
   <td><p>
-    The port to publish the service to on the routing mesh or directly on
-    the node, and the target port on the container.
+    The target port within the container and the port to map it to on the
+    nodes, using the routing mesh (<tt>ingress</tt>) or host-level networking.
+    More options are available, later in this table. The key-value syntax is
+    preferred, because it is somewhat self-documenting.
   </p></td>
 </tr>
 <tr>
@@ -785,8 +781,8 @@ The options you can specify are:
   <td>Not possible to set using short syntax.</td>
   <td><tt>--publish published=8080,target=80,mode=host</tt></td>
   <td><p>
-    The mode to use for binding the port, either `ingress` or `host`. Defaults
-    to `ingress` to use the routing mesh.
+    The mode to use for binding the port, either <tt>ingress</tt> or <tt>host</tt>.
+    Defaults to <tt>ingress</tt> to use the routing mesh.
   </p></td>
 </tr>
 <tr>
@@ -794,13 +790,14 @@ The options you can specify are:
   <td><tt>--publish 8080:80/tcp</tt></td>
   <td><tt>--publish published=8080,target=80,protocol=tcp</tt></td>
   <td><p>
-    The protocol to use, either `tcp` or `udp`. Defaults to `tcp`. To bind a
-    port for both protocols, specify the `-p` or `--publish` flag twice.
+    The protocol to use, either <tt>tcp</tt> or <tt>udp</tt> Defaults to
+    <tt>tcp</tt>. To bind a port for both protocols, specify the <tt>-p</tt> or
+    <tt>--publish</tt> flag twice.
   </p></td>
 </tr>
 </table>
 
-When you publish a service port using `ingres` mode, the swarm routing mesh
+When you publish a service port using `ingress` mode, the swarm routing mesh
 makes the service accessible at the published port on every node regardless if
 there is a task for the service running on the node. If you use `host` mode,
 the port is only bound on nodes where the service is running, and a given port
@@ -904,9 +901,9 @@ x3ti0erg11rjpg64m75kej2mz-hosttempl
 
 ### Specify isolation mode (Windows)
 
-By default, tasks scheduled on Windows nodes are run using the default isolation mode 
-configured for this particular node. To force a specific isolation mode, you can use 
-the `--isolation` flag: 
+By default, tasks scheduled on Windows nodes are run using the default isolation mode
+configured for this particular node. To force a specific isolation mode, you can use
+the `--isolation` flag:
 
 ```bash
 $ docker service create --name myservice --isolation=process microsoft/nanoserver
