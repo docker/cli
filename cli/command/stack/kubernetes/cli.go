@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/docker/cli/cli/command"
-	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/spf13/cobra"
 	restclient "k8s.io/client-go/rest"
@@ -61,16 +60,18 @@ func (c *KubeCli) composeClient() (*Factory, error) {
 	return NewFactory(c.KubeNamespace, c.KubeConfig)
 }
 
-func (c *KubeCli) stacks() (composev1beta1.StackInterface, error) {
-	_, err := c.GetAPIVersion()
+func (c *KubeCli) stacks() (stackClient, error) {
+	version, err := c.GetAPIVersion()
 	if err != nil {
 		return nil, err
 	}
 
-	clientSet, err := composev1beta1.NewForConfig(c.KubeConfig)
-	if err != nil {
-		return nil, err
+	switch version {
+	case KubernetesStackAPIV1Beta1:
+		return c.newStackV1Beta1()
+	case KubernetesStackAPIV1Beta2:
+		return c.newStackV1Beta2()
+	default:
+		return nil, fmt.Errorf("could not find matching Stack API version")
 	}
-
-	return clientSet.Stacks(c.KubeNamespace), nil
 }

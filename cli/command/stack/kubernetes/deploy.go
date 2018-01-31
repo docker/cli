@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"sort"
 
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -26,7 +26,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if err != nil {
 		return err
 	}
-	stack, err := LoadStack(opts.Namespace, *cfg)
+	stack, err := loadStack(opts.Namespace, *cfg)
 	if err != nil {
 		return err
 	}
@@ -49,42 +49,39 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	// FIXME(vdemeester) handle warnings server-side
-	if err = IsColliding(services, stack, cfg); err != nil {
+	if err := stacks.IsColliding(services, stack.name, getServices(stack.config)); err != nil {
 		return err
 	}
 
-	if err = createFileBasedConfigMaps(stack.Name, cfg.Configs, configMaps); err != nil {
+	if err := createFileBasedConfigMaps(stack.name, stack.config.Configs, configMaps); err != nil {
 		return err
 	}
 
-	if err = createFileBasedSecrets(stack.Name, cfg.Secrets, secrets); err != nil {
+	if err := createFileBasedSecrets(stack.name, stack.config.Secrets, secrets); err != nil {
 		return err
 	}
 
-	if in, err := stacks.Get(stack.Name, metav1.GetOptions{}); err == nil {
-		in.Spec = stack.Spec
-
-		if _, err = stacks.Update(in); err != nil {
-			return err
-		}
-
-		fmt.Printf("Stack %s was updated\n", stack.Name)
-	} else {
-		if _, err = stacks.Create(stack); err != nil {
-			return err
-		}
-
-		fmt.Fprintf(cmdOut, "Stack %s was created\n", stack.Name)
+	if err = stacks.CreateOrUpdate(stack); err != nil {
+		return err
 	}
 
 	fmt.Fprintln(cmdOut, "Waiting for the stack to be stable and running...")
 
-	<-watcher.Watch(stack, serviceNames(cfg))
+	<-watcher.Watch(stack.name, serviceNames(stack.config))
 
-	fmt.Fprintf(cmdOut, "Stack %s is stable and running\n\n", stack.Name)
+	fmt.Fprintf(cmdOut, "Stack %s is stable and running\n\n", stack.name)
 	// TODO: fmt.Fprintf(cmdOut, "Read the logs with:\n  $ %s stack logs %s\n", filepath.Base(os.Args[0]), stack.Name)
 
 	return nil
+}
+
+func getServices(cfg *composetypes.Config) []string {
+	services := make([]string, len(cfg.Services))
+	for i := range cfg.Services {
+		services[i] = cfg.Services[i].Name
+	}
+	sort.Strings(services)
+	return services
 }
 
 // createFileBasedConfigMaps creates a Kubernetes ConfigMap for each Compose global file-based config.
