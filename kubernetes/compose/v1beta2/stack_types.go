@@ -1,18 +1,29 @@
-package v1beta1 // import "github.com/docker/cli/kubernetes/compose/v1beta1"
+package v1beta2 // import "github.com/docker/cli/kubernetes/compose/v1beta2"
 
 import (
 	"encoding/json"
 
+	composetypes "github.com/docker/cli/cli/compose/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// StackList defines a list of stacks
+// StackList is a list of stacks
 type StackList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	Items []Stack `json:"items" protobuf:"bytes,2,rep,name=items"`
+}
+
+// Stack is v1beta2's representation of a Stack
+type Stack struct {
+	StackImpl
+}
+
+// DeepCopyObject clones the stack
+func (s *Stack) DeepCopyObject() runtime.Object {
+	return s.clone()
 }
 
 // DeepCopyObject clones the stack list
@@ -33,26 +44,41 @@ func (s *StackList) DeepCopyObject() runtime.Object {
 	return result
 }
 
-// Stack defines a stack object to be register in the kubernetes API
-type Stack struct {
-	StackImpl
+func (s *Stack) clone() *Stack {
+	if s == nil {
+		return nil
+	}
+	result := new(Stack)
+	result.TypeMeta = s.TypeMeta
+	result.ObjectMeta = s.ObjectMeta
+	result.Spec = *s.Spec.clone()
+	result.Status = s.Status.clone()
+	return result
 }
 
-// StackImpl contains the Stacks actual fields
+// StackImpl contains the stack's actual fields
 type StackImpl struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   StackSpec   `json:"spec,omitempty"`
-	Status StackStatus `json:"status,omitempty"`
+	Spec   StackSpec    `json:"spec,omitempty"`
+	Status *StackStatus `json:"status,omitempty"`
 }
 
 // StackSpec defines the desired state of Stack
 type StackSpec struct {
-	ComposeFile string `json:"composeFile,omitempty"`
+	Stack *composetypes.Config `json:"stack,omitempty"`
 }
 
-// StackPhase defines the status phase in which the stack is.
+func (s *StackSpec) clone() *StackSpec {
+	if s == nil {
+		return nil
+	}
+	result := *s
+	return &result
+}
+
+// StackPhase is the deployment phase of a stack
 type StackPhase string
 
 // These are valid conditions of a stack.
@@ -69,28 +95,38 @@ const (
 // StackStatus defines the observed state of Stack
 type StackStatus struct {
 	// Current condition of the stack.
+	// +optional
 	Phase StackPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StackPhase"`
 	// A human readable message indicating details about the stack.
+	// +optional
 	Message string `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
 }
 
-func (s *Stack) clone() *Stack {
+func (s *StackStatus) clone() *StackStatus {
 	if s == nil {
 		return nil
 	}
-	// in v1beta1, Stack has no pointer, slice or map. Plain old struct copy is ok
 	result := *s
 	return &result
 }
 
-// Clone implements the Cloner interface for kubernetes
+// Clone clones a Stack
 func (s *Stack) Clone() (*Stack, error) {
 	return s.clone(), nil
 }
 
-// DeepCopyObject clones the stack
-func (s *Stack) DeepCopyObject() runtime.Object {
-	return s.clone()
+// FromCompose returns a stack from a compose config
+func FromCompose(name string, composeConfig *composetypes.Config) *Stack {
+	return &Stack{
+		StackImpl: StackImpl{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: name,
+			},
+			Spec: StackSpec{
+				Stack: composeConfig,
+			},
+		},
+	}
 }
 
 /* Do not remove me! This explicit implementation of json.Marshaler overrides

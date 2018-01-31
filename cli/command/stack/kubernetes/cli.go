@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/docker/cli/cli/command"
-	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
+	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/spf13/cobra"
 	restclient "k8s.io/client-go/rest"

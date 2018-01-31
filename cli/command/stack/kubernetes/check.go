@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
+	apiv1beta2 "github.com/docker/cli/kubernetes/compose/v1beta2"
 	log "github.com/sirupsen/logrus"
 	apimachinerymetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -17,6 +18,8 @@ const (
 	KubernetesStackNotFound = "notFound"
 	// KubernetesStackAPIV1Beta1 is returned if it's the most recent version available.
 	KubernetesStackAPIV1Beta1 = "v1beta1"
+	// KubernetesStackAPIV1Beta2 is returned if it's the most recent version available.
+	KubernetesStackAPIV1Beta2 = "v1beta2"
 )
 
 // GetAPIVersion returns the most recent stack API installed.
@@ -33,6 +36,8 @@ func (c *KubeCli) GetAPIVersion() (KubernetesStackVersion, error) {
 	}
 
 	switch {
+	case findVersion(apiv1beta2.SchemeGroupVersion, groups.Groups):
+		return KubernetesStackAPIV1Beta2, nil
 	case findVersion(apiv1beta1.SchemeGroupVersion, groups.Groups):
 		return KubernetesStackAPIV1Beta1, nil
 	default:

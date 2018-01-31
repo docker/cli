@@ -1,4 +1,4 @@
-package v1beta1 // import "github.com/docker/cli/kubernetes/compose/v1beta1"
+package v1beta2 // import "github.com/docker/cli/kubernetes/compose/v1beta2"
 
 import (
 	"github.com/docker/cli/kubernetes/compose/impersonation"
@@ -6,8 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// Owner defines the owner of a stack. It is used to impersonate the controller calls
-// to kubernetes api.
+// Owner describes the user who created the stack
 type Owner struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

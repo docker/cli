@@ -14,11 +14,13 @@ func LoadStack(name string, cfg composetypes.Config) (*apiv1beta1.Stack, error) 
 		return nil, err
 	}
 	return &apiv1beta1.Stack{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Spec: apiv1beta1.StackSpec{
-			ComposeFile: string(res),
+		apiv1beta1.StackImpl{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: name,
+			},
+			Spec: apiv1beta1.StackSpec{
+				ComposeFile: string(res),
+			},
 		},
 	}, nil
 }

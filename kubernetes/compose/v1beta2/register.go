@@ -1,4 +1,4 @@
-package v1beta1 // import "github.com/docker/cli/kubernetes/compose/v1beta1"
+package v1beta2 // import "github.com/docker/cli/kubernetes/compose/v1beta2"
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -6,16 +6,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// GroupName is the group name used to register these objects
+// GroupName is the name of the compose group
 const GroupName = "compose.docker.com"
 
-// Alias variables for the registration
 var (
 	// SchemeGroupVersion is group version used to register these objects
-	SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1beta1"}
+	SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1beta2"}
+	// SchemeBuilder is the scheme builder
 	SchemeBuilder      runtime.SchemeBuilder
 	localSchemeBuilder = &SchemeBuilder
-	AddToScheme        = localSchemeBuilder.AddToScheme
+	// AddToScheme adds to scheme
+	AddToScheme = localSchemeBuilder.AddToScheme
 )
 
 func init() {
@@ -28,6 +29,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&Stack{},
 		&StackList{},
 		&Owner{},
+		&ComposeFile{},
+		&Scale{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
