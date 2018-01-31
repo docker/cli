@@ -5,28 +5,50 @@ import (
 
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	log "github.com/sirupsen/logrus"
+	apimachinerymetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
-// APIPresent checks that an API is installed.
-func APIPresent(config *rest.Config) error {
-	log.Debugf("check API present at %s", config.Host)
-	clients, err := kubernetes.NewForConfig(config)
+type KubernetesStackVersion string
+
+const (
+	// KubernetesStackNotFound is returned when no stack api at all is detected on kubernetes.
+	KubernetesStackNotFound = "notFound"
+	// KubernetesStackAPIV1Beta1 is returned if it's the most recent version available.
+	KubernetesStackAPIV1Beta1 = "v1beta1"
+)
+
+// GetAPIVersion returns the most recent stack API installed.
+func (c *KubeCli) GetAPIVersion() (KubernetesStackVersion, error) {
+	log.Debugf("retrieve most recent stack API present at %s", c.KubeConfig.Host)
+	clients, err := kubernetes.NewForConfig(c.KubeConfig)
 	if err != nil {
-		return err
+		return KubernetesStackNotFound, err
 	}
 
 	groups, err := clients.Discovery().ServerGroups()
 	if err != nil {
-		return err
+		return KubernetesStackNotFound, err
 	}
 
-	for _, group := range groups.Groups {
-		if group.Name == apiv1beta1.SchemeGroupVersion.Group {
-			return nil
+	switch {
+	case findVersion(apiv1beta1.SchemeGroupVersion, groups.Groups):
+		return KubernetesStackAPIV1Beta1, nil
+	default:
+		return KubernetesStackNotFound, fmt.Errorf("could not find %s api. Install it on your cluster first", apiv1beta1.SchemeGroupVersion.Group)
+	}
+}
+
+func findVersion(stackApi schema.GroupVersion, groups []apimachinerymetav1.APIGroup) bool {
+	for _, group := range groups {
+		if group.Name == stackApi.Group {
+			for _, version := range group.Versions {
+				if version.Version == stackApi.Version {
+					return true
+				}
+			}
 		}
 	}
-
-	return fmt.Errorf("could not find %s api. Install it on your cluster first", apiv1beta1.SchemeGroupVersion.Group)
+	return false
 }

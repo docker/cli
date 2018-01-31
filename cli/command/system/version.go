@@ -9,10 +9,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	kubernetesClient "k8s.io/client-go/kubernetes"
 )
 
 var versionTemplate = `{{with .Client -}}
@@ -48,7 +50,11 @@ Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
    {{- end}}
   {{- end}}
  {{- end}}
-{{- end}}{{end}}`
+ {{- end}}{{- end}}
+ {{- if .KubernetesOK}}{{with .Kubernetes}}
+ Orchestrator:
+   Kubernetes:	{{.Kubernetes}}
+   Compose:	{{.ComposeAPI}}{{- end}}{{end}}`
 
 type versionOptions struct {
 	format string
@@ -56,8 +62,9 @@ type versionOptions struct {
 
 // versionInfo contains version information of both the Client, and Server
 type versionInfo struct {
-	Client clientVersion
-	Server *types.Version
+	Client     clientVersion
+	Server     *types.Version
+	Kubernetes *kubernetesVersion
 }
 
 type clientVersion struct {
@@ -75,10 +82,19 @@ type clientVersion struct {
 	Orchestrator      string `json:",omitempty"`
 }
 
+type kubernetesVersion struct {
+	Kubernetes string
+	ComposeAPI string
+}
+
 // ServerOK returns true when the client could connect to the docker server
 // and parse the information received. It returns false otherwise.
 func (v versionInfo) ServerOK() bool {
 	return v.Server != nil
+}
+
+func (v versionInfo) KubernetesOK() bool {
+	return v.Kubernetes != nil
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
@@ -90,7 +106,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Show the Docker version information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVersion(dockerCli, &opts)
+			return runVersion(dockerCli, cmd, &opts)
 		},
 	}
 
@@ -109,7 +125,7 @@ func reformatDate(buildTime string) string {
 	return buildTime
 }
 
-func runVersion(dockerCli command.Cli, opts *versionOptions) error {
+func runVersion(dockerCli command.Cli, cmd *cobra.Command, opts *versionOptions) error {
 	templateFormat := versionTemplate
 	tmpl := templates.New("version")
 	if opts.format != "" {
@@ -123,6 +139,11 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	if err != nil {
 		return cli.StatusError{StatusCode: 64,
 			Status: "Template parsing error: " + err.Error()}
+	}
+
+	kubeVersion, err := getKubernetesVersion(dockerCli, cmd)
+	if err != nil {
+		return err
 	}
 
 	vd := versionInfo{
@@ -139,6 +160,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
 			Orchestrator:      string(dockerCli.ClientInfo().Orchestrator),
 		},
+		Kubernetes: kubeVersion,
 	}
 
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
@@ -188,4 +210,33 @@ func getDetailsOrder(v types.ComponentVersion) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+func getKubernetesVersion(dockerCli command.Cli, cmd *cobra.Command) (*kubernetesVersion, error) {
+	if !dockerCli.ClientInfo().HasKubernetes() {
+		return nil, nil
+	}
+
+	kli, err := kubernetes.WrapCli(dockerCli, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	apiVersion, err := kli.GetAPIVersion()
+	if err != nil {
+		return nil, err
+	}
+
+	kubeClient, err := kubernetesClient.NewForConfig(kli.KubeConfig)
+	if err != nil {
+		return nil, err
+	}
+	kubeVersion, err := kubeClient.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return nil, err
+	}
+	return &kubernetesVersion{
+		Kubernetes: kubeVersion.String(),
+		ComposeAPI: string(apiVersion),
+	}, nil
 }

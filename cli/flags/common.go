@@ -70,6 +70,13 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	flags.Var(opts.NewQuotedString(&tlsOptions.CertFile), "tlscert", "Path to TLS certificate file")
 	flags.Var(opts.NewQuotedString(&tlsOptions.KeyFile), "tlskey", "Path to TLS key file")
 
+	flags.String("namespace", "default", "Kubernetes namespace to use")
+	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.SetAnnotation("namespace", "experimentalCLI", nil)
+	flags.String("kubeconfig", "", "Kubernetes config file")
+	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
+	flags.SetAnnotation("kubeconfig", "experimentalCLI", nil)
+
 	hostOpt := opts.NewNamedListOptsRef("hosts", &commonOpts.Hosts, opts.ValidateHost)
 	flags.VarP(hostOpt, "host", "H", "Daemon socket(s) to connect to")
 }
