@@ -9,20 +9,13 @@ import (
 // GroupName is the group name used to register these objects
 const GroupName = "compose.docker.com"
 
-// SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1beta1"}
-
+// Alias variables for the registration
 var (
-	// SchemeBuilder collects functions that add things to a scheme. It's to allow
-	// code to compile without explicitly referencing generated types. You should
-	// declare one in each package that will have generated deep copy or conversion
-	// functions.
+	// SchemeGroupVersion is group version used to register these objects
+	SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1beta1"}
 	SchemeBuilder      runtime.SchemeBuilder
 	localSchemeBuilder = &SchemeBuilder
-
-	// AddToScheme applies all the stored functions to the scheme. A non-nil error
-	// indicates that one function failed and the attempt was abandoned.
-	AddToScheme = localSchemeBuilder.AddToScheme
+	AddToScheme        = localSchemeBuilder.AddToScheme
 )
 
 func init() {
@@ -35,7 +28,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&Stack{},
 		&StackList{},
 		&Owner{},
-		&OwnerList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

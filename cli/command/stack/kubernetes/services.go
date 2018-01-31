@@ -22,7 +22,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	}
 	replicas := client.ReplicaSets()
 
-	if _, err := stacks.Get(opts.Namespace, metav1.GetOptions{}); err != nil {
+	if _, err := stacks.Get(opts.Namespace); err != nil {
 		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", opts.Namespace)
 		return nil
 	}

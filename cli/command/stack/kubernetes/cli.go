@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
-	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
@@ -77,20 +76,17 @@ func (c *KubeCli) composeClient() (*Factory, error) {
 	return NewFactory(c.kubeNamespace, c.kubeConfig)
 }
 
-func (c *KubeCli) stacks() (composev1beta1.StackInterface, error) {
+func (c *KubeCli) stacks() (stackClient, error) {
 	version, err := kubernetes.GetStackAPIVersion(c.clientSet)
-
 	if err != nil {
 		return nil, err
 	}
 
 	switch version {
 	case kubernetes.StackAPIV1Beta1:
-		clientSet, err := composev1beta1.NewForConfig(c.kubeConfig)
-		if err != nil {
-			return nil, err
-		}
-		return clientSet.Stacks(c.kubeNamespace), nil
+		return newStackV1Beta1(c.kubeConfig, c.kubeNamespace)
+	case kubernetes.StackAPIV1Beta2:
+		return newStackV1Beta2(c.kubeConfig, c.kubeNamespace)
 	default:
 		return nil, errors.Errorf("no supported Stack API version")
 	}

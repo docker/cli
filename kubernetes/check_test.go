@@ -17,6 +17,8 @@ func TestGetStackAPIVersion(t *testing.T) {
 	}{
 		{"no stack api", makeGroups(), true, ""},
 		{"v1beta1", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1"}}), false, StackAPIV1Beta1},
+		{"v1beta2", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta2"}}), false, StackAPIV1Beta2},
+		{"most recent has precedence", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1", "v1beta2"}}), false, StackAPIV1Beta2},
 	}
 
 	for _, test := range tests {
