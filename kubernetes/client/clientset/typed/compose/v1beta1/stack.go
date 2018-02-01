@@ -25,7 +25,7 @@ type StackInterface interface {
 	Get(name string, options v1.GetOptions) (*v1beta1.Stack, error)
 	List(opts v1.ListOptions) (*v1beta1.StackList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Stack, err error)
+	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (*v1beta1.Stack, error)
 }
 
 var _ StackInterface = &stacks{}
@@ -45,36 +45,36 @@ func newStacks(c *ComposeV1beta1Client, namespace string) *stacks {
 }
 
 // Create takes the representation of a stack and creates it.  Returns the server's representation of the stack, and an error, if there is any.
-func (c *stacks) Create(stack *v1beta1.Stack) (result *v1beta1.Stack, err error) {
-	result = &v1beta1.Stack{}
-	err = c.client.Post().
+func (c *stacks) Create(stack *v1beta1.Stack) (*v1beta1.Stack, error) {
+	result := &v1beta1.Stack{}
+	err := c.client.Post().
 		Namespace(c.ns).
 		Resource("stacks").
 		Body(stack).
 		Do().
 		Into(result)
-	return
+	return result, err
 }
 
 // Update takes the representation of a stack and updates it. Returns the server's representation of the stack, and an error, if there is any.
-func (c *stacks) Update(stack *v1beta1.Stack) (result *v1beta1.Stack, err error) {
-	result = &v1beta1.Stack{}
-	err = c.client.Put().
+func (c *stacks) Update(stack *v1beta1.Stack) (*v1beta1.Stack, error) {
+	result := &v1beta1.Stack{}
+	err := c.client.Put().
 		Namespace(c.ns).
 		Resource("stacks").
 		Name(stack.Name).
 		Body(stack).
 		Do().
 		Into(result)
-	return
+	return result, err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclientstatus=false comment above the type to avoid generating UpdateStatus().
 
-func (c *stacks) UpdateStatus(stack *v1beta1.Stack) (result *v1beta1.Stack, err error) {
-	result = &v1beta1.Stack{}
-	err = c.client.Put().
+func (c *stacks) UpdateStatus(stack *v1beta1.Stack) (*v1beta1.Stack, error) {
+	result := &v1beta1.Stack{}
+	err := c.client.Put().
 		Namespace(c.ns).
 		Resource("stacks").
 		Name(stack.Name).
@@ -82,7 +82,7 @@ func (c *stacks) UpdateStatus(stack *v1beta1.Stack) (result *v1beta1.Stack, err 
 		Body(stack).
 		Do().
 		Into(result)
-	return
+	return result, err
 }
 
 // Delete takes name of the stack and deletes it. Returns an error if one occurs.
@@ -108,28 +108,28 @@ func (c *stacks) DeleteCollection(options *v1.DeleteOptions, listOptions v1.List
 }
 
 // Get takes name of the stack, and returns the corresponding stack object, and an error if there is any.
-func (c *stacks) Get(name string, options v1.GetOptions) (result *v1beta1.Stack, err error) {
-	result = &v1beta1.Stack{}
-	err = c.client.Get().
+func (c *stacks) Get(name string, options v1.GetOptions) (*v1beta1.Stack, error) {
+	result := &v1beta1.Stack{}
+	err := c.client.Get().
 		Namespace(c.ns).
 		Resource("stacks").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
 		Do().
 		Into(result)
-	return
+	return result, err
 }
 
 // List takes label and field selectors, and returns the list of Stacks that match those selectors.
-func (c *stacks) List(opts v1.ListOptions) (result *v1beta1.StackList, err error) {
-	result = &v1beta1.StackList{}
-	err = c.client.Get().
+func (c *stacks) List(opts v1.ListOptions) (*v1beta1.StackList, error) {
+	result := &v1beta1.StackList{}
+	err := c.client.Get().
 		Namespace(c.ns).
 		Resource("stacks").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
 		Into(result)
-	return
+	return result, err
 }
 
 // Watch returns a watch.Interface that watches the requested stacks.
@@ -143,9 +143,9 @@ func (c *stacks) Watch(opts v1.ListOptions) (watch.Interface, error) {
 }
 
 // Patch applies the patch and returns the patched stack.
-func (c *stacks) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Stack, err error) {
-	result = &v1beta1.Stack{}
-	err = c.client.Patch(pt).
+func (c *stacks) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (*v1beta1.Stack, error) {
+	result := &v1beta1.Stack{}
+	err := c.client.Patch(pt).
 		Namespace(c.ns).
 		Resource("stacks").
 		SubResource(subresources...).
@@ -153,5 +153,5 @@ func (c *stacks) Patch(name string, pt types.PatchType, data []byte, subresource
 		Body(data).
 		Do().
 		Into(result)
-	return
+	return result, err
 }

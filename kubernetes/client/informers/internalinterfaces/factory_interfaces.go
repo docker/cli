@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// NewInformerFunc defines a Informer constructor (from a clientset and a duration)
 type NewInformerFunc func(clientset.Interface, time.Duration) cache.SharedIndexInformer
 
 // SharedInformerFactory a small interface to allow for adding an informer without an import cycle

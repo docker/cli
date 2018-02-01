@@ -11,45 +11,46 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type KubernetesStackVersion string
+// StackVersion represents the detected Compose Component on Kubernetes side.
+type StackVersion string
 
 const (
-	// KubernetesStackNotFound is returned when no stack api at all is detected on kubernetes.
-	KubernetesStackNotFound = "notFound"
-	// KubernetesStackAPIV1Beta1 is returned if it's the most recent version available.
-	KubernetesStackAPIV1Beta1 = "v1beta1"
-	// KubernetesStackAPIV1Beta2 is returned if it's the most recent version available.
-	KubernetesStackAPIV1Beta2 = "v1beta2"
+	// StackNotFound is returned when no stack api at all is detected on kubernetes.
+	StackNotFound = "notFound"
+	// StackAPIV1Beta1 is returned if it's the most recent version available.
+	StackAPIV1Beta1 = "v1beta1"
+	// StackAPIV1Beta2 is returned if it's the most recent version available.
+	StackAPIV1Beta2 = "v1beta2"
 )
 
 // GetAPIVersion returns the most recent stack API installed.
-func (c *KubeCli) GetAPIVersion() (KubernetesStackVersion, error) {
+func (c *KubeCli) GetAPIVersion() (StackVersion, error) {
 	log.Debugf("retrieve most recent stack API present at %s", c.KubeConfig.Host)
 	clients, err := kubernetes.NewForConfig(c.KubeConfig)
 	if err != nil {
-		return KubernetesStackNotFound, err
+		return StackNotFound, err
 	}
 
 	groups, err := clients.Discovery().ServerGroups()
 	if err != nil {
-		return KubernetesStackNotFound, err
+		return StackNotFound, err
 	}
 
 	switch {
 	case findVersion(apiv1beta2.SchemeGroupVersion, groups.Groups):
-		return KubernetesStackAPIV1Beta2, nil
+		return StackAPIV1Beta2, nil
 	case findVersion(apiv1beta1.SchemeGroupVersion, groups.Groups):
-		return KubernetesStackAPIV1Beta1, nil
+		return StackAPIV1Beta1, nil
 	default:
-		return KubernetesStackNotFound, fmt.Errorf("could not find %s api. Install it on your cluster first", apiv1beta1.SchemeGroupVersion.Group)
+		return StackNotFound, fmt.Errorf("could not find %s api. Install it on your cluster first", apiv1beta1.SchemeGroupVersion.Group)
 	}
 }
 
-func findVersion(stackApi schema.GroupVersion, groups []apimachinerymetav1.APIGroup) bool {
+func findVersion(stackAPI schema.GroupVersion, groups []apimachinerymetav1.APIGroup) bool {
 	for _, group := range groups {
-		if group.Name == stackApi.Group {
+		if group.Name == stackAPI.Group {
 			for _, version := range group.Versions {
-				if version.Version == stackApi.Version {
+				if version.Version == stackAPI.Version {
 					return true
 				}
 			}

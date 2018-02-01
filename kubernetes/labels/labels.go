@@ -31,19 +31,6 @@ func ForService(stackName, serviceName string) map[string]string {
 	return labels
 }
 
-// Merge merges multiple lists of labels.
-func Merge(labelsList ...map[string]string) map[string]string {
-	merged := map[string]string{}
-
-	for _, labels := range labelsList {
-		for k, v := range labels {
-			merged[k] = v
-		}
-	}
-
-	return merged
-}
-
 // SelectorForStack gives the labelSelector to use for a given stack.
 // Specific service names can be passed to narrow down the selection.
 func SelectorForStack(stackName string, serviceNames ...string) string {

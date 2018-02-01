@@ -67,9 +67,9 @@ func (c *KubeCli) stacks() (stackClient, error) {
 	}
 
 	switch version {
-	case KubernetesStackAPIV1Beta1:
+	case StackAPIV1Beta1:
 		return c.newStackV1Beta1()
-	case KubernetesStackAPIV1Beta2:
+	case StackAPIV1Beta2:
 		return c.newStackV1Beta2()
 	default:
 		return nil, fmt.Errorf("could not find matching Stack API version")

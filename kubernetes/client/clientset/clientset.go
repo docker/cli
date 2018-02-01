@@ -9,6 +9,8 @@ import (
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
 )
 
+// Interface defines the methods a compose kube client should have
+// FIXME(vdemeester) is it required ?
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	ComposeV1beta2() composev1beta2.ComposeV1beta2Interface
@@ -41,8 +43,8 @@ func (c *Clientset) ComposeV1beta1() composev1beta1.ComposeV1beta1Interface {
 	return c.ComposeV1beta1Client
 }
 
-// Deprecated: Compose retrieves the default version of ComposeClient.
-// Please explicitly pick a version.
+// Compose retrieves the default version of ComposeClient.
+// deprecated: please explicitly pick a version.
 func (c *Clientset) Compose() composev1beta1.ComposeV1beta1Interface {
 	if c == nil {
 		return nil

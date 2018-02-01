@@ -22,7 +22,7 @@ type stackClient interface {
 	IsColliding(servicesClient corev1.ServiceInterface, name string, services []string) error
 }
 
-// stack is the main type used by stack commands so they remain independant from kubernetes compose component version.
+// stack is the main type used by stack commands so they remain independent from kubernetes compose component version.
 type stack struct {
 	name        string
 	composeFile string

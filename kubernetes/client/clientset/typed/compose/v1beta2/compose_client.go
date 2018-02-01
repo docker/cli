@@ -7,6 +7,7 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
+// ComposeV1beta2Interface defines the methods a compose v1beta2 client has
 type ComposeV1beta2Interface interface {
 	RESTClient() rest.Interface
 	StacksGetter
@@ -17,6 +18,7 @@ type ComposeV1beta2Client struct {
 	restClient rest.Interface
 }
 
+// Stacks returns a stack client
 func (c *ComposeV1beta2Client) Stacks(namespace string) StackInterface {
 	return newStacks(c, namespace)
 }
