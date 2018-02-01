@@ -103,7 +103,7 @@ when viewing swarm any information via the CLI or API.
 The root CA rotation will not be completed until all registered nodes have
 rotated their TLS certificates.  If the rotation is not completing within a
 reasonable amount of time, try running
-`docker node ls --format {{.ID}} {{.Hostname}} {{.Status}} {{.TLSStatus}}` to
+`docker node ls --format '{{.ID}} {{.Hostname}} {{.Status}} {{.TLSStatus}}'` to
 see if any nodes are down or otherwise unable to rotate TLS certificates.
 
 
