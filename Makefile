@@ -51,7 +51,8 @@ watch: ## monitor file changes and run go test
 	./scripts/test/watch
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
-	vndr 2> /dev/null
+	rm -rf vendor
+	bash -c 'vndr |& grep -v -i clone'
 	scripts/validate/check-git-diff vendor
 
 .PHONY: authors
