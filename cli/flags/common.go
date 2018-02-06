@@ -26,6 +26,7 @@ const (
 var (
 	dockerCertPath  = os.Getenv("DOCKER_CERT_PATH")
 	dockerTLSVerify = os.Getenv("DOCKER_TLS_VERIFY") != ""
+	dockerTLS       = os.Getenv("DOCKER_TLS") != ""
 )
 
 // CommonOptions are options common to both the client and the daemon.
@@ -52,7 +53,7 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 
 	flags.BoolVarP(&commonOpts.Debug, "debug", "D", false, "Enable debug mode")
 	flags.StringVarP(&commonOpts.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
-	flags.BoolVar(&commonOpts.TLS, "tls", false, "Use TLS; implied by --tlsverify")
+	flags.BoolVar(&commonOpts.TLS, "tls", dockerTLS, "Use TLS; implied by --tlsverify")
 	flags.BoolVar(&commonOpts.TLSVerify, FlagTLSVerify, dockerTLSVerify, "Use TLS and verify the remote")
 	flags.StringVar(&commonOpts.Orchestrator, "orchestrator", "", "Which orchestrator to use with the docker cli (swarm|kubernetes) (default swarm) (experimental)")
 	flags.SetAnnotation("orchestrator", "experimentalCLI", nil)

@@ -66,6 +66,7 @@ by the `docker` command line:
 * `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
   unsuitable for Docker.
 * `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
+* `DOCKER_TLS` When set Docker uses TLS.
 * `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
 * `DOCKER_CONTENT_TRUST` When set Docker uses notary to sign and verify images.
   Equates to `--disable-content-trust=false` for build, create, pull, push, run.
