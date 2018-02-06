@@ -50,6 +50,18 @@ e5c383697914        test-1951.1.kay7x1lh1twk9c0oig50sd5tr   0.00%               
 4bda148efbc0        random.1.vnc8on831idyr42slu578u3cr      0.00%               1.672MiB / 1.952GiB   0.08%               110kB / 0B          578kB / 0B          2
 ```
 
+If you don't [specify a format string using `--format`](#formatting), the
+following columns are shown.
+
+| Column name               | Description                                                                                   |
+|---------------------------|-----------------------------------------------------------------------------------------------|
+| `CONTAINER ID` and `Name` | the ID and name of the container                                                              |
+| `CPU %` and `MEM %`       | the percentage of the host's CPU and memory the container is using                            |
+| `MEM USAGE / LIMIT`       | the total memory the container is using, and the total amount of memory it is allowed to use  |
+| `NET I/O`                 | The amount of data the container has sent and received over its network interface             |
+| `BLOCK I/O`               | The amount of data the container has read to and written from block devices on the host       |
+| `PIDs`                    | the number of processes or threads the container has created                                  |
+
 Running `docker stats` on multiple containers by name and id against a Linux daemon.
 
 ```bash
