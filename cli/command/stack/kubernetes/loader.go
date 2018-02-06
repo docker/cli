@@ -18,10 +18,11 @@ import (
 
 // LoadStack loads a stack from a Compose file, with a given name.
 // FIXME(vdemeester) remove this and use cli/compose/loader for both swarm and kubernetes
-func LoadStack(name, composeFile string) (*apiv1beta1.Stack, *composetypes.Config, error) {
-	if composeFile == "" {
-		return nil, nil, errors.New("compose-file must be set")
+func LoadStack(name string, composeFiles []string) (*apiv1beta1.Stack, *composetypes.Config, error) {
+	if len(composeFiles) != 1 {
+		return nil, nil, errors.New("compose-file must be set (and only one)")
 	}
+	composeFile := composeFiles[0]
 
 	workingDir, err := os.Getwd()
 	if err != nil {

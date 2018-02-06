@@ -24,7 +24,7 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
-	configDetails, err := getConfigDetails(opts.Composefile, dockerCli.In())
+	configDetails, err := getConfigDetails(opts.Composefiles, dockerCli.In())
 	if err != nil {
 		return err
 	}
@@ -39,13 +39,14 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 		return err
 	}
 
-	unsupportedProperties := loader.GetUnsupportedProperties(configDetails)
+	dicts := getDictsFrom(configDetails.ConfigFiles)
+	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
 	if len(unsupportedProperties) > 0 {
 		fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
 			strings.Join(unsupportedProperties, ", "))
 	}
 
-	deprecatedProperties := loader.GetDeprecatedProperties(configDetails)
+	deprecatedProperties := loader.GetDeprecatedProperties(dicts...)
 	if len(deprecatedProperties) > 0 {
 		fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
 			propertyWarnings(deprecatedProperties))
@@ -97,6 +98,16 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
 }
 
+func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{} {
+	dicts := []map[string]interface{}{}
+
+	for _, configFile := range configFiles {
+		dicts = append(dicts, configFile.Config)
+	}
+
+	return dicts
+}
+
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
 	serviceNetworks := map[string]struct{}{}
 	for _, serviceConfig := range serviceConfigs {
@@ -120,29 +131,32 @@ func propertyWarnings(properties map[string]string) string {
 	return strings.Join(msgs, "\n\n")
 }
 
-func getConfigDetails(composefile string, stdin io.Reader) (composetypes.ConfigDetails, error) {
+func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
-	if composefile == "-" {
+	if len(composefiles) == 0 {
+		return details, errors.New("no composefile(s)")
+	}
+
+	if composefiles[0] == "-" && len(composefiles) == 1 {
 		workingDir, err := os.Getwd()
 		if err != nil {
 			return details, err
 		}
 		details.WorkingDir = workingDir
 	} else {
-		absPath, err := filepath.Abs(composefile)
+		absPath, err := filepath.Abs(composefiles[0])
 		if err != nil {
 			return details, err
 		}
 		details.WorkingDir = filepath.Dir(absPath)
 	}
 
-	configFile, err := getConfigFile(composefile, stdin)
+	var err error
+	details.ConfigFiles, err = loadConfigFiles(composefiles, stdin)
 	if err != nil {
 		return details, err
 	}
-	// TODO: support multiple files
-	details.ConfigFiles = []composetypes.ConfigFile{*configFile}
 	details.Environment, err = buildEnvironment(os.Environ())
 	return details, err
 }
@@ -160,7 +174,21 @@ func buildEnvironment(env []string) (map[string]string, error) {
 	return result, nil
 }
 
-func getConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile, error) {
+func loadConfigFiles(filenames []string, stdin io.Reader) ([]composetypes.ConfigFile, error) {
+	var configFiles []composetypes.ConfigFile
+
+	for _, filename := range filenames {
+		configFile, err := loadConfigFile(filename, stdin)
+		if err != nil {
+			return configFiles, err
+		}
+		configFiles = append(configFiles, *configFile)
+	}
+
+	return configFiles, nil
+}
+
+func loadConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile, error) {
 	var bytes []byte
 	var err error
 

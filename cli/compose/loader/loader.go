@@ -45,27 +45,43 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	if len(configDetails.ConfigFiles) < 1 {
 		return nil, errors.Errorf("No files specified")
 	}
-	if len(configDetails.ConfigFiles) > 1 {
-		return nil, errors.Errorf("Multiple files are not yet supported")
+
+	configs := []*types.Config{}
+
+	for _, file := range configDetails.ConfigFiles {
+		configDict := file.Config
+		version := schema.Version(configDict)
+		if configDetails.Version == "" {
+			configDetails.Version = version
+		}
+		if configDetails.Version != version {
+			return nil, errors.Errorf("version mismatched between two composefiles : %v and %v", configDetails.Version, version)
+		}
+
+		if err := validateForbidden(configDict); err != nil {
+			return nil, err
+		}
+
+		var err error
+		configDict, err = interpolateConfig(configDict, configDetails.LookupEnv)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := schema.Validate(configDict, configDetails.Version); err != nil {
+			return nil, err
+		}
+
+		cfg, err := loadSections(configDict, configDetails)
+		if err != nil {
+			return nil, err
+		}
+		cfg.Filename = file.Filename
+
+		configs = append(configs, cfg)
 	}
 
-	configDict := getConfigDict(configDetails)
-	configDetails.Version = schema.Version(configDict)
-
-	if err := validateForbidden(configDict); err != nil {
-		return nil, err
-	}
-
-	var err error
-	configDict, err = interpolateConfig(configDict, configDetails.LookupEnv)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := schema.Validate(configDict, configDetails.Version); err != nil {
-		return nil, err
-	}
-	return loadSections(configDict, configDetails)
+	return merge(configs)
 }
 
 func validateForbidden(configDict map[string]interface{}) error {
@@ -142,14 +158,16 @@ func getSection(config map[string]interface{}, key string) map[string]interface{
 
 // GetUnsupportedProperties returns the list of any unsupported properties that are
 // used in the Compose files.
-func GetUnsupportedProperties(configDetails types.ConfigDetails) []string {
+func GetUnsupportedProperties(configDicts ...map[string]interface{}) []string {
 	unsupported := map[string]bool{}
 
-	for _, service := range getServices(getConfigDict(configDetails)) {
-		serviceDict := service.(map[string]interface{})
-		for _, property := range types.UnsupportedProperties {
-			if _, isSet := serviceDict[property]; isSet {
-				unsupported[property] = true
+	for _, configDict := range configDicts {
+		for _, service := range getServices(configDict) {
+			serviceDict := service.(map[string]interface{})
+			for _, property := range types.UnsupportedProperties {
+				if _, isSet := serviceDict[property]; isSet {
+					unsupported[property] = true
+				}
 			}
 		}
 	}
@@ -168,8 +186,17 @@ func sortedKeys(set map[string]bool) []string {
 
 // GetDeprecatedProperties returns the list of any deprecated properties that
 // are used in the compose files.
-func GetDeprecatedProperties(configDetails types.ConfigDetails) map[string]string {
-	return getProperties(getServices(getConfigDict(configDetails)), types.DeprecatedProperties)
+func GetDeprecatedProperties(configDicts ...map[string]interface{}) map[string]string {
+	deprecated := map[string]string{}
+
+	for _, configDict := range configDicts {
+		deprecatedProperties := getProperties(getServices(configDict), types.DeprecatedProperties)
+		for key, value := range deprecatedProperties {
+			deprecated[key] = value
+		}
+	}
+
+	return deprecated
 }
 
 func getProperties(services map[string]interface{}, propertyMap map[string]string) map[string]string {
@@ -196,11 +223,6 @@ type ForbiddenPropertiesError struct {
 
 func (e *ForbiddenPropertiesError) Error() string {
 	return "Configuration contains forbidden properties"
-}
-
-// TODO: resolve multiple files into a single config
-func getConfigDict(configDetails types.ConfigDetails) map[string]interface{} {
-	return configDetails.ConfigFiles[0].Config
 }
 
 func getServices(configDict map[string]interface{}) map[string]interface{} {
