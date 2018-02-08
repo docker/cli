@@ -1,0 +1,28 @@
+manifests:
+    -
+        image: test/hello-world-ppc64le:latest
+        platform:
+            architecture: ppc64le
+    -
+        image: test/hello-world-amd64:latest
+        platform:
+            architecture: amd64
+            os: linux
+    -
+        image: test/hello-world-s390x:latest
+        platform:
+            architecture: s390x
+            os: linux
+            osversion: 1.1
+            variant: xyz
+            osfeatures: [a,b,c]
+    -
+        image: test/hello-world-armv5:latest
+        platform:
+    -
+        image: test/hello-world:armhf
+        platform:
+            architecture: arm
+            os: linux
+            variant: abc
+

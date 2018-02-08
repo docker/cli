@@ -81,8 +81,8 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 		imageManifest.Descriptor.Platform.Variant = opts.variant
 	}
 
-	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
-		return errors.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
+	if err := validateOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture); err != nil {
+		return err
 	}
 	return manifestStore.Save(targetRef, imgRef, imageManifest)
 }
