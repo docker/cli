@@ -242,26 +242,50 @@ For the `overlay2` storage driver, the size option is only available if the
 backing fs is `xfs` and mounted with the `pquota` mount option.
 Under these conditions, user can pass any size less than the backing fs size.
 
-### Mount tmpfs (--tmpfs)
+### Mount tmpfs (--mount type=tmpfs)
+
+> **Note**: The `--tmpfs` flag still works, but `--mount type=tmpfs` is
+> preferred.
 
 ```bash
-$ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
+$ docker run --rm -it \
+  --mount type=tmpfs,tmpfs-size=65536k,tmpfs-mode=600,dst=/run \
+  ubuntu:latest
 ```
 
-The `--tmpfs` flag mounts an empty tmpfs into the container with the `rw`,
-`noexec`, `nosuid`, `size=65536k` options.
+This example mounts a `tmpfs` filesystem 65536k in size into `/run` inside the
+container, with mode 600 (`rw-------`). Because the type of `tmpfs`, the file's
+contents of the file are not written to the container and are only written to a
+block device on the Docker host if memory is low enough to trigger swap usage.
 
-### Mount volume (-v, --read-only)
+### Mount volume (--mount, -v)
+
+The `--mount` flag allows you to mount volumes, host-directories and `tmpfs`
+mounts in a container.
+
+The `--mount` syntax is preferred. See
+[Differences between `-v` and `--mount` behavior](https://docs.docker.com/storage/volumes/#differences-between--v-and---mount-behavior)
+for more information. These examples show both syntax choices.
+
+#### Bind-mount the current working directory
+
+```bash
+$ docker run --mount src=`pwd`,dst=`pwd` -w `pwd` -i -t  ubuntu pwd
+```
 
 ```bash
 $ docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu pwd
 ```
 
-The `-v` flag mounts the current working directory into the container. The `-w`
+This example mounts the current working directory into the container. The `-w`
 lets the command being executed inside the current working directory, by
 changing into the directory to the value returned by `pwd`. So this
 combination executes the command using the container, but inside the
 current working directory.
+
+#### Populate the Docker host with the contents of a directory in the  container
+
+> **Note**: This only works with the `-v` syntax.
 
 ```bash
 $ docker run -v /doesnt/exist:/foo -w /foo -i -t ubuntu bash
@@ -272,6 +296,12 @@ will automatically create this directory on the host for you. In the
 example above, Docker will create the `/doesnt/exist`
 folder before starting your container.
 
+#### Use a read-only bind mount
+
+```bash
+$ docker run --mount src=/icanwrite,dst=/icanwrite,readonly busybox touch /icanwrite/here
+```
+
 ```bash
 $ docker run --read-only -v /icanwrite busybox touch /icanwrite/here
 ```
@@ -281,15 +311,7 @@ a container writes files. The `--read-only` flag mounts the container's root
 filesystem as read only prohibiting writes to locations other than the
 specified volumes for the container.
 
-```bash
-$ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/static-docker-binary:/usr/bin/docker busybox sh
-```
-
-By bind-mounting the docker unix socket and statically linked docker
-binary (refer to [get the linux binary](
-https://docs.docker.com/engine/installation/binaries/#/get-the-linux-binary)),
-you give the container the full access to create and manipulate the host's
-Docker daemon.
+#### Using mounts on Windows
 
 On Windows, the paths must be specified using Windows-style semantics.
 
@@ -315,30 +337,25 @@ docker run -v c:\foo:c: ...
 docker run -v c:\foo:c:\existing-directory-with-contents ...
 ```
 
-For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/engine/tutorials/dockervolumes/)
+For in-depth information about volumes, refer to [the Storage overview](https://docs.docker.com/storage/)
 
+#### Start the Docker daemon using a static binary in the container
 
-### Add bind mounts or volumes using the --mount flag
-
-The `--mount` flag allows you to mount volumes, host-directories and `tmpfs`
-mounts in a container.
-
-The `--mount` flag supports most options that are supported by the `-v` or the
-`--volume` flag, but uses a different syntax. For in-depth information on the
-`--mount` flag, and a comparison between `--volume` and `--mount`, refer to
-the [service create command reference](service_create.md#add-bind-mounts-or-volumes).
-
-Even though there is no plan to deprecate `--volume`, usage of `--mount` is recommended.
-
-Examples:
+This technique is useful in CI/CD set-ups where you need to test using a static
+Docker binary. This allows the container to create and manipulate the daemon on
+its host. This assumes that `/path/to/static-docker-binary` does not exist on
+the Docker host but does exist within the container.
 
 ```bash
-$ docker run --read-only --mount type=volume,target=/icanwrite busybox touch /icanwrite/here
+$ docker run -t -i --mount src=/var/run/docker.sock,dst=/var/run/docker.sock --mount src=/path/to/static-docker-binary,dst=/usr/bin/docker busybox sh
 ```
 
 ```bash
-$ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
+$ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/static-docker-binary:/usr/bin/docker busybox sh
 ```
+
+See also
+[get the linux binary]( https://docs.docker.com/engine/installation/binaries/#/get-the-linux-binary)),
 
 ### Publish or expose port (-p, --expose)
 
