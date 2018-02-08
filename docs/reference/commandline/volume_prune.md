@@ -1,6 +1,6 @@
 ---
 title: "volume prune"
-description: "Remove unused volumes"
+description: "Remove unused local volumes"
 keywords: "volume, prune, delete"
 ---
 
@@ -18,7 +18,7 @@ keywords: "volume, prune, delete"
 ```markdown
 Usage:	docker volume prune [OPTIONS]
 
-Remove all unused volumes
+Remove all unused local volumes
 
 Options:
       --filter filter   Provide filter values (e.g. 'label=<label>')
@@ -28,14 +28,14 @@ Options:
 
 ## Description
 
-Remove all unused volumes. Unused volumes are those which are not referenced by any containers
+Remove all unused local volumes. Unused local volumes are those which are not referenced by any containers
 
 ## Examples
 
 ```bash
 $ docker volume prune
 
-WARNING! This will remove all volumes not used by at least one container.
+WARNING! This will remove all local volumes not used by at least one container.
 Are you sure you want to continue? [y/N] y
 Deleted Volumes:
 07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
