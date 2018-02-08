@@ -22,7 +22,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
-		Short: "Remove all unused volumes",
+		Short: "Remove all unused local volumes",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spaceReclaimed, output, err := runPrune(dockerCli, options)
@@ -45,7 +45,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-const warning = `WARNING! This will remove all volumes not used by at least one container.
+const warning = `WARNING! This will remove all local volumes not used by at least one container.
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
