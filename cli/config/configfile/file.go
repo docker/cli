@@ -19,7 +19,7 @@ const (
 	// This constant is only used for really old config files when the
 	// URL wasn't saved as part of the config file and it was just
 	// assumed to be this value.
-	defaultIndexserver = "https://index.docker.io/v1/"
+	defaultIndexServer = "https://index.docker.io/v1/"
 )
 
 // ConfigFile ~/.docker/config.json file info
@@ -87,8 +87,8 @@ func (configFile *ConfigFile) LegacyLoadFromReader(configData io.Reader) error {
 		if err != nil {
 			return err
 		}
-		authConfig.ServerAddress = defaultIndexserver
-		configFile.AuthConfigs[defaultIndexserver] = authConfig
+		authConfig.ServerAddress = defaultIndexServer
+		configFile.AuthConfigs[defaultIndexServer] = authConfig
 	} else {
 		for k, authConfig := range configFile.AuthConfigs {
 			authConfig.Username, authConfig.Password, err = decodeAuth(authConfig.Auth)
