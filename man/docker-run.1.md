@@ -342,9 +342,19 @@ redirection on the host system.
    It can only be used in conjunction with **--network** for user-defined networks
 
 **--ipc**=""
-   Default is to create a private IPC namespace (POSIX SysV IPC) for the container
-                               'container:<name|id>': reuses another container shared memory, semaphores and message queues
-                               'host': use the host shared memory,semaphores and message queues inside the container.  Note: the host mode gives the container full access to local shared memory and is therefore considered insecure.
+   Sets the IPC mode for the container. The following values are accepted:
+
+| Value                      | Description                                                                       |
+|:---------------------------|:----------------------------------------------------------------------------------|
+| (empty)                    | Use daemon's default.                                                             |
+| **none**                   | Own private IPC namespace, with /dev/shm not mounted.                             |
+| **private**                | Own private IPC namespace.                                                        |
+| **shareable**              | Own private IPC namespace, with a possibility to share it with other containers.  |
+| **container:**_name-or-ID_ | Join another ("shareable") container's IPC namespace.                             |
+| **host**                   | Use the host system's IPC namespace.                                              |
+
+If not specified, daemon default is used, which can either be **private**
+or **shareable**, depending on the daemon version and configuration.
 
 **--isolation**="*default*"
    Isolation specifies the type of isolation technology used by containers. Note
@@ -462,9 +472,12 @@ according to RFC4862.
    Assign a name to the container
 
    The operator can identify a container in three ways:
-    UUID long identifier (“f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778”)
-    UUID short identifier (“f78375b1c487”)
-    Name (“jonah”)
+
+| Identifier type       | Example value                                                      |
+|:----------------------|:-------------------------------------------------------------------|
+| UUID long identifier  | "f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778" |
+| UUID short identifier | "f78375b1c487"                                                     |
+| Name                  | "evil_ptolemy"                                                     |
 
    The UUID identifiers come from the Docker daemon, and if a name is not assigned
 to the container with **--name** then the daemon will also generate a random
@@ -473,12 +486,17 @@ other place you need to identify a container). This works for both background
 and foreground Docker containers.
 
 **--network**="*bridge*"
-   Set the Network mode for the container
-                               'bridge': create a network stack on the default Docker bridge
-                               'none': no networking
-                               'container:<name|id>': reuse another container's network stack
-                               'host': use the Docker host network stack. Note: the host mode gives the container full access to local system services such as D-bus and is therefore considered insecure.
-                               '<network-name>|<network-id>': connect to a user-defined network
+   Set the Network mode for the container. Supported values are:
+
+| Value                       | Description                                                                              |
+|:----------------------------|:-----------------------------------------------------------------------------------------|
+| **none**                    | No networking in the container.                                                          |
+| **bridge**                  | Connect the container to the default Docker bridge via veth interfaces.                  |
+| **host**                    | Use the host's network stack inside the container.                                       |
+| **container:**_name_|_id_   | Use the network stack of another container, specified via its _name_ or _id_.            |
+| _network-name_|_network-id_ | Connects the container to a user created network (using `docker network create` command) |
+
+Default is **bridge**.
 
 **--network-alias**=[]
    Add network-scoped alias for the container
@@ -549,8 +567,17 @@ outside of a container on the host.
 to write files anywhere.  By specifying the `--read-only` flag the container will have
 its root filesystem mounted as read only prohibiting any writes.
 
-**--restart**="*no*"
-   Restart policy to apply when a container exits (no, on-failure[:max-retry], always, unless-stopped).
+**--restart**=""
+   Restart policy to apply when a container exits. Supported values are:
+
+| Policy                         | Result                |
+|:-------------------------------|:----------------------|
+| **no**                         | Do not automatically restart the container when it exits. |
+| **on-failure**[:_max-retries_] | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts. |
+| **always**                     | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
+| **unless-stopped**             | Always restart the container regardless of the exit status, but do not start it on daemon startup if the container has been put to a stopped state before. |
+
+Default is **no**.
 
 **--rm**=*true*|*false*
    Automatically remove the container when it exits. The default is *false*.
