@@ -1,6 +1,6 @@
 # Docker maintainers file
 #
-# This file describes who runs the docker/docker project and how.
+# This file describes who runs the docker/cli project and how.
 # This is a living document - if you see something out of date or missing, speak up!
 #
 # It is structured to be consumable by both humans and programs.
@@ -21,23 +21,12 @@
 	# a subsystem, they are responsible for doing so and holding the
 	# subsystem maintainers accountable. If ownership is unclear, they are the de facto owners.
 
-	# For each release (including minor releases), a "release captain" is assigned from the
-	# pool of core maintainers. Rotation is encouraged across all maintainers, to ensure
-	# the release process is clear and up-to-date.
-
 		people = [
 			"aaronlehmann",
 			"albers",
-			"aluzzardi",
-			"anusha",
 			"cpuguy83",
-			"crosbymichael",
 			"dnephin",
-			"ehazlett",
-			"johnstep",
 			"justincormack",
-			"mavenugo",
-			"mlaventure",
 			"stevvooe",
 			"tibor",
 			"tonistiigi",
@@ -67,7 +56,6 @@
 	# - close an issue or pull request when it's inappropriate or off-topic
 
 		people = [
-			"ehazlett",
 			"programmerq",
 			"thajeztah"
 		]
@@ -90,40 +78,15 @@
 	Email = "github@albersweb.de"
 	GitHub = "albers"
 
-	[people.aluzzardi]
-	Name = "Andrea Luzzardi"
-	Email = "al@docker.com"
-	GitHub = "aluzzardi"
-
-	[people.anusha]
-	Name = "Anusha Ragunathan"
-	Email = "anusha@docker.com"
-	GitHub = "anusha-ragunathan"
-
 	[people.cpuguy83]
 	Name = "Brian Goff"
 	Email = "cpuguy83@gmail.com"
 	GitHub = "cpuguy83"
 
-	[people.crosbymichael]
-	Name = "Michael Crosby"
-	Email = "crosbymichael@gmail.com"
-	GitHub = "crosbymichael"
-
 	[people.dnephin]
 	Name = "Daniel Nephin"
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
-
-	[people.ehazlett]
-	Name = "Evan Hazlett"
-	Email = "ejhazlett@gmail.com"
-	GitHub = "ehazlett"
-
-	[people.johnstep]
-	Name = "John Stephens"
-	Email = "johnstep@docker.com"
-	GitHub = "johnstep"
 
 	[people.justincormack]
 	Name = "Justin Cormack"
@@ -135,15 +98,10 @@
 	Email = "misty@docker.com"
 	GitHub = "mistyhacks"
 
-	[people.mlaventure]
-	Name = "Kenfe-Mickaël Laventure"
-	Email = "mickael.laventure@docker.com"
-	GitHub = "mlaventure"
-
-	[people.shykes]
-	Name = "Solomon Hykes"
-	Email = "solomon@docker.com"
-	GitHub = "shykes"
+	[people.programmerq]
+	Name = "Jeff Anderson"
+	Email = "jeff@docker.com"
+	GitHub = "programmerq"
 
 	[people.stevvooe]
 	Name = "Stephen Day"
