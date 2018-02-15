@@ -5,7 +5,7 @@ import (
 )
 
 // Volume creates a volume with default values.
-// Any number of volume function builder can be pass to augment it.
+// Any number of volume function builder can be passed to augment it.
 func Volume(builders ...func(volume *types.Volume)) *types.Volume {
 	volume := &types.Volume{
 		Name:       "volume",
