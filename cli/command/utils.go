@@ -2,6 +2,7 @@ package command
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/pkg/system"
 	"github.com/spf13/pflag"
 )
@@ -114,6 +116,24 @@ func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
 			}
 		}
 		pruneFilters.Add(parts[0], parts[1])
+	}
+
+	// Server APIs older than 1.29 will just ignore label filters.
+	// It's dangerous because a command like:
+	// `docker container prune --filter label=foo=bar`
+	// would just remove all stopped containers without considering the label
+	// The remote API should reject requests using unknown filters.
+	if pruneFilters.Get("label") != nil {
+		serverVersion, err := dockerCli.Client().ServerVersion(context.Background())
+		if err != nil {
+			fmt.Fprintf(dockerCli.Err(), "server API can't be verified\n")
+			os.Exit(1)
+		}
+		minimumVersion := "1.29"
+		if versions.LessThan(serverVersion.APIVersion, minimumVersion) {
+			fmt.Fprintf(dockerCli.Err(), "server API version: %s, %s required to filter on label\n", serverVersion.APIVersion, minimumVersion)
+			os.Exit(1)
+		}
 	}
 
 	return pruneFilters

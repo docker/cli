@@ -1,0 +1,14 @@
+#!/bin/bash
+
+exec filewatcher \
+    -x '.git' \
+    -x '.dobi' \
+    -x '.glide' \
+    -x 'vendor' \
+    -x '**/*.swp' \
+    -x 'dist' \
+    -x 'script' \
+    -x 'dobifiles' \
+    -x '.idea' \
+    -- \
+    bash -c 'go test -timeout 20s -v ./${dir} || ( echo; echo; echo; echo; exit 1 )'

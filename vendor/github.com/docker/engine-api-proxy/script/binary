@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+mkdir -p dist
+go build -o dist/proxy .

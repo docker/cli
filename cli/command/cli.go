@@ -18,6 +18,7 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
 	dopts "github.com/docker/cli/opts"
+	"github.com/docker/cli/project"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -260,9 +261,17 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 		verStr = tmpStr
 	}
 
-	httpClient, err := newHTTPClient(host, opts.TLSOptions)
-	if err != nil {
-		return &client.Client{}, err
+	var httpClient *http.Client
+	if project.IsInProject() {
+		httpClient, err = project.GetCurrentProject().NewScopedHTTPClient(host, verStr)
+		if err != nil {
+			return &client.Client{}, err
+		}
+	} else {
+		httpClient, err = newHTTPClient(host, opts.TLSOptions)
+		if err != nil {
+			return &client.Client{}, err
+		}
 	}
 
 	return client.NewClient(host, verStr, httpClient, customHeaders)
