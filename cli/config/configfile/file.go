@@ -19,7 +19,7 @@ const (
 	// This constant is only used for really old config files when the
 	// URL wasn't saved as part of the config file and it was just
 	// assumed to be this value.
-	defaultIndexserver = "https://index.docker.io/v1/"
+	defaultIndexServer = "https://index.docker.io/v1/"
 )
 
 // ConfigFile ~/.docker/config.json file info
@@ -87,8 +87,8 @@ func (configFile *ConfigFile) LegacyLoadFromReader(configData io.Reader) error {
 		if err != nil {
 			return err
 		}
-		authConfig.ServerAddress = defaultIndexserver
-		configFile.AuthConfigs[defaultIndexserver] = authConfig
+		authConfig.ServerAddress = defaultIndexServer
+		configFile.AuthConfigs[defaultIndexServer] = authConfig
 	} else {
 		for k, authConfig := range configFile.AuthConfigs {
 			authConfig.Username, authConfig.Password, err = decodeAuth(authConfig.Auth)
@@ -251,24 +251,29 @@ func decodeAuth(authStr string) (string, string, error) {
 
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
-func (configFile *ConfigFile) GetCredentialsStore(serverAddress string) credentials.Store {
-	if helper := getConfiguredCredentialStore(configFile, serverAddress); helper != "" {
-		return credentials.NewNativeStore(configFile, helper)
+func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
+	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
+		return newNativeStore(configFile, helper)
 	}
 	return credentials.NewFileStore(configFile)
 }
 
+// var for unit testing.
+var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
+	return credentials.NewNativeStore(configFile, helperSuffix)
+}
+
 // GetAuthConfig for a repository from the credential store
-func (configFile *ConfigFile) GetAuthConfig(serverAddress string) (types.AuthConfig, error) {
-	return configFile.GetCredentialsStore(serverAddress).Get(serverAddress)
+func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
+	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
 }
 
 // getConfiguredCredentialStore returns the credential helper configured for the
 // given registry, the default credsStore, or the empty string if neither are
 // configured.
-func getConfiguredCredentialStore(c *ConfigFile, serverAddress string) string {
-	if c.CredentialHelpers != nil && serverAddress != "" {
-		if helper, exists := c.CredentialHelpers[serverAddress]; exists {
+func getConfiguredCredentialStore(c *ConfigFile, registryHostname string) string {
+	if c.CredentialHelpers != nil && registryHostname != "" {
+		if helper, exists := c.CredentialHelpers[registryHostname]; exists {
 			return helper
 		}
 	}
@@ -285,19 +290,20 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 		}
 	}
 
-	for registry := range configFile.CredentialHelpers {
-		helper := configFile.GetCredentialsStore(registry)
-		newAuths, err := helper.GetAll()
-		if err != nil {
-			return nil, err
-		}
-		addAll(newAuths)
-	}
 	defaultStore := configFile.GetCredentialsStore("")
 	newAuths, err := defaultStore.GetAll()
 	if err != nil {
 		return nil, err
 	}
 	addAll(newAuths)
+
+	// Auth configs from a registry-specific helper should override those from the default store.
+	for registryHostname := range configFile.CredentialHelpers {
+		newAuth, err := configFile.GetAuthConfig(registryHostname)
+		if err != nil {
+			return nil, err
+		}
+		auths[registryHostname] = newAuth
+	}
 	return auths, nil
 }
