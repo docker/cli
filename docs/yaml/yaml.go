@@ -241,10 +241,10 @@ func parseMDContent(mdString string) (description string, examples string) {
 	parsedContent := strings.Split(mdString, "\n## ")
 	for _, s := range parsedContent {
 		if strings.Index(s, "Description") == 0 {
-			description = strings.Trim(s, "Description\n")
+			description = strings.TrimSpace(strings.TrimPrefix(s, "Description"))
 		}
 		if strings.Index(s, "Examples") == 0 {
-			examples = strings.Trim(s, "Examples\n")
+			examples = strings.TrimSpace(strings.TrimPrefix(s, "Examples"))
 		}
 	}
 	return description, examples
