@@ -30,7 +30,7 @@ func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.IntVar(&opts.timeout, "timeout", 0, "HTTP client timeout (in seconds)")
+	flags.IntVar(&opts.timeout, "timeout", 30, "HTTP client timeout (in seconds)")
 	return cmd
 }
 
