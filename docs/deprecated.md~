@@ -21,7 +21,11 @@ see [Feature Deprecation Policy](https://docs.docker.com/engine/#feature-depreca
 
 #### Deprecated in Docker 17.05.0
 
+<<<<<<< HEAD
+**Disabled by default in release: [v17.10](https://github.com/docker/docker-ce/releases/tag/v17.10.0-ce)**
+=======
 #### Disabled by default in Docker 17.09
+>>>>>>> Duplicate titles and change Docker releases
 
 Docker 17.05.0 added an optional `--detach=false` option to make the
 `docker service create` and `docker service update` work synchronously. This
@@ -76,9 +80,13 @@ The `filter` param to filter the list of image by reference (name or name:tag) i
 ### `repository:shortid` image references
 #### Deprecated in Docker 1.13.0
 
+<<<<<<< HEAD
+**Removed In Release: v17.12**
+=======
 [Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
 #### Target For removal in Docker 17.12
+>>>>>>> Duplicate titles and change Docker releases
 
 The `repository:shortid` syntax for referencing images is very little used,
 collides with tag references, and can be confused with digest references.
@@ -91,16 +99,24 @@ in Docker 17.12.
 
 [Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
+<<<<<<< HEAD
+**Removed In Release: v17.12**
+=======
 #### Target for removal in Docker 17.12
+>>>>>>> Duplicate titles and change Docker releases
 
 The daemon is moved to a separate binary (`dockerd`), and should be used instead.
 
 ### Duplicate keys with conflicting values in engine labels
 #### Deprecated in Docker 1.13.0
 
+<<<<<<< HEAD
+**Removed In Release: v17.12**
+=======
 [Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
 #### Target for removal in Docker 17.12
+>>>>>>> Duplicate titles and change Docker releases
 
 When setting duplicate keys with conflicting values, an error will be produced, and the daemon
 will fail to start.
@@ -126,9 +142,13 @@ future Engine versions. Instead of just requesting, for example, the URL
 ### Backing filesystem without `d_type` support for overlay/overlay2
 #### Deprecated in Docker 1.13.0 
 
+<<<<<<< HEAD
+**Removed In Release: v17.12**
+=======
 [Docker CE v1.13.0 release notes](https://github.com/docker/docker/releases/tag/v1.13.0)
 
 #### Target for removal in Docker 17.12
+>>>>>>> Duplicate titles and change Docker releases
 
 The overlay and overlay2 storage driver does not work as expected if the backing
 filesystem does not support `d_type`. For example, XFS does not support `d_type`
@@ -366,7 +386,11 @@ of the `--changes` flag that allows to pass `Dockerfile` commands.
 
 #### Disabled by default in Docker 17.06
 
+<<<<<<< HEAD
+**Removed In Release: v17.12**
+=======
 #### Target for removal in Docker 17.12
+>>>>>>> Duplicate titles and change Docker releases
 
 Version 1.8.3 added a flag (`--disable-legacy-registry=false`) which prevents the
 docker daemon from `pull`, `push`, and `login` operations against v1
@@ -412,7 +436,11 @@ Since 1.9, Docker Content Trust Offline key has been renamed to Root key and the
 
 [Docker CE v1.6.0 release notes](https://github.com/docker/docker/releases/tag/v1.6.0)
 
+<<<<<<< HEAD
+**Removed In Release: [v17.09](https://github.com/docker/docker-ce/releases/tag/v17.09.0-ce)**
+=======
 #### Target for removal in Docker 17.09
+>>>>>>> Duplicate titles and change Docker releases
 
 The flag `--api-enable-cors` is deprecated since v1.6.0. Use the flag
 `--api-cors-header` instead.
