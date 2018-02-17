@@ -4,7 +4,7 @@ description: "The service create command description and usage"
 keywords: "service, create"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -33,6 +33,7 @@ Options:
       --entrypoint command                 Overwrite the default ENTRYPOINT of the image
   -e, --env list                           Set environment variables
       --env-file list                      Read in a file of environment variables
+      --generic-resource list              User defined resources request
       --group list                         Set one or more supplementary user groups for the container
       --health-cmd string                  Command to run to check health
       --health-interval duration           Time between running the check (ms|s|m|h)
@@ -42,6 +43,7 @@ Options:
       --help                               Print usage
       --host list                          Set one or more custom host-to-IP mappings (host:ip)
       --hostname string                    Container hostname
+      --isolation string                   Service container isolation mode
   -l, --label list                         Service labels
       --limit-cpu decimal                  Limit CPUs
       --limit-memory bytes                 Limit Memory
@@ -110,6 +112,26 @@ dmu1ept4cxcf  redis   replicated  1/1       redis:3.0.6
 a8q9dasaafud  redis2  global      1/1       redis:3.0.6
 ```
 
+#### Create a service using an image on a private registry
+
+If your image is available on a private registry which requires login, use the
+`--with-registry-auth` flag with `docker service create`, after logging in. If
+your image is stored on `registry.example.com`, which is a private registry, use
+a command like the following:
+
+```bash
+$ docker login registry.example.com
+
+$ docker service  create \
+  --with-registry-auth \
+  --name my_service \
+  registry.example.com/acme/my_image:latest
+```
+
+This passes the login token from your local client to the swarm nodes where the
+service is deployed, using the encrypted WAL logs. With this information, the
+nodes are able to log into the registry and pull the image.
+
 ### Create a service with 5 replica tasks (--replicas)
 
 Use the `--replicas` flag to set the number of replica tasks for a replicated
@@ -159,7 +181,7 @@ $ docker service create --name redis --secret secret.json redis:3.0.6
 4cdgfyky7ozwh3htjfw0d12qv
 ```
 
-Create a service specifying the secret, target, user/group ID and mode:
+Create a service specifying the secret, target, user/group ID, and mode:
 
 ```bash
 $ docker service create --name redis \
@@ -243,19 +265,19 @@ $ docker service create \
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
 
-### Add bind-mounts, volumes or memory filesystems
+### Add bind mounts, volumes or memory filesystems
 
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
 on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind-mounts_, and _tmpfs_.
+as volumes), _bind mounts_, and _tmpfs_.
 
-A **bind-mount** makes a file or directory on the host available to the
-container it is mounted within. A bind-mount may be either read-only or
+A **bind mount** makes a file or directory on the host available to the
+container it is mounted within. A bind mount may be either read-only or
 read-write. For example, a container might share its host's DNS information by
-means of a bind-mount of the host's `/etc/resolv.conf` or a container might
+means of a bind mount of the host's `/etc/resolv.conf` or a container might
 write logs to its host's `/var/log/myContainerLogs` directory. If you use
-bind-mounts and your host and containers have different notions of permissions,
+bind mounts and your host and containers have different notions of permissions,
 access controls, or other such details, you will run into portability issues.
 
 A **named volume** is a mechanism for decoupling persistent data needed by your
@@ -279,7 +301,7 @@ update the named volume.
 For more information about named volumes, see
 [Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/).
 
-The following table describes options which apply to both bind-mounts and named
+The following table describes options which apply to both bind mounts and named
 volumes in a service:
 
 <table>
@@ -294,8 +316,9 @@ volumes in a service:
     <td>
       <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, or <tt>tmpfs</tt>. Defaults to <tt>volume</tt> if no type is specified.
       <ul>
-        <li><tt>volume</tt>: mounts a [managed volume](volume_create.md) into the container.</li>
-        <li><tt>bind</tt>: bind-mounts a directory or file from the host into the container.</li>
+        <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
+        into the container.</li> <li><tt>bind</tt>:
+        bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
       </ul></p>
     </td>
@@ -328,7 +351,7 @@ volumes in a service:
     <td>
       <p>Mount path inside the container, for example <tt>/some/path/in/container/</tt>.
       If the path does not exist in the container's filesystem, the Engine creates
-      a directory at the specified location before mounting the volume or bind-mount.</p>
+      a directory at the specified location before mounting the volume or bind mount.</p>
     </td>
   </tr>
   <tr>
@@ -352,7 +375,7 @@ volumes in a service:
            <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
            <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
            <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
-           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are are visible on the host.</li>
+           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
         </ul>
      </p>
     </td>
@@ -362,15 +385,15 @@ volumes in a service:
 #### Bind Propagation
 
 Bind propagation refers to whether or not mounts created within a given
-bind-mount or named volume can be propagated to replicas of that mount. Consider
+bind mount or named volume can be propagated to replicas of that mount. Consider
 a mount point `/mnt`, which is also mounted on `/tmp`. The propation settings
 control whether a mount on `/tmp/a` would also be available on `/mnt/a`. Each
 propagation setting has a recursive counterpoint. In the case of recursion,
 consider that `/tmp/a` is also mounted as `/foo`. The propagation settings
 control whether `/mnt/a` and/or `/tmp/a` would exist.
 
-The `bind-propagation` option defaults to `rprivate` for both bind-mounts and
-volume mounts, and is only configurable for bind-mounts. In other words, named
+The `bind-propagation` option defaults to `rprivate` for both bind mounts and
+volume mounts, and is only configurable for bind mounts. In other words, named
 volumes do not support bind propagation.
 
 - **`shared`**: Sub-mounts of the original mount are exposed to replica mounts,
@@ -398,7 +421,7 @@ For more information about bind propagation, see the
 
 #### Options for Named Volumes
 
-The following options can only be used for named volumes (`type=volume`);
+The following options can only be used for named volumes (`type=volume`):
 
 
 <table>
@@ -419,7 +442,7 @@ The following options can only be used for named volumes (`type=volume`);
     <td>
       One or more custom metadata ("labels") to apply to the volume upon
       creation. For example,
-      `volume-label=mylabel=hello-world,my-other-label=hello-mars`. For more
+      <tt>volume-label=mylabel=hello-world,my-other-label=hello-mars</tt>. For more
       information about labels, refer to
       <a href="https://docs.docker.com/engine/userguide/labels-custom-metadata/">apply custom metadata</a>.
     </td>
@@ -430,8 +453,8 @@ The following options can only be used for named volumes (`type=volume`);
       By default, if you attach an empty volume to a container, and files or
       directories already existed at the mount-path in the container (<tt>dst</tt>),
       the Engine copies those files and directories into the volume, allowing
-      the host to access them. Set `volume-nocopy` to disables copying files
-      from the container's filesystem to the volume and mount the empty volume.
+      the host to access them. Set <tt>volume-nocopy</tt> to disable copying files
+      from the container's filesystem to the volume and mount the empty volume.<br />
 
       A value is optional:
 
@@ -587,27 +610,27 @@ follows:
   <tr>
     <td><tt>node.id</tt></td>
     <td>Node ID</td>
-    <td><tt>node.id == 2ivku8v2gvtg4</tt></td>
+    <td><tt>node.id==2ivku8v2gvtg4</tt></td>
   </tr>
   <tr>
     <td><tt>node.hostname</tt></td>
     <td>Node hostname</td>
-    <td><tt>node.hostname != node-2</tt></td>
+    <td><tt>node.hostname!=node-2</tt></td>
   </tr>
   <tr>
     <td><tt>node.role</tt></td>
     <td>Node role</td>
-    <td><tt>node.role == manager</tt></td>
+    <td><tt>node.role==manager</tt></td>
   </tr>
   <tr>
     <td><tt>node.labels</tt></td>
     <td>user defined node labels</td>
-    <td><tt>node.labels.security == high</tt></td>
+    <td><tt>node.labels.security==high</tt></td>
   </tr>
   <tr>
     <td><tt>engine.labels</tt></td>
     <td>Docker Engine's labels</td>
-    <td><tt>engine.labels.operatingsystem == ubuntu 14.04</tt></td>
+    <td><tt>engine.labels.operatingsystem==ubuntu 14.04</tt></td>
   </tr>
 </table>
 
@@ -734,51 +757,73 @@ Containers on the same network can access each other using
 ### Publish service ports externally to the swarm (-p, --publish)
 
 You can publish service ports to make them available externally to the swarm
-using the `--publish` flag:
-
-```bash
-$ docker service create --publish <TARGET-PORT>:<SERVICE-PORT> nginx
-```
-
-For example:
+using the `--publish` flag. The `--publish` flag can take two different styles
+of arguments. The short version is positional, and allows you to specify the
+published port and target port separated by a colon.
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
 ```
 
-When you publish a service port, the swarm routing mesh makes the service
-accessible at the target port on every node regardless if there is a task for
-the service running on the node. For more information refer to
+There is also a long format, which is easier to read and allows you to specify
+more options. The long format is preferred. You cannot specify the service's
+mode when using the short format. Here is an example of using the long format
+for the same service as above:
+
+```bash
+$ docker service create --name my_web --replicas 3 --publish published=8080,target=80 nginx
+```
+
+The options you can specify are:
+
+<table>
+<thead>
+<tr>
+  <th>Option</th>
+  <th>Short syntax</th>
+  <th>Long syntax</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tr>
+  <td>published and target port</td>
+  <td><tt>--publish 8080:80</tt></td>
+  <td><tt>--publish published=8080,target=80</tt></td>
+  <td><p>
+    The target port within the container and the port to map it to on the
+    nodes, using the routing mesh (<tt>ingress</tt>) or host-level networking.
+    More options are available, later in this table. The key-value syntax is
+    preferred, because it is somewhat self-documenting.
+  </p></td>
+</tr>
+<tr>
+  <td>mode</td>
+  <td>Not possible to set using short syntax.</td>
+  <td><tt>--publish published=8080,target=80,mode=host</tt></td>
+  <td><p>
+    The mode to use for binding the port, either <tt>ingress</tt> or <tt>host</tt>.
+    Defaults to <tt>ingress</tt> to use the routing mesh.
+  </p></td>
+</tr>
+<tr>
+  <td>protocol</td>
+  <td><tt>--publish 8080:80/tcp</tt></td>
+  <td><tt>--publish published=8080,target=80,protocol=tcp</tt></td>
+  <td><p>
+    The protocol to use, either <tt>tcp</tt> or <tt>udp</tt> Defaults to
+    <tt>tcp</tt>. To bind a port for both protocols, specify the <tt>-p</tt> or
+    <tt>--publish</tt> flag twice.
+  </p></td>
+</tr>
+</table>
+
+When you publish a service port using `ingress` mode, the swarm routing mesh
+makes the service accessible at the published port on every node regardless if
+there is a task for the service running on the node. If you use `host` mode,
+the port is only bound on nodes where the service is running, and a given port
+on a node can only be bound once. You can only set the publication mode using
+the long syntax. For more information refer to
 [Use swarm mode routing mesh](https://docs.docker.com/engine/swarm/ingress/).
-
-### Publish a port for TCP only or UDP only
-
-By default, when you publish a port, it is a TCP port. You can
-specifically publish a UDP port instead of or in addition to a TCP port. When
-you publish both TCP and UDP ports, Docker 1.12.2 and earlier require you to
-add the suffix `/tcp` for TCP ports. Otherwise it is optional.
-
-#### TCP only
-
-The following two commands are equivalent.
-
-```bash
-$ docker service create --name dns-cache -p 53:53 dns-cache
-
-$ docker service create --name dns-cache -p 53:53/tcp dns-cache
-```
-
-#### TCP and UDP
-
-```bash
-$ docker service create --name dns-cache -p 53:53/tcp -p 53:53/udp dns-cache
-```
-
-#### UDP only
-
-```bash
-$ docker service create --name dns-cache -p 53:53/udp dns-cache
-```
 
 ### Provide credential specs for managed service accounts (Windows only)
 
@@ -834,6 +879,10 @@ Valid placeholders for the Go template are listed below:
     <td>Node ID</td>
   </tr>
   <tr>
+    <td><tt>.Node.Hostname</tt></td>
+    <td>Node Hostname</td>
+  </tr>
+  <tr>
     <td><tt>.Task.ID</tt></td>
     <td>Task ID</td>
   </tr>
@@ -851,11 +900,11 @@ Valid placeholders for the Go template are listed below:
 #### Template example
 
 In this example, we are going to set the template of the created containers based on the
-service's name and the node's ID where it sits.
+service's name, the node's ID and hostname where it sits.
 
 ```bash
 $ docker service create --name hosttempl \
-                        --hostname="{{.Node.ID}}-{{.Service.Name}}"\
+                        --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
                          busybox top
 
 va8ew30grofhjoychbr6iot8c
@@ -865,9 +914,36 @@ $ docker service ps va8ew30grofhjoychbr6iot8c
 ID            NAME         IMAGE                                                                                   NODE          DESIRED STATE  CURRENT STATE               ERROR  PORTS
 wo41w8hg8qan  hosttempl.1  busybox:latest@sha256:29f5d56d12684887bdfa50dcd29fc31eea4aaf4ad3bec43daf19026a7ce69912  2e7a8a9c4da2  Running        Running about a minute ago
 
-$ docker inspect --format="{{.Config.Hostname}}" hosttempl.1.wo41w8hg8qanxwjwsg4kxpprj
+$ docker inspect --format="{{.Config.Hostname}}" 2e7a8a9c4da2-wo41w8hg8qanxwjwsg4kxpprj-hosttempl
 
 x3ti0erg11rjpg64m75kej2mz-hosttempl
+```
+
+### Specify isolation mode (Windows)
+
+By default, tasks scheduled on Windows nodes are run using the default isolation mode
+configured for this particular node. To force a specific isolation mode, you can use
+the `--isolation` flag:
+
+```bash
+$ docker service create --name myservice --isolation=process microsoft/nanoserver
+```
+
+Supported isolation modes on Windows are:
+- `default`: use default settings specified on the node running the task
+- `process`: use process isolation (Windows server only)
+- `hyperv`: use Hyper-V isolation
+
+### Create services requesting Generic Resources
+
+You can narrow the kind of nodes your task can land on through the using the
+`--generic-resource` flag (if the nodes advertise these resources):
+
+```bash
+$ docker service create --name cuda \
+                        --generic-resource "NVIDIA-GPU=2" \
+                        --generic-resource "SSD=1" \
+                        nvidia/cuda
 ```
 
 ## Related commands
@@ -875,9 +951,10 @@ x3ti0erg11rjpg64m75kej2mz-hosttempl
 * [service inspect](service_inspect.md)
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
-* [service rm](service_rm.md)
-* [service scale](service_scale.md)
 * [service ps](service_ps.md)
+* [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
+* [service scale](service_scale.md)
 * [service update](service_update.md)
 
 <style>table tr > td:first-child { white-space: nowrap;}</style>

@@ -35,7 +35,7 @@ type updateOptions struct {
 }
 
 // NewUpdateCommand creates a new cobra.Command for `docker update`
-func NewUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	var options updateOptions
 
 	cmd := &cobra.Command{
@@ -72,7 +72,7 @@ func NewUpdateCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(dockerCli *command.DockerCli, options *updateOptions) error {
+func runUpdate(dockerCli command.Cli, options *updateOptions) error {
 	var err error
 
 	if options.nFlag == 0 {

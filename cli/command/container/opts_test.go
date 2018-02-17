@@ -1,8 +1,6 @@
 package container
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,10 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/runconfig"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -46,11 +43,9 @@ func TestValidateAttach(t *testing.T) {
 	}
 }
 
+// nolint: unparam
 func parseRun(args []string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig, error) {
-	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
-	flags.SetOutput(ioutil.Discard)
-	flags.Usage = nil
-	copts := addFlags(flags)
+	flags, copts := setupRunFlags()
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, nil, err
 	}
@@ -60,6 +55,14 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 		return nil, nil, nil, err
 	}
 	return containerConfig.Config, containerConfig.HostConfig, containerConfig.NetworkingConfig, err
+}
+
+func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
+	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
+	flags.SetOutput(ioutil.Discard)
+	flags.Usage = nil
+	copts := addFlags(flags)
+	return flags, copts
 }
 
 func parseMustError(t *testing.T, args string) {
@@ -115,7 +118,7 @@ func TestParseRunWithInvalidArgs(t *testing.T) {
 }
 
 // nolint: gocyclo
-func TestParseRunVolumes(t *testing.T) {
+func TestParseWithVolumes(t *testing.T) {
 
 	// A single volume
 	arr, tryit := setupPlatformVolume([]string{`/tmp`}, []string{`c:\tmp`})
@@ -135,19 +138,19 @@ func TestParseRunVolumes(t *testing.T) {
 		t.Fatalf("Error parsing volume flags, %s is missing from volumes. Received %v", arr[1], config.Volumes)
 	}
 
-	// A single bind-mount
+	// A single bind mount
 	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`}, []string{os.Getenv("TEMP") + `:c:\containerTmp`})
 	if config, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || hostConfig.Binds[0] != arr[0] {
 		t.Fatalf("Error parsing volume flags, %q should mount-bind the path before the colon into the path after the colon. Received %v %v", arr[0], hostConfig.Binds, config.Volumes)
 	}
 
-	// Two bind-mounts.
+	// Two bind mounts.
 	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`, `/hostVar:/containerVar`}, []string{os.Getenv("ProgramData") + `:c:\ContainerPD`, os.Getenv("TEMP") + `:c:\containerTmp`})
 	if _, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 		t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 	}
 
-	// Two bind-mounts, first read-only, second read-write.
+	// Two bind mounts, first read-only, second read-write.
 	// TODO Windows: The Windows version uses read-write as that's the only mode it supports. Can change this post TP4
 	arr, tryit = setupPlatformVolume(
 		[]string{`/hostTmp:/containerTmp:ro`, `/hostVar:/containerVar:rw`},
@@ -229,20 +232,21 @@ func TestParseWithMacAddress(t *testing.T) {
 	}
 }
 
-func TestParseWithMemory(t *testing.T) {
-	invalidMemory := "--memory=invalid"
-	_, _, _, err := parseRun([]string{invalidMemory, "img", "cmd"})
-	testutil.ErrorContains(t, err, invalidMemory)
+func TestRunFlagsParseWithMemory(t *testing.T) {
+	flags, _ := setupRunFlags()
+	args := []string{"--memory=invalid", "img", "cmd"}
+	err := flags.Parse(args)
+	testutil.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
 
 	_, hostconfig := mustParse(t, "--memory=1G")
 	assert.Equal(t, int64(1073741824), hostconfig.Memory)
 }
 
 func TestParseWithMemorySwap(t *testing.T) {
-	invalidMemory := "--memory-swap=invalid"
-
-	_, _, _, err := parseRun([]string{invalidMemory, "img", "cmd"})
-	testutil.ErrorContains(t, err, invalidMemory)
+	flags, _ := setupRunFlags()
+	args := []string{"--memory-swap=invalid", "img", "cmd"}
+	err := flags.Parse(args)
+	testutil.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
 
 	_, hostconfig := mustParse(t, "--memory-swap=1G")
 	assert.Equal(t, int64(1073741824), hostconfig.MemorySwap)
@@ -366,23 +370,15 @@ func TestParseDevice(t *testing.T) {
 }
 
 func TestParseModes(t *testing.T) {
-	// ipc ko
-	_, _, _, err := parseRun([]string{"--ipc=container:", "img", "cmd"})
-	testutil.ErrorContains(t, err, "--ipc: invalid IPC mode")
-
-	// ipc ok
-	_, hostconfig, _, err := parseRun([]string{"--ipc=host", "img", "cmd"})
-	require.NoError(t, err)
-	if !hostconfig.IpcMode.Valid() {
-		t.Fatalf("Expected a valid IpcMode, got %v", hostconfig.IpcMode)
-	}
-
 	// pid ko
-	_, _, _, err = parseRun([]string{"--pid=container:", "img", "cmd"})
+	flags, copts := setupRunFlags()
+	args := []string{"--pid=container:", "img", "cmd"}
+	require.NoError(t, flags.Parse(args))
+	_, err := parse(flags, copts)
 	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
-	_, hostconfig, _, err = parseRun([]string{"--pid=host", "img", "cmd"})
+	_, hostconfig, _, err := parseRun([]string{"--pid=host", "img", "cmd"})
 	require.NoError(t, err)
 	if !hostconfig.PidMode.Valid() {
 		t.Fatalf("Expected a valid PidMode, got %v", hostconfig.PidMode)
@@ -398,14 +394,18 @@ func TestParseModes(t *testing.T) {
 	if !hostconfig.UTSMode.Valid() {
 		t.Fatalf("Expected a valid UTSMode, got %v", hostconfig.UTSMode)
 	}
+}
 
+func TestRunFlagsParseShmSize(t *testing.T) {
 	// shm-size ko
-	expectedErr := `invalid argument "a128m" for --shm-size=a128m: invalid size: 'a128m'`
-	_, _, _, err = parseRun([]string{"--shm-size=a128m", "img", "cmd"})
+	flags, _ := setupRunFlags()
+	args := []string{"--shm-size=a128m", "img", "cmd"}
+	expectedErr := `invalid argument "a128m" for "--shm-size" flag: invalid size: 'a128m'`
+	err := flags.Parse(args)
 	testutil.ErrorContains(t, err, expectedErr)
 
 	// shm-size ok
-	_, hostconfig, _, err = parseRun([]string{"--shm-size=128m", "img", "cmd"})
+	_, hostconfig, _, err := parseRun([]string{"--shm-size=128m", "img", "cmd"})
 	require.NoError(t, err)
 	if hostconfig.ShmSize != 134217728 {
 		t.Fatalf("Expected a valid ShmSize, got %d", hostconfig.ShmSize)
@@ -593,161 +593,6 @@ func TestParseEntryPoint(t *testing.T) {
 	if len(config.Entrypoint) != 1 && config.Entrypoint[0] != "anything" {
 		t.Fatalf("Expected entrypoint 'anything', got %v", config.Entrypoint)
 	}
-}
-
-// This tests the cases for binds which are generated through
-// DecodeContainerConfig rather than Parse()
-// nolint: gocyclo
-func TestDecodeContainerConfigVolumes(t *testing.T) {
-
-	// Root to root
-	bindsOrVols, _ := setupPlatformVolume([]string{`/:/`}, []string{os.Getenv("SystemDrive") + `\:c:\`})
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	// No destination path
-	bindsOrVols, _ = setupPlatformVolume([]string{`/tmp:`}, []string{os.Getenv("TEMP") + `\:`})
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	//	// No destination path or mode
-	bindsOrVols, _ = setupPlatformVolume([]string{`/tmp::`}, []string{os.Getenv("TEMP") + `\::`})
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	// A whole lot of nothing
-	bindsOrVols = []string{`:`}
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	// A whole lot of nothing with no mode
-	bindsOrVols = []string{`::`}
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	// Too much including an invalid mode
-	wTmp := os.Getenv("TEMP")
-	bindsOrVols, _ = setupPlatformVolume([]string{`/tmp:/tmp:/tmp:/tmp`}, []string{wTmp + ":" + wTmp + ":" + wTmp + ":" + wTmp})
-	if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-		t.Fatalf("binds %v should have failed", bindsOrVols)
-	}
-	if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-		t.Fatalf("volume %v should have failed", bindsOrVols)
-	}
-
-	// Windows specific error tests
-	if runtime.GOOS == "windows" {
-		// Volume which does not include a drive letter
-		bindsOrVols = []string{`\tmp`}
-		if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-			t.Fatalf("binds %v should have failed", bindsOrVols)
-		}
-		if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-			t.Fatalf("volume %v should have failed", bindsOrVols)
-		}
-
-		// Root to C-Drive
-		bindsOrVols = []string{os.Getenv("SystemDrive") + `\:c:`}
-		if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-			t.Fatalf("binds %v should have failed", bindsOrVols)
-		}
-		if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-			t.Fatalf("volume %v should have failed", bindsOrVols)
-		}
-
-		// Container path that does not include a drive letter
-		bindsOrVols = []string{`c:\windows:\somewhere`}
-		if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-			t.Fatalf("binds %v should have failed", bindsOrVols)
-		}
-		if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-			t.Fatalf("volume %v should have failed", bindsOrVols)
-		}
-	}
-
-	// Linux-specific error tests
-	if runtime.GOOS != "windows" {
-		// Just root
-		bindsOrVols = []string{`/`}
-		if _, _, err := callDecodeContainerConfig(nil, bindsOrVols); err == nil {
-			t.Fatalf("binds %v should have failed", bindsOrVols)
-		}
-		if _, _, err := callDecodeContainerConfig(bindsOrVols, nil); err == nil {
-			t.Fatalf("volume %v should have failed", bindsOrVols)
-		}
-
-		// A single volume that looks like a bind mount passed in Volumes.
-		// This should be handled as a bind mount, not a volume.
-		vols := []string{`/foo:/bar`}
-		if config, hostConfig, err := callDecodeContainerConfig(vols, nil); err != nil {
-			t.Fatal("Volume /foo:/bar should have succeeded as a volume name")
-		} else if hostConfig.Binds != nil {
-			t.Fatalf("Error parsing volume flags, /foo:/bar should not mount-bind anything. Received %v", hostConfig.Binds)
-		} else if _, exists := config.Volumes[vols[0]]; !exists {
-			t.Fatalf("Error parsing volume flags, /foo:/bar is missing from volumes. Received %v", config.Volumes)
-		}
-
-	}
-}
-
-// callDecodeContainerConfig is a utility function used by TestDecodeContainerConfigVolumes
-// to call DecodeContainerConfig. It effectively does what a client would
-// do when calling the daemon by constructing a JSON stream of a
-// ContainerConfigWrapper which is populated by the set of volume specs
-// passed into it. It returns a config and a hostconfig which can be
-// validated to ensure DecodeContainerConfig has manipulated the structures
-// correctly.
-func callDecodeContainerConfig(volumes []string, binds []string) (*container.Config, *container.HostConfig, error) {
-	var (
-		b   []byte
-		err error
-		c   *container.Config
-		h   *container.HostConfig
-	)
-	w := runconfig.ContainerConfigWrapper{
-		Config: &container.Config{
-			Volumes: map[string]struct{}{},
-		},
-		HostConfig: &container.HostConfig{
-			NetworkMode: "none",
-			Binds:       binds,
-		},
-	}
-	for _, v := range volumes {
-		w.Config.Volumes[v] = struct{}{}
-	}
-	if b, err = json.Marshal(w); err != nil {
-		return nil, nil, errors.Errorf("Error on marshal %s", err.Error())
-	}
-	c, h, _, err = runconfig.DecodeContainerConfig(bytes.NewReader(b))
-	if err != nil {
-		return nil, nil, errors.Errorf("Error parsing %s: %v", string(b), err)
-	}
-	if c == nil || h == nil {
-		return nil, nil, errors.Errorf("Empty config or hostconfig")
-	}
-
-	return c, h, err
 }
 
 func TestValidateDevice(t *testing.T) {

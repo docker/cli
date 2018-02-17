@@ -10,13 +10,16 @@ _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 clean: ## remove build artifacts
 	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml/gen
 
+.PHONY: test-unit
+test-unit: ## run unit test
+	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+
 .PHONY: test
-test: ## run go test
-	./scripts/test/unit $(shell go list ./... | grep -v '/vendor/')
+test: test-unit ## run tests
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	./scripts/test/unit-with-coverage $(shell go list ./... | grep -v '/vendor/')
+	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: lint
 lint: ## run all the lint tools
@@ -31,6 +34,14 @@ binary: ## build executable for Linux
 cross: ## build executable for macOS and Windows
 	./scripts/build/cross
 
+.PHONY: binary-windows
+binary-windows: ## build executable for Windows
+	./scripts/build/windows
+
+.PHONY: binary-osx
+binary-osx: ## build executable for macOS
+	./scripts/build/osx
+
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
 	./scripts/build/dynbinary
@@ -40,8 +51,13 @@ watch: ## monitor file changes and run go test
 	./scripts/test/watch
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
-	vndr 2> /dev/null
+	rm -rf vendor
+	bash -c 'vndr |& grep -v -i clone'
 	scripts/validate/check-git-diff vendor
+
+.PHONY: authors
+authors: ## generate AUTHORS file from git history
+	scripts/docs/generate-authors.sh
 
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown

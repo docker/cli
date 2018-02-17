@@ -1,12 +1,11 @@
 ---
-title: "Dockerfile reference"
 description: "Dockerfiles use a simple DSL which allows you to automate the steps you would normally manually take to create an image."
 keywords: "builder, docker, Dockerfile, automation, image creation"
 redirect_from:
 - /reference/builder/
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -301,9 +300,9 @@ Results in:
      ---> Running in a2c157f842f5
      Volume in drive C has no label.
      Volume Serial Number is 7E6D-E0F7
-    
+
      Directory of c:\
-    
+
     10/05/2016  05:04 PM             1,894 License.txt
     10/05/2016  02:22 PM    <DIR>          Program Files
     10/05/2016  02:14 PM    <DIR>          Program Files (x86)
@@ -381,7 +380,7 @@ throughout the entire instruction. In other words, in this example:
     ENV ghi=$abc
 
 will result in `def` having a value of `hello`, not `bye`. However,
-`ghi` will have a value of `bye` because it is not part of the same instruction 
+`ghi` will have a value of `bye` because it is not part of the same instruction
 that set `abc` to `bye`.
 
 ## .dockerignore file
@@ -415,12 +414,12 @@ temp?
 
 This file causes the following build behavior:
 
-| Rule           | Behavior                                                                                                                                                                     |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `# comment`    | Ignored.                 |
-| `*/temp*`      | Exclude files and directories whose names start with `temp` in any immediate subdirectory of the root.  For example, the plain file `/somedir/temporary.txt` is excluded, as is the directory `/somedir/temp`.                 |
-| `*/*/temp*`    | Exclude files and directories starting with `temp` from any subdirectory that is two levels below the root. For example, `/somedir/subdir/temporary.txt` is excluded. |
-| `temp?`        | Exclude files and directories in the root directory whose names are a one-character extension of `temp`.  For example, `/tempa` and `/tempb` are excluded.
+| Rule        | Behavior                                                                                                                                                                                                       |
+|:------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `# comment` | Ignored.                                                                                                                                                                                                       |
+| `*/temp*`   | Exclude files and directories whose names start with `temp` in any immediate subdirectory of the root.  For example, the plain file `/somedir/temporary.txt` is excluded, as is the directory `/somedir/temp`. |
+| `*/*/temp*` | Exclude files and directories starting with `temp` from any subdirectory that is two levels below the root. For example, `/somedir/subdir/temporary.txt` is excluded.                                          |
+| `temp?`     | Exclude files and directories in the root directory whose names are a one-character extension of `temp`.  For example, `/tempa` and `/tempb` are excluded.                                                     |
 
 
 Matching is done using Go's
@@ -493,32 +492,32 @@ Or
 
     FROM <image>[@<digest>] [AS <name>]
 
-The `FROM` instruction initializes a new build stage and sets the 
-[*Base Image*](glossary.md#base-image) for subsequent instructions. As such, a 
+The `FROM` instruction initializes a new build stage and sets the
+[*Base Image*](glossary.md#base-image) for subsequent instructions. As such, a
 valid `Dockerfile` must start with a `FROM` instruction. The image can be
-any valid image – it is especially easy to start by **pulling an image** from 
+any valid image – it is especially easy to start by **pulling an image** from
 the [*Public Repositories*](https://docs.docker.com/engine/tutorials/dockerrepos/).
 
 - `ARG` is the only instruction that may precede `FROM` in the `Dockerfile`.
   See [Understand how ARG and FROM interact](#understand-how-arg-and-from-interact).
 
-- `FROM` can appear multiple times within a single `Dockerfile` to 
+- `FROM` can appear multiple times within a single `Dockerfile` to
   create multiple images or use one build stage as a dependency for another.
-  Simply make a note of the last image ID output by the commit before each new 
+  Simply make a note of the last image ID output by the commit before each new
   `FROM` instruction. Each `FROM` instruction clears any state created by previous
   instructions.
 
-- Optionally a name can be given to a new build stage by adding `AS name` to the 
+- Optionally a name can be given to a new build stage by adding `AS name` to the
   `FROM` instruction. The name can be used in subsequent `FROM` and
   `COPY --from=<name|index>` instructions to refer to the image built in this stage.
 
-- The `tag` or `digest` values are optional. If you omit either of them, the 
+- The `tag` or `digest` values are optional. If you omit either of them, the
   builder assumes a `latest` tag by default. The builder returns an error if it
   cannot find the `tag` value.
 
 ### Understand how ARG and FROM interact
 
-`FROM` instructions support variables that are declared by any `ARG` 
+`FROM` instructions support variables that are declared by any `ARG`
 instructions that occur before the first `FROM`.
 
 ```Dockerfile
@@ -708,23 +707,24 @@ backslashes as you would in command-line parsing. A few usage examples:
     LABEL description="This text illustrates \
     that label-values can span multiple lines."
 
-An image can have more than one label. To specify multiple labels,
-Docker recommends combining labels into a single `LABEL` instruction where
-possible. Each `LABEL` instruction produces a new layer which can result in an
-inefficient image if you use many labels. This example results in a single image
-layer.
+An image can have more than one label. You can specify multiple labels on a
+single line. Prior to Docker 1.10, this decreased the size of the final image,
+but this is no longer the case. You may still choose to specify multiple labels
+in a single instruction, in one of the following two ways:
 
-    LABEL multi.label1="value1" multi.label2="value2" other="value3"
+```none
+LABEL multi.label1="value1" multi.label2="value2" other="value3"
+```
 
-The above can also be written as:
+```none
+LABEL multi.label1="value1" \
+      multi.label2="value2" \
+      other="value3"
+```
 
-    LABEL multi.label1="value1" \
-          multi.label2="value2" \
-          other="value3"
-
-Labels are additive including `LABEL`s in `FROM` images. If Docker
-encounters a label/key that already exists, the new value overrides any previous
-labels with identical keys.
+Labels included in base or parent images (images in the `FROM` line) are
+inherited by your image. If a label already exists but with a different value,
+the most-recently-applied value overrides any previously-set value.
 
 To view an image's labels, use the `docker inspect` command.
 
@@ -754,20 +754,50 @@ This will then be visible from `docker inspect` with the other labels.
 
 ## EXPOSE
 
-    EXPOSE <port> [<port>...]
+    EXPOSE <port> [<port>/<protocol>...]
 
 The `EXPOSE` instruction informs Docker that the container listens on the
-specified network ports at runtime. `EXPOSE` does not make the ports of the
-container accessible to the host. To do that, you must use either the `-p` flag
-to publish a range of ports or the `-P` flag to publish all of the exposed
-ports. You can expose one port number and publish it externally under another
-number.
+specified network ports at runtime. You can specify whether the port listens on
+TCP or UDP, and the default is TCP if the protocol is not specified.
+
+The `EXPOSE` instruction does not actually publish the port. It functions as a
+type of documentation between the person who builds the image and the person who
+runs the container, about which ports are intended to be published. To actually
+publish the port when running the container, use the `-p` flag on `docker run`
+to publish and map one or more ports, or the `-P` flag to publish all exposed
+ports and map them to high-order ports.
+
+By default, `EXPOSE` assumes TCP. You can also specify UDP:
+
+```Dockerfile
+EXPOSE 80/udp
+```
+
+To expose on both TCP and UDP, include two lines:
+
+```Dockerfile
+EXPOSE 80/tcp
+EXPOSE 80/udp
+```
+
+In this case, if you use `-P` with `docker run`, the port will be exposed once
+for TCP and once for UDP. Remember that `-P` uses an ephemeral high-ordered host
+port on the host, so the port will not be the same for TCP and UDP.
+
+Regardless of the `EXPOSE` settings, you can override them at runtime by using
+the `-p` flag. For example
+
+```bash
+docker run -p 80:80/tcp -p 80:80/udp ...
+```
 
 To set up port redirection on the host system, see [using the -P
-flag](run.md#expose-incoming-ports). The Docker network feature supports
-creating networks without the need to expose ports within the network, for
-detailed information see the  [overview of this
-feature](https://docs.docker.com/engine/userguide/networking/)).
+flag](run.md#expose-incoming-ports). The `docker network` command supports
+creating networks for communication among containers without the need to
+expose or publish specific ports, because the containers connected to the
+network can communicate with each other over any port. For detailed information,
+see the
+[overview of this feature](https://docs.docker.com/engine/userguide/networking/)).
 
 ## ENV
 
@@ -775,14 +805,15 @@ feature](https://docs.docker.com/engine/userguide/networking/)).
     ENV <key>=<value> ...
 
 The `ENV` instruction sets the environment variable `<key>` to the value
-`<value>`. This value will be in the environment of all "descendant"
-`Dockerfile` commands and can be [replaced inline](#environment-replacement) in
+`<value>`. This value will be in the environment for all subsequent instructions
+in the build stage and can be [replaced inline](#environment-replacement) in
 many as well.
 
 The `ENV` instruction has two forms. The first form, `ENV <key> <value>`,
 will set a single variable to a value. The entire string after the first
-space will be treated as the `<value>` - including characters such as
-spaces and quotes.
+space will be treated as the `<value>` - including whitespace characters. The
+value will be interpreted for other environment variables, so quote characters
+will be removed if they are not escaped.
 
 The second form, `ENV <key>=<value> ...`, allows for multiple variables to
 be set at one time. Notice that the second form uses the equals sign (=)
@@ -800,8 +831,7 @@ and
     ENV myDog Rex The Dog
     ENV myCat fluffy
 
-will yield the same net results in the final image, but the first form
-is preferred because it produces a single cache layer.
+will yield the same net results in the final image.
 
 The environment variables set using `ENV` will persist when a container is run
 from the resulting image. You can view the values using `docker inspect`, and
@@ -817,16 +847,23 @@ change them using `docker run --env <key>=<value>`.
 
 ADD has two forms:
 
-- `ADD <src>... <dest>`
-- `ADD ["<src>",... "<dest>"]` (this form is required for paths containing
+- `ADD [--chown=<user>:<group>] <src>... <dest>`
+- `ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]` (this form is required for paths containing
 whitespace)
+
+> **Note**:
+> The `--chown` feature is only supported on Dockerfiles used to build Linux containers,
+> and will not work on Windows containers. Since user and group ownership concepts do
+> not translate between Linux and Windows, the use of `/etc/passwd` and `/etc/group` for
+> translating user and group names to IDs restricts this feature to only be viable
+> for Linux OS-based containers.
 
 The `ADD` instruction copies new files, directories or remote file URLs from `<src>`
 and adds them to the filesystem of the image at the path `<dest>`.
 
-Multiple `<src>` resource may be specified but if they are files or
-directories then they must be relative to the source directory that is
-being built (the context of the build).
+Multiple `<src>` resources may be specified but if they are files or
+directories, their paths are interpreted as relative to the source of
+the context of the build.
 
 Each `<src>` may contain wildcards and matching will be done using Go's
 [filepath.Match](http://golang.org/pkg/path/filepath#Match) rules. For example:
@@ -848,7 +885,26 @@ named `arr[0].txt`, use the following;
     ADD arr[[]0].txt /mydir/    # copy a file named "arr[0].txt" to /mydir/
 
 
-All new files and directories are created with a UID and GID of 0.
+All new files and directories are created with a UID and GID of 0, unless the
+optional `--chown` flag specifies a given username, groupname, or UID/GID
+combination to request specific ownership of the content added. The
+format of the `--chown` flag allows for either username and groupname strings
+or direct integer UID and GID in any combination. Providing a username without
+groupname or a UID without GID will use the same numeric UID as the GID. If a
+username or groupname is provided, the container's root filesystem
+`/etc/passwd` and `/etc/group` files will be used to perform the translation
+from name to integer UID or GID respectively. The following examples show
+valid definitions for the `--chown` flag:
+
+    ADD --chown=55:mygroup files* /somedir/
+    ADD --chown=bin files* /somedir/
+    ADD --chown=1 files* /somedir/
+    ADD --chown=10:11 files* /somedir/
+
+If the container root filesystem does not contain either `/etc/passwd` or
+`/etc/group` files and either user or group names are used in the `--chown`
+flag, the build will fail on the `ADD` operation. Using numeric IDs requires
+no lookup and will not depend on container root filesystem content.
 
 In the case where `<src>` is a remote file URL, the destination will
 have permissions of 600. If the remote file being retrieved has an HTTP
@@ -938,15 +994,23 @@ guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practi
 
 COPY has two forms:
 
-- `COPY <src>... <dest>`
-- `COPY ["<src>",... "<dest>"]` (this form is required for paths containing
+- `COPY [--chown=<user>:<group>] <src>... <dest>`
+- `COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]` (this form is required for paths containing
 whitespace)
+
+> **Note**:
+> The `--chown` feature is only supported on Dockerfiles used to build Linux containers,
+> and will not work on Windows containers. Since user and group ownership concepts do
+> not translate between Linux and Windows, the use of `/etc/passwd` and `/etc/group` for
+> translating user and group names to IDs restricts this feature to only be viable for
+> Linux OS-based containers.
 
 The `COPY` instruction copies new files or directories from `<src>`
 and adds them to the filesystem of the container at the path `<dest>`.
 
-Multiple `<src>` resource may be specified but they must be relative
-to the source directory that is being built (the context of the build).
+Multiple `<src>` resources may be specified but the paths of files and
+directories will be interpreted as relative to the source of the context
+of the build.
 
 Each `<src>` may contain wildcards and matching will be done using Go's
 [filepath.Match](http://golang.org/pkg/path/filepath#Match) rules. For example:
@@ -968,7 +1032,26 @@ named `arr[0].txt`, use the following;
 
     COPY arr[[]0].txt /mydir/    # copy a file named "arr[0].txt" to /mydir/
 
-All new files and directories are created with a UID and GID of 0.
+All new files and directories are created with a UID and GID of 0, unless the
+optional `--chown` flag specifies a given username, groupname, or UID/GID
+combination to request specific ownership of the copied content. The
+format of the `--chown` flag allows for either username and groupname strings
+or direct integer UID and GID in any combination. Providing a username without
+groupname or a UID without GID will use the same numeric UID as the GID. If a
+username or groupname is provided, the container's root filesystem
+`/etc/passwd` and `/etc/group` files will be used to perform the translation
+from name to integer UID or GID respectively. The following examples show
+valid definitions for the `--chown` flag:
+
+    COPY --chown=55:mygroup files* /somedir/
+    COPY --chown=bin files* /somedir/
+    COPY --chown=1 files* /somedir/
+    COPY --chown=10:11 files* /somedir/
+
+If the container root filesystem does not contain either `/etc/passwd` or
+`/etc/group` files and either user or group names are used in the `--chown`
+flag, the build will fail on the `COPY` operation. Using numeric IDs requires
+no lookup and will not depend on container root filesystem content.
 
 > **Note**:
 > If you build using STDIN (`docker build - < somefile`), there is no
@@ -976,9 +1059,9 @@ All new files and directories are created with a UID and GID of 0.
 
 Optionally `COPY` accepts a flag `--from=<name|index>` that can be used to set
 the source location to a previous build stage (created with `FROM .. AS <name>`)
-that will be used instead of a build context sent by the user. The flag also 
-accepts a numeric index assigned for all previous build stages started with 
-`FROM` instruction. In case a build stage with a specified name can't be found an 
+that will be used instead of a build context sent by the user. The flag also
+accepts a numeric index assigned for all previous build stages started with
+`FROM` instruction. In case a build stage with a specified name can't be found an
 image with the same name is attempted to be used instead.
 
 `COPY` obeys the following rules:
@@ -1250,7 +1333,7 @@ or for executing an ad-hoc command in a container.
 The table below shows what command is executed for different `ENTRYPOINT` / `CMD` combinations:
 
 |                                | No ENTRYPOINT              | ENTRYPOINT exec_entry p1_entry | ENTRYPOINT ["exec_entry", "p1_entry"]          |
-|--------------------------------|----------------------------|--------------------------------|------------------------------------------------|
+|:-------------------------------|:---------------------------|:-------------------------------|:-----------------------------------------------|
 | **No CMD**                     | *error, not allowed*       | /bin/sh -c exec_entry p1_entry | exec_entry p1_entry                            |
 | **CMD ["exec_cmd", "p1_cmd"]** | exec_cmd p1_cmd            | /bin/sh -c exec_entry p1_entry | exec_entry p1_entry exec_cmd p1_cmd            |
 | **CMD ["p1_cmd", "p2_cmd"]**   | p1_cmd p2_cmd              | /bin/sh -c exec_entry p1_entry | exec_entry p1_entry p1_cmd p2_cmd              |
@@ -1278,7 +1361,7 @@ consider the following Dockerfile snippet:
     RUN echo "hello world" > /myvol/greeting
     VOLUME /myvol
 
-This Dockerfile results in an image that causes `docker run`, to
+This Dockerfile results in an image that causes `docker run` to
 create a new mount point at `/myvol` and copy the  `greeting` file
 into the newly created volume.
 
@@ -1288,7 +1371,7 @@ Keep the following things in mind about volumes in the `Dockerfile`.
 
 - **Volumes on Windows-based containers**: When using Windows-based containers,
   the destination of a volume inside the container must be one of:
-  
+
   - a non-existing or empty directory
   - a drive other than `C:`
 
@@ -1300,8 +1383,8 @@ Keep the following things in mind about volumes in the `Dockerfile`.
 
 - **The host directory is declared at container run-time**: The host directory
   (the mountpoint) is, by its nature, host-dependent. This is to preserve image
-  portability. since a given host directory can't be guaranteed to be available
-  on all hosts.For this reason, you can't mount a host directory from
+  portability, since a given host directory can't be guaranteed to be available
+  on all hosts. For this reason, you can't mount a host directory from
   within the Dockerfile. The `VOLUME` instruction does not support specifying a `host-dir`
   parameter.  You must specify the mountpoint when you create or run the container.
 
@@ -1316,8 +1399,19 @@ group (or GID) to use when running the image and for any `RUN`, `CMD` and
 `ENTRYPOINT` instructions that follow it in the `Dockerfile`.
 
 > **Warning**:
-> When the user does doesn't have a primary group then the image (or the next
+> When the user doesn't have a primary group then the image (or the next
 > instructions) will be run with the `root` group.
+
+> On Windows, the user must be created first if it's not a built-in account.
+> This can be done with the `net user` command called as part of a Dockerfile.
+
+```Dockerfile
+    FROM microsoft/windowsservercore
+    # Create Windows user in the container
+    RUN net user /add patrick
+    # Set it for subsequent commands
+    USER patrick
+```
 
 
 ## WORKDIR
@@ -1751,7 +1845,7 @@ all previous `SHELL` instructions, and affects all subsequent instructions. For 
     RUN Write-Host hello
 
     # Executed as cmd /S /C echo hello
-    SHELL ["cmd", "/S"", "/C"]
+    SHELL ["cmd", "/S", "/C"]
     RUN echo hello
 
 The following instructions can be affected by the `SHELL` instruction when the
@@ -1805,16 +1899,16 @@ Resulting in:
     Removing intermediate container 6fcdb6855ae2
     Step 3/5 : RUN New-Item -ItemType Directory C:\Example
      ---> Running in d0eef8386e97
-    
-    
+
+
         Directory: C:\
-    
-    
+
+
     Mode                LastWriteTime         Length Name
     ----                -------------         ------ ----
     d-----       10/28/2016  11:26 AM                Example
-    
-    
+
+
      ---> 3f2fbf1395d9
     Removing intermediate container d0eef8386e97
     Step 4/5 : ADD Execute-MyCmdlet.ps1 c:\example\

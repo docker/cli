@@ -1,12 +1,11 @@
 ---
-title: "Access authorization plugin"
 description: "How to create authorization plugins to manage access control to your Docker daemon."
 keywords: "security, authorization, authentication, docker, documentation, plugin, extend"
 redirect_from:
 - "/engine/extend/authorization/"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -15,7 +14,7 @@ redirect_from:
      will be rejected.
 -->
 
-# Create an authorization plugin
+# Access authorization plugin
 
 This document describes the Docker Engine plugins generally available in Docker
 Engine. To view information on plugins managed by Docker Engine,

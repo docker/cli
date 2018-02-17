@@ -28,7 +28,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] CONFIG file|-",
-		Short: "Create a configuration file from a file or STDIN as content",
+		Short: "Create a config from a file or STDIN",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			createOpts.name = args[0]

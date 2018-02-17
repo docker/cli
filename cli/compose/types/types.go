@@ -17,12 +17,13 @@ var UnsupportedProperties = []string{
 	"links",
 	"mac_address",
 	"network_mode",
+	"pid",
 	"privileged",
 	"restart",
 	"security_opt",
 	"shm_size",
 	"sysctls",
-	"tmpfs",
+	"ulimits",
 	"userns_mode",
 }
 
@@ -54,6 +55,7 @@ type ConfigFile struct {
 
 // ConfigDetails are the details about a group of ConfigFiles
 type ConfigDetails struct {
+	Version     string
 	WorkingDir  string
 	ConfigFiles []ConfigFile
 	Environment map[string]string
@@ -67,6 +69,7 @@ func (cd ConfigDetails) LookupEnv(key string) (string, bool) {
 
 // Config is a full compose file configuration
 type Config struct {
+	Filename string
 	Services []ServiceConfig
 	Networks map[string]NetworkConfig
 	Volumes  map[string]VolumeConfig
@@ -78,6 +81,7 @@ type Config struct {
 type ServiceConfig struct {
 	Name string
 
+	Build           BuildConfig
 	CapAdd          []string `mapstructure:"cap_add"`
 	CapDrop         []string `mapstructure:"cap_drop"`
 	CgroupParent    string   `mapstructure:"cgroup_parent"`
@@ -95,8 +99,8 @@ type ServiceConfig struct {
 	Environment     MappingWithEquals
 	EnvFile         StringList `mapstructure:"env_file"`
 	Expose          StringOrNumberList
-	ExternalLinks   []string         `mapstructure:"external_links"`
-	ExtraHosts      MappingWithColon `mapstructure:"extra_hosts"`
+	ExternalLinks   []string  `mapstructure:"external_links"`
+	ExtraHosts      HostsList `mapstructure:"extra_hosts"`
 	Hostname        string
 	HealthCheck     *HealthCheckConfig
 	Image           string
@@ -123,6 +127,19 @@ type ServiceConfig struct {
 	User            string
 	Volumes         []ServiceVolumeConfig
 	WorkingDir      string `mapstructure:"working_dir"`
+	Isolation       string `mapstructure:"isolation"`
+}
+
+// BuildConfig is a type for build
+// using the same format at libcompose: https://github.com/docker/libcompose/blob/master/yaml/build.go#L12
+type BuildConfig struct {
+	Context    string
+	Dockerfile string
+	Args       MappingWithEquals
+	Labels     Labels
+	CacheFrom  StringList `mapstructure:"cache_from"`
+	Network    string
+	Target     string
 }
 
 // ShellCommand is a string or list of string args
@@ -148,6 +165,9 @@ type Labels map[string]string
 // 'key: value' strings
 type MappingWithColon map[string]string
 
+// HostsList is a list of colon-separated host-ip mappings
+type HostsList []string
+
 // LoggingConfig the logging configuration for a service
 type LoggingConfig struct {
 	Driver  string
@@ -169,10 +189,10 @@ type DeployConfig struct {
 // HealthCheckConfig the healthcheck configuration for a service
 type HealthCheckConfig struct {
 	Test        HealthCheckTest
-	Timeout     string
-	Interval    string
+	Timeout     *time.Duration
+	Interval    *time.Duration
 	Retries     *uint64
-	StartPeriod string
+	StartPeriod *time.Duration `mapstructure:"start_period"`
 	Disable     bool
 }
 
@@ -198,8 +218,24 @@ type Resources struct {
 // Resource is a resource to be limited or reserved
 type Resource struct {
 	// TODO: types to convert from units and ratios
-	NanoCPUs    string    `mapstructure:"cpus"`
-	MemoryBytes UnitBytes `mapstructure:"memory"`
+	NanoCPUs         string            `mapstructure:"cpus"`
+	MemoryBytes      UnitBytes         `mapstructure:"memory"`
+	GenericResources []GenericResource `mapstructure:"generic_resources"`
+}
+
+// GenericResource represents a "user defined" resource which can
+// only be an integer (e.g: SSD=3) for a service
+type GenericResource struct {
+	DiscreteResourceSpec *DiscreteGenericResource `mapstructure:"discrete_resource_spec"`
+}
+
+// DiscreteGenericResource represents a "user defined" resource which is defined
+// as an integer
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to count the resource (SSD=5, HDD=3, ...)
+type DiscreteGenericResource struct {
+	Kind  string
+	Value int64
 }
 
 // UnitBytes is the bytes type
@@ -248,6 +284,7 @@ type ServiceVolumeConfig struct {
 	Consistency string
 	Bind        *ServiceVolumeBind
 	Volume      *ServiceVolumeVolume
+	Tmpfs       *ServiceVolumeTmpfs
 }
 
 // ServiceVolumeBind are options for a service volume of type bind
@@ -260,7 +297,13 @@ type ServiceVolumeVolume struct {
 	NoCopy bool `mapstructure:"nocopy"`
 }
 
-type fileReferenceConfig struct {
+// ServiceVolumeTmpfs are options for a service volume of type tmpfs
+type ServiceVolumeTmpfs struct {
+	Size int64
+}
+
+// FileReferenceConfig for a reference to a swarm file object
+type FileReferenceConfig struct {
 	Source string
 	Target string
 	UID    string
@@ -269,10 +312,10 @@ type fileReferenceConfig struct {
 }
 
 // ServiceConfigObjConfig is the config obj configuration for a service
-type ServiceConfigObjConfig fileReferenceConfig
+type ServiceConfigObjConfig FileReferenceConfig
 
 // ServiceSecretConfig is the secret configuration for a service
-type ServiceSecretConfig fileReferenceConfig
+type ServiceSecretConfig FileReferenceConfig
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
@@ -283,6 +326,7 @@ type UlimitsConfig struct {
 
 // NetworkConfig for a network
 type NetworkConfig struct {
+	Name       string
 	Driver     string
 	DriverOpts map[string]string `mapstructure:"driver_opts"`
 	Ipam       IPAMConfig
@@ -326,14 +370,16 @@ type CredentialSpecConfig struct {
 	Registry string
 }
 
-type fileObjectConfig struct {
+// FileObjectConfig is a config type for a file used by a service
+type FileObjectConfig struct {
+	Name     string
 	File     string
 	External External
 	Labels   Labels
 }
 
 // SecretConfig for a secret
-type SecretConfig fileObjectConfig
+type SecretConfig FileObjectConfig
 
 // ConfigObjConfig is the config for the swarm "Config" object
-type ConfigObjConfig fileObjectConfig
+type ConfigObjConfig FileObjectConfig

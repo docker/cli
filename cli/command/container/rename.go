@@ -17,7 +17,7 @@ type renameOptions struct {
 }
 
 // NewRenameCommand creates a new cobra.Command for `docker rename`
-func NewRenameCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewRenameCommand(dockerCli command.Cli) *cobra.Command {
 	var opts renameOptions
 
 	cmd := &cobra.Command{
@@ -33,7 +33,7 @@ func NewRenameCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runRename(dockerCli *command.DockerCli, opts *renameOptions) error {
+func runRename(dockerCli command.Cli, opts *renameOptions) error {
 	ctx := context.Background()
 
 	oldName := strings.TrimSpace(opts.oldName)

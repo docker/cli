@@ -128,12 +128,12 @@ func Service(
 			Labels: AddStackLabel(namespace, service.Deploy.Labels),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:           service.Image,
 				Command:         service.Entrypoint,
 				Args:            service.Command,
 				Hostname:        service.Hostname,
-				Hosts:           sortStrings(convertExtraHosts(service.ExtraHosts)),
+				Hosts:           convertExtraHosts(service.ExtraHosts),
 				DNSConfig:       dnsConfig,
 				Healthcheck:     healthcheck,
 				Env:             sortStrings(convertEnvironment(service.Environment)),
@@ -149,6 +149,7 @@ func Service(
 				Configs:         configs,
 				ReadOnly:        service.ReadOnly,
 				Privileges:      &privileges,
+				Isolation:       container.Isolation(service.Isolation),
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -229,7 +230,7 @@ func convertServiceNetworks(
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.External.External {
-			target = networkConfig.External.Name
+			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
 			Target:  target,
@@ -255,47 +256,34 @@ func convertServiceSecrets(
 	secretSpecs map[string]composetypes.SecretConfig,
 ) ([]*swarm.SecretReference, error) {
 	refs := []*swarm.SecretReference{}
-	for _, secret := range secrets {
-		target := secret.Target
-		if target == "" {
-			target = secret.Source
-		}
 
-		secretSpec, exists := secretSpecs[secret.Source]
+	lookup := func(key string) (composetypes.FileObjectConfig, error) {
+		secretSpec, exists := secretSpecs[key]
 		if !exists {
-			return nil, errors.Errorf("undefined secret %q", secret.Source)
+			return composetypes.FileObjectConfig{}, errors.Errorf("undefined secret %q", key)
+		}
+		return composetypes.FileObjectConfig(secretSpec), nil
+	}
+	for _, secret := range secrets {
+		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(secret), lookup)
+		if err != nil {
+			return nil, err
 		}
 
-		source := namespace.Scope(secret.Source)
-		if secretSpec.External.External {
-			source = secretSpec.External.Name
-		}
-
-		uid := secret.UID
-		gid := secret.GID
-		if uid == "" {
-			uid = "0"
-		}
-		if gid == "" {
-			gid = "0"
-		}
-		mode := secret.Mode
-		if mode == nil {
-			mode = uint32Ptr(0444)
-		}
-
+		file := swarm.SecretReferenceFileTarget(obj.File)
 		refs = append(refs, &swarm.SecretReference{
-			File: &swarm.SecretReferenceFileTarget{
-				Name: target,
-				UID:  uid,
-				GID:  gid,
-				Mode: os.FileMode(*mode),
-			},
-			SecretName: source,
+			File:       &file,
+			SecretName: obj.Name,
 		})
 	}
 
-	return servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(secrs, func(i, j int) bool { return secrs[i].SecretName < secrs[j].SecretName })
+	return secrs, err
 }
 
 // TODO: fix configs API so that ConfigsAPIClient is not required here
@@ -306,57 +294,106 @@ func convertServiceConfigObjs(
 	configSpecs map[string]composetypes.ConfigObjConfig,
 ) ([]*swarm.ConfigReference, error) {
 	refs := []*swarm.ConfigReference{}
-	for _, config := range configs {
-		target := config.Target
-		if target == "" {
-			target = config.Source
-		}
 
-		configSpec, exists := configSpecs[config.Source]
+	lookup := func(key string) (composetypes.FileObjectConfig, error) {
+		configSpec, exists := configSpecs[key]
 		if !exists {
-			return nil, errors.Errorf("undefined config %q", config.Source)
+			return composetypes.FileObjectConfig{}, errors.Errorf("undefined config %q", key)
+		}
+		return composetypes.FileObjectConfig(configSpec), nil
+	}
+	for _, config := range configs {
+		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(config), lookup)
+		if err != nil {
+			return nil, err
 		}
 
-		source := namespace.Scope(config.Source)
-		if configSpec.External.External {
-			source = configSpec.External.Name
-		}
-
-		uid := config.UID
-		gid := config.GID
-		if uid == "" {
-			uid = "0"
-		}
-		if gid == "" {
-			gid = "0"
-		}
-		mode := config.Mode
-		if mode == nil {
-			mode = uint32Ptr(0444)
-		}
-
+		file := swarm.ConfigReferenceFileTarget(obj.File)
 		refs = append(refs, &swarm.ConfigReference{
-			File: &swarm.ConfigReferenceFileTarget{
-				Name: target,
-				UID:  uid,
-				GID:  gid,
-				Mode: os.FileMode(*mode),
-			},
-			ConfigName: source,
+			File:       &file,
+			ConfigName: obj.Name,
 		})
 	}
 
-	return servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(client, refs)
+	if err != nil {
+		return nil, err
+	}
+	// sort to ensure idempotence (don't restart services just because the entries are in different order)
+	sort.SliceStable(confs, func(i, j int) bool { return confs[i].ConfigName < confs[j].ConfigName })
+	return confs, err
+}
+
+type swarmReferenceTarget struct {
+	Name string
+	UID  string
+	GID  string
+	Mode os.FileMode
+}
+
+type swarmReferenceObject struct {
+	File swarmReferenceTarget
+	ID   string
+	Name string
+}
+
+func convertFileObject(
+	namespace Namespace,
+	config composetypes.FileReferenceConfig,
+	lookup func(key string) (composetypes.FileObjectConfig, error),
+) (swarmReferenceObject, error) {
+	target := config.Target
+	if target == "" {
+		target = config.Source
+	}
+
+	obj, err := lookup(config.Source)
+	if err != nil {
+		return swarmReferenceObject{}, err
+	}
+
+	source := namespace.Scope(config.Source)
+	if obj.Name != "" {
+		source = obj.Name
+	}
+
+	uid := config.UID
+	gid := config.GID
+	if uid == "" {
+		uid = "0"
+	}
+	if gid == "" {
+		gid = "0"
+	}
+	mode := config.Mode
+	if mode == nil {
+		mode = uint32Ptr(0444)
+	}
+
+	return swarmReferenceObject{
+		File: swarmReferenceTarget{
+			Name: target,
+			UID:  uid,
+			GID:  gid,
+			Mode: os.FileMode(*mode),
+		},
+		Name: source,
+	}, nil
 }
 
 func uint32Ptr(value uint32) *uint32 {
 	return &value
 }
 
-func convertExtraHosts(extraHosts map[string]string) []string {
+// convertExtraHosts converts <host>:<ip> mappings to SwarmKit notation:
+// "IP-address hostname(s)". The original order of mappings is preserved.
+func convertExtraHosts(extraHosts composetypes.HostsList) []string {
 	hosts := []string{}
-	for host, ip := range extraHosts {
-		hosts = append(hosts, fmt.Sprintf("%s %s", ip, host))
+	for _, hostIP := range extraHosts {
+		if v := strings.SplitN(hostIP, ":", 2); len(v) == 2 {
+			// Convert to SwarmKit notation: IP-address hostname(s)
+			hosts = append(hosts, fmt.Sprintf("%s %s", v[1], v[0]))
+		}
 	}
 	return hosts
 }
@@ -366,7 +403,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return nil, nil
 	}
 	var (
-		err                            error
 		timeout, interval, startPeriod time.Duration
 		retries                        int
 	)
@@ -379,23 +415,14 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		}, nil
 
 	}
-	if healthcheck.Timeout != "" {
-		timeout, err = time.ParseDuration(healthcheck.Timeout)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Timeout != nil {
+		timeout = *healthcheck.Timeout
 	}
-	if healthcheck.Interval != "" {
-		interval, err = time.ParseDuration(healthcheck.Interval)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.Interval != nil {
+		interval = *healthcheck.Interval
 	}
-	if healthcheck.StartPeriod != "" {
-		startPeriod, err = time.ParseDuration(healthcheck.StartPeriod)
-		if err != nil {
-			return nil, err
-		}
+	if healthcheck.StartPeriod != nil {
+		startPeriod = *healthcheck.StartPeriod
 	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
@@ -483,9 +510,25 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 				return nil, err
 			}
 		}
+
+		var generic []swarm.GenericResource
+		for _, res := range source.Reservations.GenericResources {
+			var r swarm.GenericResource
+
+			if res.DiscreteResourceSpec != nil {
+				r.DiscreteResourceSpec = &swarm.DiscreteGenericResource{
+					Kind:  res.DiscreteResourceSpec.Kind,
+					Value: res.DiscreteResourceSpec.Value,
+				}
+			}
+
+			generic = append(generic, r)
+		}
+
 		resources.Reservations = &swarm.Resources{
-			NanoCPUs:    cpus,
-			MemoryBytes: int64(source.Reservations.MemoryBytes),
+			NanoCPUs:         cpus,
+			MemoryBytes:      int64(source.Reservations.MemoryBytes),
+			GenericResources: generic,
 		}
 	}
 	return resources, nil

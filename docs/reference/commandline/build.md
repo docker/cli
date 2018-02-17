@@ -4,7 +4,7 @@ description: "The build command description and usage"
 keywords: "build, docker, image"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -473,7 +473,7 @@ FROM alpine AS production-env
 $ docker build -t mybuildimage --target build-env .
 ```
 
-### Squash an image's layers (--squash) **Experimental Only**
+### Squash an image's layers (--squash) (experimental)
 
 #### Overview
 
@@ -483,13 +483,39 @@ image with the content of the squashed layers. This effectively makes it look
 like all `Dockerfile` commands were created with a single layer. The build
 cache is preserved with this method.
 
-**Note**: using this option means the new image will not be able to take
-advantage of layer sharing with other images and may use significantly more
-space.
+The `--squash` option is an experimental feature, and should not be considered
+stable.
 
-**Note**: using this option you may see significantly more space used due to
-storing two copies of the image, one for the build cache with all the cache
-layers in tact, and one for the squashed version.
+
+Squashing layers can be beneficial if your Dockerfile produces multiple layers
+modifying the same files, for example, file that are created in one step, and
+removed in another step. For other use-cases, squashing images may actually have
+a negative impact on performance; when pulling an image consisting of multiple
+layers, layers can be pulled in parallel, and allows sharing layers between
+images (saving space).
+
+For most use cases, multi-stage are a better alternative, as they give more
+fine-grained control over your build, and can take advantage of future
+optimizations in the builder. Refer to the [use multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/)
+section in the userguide for more information.
+
+
+#### Known limitations
+
+The `--squash` option has a number of known limitations:
+
+- When squashing layers, the resulting image cannot take advantage of layer 
+  sharing with other images, and may use significantly more space. Sharing the
+  base image is still supported.
+- When using this option you may see significantly more space used due to
+  storing two copies of the image, one for the build cache with all the cache
+  layers in tact, and one for the squashed version.
+- While squashing layers may produce smaller images, it may have a negative
+  impact on performance, as a single layer takes longer to extract, and
+  downloading a single layer cannot be parallelized.
+- When attempting to squash an image that does not make changes to the
+  filesystem (for example, the Dockerfile only contains `ENV` instructions),
+  the squash step will fail (see [issue #33823](https://github.com/moby/moby/issues/33823)
 
 #### Prerequisites
 
@@ -500,7 +526,6 @@ Experimental mode can be enabled by using the `--experimental` flag when startin
 By default, experimental mode is disabled. To see the current configuration, use the `docker version` command.
 
 ```none
-
 Server:
  Version:      1.13.1
  API version:  1.26 (minimum version 1.12)
@@ -511,7 +536,6 @@ Server:
  Experimental: false
 
  [...]
-
 ```
 
 To enable experimental mode, users need to restart the docker daemon with the experimental flag enabled.
@@ -520,20 +544,17 @@ To enable experimental mode, users need to restart the docker daemon with the ex
 
 Experimental features are now included in the standard Docker binaries as of version 1.13.0. For enabling experimental features, you need to start the Docker daemon with `--experimental` flag. You can also enable the daemon flag via /etc/docker/daemon.json. e.g.
 
-```
-
+```json
 {
     "experimental": true
 }
-
 ```
+
 Then make sure the experimental flag is enabled:
 
 ```bash
-
 $ docker version -f '{{.Server.Experimental}}'
 true
-
 ```
 
 #### Build an image with `--squash` argument
@@ -541,23 +562,20 @@ true
 The following is an example of docker build with `--squash` argument
 
 ```Dockerfile
-
 FROM busybox
 RUN echo hello > /hello
 RUN echo world >> /hello
 RUN touch remove_me /remove_me
 ENV HELLO world
 RUN rm /remove_me
-
 ```
+
 An image named `test` is built with `--squash` argument.
 
 ```bash
-
 $ docker build --squash -t test .
 
 [...]
-
 ```
 
 If everything is right, the history will look like this:
@@ -574,8 +592,8 @@ IMAGE               CREATED             CREATED BY                              
 <missing>           6 minutes ago       /bin/sh -c echo hello > /hello                  0 B
 <missing>           7 weeks ago         /bin/sh -c #(nop) CMD ["sh"]                    0 B
 <missing>           7 weeks ago         /bin/sh -c #(nop) ADD file:47ca6e777c36a4cfff   1.113 MB
-
 ```
+
 We could find that all layer's name is `<missing>`, and there is a new layer with COMMENT `merge`.
 
 Test the image, check for `/remove_me` being gone, make sure `hello\nworld` is in `/hello`, make sure the `HELLO` envvar's value is `world`.

@@ -21,7 +21,8 @@ import (
 )
 
 type createOptions struct {
-	name string
+	name     string
+	platform string
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -51,6 +52,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
+	command.AddPlatformFlag(flags, &opts.platform)
 	command.AddTrustVerificationFlags(flags)
 	copts = addFlags(flags)
 	return cmd
@@ -62,7 +64,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions,
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts.name)
+	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts.name, opts.platform)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions,
 	return nil
 }
 
-func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.Writer) error {
+func pullImage(ctx context.Context, dockerCli command.Cli, image string, platform string, out io.Writer) error {
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return err
@@ -90,6 +92,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, image string, out io.
 
 	options := types.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
+		Platform:     platform,
 	}
 
 	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, options)
@@ -113,6 +116,9 @@ type cidFile struct {
 }
 
 func (cid *cidFile) Close() error {
+	if cid.file == nil {
+		return nil
+	}
 	cid.file.Close()
 
 	if cid.written {
@@ -126,6 +132,9 @@ func (cid *cidFile) Close() error {
 }
 
 func (cid *cidFile) Write(id string) error {
+	if cid.file == nil {
+		return nil
+	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
 		return errors.Errorf("Failed to write the container ID to the file: %s", err)
 	}
@@ -134,6 +143,9 @@ func (cid *cidFile) Write(id string) error {
 }
 
 func newCIDFile(path string) (*cidFile, error) {
+	if path == "" {
+		return &cidFile{}, nil
+	}
 	if _, err := os.Stat(path); err == nil {
 		return nil, errors.Errorf("Container ID file found, make sure the other container isn't running or delete %s", path)
 	}
@@ -146,26 +158,22 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
-func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, name string) (*container.ContainerCreateCreatedBody, error) {
+func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, name string, platform string) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig
 	stderr := dockerCli.Err()
 
 	var (
-		containerIDFile *cidFile
-		trustedRef      reference.Canonical
-		namedRef        reference.Named
+		trustedRef reference.Canonical
+		namedRef   reference.Named
 	)
 
-	cidfile := hostConfig.ContainerIDFile
-	if cidfile != "" {
-		var err error
-		if containerIDFile, err = newCIDFile(cidfile); err != nil {
-			return nil, err
-		}
-		defer containerIDFile.Close()
+	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
+	if err != nil {
+		return nil, err
 	}
+	defer containerIDFile.Close()
 
 	ref, err := reference.ParseAnyReference(config.Image)
 	if err != nil {
@@ -189,11 +197,11 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 
 	//if image not found try to pull it
 	if err != nil {
-		if apiclient.IsErrImageNotFound(err) && namedRef != nil {
+		if apiclient.IsErrNotFound(err) && namedRef != nil {
 			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 
 			// we don't want to write to stdout anything apart from container.ID
-			if err = pullImage(ctx, dockerCli, config.Image, stderr); err != nil {
+			if err := pullImage(ctx, dockerCli, config.Image, platform, stderr); err != nil {
 				return nil, err
 			}
 			if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
@@ -215,10 +223,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	for _, warning := range response.Warnings {
 		fmt.Fprintf(stderr, "WARNING: %s\n", warning)
 	}
-	if containerIDFile != nil {
-		if err = containerIDFile.Write(response.ID); err != nil {
-			return nil, err
-		}
-	}
-	return &response, nil
+	err = containerIDFile.Write(response.ID)
+	return &response, err
 }

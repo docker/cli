@@ -1,11 +1,10 @@
 ---
-title: "Graphdriver plugins"
 description: "How to manage image and container filesystems with external plugins"
 keywords: "Examples, Usage, storage, image, docker, data, graph, plugin, api"
 advisory: experimental
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -14,6 +13,7 @@ advisory: experimental
      will be rejected.
 -->
 
+# Graphdriver plugins
 
 ## Changelog
 

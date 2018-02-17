@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newRemoveCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "rm SERVICE [SERVICE...]",
@@ -27,7 +27,7 @@ func newRemoveCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli *command.DockerCli, sids []string) error {
+func runRemove(dockerCli command.Cli, sids []string) error {
 	client := dockerCli.Client()
 
 	ctx := context.Background()

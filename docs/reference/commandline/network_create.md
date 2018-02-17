@@ -4,7 +4,7 @@ description: "The network create command description and usage"
 keywords: "network, create"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -92,6 +92,18 @@ Network names must be unique. The Docker daemon attempts to identify naming
 conflicts but this is not guaranteed. It is the user's responsibility to avoid
 name conflicts.
 
+### Overlay network limitations
+
+You should create overlay networks with `/24` blocks (the default), which limits
+you to 256 IP addresses, when you create networks using the default VIP-based
+endpoint-mode. This recommendation addresses
+[limitations with swarm mode](https://github.com/moby/moby/issues/30820). If you
+need more than 256 IP addresses, do not increase the IP block size. You can
+either use `dnsrr` endpoint mode with an external load balancer, or use multiple
+smaller overlay networks. See
+[Configure service discovery](https://docs.docker.com/engine/swarm/networking/#configure-service-discovery)
+for more information about different endpoint modes.
+
 ## Examples
 
 ### Connect containers
@@ -141,15 +153,16 @@ $ docker network create \
 
 If you omit the `--gateway` flag the Engine selects one for you from inside a
 preferred pool. For `overlay` networks and for network driver plugins that
-support it you can create multiple subnetworks.
+support it you can create multiple subnetworks. This example uses two `/25`
+subnet mask to adhere to the current guidance of not having more than 256 IPs in
+a single overlay network. Each of the subnetworks has 126 usable addresses.
 
 ```bash
 $ docker network create -d overlay \
-  --subnet=192.168.0.0/16 \
-  --subnet=192.170.0.0/16 \
-  --gateway=192.168.0.100 \
-  --gateway=192.170.0.100 \
-  --ip-range=192.168.1.0/24 \
+  --subnet=192.168.1.0/25 \
+  --subnet=192.170.2.0/25 \
+  --gateway=192.168.1.100 \
+  --gateway=192.170.2.100 \
   --aux-address="my-router=192.168.1.5" --aux-address="my-switch=192.168.1.6" \
   --aux-address="my-printer=192.170.1.5" --aux-address="my-nas=192.170.1.6" \
   my-multihost-network
@@ -204,7 +217,7 @@ to create an externally isolated `overlay` network, you can specify the
 You can create the network which will be used to provide the routing-mesh in the
 swarm cluster. You do so by specifying `--ingress` when creating the network. Only
 one ingress network can be created at the time. The network can be removed only
-if no services depend on it. Any option available when creating a overlay network
+if no services depend on it. Any option available when creating an overlay network
 is also available when creating the ingress network, besides the `--attachable` option.
 
 ```bash

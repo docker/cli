@@ -222,23 +222,30 @@ func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConf
 }
 
 type resourceOptions struct {
-	limitCPU      opts.NanoCPUs
-	limitMemBytes opts.MemBytes
-	resCPU        opts.NanoCPUs
-	resMemBytes   opts.MemBytes
+	limitCPU            opts.NanoCPUs
+	limitMemBytes       opts.MemBytes
+	resCPU              opts.NanoCPUs
+	resMemBytes         opts.MemBytes
+	resGenericResources []string
 }
 
-func (r *resourceOptions) ToResourceRequirements() *swarm.ResourceRequirements {
+func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements, error) {
+	generic, err := ParseGenericResources(r.resGenericResources)
+	if err != nil {
+		return nil, err
+	}
+
 	return &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
 		},
 		Reservations: &swarm.Resources{
-			NanoCPUs:    r.resCPU.Value(),
-			MemoryBytes: r.resMemBytes.Value(),
+			NanoCPUs:         r.resCPU.Value(),
+			MemoryBytes:      r.resMemBytes.Value(),
+			GenericResources: generic,
 		},
-	}
+	}, nil
 }
 
 type restartPolicyOptions struct {
@@ -346,22 +353,21 @@ func (c *credentialSpecOpt) Value() *swarm.CredentialSpec {
 	return c.value
 }
 
-func convertNetworks(ctx context.Context, apiClient client.NetworkAPIClient, networks opts.NetworkOpt) ([]swarm.NetworkAttachmentConfig, error) {
+func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, networkIDOrName string) (string, error) {
+	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
+	return nw.ID, err
+}
+
+func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {
 	var netAttach []swarm.NetworkAttachmentConfig
 	for _, net := range networks.Value() {
-		networkIDOrName := net.Target
-		_, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
-		if err != nil {
-			return nil, err
-		}
-		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{ // nolint: gosimple
+		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{
 			Target:     net.Target,
 			Aliases:    net.Aliases,
 			DriverOpts: net.DriverOpts,
 		})
 	}
-	sort.Sort(byNetworkTarget(netAttach))
-	return netAttach, nil
+	return netAttach
 }
 
 type endpointOptions struct {
@@ -505,6 +511,8 @@ type serviceOptions struct {
 	healthcheck healthCheckOptions
 	secrets     opts.SecretOpt
 	configs     opts.ConfigOpt
+
+	isolation string
 }
 
 func newServiceOptions() *serviceOptions {
@@ -552,7 +560,7 @@ func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Dur
 func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
 	var service swarm.ServiceSpec
 
-	envVariables, err := opts.ReadKVStrings(options.envFile.GetAll(), options.env.GetAll())
+	envVariables, err := opts.ReadKVEnvStrings(options.envFile.GetAll(), options.env.GetAll())
 	if err != nil {
 		return service, err
 	}
@@ -581,7 +589,17 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
-	networks, err := convertNetworks(ctx, apiClient, options.networks)
+	networks := convertNetworks(options.networks)
+	for i, net := range networks {
+		nwID, err := resolveNetworkID(ctx, apiClient, net.Target)
+		if err != nil {
+			return service, err
+		}
+		networks[i].Target = nwID
+	}
+	sort.Sort(byNetworkTarget(networks))
+
+	resources, err := options.resources.ToResourceRequirements()
 	if err != nil {
 		return service, err
 	}
@@ -592,7 +610,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: swarm.ContainerSpec{
+			ContainerSpec: &swarm.ContainerSpec{
 				Image:      options.image,
 				Args:       options.args,
 				Command:    options.entrypoint.Value(),
@@ -614,9 +632,10 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Hosts:           convertExtraHostsToSwarmHosts(options.hosts.GetAll()),
 				StopGracePeriod: options.ToStopGracePeriod(flags),
 				Healthcheck:     healthConfig,
+				Isolation:       container.Isolation(options.isolation),
 			},
 			Networks:      networks,
-			Resources:     options.resources.ToResourceRequirements(),
+			Resources:     resources,
 			RestartPolicy: options.restartPolicy.ToRestartPolicy(flags),
 			Placement: &swarm.Placement{
 				Constraints: options.constraints.GetAll(),
@@ -691,7 +710,7 @@ func buildServiceDefaultFlagMapping() flagDefaults {
 }
 
 func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
-	flags.BoolVarP(detach, flagDetach, "d", true, "Exit immediately instead of waiting for the service to converge")
+	flags.BoolVarP(detach, flagDetach, "d", false, "Exit immediately instead of waiting for the service to converge")
 	flags.SetAnnotation(flagDetach, "version", []string{"1.29"})
 }
 
@@ -784,6 +803,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 
 	flags.StringVar(&opts.stopSignal, flagStopSignal, "", "Signal to stop the container")
 	flags.SetAnnotation(flagStopSignal, "version", []string{"1.28"})
+	flags.StringVar(&opts.isolation, flagIsolation, "", "Service container isolation mode")
+	flags.SetAnnotation(flagIsolation, "version", []string{"1.35"})
 }
 
 const (
@@ -813,6 +834,8 @@ const (
 	flagEnvFile                 = "env-file"
 	flagEnvRemove               = "env-rm"
 	flagEnvAdd                  = "env-add"
+	flagGenericResourcesRemove  = "generic-resource-rm"
+	flagGenericResourcesAdd     = "generic-resource-add"
 	flagGroup                   = "group"
 	flagGroupAdd                = "group-add"
 	flagGroupRemove             = "group-rm"
@@ -879,4 +902,5 @@ const (
 	flagConfig                  = "config"
 	flagConfigAdd               = "config-add"
 	flagConfigRemove            = "config-rm"
+	flagIsolation               = "isolation"
 )

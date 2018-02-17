@@ -4,7 +4,7 @@ description: "The stack deploy command description and usage"
 keywords: "stack, deploy, up"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -25,9 +25,11 @@ Aliases:
 
 Options:
       --bundle-file string    Path to a Distributed Application Bundle file
-  -c, --compose-file string   Path to a Compose file
+  -c, --compose-file strings  Path to a Compose file
       --help                  Print usage
       --prune                 Prune services that are no longer referenced
+      --resolve-image string  Query the registry to resolve image digest and supported platforms
+                              ("always"|"changed"|"never") (default "always")
       --with-registry-auth    Send registry authentication details to Swarm agents
 ```
 
@@ -57,14 +59,29 @@ Creating service vossibility_ghollector
 Creating service vossibility_lookupd
 ```
 
-Only a single Compose file is accepted. If your configuration is split between
-multiple Compose files, e.g. a base configuration and environment-specific overrides,
-you can combine these by passing them to `docker-compose config` with the `-f` option
-and redirecting the merged output into a new file.
+The Compose file can also be provided as standard input with `--compose-file -`:
 
 ```bash
-$ docker-compose -f docker-compose.yml -f docker-compose.prod.yml config > docker-stack.yml
-$ docker stack deploy --compose-file docker-stack.yml vossibility
+$ cat docker-compose.yml | docker stack deploy --compose-file - vossibility
+
+Ignoring unsupported options: links
+
+Creating network vossibility_vossibility
+Creating network vossibility_default
+Creating service vossibility_nsqd
+Creating service vossibility_logstash
+Creating service vossibility_elasticsearch
+Creating service vossibility_kibana
+Creating service vossibility_ghollector
+Creating service vossibility_lookupd
+```
+
+If your configuration is split between multiple Compose files, e.g. a base
+configuration and environment-specific overrides, you can provide multiple
+`--compose-file` flags.
+
+```bash
+$ docker stack deploy --compose-file docker-compose.yml -f docker-compose.prod.yml vossibility
 
 Ignoring unsupported options: links
 

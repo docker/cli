@@ -20,7 +20,7 @@ type restartOptions struct {
 }
 
 // NewRestartCommand creates a new cobra.Command for `docker restart`
-func NewRestartCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 	var opts restartOptions
 
 	cmd := &cobra.Command{
@@ -39,7 +39,7 @@ func NewRestartCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runRestart(dockerCli *command.DockerCli, opts *restartOptions) error {
+func runRestart(dockerCli command.Cli, opts *restartOptions) error {
 	ctx := context.Background()
 	var errs []string
 	var timeout *time.Duration

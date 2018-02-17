@@ -1,10 +1,9 @@
 ---
-title: "Plugin config"
 description: "How develop and use a plugin with the managed plugin system"
 keywords: "API, Usage, plugins, documentation, developer"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -127,7 +126,7 @@ Config provides the base accessible fields for working with V0 plugin format
 - **`propagatedMount`** *string*
 
    path to be mounted as rshared, so that mounts under that path are visible to docker. This is useful for volume plugins.
-   This path will be bind-mounted outisde of the plugin rootfs so it's contents
+   This path will be bind-mounted outside of the plugin rootfs so it's contents
    are preserved on upgrade.
 
 - **`env`** *PluginEnv array*

@@ -1,16 +1,18 @@
 package container
 
 import (
+	"fmt"
 	"io"
 	"net/http/httputil"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -66,6 +68,9 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
+	// request channel to wait for client
+	resultC, errC := client.ContainerWait(ctx, opts.container, "")
+
 	c, err := inspectContainerAndCheckState(ctx, client, opts.container)
 	if err != nil {
 		return err
@@ -120,18 +125,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	}
 
 	if c.Config.Tty && dockerCli.Out().IsTerminal() {
-		height, width := dockerCli.Out().GetTtySize()
-		// To handle the case where a user repeatedly attaches/detaches without resizing their
-		// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
-		// resize it, then go back to normal. Without this, every attach after the first will
-		// require the user to manually resize or hit enter.
-		resizeTtyTo(ctx, client, opts.container, height+1, width+1, false)
-
-		// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
-		// to the actual size.
-		if err := MonitorTtySize(ctx, dockerCli, opts.container, false); err != nil {
-			logrus.Debugf("Error monitoring TTY size: %s", err)
-		}
+		resizeTTY(ctx, dockerCli, opts.container)
 	}
 
 	streamer := hijackedIOStreamer{
@@ -152,13 +146,36 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		return errAttach
 	}
 
-	_, status, err := getExitCode(ctx, dockerCli, opts.container)
-	if err != nil {
+	return getExitStatus(errC, resultC)
+}
+
+func getExitStatus(errC <-chan error, resultC <-chan container.ContainerWaitOKBody) error {
+	select {
+	case result := <-resultC:
+		if result.Error != nil {
+			return fmt.Errorf(result.Error.Message)
+		}
+		if result.StatusCode != 0 {
+			return cli.StatusError{StatusCode: int(result.StatusCode)}
+		}
+	case err := <-errC:
 		return err
-	}
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
 	}
 
 	return nil
+}
+
+func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
+	height, width := dockerCli.Out().GetTtySize()
+	// To handle the case where a user repeatedly attaches/detaches without resizing their
+	// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
+	// resize it, then go back to normal. Without this, every attach after the first will
+	// require the user to manually resize or hit enter.
+	resizeTtyTo(ctx, dockerCli.Client(), containerID, height+1, width+1, false)
+
+	// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
+	// to the actual size.
+	if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
+		logrus.Debugf("Error monitoring TTY size: %s", err)
+	}
 }

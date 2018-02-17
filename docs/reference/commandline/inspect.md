@@ -4,7 +4,7 @@ description: "The inspect command description and usage"
 keywords: "inspect, container, json"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -47,7 +47,7 @@ describes all the details of the format.
 
 The `docker inspect` command matches any type of object by either ID or name.
 In some cases multiple type of objects (for example, a container and a volume)
-exist with the same name, making the result ambigious.
+exist with the same name, making the result ambiguous.
 
 To restrict `docker inspect` to a specific type of object, use the `--type`
 option.

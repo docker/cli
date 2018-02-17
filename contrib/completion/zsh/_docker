@@ -226,7 +226,7 @@ __docker_get_log_options() {
     common_options=("max-buffer-size" "mode")
     common_options2=("env" "env-regex" "labels")
     awslogs_options=($common_options "awslogs-create-group" "awslogs-datetime-format" "awslogs-group" "awslogs-multiline-pattern" "awslogs-region" "awslogs-stream" "tag")
-    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "tag")
+    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "fluentd-sub-second-precision" "tag")
     gcplogs_options=($common_options $common_options2 "gcp-log-cmd" "gcp-meta-id" "gcp-meta-name" "gcp-meta-zone" "gcp-project")
     gelf_options=($common_options $common_options2 "gelf-address" "gelf-compression-level" "gelf-compression-type" "tag")
     journald_options=($common_options $common_options2 "tag")
@@ -450,9 +450,9 @@ __docker_complete_events_filter() {
                 ;;
             (event)
                 local -a event_opts
-                event_opts=('attach' 'commit' 'connect' 'copy' 'create' 'delete' 'destroy' 'detach' 'die' 'disconnect' 'exec_create' 'exec_detach'
-                'exec_start' 'export' 'health_status' 'import' 'kill' 'load'  'mount' 'oom' 'pause' 'pull' 'push' 'reload' 'rename' 'resize' 'restart' 'save' 'start'
-                'stop' 'tag' 'top' 'unmount' 'unpause' 'untag' 'update')
+                event_opts=('attach' 'commit' 'connect' 'copy' 'create' 'delete' 'destroy' 'detach' 'die' 'disable' 'disconnect' 'enable' 'exec_create' 'exec_detach'
+                'exec_start' 'export' 'health_status' 'import' 'install' 'kill' 'load'  'mount' 'oom' 'pause' 'pull' 'push' 'reload' 'remove' 'rename' 'resize'
+                'restart' 'save' 'start' 'stop' 'tag' 'top' 'unmount' 'unpause' 'untag' 'update')
                 _describe -t event-filter-opts "event filter options" event_opts && ret=0
                 ;;
             (image)
@@ -745,6 +745,7 @@ __docker_container_subcommand() {
                 "($help)--privileged[Give extended Linux capabilities to the command]" \
                 "($help -t --tty)"{-t,--tty}"[Allocate a pseudo-tty]" \
                 "($help -u --user)"{-u=,--user=}"[Username or UID]:user:_users" \
+                "($help -w --workdir)"{-w=,--workdir=}"[Working directory inside the container]:directory:_directories" \
                 "($help -):containers:__docker_complete_running_containers" \
                 "($help -)*::command:->anycommand" && ret=0
             case $state in
@@ -897,6 +898,7 @@ __docker_container_subcommand() {
                 "($help -a --all)"{-a,--all}"[Show all containers (default shows just running)]" \
                 "($help)--format=[Pretty-print images using a Go template]:template: " \
                 "($help)--no-stream[Disable streaming stats and only pull the first result]" \
+                "($help)--no-trunc[Do not truncate output]" \
                 "($help -)*:containers:__docker_complete_running_containers" && ret=0
             ;;
         (stop)
@@ -1392,7 +1394,7 @@ __docker_nodes() {
     # Names
     if [[ $type = (names|all) ]]; then
         for line in $lines; do
-            s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
+            s="${line[${begin[HOSTNAME]},${end[HOSTNAME]}]%% ##}"
             nodes=($nodes $s)
         done
     fi
@@ -1931,6 +1933,7 @@ __docker_service_commands() {
         "logs:Fetch the logs of a service or task"
         "ls:List services"
         "rm:Remove one or more services"
+        "rollback:Revert changes to a service's configuration"
         "scale:Scale one or multiple replicated services"
         "ps:List the tasks of a service"
         "update:Update a service"
@@ -1953,6 +1956,7 @@ __docker_service_subcommand() {
         "($help)--health-retries=[Consecutive failures needed to report unhealthy]:retries:(1 2 3 4 5)"
         "($help)--health-timeout=[Maximum time to allow one check to run]:time: "
         "($help)--hostname=[Service container hostname]:hostname: " \
+        "($help)--isolation=[Service container isolation mode]:isolation:(default process hyperv)" \
         "($help)*--label=[Service labels]:label: "
         "($help)--limit-cpu=[Limit CPUs]:value: "
         "($help)--limit-memory=[Limit Memory]:value: "
@@ -2035,6 +2039,13 @@ __docker_service_subcommand() {
         (rm|remove)
             _arguments $(__docker_arguments) \
                 $opts_help \
+                "($help -)*:service:__docker_complete_services" && ret=0
+            ;;
+        (rollback)
+            _arguments $(__docker_arguments) \
+                $opts_help \
+                "($help -d --detach)"{-d=false,--detach=false}"[Disable detached mode]" \
+                "($help -q --quiet)"{-q,--quiet}"[Suppress progress output]" \
                 "($help -)*:service:__docker_complete_services" && ret=0
             ;;
         (scale)
@@ -2159,9 +2170,9 @@ __docker_stacks() {
     end[${header[$i,$((j-1))]}]=-1
     lines=(${lines[2,-1]})
 
-    # Service ID
+    # Service NAME
     for line in $lines; do
-        s="${line[${begin[ID]},${end[ID]}]%% ##}"
+        s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
         stacks=($stacks $s)
     done
 
@@ -2622,7 +2633,6 @@ __docker_subcommand() {
                 "($help)--default-gateway-v6[Container default gateway IPv6 address]:IPv6 address: " \
                 "($help)--default-shm-size=[Default shm size for containers]:size:" \
                 "($help)*--default-ulimit=[Default ulimits for containers]:ulimit: " \
-                "($help)--disable-legacy-registry[Disable contacting legacy registries (default true)]" \
                 "($help)*--dns=[DNS server to use]:DNS: " \
                 "($help)*--dns-opt=[DNS options to use]:DNS option: " \
                 "($help)*--dns-search=[DNS search domains to use]:DNS search: " \

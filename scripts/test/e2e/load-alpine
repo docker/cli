@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+src=alpine@sha256:f006ecbb824d87947d0b51ab8488634bf69fe4094959d935c0c103f4820a417d
+dest=registry:5000/alpine:3.6
+docker pull $src
+docker tag $src $dest
+docker push $dest

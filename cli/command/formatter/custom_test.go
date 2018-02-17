@@ -1,9 +1,10 @@
 package formatter
 
 import (
-	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func compareMultipleValues(t *testing.T, value, expected string) {
@@ -22,7 +23,5 @@ func compareMultipleValues(t *testing.T, value, expected string) {
 		keyval := strings.Split(expected, "=")
 		expMap[keyval[0]] = keyval[1]
 	}
-	if !reflect.DeepEqual(expMap, entriesMap) {
-		t.Fatalf("Expected entries: %v, got: %v", expected, value)
-	}
+	assert.Equal(t, expMap, entriesMap)
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,10 +34,7 @@ taskID2
 		},
 		{
 			Context{Format: NewTaskFormat("table {{.Name}}\t{{.Node}}\t{{.Ports}}", false)},
-			`NAME                NODE                PORTS
-foobar_baz          foo1                
-foobar_bar          foo2                
-`,
+			string(golden.Get(t, "task-context-write-table-custom.golden")),
 		},
 		{
 			Context{Format: NewTaskFormat("table {{.Name}}", true)},

@@ -2,11 +2,14 @@ package image
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/testutil"
+	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,11 +35,6 @@ func TestNewPullCommandErrors(t *testing.T) {
 			expectedError: "tag can't be used with --all-tags/-a",
 			args:          []string{"--all-tags", "image:tag"},
 		},
-		{
-			name:          "pull-error",
-			args:          []string{"--disable-content-trust=false", "image:tag"},
-			expectedError: "you are not authorized to perform this operation: server returned 401.",
-		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
@@ -49,20 +47,28 @@ func TestNewPullCommandErrors(t *testing.T) {
 
 func TestNewPullCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name string
-		args []string
+		name        string
+		args        []string
+		expectedTag string
 	}{
 		{
-			name: "simple",
-			args: []string{"image:tag"},
+			name:        "simple",
+			args:        []string{"image:tag"},
+			expectedTag: "image:tag",
 		},
 		{
-			name: "simple-no-tag",
-			args: []string{"image"},
+			name:        "simple-no-tag",
+			args:        []string{"image"},
+			expectedTag: "image:latest",
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{})
+		cli := test.NewFakeCli(&fakeClient{
+			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
+				assert.Equal(t, tc.expectedTag, ref, tc.name)
+				return ioutil.NopCloser(strings.NewReader("")), nil
+			},
+		})
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)

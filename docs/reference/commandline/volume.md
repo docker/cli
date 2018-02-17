@@ -4,7 +4,7 @@ description: "The volume command description and usage"
 keywords: "volume"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -27,7 +27,7 @@ Commands:
   create      Create a volume
   inspect     Display detailed information on one or more volumes
   ls          List volumes
-  prune       Remove all unused volumes
+  prune       Remove all unused local volumes
   rm          Remove one or more volumes
 
 Run 'docker volume COMMAND --help' for more information on a command.

@@ -54,16 +54,17 @@ func IfCondition(t skipT, condition bool, msgAndArgs ...interface{}) {
 	t.Skip(formatWithCustomMessage(source, formatMessage(msgAndArgs...)))
 }
 
+// getConditionSource returns the condition string by reading it from the file
+// identified in the callstack. In golang 1.9 the line number changed from
+// being the line where the statement ended to the line where the statement began.
 func getConditionSource() (string, error) {
-	const callstackIndex = 3
-	lines, err := getSourceLine(callstackIndex)
+	lines, err := getSourceLine()
 	if err != nil {
 		return "", err
 	}
 
 	for i := range lines {
-		source := strings.Join(lines[len(lines)-i-1:], "\n")
-		node, err := parser.ParseExpr(source)
+		node, err := parser.ParseExpr(getSource(lines, i))
 		if err == nil {
 			return getConditionArgFromAST(node)
 		}
@@ -79,7 +80,8 @@ const maxContextLines = 10
 // few preceding lines. To properly parse the AST a complete statement is
 // required, and that statement may be split across multiple lines, so include
 // up to maxContextLines.
-func getSourceLine(stackIndex int) ([]string, error) {
+func getSourceLine() ([]string, error) {
+	const stackIndex = 3
 	_, filename, line, ok := runtime.Caller(stackIndex)
 	if !ok {
 		return nil, errors.New("failed to get caller info")
@@ -94,11 +96,8 @@ func getSourceLine(stackIndex int) ([]string, error) {
 	if len(lines) < line {
 		return nil, errors.Errorf("file %s does not have line %d", filename, line)
 	}
-	firstLine := line - maxContextLines
-	if firstLine < 0 {
-		firstLine = 0
-	}
-	return lines[firstLine:line], nil
+	firstLine, lastLine := getSourceLinesRange(line, len(lines))
+	return lines[firstLine:lastLine], nil
 }
 
 func getConditionArgFromAST(node ast.Expr) (string, error) {

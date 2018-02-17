@@ -7,14 +7,13 @@ import (
 )
 
 // NewPluginCommand returns a cobra command for `plugin` subcommands
-// nolint: interfacer
-func NewPluginCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPluginCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage plugins",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.25"},
+		Use:         "plugin",
+		Short:       "Manage plugins",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.25"},
 	}
 
 	cmd.AddCommand(

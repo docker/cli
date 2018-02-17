@@ -16,7 +16,7 @@ type pauseOptions struct {
 }
 
 // NewPauseCommand creates a new cobra.Command for `docker pause`
-func NewPauseCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 	var opts pauseOptions
 
 	return &cobra.Command{
@@ -30,7 +30,7 @@ func NewPauseCommand(dockerCli *command.DockerCli) *cobra.Command {
 	}
 }
 
-func runPause(dockerCli *command.DockerCli, opts *pauseOptions) error {
+func runPause(dockerCli command.Cli, opts *pauseOptions) error {
 	ctx := context.Background()
 
 	var errs []string

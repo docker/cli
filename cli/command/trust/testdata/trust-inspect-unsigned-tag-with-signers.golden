@@ -1,0 +1,42 @@
+[
+    {
+        "Name": "signed-repo:unsigned",
+        "SignedTags": [],
+        "Signers": [
+            {
+                "Name": "bob",
+                "Keys": [
+                    {
+                        "ID": "B"
+                    }
+                ]
+            },
+            {
+                "Name": "alice",
+                "Keys": [
+                    {
+                        "ID": "A"
+                    }
+                ]
+            }
+        ],
+        "AdminstrativeKeys": [
+            {
+                "Name": "Root",
+                "Keys": [
+                    {
+                        "ID": "rootID"
+                    }
+                ]
+            },
+            {
+                "Name": "Repository",
+                "Keys": [
+                    {
+                        "ID": "targetsID"
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -3,7 +3,7 @@ package opts
 import (
 	"testing"
 
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -16,7 +16,7 @@ type listOptions struct {
 	filter  opts.FilterOpt
 }
 
-func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -39,7 +39,7 @@ func newListCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli *command.DockerCli, options listOptions) error {
+func runList(dockerCli command.Cli, options listOptions) error {
 	plugins, err := dockerCli.Client().PluginList(context.Background(), options.filter.Value())
 	if err != nil {
 		return err

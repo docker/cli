@@ -10,16 +10,16 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type scaleOptions struct {
 	detach bool
 }
 
-func newScaleCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 	options := &scaleOptions{}
 
 	cmd := &cobra.Command{
@@ -27,7 +27,7 @@ func newScaleCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Short: "Scale one or multiple replicated services",
 		Args:  scaleArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScale(dockerCli, cmd.Flags(), options, args)
+			return runScale(dockerCli, options, args)
 		},
 	}
 
@@ -54,7 +54,7 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scaleOptions, args []string) error {
+func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error {
 	var errs []string
 	var serviceIDs []string
 	ctx := context.Background()
@@ -79,9 +79,7 @@ func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scale
 	}
 
 	if len(serviceIDs) > 0 {
-		if options.detach {
-			warnDetachDefault(dockerCli.Err(), dockerCli.Client().ClientVersion(), flags, "scaled")
-		} else {
+		if !options.detach && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
 			for _, serviceID := range serviceIDs {
 				if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
 					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
@@ -96,7 +94,7 @@ func runScale(dockerCli *command.DockerCli, flags *pflag.FlagSet, options *scale
 	return errors.Errorf(strings.Join(errs, "\n"))
 }
 
-func runServiceScale(ctx context.Context, dockerCli *command.DockerCli, serviceID string, scale uint64) error {
+func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID string, scale uint64) error {
 	client := dockerCli.Client()
 
 	service, _, err := client.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})

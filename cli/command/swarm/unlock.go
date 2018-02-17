@@ -15,24 +15,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-type unlockOptions struct{}
-
 func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
-	opts := unlockOptions{}
-
 	cmd := &cobra.Command{
 		Use:   "unlock",
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(dockerCli, opts)
+			return runUnlock(dockerCli)
 		},
 	}
 
 	return cmd
 }
 
-func runUnlock(dockerCli command.Cli, opts unlockOptions) error {
+func runUnlock(dockerCli command.Cli) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 

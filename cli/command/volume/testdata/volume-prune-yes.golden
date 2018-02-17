@@ -1,4 +1,4 @@
-WARNING! This will remove all volumes not used by at least one container.
+WARNING! This will remove all local volumes not used by at least one container.
 Are you sure you want to continue? [y/N] Deleted Volumes:
 foo
 bar

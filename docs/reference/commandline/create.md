@@ -4,7 +4,7 @@ description: "The create command description and usage"
 keywords: "docker, create, container"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -217,7 +217,7 @@ For the `devicemapper`, `btrfs`, `windowsfilter` and `zfs` graph drivers,
 user cannot pass a size less than the Default BaseFS Size.
 For the `overlay2` storage driver, the size option is only available if the
 backing fs is `xfs` and mounted with the `pquota` mount option.
-Under these conditions, user can pass any size less then the backing fs size.
+Under these conditions, user can pass any size less than the backing fs size.
 
 ### Specify isolation technology for container (--isolation)
 

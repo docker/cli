@@ -1,8 +1,22 @@
 {
   "Vendor": true,
   "Deadline": "2m",
-  "Sort": ["linter", "severity", "path"],
-  "Exclude": ["cli/compose/schema/bindata.go"],
+  "Sort": ["linter", "severity", "path", "line"],
+  "Exclude": [
+      "cli/compose/schema/bindata.go",
+      "cli/command/stack/kubernetes/api/openapi",
+      "cli/command/stack/kubernetes/api/client",
+      ".*generated.*",
+      "parameter .* always receives"
+  ],
+  "EnableGC": true,
+  "Linters": {
+      "nakedret": {
+        "Command": "nakedret",
+        "Pattern": "^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$"
+      }
+  },
+  "WarnUnmatchedDirective": true,
 
   "DisableAll": true,
   "Enable": [
@@ -16,12 +30,13 @@
     "interfacer",
     "lll",
     "misspell",
+    "nakedret",
     "unconvert",
     "unparam",
     "unused",
     "vet"
   ],
 
-  "Cyclo": 19,
+  "Cyclo": 16,
   "LineLength": 200
 }

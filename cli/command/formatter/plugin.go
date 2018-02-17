@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/stringutils"
 )
 
 const (
@@ -80,7 +79,7 @@ func (c *pluginContext) Description() string {
 	desc := strings.Replace(c.p.Config.Description, "\n", "", -1)
 	desc = strings.Replace(desc, "\r", "", -1)
 	if c.trunc {
-		desc = stringutils.Ellipsis(desc, 45)
+		desc = Ellipsis(desc, 45)
 	}
 
 	return desc

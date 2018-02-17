@@ -105,8 +105,11 @@ func (h Secretservice) List() (map[string]string, error) {
 	if listLen == 0 {
 		return resp, nil
 	}
-	pathTmp := (*[1 << 30]*C.char)(unsafe.Pointer(pathsC))[:listLen:listLen]
-	acctTmp := (*[1 << 30]*C.char)(unsafe.Pointer(acctsC))[:listLen:listLen]
+	// The maximum capacity of the following two slices is limited to (2^29)-1 to remain compatible
+	// with 32-bit platforms. The size of a `*C.char` (a pointer) is 4 Byte on a 32-bit system
+	// and (2^29)*4 == math.MaxInt32 + 1. -- See issue golang/go#13656
+	pathTmp := (*[(1 << 29) - 1]*C.char)(unsafe.Pointer(pathsC))[:listLen:listLen]
+	acctTmp := (*[(1 << 29) - 1]*C.char)(unsafe.Pointer(acctsC))[:listLen:listLen]
 	for i := 0; i < listLen; i++ {
 		resp[C.GoString(pathTmp[i])] = C.GoString(acctTmp[i])
 	}

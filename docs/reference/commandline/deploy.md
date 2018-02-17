@@ -5,7 +5,7 @@ keywords: "stack, deploy"
 advisory: "experimental"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -104,7 +104,6 @@ axqh55ipl40h  vossibility_vossibility-collector  replicated  1/1       icecrime/
 
 ## Related commands
 
-* [stack config](stack_config.md)
 * [stack deploy](stack_deploy.md)
 * [stack ls](stack_ls.md)
 * [stack ps](stack_ps.md)

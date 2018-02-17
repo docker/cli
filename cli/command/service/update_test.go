@@ -1,11 +1,13 @@
 package service
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -19,8 +21,12 @@ func TestUpdateServiceArgs(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("args", "the \"new args\"")
 
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 	cspec.Args = []string{"old", "args"}
 
 	updateService(nil, nil, flags, spec)
@@ -161,7 +167,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	// IPv6
 	flags.Set("dns-add", "2001:db8:abc8::1")
 	// Invalid dns record
-	assert.EqualError(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
+	testutil.ErrorContains(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
 
 	// domains with duplicates
 	flags.Set("dns-search-add", "example.com")
@@ -169,7 +175,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	flags.Set("dns-search-add", "example.org")
 	flags.Set("dns-search-rm", "example.org")
 	// Invalid dns search domain
-	assert.EqualError(t, flags.Set("dns-search-add", "example$com"), "example$com is not a valid domain")
+	testutil.ErrorContains(t, flags.Set("dns-search-add", "example$com"), "example$com is not a valid domain")
 
 	flags.Set("dns-option-add", "ndots:9")
 	flags.Set("dns-option-rm", "timeout:3")
@@ -358,15 +364,26 @@ func TestUpdateHosts(t *testing.T) {
 	// just hostname should work as well
 	flags.Set("host-rm", "example.net")
 	// bad format error
-	assert.EqualError(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
+	testutil.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
 	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net"}
+	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 ipv6.net"}
 
-	updateHosts(flags, &hosts)
-	require.Len(t, hosts, 3)
-	assert.Equal(t, "1.2.3.4 example.com", hosts[0])
-	assert.Equal(t, "2001:db8:abc8::1 ipv6.net", hosts[1])
-	assert.Equal(t, "4.3.2.1 example.org", hosts[2])
+	err := updateHosts(flags, &hosts)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, hosts)
+}
+
+func TestUpdateHostsPreservesOrder(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	flags.Set("host-add", "foobar:127.0.0.2")
+	flags.Set("host-add", "foobar:127.0.0.1")
+	flags.Set("host-add", "foobar:127.0.0.3")
+
+	hosts := []string{}
+	err := updateHosts(flags, &hosts)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"127.0.0.2 foobar", "127.0.0.1 foobar", "127.0.0.3 foobar"}, hosts)
 }
 
 func TestUpdatePortsRmWithProtocol(t *testing.T) {
@@ -452,8 +469,12 @@ func TestUpdateSecretUpdateInPlace(t *testing.T) {
 }
 
 func TestUpdateReadOnly(t *testing.T) {
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 
 	// Update with --read-only=true, changed to true
 	flags := newUpdateCommand(nil).Flags()
@@ -474,8 +495,12 @@ func TestUpdateReadOnly(t *testing.T) {
 }
 
 func TestUpdateStopSignal(t *testing.T) {
-	spec := &swarm.ServiceSpec{}
-	cspec := &spec.TaskTemplate.ContainerSpec
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	cspec := spec.TaskTemplate.ContainerSpec
 
 	// Update with --stop-signal=SIGUSR1
 	flags := newUpdateCommand(nil).Flags()
@@ -493,4 +518,138 @@ func TestUpdateStopSignal(t *testing.T) {
 	flags.Set("stop-signal", "SIGWINCH")
 	updateService(nil, nil, flags, spec)
 	assert.Equal(t, "SIGWINCH", cspec.StopSignal)
+}
+
+func TestUpdateIsolationValid(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set("isolation", "process")
+	require.NoError(t, err)
+	spec := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	err = updateService(context.Background(), nil, flags, &spec)
+	require.NoError(t, err)
+	assert.Equal(t, container.IsolationProcess, spec.TaskTemplate.ContainerSpec.Isolation)
+}
+
+func TestUpdateIsolationInvalid(t *testing.T) {
+	// validation depends on daemon os / version so validation should be done on the daemon side
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set("isolation", "test")
+	require.NoError(t, err)
+	spec := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+	err = updateService(context.Background(), nil, flags, &spec)
+	require.NoError(t, err)
+	assert.Equal(t, container.Isolation("test"), spec.TaskTemplate.ContainerSpec.Isolation)
+}
+
+func TestAddGenericResources(t *testing.T) {
+	task := &swarm.TaskSpec{}
+	flags := newUpdateCommand(nil).Flags()
+
+	assert.Nil(t, addGenericResources(flags, task))
+
+	flags.Set(flagGenericResourcesAdd, "foo=1")
+	assert.NoError(t, addGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 1)
+
+	// Checks that foo isn't added a 2nd time
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "bar=1")
+	assert.NoError(t, addGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 2)
+}
+
+func TestRemoveGenericResources(t *testing.T) {
+	task := &swarm.TaskSpec{}
+	flags := newUpdateCommand(nil).Flags()
+
+	assert.Nil(t, removeGenericResources(flags, task))
+
+	flags.Set(flagGenericResourcesRemove, "foo")
+	assert.Error(t, removeGenericResources(flags, task))
+
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "foo=1")
+	addGenericResources(flags, task)
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesAdd, "bar=1")
+	addGenericResources(flags, task)
+
+	flags = newUpdateCommand(nil).Flags()
+	flags.Set(flagGenericResourcesRemove, "foo")
+	assert.NoError(t, removeGenericResources(flags, task))
+	assert.Len(t, task.Resources.Reservations.GenericResources, 1)
+}
+
+func TestUpdateNetworks(t *testing.T) {
+	ctx := context.Background()
+	nws := []types.NetworkResource{
+		{Name: "aaa-network", ID: "id555"},
+		{Name: "mmm-network", ID: "id999"},
+		{Name: "zzz-network", ID: "id111"},
+	}
+
+	client := &fakeClient{
+		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
+			for _, network := range nws {
+				if network.ID == networkID || network.Name == networkID {
+					return network, nil
+				}
+			}
+			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+		},
+	}
+
+	svc := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+			Networks: []swarm.NetworkAttachmentConfig{
+				{Target: "id999"},
+			},
+		},
+	}
+
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set(flagNetworkAdd, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	require.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.EqualError(t, err, "service is already attached to network aaa-network")
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "id555")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.EqualError(t, err, "service is already attached to network id555")
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkRemove, "id999")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id555"}}, svc.TaskTemplate.Networks)
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagNetworkAdd, "mmm-network")
+	require.NoError(t, err)
+	err = flags.Set(flagNetworkRemove, "aaa-network")
+	require.NoError(t, err)
+	err = updateService(ctx, client, flags, &svc)
+	assert.NoError(t, err)
+	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id999"}}, svc.TaskTemplate.Networks)
 }

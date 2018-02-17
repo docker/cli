@@ -36,6 +36,35 @@ func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	assert.Contains(t, err.Error(), "Additional property helicopters is not allowed")
 }
 
+func TestValidateAllowsXTopLevelFields(t *testing.T) {
+	config := dict{
+		"version":       "3.4",
+		"x-extra-stuff": dict{},
+	}
+
+	err := Validate(config, "3.4")
+	assert.NoError(t, err)
+}
+
+func TestValidateSecretConfigNames(t *testing.T) {
+	config := dict{
+		"version": "3.5",
+		"configs": dict{
+			"bar": dict{
+				"name": "foobar",
+			},
+		},
+		"secrets": dict{
+			"baz": dict{
+				"name": "foobaz",
+			},
+		},
+	}
+
+	err := Validate(config, "3.5")
+	assert.NoError(t, err)
+}
+
 func TestValidateInvalidVersion(t *testing.T) {
 	config := dict{
 		"version": "2.1",
@@ -73,4 +102,17 @@ func TestValidatePlacement(t *testing.T) {
 	}
 
 	assert.NoError(t, Validate(config, "3.3"))
+}
+
+func TestValidateIsolation(t *testing.T) {
+	config := dict{
+		"version": "3.5",
+		"services": dict{
+			"foo": dict{
+				"image":     "busybox",
+				"isolation": "some-isolation-value",
+			},
+		},
+	}
+	assert.NoError(t, Validate(config, "3.5"))
 }

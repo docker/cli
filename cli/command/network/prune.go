@@ -33,7 +33,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return nil
 		},
-		Tags: map[string]string{"version": "1.25"},
+		Annotations: map[string]string{"version": "1.25"},
 	}
 
 	flags := cmd.Flags()
@@ -50,12 +50,12 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err e
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return
+		return "", nil
 	}
 
 	report, err := dockerCli.Client().NetworksPrune(context.Background(), pruneFilters)
 	if err != nil {
-		return
+		return "", err
 	}
 
 	if len(report.NetworksDeleted) > 0 {
@@ -65,7 +65,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err e
 		}
 	}
 
-	return
+	return output, nil
 }
 
 // RunPrune calls the Network Prune API

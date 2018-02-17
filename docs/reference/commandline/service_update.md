@@ -4,7 +4,7 @@ description: "The service update command description and usage"
 keywords: "service, update"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -41,6 +41,8 @@ Options:
       --env-add list                       Add or update an environment variable
       --env-rm list                        Remove an environment variable
       --force                              Force update even if no changes require it
+      --generic-resource-add list          Add an additional generic resource to the service's resources requirements
+      --generic-resource-rm list           Remove a previously added generic resource to the service's resources requirements
       --group-add list                     Add an additional supplementary user group to the container
       --group-rm list                      Remove a previously added supplementary user group from the container
       --health-cmd string                  Command to run to check health
@@ -49,10 +51,11 @@ Options:
       --health-start-period duration       Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)
       --health-timeout duration            Maximum time to allow one check to run (ms|s|m|h)
       --help                               Print usage
-      --host-add list                      Add or update a custom host-to-IP mapping (host:ip)
+      --host-add list                      Add a custom host-to-IP mapping (host:ip)
       --host-rm list                       Remove a custom host-to-IP mapping (host:ip)
       --hostname string                    Container hostname
       --image string                       Service image tag
+      --isolation string                   Service container isolation mode
       --label-add list                     Add or update a service label
       --label-rm list                      Remove a label by its key
       --limit-cpu decimal                  Limit CPUs
@@ -136,7 +139,7 @@ that the rolling restart happens gradually.
 
 ### Add or remove mounts
 
-Use the `--mount-add` or `--mount-rm` options add or remove a service's bind-mounts
+Use the `--mount-add` or `--mount-rm` options add or remove a service's bind mounts
 or volumes.
 
 The following example creates a service which mounts the `test-data` volume to
@@ -147,7 +150,7 @@ service name.
 
 - The `--mount-add` flag takes the same parameters as the `--mount` flag on
   `service create`. Refer to the [volumes and
-  bind-mounts](service_create.md#volumes-and-bind-mounts-mount) section in the
+  bind mounts](service_create.md#volumes-and-bind-mounts-mount) section in the
   `service create` reference for details.
 
 - The `--mount-rm` flag takes the `target` path of the mount.
@@ -174,9 +177,24 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
-### Rolling back to the previous version of a service 
+### Add or remove published service ports
 
-Use the `--rollback` option to roll back to the previous version of the service. 
+Use the `--publish-add` or `--publish-rm` flags to add or remove a published
+port for a service. You can use the short or long syntax discussed in the
+[docker service create](service_create/#attach-a-service-to-an-existing-network-network)
+reference.
+
+The following example adds a published service port to an existing service.
+
+```bash
+$ docker service update \
+  --publish-add published=8080,target=80 \
+  myservice
+```
+
+### Roll back to the previous version of a service
+
+Use the `--rollback` option to roll back to the previous version of the service.
 
 This will revert the service to the configuration that was in place before the most recent `docker service update` command.
 
@@ -193,7 +211,7 @@ ID            NAME  MODE        REPLICAS  IMAGE
 80bvrzp6vxf3  web   replicated  0/5       nginx:alpine
 
 ```
-Roll back the `web` service... 
+Roll back the `web` service...
 
 ```bash
 $ docker service update --rollback web
@@ -258,6 +276,12 @@ $ docker service update \
 Some flags of `service update` support the use of templating.
 See [`service create`](./service_create.md#templating) for the reference.
 
+
+### Specify isolation mode (Windows)
+
+`service update` supports the same `--isolation` flag as `service create`
+See [`service create`](./service_create.md) for the reference.
+
 ## Related commands
 
 * [service create](service_create.md)
@@ -266,4 +290,5 @@ See [`service create`](./service_create.md#templating) for the reference.
 * [service ls](service_ls.md)
 * [service ps](service_ps.md)
 * [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
 * [service scale](service_scale.md)

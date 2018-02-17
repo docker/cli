@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
@@ -20,6 +19,7 @@ import (
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 )
 
@@ -145,7 +145,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		expose:            opts.NewListOpts(nil),
 		extraHosts:        opts.NewListOpts(opts.ValidateExtraHost),
 		groupAdd:          opts.NewListOpts(nil),
-		labels:            opts.NewListOpts(opts.ValidateEnv),
+		labels:            opts.NewListOpts(opts.ValidateLabel),
 		labelsFile:        opts.NewListOpts(nil),
 		linkLocalIPs:      opts.NewListOpts(nil),
 		links:             opts.NewListOpts(opts.ValidateLink),
@@ -274,7 +274,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 
 	// Low-level execution (cgroups, namespaces, ...)
 	flags.StringVar(&copts.cgroupParent, "cgroup-parent", "", "Optional parent cgroup for the container")
-	flags.StringVar(&copts.ipcMode, "ipc", "", "IPC namespace to use")
+	flags.StringVar(&copts.ipcMode, "ipc", "", "IPC mode to use")
 	flags.StringVar(&copts.isolation, "isolation", "", "Container isolation technology")
 	flags.StringVar(&copts.pidMode, "pid", "", "PID namespace to use")
 	flags.Var(&copts.shmSize, "shm-size", "Size of /dev/shm")
@@ -410,7 +410,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 	}
 
 	// collect all the environment variables for the container
-	envVariables, err := opts.ReadKVStrings(copts.envFile.GetAll(), copts.env.GetAll())
+	envVariables, err := opts.ReadKVEnvStrings(copts.envFile.GetAll(), copts.env.GetAll())
 	if err != nil {
 		return nil, err
 	}
@@ -419,11 +419,6 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 	labels, err := opts.ReadKVStrings(copts.labelsFile.GetAll(), copts.labels.GetAll())
 	if err != nil {
 		return nil, err
-	}
-
-	ipcMode := container.IpcMode(copts.ipcMode)
-	if !ipcMode.Valid() {
-		return nil, errors.Errorf("--ipc: invalid IPC mode")
 	}
 
 	pidMode := container.PidMode(copts.pidMode)
@@ -584,7 +579,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		ExtraHosts:     copts.extraHosts.GetAll(),
 		VolumesFrom:    copts.volumesFrom.GetAll(),
 		NetworkMode:    container.NetworkMode(copts.netMode),
-		IpcMode:        ipcMode,
+		IpcMode:        container.IpcMode(copts.ipcMode),
 		PidMode:        pidMode,
 		UTSMode:        utsMode,
 		UsernsMode:     usernsMode,

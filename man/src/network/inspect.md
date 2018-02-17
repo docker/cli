@@ -92,7 +92,7 @@ $ docker network inspect simple-network
 details such as the service's VIP and port mappings. It also shows IPs of service tasks,
 and the IPs of the nodes where the tasks are running.
 
-Following is an example output for a overlay network `ov1` that has one service `s1`
+Following is an example output for an overlay network `ov1` that has one service `s1`
 attached to. service `s1` in this case has three replicas.
 
 ```bash

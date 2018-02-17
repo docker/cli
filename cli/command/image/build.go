@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"runtime"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -22,12 +21,14 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -63,6 +64,7 @@ type buildOptions struct {
 	target         string
 	imageIDFile    string
 	stream         bool
+	platform       string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -134,6 +136,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
 	command.AddTrustVerificationFlags(flags)
+	command.AddPlatformFlag(flags, &options.platform)
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
@@ -243,6 +246,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
+			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err
@@ -303,8 +307,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		progressOutput = &lastProgressOutput{output: progressOutput}
 	}
 
-	// if up to this point nothing has set the context then we must have have
-	// another way for sending it(streaming) and set the context to the Dockerfile
+	// if up to this point nothing has set the context then we must have another
+	// way for sending it(streaming) and set the context to the Dockerfile
 	if dockerfileCtx != nil && buildCtx == nil {
 		buildCtx = dockerfileCtx
 	}
@@ -372,17 +376,18 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		ExtraHosts:     options.extraHosts.GetAll(),
 		Target:         options.target,
 		RemoteContext:  remote,
+		Platform:       options.platform,
 	}
 
 	if s != nil {
 		go func() {
-			logrus.Debugf("running session: %v", s.UUID())
+			logrus.Debugf("running session: %v", s.ID())
 			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
 				logrus.Error(err)
 				cancel() // cancel progress context
 			}
 		}()
-		buildOptions.SessionID = s.UUID()
+		buildOptions.SessionID = s.ID()
 	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)

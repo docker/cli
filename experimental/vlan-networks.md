@@ -220,7 +220,7 @@ $$ ip a show eth0
 
 The mode ` -o ipvlan_mode=l3` must be explicitly specified since the default ipvlan mode is `l2`.
 
-The following example does not specify a parent interface. The network drivers will create a dummy type link for the user rather then rejecting the network creation and isolating containers from only communicating with one another.
+The following example does not specify a parent interface. The network drivers will create a dummy type link for the user rather than rejecting the network creation and isolating containers from only communicating with one another.
 
 ```
 # Create the Ipvlan L3 network

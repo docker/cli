@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,7 +10,9 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
@@ -164,17 +167,13 @@ var sampleConfig = types.Config{
 
 func TestParseYAML(t *testing.T) {
 	dict, err := ParseYAML([]byte(sampleYAML))
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 	assert.Equal(t, sampleDict, dict)
 }
 
 func TestLoad(t *testing.T) {
 	actual, err := Load(buildConfigDetails(sampleDict, nil))
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
 	assert.Equal(t, sampleConfig.Networks, actual.Networks)
 	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
@@ -191,11 +190,9 @@ secrets:
   super:
     external: true
 `)
-	if !assert.NoError(t, err) {
-		return
-	}
-	assert.Equal(t, len(actual.Services), 1)
-	assert.Equal(t, len(actual.Secrets), 1)
+	require.NoError(t, err)
+	assert.Len(t, actual.Services, 1)
+	assert.Len(t, actual.Secrets, 1)
 }
 
 func TestLoadV33(t *testing.T) {
@@ -211,19 +208,15 @@ configs:
   super:
     external: true
 `)
-	if !assert.NoError(t, err) {
-		return
-	}
-	assert.Equal(t, len(actual.Services), 1)
+	require.NoError(t, err)
+	require.Len(t, actual.Services, 1)
 	assert.Equal(t, actual.Services[0].CredentialSpec.File, "/foo")
-	assert.Equal(t, len(actual.Configs), 1)
+	require.Len(t, actual.Configs, 1)
 }
 
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
 	assert.Equal(t, sampleConfig.Networks, actual.Networks)
 	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
@@ -231,15 +224,15 @@ func TestParseAndLoad(t *testing.T) {
 
 func TestInvalidTopLevelObjectType(t *testing.T) {
 	_, err := loadYAML("1")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
 
 	_, err = loadYAML("\"hello\"")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
 
 	_, err = loadYAML("[\"hello\"]")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
 }
 
@@ -250,7 +243,7 @@ version: "3"
   foo:
     image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Non-string key at top level: 123")
 
 	_, err = loadYAML(`
@@ -261,7 +254,7 @@ services:
   123:
     image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Non-string key in services: 123")
 
 	_, err = loadYAML(`
@@ -275,7 +268,7 @@ networks:
       config:
         - 123: oh dear
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Non-string key in networks.default.ipam.config[0]: 123")
 
 	_, err = loadYAML(`
@@ -286,7 +279,7 @@ services:
     environment:
       1: FOO
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Non-string key in services.dict-env.environment: 1")
 }
 
@@ -297,7 +290,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = loadYAML(`
 version: "3.0"
@@ -305,7 +298,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestUnsupportedVersion(t *testing.T) {
@@ -315,7 +308,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "version")
 
 	_, err = loadYAML(`
@@ -324,7 +317,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "version")
 }
 
@@ -335,7 +328,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "version must be a string")
 }
 
@@ -354,7 +347,7 @@ services:
   - foo:
       image: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services must be a mapping")
 
 	_, err = loadYAML(`
@@ -362,7 +355,7 @@ version: "3"
 services:
   foo: busybox
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services.foo must be a mapping")
 
 	_, err = loadYAML(`
@@ -371,7 +364,7 @@ networks:
   - default:
       driver: bridge
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "networks must be a mapping")
 
 	_, err = loadYAML(`
@@ -379,7 +372,7 @@ version: "3"
 networks:
   default: bridge
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "networks.default must be a mapping")
 
 	_, err = loadYAML(`
@@ -388,7 +381,7 @@ volumes:
   - data:
       driver: local
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "volumes must be a mapping")
 
 	_, err = loadYAML(`
@@ -396,7 +389,7 @@ version: "3"
 volumes:
   data: local
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "volumes.data must be a mapping")
 }
 
@@ -407,7 +400,7 @@ services:
   foo:
     image: ["busybox", "latest"]
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services.foo.image must be a string")
 }
 
@@ -458,7 +451,7 @@ services:
     environment:
       FOO: ["1"]
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services.dict-env.environment.FOO must be a string, number or null")
 }
 
@@ -470,11 +463,11 @@ services:
     image: busybox
     environment: "FOO=1"
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services.dict-env.environment must be a mapping")
 }
 
-func TestEnvironmentInterpolation(t *testing.T) {
+func TestLoadWithEnvironmentInterpolation(t *testing.T) {
 	home := "/home/foo"
 	config, err := loadYAMLWithEnv(`
 version: "3"
@@ -497,7 +490,7 @@ volumes:
 		"FOO":  "foo",
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expectedLabels := types.Labels{
 		"home1":       home,
@@ -511,28 +504,195 @@ volumes:
 	assert.Equal(t, home, config.Volumes["test"].Driver)
 }
 
+func TestLoadWithInterpolationCastFull(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3.4"
+services:
+  web:
+    configs:
+      - source: appconfig
+        mode: $theint
+    secrets:
+      - source: super
+        mode: $theint
+    healthcheck:
+      retries: ${theint}
+      disable: $thebool
+    deploy:
+      replicas: $theint
+      update_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
+      restart_policy:
+        max_attempts: $theint
+    ports:
+      - $theint
+      - "34567"
+      - target: $theint
+        published: $theint
+    ulimits:
+      nproc: $theint
+      nofile:
+        hard: $theint
+        soft: $theint
+    privileged: $thebool
+    read_only: $thebool
+    stdin_open: ${thebool}
+    tty: $thebool
+    volumes:
+      - source: data
+        type: volume
+        read_only: $thebool
+        volume:
+          nocopy: $thebool
+
+configs:
+  appconfig:
+    external: $thebool
+secrets:
+  super:
+    external: $thebool
+volumes:
+  data:
+    external: $thebool
+networks:
+  front:
+    external: $thebool
+    internal: $thebool
+    attachable: $thebool
+
+`))
+	require.NoError(t, err)
+	env := map[string]string{
+		"theint":   "555",
+		"thefloat": "3.14",
+		"thebool":  "true",
+	}
+
+	config, err := Load(buildConfigDetails(dict, env))
+	require.NoError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Services: []types.ServiceConfig{
+			{
+				Name: "web",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "appconfig",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "super",
+						Mode:   uint32Ptr(555),
+					},
+				},
+				HealthCheck: &types.HealthCheckConfig{
+					Retries: uint64Ptr(555),
+					Disable: true,
+				},
+				Deploy: types.DeployConfig{
+					Replicas: uint64Ptr(555),
+					UpdateConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
+					RestartPolicy: &types.RestartPolicy{
+						MaxAttempts: uint64Ptr(555),
+					},
+				},
+				Ports: []types.ServicePortConfig{
+					{Target: 555, Mode: "ingress", Protocol: "tcp"},
+					{Target: 34567, Mode: "ingress", Protocol: "tcp"},
+					{Target: 555, Published: 555},
+				},
+				Ulimits: map[string]*types.UlimitsConfig{
+					"nproc":  {Single: 555},
+					"nofile": {Hard: 555, Soft: 555},
+				},
+				Privileged: true,
+				ReadOnly:   true,
+				StdinOpen:  true,
+				Tty:        true,
+				Volumes: []types.ServiceVolumeConfig{
+					{
+						Source:   "data",
+						Type:     "volume",
+						ReadOnly: true,
+						Volume:   &types.ServiceVolumeVolume{NoCopy: true},
+					},
+				},
+				Environment: types.MappingWithEquals{},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"appconfig": {External: types.External{External: true}, Name: "appconfig"},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"super": {External: types.External{External: true}, Name: "super"},
+		},
+		Volumes: map[string]types.VolumeConfig{
+			"data": {External: types.External{External: true}, Name: "data"},
+		},
+		Networks: map[string]types.NetworkConfig{
+			"front": {
+				External:   types.External{External: true},
+				Name:       "front",
+				Internal:   true,
+				Attachable: true,
+			},
+		},
+	}
+
+	assert.Equal(t, expected, config)
+}
+
 func TestUnsupportedProperties(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3"
 services:
   web:
     image: web
-    build: ./web
+    build:
+     context: ./web
     links:
       - bar
+    pid: host
   db:
     image: db
-    build: ./db
+    build:
+     context: ./db
 `))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	configDetails := buildConfigDetails(dict, nil)
 
 	_, err = Load(configDetails)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	unsupported := GetUnsupportedProperties(configDetails)
-	assert.Equal(t, []string{"build", "links"}, unsupported)
+	unsupported := GetUnsupportedProperties(dict)
+	assert.Equal(t, []string{"build", "links", "pid"}, unsupported)
+}
+
+func TestBuildProperties(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3"
+services:
+  web:
+    image: web
+    build: .
+    links:
+      - bar
+  db:
+    image: db
+    build:
+     context: ./db
+`))
+	require.NoError(t, err)
+	configDetails := buildConfigDetails(dict, nil)
+	_, err = Load(configDetails)
+	require.NoError(t, err)
 }
 
 func TestDeprecatedProperties(t *testing.T) {
@@ -547,15 +707,15 @@ services:
     container_name: db
     expose: ["5434"]
 `))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	configDetails := buildConfigDetails(dict, nil)
 
 	_, err = Load(configDetails)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	deprecated := GetDeprecatedProperties(configDetails)
-	assert.Equal(t, 2, len(deprecated))
+	deprecated := GetDeprecatedProperties(dict)
+	assert.Len(t, deprecated, 2)
 	assert.Contains(t, deprecated, "container_name")
 	assert.Contains(t, deprecated, "expose")
 }
@@ -574,12 +734,12 @@ services:
       service: foo
 `)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.IsType(t, &ForbiddenPropertiesError{}, err)
 	fmt.Println(err)
 	forbidden := err.(*ForbiddenPropertiesError).Properties
 
-	assert.Equal(t, 2, len(forbidden))
+	assert.Len(t, forbidden, 2)
 	assert.Contains(t, forbidden, "volume_driver")
 	assert.Contains(t, forbidden, "extends")
 }
@@ -595,7 +755,7 @@ func TestInvalidResource(t *testing.T) {
                 impossible:
                   x: 1
 `)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Additional property impossible is not allowed")
 }
 
@@ -608,7 +768,7 @@ volumes:
     driver: foobar
 `)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"driver\" specified for volume")
 	assert.Contains(t, err.Error(), "external_volume")
 }
@@ -623,7 +783,7 @@ volumes:
       beep: boop
 `)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"driver_opts\" specified for volume")
 	assert.Contains(t, err.Error(), "external_volume")
 }
@@ -638,12 +798,12 @@ volumes:
       - beep=boop
 `)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"labels\" specified for volume")
 	assert.Contains(t, err.Error(), "external_volume")
 }
 
-func TestInvalidExternalNameAndNameCombination(t *testing.T) {
+func TestLoadVolumeInvalidExternalNameAndNameCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3.4"
 volumes:
@@ -653,8 +813,7 @@ volumes:
       name:	external_name
 `)
 
-	assert.Error(t, err)
-	fmt.Println(err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "volume.external.name and volume.name conflict; only use volume.name")
 	assert.Contains(t, err.Error(), "external_volume")
 }
@@ -667,25 +826,36 @@ func uint64Ptr(value uint64) *uint64 {
 	return &value
 }
 
+func uint32Ptr(value uint32) *uint32 {
+	return &value
+}
+
 func TestFullExample(t *testing.T) {
 	bytes, err := ioutil.ReadFile("full-example.yml")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	homeDir := "/home/foo"
 	env := map[string]string{"HOME": homeDir, "QUX": "qux_from_environment"}
 	config, err := loadYAMLWithEnv(string(bytes), env)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	workingDir, err := os.Getwd()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	stopGracePeriod := time.Duration(20 * time.Second)
 
 	expectedServiceConfig := types.ServiceConfig{
 		Name: "foo",
 
+		Build: types.BuildConfig{
+			Context:    "./dir",
+			Dockerfile: "Dockerfile",
+			Args:       map[string]*string{"foo": strPtr("bar")},
+			Target:     "foo",
+			Network:    "foo",
+			CacheFrom:  []string{"foo", "bar"},
+			Labels:     map[string]string{"FOO": "BAR"},
+		},
 		CapAdd:        []string{"ALL"},
 		CapDrop:       []string{"NET_ADMIN", "SYS_ADMIN"},
 		CgroupParent:  "m-executor-abcd",
@@ -712,6 +882,20 @@ func TestFullExample(t *testing.T) {
 				Reservations: &types.Resource{
 					NanoCPUs:    "0.0001",
 					MemoryBytes: 20 * 1024 * 1024,
+					GenericResources: []types.GenericResource{
+						{
+							DiscreteResourceSpec: &types.DiscreteGenericResource{
+								Kind:  "gpu",
+								Value: 2,
+							},
+						},
+						{
+							DiscreteResourceSpec: &types.DiscreteGenericResource{
+								Kind:  "ssd",
+								Value: 1,
+							},
+						},
+					},
 				},
 			},
 			RestartPolicy: &types.RestartPolicy{
@@ -751,15 +935,16 @@ func TestFullExample(t *testing.T) {
 			"project_db_1:mysql",
 			"project_db_1:postgresql",
 		},
-		ExtraHosts: map[string]string{
-			"otherhost": "50.31.209.229",
-			"somehost":  "162.242.195.82",
+		ExtraHosts: []string{
+			"somehost:162.242.195.82",
+			"otherhost:50.31.209.229",
 		},
 		HealthCheck: &types.HealthCheckConfig{
-			Test:     types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
-			Interval: "10s",
-			Timeout:  "1s",
-			Retries:  uint64Ptr(5),
+			Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
+			Interval:    durationPtr(10 * time.Second),
+			Timeout:     durationPtr(1 * time.Second),
+			Retries:     uint64Ptr(5),
+			StartPeriod: durationPtr(15 * time.Second),
 		},
 		Hostname: "foo",
 		Image:    "redis",
@@ -965,6 +1150,9 @@ func TestFullExample(t *testing.T) {
 			{Source: homeDir + "/configs", Target: "/etc/configs/", Type: "bind", ReadOnly: true},
 			{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
 			{Source: workingDir + "/opt", Target: "/opt", Consistency: "cached", Type: "bind"},
+			{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
+				Size: int64(10000),
+			}},
 		},
 		WorkingDir: "/code",
 	}
@@ -990,17 +1178,13 @@ func TestFullExample(t *testing.T) {
 		},
 
 		"external-network": {
-			External: types.External{
-				Name:     "external-network",
-				External: true,
-			},
+			Name:     "external-network",
+			External: types.External{External: true},
 		},
 
 		"other-external-network": {
-			External: types.External{
-				Name:     "my-cool-network",
-				External: true,
-			},
+			Name:     "my-cool-network",
+			External: types.External{External: true},
 		},
 	}
 
@@ -1024,27 +1208,120 @@ func TestFullExample(t *testing.T) {
 			},
 		},
 		"external-volume": {
-			External: types.External{
-				Name:     "external-volume",
-				External: true,
-			},
+			Name:     "external-volume",
+			External: types.External{External: true},
 		},
 		"other-external-volume": {
-			External: types.External{
-				Name:     "my-cool-volume",
-				External: true,
-			},
+			Name:     "my-cool-volume",
+			External: types.External{External: true},
 		},
 		"external-volume3": {
-			Name: "this-is-volume3",
-			External: types.External{
-				Name:     "external-volume3",
-				External: true,
-			},
+			Name:     "this-is-volume3",
+			External: types.External{External: true},
 		},
 	}
 
 	assert.Equal(t, expectedVolumeConfig, config.Volumes)
+}
+
+func TestLoadTmpfsVolume(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 10000
+`)
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Target: "/app",
+		Type:   "tmpfs",
+		Tmpfs: &types.ServiceVolumeTmpfs{
+			Size: int64(10000),
+		},
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadTmpfsVolumeAdditionalPropertyNotAllowed(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 10000
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
+}
+
+func TestLoadTmpfsVolumeSizeCanBeZero(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 0
+`)
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Target: "/app",
+		Type:   "tmpfs",
+		Tmpfs:  &types.ServiceVolumeTmpfs{},
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadTmpfsVolumeSizeMustBeGTEQZero(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: -1
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0")
+}
+
+func TestLoadTmpfsVolumeSizeMustBeInteger(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 0.0001
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size must be a integer")
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
@@ -1068,9 +1345,7 @@ networks:
   mynet2:
     driver: bridge
 `)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	expected := map[string]types.NetworkConfig{
 		"mynet1": {
@@ -1104,9 +1379,7 @@ services:
         target: 22
         published: 10022
 `)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	expected := []types.ServicePortConfig{
 		{
@@ -1169,7 +1442,7 @@ services:
 		},
 	}
 
-	assert.Equal(t, 1, len(config.Services))
+	assert.Len(t, config.Services, 1)
 	assert.Equal(t, expected, config.Services[0].Ports)
 }
 
@@ -1187,9 +1460,7 @@ services:
 volumes:
   foo: {}
 `)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	expected := types.ServiceVolumeConfig{
 		Type:     "volume",
@@ -1198,7 +1469,254 @@ volumes:
 		ReadOnly: true,
 	}
 
-	assert.Equal(t, 1, len(config.Services))
-	assert.Equal(t, 1, len(config.Services[0].Volumes))
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
 	assert.Equal(t, expected, config.Services[0].Volumes[0])
+}
+
+func TestLoadExtraHostsMap(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.2"
+services:
+  web:
+    image: busybox
+    extra_hosts:
+      "zulu": "162.242.195.82"
+      "alpha": "50.31.209.229"
+`)
+	require.NoError(t, err)
+
+	expected := types.HostsList{
+		"alpha:50.31.209.229",
+		"zulu:162.242.195.82",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+}
+
+func TestLoadExtraHostsList(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.2"
+services:
+  web:
+    image: busybox
+    extra_hosts:
+      - "zulu:162.242.195.82"
+      - "alpha:50.31.209.229"
+      - "zulu:ff02::1"
+`)
+	require.NoError(t, err)
+
+	expected := types.HostsList{
+		"zulu:162.242.195.82",
+		"alpha:50.31.209.229",
+		"zulu:ff02::1",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+}
+
+func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	volumes, err := LoadVolumes(source, "3.4")
+	require.NoError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, volumes)
+	assert.Contains(t, buf.String(), "volume.external.name is deprecated")
+
+}
+
+func patchLogrus() (*bytes.Buffer, func()) {
+	buf := new(bytes.Buffer)
+	out := logrus.StandardLogger().Out
+	logrus.SetOutput(buf)
+	return buf, func() { logrus.SetOutput(out) }
+}
+
+func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	volumes, err := LoadVolumes(source, "3.3")
+	require.NoError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, volumes)
+	assert.Equal(t, "", buf.String())
+}
+
+func TestLoadV35(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.5"
+services:
+  foo:
+    image: busybox
+    isolation: process
+configs:
+  foo:
+    name: fooqux
+    external: true
+  bar:
+    name: barqux
+    file: ./example1.env
+secrets:
+  foo:
+    name: fooqux
+    external: true
+  bar:
+    name: barqux
+    file: ./full-example.yml
+`)
+	require.NoError(t, err)
+	assert.Len(t, actual.Services, 1)
+	assert.Len(t, actual.Secrets, 2)
+	assert.Len(t, actual.Configs, 2)
+	assert.Equal(t, "process", actual.Services[0].Isolation)
+}
+
+func TestLoadV35InvalidIsolation(t *testing.T) {
+	// validation should be done only on the daemon side
+	actual, err := loadYAML(`
+version: "3.5"
+services:
+  foo:
+    image: busybox
+    isolation: invalid
+configs:
+  super:
+    external: true
+`)
+	require.NoError(t, err)
+	require.Len(t, actual.Services, 1)
+	assert.Equal(t, "invalid", actual.Services[0].Isolation)
+}
+
+func TestLoadSecretInvalidExternalNameAndNameCombination(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+secrets:
+  external_secret:
+    name: user_specified_name
+    external:
+      name:	external_name
+`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "secret.external.name and secret.name conflict; only use secret.name")
+	assert.Contains(t, err.Error(), "external_secret")
+}
+
+func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	details := types.ConfigDetails{
+		Version: "3.5",
+	}
+	secrets, err := LoadSecrets(source, details)
+	require.NoError(t, err)
+	expected := map[string]types.SecretConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, secrets)
+	assert.Contains(t, buf.String(), "secret.external.name is deprecated")
+}
+
+func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	networks, err := LoadNetworks(source, "3.5")
+	require.NoError(t, err)
+	expected := map[string]types.NetworkConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, networks)
+	assert.Contains(t, buf.String(), "network.external.name is deprecated")
+
+}
+
+func TestLoadNetworksWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
+	buf, cleanup := patchLogrus()
+	defer cleanup()
+
+	source := map[string]interface{}{
+		"foo": map[string]interface{}{
+			"external": map[string]interface{}{
+				"name": "oops",
+			},
+		},
+	}
+	networks, err := LoadNetworks(source, "3.4")
+	require.NoError(t, err)
+	expected := map[string]types.NetworkConfig{
+		"foo": {
+			Name:     "oops",
+			External: types.External{External: true},
+		},
+	}
+	assert.Equal(t, expected, networks)
+	assert.Equal(t, "", buf.String())
+}
+
+func TestLoadNetworkInvalidExternalNameAndNameCombination(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+networks:
+  foo:
+    name: user_specified_name
+    external:
+      name:	external_name
+`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "network.external.name and network.name conflict; only use network.name")
+	assert.Contains(t, err.Error(), "foo")
 }

@@ -118,11 +118,11 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	return err
 }
 
-func (ctx *DiskUsageContext) verboseWrite() (err error) {
+func (ctx *DiskUsageContext) verboseWrite() error {
 	// First images
 	tmpl, err := ctx.startSubsection(defaultDiskUsageImageTableFormat)
 	if err != nil {
-		return
+		return err
 	}
 
 	ctx.Output.Write([]byte("Images space usage:\n\n"))
@@ -141,14 +141,14 @@ func (ctx *DiskUsageContext) verboseWrite() (err error) {
 			}
 		}
 
-		err = ctx.contextFormat(tmpl, &imageContext{
+		err := ctx.contextFormat(tmpl, &imageContext{
 			repo:  repo,
 			tag:   tag,
 			trunc: true,
 			i:     *i,
 		})
 		if err != nil {
-			return
+			return err
 		}
 	}
 	ctx.postFormat(tmpl, newImageContext())
@@ -157,17 +157,14 @@ func (ctx *DiskUsageContext) verboseWrite() (err error) {
 	ctx.Output.Write([]byte("\nContainers space usage:\n\n"))
 	tmpl, err = ctx.startSubsection(defaultDiskUsageContainerTableFormat)
 	if err != nil {
-		return
+		return err
 	}
 	for _, c := range ctx.Containers {
 		// Don't display the virtual size
 		c.SizeRootFs = 0
-		err = ctx.contextFormat(tmpl, &containerContext{
-			trunc: true,
-			c:     *c,
-		})
+		err := ctx.contextFormat(tmpl, &containerContext{trunc: true, c: *c})
 		if err != nil {
-			return
+			return err
 		}
 	}
 	ctx.postFormat(tmpl, newContainerContext())
@@ -176,21 +173,18 @@ func (ctx *DiskUsageContext) verboseWrite() (err error) {
 	ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
 	tmpl, err = ctx.startSubsection(defaultDiskUsageVolumeTableFormat)
 	if err != nil {
-		return
+		return err
 	}
 	for _, v := range ctx.Volumes {
-		err = ctx.contextFormat(tmpl, &volumeContext{
-			v: *v,
-		})
-		if err != nil {
-			return
+		if err := ctx.contextFormat(tmpl, &volumeContext{v: *v}); err != nil {
+			return err
 		}
 	}
 	ctx.postFormat(tmpl, newVolumeContext())
 
 	// And build cache
 	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
-	return
+	return nil
 }
 
 type diskUsageImagesContext struct {

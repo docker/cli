@@ -16,7 +16,7 @@ type unpauseOptions struct {
 }
 
 // NewUnpauseCommand creates a new cobra.Command for `docker unpause`
-func NewUnpauseCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 	var opts unpauseOptions
 
 	cmd := &cobra.Command{
@@ -31,7 +31,7 @@ func NewUnpauseCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runUnpause(dockerCli *command.DockerCli, opts *unpauseOptions) error {
+func runUnpause(dockerCli command.Cli, opts *unpauseOptions) error {
 	ctx := context.Background()
 
 	var errs []string

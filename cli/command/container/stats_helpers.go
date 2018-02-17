@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
@@ -200,7 +200,8 @@ func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
 	return 0.00
 }
 
-func calculateBlockIO(blkio types.BlkioStats) (blkRead uint64, blkWrite uint64) {
+func calculateBlockIO(blkio types.BlkioStats) (uint64, uint64) {
+	var blkRead, blkWrite uint64
 	for _, bioEntry := range blkio.IoServiceBytesRecursive {
 		switch strings.ToLower(bioEntry.Op) {
 		case "read":
@@ -209,7 +210,7 @@ func calculateBlockIO(blkio types.BlkioStats) (blkRead uint64, blkWrite uint64) 
 			blkWrite = blkWrite + bioEntry.Value
 		}
 	}
-	return
+	return blkRead, blkWrite
 }
 
 func calculateNetwork(network map[string]types.NetworkStats) (float64, float64) {

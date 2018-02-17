@@ -30,21 +30,37 @@ message Annotations {
 	repeated IndexEntry indices = 4 [(gogoproto.nullable) = false];
 }
 
-message GenericString {
+// NamedGenericResource represents a "user defined" resource which is defined
+// as a string.
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to identify the resource (GPU="UUID-1", FPGA="/dev/sdb5", ...)
+message NamedGenericResource {
 	string kind = 1;
 	string value = 2;
 }
 
-message GenericDiscrete {
+// DiscreteGenericResource represents a "user defined" resource which is defined
+// as an integer
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to count the resource (SSD=5, HDD=3, ...)
+message DiscreteGenericResource {
 	string kind = 1;
 	int64 value = 2;
 }
 
+// GenericResource represents a "user defined" resource which can
+// be either an integer (e.g: SSD=3) or a string (e.g: SSD=sda1)
 message GenericResource {
 	oneof resource {
-		GenericString str = 1;
-		GenericDiscrete discrete = 2;
+		NamedGenericResource named_resource_spec = 1;
+		DiscreteGenericResource discrete_resource_spec = 2;
 	}
+}
+
+enum ResourceType {
+	TASK = 0;
+	SECRET = 1;
+	CONFIG = 2;
 }
 
 message Resources {
@@ -197,6 +213,18 @@ message Mount {
 
 	// ReadOnly should be set to true if the mount should not be writable.
 	bool readonly = 4 [(gogoproto.customname) = "ReadOnly"];
+
+	// Consistency indicates the tolerable level of file system consistency
+	enum Consistency {
+		option (gogoproto.goproto_enum_prefix) = false;
+		option (gogoproto.enum_customname) = "MountConsistency";
+
+		DEFAULT = 0 [(gogoproto.enumvalue_customname) = "MountConsistencyDefault"];
+		CONSISTENT = 1 [(gogoproto.enumvalue_customname) = "MountConsistencyFull"];
+		CACHED = 2 [(gogoproto.enumvalue_customname) = "MountConsistencyCached"];
+		DELEGATED = 3 [(gogoproto.enumvalue_customname) = "MountConsistencyDelegated"];
+	}
+	Consistency consistency = 8;
 
 	// BindOptions specifies options that are specific to a bind mount.
 	message BindOptions {
@@ -430,7 +458,16 @@ enum TaskState {
 	SHUTDOWN = 640 [(gogoproto.enumvalue_customname)="TaskStateShutdown"]; // orchestrator requested shutdown
 	FAILED = 704 [(gogoproto.enumvalue_customname)="TaskStateFailed"]; // task execution failed with error
 	REJECTED = 768 [(gogoproto.enumvalue_customname)="TaskStateRejected"]; // task could not be executed here.
-	ORPHANED = 832 [(gogoproto.enumvalue_customname)="TaskStateOrphaned"]; // The node on which this task is scheduled is Down for too long
+	// TaskStateRemove is used to correctly handle service deletions and scale
+	// downs. This allows us to keep track of tasks that have been marked for
+	// deletion, but can't yet be removed because the agent is in the process of
+	// shutting them down. Once the agent has shut down tasks with desired state
+	// REMOVE, the task reaper is responsible for removing them.
+	REMOVE = 800 [(gogoproto.enumvalue_customname)="TaskStateRemove"];
+	// TaskStateOrphaned is used to free up resources associated with service
+	// tasks on unresponsive nodes without having to delete those tasks. This
+	// state is directly assigned to the task by the orchestrator.
+	ORPHANED = 832 [(gogoproto.enumvalue_customname)="TaskStateOrphaned"];
 
 	// NOTE(stevvooe): The state of a task is actually a lamport clock, in that
 	// given two observations, the greater of the two can be considered
@@ -481,11 +518,16 @@ message TaskStatus {
 	// field.
 	string message = 3;
 
-	// Err is set if the task is in an error state.
+	// Err is set if the task is in an error state, or is unable to
+	// progress from an earlier state because a precondition is
+	// unsatisfied.
 	//
 	// The following states should report a companion error:
 	//
 	//	FAILED, REJECTED
+	//
+	// In general, messages that should be surfaced to users belong in the
+	// Err field, and notes on routine state transitions belong in Message.
 	//
 	// TODO(stevvooe) Integrate this field with the error interface.
 	string err = 4;
@@ -498,6 +540,15 @@ message TaskStatus {
 	// HostPorts provides a list of ports allocated at the host
 	// level.
 	PortStatus port_status = 6;
+
+	// AppliedBy gives the node ID of the manager that applied this task
+	// status update to the Task object.
+	string applied_by = 7;
+
+	// AppliedAt gives a timestamp of when this status update was applied to
+	// the Task object.
+	// Note: can't use stdtime because this field is nullable.
+	google.protobuf.Timestamp applied_at = 8;
 }
 
 // NetworkAttachmentConfig specifies how a service should be attached to a particular network.

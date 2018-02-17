@@ -41,7 +41,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 				Labels: map[string]string{"com.label": "foo"},
 			},
 			TaskTemplate: swarm.TaskSpec{
-				ContainerSpec: swarm.ContainerSpec{
+				ContainerSpec: &swarm.ContainerSpec{
 					Image: "foo/bar@sha256:this_is_a_test",
 				},
 				Networks: []swarm.NetworkAttachmentConfig{

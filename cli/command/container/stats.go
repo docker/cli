@@ -21,12 +21,13 @@ import (
 type statsOptions struct {
 	all        bool
 	noStream   bool
+	noTrunc    bool
 	format     string
 	containers []string
 }
 
 // NewStatsCommand creates a new cobra.Command for `docker stats`
-func NewStatsCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 	var opts statsOptions
 
 	cmd := &cobra.Command{
@@ -42,6 +43,7 @@ func NewStatsCommand(dockerCli *command.DockerCli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&opts.noStream, "no-stream", false, "Disable streaming stats and only pull the first result")
+	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
 	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
 	return cmd
 }
@@ -49,7 +51,7 @@ func NewStatsCommand(dockerCli *command.DockerCli) *cobra.Command {
 // runStats displays a live stream of resource usage statistics for one or more containers.
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 // nolint: gocyclo
-func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
+func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	showAll := len(opts.containers) == 0
 	closeChan := make(chan error)
 
@@ -214,7 +216,7 @@ func runStats(dockerCli *command.DockerCli, opts *statsOptions) error {
 			ccstats = append(ccstats, c.GetStatistics())
 		}
 		cStats.mu.Unlock()
-		if err = formatter.ContainerStatsWrite(statsCtx, ccstats, daemonOSType); err != nil {
+		if err = formatter.ContainerStatsWrite(statsCtx, ccstats, daemonOSType, !opts.noTrunc); err != nil {
 			break
 		}
 		if len(cStats.cs) == 0 && !showAll {

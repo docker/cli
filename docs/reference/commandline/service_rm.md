@@ -4,7 +4,7 @@ description: "The service rm command description and usage"
 keywords: "service, rm"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -55,6 +55,7 @@ ID  NAME  MODE  REPLICAS  IMAGE
 * [service inspect](service_inspect.md)
 * [service logs](service_logs.md)
 * [service ls](service_ls.md)
-* [service scale](service_scale.md)
 * [service ps](service_ps.md)
+* [service rollback](service_rollback.md)
+* [service scale](service_scale.md)
 * [service update](service_update.md)

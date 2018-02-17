@@ -23,9 +23,9 @@ dockerd - Enable daemon mode
 [**--default-gateway**[=*DEFAULT-GATEWAY*]]
 [**--default-gateway-v6**[=*DEFAULT-GATEWAY-V6*]]
 [**--default-runtime**[=*runc*]]
+[**--default-ipc-mode**=*MODE*]
 [**--default-shm-size**[=*64MiB*]]
 [**--default-ulimit**[=*[]*]]
-[**--disable-legacy-registry**]
 [**--dns**[=*[]*]]
 [**--dns-opt**[=*[]*]]
 [**--dns-search**[=*[]*]]
@@ -55,6 +55,7 @@ dockerd - Enable daemon mode
 [**--mtu**[=*0*]]
 [**--max-concurrent-downloads**[=*3*]]
 [**--max-concurrent-uploads**[=*5*]]
+[**--node-generic-resources**[=*[]*]]
 [**-p**|**--pidfile**[=*/var/run/docker.pid*]]
 [**--raw-logs**]
 [**--registry-mirror**[=*[]*]]
@@ -185,14 +186,15 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 **--default-runtime**="runc"
   Set default runtime if there're more than one specified by `--add-runtime`.
 
+**--default-ipc-mode**="**private**|**shareable**"
+  Set the default IPC mode for newly created containers. The argument
+  can either be **private** or **shareable**.
+
 **--default-shm-size**=*64MiB*
   Set the daemon-wide default shm size for containers. Default is `64MiB`.
 
 **--default-ulimit**=[]
   Default ulimits for containers.
-
-**--disable-legacy-registry**=*true*|*false*
-  Disable contacting legacy registries. Default is `true`.
 
 **--dns**=""
   Force Docker to use specific DNS servers
@@ -320,6 +322,15 @@ unix://[/path/to/socket] to use.
 
 **--max-concurrent-uploads**=*5*
   Set the max concurrent uploads for each push. Default is `5`.
+
+**--node-generic-resources**=*[]*
+  Advertise user-defined resource. Default is `[]`.
+  Use this if your swarm cluster has some nodes with custom
+  resources (e.g: NVIDIA GPU, SSD, ...) and you need your services to land on
+  nodes advertising these resources.
+  Usage example: `--node-generic-resources "NVIDIA-GPU=UUID1"
+  --node-generic-resources "NVIDIA-GPU=UUID2"`
+
 
 **-p**, **--pidfile**=""
   Path to use for daemon PID file. Default is `/var/run/docker.pid`
@@ -475,7 +486,7 @@ autoextend the available space [100 = disabled]
 
 ##### dm.thinp_autoextend_percent
 
-Sets the value percentage value to increase the thin pool by when when `lvm`
+Sets the value percentage value to increase the thin pool by when `lvm`
 attempts to autoextend the available space [100 = disabled]
 
 ###### Example:

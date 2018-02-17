@@ -55,10 +55,8 @@ func TestNetworks(t *testing.T) {
 			},
 		},
 		"outside": composetypes.NetworkConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "special",
-			},
+			External: composetypes.External{External: true},
+			Name:     "special",
 		},
 		"attachablenet": composetypes.NetworkConfig{
 			Driver:     "overlay",

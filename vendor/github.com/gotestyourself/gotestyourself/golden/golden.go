@@ -37,8 +37,8 @@ func update(t require.TestingT, filename string, actual []byte) {
 }
 
 // Assert compares the actual content to the expected content in the golden file.
-// If `--update-golden` is set then the actual content is written to the golden
-// file.
+// If the `-test.update-golden` flag is set then the actual content is written
+// to the golden file.
 // Returns whether the assertion was successful (true) or not (false)
 func Assert(t require.TestingT, actual string, filename string, msgAndArgs ...interface{}) bool {
 	expected := Get(t, filename)
@@ -60,8 +60,8 @@ func Assert(t require.TestingT, actual string, filename string, msgAndArgs ...in
 }
 
 // AssertBytes compares the actual result to the expected result in the golden
-// file. If `--update-golden` is set then the actual content is written to the
-// golden file.
+// file. If the `-test.update-golden` flag is set then the actual content is
+// written to the golden file.
 // Returns whether the assertion was successful (true) or not (false)
 // nolint: lll
 func AssertBytes(t require.TestingT, actual []byte, filename string, msgAndArgs ...interface{}) bool {

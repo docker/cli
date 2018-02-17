@@ -1,0 +1,25 @@
+[
+    {
+        "Name": "reg/img:unsigned-tag",
+        "SignedTags": [],
+        "Signers": [],
+        "AdminstrativeKeys": [
+            {
+                "Name": "Root",
+                "Keys": [
+                    {
+                        "ID": "rootID"
+                    }
+                ]
+            },
+            {
+                "Name": "Repository",
+                "Keys": [
+                    {
+                        "ID": "targetsID"
+                    }
+                ]
+            }
+        ]
+    }
+]

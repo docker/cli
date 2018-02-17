@@ -5,7 +5,7 @@ description: "The daemon command description and usage"
 keywords: "container, daemon, runtime"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -42,7 +42,6 @@ Options:
       --default-gateway-v6 ip                 Container default gateway IPv6 address
       --default-runtime string                Default OCI runtime for containers (default "runc")
       --default-ulimit ulimit                 Default ulimits for containers (default [])
-      --disable-legacy-registry               Disable contacting legacy registries (default true)
       --dns list                              DNS server to use (default [])
       --dns-opt list                          DNS options to use (default [])
       --dns-search list                       DNS search domains to use (default [])
@@ -72,6 +71,7 @@ Options:
       --max-concurrent-uploads int            Set the max concurrent uploads for each push (default 5)
       --metrics-addr string                   Set default address and port to serve the metrics api on
       --mtu int                               Set the containers network MTU
+      --node-generic-resources list           Advertise user-defined resource
       --no-new-privileges                     Set no-new-privileges by default for new containers
       --oom-score-adjust int                  Set the oom_score_adj for the daemon (default -500)
   -p, --pidfile string                        Path to use for daemon PID file (default "/var/run/docker.pid")
@@ -102,11 +102,11 @@ Options with [] may be specified multiple times.
 uses different binaries for the daemon and client. To run the daemon you
 type `dockerd`.
 
-To run the daemon with debug output, use `dockerd -D` or add `debug: true` to
+To run the daemon with debug output, use `dockerd -D` or add `"debug": true` to
 the `daemon.json` file.
 
 > **Note**: In Docker 1.13 and higher, enable experimental features by starting
-> `dockerd` with the `--experimental` flag or adding `experimental: true` to the
+> `dockerd` with the `--experimental` flag or adding `"experimental": true` to the
 > `daemon.json` file. In earlier Docker versions, a different build was required
 > to enable experimental features.
 
@@ -248,7 +248,7 @@ $ docker -H tcp://127.0.0.1:2375 pull ubuntu
 
 ### Daemon storage-driver
 
-The Docker daemon has support for several different image layer storage
+On Linux, the Docker daemon has support for several different image layer storage
 drivers: `aufs`, `devicemapper`, `btrfs`, `zfs`, `overlay` and `overlay2`.
 
 The `aufs` driver is the oldest, but is based on a Linux kernel patch-set that
@@ -262,7 +262,7 @@ snapshots. For each devicemapper graph location – typically
 `/var/lib/docker/devicemapper` – a thin pool is created based on two block
 devices, one for data and one for metadata. By default, these block devices
 are created automatically by using loopback mounts of automatically created
-sparse files. Refer to [Storage driver options](#storage-driver-options) below
+sparse files. Refer to [Devicemapper options](#devicemapper-options) below
 for a way how to customize this setup.
 [~jpetazzo/Resizing Docker containers with the Device Mapper plugin](http://jpetazzo.github.io/2014/01/29/docker-device-mapper-resize/)
 article explains how to tune your existing setup without the use of options.
@@ -274,7 +274,7 @@ does not share executable memory between devices. Use
 The `zfs` driver is probably not as fast as `btrfs` but has a longer track record
 on stability. Thanks to `Single Copy ARC` shared blocks between clones will be
 cached only once. Use `dockerd -s zfs`. To select a different zfs filesystem
-set `zfs.fsname` option as described in [Storage driver options](#storage-driver-options).
+set `zfs.fsname` option as described in [ZFS options](#zfs-options).
 
 The `overlay` is a very fast union filesystem. It is now merged in the main
 Linux kernel as of [3.18.0](https://lkml.org/lkml/2014/10/26/137). `overlay`
@@ -296,11 +296,16 @@ to use it.
 > **Note**: Both `overlay` and `overlay2` are currently unsupported on `btrfs`
 > or any Copy on Write filesystem and should only be used over `ext4` partitions.
 
+On Windows, the Docker daemon supports a single image layer storage driver
+depending on the image platform: `windowsfilter` for Windows images, and
+`lcow` for Linux containers on Windows.
+
 ### Options per storage driver
 
 Particular storage-driver can be configured with options specified with
 `--storage-opt` flags. Options for `devicemapper` are prefixed with `dm`,
-options for `zfs` start with `zfs` and options for `btrfs` start with `btrfs`.
+options for `zfs` start with `zfs`, options for `btrfs` start with `btrfs`
+and options for `lcow` start with `lcow`.
 
 #### Devicemapper options
 
@@ -388,7 +393,7 @@ $ sudo dockerd --storage-opt dm.thinp_autoextend_threshold=80
 
 ##### `dm.thinp_autoextend_percent`
 
-Sets the value percentage value to increase the thin pool by when when `lvm`
+Sets the value percentage value to increase the thin pool by when `lvm`
 attempts to autoextend the available space [100 = disabled]
 
 ###### Example:
@@ -780,6 +785,113 @@ conditions the user can pass any size less then the backing fs size.
 $ sudo dockerd -s overlay2 --storage-opt overlay2.size=1G
 ```
 
+
+#### Windowsfilter options
+
+##### `size`
+
+Specifies the size to use when creating the sandbox which is used for containers.
+Defaults to 20G.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt size=40G
+```
+
+#### LCOW (Linux Containers on Windows) options
+
+##### `lcow.globalmode`
+
+Specifies whether the daemon instantiates utility VM instances as required 
+(recommended and default if omitted), or uses single global utility VM (better
+performance, but has security implications and not recommended for production
+deployments).
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.globalmode=false
+```
+
+##### `lcow.kirdpath`
+
+Specifies the folder path to the location of a pair of kernel and initrd files
+used for booting a utility VM. Defaults to `%ProgramFiles%\Linux Containers`.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.kirdpath=c:\path\to\files
+```
+
+##### `lcow.kernel`
+
+Specifies the filename of a kernel file located in the `lcow.kirdpath` path.
+Defaults to `bootx64.efi`.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.kernel=kernel.efi
+```
+
+##### `lcow.initrd`
+
+Specifies the filename of an initrd file located in the `lcow.kirdpath` path.
+Defaults to `initrd.img`.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.initrd=myinitrd.img
+```
+
+##### `lcow.bootparameters`
+
+Specifies additional boot parameters for booting utility VMs when in kernel/
+initrd mode. Ignored if the utility VM is booting from VHD. These settings
+are kernel specific.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt "lcow.bootparameters='option=value'"
+```
+
+##### `lcow.vhdx`
+
+Specifies a custom VHDX to boot a utility VM, as an alternate to kernel
+and initrd booting. Defaults to `uvm.vhdx` under `lcow.kirdpath`.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.vhdx=custom.vhdx
+```
+
+##### `lcow.timeout`
+
+Specifies the timeout for utility VM operations in seconds. Defaults
+to 300.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.timeout=240
+```
+
+##### `lcow.sandboxsize`
+
+Specifies the size in GB to use when creating the sandbox which is used for
+containers. Defaults to 20. Cannot be less than 20.
+
+###### Example
+
+```PowerShell
+C:\> dockerd --storage-opt lcow.sandboxsize=40
+```
+
 ### Docker runtime execution options
 
 The Docker daemon relies on a
@@ -855,7 +967,7 @@ Will make `hyperv` the default isolation technology on Windows. If no isolation
 value is specified on daemon start, on Windows client, the default is
 `hyperv`, and on Windows server, the default is `process`.
 
-#### Daemon DNS options
+### Daemon DNS options
 
 To set the DNS server for all Docker containers, use:
 
@@ -869,7 +981,7 @@ To set the DNS search domain for all Docker containers, use:
 $ sudo dockerd --dns-search example.com
 ```
 
-#### Allow push of nondistributable artifacts
+### Allow push of nondistributable artifacts
 
 Some images (e.g., Windows base images) contain artifacts whose distribution is
 restricted by license. When these images are pushed to a registry, restricted
@@ -895,7 +1007,7 @@ images without connecting to another server.
 > artifacts to private registries and ensure that you are in compliance with
 > any terms that cover redistributing nondistributable artifacts.
 
-#### Insecure registries
+### Insecure registries
 
 Docker considers a private registry either secure or insecure. In the rest of
 this section, *registry* is used for *private registry*, and `myregistry:5000`
@@ -939,22 +1051,18 @@ because its use creates security vulnerabilities it should ONLY be enabled for
 testing purposes.  For increased security, users should add their CA to their
 system's list of trusted CAs instead of enabling `--insecure-registry`.
 
-##### Legacy Registries
+#### Legacy Registries
 
-Operations against registries supporting only the legacy v1 protocol are
-disabled by default. Specifically, the daemon will not attempt `push`,
-`pull` and `login` to v1 registries. The exception to this is `search`
-which can still be performed on v1 registries.
+Starting with Docker 17.12, operations against registries supporting only the 
+legacy v1 protocol are no longer supported. Specifically, the daemon will not
+attempt `push`, `pull` and `login` to v1 registries. The exception to this is
+`search` which can still be performed on v1 registries.
 
-Add `"disable-legacy-registry":false` to the [daemon configuration
-file](#daemon-configuration-file), or set the
-`--disable-legacy-registry=false` flag, if you need to interact with
-registries that have not yet migrated to the v2 protocol.
+The `disable-legacy-registry` configuration option has been removed and, when
+used, will produce an error on daemon startup.
 
-Interaction v1 registries will no longer be supported in Docker v17.12,
-and the `disable-legacy-registry` configuration option will be removed.
 
-#### Running a Docker daemon behind an HTTPS_PROXY
+### Running a Docker daemon behind an HTTPS_PROXY
 
 When running inside a LAN that uses an `HTTPS` proxy, the Docker Hub
 certificates will be replaced by the proxy's certificates. These certificates
@@ -971,7 +1079,7 @@ This will only add the proxy and authentication to the Docker daemon's requests 
 your `docker build`s and running containers will need extra configuration to
 use the proxy
 
-#### Default `ulimit` settings
+### Default `ulimit` settings
 
 `--default-ulimit` allows you to set the default `ulimit` options to use for
 all containers. It takes the same options as `--ulimit` for `docker run`. If
@@ -983,7 +1091,7 @@ Be careful setting `nproc` with the `ulimit` flag as `nproc` is designed by Linu
 set the maximum number of processes available to a user, not to a container. For details
 please check the [run](run.md) reference.
 
-#### Node discovery
+### Node discovery
 
 The `--cluster-advertise` option specifies the `host:port` or `interface:port`
 combination that this particular daemon instance should use when advertising
@@ -1018,7 +1126,7 @@ The currently supported cluster store options are:
 | `kv.keyfile`          | Specifies the path to a local file with a PEM encoded private key. This private key is used as the client key for communication with the Key/Value store.                                                                     |
 | `kv.path`             | Specifies the path in the Key/Value store. If not configured, the default value is 'docker/nodes'.                                                                                                                            |
 
-#### Access authorization
+### Access authorization
 
 Docker's access authorization can be extended by authorization plugins that your
 organization can purchase or build themselves. You can install one or more
@@ -1043,7 +1151,7 @@ For information about how to create an authorization plugin, see [authorization
 plugin](../../extend/plugins_authorization.md) section in the Docker extend section of this documentation.
 
 
-#### Daemon user namespace options
+### Daemon user namespace options
 
 The Linux kernel
 [user namespace support](http://man7.org/linux/man-pages/man7/user_namespaces.7.html)
@@ -1125,7 +1233,24 @@ Please note that this feature is still marked as experimental as metrics and met
 names could change while this feature is still in experimental.  Please provide
 feedback on what you would like to see collected in the API.
 
-#### Daemon configuration file
+#### Node Generic Resources
+
+The `--node-generic-resources` option takes a list of key-value
+pair (`key=value`) that allows you to advertise user defined resources
+in a swarm cluster.
+
+The current expected use case is to advertise NVIDIA GPUs so that services
+requesting `NVIDIA-GPU=[0-16]` can land on a node that has enough GPUs for
+the task to run.
+
+Example of usage:
+```json
+{
+	"node-generic-resources": ["NVIDIA-GPU=UUID1", "NVIDIA-GPU=UUID2"]
+}
+```
+
+### Daemon configuration file
 
 The `--config-file` option allows you to set any configuration option
 for the daemon in a JSON format. This file uses the same flag names as keys,
@@ -1209,13 +1334,13 @@ This is a full example of the allowed configuration options on Linux:
 	"registry-mirrors": [],
 	"seccomp-profile": "",
 	"insecure-registries": [],
-	"disable-legacy-registry": false,
 	"no-new-privileges": false,
 	"default-runtime": "runc",
 	"oom-score-adjust": -500,
+	"node-generic-resources": ["NVIDIA-GPU=UUID1", "NVIDIA-GPU=UUID2"],
 	"runtimes": {
-		"runc": {
-			"path": "runc"
+		"cc-runtime": {
+			"path": "/usr/bin/cc-runtime"
 		},
 		"custom": {
 			"path": "/usr/local/bin/my-runc-replacement",
@@ -1277,8 +1402,7 @@ This is a full example of the allowed configuration options on Windows:
     "raw-logs": false,
     "allow-nondistributable-artifacts": [],
     "registry-mirrors": [],
-    "insecure-registries": [],
-    "disable-legacy-registry": false
+    "insecure-registries": []
 }
 ```
 

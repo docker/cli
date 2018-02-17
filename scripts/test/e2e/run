@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Run integration tests against the latest docker-ce dind
+set -eu -o pipefail
+
+function container_ip {
+    local cid=$1
+    local network=$2
+    docker inspect \
+        -f "{{.NetworkSettings.Networks.${network}.IPAddress}}" "$cid"
+}
+
+function setup {
+    local project=$1
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose up -d >&2
+
+    local network="${project}_default"
+    # TODO: only run if inside a container
+    docker network connect "$network" "$(hostname)"
+
+    engine_ip="$(container_ip "${project}_engine_1" "$network")"
+    engine_host="tcp://$engine_ip:2375"
+    (
+        export DOCKER_HOST="$engine_host"
+        timeout -t 200 ./scripts/test/e2e/wait-on-daemon
+        ./scripts/test/e2e/load-alpine
+        ./scripts/test/e2e/load-busybox
+        is_swarm_enabled || docker swarm init
+    ) >&2
+    echo "$engine_host"
+}
+
+function is_swarm_enabled {
+    docker info 2> /dev/null | grep -q 'Swarm: active'
+}
+
+function cleanup {
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v >&2
+}
+
+function runtests {
+    local engine_host=$1
+
+    # TODO: only run if inside a container
+    update-ca-certificates
+    # shellcheck disable=SC2086
+    env -i \
+        TEST_DOCKER_HOST="$engine_host" \
+        GOPATH="$GOPATH" \
+        PATH="$PWD/build/" \
+        "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
+}
+
+export unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"
+compose_env_file=./e2e/compose-env.yaml
+
+cmd=${1-}
+
+case "$cmd" in
+    setup)
+        setup "$unique_id" "$compose_env_file"
+        exit
+        ;;
+    cleanup)
+        cleanup "$unique_id" "$compose_env_file"
+        exit
+        ;;
+    test)
+        engine_host=${2-}
+        if [[ -z "${engine_host}" ]]; then
+            echo "missing parameter docker engine host"
+            echo "Usage: $0 test ENGINE_HOST"
+            exit 3
+        fi
+        runtests "$engine_host"
+        ;;
+    run|"")
+        engine_host="$(setup "$unique_id" "$compose_env_file")"
+        testexit=0
+        runtests "$engine_host" || testexit=$?
+        cleanup "$unique_id" "$compose_env_file"
+        exit $testexit
+        ;;
+    shell)
+        $SHELL
+        ;;
+    *)
+        echo "Unknown command: $cmd"
+        echo "Usage: "
+        echo "    $0 [setup | cleanup | test | run] [engine_host]"
+        exit 1
+        ;;
+esac

@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newDisableCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newDisableCommand(dockerCli command.Cli) *cobra.Command {
 	var force bool
 
 	cmd := &cobra.Command{
@@ -27,7 +27,7 @@ func newDisableCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runDisable(dockerCli *command.DockerCli, name string, force bool) error {
+func runDisable(dockerCli command.Cli, name string, force bool) error {
 	if err := dockerCli.Client().PluginDisable(context.Background(), name, types.PluginDisableOptions{Force: force}); err != nil {
 		return err
 	}

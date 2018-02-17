@@ -1,15 +1,21 @@
 package convert
 
 import (
+	"os"
 	"sort"
 	"strings"
 	"testing"
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/client"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
@@ -55,6 +61,15 @@ func TestConvertEnvironment(t *testing.T) {
 	env := convertEnvironment(source)
 	sort.Strings(env)
 	assert.Equal(t, []string{"foo=bar", "key=value"}, env)
+}
+
+func TestConvertExtraHosts(t *testing.T) {
+	source := composetypes.HostsList{
+		"zulu:127.0.0.2",
+		"alpha:127.0.0.1",
+		"zulu:ff02::1",
+	}
+	assert.Equal(t, []string{"127.0.0.2 zulu", "127.0.0.1 alpha", "ff02::1 zulu"}, convertExtraHosts(source))
 }
 
 func TestConvertResourcesFull(t *testing.T) {
@@ -109,16 +124,18 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 
 func TestConvertHealthcheck(t *testing.T) {
 	retries := uint64(10)
+	timeout := 30 * time.Second
+	interval := 2 * time.Millisecond
 	source := &composetypes.HealthCheckConfig{
 		Test:     []string{"EXEC", "touch", "/foo"},
-		Timeout:  "30s",
-		Interval: "2ms",
+		Timeout:  &timeout,
+		Interval: &interval,
 		Retries:  &retries,
 	}
 	expected := &container.HealthConfig{
 		Test:     source.Test,
-		Timeout:  30 * time.Second,
-		Interval: 2 * time.Millisecond,
+		Timeout:  timeout,
+		Interval: interval,
 		Retries:  10,
 	}
 
@@ -202,10 +219,8 @@ func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
 func TestConvertServiceNetworks(t *testing.T) {
 	networkConfigs := networkMap{
 		"front": composetypes.NetworkConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "fronttier",
-			},
+			External: composetypes.External{External: true},
+			Name:     "fronttier",
 		},
 		"back": composetypes.NetworkConfig{},
 	}
@@ -242,10 +257,8 @@ func TestConvertServiceNetworks(t *testing.T) {
 func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	networkConfigs := networkMap{
 		"default": composetypes.NetworkConfig{
-			External: composetypes.External{
-				External: true,
-				Name:     "custom",
-			},
+			External: composetypes.External{External: true},
+			Name:     "custom",
 		},
 	}
 	networks := map[string]*composetypes.ServiceNetworkConfig{}
@@ -360,4 +373,180 @@ func TestConvertUpdateConfigOrder(t *testing.T) {
 		Order: "stop-first",
 	})
 	assert.Equal(t, updateConfig.Order, "stop-first")
+}
+
+func TestConvertFileObject(t *testing.T) {
+	namespace := NewNamespace("testing")
+	config := composetypes.FileReferenceConfig{
+		Source: "source",
+		Target: "target",
+		UID:    "user",
+		GID:    "group",
+		Mode:   uint32Ptr(0644),
+	}
+	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
+	require.NoError(t, err)
+
+	expected := swarmReferenceObject{
+		Name: "testing_source",
+		File: swarmReferenceTarget{
+			Name: config.Target,
+			UID:  config.UID,
+			GID:  config.GID,
+			Mode: os.FileMode(0644),
+		},
+	}
+	assert.Equal(t, expected, swarmRef)
+}
+
+func lookupConfig(key string) (composetypes.FileObjectConfig, error) {
+	if key != "source" {
+		return composetypes.FileObjectConfig{}, errors.New("bad key")
+	}
+	return composetypes.FileObjectConfig{}, nil
+}
+
+func TestConvertFileObjectDefaults(t *testing.T) {
+	namespace := NewNamespace("testing")
+	config := composetypes.FileReferenceConfig{Source: "source"}
+	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
+	require.NoError(t, err)
+
+	expected := swarmReferenceObject{
+		Name: "testing_source",
+		File: swarmReferenceTarget{
+			Name: config.Source,
+			UID:  "0",
+			GID:  "0",
+			Mode: os.FileMode(0444),
+		},
+	}
+	assert.Equal(t, expected, swarmRef)
+}
+
+func TestServiceConvertsIsolation(t *testing.T) {
+	src := composetypes.ServiceConfig{
+		Isolation: "hyperv",
+	}
+	result, err := Service("1.35", Namespace{name: "foo"}, src, nil, nil, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation)
+}
+
+func TestConvertServiceSecrets(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+	secrets := []composetypes.ServiceSecretConfig{
+		{Source: "foo_secret"},
+		{Source: "bar_secret"},
+	}
+	secretSpecs := map[string]composetypes.SecretConfig{
+		"foo_secret": {
+			Name: "foo_secret",
+		},
+		"bar_secret": {
+			Name: "bar_secret",
+		},
+	}
+	client := &fakeClient{
+		secretListFunc: func(opts types.SecretListOptions) ([]swarm.Secret, error) {
+			assert.Contains(t, opts.Filters.Get("name"), "foo_secret")
+			assert.Contains(t, opts.Filters.Get("name"), "bar_secret")
+			return []swarm.Secret{
+				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
+				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
+			}, nil
+		},
+	}
+	refs, err := convertServiceSecrets(client, namespace, secrets, secretSpecs)
+	require.NoError(t, err)
+	expected := []*swarm.SecretReference{
+		{
+			SecretName: "bar_secret",
+			File: &swarm.SecretReferenceFileTarget{
+				Name: "bar_secret",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		{
+			SecretName: "foo_secret",
+			File: &swarm.SecretReferenceFileTarget{
+				Name: "foo_secret",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+	}
+	require.Equal(t, expected, refs)
+}
+
+func TestConvertServiceConfigs(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+	configs := []composetypes.ServiceConfigObjConfig{
+		{Source: "foo_config"},
+		{Source: "bar_config"},
+	}
+	configSpecs := map[string]composetypes.ConfigObjConfig{
+		"foo_config": {
+			Name: "foo_config",
+		},
+		"bar_config": {
+			Name: "bar_config",
+		},
+	}
+	client := &fakeClient{
+		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
+			assert.Contains(t, opts.Filters.Get("name"), "foo_config")
+			assert.Contains(t, opts.Filters.Get("name"), "bar_config")
+			return []swarm.Config{
+				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
+				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
+			}, nil
+		},
+	}
+	refs, err := convertServiceConfigObjs(client, namespace, configs, configSpecs)
+	require.NoError(t, err)
+	expected := []*swarm.ConfigReference{
+		{
+			ConfigName: "bar_config",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "bar_config",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		{
+			ConfigName: "foo_config",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "foo_config",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+	}
+	require.Equal(t, expected, refs)
+}
+
+type fakeClient struct {
+	client.Client
+	secretListFunc func(types.SecretListOptions) ([]swarm.Secret, error)
+	configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
+}
+
+func (c *fakeClient) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+	if c.secretListFunc != nil {
+		return c.secretListFunc(options)
+	}
+	return []swarm.Secret{}, nil
+}
+
+func (c *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+	if c.configListFunc != nil {
+		return c.configListFunc(options)
+	}
+	return []swarm.Config{}, nil
 }

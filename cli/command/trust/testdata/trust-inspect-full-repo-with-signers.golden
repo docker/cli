@@ -1,0 +1,65 @@
+[
+    {
+        "Name": "signed-repo",
+        "SignedTags": [
+            {
+                "SignedTag": "blue",
+                "Digest": "626c75652d646967657374",
+                "Signers": [
+                    "alice"
+                ]
+            },
+            {
+                "SignedTag": "green",
+                "Digest": "677265656e2d646967657374",
+                "Signers": [
+                    "Repo Admin"
+                ]
+            },
+            {
+                "SignedTag": "red",
+                "Digest": "7265642d646967657374",
+                "Signers": [
+                    "alice",
+                    "bob"
+                ]
+            }
+        ],
+        "Signers": [
+            {
+                "Name": "bob",
+                "Keys": [
+                    {
+                        "ID": "B"
+                    }
+                ]
+            },
+            {
+                "Name": "alice",
+                "Keys": [
+                    {
+                        "ID": "A"
+                    }
+                ]
+            }
+        ],
+        "AdminstrativeKeys": [
+            {
+                "Name": "Root",
+                "Keys": [
+                    {
+                        "ID": "rootID"
+                    }
+                ]
+            },
+            {
+                "Name": "Repository",
+                "Keys": [
+                    {
+                        "ID": "targetsID"
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -4,7 +4,7 @@ description: "The service logs command description and usage"
 keywords: "service, task, logs"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -79,7 +79,8 @@ fraction of a second no more than nine digits long. You can combine the
 * [service create](service_create.md)
 * [service inspect](service_inspect.md)
 * [service ls](service_ls.md)
-* [service rm](service_rm.md)
-* [service scale](service_scale.md)
 * [service ps](service_ps.md)
+* [service rm](service_rm.md)
+* [service rollback](service_rollback.md)
+* [service scale](service_scale.md)
 * [service update](service_update.md)

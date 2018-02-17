@@ -4,8 +4,8 @@ description: "The events command description and usage"
 keywords: "events, container, report"
 ---
 
-<!-- This file is maintained within the docker/cli Github
-     repository at https://github.com/moby/moby/. Make all
+<!-- This file is maintained within the docker/cli GitHub
+     repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
      periodically be overwritten by the definitive file. Pull
@@ -175,16 +175,20 @@ container container 588a23dac085 *AND* the event type is *start*
 
 The currently supported filters are:
 
+* config (`config=<name or id>`)
 * container (`container=<name or id>`)
 * daemon (`daemon=<name or id>`)
 * event (`event=<event action>`)
-* image (`image=<tag or id>`)
+* image (`image=<repository or tag>`)
 * label (`label=<key>` or `label=<key>=<value>`)
 * network (`network=<name or id>`)
+* node (`node=<id>`)
 * plugin (`plugin=<name or id>`)
 * scope (`scope=<local or swarm>`)
+* secret (`secret=<name or id>`)
+* service (`service=<name or id>`)
 * type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
-* volume (`volume=<name or id>`)
+* volume (`volume=<name>`)
 
 #### Format
 

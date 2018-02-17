@@ -10,8 +10,8 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/homedir"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

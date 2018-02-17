@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/docker/docker/pkg/stringutils"
 	units "github.com/docker/go-units"
 )
 
@@ -93,7 +92,7 @@ func (c *historyContext) CreatedSince() string {
 func (c *historyContext) CreatedBy() string {
 	createdBy := strings.Replace(c.h.CreatedBy, "\t", " ", -1)
 	if c.trunc {
-		return stringutils.Ellipsis(createdBy, 45)
+		return Ellipsis(createdBy, 45)
 	}
 	return createdBy
 }

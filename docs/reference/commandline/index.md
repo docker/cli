@@ -5,7 +5,7 @@ keywords: "Docker, Docker documentation, CLI, command line"
 identifier: "smn_cli_guide"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -110,7 +110,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [volume create](volume_create.md) | Creates a new volume where containers can consume and store data |
 | [volume inspect](volume_inspect.md) | Display information about a volume     |
 | [volume ls](volume_ls.md) | Lists all the volumes Docker knows about         |
-| [volume prune](volume_prune.md) | Remove all unused volumes                  |
+| [volume prune](volume_prune.md) | Remove all unused local volumes            |
 | [volume rm](volume_rm.md) | Remove one or more volumes                       |
 
 ### Swarm node commands

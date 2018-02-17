@@ -1,0 +1,24 @@
+type: Images
+total: 0
+active: 0
+size: 0B
+reclaimable: 0B
+
+type: Containers
+total: 0
+active: 0
+size: 0B
+reclaimable: 0B
+
+type: Local Volumes
+total: 0
+active: 0
+size: 0B
+reclaimable: 0B
+
+type: Build Cache
+total: 
+active: 
+size: 0B
+reclaimable: 0B
+

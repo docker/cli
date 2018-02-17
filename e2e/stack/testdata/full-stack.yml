@@ -1,0 +1,9 @@
+version: '3.3'
+
+services:
+  one:
+    image: registry:5000/alpine:3.6
+    command: top
+  two:
+    image: registry:5000/alpine:3.6
+    command: top

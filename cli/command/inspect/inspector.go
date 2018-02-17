@@ -7,10 +7,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/templates"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // Inspector defines an interface to implement to process elements

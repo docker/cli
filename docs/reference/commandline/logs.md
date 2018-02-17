@@ -4,7 +4,7 @@ description: "The logs command description and usage"
 keywords: "logs, retrieve, docker"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -25,6 +25,7 @@ Options:
   -f, --follow         Follow log output
       --help           Print usage
       --since string   Show logs since timestamp (e.g. 2013-01-02T13:23:37) or relative (e.g. 42m for 42 minutes)
+      --until string   Show logs before timestamp (e.g. 2013-01-02T13:23:37) or relative (e.g. 42m for 42 minutes)
       --tail string    Number of lines to show from the end of the logs (default "all")
   -t, --timestamps     Show timestamps
 ```
@@ -66,3 +67,19 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long. You can combine the
 `--since` option with either or both of the `--follow` or `--tail` options.
+
+## Examples
+
+### Retrieve logs until a specific point in time
+
+In order to retrieve logs before a specific point in time, run:
+
+```bash
+$ docker run --name test -d busybox sh -c "while true; do $(echo date); sleep 1; done"
+$ date
+Tue 14 Nov 2017 16:40:00 CET
+$ docker logs -f --until=2s
+Tue 14 Nov 2017 16:40:00 CET
+Tue 14 Nov 2017 16:40:01 CET
+Tue 14 Nov 2017 16:40:02 CET
+```

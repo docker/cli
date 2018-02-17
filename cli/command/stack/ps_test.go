@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/cli/internal/test/builders"
+	. "github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -59,10 +59,11 @@ func TestStackPsEmptyStack(t *testing.T) {
 	})
 	cmd := newPsCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
+	cmd.SetOutput(ioutil.Discard)
 
-	assert.NoError(t, cmd.Execute())
+	assert.Error(t, cmd.Execute())
+	assert.EqualError(t, cmd.Execute(), "nothing found in stack: foo")
 	assert.Equal(t, "", fakeCli.OutBuffer().String())
-	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {

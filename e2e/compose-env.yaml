@@ -1,0 +1,21 @@
+version: '2.1'
+
+services:
+  registry:
+    image: 'registry:2'
+
+  engine:
+      image: 'docker:${TEST_ENGINE_VERSION:-edge-dind}'
+      privileged: true
+      command: ['--insecure-registry=registry:5000']
+
+  notary-server:
+      image: 'notary:server-0.4.2'
+      ports:
+        - 4443:4443
+      volumes:
+       - notary-fixtures:/fixtures
+      command: ['notary-server', '-config=/fixtures/notary-config.json']
+
+volumes:
+  notary-fixtures: {}

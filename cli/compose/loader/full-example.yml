@@ -1,7 +1,21 @@
-version: "3.4"
+version: "3.6"
 
 services:
   foo:
+
+    build:
+      context: ./dir
+      dockerfile: Dockerfile
+      args:
+        foo: bar
+      target: foo
+      network: foo
+      cache_from:
+        - foo
+        - bar
+      labels: [FOO=BAR]
+
+
     cap_add:
       - ALL
 
@@ -39,6 +53,13 @@ services:
         reservations:
           cpus: '0.0001'
           memory: 20M
+          generic_resources:
+            - discrete_resource_spec:
+                kind: 'gpu'
+                value: 2
+            - discrete_resource_spec:
+                kind: 'ssd'
+                value: 1
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -114,6 +135,7 @@ services:
       interval: 10s
       timeout: 1s
       retries: 5
+      start_period: 15s
 
     # Any valid image reference - repo, tag, id, sha
     image: redis
@@ -227,6 +249,10 @@ services:
         source: ./opt
         target: /opt
         consistency: cached
+      - type: tmpfs
+        target: /opt
+        tmpfs:
+          size: 10000
 
     working_dir: /code
 

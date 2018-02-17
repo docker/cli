@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -88,4 +88,42 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 	}
 	err := runPS(cli, options)
 	assert.EqualError(t, err, "no such service: bar")
+}
+
+func TestRunPSQuiet(t *testing.T) {
+	client := &fakeClient{
+		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+			return []swarm.Service{{ID: "foo"}}, nil
+		},
+		taskListFunc: func(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+			return []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}}, nil
+		},
+	}
+
+	cli := test.NewFakeCli(client)
+	err := runPS(cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
+	require.NoError(t, err)
+	assert.Equal(t, "sxabyp0obqokwekpun4rjo0b3\n", cli.OutBuffer().String())
+}
+
+func TestUpdateNodeFilter(t *testing.T) {
+	selfNodeID := "foofoo"
+	filter := filters.NewArgs()
+	filter.Add("node", "one")
+	filter.Add("node", "two")
+	filter.Add("node", "self")
+
+	client := &fakeClient{
+		infoFunc: func(_ context.Context) (types.Info, error) {
+			return types.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
+		},
+	}
+
+	updateNodeFilter(context.Background(), client, filter)
+
+	expected := filters.NewArgs()
+	expected.Add("node", "one")
+	expected.Add("node", "two")
+	expected.Add("node", selfNodeID)
+	assert.Equal(t, expected, filter)
 }

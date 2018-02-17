@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/manifest"
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/plugin"
@@ -17,6 +18,7 @@ import (
 	"github.com/docker/cli/cli/command/stack"
 	"github.com/docker/cli/cli/command/swarm"
 	"github.com/docker/cli/cli/command/system"
+	"github.com/docker/cli/cli/command/trust"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/spf13/cobra"
 )
@@ -38,11 +40,14 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 		image.NewImageCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
 
-		// node
-		node.NewNodeCommand(dockerCli),
+		// manifest
+		manifest.NewManifestCommand(dockerCli),
 
 		// network
 		network.NewNetworkCommand(dockerCli),
+
+		// node
+		node.NewNodeCommand(dockerCli),
 
 		// plugin
 		plugin.NewPluginCommand(dockerCli),
@@ -68,6 +73,9 @@ func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
 
 		// swarm
 		swarm.NewSwarmCommand(dockerCli),
+
+		// trust
+		trust.NewTrustCommand(dockerCli),
 
 		// volume
 		volume.NewVolumeCommand(dockerCli),

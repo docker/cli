@@ -1,12 +1,11 @@
 ---
 redirect_from:
 - "/engine/extend/plugins/"
-title: "Use Docker Engine plugins"
 description: "How to add additional functionality to Docker with plugins extensions"
 keywords: "Examples, Usage, plugins, docker, documentation, user guide"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -14,6 +13,8 @@ keywords: "Examples, Usage, plugins, docker, documentation, user guide"
      requests which include edits to this file in other repositories
      will be rejected.
 -->
+
+# Use Docker Engine plugins
 
 This document describes the Docker Engine plugins generally available in Docker
 Engine. To view information on plugins managed by Docker,
@@ -64,7 +65,7 @@ The sections below provide an inexhaustive overview of available plugins.
 | [Convoy plugin](https://github.com/rancher/convoy)                                                 | A volume plugin for a variety of storage back-ends including device mapper and NFS. It's a simple standalone executable written in Go and provides the framework to support vendor-specific extensions such as snapshots, backups and restore.                                                                |
 | [DigitalOcean Block Storage plugin](https://github.com/omallo/docker-volume-plugin-dostorage)      | Integrates DigitalOcean's [block storage solution](https://www.digitalocean.com/products/storage/) into the Docker ecosystem by automatically attaching a given block storage volume to a DigitalOcean droplet and making the contents of the volume available to Docker containers running on that droplet.  |
 | [DRBD plugin](https://www.drbd.org/en/supported-projects/docker)                                   | A volume plugin that provides highly available storage replicated by [DRBD](https://www.drbd.org). Data written to the docker volume is replicated in a cluster of DRBD nodes.                                                                                                                                |
-| [Flocker plugin](https://clusterhq.com/docker-plugin/)                                             | A volume plugin that provides multi-host portable volumes for Docker, enabling you to run databases and other stateful containers and move them around across a cluster of machines.                                                                                                                          |
+| [Flocker plugin](https://github.com/ScatterHQ/flocker)                                             | A volume plugin that provides multi-host portable volumes for Docker, enabling you to run databases and other stateful containers and move them around across a cluster of machines.                                                                                                                          |
 | [Fuxi Volume Plugin](https://github.com/openstack/fuxi)                                            | A volume plugin that is developed as part of the OpenStack Kuryr project and implements the Docker volume plugin API by utilizing Cinder, the OpenStack block storage service.                                                                                                                                |
 | [gce-docker plugin](https://github.com/mcuadros/gce-docker)                                        | A volume plugin able to attach, format and mount Google Compute [persistent-disks](https://cloud.google.com/compute/docs/disks/persistent-disks).                                                                                                                                                             |
 | [GlusterFS plugin](https://github.com/calavera/docker-volume-glusterfs)                            | A volume plugin that provides multi-host volumes management for Docker using GlusterFS.                                                                                                                                                                                                                       |

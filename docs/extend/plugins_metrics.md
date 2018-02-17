@@ -1,10 +1,9 @@
 ---
-title: "Docker metrics collector plugins"
 description: "Metrics plugins."
 keywords: "Examples, Usage, plugins, docker, documentation, user guide, metrics"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -13,7 +12,7 @@ keywords: "Examples, Usage, plugins, docker, documentation, user guide, metrics"
      will be rejected.
 -->
 
-# Metrics Collector Plugins
+# Docker metrics collector plugins
 
 Docker exposes internal metrics based on the prometheus format. Metrics plugins
 enable accessing these metrics in a consistent way by providing a Unix

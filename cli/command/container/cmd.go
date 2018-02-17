@@ -7,8 +7,7 @@ import (
 )
 
 // NewContainerCommand returns a cobra command for `container` subcommands
-// nolint: interfacer
-func NewContainerCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewContainerCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "container",
 		Short: "Manage containers",

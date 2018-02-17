@@ -9,11 +9,11 @@ import (
 // NewVolumeCommand returns a cobra command for `volume` subcommands
 func NewVolumeCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "volume COMMAND",
-		Short: "Manage volumes",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
-		Tags:  map[string]string{"version": "1.21"},
+		Use:         "volume COMMAND",
+		Short:       "Manage volumes",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"version": "1.21"},
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),

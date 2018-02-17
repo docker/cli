@@ -4,7 +4,7 @@ description: "The swarm ca command description and usage"
 keywords: "swarm, ca"
 ---
 
-<!-- This file is maintained within the docker/cli Github
+<!-- This file is maintained within the docker/cli GitHub
      repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
@@ -103,7 +103,7 @@ when viewing swarm any information via the CLI or API.
 The root CA rotation will not be completed until all registered nodes have
 rotated their TLS certificates.  If the rotation is not completing within a
 reasonable amount of time, try running
-`docker node ls --format {{.ID}} {{.Hostname}} {{.Status}} {{.TLSStatus}}` to
+`docker node ls --format '{{.ID}} {{.Hostname}} {{.Status}} {{.TLSStatus}}'` to
 see if any nodes are down or otherwise unable to rotate TLS certificates.
 
 

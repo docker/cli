@@ -17,9 +17,9 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client/session"
-	"github.com/docker/docker/client/session/filesync"
 	"github.com/docker/docker/pkg/progress"
+	"github.com/moby/buildkit/session"
+	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 )
@@ -53,7 +53,9 @@ func addDirToSession(session *session.Session, contextDir string, progressOutput
 
 	p := &sizeProgress{out: progressOutput, action: "Streaming build context to Docker daemon"}
 
-	workdirProvider := filesync.NewFSSyncProvider(contextDir, excludes)
+	workdirProvider := filesync.NewFSSyncProvider([]filesync.SyncedDir{
+		{Dir: contextDir, Excludes: excludes},
+	})
 	session.Allow(workdirProvider)
 
 	// this will be replaced on parallel build jobs. keep the current
@@ -126,18 +128,18 @@ func getBuildSharedKey(dir string) (string, error) {
 	return hex.EncodeToString(s[:]), nil
 }
 
-func tryNodeIdentifier() (out string) {
-	out = cliconfig.Dir() // return config dir as default on permission error
+func tryNodeIdentifier() string {
+	out := cliconfig.Dir() // return config dir as default on permission error
 	if err := os.MkdirAll(cliconfig.Dir(), 0700); err == nil {
 		sessionFile := filepath.Join(cliconfig.Dir(), ".buildNodeID")
 		if _, err := os.Lstat(sessionFile); err != nil {
 			if os.IsNotExist(err) { // create a new file with stored randomness
 				b := make([]byte, 32)
 				if _, err := rand.Read(b); err != nil {
-					return
+					return out
 				}
 				if err := ioutil.WriteFile(sessionFile, []byte(hex.EncodeToString(b)), 0600); err != nil {
-					return
+					return out
 				}
 			}
 		}
@@ -147,5 +149,5 @@ func tryNodeIdentifier() (out string) {
 			return string(dt)
 		}
 	}
-	return
+	return out
 }
