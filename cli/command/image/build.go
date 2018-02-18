@@ -9,8 +9,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -206,6 +208,14 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), options.dockerfileName)
 	case isLocalDir(specifiedContext):
 		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, options.dockerfileName)
+		if err == nil && strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
+			// Dockerfile is outside of build-context; read the Dockerfile and pass it as dockerfileCtx
+			dockerfileCtx, err = os.Open(options.dockerfileName)
+			if err != nil {
+				return errors.Errorf("unable to open Dockerfile: %v", err)
+			}
+			defer dockerfileCtx.Close()
+		}
 	case urlutil.IsGitURL(specifiedContext):
 		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, options.dockerfileName)
 	case urlutil.IsURL(specifiedContext):
@@ -253,7 +263,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 	}
 
-	// replace Dockerfile if it was added from stdin and there is archive context
+	// replace Dockerfile if it was added from stdin or a file outside the build-context, and there is archive context
 	if dockerfileCtx != nil && buildCtx != nil {
 		buildCtx, relDockerfile, err = build.AddDockerfileToBuildContext(dockerfileCtx, buildCtx)
 		if err != nil {
@@ -261,7 +271,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 	}
 
-	// if streaming and dockerfile was not from stdin then read from file
+	// if streaming and Dockerfile was not from stdin then read from file
 	// to the same reader that is usually stdin
 	if options.stream && dockerfileCtx == nil {
 		dockerfileCtx, err = os.Open(relDockerfile)

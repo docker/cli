@@ -167,6 +167,10 @@ func GetContextFromGitURL(gitURL, dockerfileName string) (string, string, error)
 		return "", "", err
 	}
 	relDockerfile, err := getDockerfileRelPath(absContextDir, dockerfileName)
+	if err == nil && strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
+		return "", "", errors.Errorf("the Dockerfile (%s) must be within the build context", dockerfileName)
+	}
+
 	return absContextDir, relDockerfile, err
 }
 
@@ -316,10 +320,6 @@ func getDockerfileRelPath(absContextDir, givenDockerfile string) (string, error)
 	relDockerfile, err := filepath.Rel(absContextDir, absDockerfile)
 	if err != nil {
 		return "", errors.Errorf("unable to get relative Dockerfile path: %v", err)
-	}
-
-	if strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
-		return "", errors.Errorf("the Dockerfile (%s) must be within the build context", givenDockerfile)
 	}
 
 	return relDockerfile, nil
