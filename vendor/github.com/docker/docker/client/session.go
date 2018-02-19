@@ -15,5 +15,5 @@ func (cli *Client) DialSession(ctx context.Context, proto string, meta map[strin
 	}
 	req = cli.addHeaders(req, meta)
 
-	return cli.setupHijackConn(req, proto)
+	return cli.setupHijackConn(ctx, req, proto)
 }

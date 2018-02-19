@@ -88,6 +88,31 @@ These Go environment variables are case-insensitive. See the
 [Go specification](http://golang.org/pkg/net/http/) for details on these
 variables.
 
+### Connection helpers
+
+The Docker client offers built-in support for the following socket types:
+`tcp`, `unix`, and `npipe`.
+
+You can use connection helper programs to support other connection types
+such as `ssh://user@host:/var/run/docker.sock`.
+
+See [`github.com/docker/cli/contrib/connhelpers`](https://github.com/docker/cli/tree/master/contrib/connhelpers)
+for the available helpers.
+
+You need to set the `connHelpers` section in [the configuration file](#configuration-files).
+e.g. 
+```
+{
+  "connHelpers": {
+    "ssh": "ssh"
+  }
+}
+```
+to enable `docker-connection-ssh` helper for `ssh://...` URLs.
+
+When a connection helper is used, proxy environment variables will not be used
+by Docker CLI itself but may be used by the connection helper.
+
 ### Configuration files
 
 By default, the Docker command line stores its configuration files in a
@@ -196,6 +221,10 @@ credentials for specific registries. If this property is set, the binary
 for a specific registry. For more information, see the
 [**Credential helpers** section in the `docker login` documentation](login.md#credential-helpers)
 
+The property `connHelpers` specifies a set of connection helpers to use
+non-standard connection protocols. 
+ For more information, see the [**Connection helpers** section above](#connection-helpers).
+
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
 using the `detachKeys` property. Specify a `<sequence>` value for the
@@ -236,6 +265,9 @@ Following is a sample `config.json` file:
   "credHelpers": {
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
+  },
+  "connHelpers": {
+    "ssh": "ssh"
   }
 }
 {% endraw %}
