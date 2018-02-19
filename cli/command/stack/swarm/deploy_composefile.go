@@ -2,17 +2,11 @@ package swarm
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"sort"
-	"strings"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -24,32 +18,9 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
-	configDetails, err := getConfigDetails(opts.Composefiles, dockerCli.In())
+	config, _, err := loader.LoadComposefile(dockerCli, opts)
 	if err != nil {
 		return err
-	}
-
-	config, err := loader.Load(configDetails)
-	if err != nil {
-		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
-			return errors.Errorf("Compose file contains unsupported options:\n\n%s\n",
-				propertyWarnings(fpe.Properties))
-		}
-
-		return err
-	}
-
-	dicts := getDictsFrom(configDetails.ConfigFiles)
-	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
-	if len(unsupportedProperties) > 0 {
-		fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
-			strings.Join(unsupportedProperties, ", "))
-	}
-
-	deprecatedProperties := loader.GetDeprecatedProperties(dicts...)
-	if len(deprecatedProperties) > 0 {
-		fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
-			propertyWarnings(deprecatedProperties))
 	}
 
 	if err := checkDaemonIsSwarmManager(ctx, dockerCli); err != nil {
@@ -98,16 +69,6 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
 }
 
-func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{} {
-	dicts := []map[string]interface{}{}
-
-	for _, configFile := range configFiles {
-		dicts = append(dicts, configFile.Config)
-	}
-
-	return dicts
-}
-
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
 	serviceNetworks := map[string]struct{}{}
 	for _, serviceConfig := range serviceConfigs {
@@ -120,96 +81,6 @@ func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) ma
 		}
 	}
 	return serviceNetworks
-}
-
-func propertyWarnings(properties map[string]string) string {
-	var msgs []string
-	for name, description := range properties {
-		msgs = append(msgs, fmt.Sprintf("%s: %s", name, description))
-	}
-	sort.Strings(msgs)
-	return strings.Join(msgs, "\n\n")
-}
-
-func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
-	var details composetypes.ConfigDetails
-
-	if len(composefiles) == 0 {
-		return details, errors.New("no composefile(s)")
-	}
-
-	if composefiles[0] == "-" && len(composefiles) == 1 {
-		workingDir, err := os.Getwd()
-		if err != nil {
-			return details, err
-		}
-		details.WorkingDir = workingDir
-	} else {
-		absPath, err := filepath.Abs(composefiles[0])
-		if err != nil {
-			return details, err
-		}
-		details.WorkingDir = filepath.Dir(absPath)
-	}
-
-	var err error
-	details.ConfigFiles, err = loadConfigFiles(composefiles, stdin)
-	if err != nil {
-		return details, err
-	}
-	details.Environment, err = buildEnvironment(os.Environ())
-	return details, err
-}
-
-func buildEnvironment(env []string) (map[string]string, error) {
-	result := make(map[string]string, len(env))
-	for _, s := range env {
-		// if value is empty, s is like "K=", not "K".
-		if !strings.Contains(s, "=") {
-			return result, errors.Errorf("unexpected environment %q", s)
-		}
-		kv := strings.SplitN(s, "=", 2)
-		result[kv[0]] = kv[1]
-	}
-	return result, nil
-}
-
-func loadConfigFiles(filenames []string, stdin io.Reader) ([]composetypes.ConfigFile, error) {
-	var configFiles []composetypes.ConfigFile
-
-	for _, filename := range filenames {
-		configFile, err := loadConfigFile(filename, stdin)
-		if err != nil {
-			return configFiles, err
-		}
-		configFiles = append(configFiles, *configFile)
-	}
-
-	return configFiles, nil
-}
-
-func loadConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile, error) {
-	var bytes []byte
-	var err error
-
-	if filename == "-" {
-		bytes, err = ioutil.ReadAll(stdin)
-	} else {
-		bytes, err = ioutil.ReadFile(filename)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := loader.ParseYAML(bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return &composetypes.ConfigFile{
-		Filename: filename,
-		Config:   config,
-	}, nil
 }
 
 func validateExternalNetworks(

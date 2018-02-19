@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -77,69 +78,86 @@ type Config struct {
 	Configs  map[string]ConfigObjConfig
 }
 
+// MarshalYAML makes Config implement yaml.Marshaller
+func (c *Config) MarshalYAML() (interface{}, error) {
+	m := map[string]interface{}{}
+	services := map[string]ServiceConfig{}
+	for _, service := range c.Services {
+		s := service
+		s.Name = ""
+		services[service.Name] = s
+	}
+	m["services"] = services
+	m["networks"] = c.Networks
+	m["volumes"] = c.Volumes
+	m["secrets"] = c.Secrets
+	m["configs"] = c.Configs
+	return m, nil
+}
+
 // ServiceConfig is the configuration of one service
 type ServiceConfig struct {
-	Name string
+	Name string `yaml:",omitempty"`
 
-	Build           BuildConfig
-	CapAdd          []string `mapstructure:"cap_add"`
-	CapDrop         []string `mapstructure:"cap_drop"`
-	CgroupParent    string   `mapstructure:"cgroup_parent"`
-	Command         ShellCommand
-	Configs         []ServiceConfigObjConfig
-	ContainerName   string               `mapstructure:"container_name"`
-	CredentialSpec  CredentialSpecConfig `mapstructure:"credential_spec"`
-	DependsOn       []string             `mapstructure:"depends_on"`
-	Deploy          DeployConfig
-	Devices         []string
-	DNS             StringList
-	DNSSearch       StringList `mapstructure:"dns_search"`
-	DomainName      string     `mapstructure:"domainname"`
-	Entrypoint      ShellCommand
-	Environment     MappingWithEquals
-	EnvFile         StringList `mapstructure:"env_file"`
-	Expose          StringOrNumberList
-	ExternalLinks   []string  `mapstructure:"external_links"`
-	ExtraHosts      HostsList `mapstructure:"extra_hosts"`
-	Hostname        string
-	HealthCheck     *HealthCheckConfig
-	Image           string
-	Ipc             string
-	Labels          Labels
-	Links           []string
-	Logging         *LoggingConfig
-	MacAddress      string `mapstructure:"mac_address"`
-	NetworkMode     string `mapstructure:"network_mode"`
-	Networks        map[string]*ServiceNetworkConfig
-	Pid             string
-	Ports           []ServicePortConfig
-	Privileged      bool
-	ReadOnly        bool `mapstructure:"read_only"`
-	Restart         string
-	Secrets         []ServiceSecretConfig
-	SecurityOpt     []string       `mapstructure:"security_opt"`
-	StdinOpen       bool           `mapstructure:"stdin_open"`
-	StopGracePeriod *time.Duration `mapstructure:"stop_grace_period"`
-	StopSignal      string         `mapstructure:"stop_signal"`
-	Tmpfs           StringList
-	Tty             bool `mapstructure:"tty"`
-	Ulimits         map[string]*UlimitsConfig
-	User            string
-	Volumes         []ServiceVolumeConfig
-	WorkingDir      string `mapstructure:"working_dir"`
-	Isolation       string `mapstructure:"isolation"`
+	Build           BuildConfig                      `yaml:",omitempty"`
+	CapAdd          []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty"`
+	CapDrop         []string                         `mapstructure:"cap_drop" yaml:"cap_drop,omitempty"`
+	CgroupParent    string                           `mapstructure:"cgroup_parent" yaml:"cgroup_parent,omitempty"`
+	Command         ShellCommand                     `yaml:",omitempty"`
+	Configs         []ServiceConfigObjConfig         `yaml:",omitempty"`
+	ContainerName   string                           `mapstructure:"container_name" yaml:"container_name,omitempty"`
+	CredentialSpec  CredentialSpecConfig             `mapstructure:"credential_spec" yaml:"credential_spec,omitempty"`
+	DependsOn       []string                         `mapstructure:"depends_on" yaml:"depends_on,omitempty"`
+	Deploy          DeployConfig                     `yaml:",omitempty"`
+	Devices         []string                         `yaml:",omitempty"`
+	DNS             StringList                       `yaml:",omitempty"`
+	DNSSearch       StringList                       `mapstructure:"dns_search" yaml:"dns_search,omitempty"`
+	DomainName      string                           `mapstructure:"domainname" yaml:"domainname,omitempty"`
+	Entrypoint      ShellCommand                     `yaml:",omitempty"`
+	Environment     MappingWithEquals                `yaml:",omitempty"`
+	EnvFile         StringList                       `mapstructure:"env_file" yaml:"env_file,omitempty"`
+	Expose          StringOrNumberList               `yaml:",omitempty"`
+	ExternalLinks   []string                         `mapstructure:"external_links" yaml:"external_links,omitempty"`
+	ExtraHosts      HostsList                        `mapstructure:"extra_hosts" yaml:"extra_hosts,omitempty"`
+	Hostname        string                           `yaml:",omitempty"`
+	HealthCheck     *HealthCheckConfig               `yaml:",omitempty"`
+	Image           string                           `yaml:",omitempty"`
+	Ipc             string                           `yaml:",omitempty"`
+	Labels          Labels                           `yaml:",omitempty"`
+	Links           []string                         `yaml:",omitempty"`
+	Logging         *LoggingConfig                   `yaml:",omitempty"`
+	MacAddress      string                           `mapstructure:"mac_address" yaml:"mac_address,omitempty"`
+	NetworkMode     string                           `mapstructure:"network_mode" yaml:"network_mode,omitempty"`
+	Networks        map[string]*ServiceNetworkConfig `yaml:",omitempty"`
+	Pid             string                           `yaml:",omitempty"`
+	Ports           []ServicePortConfig              `yaml:",omitempty"`
+	Privileged      bool                             `yaml:",omitempty"`
+	ReadOnly        bool                             `mapstructure:"read_only" yaml:"read_only,omitempty"`
+	Restart         string                           `yaml:",omitempty"`
+	Secrets         []ServiceSecretConfig            `yaml:",omitempty"`
+	SecurityOpt     []string                         `mapstructure:"security_opt" yaml:"security_opt,omitempty"`
+	StdinOpen       bool                             `mapstructure:"stdin_open" yaml:"stdin_open,omitempty"`
+	StopGracePeriod *time.Duration                   `mapstructure:"stop_grace_period" yaml:"stop_grace_period,omitempty"`
+	StopSignal      string                           `mapstructure:"stop_signal" yaml:"stop_signal,omitempty"`
+	Tmpfs           StringList                       `yaml:",omitempty"`
+	Tty             bool                             `mapstructure:"tty" yaml:"tty,omitempty"`
+	Ulimits         map[string]*UlimitsConfig        `yaml:",omitempty"`
+	User            string                           `yaml:",omitempty"`
+	Volumes         []ServiceVolumeConfig            `yaml:",omitempty"`
+	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty"`
+	Isolation       string                           `mapstructure:"isolation" yaml:"isolation,omitempty"`
 }
 
 // BuildConfig is a type for build
 // using the same format at libcompose: https://github.com/docker/libcompose/blob/master/yaml/build.go#L12
 type BuildConfig struct {
-	Context    string
-	Dockerfile string
-	Args       MappingWithEquals
-	Labels     Labels
-	CacheFrom  StringList `mapstructure:"cache_from"`
-	Network    string
-	Target     string
+	Context    string            `yaml:",omitempty"`
+	Dockerfile string            `yaml:",omitempty"`
+	Args       MappingWithEquals `yaml:",omitempty"`
+	Labels     Labels            `yaml:",omitempty"`
+	CacheFrom  StringList        `mapstructure:"cache_from" yaml:"cache_from,omitempty"`
+	Network    string            `yaml:",omitempty"`
+	Target     string            `yaml:",omitempty"`
 }
 
 // ShellCommand is a string or list of string args
@@ -170,30 +188,30 @@ type HostsList []string
 
 // LoggingConfig the logging configuration for a service
 type LoggingConfig struct {
-	Driver  string
-	Options map[string]string
+	Driver  string            `yaml:",omitempty"`
+	Options map[string]string `yaml:",omitempty"`
 }
 
 // DeployConfig the deployment configuration for a service
 type DeployConfig struct {
-	Mode          string
-	Replicas      *uint64
-	Labels        Labels
-	UpdateConfig  *UpdateConfig `mapstructure:"update_config"`
-	Resources     Resources
-	RestartPolicy *RestartPolicy `mapstructure:"restart_policy"`
-	Placement     Placement
-	EndpointMode  string `mapstructure:"endpoint_mode"`
+	Mode          string         `yaml:",omitempty"`
+	Replicas      *uint64        `yaml:",omitempty"`
+	Labels        Labels         `yaml:",omitempty"`
+	UpdateConfig  *UpdateConfig  `mapstructure:"update_config" yaml:"update_config,omitempty"`
+	Resources     Resources      `yaml:",omitempty"`
+	RestartPolicy *RestartPolicy `mapstructure:"restart_policy" yaml:"restart_policy,omitempty"`
+	Placement     Placement      `yaml:",omitempty"`
+	EndpointMode  string         `mapstructure:"endpoint_mode" yaml:"endpoint_mode,omitempty"`
 }
 
 // HealthCheckConfig the healthcheck configuration for a service
 type HealthCheckConfig struct {
-	Test        HealthCheckTest
-	Timeout     *time.Duration
-	Interval    *time.Duration
-	Retries     *uint64
-	StartPeriod *time.Duration `mapstructure:"start_period"`
-	Disable     bool
+	Test        HealthCheckTest `yaml:",omitempty"`
+	Timeout     *time.Duration  `yaml:",omitempty"`
+	Interval    *time.Duration  `yaml:",omitempty"`
+	Retries     *uint64         `yaml:",omitempty"`
+	StartPeriod *time.Duration  `mapstructure:"start_period" yaml:"start_period,omitempty"`
+	Disable     bool            `yaml:",omitempty"`
 }
 
 // HealthCheckTest is the command run to test the health of a service
@@ -201,32 +219,32 @@ type HealthCheckTest []string
 
 // UpdateConfig the service update configuration
 type UpdateConfig struct {
-	Parallelism     *uint64
-	Delay           time.Duration
-	FailureAction   string `mapstructure:"failure_action"`
-	Monitor         time.Duration
-	MaxFailureRatio float32 `mapstructure:"max_failure_ratio"`
-	Order           string
+	Parallelism     *uint64       `yaml:",omitempty"`
+	Delay           time.Duration `yaml:",omitempty"`
+	FailureAction   string        `mapstructure:"failure_action" yaml:"failure_action,omitempty"`
+	Monitor         time.Duration `yaml:",omitempty"`
+	MaxFailureRatio float32       `mapstructure:"max_failure_ratio" yaml:"max_failure_ratio,omitempty"`
+	Order           string        `yaml:",omitempty"`
 }
 
 // Resources the resource limits and reservations
 type Resources struct {
-	Limits       *Resource
-	Reservations *Resource
+	Limits       *Resource `yaml:",omitempty"`
+	Reservations *Resource `yaml:",omitempty"`
 }
 
 // Resource is a resource to be limited or reserved
 type Resource struct {
 	// TODO: types to convert from units and ratios
-	NanoCPUs         string            `mapstructure:"cpus"`
-	MemoryBytes      UnitBytes         `mapstructure:"memory"`
-	GenericResources []GenericResource `mapstructure:"generic_resources"`
+	NanoCPUs         string            `mapstructure:"cpus" yaml:"cpus,omitempty"`
+	MemoryBytes      UnitBytes         `mapstructure:"memory" yaml:"memory,omitempty"`
+	GenericResources []GenericResource `mapstructure:"generic_resources" yaml:"generic_resources,omitempty"`
 }
 
 // GenericResource represents a "user defined" resource which can
 // only be an integer (e.g: SSD=3) for a service
 type GenericResource struct {
-	DiscreteResourceSpec *DiscreteGenericResource `mapstructure:"discrete_resource_spec"`
+	DiscreteResourceSpec *DiscreteGenericResource `mapstructure:"discrete_resource_spec" yaml:"discrete_resource_spec,omitempty"`
 }
 
 // DiscreteGenericResource represents a "user defined" resource which is defined
@@ -241,74 +259,79 @@ type DiscreteGenericResource struct {
 // UnitBytes is the bytes type
 type UnitBytes int64
 
+// MarshalYAML makes UnitBytes implement yaml.Marshaller
+func (u UnitBytes) MarshalYAML() (interface{}, error) {
+	return fmt.Sprintf("%d", u), nil
+}
+
 // RestartPolicy the service restart policy
 type RestartPolicy struct {
-	Condition   string
-	Delay       *time.Duration
-	MaxAttempts *uint64 `mapstructure:"max_attempts"`
-	Window      *time.Duration
+	Condition   string         `yaml:",omitempty"`
+	Delay       *time.Duration `yaml:",omitempty"`
+	MaxAttempts *uint64        `mapstructure:"max_attempts" yaml:"max_attempts,omitempty"`
+	Window      *time.Duration `yaml:",omitempty"`
 }
 
 // Placement constraints for the service
 type Placement struct {
-	Constraints []string
-	Preferences []PlacementPreferences
+	Constraints []string               `yaml:",omitempty"`
+	Preferences []PlacementPreferences `yaml:",omitempty"`
 }
 
 // PlacementPreferences is the preferences for a service placement
 type PlacementPreferences struct {
-	Spread string
+	Spread string `yaml:",omitempty"`
 }
 
 // ServiceNetworkConfig is the network configuration for a service
 type ServiceNetworkConfig struct {
-	Aliases     []string
-	Ipv4Address string `mapstructure:"ipv4_address"`
-	Ipv6Address string `mapstructure:"ipv6_address"`
+	Aliases     []string `yaml:",omitempty"`
+	Ipv4Address string   `mapstructure:"ipv4_address" yaml:"ipv4_address,omitempty"`
+	Ipv6Address string   `mapstructure:"ipv6_address" yaml:"ipv6_address,omitempty"`
 }
 
 // ServicePortConfig is the port configuration for a service
 type ServicePortConfig struct {
-	Mode      string
-	Target    uint32
-	Published uint32
-	Protocol  string
+	Mode      string `yaml:",omitempty"`
+	Target    uint32 `yaml:",omitempty"`
+	Published uint32 `yaml:",omitempty"`
+	Protocol  string `yaml:",omitempty"`
 }
 
 // ServiceVolumeConfig are references to a volume used by a service
 type ServiceVolumeConfig struct {
-	Type        string
-	Source      string
-	Target      string
-	ReadOnly    bool `mapstructure:"read_only"`
-	Consistency string
-	Bind        *ServiceVolumeBind
-	Volume      *ServiceVolumeVolume
-	Tmpfs       *ServiceVolumeTmpfs
+	Type        string               `yaml:",omitempty"`
+	Source      string               `yaml:",omitempty"`
+	Target      string               `yaml:",omitempty"`
+	ReadOnly    bool                 `mapstructure:"read_only" yaml:"read_only,omitempty"`
+	Consistency string               `yaml:",omitempty"`
+	Bind        *ServiceVolumeBind   `yaml:",omitempty"`
+	Volume      *ServiceVolumeVolume `yaml:",omitempty"`
+	Tmpfs       *ServiceVolumeTmpfs  `yaml:",omitempty"`
 }
 
 // ServiceVolumeBind are options for a service volume of type bind
 type ServiceVolumeBind struct {
-	Propagation string
+	Propagation string `yaml:",omitempty"`
 }
 
 // ServiceVolumeVolume are options for a service volume of type volume
 type ServiceVolumeVolume struct {
-	NoCopy bool `mapstructure:"nocopy"`
+	NoCopy bool `mapstructure:"nocopy" yaml:"nocopy,omitempty"`
 }
 
 // ServiceVolumeTmpfs are options for a service volume of type tmpfs
 type ServiceVolumeTmpfs struct {
-	Size int64
+	Size int64 `yaml:",omitempty"`
 }
 
 // FileReferenceConfig for a reference to a swarm file object
 type FileReferenceConfig struct {
-	Source string
-	Target string
-	UID    string
-	GID    string
-	Mode   *uint32
+	Source string  `yaml:",omitempty"`
+	Target string  `yaml:",omitempty"`
+	UID    string  `yaml:",omitempty"`
+	GID    string  `yaml:",omitempty"`
+	Mode   *uint32 `yaml:",omitempty"`
 }
 
 // ServiceConfigObjConfig is the config obj configuration for a service
@@ -319,63 +342,79 @@ type ServiceSecretConfig FileReferenceConfig
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
-	Single int
-	Soft   int
-	Hard   int
+	Single int `yaml:",omitempty"`
+	Soft   int `yaml:",omitempty"`
+	Hard   int `yaml:",omitempty"`
+}
+
+// MarshalYAML makes UlimitsConfig implement yaml.Marshaller
+func (u *UlimitsConfig) MarshalYAML() (interface{}, error) {
+	if u.Single != 0 {
+		return u.Single, nil
+	}
+	return u, nil
 }
 
 // NetworkConfig for a network
 type NetworkConfig struct {
-	Name       string
-	Driver     string
-	DriverOpts map[string]string `mapstructure:"driver_opts"`
-	Ipam       IPAMConfig
-	External   External
-	Internal   bool
-	Attachable bool
-	Labels     Labels
+	Name       string            `yaml:",omitempty"`
+	Driver     string            `yaml:",omitempty"`
+	DriverOpts map[string]string `mapstructure:"driver_opts" yaml:"driver_opts,omitempty"`
+	Ipam       IPAMConfig        `yaml:",omitempty"`
+	External   External          `yaml:",omitempty"`
+	Internal   bool              `yaml:",omitempty"`
+	Attachable bool              `yaml:",omitempty"`
+	Labels     Labels            `yaml:",omitempty"`
 }
 
 // IPAMConfig for a network
 type IPAMConfig struct {
-	Driver string
-	Config []*IPAMPool
+	Driver string      `yaml:",omitempty"`
+	Config []*IPAMPool `yaml:",omitempty"`
 }
 
 // IPAMPool for a network
 type IPAMPool struct {
-	Subnet string
+	Subnet string `yaml:",omitempty"`
 }
 
 // VolumeConfig for a volume
 type VolumeConfig struct {
-	Name       string
-	Driver     string
-	DriverOpts map[string]string `mapstructure:"driver_opts"`
-	External   External
-	Labels     Labels
+	Name       string            `yaml:",omitempty"`
+	Driver     string            `yaml:",omitempty"`
+	DriverOpts map[string]string `mapstructure:"driver_opts" yaml:"driver_opts,omitempty"`
+	External   External          `yaml:",omitempty"`
+	Labels     Labels            `yaml:",omitempty"`
 }
 
 // External identifies a Volume or Network as a reference to a resource that is
 // not managed, and should already exist.
 // External.name is deprecated and replaced by Volume.name
 type External struct {
-	Name     string
-	External bool
+	Name     string `yaml:",omitempty"`
+	External bool   `yaml:",omitempty"`
+}
+
+// MarshalYAML makes External implement yaml.Marshaller
+func (e External) MarshalYAML() (interface{}, error) {
+	if e.Name == "" {
+		return e.External, nil
+	}
+	return External{Name: e.Name}, nil
 }
 
 // CredentialSpecConfig for credential spec on Windows
 type CredentialSpecConfig struct {
-	File     string
-	Registry string
+	File     string `yaml:",omitempty"`
+	Registry string `yaml:",omitempty"`
 }
 
 // FileObjectConfig is a config type for a file used by a service
 type FileObjectConfig struct {
-	Name     string
-	File     string
-	External External
-	Labels   Labels
+	Name     string   `yaml:",omitempty"`
+	File     string   `yaml:",omitempty"`
+	External External `yaml:",omitempty"`
+	Labels   Labels   `yaml:",omitempty"`
 }
 
 // SecretConfig for a secret

@@ -5,8 +5,9 @@ import (
 	"io/ioutil"
 	"path"
 
+	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
-	composeTypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -19,6 +20,17 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if len(opts.Composefiles) == 0 {
 		return errors.Errorf("Please specify only one compose file (with --compose-file).")
 	}
+
+	// Parse the compose file
+	cfg, version, err := loader.LoadComposefile(dockerCli, opts)
+	if err != nil {
+		return err
+	}
+	stack, err := LoadStack(opts.Namespace, version, cfg)
+	if err != nil {
+		return err
+	}
+
 	// Initialize clients
 	stacks, err := dockerCli.stacks()
 	if err != nil {
@@ -34,12 +46,6 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	pods := composeClient.Pods()
 	watcher := DeployWatcher{
 		Pods: pods,
-	}
-
-	// Parse the compose file
-	stack, cfg, err := LoadStack(opts.Namespace, opts.Composefiles)
-	if err != nil {
-		return err
 	}
 
 	// FIXME(vdemeester) handle warnings server-side
@@ -82,7 +88,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 }
 
 // createFileBasedConfigMaps creates a Kubernetes ConfigMap for each Compose global file-based config.
-func createFileBasedConfigMaps(stackName string, globalConfigs map[string]composeTypes.ConfigObjConfig, configMaps corev1.ConfigMapInterface) error {
+func createFileBasedConfigMaps(stackName string, globalConfigs map[string]composetypes.ConfigObjConfig, configMaps corev1.ConfigMapInterface) error {
 	for name, config := range globalConfigs {
 		if config.File == "" {
 			continue
@@ -102,7 +108,7 @@ func createFileBasedConfigMaps(stackName string, globalConfigs map[string]compos
 	return nil
 }
 
-func serviceNames(cfg *composeTypes.Config) []string {
+func serviceNames(cfg *composetypes.Config) []string {
 	names := []string{}
 
 	for _, service := range cfg.Services {
@@ -113,7 +119,7 @@ func serviceNames(cfg *composeTypes.Config) []string {
 }
 
 // createFileBasedSecrets creates a Kubernetes Secret for each Compose global file-based secret.
-func createFileBasedSecrets(stackName string, globalSecrets map[string]composeTypes.SecretConfig, secrets corev1.SecretInterface) error {
+func createFileBasedSecrets(stackName string, globalSecrets map[string]composetypes.SecretConfig, secrets corev1.SecretInterface) error {
 	for name, secret := range globalSecrets {
 		if secret.File == "" {
 			continue
