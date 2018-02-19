@@ -1,4 +1,4 @@
-version: "3.6"
+version: "3.7"
 
 services:
   foo:
@@ -261,6 +261,10 @@ networks:
   # called "{project name}_some-network" should be created and
   # use the default driver
   some-network:
+    # scope:
+    #    controlling the network's scope
+    #    Values are strings. (swarm | local)
+    scope: local
 
   other-network:
     driver: overlay
@@ -281,6 +285,8 @@ networks:
         # gateway: 172.16.238.1
       - subnet: 2001:3984:3989::/64
         # gateway: 2001:3984:3989::1
+
+    scope: swarm
 
   external-network:
     # Specifies that a pre-existing network called "external-network"

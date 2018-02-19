@@ -72,6 +72,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 			Options:    network.DriverOpts,
 			Internal:   network.Internal,
 			Attachable: network.Attachable,
+			Scope:      network.Scope,
 		}
 
 		if network.Ipam.Driver != "" || len(network.Ipam.Config) > 0 {

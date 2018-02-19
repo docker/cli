@@ -1160,7 +1160,9 @@ func TestFullExample(t *testing.T) {
 	assert.Equal(t, []types.ServiceConfig{expectedServiceConfig}, config.Services)
 
 	expectedNetworkConfig := map[string]types.NetworkConfig{
-		"some-network": {},
+		"some-network": {
+			Scope: "local",
+		},
 
 		"other-network": {
 			Driver: "overlay",
@@ -1175,6 +1177,7 @@ func TestFullExample(t *testing.T) {
 					{Subnet: "2001:3984:3989::/64"},
 				},
 			},
+			Scope: "swarm",
 		},
 
 		"external-network": {
