@@ -1,0 +1,6 @@
+CONTAINER ID        IMAGE               COMMAND             CREATED                  STATUS              PORTS                NAMES
+container_id        busybox:latest      "top"               Less than a second ago   Up 1 second                              c1
+container_id        busybox:latest      "top"               Less than a second ago   Up 1 second                              c2
+container_id        busybox:latest      "top"               Less than a second ago   Up 1 second         80-82/tcp            c3
+container_id        busybox:latest      "top"               Less than a second ago   Up 1 second         81/udp               c4
+container_id        busybox:latest      "top"               Less than a second ago   Up 1 second         8.8.8.8:82->82/tcp   c5

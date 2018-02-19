@@ -22,7 +22,15 @@ type fakeClient struct {
 	containerCopyFromFunc func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
 	waitFunc              func(string) (<-chan container.ContainerWaitOKBody, <-chan error)
+	containerListFunc     func(types.ContainerListOptions) ([]types.Container, error)
 	Version               string
+}
+
+func (f *fakeClient) ContainerList(_ context.Context, options types.ContainerListOptions) ([]types.Container, error) {
+	if f.containerListFunc != nil {
+		return f.containerListFunc(options)
+	}
+	return []types.Container{}, nil
 }
 
 func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (types.ContainerJSON, error) {
