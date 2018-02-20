@@ -10,11 +10,11 @@ RUN     go get -d github.com/LK4D4/vndr && \
         go build -v -o /usr/bin/vndr . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     BINDATA_SHA=a0ff2567cfb70903282db057e799fd826784d41d
-RUN     go get -d github.com/jteeuwen/go-bindata/go-bindata && \
-        cd /go/src/github.com/jteeuwen/go-bindata/go-bindata && \
-        git checkout -q "$BINDATA_SHA" && \
-        go build -v -o /usr/bin/go-bindata . && \
+ARG     ESC_SHA=58d9cde84f237ecdd89bd7f61c2de2853f4c5c6e
+RUN     go get -d github.com/mjibson/esc && \
+        cd /go/src/github.com/mjibson/esc && \
+        git checkout -q "$ESC_SHA" && \
+        go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
 ARG     FILEWATCHER_SHA=2e12ea42f6c8c089b19e992145bb94e8adaecedb
