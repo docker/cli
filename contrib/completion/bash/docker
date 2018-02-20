@@ -4648,7 +4648,7 @@ _docker_system_events() {
 			return
 			;;
 		type)
-			COMPREPLY=( $( compgen -W "container daemon image network plugin volume" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "config container daemon image network plugin secret service volume" -- "${cur##*=}" ) )
 			return
 			;;
 		volume)
