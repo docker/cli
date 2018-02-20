@@ -26,7 +26,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if err != nil {
 		return err
 	}
-	stack, err := LoadStack(opts.Namespace, version, cfg)
+	stack, err := LoadStack(opts.Namespace, version, *cfg)
 	if err != nil {
 		return err
 	}

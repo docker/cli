@@ -8,15 +8,16 @@ import (
 )
 
 type versionedConfig struct {
-	composetypes.Config
-	Version string
+	*composetypes.Config `yaml:",inline"`
+	Version              string
 }
 
 // LoadStack loads a stack from a Compose config, with a given name.
-func LoadStack(name, version string, cfg *composetypes.Config) (*apiv1beta1.Stack, error) {
+func LoadStack(name, version string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
+	cfg.Filename = ""
 	res, err := yaml.Marshal(versionedConfig{
 		Version: version,
-		Config:  *cfg,
+		Config:  &cfg,
 	})
 	if err != nil {
 		return nil, err
