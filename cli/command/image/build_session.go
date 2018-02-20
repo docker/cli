@@ -17,10 +17,13 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
 	"golang.org/x/time/rate"
 )
 
@@ -30,19 +33,34 @@ func isSessionSupported(dockerCli command.Cli) bool {
 	return dockerCli.ServerInfo().HasExperimental && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
 }
 
-func trySession(dockerCli command.Cli, contextDir string) (*session.Session, error) {
+func newBuildContextSession(dockerCli command.Cli, contextDir string) (*session.Session, error) {
 	var s *session.Session
-	if isSessionSupported(dockerCli) {
-		sharedKey, err := getBuildSharedKey(contextDir)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get build shared key")
-		}
-		s, err = session.NewSession(filepath.Base(contextDir), sharedKey)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create session")
-		}
+	if !isSessionSupported(dockerCli) {
+		return s, errors.New("stream is not supported")
+	}
+	sharedKey, err := getBuildSharedKey(contextDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get build shared key")
+	}
+	s, err = session.NewSession(filepath.Base(contextDir), sharedKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create session")
 	}
 	return s, nil
+}
+
+func startSession(ctx context.Context, contextSession *session.Session, client client.APIClient, cancel func()) string {
+	if contextSession == nil {
+		return ""
+	}
+	go func() {
+		logrus.Debugf("running session: %v", contextSession.ID())
+		if err := contextSession.Run(ctx, client.DialSession); err != nil {
+			logrus.Error(err)
+			cancel() // cancel progress context
+		}
+	}()
+	return contextSession.ID()
 }
 
 func addDirToSession(session *session.Session, contextDir string, progressOutput progress.Output, done chan error) error {

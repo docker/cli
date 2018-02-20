@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"runtime"
@@ -21,14 +20,11 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"github.com/moby/buildkit/session"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -165,184 +161,63 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 	return out.output.WriteProgress(prog)
 }
 
-// nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	var (
-		buildCtx      io.ReadCloser
-		dockerfileCtx io.ReadCloser
-		err           error
-		contextDir    string
-		tempDir       string
-		relDockerfile string
-		progBuff      io.Writer
-		buildBuff     io.Writer
-		remote        string
-	)
-
-	if options.dockerfileFromStdin() {
-		if options.contextFromStdin() {
-			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
-		}
-		dockerfileCtx = dockerCli.In()
+	idFile := build.NewIDFile(options.imageIDFile)
+	// Avoid leaving a stale file if we eventually fail
+	if err := idFile.Remove(); err != nil {
+		return err
 	}
 
-	specifiedContext := options.context
-	progBuff = dockerCli.Out()
-	buildBuff = dockerCli.Out()
-	if options.quiet {
-		progBuff = bytes.NewBuffer(nil)
-		buildBuff = bytes.NewBuffer(nil)
-	}
-	if options.imageIDFile != "" {
-		// Avoid leaving a stale file if we eventually fail
-		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
-			return errors.Wrap(err, "Removing image ID file")
-		}
-	}
-
-	switch {
-	case options.contextFromStdin():
-		// buildCtx is tar archive. if stdin was dockerfile then it is wrapped
-		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), options.dockerfileName)
-	case isLocalDir(specifiedContext):
-		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, options.dockerfileName)
-	case urlutil.IsGitURL(specifiedContext):
-		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, options.dockerfileName)
-	case urlutil.IsURL(specifiedContext):
-		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, options.dockerfileName)
-	default:
-		return errors.Errorf("unable to prepare context: path %q not found", specifiedContext)
-	}
-
+	buildBuffer := newBuildBuffer(dockerCli.Out(), options.quiet)
+	buildInput, err := setupContextAndDockerfile(dockerCli, buildBuffer, options)
 	if err != nil {
-		if options.quiet && urlutil.IsURL(specifiedContext) {
-			fmt.Fprintln(dockerCli.Err(), progBuff)
-		}
-		return errors.Errorf("unable to prepare context: %s", err)
+		return err
 	}
-
-	if tempDir != "" {
-		defer os.RemoveAll(tempDir)
-		contextDir = tempDir
-	}
-
-	// read from a directory into tar archive
-	if buildCtx == nil && !options.stream {
-		excludes, err := build.ReadDockerignore(contextDir)
-		if err != nil {
-			return err
-		}
-
-		if err := build.ValidateContextDirectory(contextDir, excludes); err != nil {
-			return errors.Errorf("error checking context: '%s'.", err)
-		}
-
-		// And canonicalize dockerfile name to a platform-independent one
-		relDockerfile, err = archive.CanonicalTarNameForPath(relDockerfile)
-		if err != nil {
-			return errors.Errorf("cannot canonicalize dockerfile path %s: %v", relDockerfile, err)
-		}
-
-		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
-		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
-			ExcludePatterns: excludes,
-			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	// replace Dockerfile if it was added from stdin and there is archive context
-	if dockerfileCtx != nil && buildCtx != nil {
-		buildCtx, relDockerfile, err = build.AddDockerfileToBuildContext(dockerfileCtx, buildCtx)
-		if err != nil {
-			return err
-		}
-	}
-
-	// if streaming and dockerfile was not from stdin then read from file
-	// to the same reader that is usually stdin
-	if options.stream && dockerfileCtx == nil {
-		dockerfileCtx, err = os.Open(relDockerfile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to open %s", relDockerfile)
-		}
-		defer dockerfileCtx.Close()
-	}
+	defer buildInput.cleanup()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var resolvedTags []*resolvedTag
-	if command.IsTrusted() {
-		translator := func(ctx context.Context, ref reference.NamedTagged) (reference.Canonical, error) {
-			return TrustedReference(ctx, dockerCli, ref, nil)
-		}
-		// if there is a tar wrapper, the dockerfile needs to be replaced inside it
-		if buildCtx != nil {
-			// Wrap the tar archive to replace the Dockerfile entry with the rewritten
-			// Dockerfile which uses trusted pulls.
-			buildCtx = replaceDockerfileTarWrapper(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
-		} else if dockerfileCtx != nil {
-			// if there was not archive context still do the possible replacements in Dockerfile
-			newDockerfile, _, err := rewriteDockerfileFrom(ctx, dockerfileCtx, translator)
-			if err != nil {
-				return err
-			}
-			dockerfileCtx = ioutil.NopCloser(bytes.NewBuffer(newDockerfile))
-		}
+	resolvedTags, err := updateBuildInputForContentTrust(ctx, dockerCli, buildInput)
+	if err != nil {
+		return err
 	}
 
 	if options.compress {
-		buildCtx, err = build.Compress(buildCtx)
+		buildInput.buildCtx, err = build.Compress(buildInput.buildCtx)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Setup an upload progress bar
-	progressOutput := streamformatter.NewProgressOutput(progBuff)
-	if !dockerCli.Out().IsTerminal() {
-		progressOutput = &lastProgressOutput{output: progressOutput}
-	}
-
-	// if up to this point nothing has set the context then we must have another
-	// way for sending it(streaming) and set the context to the Dockerfile
-	if dockerfileCtx != nil && buildCtx == nil {
-		buildCtx = dockerfileCtx
-	}
-
-	s, err := trySession(dockerCli, contextDir)
-	if err != nil {
-		return err
-	}
-
-	var body io.Reader
-	if buildCtx != nil && !options.stream {
-		body = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
-	}
-
-	// add context stream to the session
-	if options.stream && s != nil {
-		syncDone := make(chan error) // used to signal first progress reporting completed.
-		// progress would also send errors but don't need it here as errors
-		// are handled by session.Run() and ImageBuild()
-		if err := addDirToSession(s, contextDir, progressOutput, syncDone); err != nil {
+	var contextSession *session.Session
+	if options.stream {
+		contextSession, err = newBuildContextSession(dockerCli, buildInput.contextDir)
+		if err != nil {
 			return err
 		}
+	}
 
-		buf := newBufferedWriter(syncDone, buildBuff)
+	progressOutput := newProgressOutput(dockerCli.Out(), buildBuffer.progress)
+	var body io.Reader
+	var remote string
+	if contextSession != nil {
+		buf, err := setupContextStream(contextSession, buildInput.contextDir, progressOutput, buildBuffer.output)
+		if err != nil {
+			return err
+		}
+		buildBuffer.output = buf
+		// TODO: move this to a method on bufferedWriter
 		defer func() {
 			select {
 			case <-buf.flushed:
 			case <-ctx.Done():
 			}
 		}()
-		buildBuff = buf
-
 		remote = clientSessionRemote
-		body = buildCtx
+		body = buildInput.dockerfileCtx
+	} else {
+		body = setupRequestBody(progressOutput, buildInput.buildCtx)
 	}
 
 	configFile := dockerCli.ConfigFile()
@@ -363,7 +238,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		CPUQuota:       options.cpuQuota,
 		CPUPeriod:      options.cpuPeriod,
 		CgroupParent:   options.cgroupParent,
-		Dockerfile:     relDockerfile,
+		Dockerfile:     buildInput.dockerfilePath,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
 		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
@@ -379,88 +254,31 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		Platform:       options.platform,
 	}
 
-	if s != nil {
-		go func() {
-			logrus.Debugf("running session: %v", s.ID())
-			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
-				logrus.Error(err)
-				cancel() // cancel progress context
-			}
-		}()
-		buildOptions.SessionID = s.ID()
-	}
+	buildOptions.SessionID = startSession(ctx, contextSession, dockerCli.Client(), cancel)
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
 	if err != nil {
-		if options.quiet {
-			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
-		}
+		buildBuffer.PrintBuffers(dockerCli.Err())
 		cancel()
 		return err
 	}
 	defer response.Body.Close()
 
-	imageID := ""
-	aux := func(auxJSON *json.RawMessage) {
-		var result types.BuildResult
-		if err := json.Unmarshal(*auxJSON, &result); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
-		} else {
-			imageID = result.ID
-		}
+	imageID, err := streamResponse(dockerCli, response, buildBuffer)
+	if err != nil {
+		return nil
 	}
 
-	err = jsonmessage.DisplayJSONMessagesStream(response.Body, buildBuff, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), aux)
-	if err != nil {
-		if jerr, ok := err.(*jsonmessage.JSONError); ok {
-			// If no error code is set, default to 1
-			if jerr.Code == 0 {
-				jerr.Code = 1
-			}
-			if options.quiet {
-				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
-			}
-			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
-		}
+	warnBuildWindowsToLinux(dockerCli.Out(), response.OSType, options.quiet)
+
+	// Print the imageID if it's buffered (when options.quiet is set)
+	buildBuffer.PrintOutputBuffer(dockerCli.Out())
+
+	if err := idFile.Save(imageID); err != nil {
 		return err
 	}
 
-	// Windows: show error message about modified file permissions if the
-	// daemon isn't running Windows.
-	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
-		fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
-			"image from Windows against a non-Windows Docker host. All files and "+
-			"directories added to build context will have '-rwxr-xr-x' permissions. "+
-			"It is recommended to double check and reset permissions for sensitive "+
-			"files and directories.")
-	}
-
-	// Everything worked so if -q was provided the output from the daemon
-	// should be just the image ID and we'll print that to stdout.
-	if options.quiet {
-		imageID = fmt.Sprintf("%s", buildBuff)
-		fmt.Fprintf(dockerCli.Out(), imageID)
-	}
-
-	if options.imageIDFile != "" {
-		if imageID == "" {
-			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
-		}
-		if err := ioutil.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
-			return err
-		}
-	}
-	if command.IsTrusted() {
-		// Since the build was successful, now we must tag any of the resolved
-		// images from the above Dockerfile rewrite.
-		for _, resolved := range resolvedTags {
-			if err := TagTrusted(ctx, dockerCli, resolved.digestRef, resolved.tagRef); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return tagTrustedImagesFromBuild(ctx, dockerCli, resolvedTags)
 }
 
 func isLocalDir(c string) bool {
@@ -468,7 +286,28 @@ func isLocalDir(c string) bool {
 	return err == nil
 }
 
-type translatorFunc func(context.Context, reference.NamedTagged) (reference.Canonical, error)
+func setupRequestBody(progressOutput progress.Output, buildCtx io.ReadCloser) io.Reader {
+	return progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
+}
+
+func setupContextStream(contextSession *session.Session, contextDir string, progressOutput progress.Output, out io.Writer) (*bufferedWriter, error) {
+	syncDone := make(chan error) // used to signal first progress reporting completed.
+	// progress would also send errors but don't need it here as errors
+	// are handled by session.Run() and ImageBuild()
+	if err := addDirToSession(contextSession, contextDir, progressOutput, syncDone); err != nil {
+		return nil, err
+	}
+	return newBufferedWriter(syncDone, out), nil
+}
+
+// Setup an upload progress bar
+func newProgressOutput(out *command.OutStream, progressWriter io.Writer) progress.Output {
+	progressOutput := streamformatter.NewProgressOutput(progressWriter)
+	if !out.IsTerminal() {
+		progressOutput = &lastProgressOutput{output: progressOutput}
+	}
+	return progressOutput
+}
 
 // validateTag checks if the given image name can be resolved.
 func validateTag(rawRepo string) (string, error) {
@@ -482,18 +321,11 @@ func validateTag(rawRepo string) (string, error) {
 
 var dockerfileFromLinePattern = regexp.MustCompile(`(?i)^[\s]*FROM[ \f\r\t\v]+(?P<image>[^ \f\r\t\v\n#]+)`)
 
-// resolvedTag records the repository, tag, and resolved digest reference
-// from a Dockerfile rewrite.
-type resolvedTag struct {
-	digestRef reference.Canonical
-	tagRef    reference.NamedTagged
-}
-
 // rewriteDockerfileFrom rewrites the given Dockerfile by resolving images in
 // "FROM <image>" instructions to a digest reference. `translator` is a
 // function that takes a repository name and tag reference and returns a
 // trusted digest reference.
-func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
+func rewriteDockerfileFrom(dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
 	scanner := bufio.NewScanner(dockerfile)
 	buf := bytes.NewBuffer(nil)
 
@@ -511,7 +343,7 @@ func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator
 			}
 			ref = reference.TagNameOnly(ref)
 			if ref, ok := ref.(reference.NamedTagged); ok && command.IsTrusted() {
-				trustedRef, err := translator(ctx, ref)
+				trustedRef, err := translator(ref)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -533,57 +365,102 @@ func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator
 	return buf.Bytes(), resolvedTags, scanner.Err()
 }
 
-// replaceDockerfileTarWrapper wraps the given input tar archive stream and
-// replaces the entry with the given Dockerfile name with the contents of the
-// new Dockerfile. Returns a new tar archive stream with the replaced
-// Dockerfile.
-func replaceDockerfileTarWrapper(ctx context.Context, inputTarStream io.ReadCloser, dockerfileName string, translator translatorFunc, resolvedTags *[]*resolvedTag) io.ReadCloser {
-	pipeReader, pipeWriter := io.Pipe()
-	go func() {
-		tarReader := tar.NewReader(inputTarStream)
-		tarWriter := tar.NewWriter(pipeWriter)
+func rewriteDockerfileForContentTrust(buildCtx io.ReadCloser, dockerfileName string, translator translatorFunc) (io.ReadCloser, []*resolvedTag) {
+	var resolvedTags []*resolvedTag
+	return archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
+		dockerfileName: func(_ string, hdr *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
+			var newDockerfile []byte
+			var err error
+			newDockerfile, resolvedTags, err = rewriteDockerfileFrom(content, translator)
+			hdr.Size = int64(len(newDockerfile))
+			return hdr, newDockerfile, err
+		},
+	}), resolvedTags
+}
 
-		defer inputTarStream.Close()
+// buildOutputBuffer manages io.Writers used to print build progress and errors
+type buildOutputBuffer struct {
+	output   io.Writer
+	progress io.Writer
+}
 
-		for {
-			hdr, err := tarReader.Next()
-			if err == io.EOF {
-				// Signals end of archive.
-				tarWriter.Close()
-				pipeWriter.Close()
-				return
-			}
-			if err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
+func newBuildBuffer(out io.Writer, quiet bool) *buildOutputBuffer {
+	progress := out
+	if quiet {
+		out = new(bytes.Buffer)
+		progress = new(bytes.Buffer)
+	}
+	return &buildOutputBuffer{output: out, progress: progress}
+}
 
-			content := io.Reader(tarReader)
-			if hdr.Name == dockerfileName {
-				// This entry is the Dockerfile. Since the tar archive was
-				// generated from a directory on the local filesystem, the
-				// Dockerfile will only appear once in the archive.
-				var newDockerfile []byte
-				newDockerfile, *resolvedTags, err = rewriteDockerfileFrom(ctx, content, translator)
-				if err != nil {
-					pipeWriter.CloseWithError(err)
-					return
-				}
-				hdr.Size = int64(len(newDockerfile))
-				content = bytes.NewBuffer(newDockerfile)
-			}
+// PrintBuffers to the writer
+func (bb *buildOutputBuffer) PrintBuffers(writer io.Writer) {
+	bb.PrintProgressBuffer(writer)
+	bb.PrintOutputBuffer(writer)
+}
 
-			if err := tarWriter.WriteHeader(hdr); err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
+// PrintOutputBuffer to the writer if output is a buffer
+func (bb *buildOutputBuffer) PrintOutputBuffer(writer io.Writer) {
+	if buffer, ok := bb.output.(*bytes.Buffer); ok {
+		fmt.Fprintf(writer, buffer.String())
+	}
+}
 
-			if _, err := io.Copy(tarWriter, content); err != nil {
-				pipeWriter.CloseWithError(err)
-				return
-			}
+// PrintProgressBuffer to the writer with a trailing newline if progress is a buffer
+func (bb *buildOutputBuffer) PrintProgressBuffer(writer io.Writer) {
+	if buffer, ok := bb.progress.(*bytes.Buffer); ok {
+		fmt.Fprintln(writer, buffer.String())
+	}
+}
+
+func streamResponse(dockerCli command.Cli, response types.ImageBuildResponse, buffer *buildOutputBuffer) (string, error) {
+	var imageID string
+	aux := func(auxJSON *json.RawMessage) {
+		var result types.BuildResult
+		if err := json.Unmarshal(*auxJSON, &result); err != nil {
+			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
+		} else {
+			imageID = result.ID
 		}
-	}()
+	}
 
-	return pipeReader
+	err := jsonmessage.DisplayJSONMessagesStream(response.Body, buffer.output, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), aux)
+	if err != nil {
+		if jerr, ok := err.(*jsonmessage.JSONError); ok {
+			// If no error code is set, default to 1
+			if jerr.Code == 0 {
+				jerr.Code = 1
+			}
+			buffer.PrintBuffers(dockerCli.Err())
+			return "", cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+		}
+		return "", err
+	}
+	return imageID, nil
+}
+
+func warnBuildWindowsToLinux(out io.Writer, osType string, quiet bool) {
+	// Windows: show error message about modified file permissions if the
+	// daemon isn't running Windows.
+	if osType != "windows" && runtime.GOOS == "windows" && !quiet {
+		fmt.Fprintln(out, "SECURITY WARNING: You are building a Docker "+
+			"image from Windows against a non-Windows Docker host. All files and "+
+			"directories added to build context will have '-rwxr-xr-x' permissions. "+
+			"It is recommended to double check and reset permissions for sensitive "+
+			"files and directories.")
+	}
+}
+
+func tagTrustedImagesFromBuild(ctx context.Context, dockerCli command.Cli, resolvedTags []*resolvedTag) error {
+	if !command.IsTrusted() {
+		return nil
+	}
+	// Since the build was successful, now we must tag any of the resolved
+	// images from the above Dockerfile rewrite.
+	for _, resolved := range resolvedTags {
+		if err := TagTrusted(ctx, dockerCli, resolved.digestRef, resolved.tagRef); err != nil {
+			return err
+		}
+	}
+	return nil
 }
