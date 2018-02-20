@@ -108,6 +108,56 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	assert.Equal(t, []string{dockerfileName, ".dockerignore", "foo"}, actual)
 }
 
+func TestRunBuildDockerfileOutsideContext(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile("data", "data file"),
+	)
+	defer dir.Remove()
+
+	// Dockerfile outside of build-context
+	df := fs.NewFile(t, t.Name(),
+		fs.WithContent(`
+FROM FOOBAR
+COPY data /data
+		`),
+	)
+	defer df.Remove()
+
+	dest, err := ioutil.TempDir("", t.Name())
+	require.NoError(t, err)
+	defer os.RemoveAll(dest)
+
+	var dockerfileName string
+	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+		buffer := new(bytes.Buffer)
+		tee := io.TeeReader(context, buffer)
+
+		assert.NoError(t, archive.Untar(tee, dest, nil))
+		dockerfileName = options.Dockerfile
+
+		body := new(bytes.Buffer)
+		return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+	}
+
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
+
+	options := newBuildOptions()
+	options.context = dir.Path()
+	options.dockerfileName = df.Path()
+
+	err = runBuild(cli, options)
+	require.NoError(t, err)
+
+	files, err := ioutil.ReadDir(dest)
+	require.NoError(t, err)
+	var actual []string
+	for _, fileInfo := range files {
+		actual = append(actual, fileInfo.Name())
+	}
+	sort.Strings(actual)
+	assert.Equal(t, []string{dockerfileName, ".dockerignore", "data"}, actual)
+}
+
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that build contexts
 // starting with `github.com/` are special-cased, and the build command attempts
 // to clone the remote repo.
