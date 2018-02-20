@@ -146,6 +146,7 @@ Placeholder      | Description
 `.Availability`  | Node availability ("active", "pause", or "drain")
 `.ManagerStatus` | Manager status of the node
 `.TLSStatus`     | TLS status of the node ("Ready", or "Needs Rotation" has TLS certificate signed by an old CA)
+`.EngineVersion` | Engine version
 
 When using the `--format` option, the `node ls` command will either
 output the data exactly as the template declares or, when using the

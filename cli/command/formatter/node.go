@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultNodeTableFormat           = "table {{.ID}} {{if .Self}}*{{else}} {{ end }}\t{{.Hostname}}\t{{.Status}}\t{{.Availability}}\t{{.ManagerStatus}}"
+	defaultNodeTableFormat           = "table {{.ID}} {{if .Self}}*{{else}} {{ end }}\t{{.Hostname}}\t{{.Status}}\t{{.Availability}}\t{{.ManagerStatus}}\t{{.EngineVersion}}"
 	nodeInspectPrettyTemplate Format = `ID:			{{.ID}}
 {{- if .Name }}
 Name:			{{.Name}}
@@ -75,6 +75,7 @@ TLS Info:
 	hostnameHeader      = "HOSTNAME"
 	availabilityHeader  = "AVAILABILITY"
 	managerStatusHeader = "MANAGER STATUS"
+	engineVersionHeader = "ENGINE VERSION"
 	tlsStatusHeader     = "TLS STATUS"
 )
 
@@ -115,6 +116,7 @@ func NodeWrite(ctx Context, nodes []swarm.Node, info types.Info) error {
 		"Status":        statusHeader,
 		"Availability":  availabilityHeader,
 		"ManagerStatus": managerStatusHeader,
+		"EngineVersion": engineVersionHeader,
 		"TLSStatus":     tlsStatusHeader,
 	}
 	nodeCtx := nodeContext{}
@@ -174,6 +176,10 @@ func (c *nodeContext) TLSStatus() string {
 		return "Ready"
 	}
 	return "Needs Rotation"
+}
+
+func (c *nodeContext) EngineVersion() string {
+	return c.n.Description.Engine.EngineVersion
 }
 
 // NodeInspectWrite renders the context for a list of nodes
