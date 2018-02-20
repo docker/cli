@@ -37,6 +37,7 @@ services:
     image: bar
   foo:
     image: foo
+version: "3.1"
 volumes: {}
 `),
 		},
