@@ -15,7 +15,7 @@
 // constraining the ordering or manipulation of the files during the creation or
 // unpacking of the archive, nor include additional metadata state about the file
 // system attributes.
-package tarsum
+package tarsum // import "github.com/docker/docker/pkg/tarsum"
 
 import (
 	"archive/tar"
@@ -236,7 +236,7 @@ func (ts *tarSum) Read(buf []byte) (int, error) {
 				}
 				return n, err
 			}
-			ts.currentFile = path.Clean(currentHeader.Name)
+			ts.currentFile = path.Join(".", path.Join("/", currentHeader.Name))
 			if err := ts.encodeHeader(currentHeader); err != nil {
 				return 0, err
 			}

@@ -1,4 +1,4 @@
-package client
+package client // import "github.com/docker/docker/client"
 
 import (
 	"encoding/json"
@@ -12,6 +12,9 @@ import (
 func (cli *Client) DistributionInspect(ctx context.Context, image, encodedRegistryAuth string) (registrytypes.DistributionInspect, error) {
 	// Contact the registry to retrieve digest and platform information
 	var distributionInspect registrytypes.DistributionInspect
+	if image == "" {
+		return distributionInspect, objectNotFoundError{object: "distribution", id: image}
+	}
 
 	if err := cli.NewVersionError("1.30", "distribution inspect"); err != nil {
 		return distributionInspect, err
