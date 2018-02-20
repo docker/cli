@@ -1,48 +1,50 @@
 package kubernetes
 
 import (
-	"fmt"
-
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	apiv1beta2 "github.com/docker/cli/kubernetes/compose/v1beta2"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	apimachinerymetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
+	restclient "k8s.io/client-go/rest"
 )
 
 // StackVersion represents the detected Compose Component on Kubernetes side.
 type StackVersion string
 
 const (
-	// StackNotFound is returned when no stack api at all is detected on kubernetes.
-	StackNotFound = "notFound"
 	// StackAPIV1Beta1 is returned if it's the most recent version available.
-	StackAPIV1Beta1 = "v1beta1"
+	StackAPIV1Beta1 = StackVersion("v1beta1")
 	// StackAPIV1Beta2 is returned if it's the most recent version available.
-	StackAPIV1Beta2 = "v1beta2"
+	StackAPIV1Beta2 = StackVersion("v1beta2")
 )
 
 // GetAPIVersion returns the most recent stack API installed.
-func (c *KubeCli) GetAPIVersion() (StackVersion, error) {
-	log.Debugf("retrieve most recent stack API present at %s", c.KubeConfig.Host)
-	clients, err := kubernetes.NewForConfig(c.KubeConfig)
+func GetAPIVersion(kubeConfig *restclient.Config) (StackVersion, error) {
+	log.Debugf("retrieve most recent stack API present at %s", kubeConfig.Host)
+	clients, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		return StackNotFound, err
+		return "", err
 	}
-
 	groups, err := clients.Discovery().ServerGroups()
 	if err != nil {
-		return StackNotFound, err
+		return "", err
 	}
 
+	return getAPIVersion(groups)
+}
+
+func getAPIVersion(groups *metav1.APIGroupList) (StackVersion, error) {
 	switch {
 	case findVersion(apiv1beta2.SchemeGroupVersion, groups.Groups):
 		return StackAPIV1Beta2, nil
 	case findVersion(apiv1beta1.SchemeGroupVersion, groups.Groups):
 		return StackAPIV1Beta1, nil
 	default:
-		return StackNotFound, fmt.Errorf("could not find %s api. Install it on your cluster first", apiv1beta1.SchemeGroupVersion.Group)
+		return "", errors.Errorf("failed to find a Stack API version")
 	}
 }
 

@@ -19,7 +19,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if dockerCli.ClientInfo().HasKubernetes() {
-				kli, err := kubernetes.WrapCli(dockerCli, cmd)
+				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
 				if err != nil {
 					return err
 				}
