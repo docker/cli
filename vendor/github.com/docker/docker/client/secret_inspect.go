@@ -1,4 +1,4 @@
-package client
+package client // import "github.com/docker/docker/client"
 
 import (
 	"bytes"
@@ -13,6 +13,9 @@ import (
 func (cli *Client) SecretInspectWithRaw(ctx context.Context, id string) (swarm.Secret, []byte, error) {
 	if err := cli.NewVersionError("1.25", "secret inspect"); err != nil {
 		return swarm.Secret{}, nil, err
+	}
+	if id == "" {
+		return swarm.Secret{}, nil, objectNotFoundError{object: "secret", id: id}
 	}
 	resp, err := cli.get(ctx, "/secrets/"+id, nil, nil)
 	if err != nil {
