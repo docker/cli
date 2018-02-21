@@ -8,16 +8,30 @@ import (
 )
 
 type versionedConfig struct {
-	*composetypes.Config `yaml:",inline"`
-	Version              string
+	composetypes.Config
+	version string
+}
+
+func (c versionedConfig) MarshalYAML() (interface{}, error) {
+	services := map[string]composetypes.ServiceConfig{}
+	for _, service := range c.Services {
+		services[service.Name] = service
+	}
+	return map[string]interface{}{
+		"services": services,
+		"networks": c.Networks,
+		"volumes":  c.Volumes,
+		"secrets":  c.Secrets,
+		"configs":  c.Configs,
+		"version":  c.version,
+	}, nil
 }
 
 // LoadStack loads a stack from a Compose config, with a given name.
 func LoadStack(name, version string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
-	cfg.Filename = ""
 	res, err := yaml.Marshal(versionedConfig{
-		Version: version,
-		Config:  &cfg,
+		version: version,
+		Config:  cfg,
 	})
 	if err != nil {
 		return nil, err
