@@ -22,11 +22,11 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	// Parse the compose file
-	cfg, version, err := loader.LoadComposefile(dockerCli, opts)
+	cfg, err := loader.LoadComposefile(dockerCli, opts)
 	if err != nil {
 		return err
 	}
-	stack, err := LoadStack(opts.Namespace, version, *cfg)
+	stack, err := LoadStack(opts.Namespace, *cfg)
 	if err != nil {
 		return err
 	}

@@ -207,6 +207,7 @@ func TestLoadLogging(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -325,6 +326,7 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -450,6 +452,7 @@ func TestLoadMultipleSecretsConfig(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -575,6 +578,7 @@ func TestLoadMultipleConfigobjsConfig(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -690,6 +694,7 @@ func TestLoadMultipleUlimits(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -808,6 +813,7 @@ func TestLoadMultipleNetworks(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, &types.Config{
 				Filename: "base.yml",
+				Version:  "3.4",
 				Services: []types.ServiceConfig{
 					{
 						Name:        "foo",
@@ -895,6 +901,7 @@ func TestLoadMultipleConfigs(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, &types.Config{
 		Filename: "base.yml",
+		Version:  "3.4",
 		Services: []types.ServiceConfig{
 			{
 				Name:        "bar",

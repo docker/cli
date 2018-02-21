@@ -98,7 +98,9 @@ func validateForbidden(configDict map[string]interface{}) error {
 
 func loadSections(config map[string]interface{}, configDetails types.ConfigDetails) (*types.Config, error) {
 	var err error
-	cfg := types.Config{}
+	cfg := types.Config{
+		Version: schema.Version(config),
+	}
 
 	var loaders = []struct {
 		key string
