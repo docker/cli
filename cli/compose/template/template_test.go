@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var defaults = map[string]string{
@@ -20,6 +21,12 @@ func TestEscaped(t *testing.T) {
 	result, err := Substitute("$${foo}", defaultMapping)
 	assert.Nil(t, err)
 	assert.Equal(t, "${foo}", result)
+}
+
+func TestSubstituteNoMatch(t *testing.T) {
+	result, err := Substitute("foo", defaultMapping)
+	require.NoError(t, err)
+	require.Equal(t, "foo", result)
 }
 
 func TestInvalid(t *testing.T) {

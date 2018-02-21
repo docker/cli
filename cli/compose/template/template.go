@@ -37,75 +37,72 @@ func Substitute(template string, mapping Mapping) (string, error) {
 	var err error
 	result := pattern.ReplaceAllStringFunc(template, func(substring string) string {
 		matches := pattern.FindStringSubmatch(substring)
-		groups := make(map[string]string)
-		for i, name := range pattern.SubexpNames() {
-			if i != 0 {
-				groups[name] = matches[i]
-			}
+		groups := matchGroups(matches)
+		if escaped := groups["escaped"]; escaped != "" {
+			return escaped
 		}
 
 		substitution := groups["named"]
 		if substitution == "" {
 			substitution = groups["braced"]
 		}
-		if substitution != "" {
-			// Soft default (fall back if unset or empty)
-			if strings.Contains(substitution, ":-") {
-				name, defaultValue := partition(substitution, ":-")
-				value, ok := mapping(name)
-				if !ok || value == "" {
-					return defaultValue
-				}
-				return value
-			}
 
-			// Hard default (fall back if-and-only-if empty)
-			if strings.Contains(substitution, "-") {
-				name, defaultValue := partition(substitution, "-")
-				value, ok := mapping(name)
-				if !ok {
-					return defaultValue
-				}
-				return value
-			}
+		switch {
 
-			if strings.Contains(substitution, ":?") {
-				name, errorMessage := partition(substitution, ":?")
-				value, ok := mapping(name)
-				if !ok || value == "" {
-					err = &InvalidTemplateError{Template: errorMessage}
-					return ""
-				}
-				return value
-			}
+		case substitution == "":
+			err = &InvalidTemplateError{Template: template}
+			return ""
 
-			if strings.Contains(substitution, "?") {
-				name, errorMessage := partition(substitution, "?")
-				value, ok := mapping(name)
-				if !ok {
-					err = &InvalidTemplateError{Template: errorMessage}
-					return ""
-				}
-				return value
+		// Soft default (fall back if unset or empty)
+		case strings.Contains(substitution, ":-"):
+			name, defaultValue := partition(substitution, ":-")
+			value, ok := mapping(name)
+			if !ok || value == "" {
+				return defaultValue
 			}
+			return value
 
-			// No default (fall back to empty string)
-			value, ok := mapping(substitution)
+		// Hard default (fall back if-and-only-if empty)
+		case strings.Contains(substitution, "-"):
+			name, defaultValue := partition(substitution, "-")
+			value, ok := mapping(name)
 			if !ok {
+				return defaultValue
+			}
+			return value
+
+		case strings.Contains(substitution, ":?"):
+			name, errorMessage := partition(substitution, ":?")
+			value, ok := mapping(name)
+			if !ok || value == "" {
+				err = &InvalidTemplateError{Template: errorMessage}
+				return ""
+			}
+			return value
+
+		case strings.Contains(substitution, "?"):
+			name, errorMessage := partition(substitution, "?")
+			value, ok := mapping(name)
+			if !ok {
+				err = &InvalidTemplateError{Template: errorMessage}
 				return ""
 			}
 			return value
 		}
 
-		if escaped := groups["escaped"]; escaped != "" {
-			return escaped
-		}
-
-		err = &InvalidTemplateError{Template: template}
-		return ""
+		value, _ := mapping(substitution)
+		return value
 	})
 
 	return result, err
+}
+
+func matchGroups(matches []string) map[string]string {
+	groups := make(map[string]string)
+	for i, name := range pattern.SubexpNames()[1:] {
+		groups[name] = matches[i+1]
+	}
+	return groups
 }
 
 // Split the string at the first occurrence of sep, and return the part before the separator,
