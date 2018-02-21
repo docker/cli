@@ -300,12 +300,12 @@ func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, er
 			Timeout:   30 * time.Second,
 		}).DialContext,
 	}
-	proto, addr, _, err := client.ParseHost(host)
+	hostURL, err := client.ParseHostURL(host)
 	if err != nil {
 		return nil, err
 	}
 
-	sockets.ConfigureTransport(tr, proto, addr)
+	sockets.ConfigureTransport(tr, hostURL.Scheme, hostURL.Host)
 
 	return &http.Client{
 		Transport:     tr,
