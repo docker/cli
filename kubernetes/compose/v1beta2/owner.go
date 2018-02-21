@@ -1,4 +1,4 @@
-package v1beta2 // import "github.com/docker/cli/kubernetes/compose/v1beta2"
+package v1beta2
 
 import (
 	"github.com/docker/cli/kubernetes/compose/impersonation"

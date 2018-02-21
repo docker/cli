@@ -14,7 +14,7 @@ func loadStack(name string, cfg composetypes.Config) (stack, error) {
 	return stack{
 		name:        name,
 		composeFile: string(res),
-		config:      &cfg,
+		spec:        fromComposeConfig(&cfg),
 	}, nil
 }
 

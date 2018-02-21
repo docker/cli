@@ -47,7 +47,7 @@ func getStacks(kubeCli *KubeCli) ([]*formatter.Stack, error) {
 	for _, stack := range stacks {
 		formattedStacks = append(formattedStacks, &formatter.Stack{
 			Name:     stack.name,
-			Services: len(getServices(stack.config)),
+			Services: len(stack.getServices()),
 		})
 	}
 	return formattedStacks, nil

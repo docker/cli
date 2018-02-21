@@ -1,4 +1,4 @@
-package v1beta2 // import "github.com/docker/cli/kubernetes/compose/v1beta2"
+package v1beta2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +36,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	return nil
 }
 
-// Resource takes an unqualified resource and returns a Group qualified GroupResource
-func Resource(resource string) schema.GroupResource {
+// GroupResource takes an unqualified resource and returns a Group qualified GroupResource
+func GroupResource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }

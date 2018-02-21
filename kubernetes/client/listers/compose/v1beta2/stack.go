@@ -72,7 +72,7 @@ func (s stackNamespaceLister) Get(name string) (*v1beta2.Stack, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(v1beta2.Resource("stack"), name)
+		return nil, errors.NewNotFound(v1beta2.GroupResource("stack"), name)
 	}
 	return obj.(*v1beta2.Stack), nil
 }

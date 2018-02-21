@@ -1,8 +1,6 @@
-package v1beta1 // import "github.com/docker/cli/kubernetes/compose/v1beta1"
+package v1beta1
 
 import (
-	"encoding/json"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -35,11 +33,6 @@ func (s *StackList) DeepCopyObject() runtime.Object {
 
 // Stack defines a stack object to be register in the kubernetes API
 type Stack struct {
-	StackImpl
-}
-
-// StackImpl contains the Stacks actual fields
-type StackImpl struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -84,28 +77,11 @@ func (s *Stack) clone() *Stack {
 }
 
 // Clone implements the Cloner interface for kubernetes
-func (s *Stack) Clone() (*Stack, error) {
-	return s.clone(), nil
+func (s *Stack) Clone() *Stack {
+	return s.clone()
 }
 
 // DeepCopyObject clones the stack
 func (s *Stack) DeepCopyObject() runtime.Object {
 	return s.clone()
-}
-
-/* Do not remove me! This explicit implementation of json.Marshaler overrides
- * the default behavior of ToUnstructured(), which would otherwise convert
- * all field names to lowercase, which makes patching fail in case of update
- * conflict
- *
- */
-
-// MarshalJSON implements the json.Marshaler interface
-func (s *Stack) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.StackImpl)
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface
-func (s *Stack) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &s.StackImpl)
 }
