@@ -9,26 +9,7 @@ import (
 
 func TestMarshallConfig(t *testing.T) {
 	cfg := fullExampleConfig("/foo", "/bar")
-	expected := `configs: {}
-networks:
-  external-network:
-    name: external-network
-    external: true
-  other-external-network:
-    name: my-cool-network
-    external: true
-  other-network:
-    driver: overlay
-    driver_opts:
-      baz: "1"
-      foo: bar
-    ipam:
-      driver: overlay
-      config:
-      - subnet: 172.16.238.0/24
-      - subnet: 2001:3984:3989::/64
-  some-network: {}
-secrets: {}
+	expected := `version: "3.6"
 services:
   foo:
     build:
@@ -292,6 +273,24 @@ services:
       tmpfs:
         size: 10000
     working_dir: /code
+networks:
+  external-network:
+    name: external-network
+    external: true
+  other-external-network:
+    name: my-cool-network
+    external: true
+  other-network:
+    driver: overlay
+    driver_opts:
+      baz: "1"
+      foo: bar
+    ipam:
+      driver: overlay
+      config:
+      - subnet: 172.16.238.0/24
+      - subnet: 2001:3984:3989::/64
+  some-network: {}
 volumes:
   another-volume:
     name: user_specified_name
@@ -314,6 +313,8 @@ volumes:
       baz: "1"
       foo: bar
   some-volume: {}
+secrets: {}
+configs: {}
 `
 
 	actual, err := yaml.Marshal(cfg)

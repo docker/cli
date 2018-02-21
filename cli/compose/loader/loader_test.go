@@ -119,6 +119,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
+	Version: "3.0",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -174,6 +175,7 @@ func TestParseYAML(t *testing.T) {
 func TestLoad(t *testing.T) {
 	actual, err := Load(buildConfigDetails(sampleDict, nil))
 	require.NoError(t, err)
+	assert.Equal(t, sampleConfig.Version, actual.Version)
 	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
 	assert.Equal(t, sampleConfig.Networks, actual.Networks)
 	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
@@ -573,6 +575,7 @@ networks:
 	require.NoError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
+		Version:  "3.4",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",

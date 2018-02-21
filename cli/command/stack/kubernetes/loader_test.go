@@ -10,7 +10,8 @@ import (
 )
 
 func TestLoadStack(t *testing.T) {
-	s, err := LoadStack("foo", "3.1", composetypes.Config{
+	s, err := LoadStack("foo", composetypes.Config{
+		Version:  "3.1",
 		Filename: "banana",
 		Services: []composetypes.ServiceConfig{
 			{
@@ -29,16 +30,16 @@ func TestLoadStack(t *testing.T) {
 			Name: "foo",
 		},
 		Spec: apiv1beta1.StackSpec{
-			ComposeFile: string(`configs: {}
-networks: {}
-secrets: {}
+			ComposeFile: string(`version: "3.1"
 services:
   bar:
     image: bar
   foo:
     image: foo
-version: "3.1"
+networks: {}
 volumes: {}
+secrets: {}
+configs: {}
 `),
 		},
 	}, s)

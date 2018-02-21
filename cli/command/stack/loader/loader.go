@@ -18,21 +18,21 @@ import (
 )
 
 // LoadComposefile parse the composefile specified in the cli and returns its Config and version.
-func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, string, error) {
+func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, error) {
 	configDetails, err := getConfigDetails(opts.Composefiles, dockerCli.In())
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	dicts := getDictsFrom(configDetails.ConfigFiles)
 	config, err := loader.Load(configDetails)
 	if err != nil {
 		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
-			return nil, "", errors.Errorf("Compose file contains unsupported options:\n\n%s\n",
+			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n",
 				propertyWarnings(fpe.Properties))
 		}
 
-		return nil, "", err
+		return nil, err
 	}
 
 	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
@@ -46,7 +46,7 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 		fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
 			propertyWarnings(deprecatedProperties))
 	}
-	return config, configDetails.Version, nil
+	return config, nil
 }
 
 func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{} {

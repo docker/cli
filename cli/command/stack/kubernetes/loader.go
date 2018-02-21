@@ -7,32 +7,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type versionedConfig struct {
-	composetypes.Config
-	version string
-}
-
-func (c versionedConfig) MarshalYAML() (interface{}, error) {
-	services := map[string]composetypes.ServiceConfig{}
-	for _, service := range c.Services {
-		services[service.Name] = service
-	}
-	return map[string]interface{}{
-		"services": services,
-		"networks": c.Networks,
-		"volumes":  c.Volumes,
-		"secrets":  c.Secrets,
-		"configs":  c.Configs,
-		"version":  c.version,
-	}, nil
-}
-
 // LoadStack loads a stack from a Compose config, with a given name.
-func LoadStack(name, version string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
-	res, err := yaml.Marshal(versionedConfig{
-		version: version,
-		Config:  cfg,
-	})
+func LoadStack(name string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
+	res, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, err
 	}

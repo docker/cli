@@ -18,7 +18,7 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
-	config, _, err := loader.LoadComposefile(dockerCli, opts)
+	config, err := loader.LoadComposefile(dockerCli, opts)
 	if err != nil {
 		return err
 	}
