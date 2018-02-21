@@ -7,7 +7,7 @@ import (
 )
 
 var delimiter = "\\$"
-var substitution = "[_a-z][_a-z0-9]*(?::?-[^}]+)?"
+var substitution = "[_a-z][_a-z0-9]*(?::?[-?][^}]+)?"
 
 var patternString = fmt.Sprintf(
 	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
@@ -65,6 +65,26 @@ func Substitute(template string, mapping Mapping) (string, error) {
 				value, ok := mapping(name)
 				if !ok {
 					return defaultValue
+				}
+				return value
+			}
+
+			if strings.Contains(substitution, ":?") {
+				name, errorMessage := partition(substitution, ":?")
+				value, ok := mapping(name)
+				if !ok || value == "" {
+					err = &InvalidTemplateError{Template: errorMessage}
+					return ""
+				}
+				return value
+			}
+
+			if strings.Contains(substitution, "?") {
+				name, errorMessage := partition(substitution, "?")
+				value, ok := mapping(name)
+				if !ok {
+					err = &InvalidTemplateError{Template: errorMessage}
+					return ""
 				}
 				return value
 			}

@@ -81,3 +81,63 @@ func TestNonAlphanumericDefault(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "ok /non:-alphanumeric", result)
 }
+
+func TestMandatoryVariableErrors(t *testing.T) {
+	testCases := []struct {
+		template      string
+		expectedError string
+	}{
+		{
+			template:      "not ok ${UNSET_VAR:?Mandatory Variable Unset}",
+			expectedError: "Mandatory Variable Unset",
+		},
+		{
+			template:      "not ok ${BAR:?Mandatory Variable Empty}",
+			expectedError: "Mandatory Variable Empty",
+		},
+		{
+			template:      "not ok ${UNSET_VAR:?}",
+			expectedError: "",
+		},
+		{
+			template:      "not ok ${UNSET_VAR?Mandatory Variable Unset",
+			expectedError: "Mandatory Variable Unset",
+		},
+		{
+			template:      "not ok ${UNSET_VAR?}",
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		_, err := Substitute(tc.template, defaultMapping)
+		assert.Error(t, err)
+		assert.IsType(t, &InvalidTemplateError{tc.expectedError}, err)
+	}
+}
+
+func TestDefaultsForMandatoryVariables(t *testing.T) {
+	testCases := []struct {
+		template string
+		expected string
+	}{
+		{
+			template: "ok ${FOO:?err}",
+			expected: "ok first",
+		},
+		{
+			template: "ok ${FOO?err}",
+			expected: "ok first",
+		},
+		{
+			template: "ok ${BAR?err}",
+			expected: "ok ",
+		},
+	}
+
+	for _, tc := range testCases {
+		result, err := Substitute(tc.template, defaultMapping)
+		assert.Nil(t, err)
+		assert.Equal(t, tc.expected, result)
+	}
+}
