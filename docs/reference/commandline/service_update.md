@@ -181,7 +181,7 @@ myservice
 
 Use the `--publish-add` or `--publish-rm` flags to add or remove a published
 port for a service. You can use the short or long syntax discussed in the
-[docker service create](service_create/#attach-a-service-to-an-existing-network-network)
+[docker service create](service_create/#publish-service-ports-externally-to-the-swarm)
 reference.
 
 The following example adds a published service port to an existing service.
@@ -189,6 +189,22 @@ The following example adds a published service port to an existing service.
 ```bash
 $ docker service update \
   --publish-add published=8080,target=80 \
+  myservice
+```
+
+### Add or remove network
+
+Use the `--network-add` or `--network-rm` flags to add or remove a network for
+a service. You can use the short or long syntax discussed in the
+[docker service create](service_create/#attach-a-service-to-an-existing-network-network)
+reference.
+
+The following example adds a new alias name to an existing service already connected to network my-network:
+
+```bash
+$ docker service update \
+  --network-rm my-network \
+  --network-add name=my-network,alias=web1 \
   myservice
 ```
 
