@@ -3,6 +3,7 @@ package template
 import (
 	"testing"
 
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -119,7 +120,8 @@ func TestMandatoryVariableErrors(t *testing.T) {
 	for _, tc := range testCases {
 		_, err := Substitute(tc.template, defaultMapping)
 		assert.Error(t, err)
-		assert.IsType(t, &InvalidTemplateError{tc.expectedError}, err)
+		assert.IsType(t, &InvalidTemplateError{}, err)
+		testutil.ErrorContains(t, err, tc.expectedError)
 	}
 }
 
