@@ -32,7 +32,7 @@ func RunPS(dockerCli *KubeCli, options options.PS) error {
 	podsClient := client.Pods()
 
 	// Fetch pods
-	if _, err := stacks.Get(namespace, metav1.GetOptions{}); err != nil {
+	if _, err := stacks.Get(namespace); err != nil {
 		return fmt.Errorf("nothing found in stack: %s", namespace)
 	}
 

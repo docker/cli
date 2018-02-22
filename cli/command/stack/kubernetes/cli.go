@@ -1,45 +1,53 @@
 package kubernetes
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/docker/cli/cli/command"
-	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
+	"github.com/docker/cli/kubernetes"
 	"github.com/docker/docker/pkg/homedir"
-	"github.com/spf13/cobra"
+	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // KubeCli holds kubernetes specifics (client, namespace) with the command.Cli
 type KubeCli struct {
 	command.Cli
-	kubeConfig    *restclient.Config
-	kubeNamespace string
+	KubeConfig    *restclient.Config
+	KubeNamespace string
+}
+
+// Options contains resolved parameters to initialize kubernetes clients
+type Options struct {
+	Namespace string
+	Config    string
+}
+
+// NewOptions returns an Options initialized with command line flags
+func NewOptions(flags *flag.FlagSet) Options {
+	var opts Options
+	if namespace, err := flags.GetString("namespace"); err == nil {
+		opts.Namespace = namespace
+	}
+	if kubeConfig, err := flags.GetString("kubeconfig"); err == nil {
+		opts.Config = kubeConfig
+	}
+	return opts
 }
 
 // WrapCli wraps command.Cli with kubernetes specifics
-func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
+func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	var err error
 	cli := &KubeCli{
 		Cli:           dockerCli,
-		kubeNamespace: "default",
+		KubeNamespace: "default",
 	}
-	if cmd.Flags().Changed("namespace") {
-		cli.kubeNamespace, err = cmd.Flags().GetString("namespace")
-		if err != nil {
-			return nil, err
-		}
+	if opts.Namespace != "" {
+		cli.KubeNamespace = opts.Namespace
 	}
-	kubeConfig := ""
-	if cmd.Flags().Changed("kubeconfig") {
-		kubeConfig, err = cmd.Flags().GetString("kubeconfig")
-		if err != nil {
-			return nil, err
-		}
-	}
+	kubeConfig := opts.Config
 	if kubeConfig == "" {
 		if config := os.Getenv("KUBECONFIG"); config != "" {
 			kubeConfig = config
@@ -47,30 +55,31 @@ func WrapCli(dockerCli command.Cli, cmd *cobra.Command) (*KubeCli, error) {
 			kubeConfig = filepath.Join(homedir.Get(), ".kube/config")
 		}
 	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
+	config, err := kubernetes.NewKubernetesConfig(kubeConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load kubernetes configuration file '%s'", kubeConfig)
+		return nil, err
 	}
-	cli.kubeConfig = config
+	cli.KubeConfig = config
 
 	return cli, nil
 }
 
 func (c *KubeCli) composeClient() (*Factory, error) {
-	return NewFactory(c.kubeNamespace, c.kubeConfig)
+	return NewFactory(c.KubeNamespace, c.KubeConfig)
 }
 
-func (c *KubeCli) stacks() (composev1beta1.StackInterface, error) {
-	err := APIPresent(c.kubeConfig)
+func (c *KubeCli) stacks() (stackClient, error) {
+	version, err := kubernetes.GetAPIVersion(c.KubeConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	clientSet, err := composev1beta1.NewForConfig(c.kubeConfig)
-	if err != nil {
-		return nil, err
+	switch version {
+	case kubernetes.StackAPIV1Beta1:
+		return c.newStackV1Beta1()
+	case kubernetes.StackAPIV1Beta2:
+		return c.newStackV1Beta2()
+	default:
+		return nil, errors.Errorf("no supported Stack API version")
 	}
-
-	return clientSet.Stacks(c.kubeNamespace), nil
 }

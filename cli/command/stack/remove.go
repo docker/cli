@@ -20,7 +20,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespaces = args
 			if dockerCli.ClientInfo().HasKubernetes() {
-				kli, err := kubernetes.WrapCli(dockerCli, cmd)
+				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
 				if err != nil {
 					return err
 				}
