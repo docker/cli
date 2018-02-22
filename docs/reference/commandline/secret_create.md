@@ -16,13 +16,13 @@ keywords: ["secret, create"]
 # secret create
 
 ```Markdown
-Usage:	docker secret create [OPTIONS] SECRET file|-
+Usage:	docker secret create [OPTIONS] SECRET [file|-]
 
 Create a secret from a file or STDIN as content
 
 Options:
-      --help          Print usage
-  -l, --label list    Secret labels (default [])
+  -l, --label list               Secret labels
+      --template-driver string   Template driver
 ```
 
 ## Description

@@ -16,10 +16,11 @@ import (
 )
 
 type createOptions struct {
-	name   string
-	driver string
-	file   string
-	labels opts.ListOpts
+	name           string
+	driver         string
+	templateDriver string
+	file           string
+	labels         opts.ListOpts
 }
 
 func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
@@ -43,6 +44,8 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.labels, "label", "l", "Secret labels")
 	flags.StringVarP(&options.driver, "driver", "d", "", "Secret driver")
 	flags.SetAnnotation("driver", "version", []string{"1.31"})
+	flags.StringVar(&options.templateDriver, "template-driver", "", "Template driver")
+	flags.SetAnnotation("driver", "version", []string{"1.37"})
 
 	return cmd
 }
@@ -71,7 +74,11 @@ func runSecretCreate(dockerCli command.Cli, options createOptions) error {
 			Name: options.driver,
 		}
 	}
-
+	if options.templateDriver != "" {
+		spec.Templating = &swarm.Driver{
+			Name: options.templateDriver,
+		}
+	}
 	r, err := client.SecretCreate(ctx, spec)
 	if err != nil {
 		return err
