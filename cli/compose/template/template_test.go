@@ -97,23 +97,23 @@ func TestMandatoryVariableErrors(t *testing.T) {
 	}{
 		{
 			template:      "not ok ${UNSET_VAR:?Mandatory Variable Unset}",
-			expectedError: "Mandatory Variable Unset",
+			expectedError: "required variable UNSET_VAR is missing a value: Mandatory Variable Unset",
 		},
 		{
 			template:      "not ok ${BAR:?Mandatory Variable Empty}",
-			expectedError: "Mandatory Variable Empty",
+			expectedError: "required variable BAR is missing a value: Mandatory Variable Empty",
 		},
 		{
 			template:      "not ok ${UNSET_VAR:?}",
-			expectedError: "",
+			expectedError: "required variable UNSET_VAR is missing a value",
 		},
 		{
-			template:      "not ok ${UNSET_VAR?Mandatory Variable Unset",
-			expectedError: "Mandatory Variable Unset",
+			template:      "not ok ${UNSET_VAR?Mandatory Variable Unset}",
+			expectedError: "required variable UNSET_VAR is missing a value: Mandatory Variable Unset",
 		},
 		{
 			template:      "not ok ${UNSET_VAR?}",
-			expectedError: "",
+			expectedError: "required variable UNSET_VAR is missing a value",
 		},
 	}
 
