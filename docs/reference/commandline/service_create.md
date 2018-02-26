@@ -813,7 +813,7 @@ The options you can specify are:
   <td><tt>--publish 8080:80/tcp</tt></td>
   <td><tt>--publish published=8080,target=80,protocol=tcp</tt></td>
   <td><p>
-    The protocol to use, either <tt>tcp</tt> or <tt>udp</tt> Defaults to
+    The protocol to use, <tt>tcp</tt> , <tt>udp</tt>, or <tt>sctp</tt>. Defaults to
     <tt>tcp</tt>. To bind a port for both protocols, specify the <tt>-p</tt> or
     <tt>--publish</tt> flag twice.
   </p></td>
