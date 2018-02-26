@@ -343,12 +343,12 @@ $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ### Publish or expose port (-p, --expose)
 
 ```bash
-$ docker run -p 127.0.0.1:80:8080 ubuntu bash
+$ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
 ```
 
-This binds port `8080` of the container to port `80` on `127.0.0.1` of the host
-machine. The [Docker User
-Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
+This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the host
+machine. You can also specify `udp` and `sctp` ports.
+The [Docker User Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
 explains in detail how to manipulate ports in Docker.
 
 ```bash
