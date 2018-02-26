@@ -31,7 +31,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	if err != nil {
 		return err
 	}
-	stack, err := stacks.FromCompose(opts.Namespace, *cfg)
+	stack, err := stacks.FromCompose(dockerCli.Err(), opts.Namespace, cfg)
 	if err != nil {
 		return err
 	}

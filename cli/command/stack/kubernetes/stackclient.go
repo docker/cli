@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"io"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
@@ -20,7 +21,7 @@ type stackClient interface {
 	Get(name string) (stack, error)
 	List(opts metav1.ListOptions) ([]stack, error)
 	IsColliding(servicesClient corev1.ServiceInterface, s stack) error
-	FromCompose(name string, cfg composetypes.Config) (stack, error)
+	FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (stack, error)
 }
 
 // stackV1Beta1 implements stackClient interface and talks to compose component v1beta1.
@@ -103,16 +104,17 @@ func verify(services corev1.ServiceInterface, stackName string, service string) 
 	return nil
 }
 
-func (s *stackV1Beta1) FromCompose(name string, cfg composetypes.Config) (stack, error) {
+func (s *stackV1Beta1) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (stack, error) {
+	st, err := fromCompose(stderr, name, cfg)
+	if err != nil {
+		return stack{}, err
+	}
 	res, err := yaml.Marshal(cfg)
 	if err != nil {
 		return stack{}, err
 	}
-	return stack{
-		name:        name,
-		composeFile: string(res),
-		spec:        fromComposeConfig(&cfg),
-	}, nil
+	st.composeFile = string(res)
+	return st, nil
 }
 
 // stackV1Beta2 implements stackClient interface and talks to compose component v1beta2.
@@ -169,9 +171,13 @@ func (s *stackV1Beta2) IsColliding(servicesClient corev1.ServiceInterface, st st
 	return nil
 }
 
-func (s *stackV1Beta2) FromCompose(name string, cfg composetypes.Config) (stack, error) {
+func (s *stackV1Beta2) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (stack, error) {
+	return fromCompose(stderr, name, cfg)
+}
+
+func fromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (stack, error) {
 	return stack{
 		name: name,
-		spec: fromComposeConfig(&cfg),
+		spec: fromComposeConfig(stderr, cfg),
 	}, nil
 }

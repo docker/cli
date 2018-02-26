@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"io/ioutil"
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -9,7 +10,7 @@ import (
 
 func TestFromCompose(t *testing.T) {
 	stackClient := &stackV1Beta1{}
-	s, err := stackClient.FromCompose("foo", composetypes.Config{
+	s, err := stackClient.FromCompose(ioutil.Discard, "foo", &composetypes.Config{
 		Version:  "3.1",
 		Filename: "banana",
 		Services: []composetypes.ServiceConfig{
