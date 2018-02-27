@@ -16,6 +16,7 @@ type fakeClient struct {
 	execInspectFunc       func(execID string) (types.ContainerExecInspect, error)
 	execCreateFunc        func(container string, config types.ExecConfig) (types.IDResponse, error)
 	createContainerFunc   func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
+	containerStartFunc    func(container string, options types.ContainerStartOptions) error
 	imageCreateFunc       func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
 	infoFunc              func() (types.Info, error)
 	containerStatPathFunc func(container, path string) (types.ContainerPathStat, error)
@@ -115,4 +116,11 @@ func (f *fakeClient) ContainerWait(_ context.Context, container string, _ contai
 		return f.waitFunc(container)
 	}
 	return nil, nil
+}
+
+func (f *fakeClient) ContainerStart(_ context.Context, container string, options types.ContainerStartOptions) error {
+	if f.containerStartFunc != nil {
+		return f.containerStartFunc(container, options)
+	}
+	return nil
 }
