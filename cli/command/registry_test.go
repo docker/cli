@@ -1,6 +1,8 @@
 package command_test
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -8,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
+
 	. "github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
@@ -17,6 +20,19 @@ import (
 type fakeClient struct {
 	client.Client
 	infoFunc func() (types.Info, error)
+}
+
+var testAuthConfigs = []types.AuthConfig{
+	{
+		ServerAddress: "https://index.docker.io/v1/",
+		Username:      "u0",
+		Password:      "p0",
+	},
+	{
+		ServerAddress: "server1.io",
+		Username:      "u1",
+		Password:      "p1",
+	},
 }
 
 func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
@@ -70,6 +86,61 @@ func TestElectAuthServer(t *testing.T) {
 			assert.Empty(t, actual)
 		} else {
 			assert.Contains(t, actual, tc.expectedWarning)
+		}
+	}
+}
+
+func TestGetDefaultAuthConfig(t *testing.T) {
+	testCases := []struct {
+		checkCredStore     bool
+		inputServerAddress string
+		expectedErr        string
+		expectedAuthConfig types.AuthConfig
+	}{
+		{
+			checkCredStore:     false,
+			inputServerAddress: "",
+			expectedErr:        "",
+			expectedAuthConfig: types.AuthConfig{
+				ServerAddress: "",
+				Username:      "",
+				Password:      "",
+			},
+		},
+		{
+			checkCredStore:     true,
+			inputServerAddress: testAuthConfigs[0].ServerAddress,
+			expectedErr:        "",
+			expectedAuthConfig: testAuthConfigs[0],
+		},
+		{
+			checkCredStore:     true,
+			inputServerAddress: testAuthConfigs[1].ServerAddress,
+			expectedErr:        "",
+			expectedAuthConfig: testAuthConfigs[1],
+		},
+		{
+			checkCredStore:     true,
+			inputServerAddress: fmt.Sprintf("https://%s", testAuthConfigs[1].ServerAddress),
+			expectedErr:        "",
+			expectedAuthConfig: testAuthConfigs[1],
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{})
+	errBuf := new(bytes.Buffer)
+	cli.SetErr(errBuf)
+	for _, authconfig := range testAuthConfigs {
+		cli.ConfigFile().GetCredentialsStore(authconfig.ServerAddress).Store(authconfig)
+	}
+	for _, tc := range testCases {
+		serverAddress := tc.inputServerAddress
+		authconfig, err := GetDefaultAuthConfig(cli, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
+		if tc.expectedErr != "" {
+			assert.NotNil(t, err)
+			assert.Equal(t, tc.expectedErr, err.Error())
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, tc.expectedAuthConfig, *authconfig)
 		}
 	}
 }

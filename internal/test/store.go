@@ -5,8 +5,8 @@ import (
 	"github.com/docker/docker/api/types"
 )
 
-// fake store implements a credentials.Store that only acts as an in memory map
-type fakeStore struct {
+// FakeStore implements a credentials.Store that only acts as an in memory map
+type FakeStore struct {
 	store      map[string]types.AuthConfig
 	eraseFunc  func(serverAddress string) error
 	getFunc    func(serverAddress string) (types.AuthConfig, error)
@@ -16,31 +16,36 @@ type fakeStore struct {
 
 // NewFakeStore creates a new file credentials store.
 func NewFakeStore() credentials.Store {
-	return &fakeStore{store: map[string]types.AuthConfig{}}
+	return &FakeStore{store: map[string]types.AuthConfig{}}
 }
 
-func (c *fakeStore) SetStore(store map[string]types.AuthConfig) {
+// SetStore is used to overrides Set function
+func (c *FakeStore) SetStore(store map[string]types.AuthConfig) {
 	c.store = store
 }
 
-func (c *fakeStore) SetEraseFunc(eraseFunc func(string) error) {
+// SetEraseFunc is used to overrides Erase function
+func (c *FakeStore) SetEraseFunc(eraseFunc func(string) error) {
 	c.eraseFunc = eraseFunc
 }
 
-func (c *fakeStore) SetGetFunc(getFunc func(string) (types.AuthConfig, error)) {
+// SetGetFunc is used to overrides Get function
+func (c *FakeStore) SetGetFunc(getFunc func(string) (types.AuthConfig, error)) {
 	c.getFunc = getFunc
 }
 
-func (c *fakeStore) SetGetAllFunc(getAllFunc func() (map[string]types.AuthConfig, error)) {
+// SetGetAllFunc is used to  overrides GetAll function
+func (c *FakeStore) SetGetAllFunc(getAllFunc func() (map[string]types.AuthConfig, error)) {
 	c.getAllFunc = getAllFunc
 }
 
-func (c *fakeStore) SetStoreFunc(storeFunc func(types.AuthConfig) error) {
+// SetStoreFunc is used to override Store function
+func (c *FakeStore) SetStoreFunc(storeFunc func(types.AuthConfig) error) {
 	c.storeFunc = storeFunc
 }
 
 // Erase removes the given credentials from the map store
-func (c *fakeStore) Erase(serverAddress string) error {
+func (c *FakeStore) Erase(serverAddress string) error {
 	if c.eraseFunc != nil {
 		return c.eraseFunc(serverAddress)
 	}
@@ -49,14 +54,15 @@ func (c *fakeStore) Erase(serverAddress string) error {
 }
 
 // Get retrieves credentials for a specific server from the map store.
-func (c *fakeStore) Get(serverAddress string) (types.AuthConfig, error) {
+func (c *FakeStore) Get(serverAddress string) (types.AuthConfig, error) {
 	if c.getFunc != nil {
 		return c.getFunc(serverAddress)
 	}
 	return c.store[serverAddress], nil
 }
 
-func (c *fakeStore) GetAll() (map[string]types.AuthConfig, error) {
+// GetAll returns the key value pairs of ServerAddress => Username
+func (c *FakeStore) GetAll() (map[string]types.AuthConfig, error) {
 	if c.getAllFunc != nil {
 		return c.getAllFunc()
 	}
@@ -64,7 +70,7 @@ func (c *fakeStore) GetAll() (map[string]types.AuthConfig, error) {
 }
 
 // Store saves the given credentials in the map store.
-func (c *fakeStore) Store(authConfig types.AuthConfig) error {
+func (c *FakeStore) Store(authConfig types.AuthConfig) error {
 	if c.storeFunc != nil {
 		return c.storeFunc(authConfig)
 	}

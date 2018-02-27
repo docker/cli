@@ -9,6 +9,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -47,10 +50,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error {
-	ctx := context.Background()
-	clnt := dockerCli.Client()
-
+func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	if opts.password != "" {
 		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 		if opts.passwordStdin {
@@ -71,7 +71,15 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 		opts.password = strings.TrimSuffix(string(contents), "\n")
 		opts.password = strings.TrimSuffix(opts.password, "\r")
 	}
+	return nil
+}
 
+func runLogin(dockerCli command.Cli, opts loginOptions) error {
+	ctx := context.Background()
+	clnt := dockerCli.Client()
+	if err := verifyloginOptions(dockerCli, &opts); err != nil {
+		return err
+	}
 	var (
 		serverAddress string
 		authServer    = command.ElectAuthServer(ctx, dockerCli)
@@ -82,21 +90,30 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 		serverAddress = authServer
 	}
 
+	var err error
+	var authConfig *types.AuthConfig
+	var response registrytypes.AuthenticateOKBody
 	isDefaultRegistry := serverAddress == authServer
-
-	authConfig, err := command.ConfigureAuth(dockerCli, opts.user, opts.password, serverAddress, isDefaultRegistry)
-	if err != nil {
-		return err
+	authConfig, err = command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
+		response, err = loginWithCredStoreCreds(ctx, dockerCli, authConfig)
 	}
-	response, err := clnt.RegistryLogin(ctx, authConfig)
-	if err != nil {
-		return err
+	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
+		err = command.ConfigureAuth(dockerCli, opts.user, opts.password, authConfig, isDefaultRegistry)
+		if err != nil {
+			return err
+		}
+
+		response, err = clnt.RegistryLogin(ctx, *authConfig)
+		if err != nil {
+			return err
+		}
 	}
 	if response.IdentityToken != "" {
 		authConfig.Password = ""
 		authConfig.IdentityToken = response.IdentityToken
 	}
-	if err := dockerCli.ConfigFile().GetCredentialsStore(serverAddress).Store(authConfig); err != nil {
+	if err := dockerCli.ConfigFile().GetCredentialsStore(serverAddress).Store(*authConfig); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
 
@@ -104,4 +121,18 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error {
 		fmt.Fprintln(dockerCli.Out(), response.Status)
 	}
 	return nil
+}
+
+func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authConfig *types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+	fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
+	cliClient := dockerCli.Client()
+	response, err := cliClient.RegistryLogin(ctx, *authConfig)
+	if err != nil {
+		if client.IsErrUnauthorized(err) {
+			fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
+		} else {
+			fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
+		}
+	}
+	return response, err
 }
