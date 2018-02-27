@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/storage"
@@ -20,6 +22,10 @@ import (
 )
 
 func TestTrustKeyLoadErrors(t *testing.T) {
+	noSuchFile := "stat iamnotakey: no such file or directory"
+	if runtime.GOOS == "windows" {
+		noSuchFile = "CreateFile iamnotakey: The system cannot find the file specified."
+	}
 	testCases := []struct {
 		name           string
 		args           []string
@@ -40,7 +46,7 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 		{
 			name:           "not-a-key",
 			args:           []string{"iamnotakey"},
-			expectedError:  "refusing to load key from iamnotakey: stat iamnotakey: no such file or directory",
+			expectedError:  "refusing to load key from iamnotakey: " + noSuchFile,
 			expectedOutput: "Loading key from \"iamnotakey\"...\n",
 		},
 		{
@@ -109,6 +115,7 @@ var testKeys = map[string][]byte{
 }
 
 func TestLoadKeyFromPath(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
 		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
 			testLoadKeyFromPath(t, keyID, keyBytes)
@@ -163,6 +170,7 @@ func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) 
 }
 
 func TestLoadKeyTooPermissive(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
 		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
 			testLoadKeyTooPermissive(t, keyBytes)
@@ -219,6 +227,7 @@ H3nzy2O6Q/ct4BjOBKa+WCdRtPo78bA+C/7t81ADQO8Jqaj59W50rwoqDQ==
 -----END PUBLIC KEY-----`)
 
 func TestLoadPubKeyFailure(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows")
 	pubKeyDir, err := ioutil.TempDir("", "key-load-test-pubkey-")
 	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyDir)

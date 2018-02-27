@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/cli/config"
@@ -96,7 +97,11 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	cmd.SetArgs([]string{"--key", "/path/to/key.pem", "alice", "alpine"})
 
 	cmd.SetOutput(ioutil.Discard)
-	assert.Error(t, cmd.Execute(), "unable to read public key from file: open /path/to/key.pem: no such file or directory")
+	expectedError := "unable to read public key from file: open /path/to/key.pem: no such file or directory"
+	if runtime.GOOS == "windows" {
+		expectedError = "unable to read public key from file: open /path/to/key.pem: The system cannot find the path specified."
+	}
+	assert.Error(t, cmd.Execute(), expectedError)
 }
 
 func TestSignerAddCommandInvalidRepoName(t *testing.T) {
@@ -127,7 +132,11 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 func TestIngestPublicKeys(t *testing.T) {
 	// Call with a bad path
 	_, err := ingestPublicKeys([]string{"foo", "bar"})
-	assert.Error(t, err, "unable to read public key from file: open foo: no such file or directory")
+	expectedError := "unable to read public key from file: open foo: no such file or directory"
+	if runtime.GOOS == "windows" {
+		expectedError = "unable to read public key from file: open foo: The system cannot find the file specified."
+	}
+	assert.Error(t, err, expectedError)
 	// Call with real file path
 	tmpfile, err := ioutil.TempFile("", "pemfile")
 	assert.NilError(t, err)
