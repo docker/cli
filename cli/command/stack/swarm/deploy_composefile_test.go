@@ -35,6 +35,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 			expectedMsg:  "Unexpected",
 		},
 		{
+			// FIXME(vdemeester) that doesn't work under windows, the check needs to be smarter
 			inspectError: errors.New("host net does not exist on swarm classic"),
 			network:      "host",
 		},
