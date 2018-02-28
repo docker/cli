@@ -5,67 +5,132 @@ Golden files are files in the ./testdata/ subdirectory of the package under test
 package golden
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	"github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var flagUpdate = flag.Bool("test.update-golden", false, "update golden file")
 
-// Get returns the golden file content
-func Get(t require.TestingT, filename string) []byte {
+type helperT interface {
+	Helper()
+}
+
+// Get returns the contents of the file in ./testdata
+func Get(t assert.TestingT, filename string) []byte {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
 	expected, err := ioutil.ReadFile(Path(filename))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return expected
 }
 
-// Path returns the full path to a golden file
+// Path returns the full path to a file in ./testdata
 func Path(filename string) string {
+	if filepath.IsAbs(filename) {
+		return filename
+	}
 	return filepath.Join("testdata", filename)
 }
 
-func update(t require.TestingT, filename string, actual []byte) {
+func update(filename string, actual []byte) error {
 	if *flagUpdate {
-		err := ioutil.WriteFile(Path(filename), actual, 0644)
-		require.NoError(t, err)
+		return ioutil.WriteFile(Path(filename), actual, 0644)
 	}
+	return nil
 }
 
 // Assert compares the actual content to the expected content in the golden file.
 // If the `-test.update-golden` flag is set then the actual content is written
 // to the golden file.
-// Returns whether the assertion was successful (true) or not (false)
-func Assert(t require.TestingT, actual string, filename string, msgAndArgs ...interface{}) bool {
-	expected := Get(t, filename)
-	update(t, filename, []byte(actual))
-
-	if assert.ObjectsAreEqual(expected, []byte(actual)) {
-		return true
+// Returns whether the assertion was successful (true) or not (false).
+// This is equivalent to assert.Check(t, String(actual, filename))
+//
+// Deprecated: In a future version this function will change to use assert.Assert
+// instead of assert.Check to be consistent with other assert functions.
+// Use assert.Check(t, String(actual, filename) if you want to preserve the
+// current behaviour.
+func Assert(t assert.TestingT, actual string, filename string, msgAndArgs ...interface{}) bool {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
 	}
+	return assert.Check(t, String(actual, filename), msgAndArgs...)
+}
 
-	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(string(expected)),
-		B:        difflib.SplitLines(actual),
-		FromFile: "Expected",
-		ToFile:   "Actual",
-		Context:  3,
-	})
-	require.NoError(t, err, msgAndArgs...)
-	return assert.Fail(t, fmt.Sprintf("Not Equal: \n%s", diff), msgAndArgs...)
+// String compares actual to the contents of filename and returns success
+// if the strings are equal.
+func String(actual string, filename string) cmp.Comparison {
+	return func() cmp.Result {
+		result, expected := compare([]byte(actual), filename)
+		if result != nil {
+			return result
+		}
+		diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+			A:        difflib.SplitLines(string(expected)),
+			B:        difflib.SplitLines(actual),
+			FromFile: "expected",
+			ToFile:   "actual",
+			Context:  3,
+		})
+		if err != nil {
+			return cmp.ResultFromError(err)
+		}
+		return cmp.ResultFailure("\n" + diff)
+	}
 }
 
 // AssertBytes compares the actual result to the expected result in the golden
 // file. If the `-test.update-golden` flag is set then the actual content is
 // written to the golden file.
 // Returns whether the assertion was successful (true) or not (false)
-// nolint: lll
-func AssertBytes(t require.TestingT, actual []byte, filename string, msgAndArgs ...interface{}) bool {
-	expected := Get(t, filename)
-	update(t, filename, actual)
-	return assert.Equal(t, expected, actual, msgAndArgs...)
+// This is equivalent to assert.Check(t, Bytes(actual, filename))
+//
+// Deprecated: In a future version this function will change to use assert.Assert
+// instead of assert.Check to be consistent with other assert functions.
+// Use assert.Check(t, Bytes(actual, filename) if you want to preserve the
+// current behaviour.
+func AssertBytes(
+	t assert.TestingT,
+	actual []byte,
+	filename string,
+	msgAndArgs ...interface{},
+) bool {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
+	return assert.Check(t, Bytes(actual, filename), msgAndArgs...)
+}
+
+// Bytes compares actual to the contents of filename and returns success
+// if the bytes are equal.
+func Bytes(actual []byte, filename string) cmp.Comparison {
+	return func() cmp.Result {
+		result, expected := compare(actual, filename)
+		if result != nil {
+			return result
+		}
+		msg := fmt.Sprintf("%v (actual) != %v (expected)", actual, expected)
+		return cmp.ResultFailure(msg)
+	}
+}
+
+func compare(actual []byte, filename string) (cmp.Result, []byte) {
+	if err := update(filename, actual); err != nil {
+		return cmp.ResultFromError(err), nil
+	}
+	expected, err := ioutil.ReadFile(Path(filename))
+	if err != nil {
+		return cmp.ResultFromError(err), nil
+	}
+	if bytes.Equal(expected, actual) {
+		return cmp.ResultSuccess, nil
+	}
+	return nil, expected
 }

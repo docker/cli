@@ -7,19 +7,20 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gotestyourself/gotestyourself/assert"
+	"github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
-type testingT interface {
-	Fatalf(string, ...interface{})
+type helperT interface {
+	Helper()
 }
 
 // None is a token to inform Result.Assert that the output should be empty
-const None string = "[NOTHING]"
+const None = "[NOTHING]"
 
 type lockedBuffer struct {
 	m   sync.RWMutex
@@ -51,24 +52,32 @@ type Result struct {
 
 // Assert compares the Result against the Expected struct, and fails the test if
 // any of the expectations are not met.
-func (r *Result) Assert(t testingT, exp Expected) *Result {
-	err := r.Compare(exp)
-	if err == nil {
-		return r
+//
+// This function is equivalent to assert.Assert(t, result.Equal(exp)).
+func (r *Result) Assert(t assert.TestingT, exp Expected) *Result {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
 	}
-	_, file, line, ok := runtime.Caller(1)
-	if ok {
-		t.Fatalf("at %s:%d - %s\n", filepath.Base(file), line, err.Error())
-	} else {
-		t.Fatalf("(no file/line info) - %s", err.Error())
-	}
-	return nil
+	assert.Assert(t, r.Equal(exp))
+	return r
 }
 
-// Compare returns a formatted error with the command, stdout, stderr, exit
-// code, and any failed expectations
-// nolint: gocyclo
+// Equal compares the result to Expected. If the result doesn't match expected
+// returns a formatted failure message with the command, stdout, stderr, exit code,
+// and any failed expectations.
+func (r *Result) Equal(exp Expected) cmp.Comparison {
+	return func() cmp.Result {
+		return cmp.ResultFromError(r.match(exp))
+	}
+}
+
+// Compare the result to Expected and return an error if they do not match.
 func (r *Result) Compare(exp Expected) error {
+	return r.match(exp)
+}
+
+// nolint: gocyclo
+func (r *Result) match(exp Expected) error {
 	errors := []string{}
 	add := func(format string, args ...interface{}) {
 		errors = append(errors, fmt.Sprintf(format, args...))
