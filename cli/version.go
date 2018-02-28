@@ -1,7 +1,7 @@
 package cli
 
 // Default build-time variable.
-// These values are overriding via ldflags
+// These values are overridden via ldflags
 var (
 	PlatformName = ""
 	Version      = "unknown-version"
