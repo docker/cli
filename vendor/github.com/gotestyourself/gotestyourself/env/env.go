@@ -1,42 +1,59 @@
 /*Package env provides functions to test code that read environment variables
- */
+or the current working directory.
+*/
 package env
 
 import (
 	"os"
 	"strings"
 
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
+
+type helperT interface {
+	Helper()
+}
 
 // Patch changes the value of an environment variable, and returns a
 // function which will reset the the value of that variable back to the
 // previous state.
-func Patch(t require.TestingT, key, value string) func() {
+func Patch(t assert.TestingT, key, value string) func() {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
 	oldValue, ok := os.LookupEnv(key)
-	require.NoError(t, os.Setenv(key, value))
+	assert.NilError(t, os.Setenv(key, value))
 	return func() {
+		if ht, ok := t.(helperT); ok {
+			ht.Helper()
+		}
 		if !ok {
-			require.NoError(t, os.Unsetenv(key))
+			assert.NilError(t, os.Unsetenv(key))
 			return
 		}
-		require.NoError(t, os.Setenv(key, oldValue))
+		assert.NilError(t, os.Setenv(key, oldValue))
 	}
 }
 
 // PatchAll sets the environment to env, and returns a function which will
 // reset the environment back to the previous state.
-func PatchAll(t require.TestingT, env map[string]string) func() {
+func PatchAll(t assert.TestingT, env map[string]string) func() {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
 	oldEnv := os.Environ()
 	os.Clearenv()
 
 	for key, value := range env {
-		require.NoError(t, os.Setenv(key, value))
+		assert.NilError(t, os.Setenv(key, value))
 	}
 	return func() {
+		if ht, ok := t.(helperT); ok {
+			ht.Helper()
+		}
 		os.Clearenv()
 		for key, oldVal := range ToMap(oldEnv) {
-			require.NoError(t, os.Setenv(key, oldVal))
+			assert.NilError(t, os.Setenv(key, oldVal))
 		}
 	}
 }
@@ -55,4 +72,21 @@ func ToMap(env []string) map[string]string {
 		}
 	}
 	return result
+}
+
+// ChangeWorkingDir to the directory, and return a function which restores the
+// previous working directory.
+func ChangeWorkingDir(t assert.TestingT, dir string) func() {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
+	cwd, err := os.Getwd()
+	assert.NilError(t, err)
+	assert.NilError(t, os.Chdir(dir))
+	return func() {
+		if ht, ok := t.(helperT); ok {
+			ht.Helper()
+		}
+		assert.NilError(t, os.Chdir(cwd))
+	}
 }
