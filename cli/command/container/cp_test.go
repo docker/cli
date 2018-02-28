@@ -3,6 +3,7 @@ package container
 import (
 	"io"
 	"io/ioutil"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -109,6 +110,33 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 	cli := test.NewFakeCli(fakeClient)
 	err := runCopy(cli, options)
 	testutil.ErrorContains(t, err, destDir.Join("missing"))
+}
+
+func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
+	srcFile := fs.NewFile(t, t.Name())
+	defer srcFile.Remove()
+
+	options := copyOptions{
+		source:      srcFile.Path() + string(os.PathSeparator),
+		destination: "container:/path",
+	}
+	cli := test.NewFakeCli(&fakeClient{})
+	err := runCopy(cli, options)
+	testutil.ErrorContains(t, err, "not a directory")
+}
+
+func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
+	options := copyOptions{
+		source:      "/does/not/exist",
+		destination: "container:/path",
+	}
+	cli := test.NewFakeCli(&fakeClient{})
+	err := runCopy(cli, options)
+	expected := "no such file or directory"
+	if runtime.GOOS == "windows" {
+		expected = "cannot find the file specified"
+	}
+	testutil.ErrorContains(t, err, expected)
 }
 
 func TestSplitCpArg(t *testing.T) {
