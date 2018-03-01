@@ -9,6 +9,7 @@ RUN     export URL=https://download.docker.com/linux/static; \
         tar -xz docker/docker && \
         mv docker/docker /usr/local/bin/ && \
         rmdir docker
+
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /work
 COPY    scripts/test/e2e scripts/test/e2e
