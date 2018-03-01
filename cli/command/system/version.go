@@ -24,7 +24,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
  Go version:	{{.GoVersion}}
  Git commit:	{{.GitCommit}}
- Built:	{{.BuildTime}}
+ Built:		{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Experimental:	{{.Experimental}}
  Orchestrator:	{{.Orchestrator}}
