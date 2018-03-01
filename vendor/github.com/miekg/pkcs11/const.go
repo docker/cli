@@ -23,7 +23,19 @@ const (
 	CKO_VENDOR_DEFINED    uint = 0x80000000
 )
 
-// Generated with: awk '/#define CK[AFKMRC]/{ print $2 "=" $3 }' pkcs11t.h
+const (
+	CKG_MGF1_SHA1         uint = 0x00000001
+	CKG_MGF1_SHA224       uint = 0x00000005
+	CKG_MGF1_SHA256       uint = 0x00000002
+	CKG_MGF1_SHA384       uint = 0x00000003
+	CKG_MGF1_SHA512       uint = 0x00000004
+)
+
+const (
+	CKZ_DATA_SPECIFIED    uint = 0x00000001
+)
+
+// Generated with: awk '/#define CK[AFKMRC]/{ print $2 " = " $3 }' pkcs11t.h | sed -e 's/UL$//g' -e 's/UL)$/)/g'
 
 // All the flag (CKF_), attribute (CKA_), error code (CKR_), key type (CKK_), certificate type (CKC_) and
 // mechanism (CKM_) constants as defined in PKCS#11.
@@ -49,6 +61,7 @@ const (
 	CKF_SO_PIN_FINAL_TRY                 = 0x00200000
 	CKF_SO_PIN_LOCKED                    = 0x00400000
 	CKF_SO_PIN_TO_BE_CHANGED             = 0x00800000
+	CKF_ERROR_STATE                      = 0x01000000
 	CKF_RW_SESSION                       = 0x00000002
 	CKF_SERIAL_SESSION                   = 0x00000004
 	CKK_RSA                              = 0x00000000
@@ -82,6 +95,18 @@ const (
 	CKK_ACTI                             = 0x00000024
 	CKK_CAMELLIA                         = 0x00000025
 	CKK_ARIA                             = 0x00000026
+	CKK_SHA512_224_HMAC                  = 0x00000027
+	CKK_SHA512_256_HMAC                  = 0x00000028
+	CKK_SHA512_T_HMAC                    = 0x00000029
+        CKK_SHA_1_HMAC                       = 0x00000028
+        CKK_SHA224_HMAC                      = 0x0000002E
+        CKK_SHA256_HMAC                      = 0x0000002B
+        CKK_SHA384_HMAC                      = 0x0000002C
+        CKK_SHA512_HMAC                      = 0x0000002D
+	CKK_SEED                             = 0x00000050
+	CKK_GOSTR3410                        = 0x00000060
+	CKK_GOSTR3411                        = 0x00000061
+	CKK_GOST28147                        = 0x00000062
 	CKK_VENDOR_DEFINED                   = 0x80000000
 	CKC_X_509                            = 0x00000000
 	CKC_X_509_ATTR_CERT                  = 0x00000001
@@ -107,6 +132,7 @@ const (
 	CKA_URL                              = 0x00000089
 	CKA_HASH_OF_SUBJECT_PUBLIC_KEY       = 0x0000008A
 	CKA_HASH_OF_ISSUER_PUBLIC_KEY        = 0x0000008B
+	CKA_NAME_HASH_ALGORITHM              = 0x0000008C
 	CKA_CHECK_VALUE                      = 0x00000090
 	CKA_KEY_TYPE                         = 0x00000100
 	CKA_SUBJECT                          = 0x00000101
@@ -132,6 +158,7 @@ const (
 	CKA_EXPONENT_1                       = 0x00000126
 	CKA_EXPONENT_2                       = 0x00000127
 	CKA_COEFFICIENT                      = 0x00000128
+	CKA_PUBLIC_KEY_INFO                  = 0x00000129
 	CKA_PRIME                            = 0x00000130
 	CKA_SUBPRIME                         = 0x00000131
 	CKA_BASE                             = 0x00000132
@@ -146,6 +173,8 @@ const (
 	CKA_ALWAYS_SENSITIVE                 = 0x00000165
 	CKA_KEY_GEN_MECHANISM                = 0x00000166
 	CKA_MODIFIABLE                       = 0x00000170
+	CKA_COPYABLE                         = 0x00000171
+	CKA_DESTROYABLE                      = 0x00000172
 	CKA_ECDSA_PARAMS                     = 0x00000180
 	CKA_EC_PARAMS                        = 0x00000180
 	CKA_EC_POINT                         = 0x00000181
@@ -169,6 +198,9 @@ const (
 	CKA_OTP_SERVICE_IDENTIFIER           = 0x0000022B
 	CKA_OTP_SERVICE_LOGO                 = 0x0000022C
 	CKA_OTP_SERVICE_LOGO_TYPE            = 0x0000022D
+	CKA_GOSTR3410_PARAMS                 = 0x00000250
+	CKA_GOSTR3411_PARAMS                 = 0x00000251
+	CKA_GOST28147_PARAMS                 = 0x00000252
 	CKA_HW_FEATURE_TYPE                  = 0x00000300
 	CKA_RESET_ON_INIT                    = 0x00000301
 	CKA_HAS_RESET                        = 0x00000302
@@ -206,6 +238,11 @@ const (
 	CKM_DSA_KEY_PAIR_GEN                 = 0x00000010
 	CKM_DSA                              = 0x00000011
 	CKM_DSA_SHA1                         = 0x00000012
+	CKM_DSA_FIPS_G_GEN                   = 0x00000013
+	CKM_DSA_SHA224                       = 0x00000014
+	CKM_DSA_SHA256                       = 0x00000015
+	CKM_DSA_SHA384                       = 0x00000016
+	CKM_DSA_SHA512                       = 0x00000017
 	CKM_DH_PKCS_KEY_PAIR_GEN             = 0x00000020
 	CKM_DH_PKCS_DERIVE                   = 0x00000021
 	CKM_X9_42_DH_KEY_PAIR_GEN            = 0x00000030
@@ -220,6 +257,18 @@ const (
 	CKM_SHA512_RSA_PKCS_PSS              = 0x00000045
 	CKM_SHA224_RSA_PKCS                  = 0x00000046
 	CKM_SHA224_RSA_PKCS_PSS              = 0x00000047
+	CKM_SHA512_224                       = 0x00000048
+	CKM_SHA512_224_HMAC                  = 0x00000049
+	CKM_SHA512_224_HMAC_GENERAL          = 0x0000004A
+	CKM_SHA512_224_KEY_DERIVATION        = 0x0000004B
+	CKM_SHA512_256                       = 0x0000004C
+	CKM_SHA512_256_HMAC                  = 0x0000004D
+	CKM_SHA512_256_HMAC_GENERAL          = 0x0000004E
+	CKM_SHA512_256_KEY_DERIVATION        = 0x0000004F
+	CKM_SHA512_T                         = 0x00000050
+	CKM_SHA512_T_HMAC                    = 0x00000051
+	CKM_SHA512_T_HMAC_GENERAL            = 0x00000052
+	CKM_SHA512_T_KEY_DERIVATION          = 0x00000053
 	CKM_RC2_KEY_GEN                      = 0x00000100
 	CKM_RC2_ECB                          = 0x00000101
 	CKM_RC2_CBC                          = 0x00000102
@@ -241,6 +290,8 @@ const (
 	CKM_DES3_MAC                         = 0x00000134
 	CKM_DES3_MAC_GENERAL                 = 0x00000135
 	CKM_DES3_CBC_PAD                     = 0x00000136
+	CKM_DES3_CMAC_GENERAL                = 0x00000137
+	CKM_DES3_CMAC                        = 0x00000138
 	CKM_CDMF_KEY_GEN                     = 0x00000140
 	CKM_CDMF_ECB                         = 0x00000141
 	CKM_CDMF_CBC                         = 0x00000142
@@ -366,6 +417,16 @@ const (
 	CKM_WTLS_PRF                         = 0x000003D3
 	CKM_WTLS_SERVER_KEY_AND_MAC_DERIVE   = 0x000003D4
 	CKM_WTLS_CLIENT_KEY_AND_MAC_DERIVE   = 0x000003D5
+	CKM_TLS10_MAC_SERVER                 = 0x000003D6
+	CKM_TLS10_MAC_CLIENT                 = 0x000003D7
+	CKM_TLS12_MAC                        = 0x000003D8
+	CKM_TLS12_KDF                        = 0x000003D9
+	CKM_TLS12_MASTER_KEY_DERIVE          = 0x000003E0
+	CKM_TLS12_KEY_AND_MAC_DERIVE         = 0x000003E1
+	CKM_TLS12_MASTER_KEY_DERIVE_DH       = 0x000003E2
+	CKM_TLS12_KEY_SAFE_DERIVE            = 0x000003E3
+	CKM_TLS_MAC                          = 0x000003E4
+	CKM_TLS_KDF                          = 0x000003E5
 	CKM_KEY_WRAP_LYNKS                   = 0x00000400
 	CKM_KEY_WRAP_SET_OAEP                = 0x00000401
 	CKM_CMS_SIG                          = 0x00000500
@@ -389,6 +450,14 @@ const (
 	CKM_ARIA_CBC_PAD                     = 0x00000565
 	CKM_ARIA_ECB_ENCRYPT_DATA            = 0x00000566
 	CKM_ARIA_CBC_ENCRYPT_DATA            = 0x00000567
+	CKM_SEED_KEY_GEN                     = 0x00000650
+	CKM_SEED_ECB                         = 0x00000651
+	CKM_SEED_CBC                         = 0x00000652
+	CKM_SEED_MAC                         = 0x00000653
+	CKM_SEED_MAC_GENERAL                 = 0x00000654
+	CKM_SEED_CBC_PAD                     = 0x00000655
+	CKM_SEED_ECB_ENCRYPT_DATA            = 0x00000656
+	CKM_SEED_CBC_ENCRYPT_DATA            = 0x00000657
 	CKM_SKIPJACK_KEY_GEN                 = 0x00001000
 	CKM_SKIPJACK_ECB64                   = 0x00001001
 	CKM_SKIPJACK_CBC64                   = 0x00001002
@@ -402,6 +471,7 @@ const (
 	CKM_SKIPJACK_RELAYX                  = 0x0000100a
 	CKM_KEA_KEY_PAIR_GEN                 = 0x00001010
 	CKM_KEA_KEY_DERIVE                   = 0x00001011
+	CKM_KEA_DERIVE                       = 0x00001012
 	CKM_FORTEZZA_TIMESTAMP               = 0x00001020
 	CKM_BATON_KEY_GEN                    = 0x00001030
 	CKM_BATON_ECB128                     = 0x00001031
@@ -414,9 +484,15 @@ const (
 	CKM_EC_KEY_PAIR_GEN                  = 0x00001040
 	CKM_ECDSA                            = 0x00001041
 	CKM_ECDSA_SHA1                       = 0x00001042
+	CKM_ECDSA_SHA224                     = 0x00001043
+	CKM_ECDSA_SHA256                     = 0x00001044
+	CKM_ECDSA_SHA384                     = 0x00001045
+	CKM_ECDSA_SHA512                     = 0x00001046
 	CKM_ECDH1_DERIVE                     = 0x00001050
 	CKM_ECDH1_COFACTOR_DERIVE            = 0x00001051
 	CKM_ECMQV_DERIVE                     = 0x00001052
+	CKM_ECDH_AES_KEY_WRAP                = 0x00001053
+	CKM_RSA_AES_KEY_WRAP                 = 0x00001054
 	CKM_JUNIPER_KEY_GEN                  = 0x00001060
 	CKM_JUNIPER_ECB128                   = 0x00001061
 	CKM_JUNIPER_CBC128                   = 0x00001062
@@ -431,19 +507,52 @@ const (
 	CKM_AES_MAC_GENERAL                  = 0x00001084
 	CKM_AES_CBC_PAD                      = 0x00001085
 	CKM_AES_CTR                          = 0x00001086
+	CKM_AES_GCM                          = 0x00001087
+	CKM_AES_CCM                          = 0x00001088
+	CKM_AES_CMAC_GENERAL                 = 0x00001089
+	CKM_AES_CMAC                         = 0x0000108A
+	CKM_AES_CTS                          = 0x0000108B
+	CKM_AES_XCBC_MAC                     = 0x0000108C
+	CKM_AES_XCBC_MAC_96                  = 0x0000108D
+	CKM_AES_GMAC                         = 0x0000108E
 	CKM_BLOWFISH_KEY_GEN                 = 0x00001090
 	CKM_BLOWFISH_CBC                     = 0x00001091
 	CKM_TWOFISH_KEY_GEN                  = 0x00001092
 	CKM_TWOFISH_CBC                      = 0x00001093
+	CKM_BLOWFISH_CBC_PAD                 = 0x00001094
+	CKM_TWOFISH_CBC_PAD                  = 0x00001095
 	CKM_DES_ECB_ENCRYPT_DATA             = 0x00001100
 	CKM_DES_CBC_ENCRYPT_DATA             = 0x00001101
 	CKM_DES3_ECB_ENCRYPT_DATA            = 0x00001102
 	CKM_DES3_CBC_ENCRYPT_DATA            = 0x00001103
 	CKM_AES_ECB_ENCRYPT_DATA             = 0x00001104
 	CKM_AES_CBC_ENCRYPT_DATA             = 0x00001105
+	CKM_GOSTR3410_KEY_PAIR_GEN           = 0x00001200
+	CKM_GOSTR3410                        = 0x00001201
+	CKM_GOSTR3410_WITH_GOSTR3411         = 0x00001202
+	CKM_GOSTR3410_KEY_WRAP               = 0x00001203
+	CKM_GOSTR3410_DERIVE                 = 0x00001204
+	CKM_GOSTR3411                        = 0x00001210
+	CKM_GOSTR3411_HMAC                   = 0x00001211
+	CKM_GOST28147_KEY_GEN                = 0x00001220
+	CKM_GOST28147_ECB                    = 0x00001221
+	CKM_GOST28147                        = 0x00001222
+	CKM_GOST28147_MAC                    = 0x00001223
+	CKM_GOST28147_KEY_WRAP               = 0x00001224
 	CKM_DSA_PARAMETER_GEN                = 0x00002000
 	CKM_DH_PKCS_PARAMETER_GEN            = 0x00002001
 	CKM_X9_42_DH_PARAMETER_GEN           = 0x00002002
+	CKM_DSA_PROBABLISTIC_PARAMETER_GEN   = 0x00002003
+	CKM_DSA_SHAWE_TAYLOR_PARAMETER_GEN   = 0x00002004
+	CKM_AES_OFB                          = 0x00002104
+	CKM_AES_CFB64                        = 0x00002105
+	CKM_AES_CFB8                         = 0x00002106
+	CKM_AES_CFB128                       = 0x00002107
+	CKM_AES_CFB1                         = 0x00002108
+	CKM_AES_KEY_WRAP                     = 0x00002109
+	CKM_AES_KEY_WRAP_PAD                 = 0x0000210A
+	CKM_RSA_PKCS_TPM_1_1                 = 0x00004001
+	CKM_RSA_PKCS_OAEP_TPM_1_1            = 0x00004002
 	CKM_VENDOR_DEFINED                   = 0x80000000
 	CKF_HW                               = 0x00000001
 	CKF_ENCRYPT                          = 0x00000100
@@ -479,6 +588,7 @@ const (
 	CKR_ATTRIBUTE_SENSITIVE              = 0x00000011
 	CKR_ATTRIBUTE_TYPE_INVALID           = 0x00000012
 	CKR_ATTRIBUTE_VALUE_INVALID          = 0x00000013
+	CKR_ACTION_PROHIBITED                = 0x0000001B
 	CKR_DATA_INVALID                     = 0x00000020
 	CKR_DATA_LEN_RANGE                   = 0x00000021
 	CKR_DEVICE_ERROR                     = 0x00000030
@@ -541,6 +651,7 @@ const (
 	CKR_RANDOM_SEED_NOT_SUPPORTED        = 0x00000120
 	CKR_RANDOM_NO_RNG                    = 0x00000121
 	CKR_DOMAIN_PARAMS_INVALID            = 0x00000130
+	CKR_CURVE_NOT_SUPPORTED              = 0x00000140
 	CKR_BUFFER_TOO_SMALL                 = 0x00000150
 	CKR_SAVED_STATE_INVALID              = 0x00000160
 	CKR_INFORMATION_SENSITIVE            = 0x00000170
@@ -551,6 +662,11 @@ const (
 	CKR_MUTEX_NOT_LOCKED                 = 0x000001A1
 	CKR_NEW_PIN_MODE                     = 0x000001B0
 	CKR_NEXT_OTP                         = 0x000001B1
+	CKR_EXCEEDED_MAX_ITERATIONS          = 0x000001C0
+	CKR_FIPS_SELF_TEST_FAILED            = 0x000001C1
+	CKR_LIBRARY_LOAD_FAILED              = 0x000001C2
+	CKR_PIN_TOO_WEAK                     = 0x000001C3
+	CKR_PUBLIC_KEY_INVALID               = 0x000001C4
 	CKR_FUNCTION_REJECTED                = 0x00000200
 	CKR_VENDOR_DEFINED                   = 0x80000000
 	CKF_LIBRARY_CANT_CREATE_OS_THREADS   = 0x00000001
