@@ -17,10 +17,10 @@ type pruneProgressChan struct {
 	errorChan chan error
 }
 
-func startPruneProgress(dockerCli command.Cli, progressChans *pruneProgressChan, options pruneOptions, ctx context.Context) error {
+func startPruneProgress(ctx context.Context, dockerCli command.Cli, progressChans *pruneProgressChan, options pruneOptions) error {
 	eventChan := make(chan string, 1)
-	monitorRemovingEvents(dockerCli, eventChan, progressChans, ctx)
-	objCount, err := countObjectsToRemove(dockerCli, options, ctx)
+	monitorRemovingEvents(ctx, dockerCli, eventChan, progressChans)
+	objCount, err := countObjectsToRemove(ctx, dockerCli, options)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func outputPruningProgress(dockerCli command.Cli, events chan string, numEvents 
 	}()
 }
 
-func countObjectsToRemove(dockerCli command.Cli, options pruneOptions, ctx context.Context) (int, error) {
+func countObjectsToRemove(ctx context.Context, dockerCli command.Cli, options pruneOptions) (int, error) {
 	volCount := 0
 	if options.pruneVolumes {
 		//Volumes listing call
@@ -140,7 +140,7 @@ func countObjectsToRemove(dockerCli command.Cli, options pruneOptions, ctx conte
 	return cntCount + volCount + imgCount + len(ntws), nil
 }
 
-func monitorRemovingEvents(dockerCli command.Cli, out chan<- string, progressChans *pruneProgressChan, ctx context.Context) {
+func monitorRemovingEvents(ctx context.Context, dockerCli command.Cli, out chan<- string, progressChans *pruneProgressChan) {
 	fArgs := filters.NewArgs(
 		filters.Arg("type", "container"),
 		filters.Arg("type", "volume"),

@@ -84,7 +84,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		return nil
 	}
 
-	if err := startPruneProgress(dockerCli, &progressChan, options, ctx); err != nil {
+	if err := startPruneProgress(ctx, dockerCli, &progressChan, options); err != nil {
 		return err
 	}
 
