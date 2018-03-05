@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDiskUsageContextFormatWrite(t *testing.T) {
@@ -101,9 +102,9 @@ Build Cache                                                 0B                  
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		if err := testcase.context.Write(); err != nil {
-			assert.Equal(t, testcase.expected, err.Error())
+			assert.Check(t, is.Equal(testcase.expected, err.Error()))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }

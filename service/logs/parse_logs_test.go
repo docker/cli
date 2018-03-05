@@ -3,8 +3,9 @@ package logs
 import (
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParseLogDetails(t *testing.T) {
@@ -24,10 +25,10 @@ func TestParseLogDetails(t *testing.T) {
 		t.Run(testcase.line, func(t *testing.T) {
 			actual, err := ParseLogDetails(testcase.line)
 			if testcase.err != nil {
-				assert.EqualError(t, err, testcase.err.Error())
+				assert.Check(t, is.Error(err, testcase.err.Error()))
 				return
 			}
-			assert.Equal(t, testcase.expected, actual)
+			assert.Check(t, is.DeepEqual(testcase.expected, actual))
 		})
 	}
 }

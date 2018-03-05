@@ -10,8 +10,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewAttachCommandErrors(t *testing.T) {
@@ -123,6 +124,6 @@ func TestGetExitStatus(t *testing.T) {
 			resultC <- *testcase.result
 		}
 		err := getExitStatus(errC, resultC)
-		assert.Equal(t, testcase.expectedError, err)
+		assert.Check(t, is.DeepEqual(testcase.expectedError, err))
 	}
 }

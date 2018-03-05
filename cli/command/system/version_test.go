@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -22,8 +23,8 @@ func TestVersionWithoutServer(t *testing.T) {
 	})
 	cmd := NewVersionCommand(cli)
 	cmd.SetOutput(cli.Err())
-	assert.Error(t, cmd.Execute())
-	assert.Contains(t, cleanTabs(cli.OutBuffer().String()), "Client:")
+	assert.Check(t, is.ErrorContains(cmd.Execute(), ""))
+	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Client:"))
 	assert.NotContains(t, cleanTabs(cli.OutBuffer().String()), "Server:")
 }
 
@@ -38,8 +39,8 @@ func TestVersionWithOrchestrator(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
 	cli.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "swarm"} })
 	cmd := NewVersionCommand(cli)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))
 }
 
 func cleanTabs(line string) string {

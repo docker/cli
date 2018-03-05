@@ -12,10 +12,10 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVolumePruneErrors(t *testing.T) {
@@ -73,7 +73,7 @@ func TestVolumePruneForce(t *testing.T) {
 		})
 		cmd := NewPruneCommand(cli)
 		cmd.Flags().Set("force", "true")
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-prune.%s.golden", tc.name))
 	}
 }
@@ -89,7 +89,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 
 		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
 	}
 }
@@ -105,7 +105,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 
 		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
 	}
 }

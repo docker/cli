@@ -10,8 +10,8 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestNetworkContext(t *testing.T) {
@@ -162,9 +162,9 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 		testcase.context.Output = out
 		err := NetworkWrite(testcase.context, networks)
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }
@@ -188,8 +188,8 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var m map[string]interface{}
 		err := json.Unmarshal([]byte(line), &m)
-		require.NoError(t, err, msg)
-		assert.Equal(t, expectedJSONs[i], m, msg)
+		assert.NilError(t, err, msg)
+		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)
 	}
 }
 
@@ -207,7 +207,7 @@ func TestNetworkContextWriteJSONField(t *testing.T) {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var s string
 		err := json.Unmarshal([]byte(line), &s)
-		require.NoError(t, err, msg)
-		assert.Equal(t, networks[i].ID, s, msg)
+		assert.NilError(t, err, msg)
+		assert.Check(t, is.Equal(networks[i].ID, s), msg)
 	}
 }

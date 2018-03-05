@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestTrustTag(t *testing.T) {
@@ -126,9 +127,9 @@ tag3                bbbbbbbb
 		testcase.context.Output = out
 		err := TrustTagWrite(testcase.context, signedTags)
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }
@@ -152,8 +153,8 @@ func TestTrustTagContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := TrustTagWrite(emptyCase.context, emptySignedTags)
-	assert.NoError(t, err)
-	assert.Equal(t, emptyCase.expected, out.String())
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 
 func TestSignerInfoContextEmptyWrite(t *testing.T) {
@@ -171,8 +172,8 @@ func TestSignerInfoContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := SignerInfoWrite(emptyCase.context, emptySignerInfo)
-	assert.NoError(t, err)
-	assert.Equal(t, emptyCase.expected, out.String())
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 
 func TestSignerInfoContextWrite(t *testing.T) {
@@ -230,9 +231,9 @@ eve                 foobarbazquxquux, key31, key32
 		testcase.context.Output = out
 		err := SignerInfoWrite(testcase.context, signerInfo)
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }

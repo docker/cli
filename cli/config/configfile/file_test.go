@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestEncodeAuth(t *testing.T) {
@@ -17,8 +17,8 @@ func TestEncodeAuth(t *testing.T) {
 	expected := &types.AuthConfig{}
 	var err error
 	expected.Username, expected.Password, err = decodeAuth(authStr)
-	require.NoError(t, err)
-	assert.Equal(t, expected, newAuthConfig)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, newAuthConfig))
 }
 
 func TestProxyConfig(t *testing.T) {
@@ -50,7 +50,7 @@ func TestProxyConfig(t *testing.T) {
 		"NO_PROXY":    &noProxy,
 		"no_proxy":    &noProxy,
 	}
-	assert.Equal(t, expected, proxyConfig)
+	assert.Check(t, is.DeepEqual(expected, proxyConfig))
 }
 
 func TestProxyConfigOverride(t *testing.T) {
@@ -88,7 +88,7 @@ func TestProxyConfigOverride(t *testing.T) {
 		"NO_PROXY":    &overrideNoProxy,
 		"no_proxy":    &noProxy,
 	}
-	assert.Equal(t, expected, proxyConfig)
+	assert.Check(t, is.DeepEqual(expected, proxyConfig))
 }
 
 func TestProxyConfigPerHost(t *testing.T) {
@@ -133,14 +133,14 @@ func TestProxyConfigPerHost(t *testing.T) {
 		"NO_PROXY":    &extNoProxy,
 		"no_proxy":    &extNoProxy,
 	}
-	assert.Equal(t, expected, proxyConfig)
+	assert.Check(t, is.DeepEqual(expected, proxyConfig))
 }
 
 func TestConfigFile(t *testing.T) {
 	configFilename := "configFilename"
 	configFile := New(configFilename)
 
-	assert.Equal(t, configFilename, configFile.Filename)
+	assert.Check(t, is.Equal(configFilename, configFile.Filename))
 }
 
 type mockNativeStore struct {
@@ -182,11 +182,11 @@ func TestGetAllCredentialsFileStoreOnly(t *testing.T) {
 	configFile.AuthConfigs["example.com/foo"] = exampleAuth
 
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected["example.com/foo"] = exampleAuth
-	assert.Equal(t, expected, authConfigs)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
 }
 
 func TestGetAllCredentialsCredsStore(t *testing.T) {
@@ -207,12 +207,12 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 	}
 
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected[testRegistryHostname] = expectedAuth
-	assert.Equal(t, expected, authConfigs)
-	assert.Equal(t, 1, testCredsStore.(*mockNativeStore).GetAllCallCount)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
+	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
 }
 
 func TestGetAllCredentialsCredHelper(t *testing.T) {
@@ -246,12 +246,12 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 	}
 
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
-	assert.Equal(t, expected, authConfigs)
-	assert.Equal(t, 0, testCredHelper.(*mockNativeStore).GetAllCallCount)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
+	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
 func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
@@ -281,13 +281,13 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected[testFileStoreRegistryHostname] = expectedFileStoreAuth
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
-	assert.Equal(t, expected, authConfigs)
-	assert.Equal(t, 0, testCredHelper.(*mockNativeStore).GetAllCallCount)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
+	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
 func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
@@ -322,14 +322,14 @@ func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
 	}
 
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected[testCredStoreRegistryHostname] = expectedCredStoreAuth
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
-	assert.Equal(t, expected, authConfigs)
-	assert.Equal(t, 1, testCredsStore.(*mockNativeStore).GetAllCallCount)
-	assert.Equal(t, 0, testCredHelper.(*mockNativeStore).GetAllCallCount)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
+	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
+	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
 func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
@@ -363,11 +363,11 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	}
 
 	authConfigs, err := configFile.GetAllCredentials()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := make(map[string]types.AuthConfig)
 	expected[testRegistryHostname] = expectedCredHelperAuth
-	assert.Equal(t, expected, authConfigs)
-	assert.Equal(t, 1, testCredsStore.(*mockNativeStore).GetAllCallCount)
-	assert.Equal(t, 0, testCredHelper.(*mockNativeStore).GetAllCallCount)
+	assert.Check(t, is.DeepEqual(expected, authConfigs))
+	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
+	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }

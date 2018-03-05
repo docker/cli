@@ -10,8 +10,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPullCommandErrors(t *testing.T) {
@@ -65,7 +66,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
 			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
-				assert.Equal(t, tc.expectedTag, ref, tc.name)
+				assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 		})
@@ -73,7 +74,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.NoError(t, err)
+		assert.Check(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
 	}
 }

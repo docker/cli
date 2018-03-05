@@ -3,7 +3,8 @@ package formatter
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestEllipsis(t *testing.T) {
@@ -25,6 +26,6 @@ func TestEllipsis(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		assert.Equal(t, testcase.expected, Ellipsis(testcase.source, testcase.width))
+		assert.Check(t, is.Equal(testcase.expected, Ellipsis(testcase.source, testcase.width)))
 	}
 }

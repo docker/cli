@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestLoadBundlefileErrors(t *testing.T) {
@@ -33,7 +34,7 @@ func TestLoadBundlefileErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		_, err := loadBundlefile(&bytes.Buffer{}, tc.namespace, tc.path)
-		assert.Error(t, err, tc.expectedError)
+		assert.Check(t, is.ErrorContains(err, ""), tc.expectedError)
 	}
 }
 
@@ -44,6 +45,6 @@ func TestLoadBundlefile(t *testing.T) {
 	path := filepath.Join("testdata", "bundlefile_with_two_services.dab")
 	bundleFile, err := loadBundlefile(buf, namespace, path)
 
-	assert.NoError(t, err)
-	assert.Equal(t, len(bundleFile.Services), 2)
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(len(bundleFile.Services), 2))
 }

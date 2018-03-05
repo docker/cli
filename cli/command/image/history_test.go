@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/image"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewHistoryCommandErrors(t *testing.T) {
@@ -92,7 +92,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.NoError(t, err)
+		assert.Check(t, err)
 		actual := cli.OutBuffer().String()
 		golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
 	}

@@ -3,7 +3,8 @@ package schema
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 type dict map[string]interface{}
@@ -18,7 +19,7 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, Validate(config, "3.0"))
+	assert.Check(t, Validate(config, "3.0"))
 }
 
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
@@ -32,8 +33,8 @@ func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	}
 
 	err := Validate(config, "3.0")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Additional property helicopters is not allowed")
+	assert.Check(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Additional property helicopters is not allowed"))
 }
 
 func TestValidateAllowsXTopLevelFields(t *testing.T) {
@@ -43,7 +44,7 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	}
 
 	err := Validate(config, "3.4")
-	assert.NoError(t, err)
+	assert.Check(t, err)
 }
 
 func TestValidateSecretConfigNames(t *testing.T) {
@@ -62,7 +63,7 @@ func TestValidateSecretConfigNames(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.NoError(t, err)
+	assert.Check(t, err)
 }
 
 func TestValidateInvalidVersion(t *testing.T) {
@@ -76,8 +77,8 @@ func TestValidateInvalidVersion(t *testing.T) {
 	}
 
 	err := Validate(config, "2.1")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported Compose file version: 2.1")
+	assert.Check(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "unsupported Compose file version: 2.1"))
 }
 
 type array []interface{}
@@ -101,7 +102,7 @@ func TestValidatePlacement(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, Validate(config, "3.3"))
+	assert.Check(t, Validate(config, "3.3"))
 }
 
 func TestValidateIsolation(t *testing.T) {
@@ -114,5 +115,5 @@ func TestValidateIsolation(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(t, Validate(config, "3.5"))
+	assert.Check(t, Validate(config, "3.5"))
 }

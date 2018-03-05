@@ -12,8 +12,8 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigInspectErrors(t *testing.T) {
@@ -96,7 +96,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{configInspectFunc: tc.configInspectFunc})
 		cmd := newConfigInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-without-format.%s.golden", tc.name))
 	}
 }
@@ -133,7 +133,7 @@ func TestConfigInspectWithFormat(t *testing.T) {
 		cmd := newConfigInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-with-format.%s.golden", tc.name))
 	}
 }
@@ -167,7 +167,7 @@ func TestConfigInspectPretty(t *testing.T) {
 
 		cmd.SetArgs([]string{"configID"})
 		cmd.Flags().Set("pretty", "true")
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-pretty.%s.golden", tc.name))
 	}
 }

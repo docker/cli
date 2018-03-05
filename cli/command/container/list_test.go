@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 )
 
@@ -69,7 +69,7 @@ func TestContainerListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format.golden")
 }
 
@@ -84,7 +84,7 @@ func TestContainerListNoTrunc(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("no-trunc", "true")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format-no-trunc.golden")
 }
 
@@ -100,7 +100,7 @@ func TestContainerListNamesMultipleTime(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Names}} {{.Names}}")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-name-name.golden")
 }
 
@@ -116,20 +116,20 @@ func TestContainerListFormatTemplateWithArg(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", `{{.Names}} {{.Label "some.label"}}`)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-with-arg.golden")
 }
 
 func TestContainerListFormatSizeSetsOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerListFunc: func(options types.ContainerListOptions) ([]types.Container, error) {
-			assert.True(t, options.Size)
+			assert.Check(t, options.Size)
 			return []types.Container{}, nil
 		},
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", `{{.Size}}`)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }
 
 func TestContainerListWithConfigFormat(t *testing.T) {
@@ -145,7 +145,7 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }}",
 	})
 	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-config-format.golden")
 }
 
@@ -160,6 +160,6 @@ func TestContainerListWithFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-format.golden")
 }

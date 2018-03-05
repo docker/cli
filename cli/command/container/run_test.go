@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
 
 func TestRunLabel(t *testing.T) {
@@ -21,5 +21,5 @@ func TestRunLabel(t *testing.T) {
 	cmd := NewRunCommand(cli)
 	cmd.Flags().Set("detach", "true")
 	cmd.SetArgs([]string{"--label", "foo", "busybox"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }

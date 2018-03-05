@@ -12,8 +12,8 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmJoinTokenErrors(t *testing.T) {
@@ -206,7 +206,7 @@ func TestSwarmJoinToken(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))
 	}
 }

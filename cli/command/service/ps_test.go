@@ -8,8 +8,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"golang.org/x/net/context"
 )
 
@@ -26,22 +26,22 @@ func TestCreateFilter(t *testing.T) {
 	}
 
 	filter := opts.NewFilterOpt()
-	require.NoError(t, filter.Set("node=somenode"))
+	assert.NilError(t, filter.Set("node=somenode"))
 	options := psOptions{
 		services: []string{"idmatch", "idprefix", "namematch", "notfound"},
 		filter:   filter,
 	}
 
 	actual, notfound, err := createFilter(context.Background(), client, options)
-	require.NoError(t, err)
-	assert.Equal(t, notfound, []string{"no such service: notfound"})
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(notfound, []string{"no such service: notfound"}))
 
 	expected := filters.NewArgs()
 	expected.Add("service", "idmatch")
 	expected.Add("service", "idprefixmatch")
 	expected.Add("service", "cccccccc")
 	expected.Add("node", "somenode")
-	assert.Equal(t, expected, actual)
+	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
@@ -58,7 +58,7 @@ func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 		filter:   opts.NewFilterOpt(),
 	}
 	_, _, err := createFilter(context.Background(), client, options)
-	assert.EqualError(t, err, "multiple services found with provided prefix: aaa")
+	assert.Check(t, is.Error(err, "multiple services found with provided prefix: aaa"))
 }
 
 func TestCreateFilterNoneFound(t *testing.T) {
@@ -68,7 +68,7 @@ func TestCreateFilterNoneFound(t *testing.T) {
 		filter:   opts.NewFilterOpt(),
 	}
 	_, _, err := createFilter(context.Background(), client, options)
-	assert.EqualError(t, err, "no such service: foo\nno such service: notfound")
+	assert.Check(t, is.Error(err, "no such service: foo\nno such service: notfound"))
 }
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
@@ -87,7 +87,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		format:   "{{.ID}}",
 	}
 	err := runPS(cli, options)
-	assert.EqualError(t, err, "no such service: bar")
+	assert.Check(t, is.Error(err, "no such service: bar"))
 }
 
 func TestRunPSQuiet(t *testing.T) {
@@ -102,8 +102,8 @@ func TestRunPSQuiet(t *testing.T) {
 
 	cli := test.NewFakeCli(client)
 	err := runPS(cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
-	require.NoError(t, err)
-	assert.Equal(t, "sxabyp0obqokwekpun4rjo0b3\n", cli.OutBuffer().String())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("sxabyp0obqokwekpun4rjo0b3\n", cli.OutBuffer().String()))
 }
 
 func TestUpdateNodeFilter(t *testing.T) {
@@ -125,5 +125,5 @@ func TestUpdateNodeFilter(t *testing.T) {
 	expected.Add("node", "one")
 	expected.Add("node", "two")
 	expected.Add("node", selfNodeID)
-	assert.Equal(t, expected, filter)
+	assert.Check(t, is.DeepEqual(expected, filter))
 }

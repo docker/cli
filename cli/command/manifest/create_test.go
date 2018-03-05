@@ -8,10 +8,10 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/distribution/reference"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -50,28 +50,28 @@ func TestManifestCreateAmend(t *testing.T) {
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
 	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	namedRef = ref(t, "alpine:3.1")
 	imageManifest = fullImageManifest(t, namedRef)
 	err = store.Save(ref(t, "list:v1"), namedRef, imageManifest)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.1"})
 	cmd.Flags().Set("amend", "true")
 	cmd.SetOutput(ioutil.Discard)
 	err = cmd.Execute()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	// make a new cli to clear the buffers
 	cli = test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
 	inspectCmd := newInspectCommand(cli)
 	inspectCmd.SetArgs([]string{"example.com/list:v1"})
-	require.NoError(t, inspectCmd.Execute())
+	assert.NilError(t, inspectCmd.Execute())
 	actual := cli.OutBuffer()
 	expected := golden.Get(t, "inspect-manifest-list.golden")
-	assert.Equal(t, string(expected), actual.String())
+	assert.Check(t, is.Equal(string(expected), actual.String()))
 }
 
 // attempt to overwrite a saved manifest and get refused
@@ -84,13 +84,13 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
 	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOutput(ioutil.Discard)
 	err = cmd.Execute()
-	assert.EqualError(t, err, "refusing to amend an existing manifest list with no --amend flag")
+	assert.Check(t, is.Error(err, "refusing to amend an existing manifest list with no --amend flag"))
 }
 
 // attempt to make a manifest list without valid images
@@ -113,5 +113,5 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOutput(ioutil.Discard)
 	err := cmd.Execute()
-	assert.EqualError(t, err, "No such image: example.com/alpine:3.0")
+	assert.Check(t, is.Error(err, "No such image: example.com/alpine:3.0"))
 }

@@ -12,24 +12,24 @@ import (
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func newTempManifestStore(t *testing.T) (store.Store, func()) {
 	tmpdir, err := ioutil.TempDir("", "test-manifest-storage")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	return store.NewStore(tmpdir), func() { os.RemoveAll(tmpdir) }
 }
 
 func ref(t *testing.T, name string) reference.Named {
 	named, err := reference.ParseNamed("example.com/" + name)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return named
 }
 
@@ -49,7 +49,7 @@ func fullImageManifest(t *testing.T, ref reference.Named) types.ImageManifest {
 			},
 		},
 	})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	// TODO: include image data for verbose inspect
 	return types.NewImageManifest(ref, digest.Digest("sha256:7328f6f8b41890597575cbaadc884e7386ae0acc53b747401ebce5cf0d62abcd"), types.Image{OS: "linux", Architecture: "amd64"}, man)
 }
@@ -65,7 +65,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.EqualError(t, err, "No such manifest: example.com/alpine:3.0")
+	assert.Check(t, is.Error(err, "No such manifest: example.com/alpine:3.0"))
 }
 
 func TestInspectCommandNotFound(t *testing.T) {
@@ -87,7 +87,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.EqualError(t, err, "No such manifest: example.com/alpine:3.0")
+	assert.Check(t, is.Error(err, "No such manifest: example.com/alpine:3.0"))
 }
 
 func TestInspectCommandLocalManifest(t *testing.T) {
@@ -99,14 +99,14 @@ func TestInspectCommandLocalManifest(t *testing.T) {
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
 	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
-	require.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()
 	expected := golden.Get(t, "inspect-manifest.golden")
-	assert.Equal(t, string(expected), actual.String())
+	assert.Check(t, is.Equal(string(expected), actual.String()))
 }
 
 func TestInspectcommandRemoteManifest(t *testing.T) {
@@ -124,8 +124,8 @@ func TestInspectcommandRemoteManifest(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
-	require.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()
 	expected := golden.Get(t, "inspect-manifest.golden")
-	assert.Equal(t, string(expected), actual.String())
+	assert.Check(t, is.Equal(string(expected), actual.String()))
 }

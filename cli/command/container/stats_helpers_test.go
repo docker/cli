@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
 
 func TestCalculateMemUsageUnixNoCache(t *testing.T) {

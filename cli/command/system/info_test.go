@@ -10,8 +10,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 // helper function that base64 decodes a string and ignores the error
@@ -226,12 +227,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 	} {
 		cli := test.NewFakeCli(&fakeClient{})
-		assert.NoError(t, prettyPrintInfo(cli, tc.dockerInfo))
+		assert.Check(t, prettyPrintInfo(cli, tc.dockerInfo))
 		golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
 		if tc.warningsGolden != "" {
 			golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
 		} else {
-			assert.Equal(t, "", cli.ErrBuffer().String())
+			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 		}
 	}
 }

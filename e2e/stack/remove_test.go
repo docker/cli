@@ -7,10 +7,10 @@ import (
 
 	"github.com/docker/cli/internal/test/environment"
 	shlex "github.com/flynn-archive/go-shlex"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/icmd"
 	"github.com/gotestyourself/gotestyourself/poll"
-	"github.com/stretchr/testify/require"
 )
 
 var pollSettings = environment.DefaultPollSettings
@@ -70,6 +70,6 @@ func lines(out string) int {
 // TODO: move to gotestyourself
 func shell(t *testing.T, format string, args ...interface{}) icmd.Cmd {
 	cmd, err := shlex.Split(fmt.Sprintf(format, args...))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return icmd.Cmd{Command: cmd}
 }

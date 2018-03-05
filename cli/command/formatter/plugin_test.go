@@ -8,7 +8,8 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestPluginContext(t *testing.T) {
@@ -131,9 +132,9 @@ foobar_bar
 		testcase.context.Output = out
 		err := PluginWrite(testcase.context, plugins)
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }
@@ -158,7 +159,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 		if err := json.Unmarshal([]byte(line), &m); err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, expectedJSONs[i], m)
+		assert.Check(t, is.DeepEqual(expectedJSONs[i], m))
 	}
 }
 
@@ -177,6 +178,6 @@ func TestPluginContextWriteJSONField(t *testing.T) {
 		if err := json.Unmarshal([]byte(line), &s); err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, plugins[i].ID, s)
+		assert.Check(t, is.Equal(plugins[i].ID, s))
 	}
 }

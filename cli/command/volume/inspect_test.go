@@ -11,8 +11,8 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVolumeInspectErrors(t *testing.T) {
@@ -99,7 +99,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 		})
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-without-format.%s.golden", tc.name))
 	}
 }
@@ -136,7 +136,7 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
 	}
 }

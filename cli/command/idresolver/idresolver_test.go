@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -21,7 +22,7 @@ func TestResolveError(t *testing.T) {
 	idResolver := New(cli, false)
 	_, err := idResolver.Resolve(context.Background(), struct{}{}, "nodeID")
 
-	assert.EqualError(t, err, "unsupported type")
+	assert.Check(t, is.Error(err, "unsupported type"))
 }
 
 func TestResolveWithNoResolveOption(t *testing.T) {
@@ -40,9 +41,9 @@ func TestResolveWithNoResolveOption(t *testing.T) {
 	idResolver := New(cli, true)
 	id, err := idResolver.Resolve(context.Background(), swarm.Node{}, "nodeID")
 
-	assert.NoError(t, err)
-	assert.Equal(t, "nodeID", id)
-	assert.False(t, resolved)
+	assert.Check(t, err)
+	assert.Check(t, is.Equal("nodeID", id))
+	assert.Check(t, !resolved)
 }
 
 func TestResolveWithCache(t *testing.T) {
@@ -59,11 +60,11 @@ func TestResolveWithCache(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 2; i++ {
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, "nodeID")
-		assert.NoError(t, err)
-		assert.Equal(t, "node-foo", id)
+		assert.Check(t, err)
+		assert.Check(t, is.Equal("node-foo", id))
 	}
 
-	assert.Equal(t, 1, inspectCounter)
+	assert.Check(t, is.Equal(1, inspectCounter))
 }
 
 func TestResolveNode(t *testing.T) {
@@ -103,8 +104,8 @@ func TestResolveNode(t *testing.T) {
 		idResolver := New(cli, false)
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, tc.nodeID)
 
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expectedID, id)
+		assert.Check(t, err)
+		assert.Check(t, is.Equal(tc.expectedID, id))
 	}
 }
 
@@ -138,7 +139,7 @@ func TestResolveService(t *testing.T) {
 		idResolver := New(cli, false)
 		id, err := idResolver.Resolve(ctx, swarm.Service{}, tc.serviceID)
 
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expectedID, id)
+		assert.Check(t, err)
+		assert.Check(t, is.Equal(tc.expectedID, id))
 	}
 }

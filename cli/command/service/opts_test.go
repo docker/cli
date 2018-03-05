@@ -10,45 +10,45 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestMemBytesString(t *testing.T) {
 	var mem opts.MemBytes = 1048576
-	assert.Equal(t, "1MiB", mem.String())
+	assert.Check(t, is.Equal("1MiB", mem.String()))
 }
 
 func TestMemBytesSetAndValue(t *testing.T) {
 	var mem opts.MemBytes
-	assert.NoError(t, mem.Set("5kb"))
-	assert.Equal(t, int64(5120), mem.Value())
+	assert.Check(t, mem.Set("5kb"))
+	assert.Check(t, is.Equal(int64(5120), mem.Value()))
 }
 
 func TestNanoCPUsString(t *testing.T) {
 	var cpus opts.NanoCPUs = 6100000000
-	assert.Equal(t, "6.100", cpus.String())
+	assert.Check(t, is.Equal("6.100", cpus.String()))
 }
 
 func TestNanoCPUsSetAndValue(t *testing.T) {
 	var cpus opts.NanoCPUs
-	assert.NoError(t, cpus.Set("0.35"))
-	assert.Equal(t, int64(350000000), cpus.Value())
+	assert.Check(t, cpus.Set("0.35"))
+	assert.Check(t, is.Equal(int64(350000000), cpus.Value()))
 }
 
 func TestUint64OptString(t *testing.T) {
 	value := uint64(2345678)
 	opt := Uint64Opt{value: &value}
-	assert.Equal(t, "2345678", opt.String())
+	assert.Check(t, is.Equal("2345678", opt.String()))
 
 	opt = Uint64Opt{}
-	assert.Equal(t, "", opt.String())
+	assert.Check(t, is.Equal("", opt.String()))
 }
 
 func TestUint64OptSetAndValue(t *testing.T) {
 	var opt Uint64Opt
-	assert.NoError(t, opt.Set("14445"))
-	assert.Equal(t, uint64(14445), *opt.Value())
+	assert.Check(t, opt.Set("14445"))
+	assert.Check(t, is.Equal(uint64(14445), *opt.Value()))
 }
 
 func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
@@ -61,14 +61,14 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 		retries:     10,
 	}
 	config, err := opt.toHealthConfig()
-	assert.NoError(t, err)
-	assert.Equal(t, &container.HealthConfig{
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test:        []string{"CMD-SHELL", "curl"},
 		Interval:    time.Second,
 		Timeout:     time.Second,
 		StartPeriod: time.Second,
 		Retries:     10,
-	}, config)
+	}, config))
 }
 
 func TestHealthCheckOptionsToHealthConfigNoHealthcheck(t *testing.T) {
@@ -76,10 +76,10 @@ func TestHealthCheckOptionsToHealthConfigNoHealthcheck(t *testing.T) {
 		noHealthcheck: true,
 	}
 	config, err := opt.toHealthConfig()
-	assert.NoError(t, err)
-	assert.Equal(t, &container.HealthConfig{
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test: []string{"NONE"},
-	}, config)
+	}, config))
 }
 
 func TestHealthCheckOptionsToHealthConfigConflict(t *testing.T) {
@@ -88,7 +88,7 @@ func TestHealthCheckOptionsToHealthConfigConflict(t *testing.T) {
 		noHealthcheck: true,
 	}
 	_, err := opt.toHealthConfig()
-	assert.EqualError(t, err, "--no-healthcheck conflicts with --health-* options")
+	assert.Check(t, is.Error(err, "--no-healthcheck conflicts with --health-* options"))
 }
 
 func TestResourceOptionsToResourceRequirements(t *testing.T) {
@@ -109,7 +109,7 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 
 	for _, opt := range incorrectOptions {
 		_, err := opt.ToResourceRequirements()
-		assert.Error(t, err)
+		assert.Check(t, is.ErrorContains(err, ""))
 	}
 
 	correctOptions := []resourceOptions{
@@ -123,8 +123,8 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 
 	for _, opt := range correctOptions {
 		r, err := opt.ToResourceRequirements()
-		assert.NoError(t, err)
-		assert.Len(t, r.Reservations.GenericResources, len(opt.resGenericResources))
+		assert.Check(t, err)
+		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
 
 }
@@ -159,6 +159,6 @@ func TestToServiceNetwork(t *testing.T) {
 	ctx := context.Background()
 	flags := newCreateCommand(nil).Flags()
 	service, err := o.ToService(ctx, client, flags)
-	require.NoError(t, err)
-	assert.Equal(t, []swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks))
 }

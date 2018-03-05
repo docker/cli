@@ -6,8 +6,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -23,6 +23,6 @@ func TestServiceListOrder(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Name}}")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "service-list-sort.golden")
 }

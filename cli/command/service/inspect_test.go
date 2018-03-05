@@ -10,7 +10,8 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
@@ -130,5 +131,5 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 	if err := json.Unmarshal([]byte(s2), &m2); err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, m1, m2)
+	assert.Check(t, is.DeepEqual(m1, m2))
 }

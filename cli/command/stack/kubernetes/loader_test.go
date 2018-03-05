@@ -5,7 +5,7 @@ import (
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,8 +24,8 @@ func TestLoadStack(t *testing.T) {
 			},
 		},
 	})
-	require.NoError(t, err)
-	require.Equal(t, &apiv1beta1.Stack{
+	assert.NilError(t, err)
+	assert.DeepEqual(t, &apiv1beta1.Stack{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "foo",
 		},

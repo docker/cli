@@ -3,8 +3,8 @@ package kubernetes
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -22,11 +22,11 @@ func TestGetStackAPIVersion(t *testing.T) {
 	for _, test := range tests {
 		version, err := getAPIVersion(test.groups)
 		if test.err {
-			require.Error(t, err)
+			assert.Assert(t, is.ErrorContains(err, ""))
 		} else {
-			require.NoError(t, err)
+			assert.NilError(t, err)
 		}
-		assert.Equal(t, test.expectedStack, version)
+		assert.Check(t, is.Equal(test.expectedStack, version))
 	}
 }
 

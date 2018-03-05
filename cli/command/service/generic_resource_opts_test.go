@@ -3,7 +3,8 @@ package service
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestValidateSingleGenericResource(t *testing.T) {
@@ -12,11 +13,11 @@ func TestValidateSingleGenericResource(t *testing.T) {
 
 	for _, v := range incorrect {
 		_, err := ValidateSingleGenericResource(v)
-		assert.Error(t, err)
+		assert.Check(t, is.ErrorContains(err, ""))
 	}
 
 	for _, v := range correct {
 		_, err := ValidateSingleGenericResource(v)
-		assert.NoError(t, err)
+		assert.Check(t, err)
 	}
 }

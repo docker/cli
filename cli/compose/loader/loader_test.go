@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
@@ -167,17 +167,17 @@ var sampleConfig = types.Config{
 
 func TestParseYAML(t *testing.T) {
 	dict, err := ParseYAML([]byte(sampleYAML))
-	require.NoError(t, err)
-	assert.Equal(t, sampleDict, dict)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(sampleDict, dict))
 }
 
 func TestLoad(t *testing.T) {
 	actual, err := Load(buildConfigDetails(sampleDict, nil))
-	require.NoError(t, err)
-	assert.Equal(t, sampleConfig.Version, actual.Version)
-	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
-	assert.Equal(t, sampleConfig.Networks, actual.Networks)
-	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(sampleConfig.Version, actual.Version))
+	assert.Check(t, is.DeepEqual(serviceSort(sampleConfig.Services), serviceSort(actual.Services)))
+	assert.Check(t, is.DeepEqual(sampleConfig.Networks, actual.Networks))
+	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
 
 func TestLoadV31(t *testing.T) {
@@ -191,9 +191,9 @@ secrets:
   super:
     external: true
 `)
-	require.NoError(t, err)
-	assert.Len(t, actual.Services, 1)
-	assert.Len(t, actual.Secrets, 1)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Len(actual.Secrets, 1))
 }
 
 func TestLoadV33(t *testing.T) {
@@ -209,32 +209,32 @@ configs:
   super:
     external: true
 `)
-	require.NoError(t, err)
-	require.Len(t, actual.Services, 1)
-	assert.Equal(t, actual.Services[0].CredentialSpec.File, "/foo")
-	require.Len(t, actual.Configs, 1)
+	assert.NilError(t, err)
+	assert.Assert(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Equal(actual.Services[0].CredentialSpec.File, "/foo"))
+	assert.Assert(t, is.Len(actual.Configs, 1))
 }
 
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
-	require.NoError(t, err)
-	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
-	assert.Equal(t, sampleConfig.Networks, actual.Networks)
-	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(serviceSort(sampleConfig.Services), serviceSort(actual.Services)))
+	assert.Check(t, is.DeepEqual(sampleConfig.Networks, actual.Networks))
+	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
 
 func TestInvalidTopLevelObjectType(t *testing.T) {
 	_, err := loadYAML("1")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
 
 	_, err = loadYAML("\"hello\"")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
 
 	_, err = loadYAML("[\"hello\"]")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Top-level object must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Top-level object must be a mapping"))
 }
 
 func TestNonStringKeys(t *testing.T) {
@@ -244,8 +244,8 @@ version: "3"
   foo:
     image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Non-string key at top level: 123")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Non-string key at top level: 123"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -255,8 +255,8 @@ services:
   123:
     image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Non-string key in services: 123")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Non-string key in services: 123"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -269,8 +269,8 @@ networks:
       config:
         - 123: oh dear
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Non-string key in networks.default.ipam.config[0]: 123")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Non-string key in networks.default.ipam.config[0]: 123"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -280,8 +280,8 @@ services:
     environment:
       1: FOO
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Non-string key in services.dict-env.environment: 1")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Non-string key in services.dict-env.environment: 1"))
 }
 
 func TestSupportedVersion(t *testing.T) {
@@ -291,7 +291,7 @@ services:
   foo:
     image: busybox
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	_, err = loadYAML(`
 version: "3.0"
@@ -299,7 +299,7 @@ services:
   foo:
     image: busybox
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 }
 
 func TestUnsupportedVersion(t *testing.T) {
@@ -309,8 +309,8 @@ services:
   foo:
     image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "version"))
 
 	_, err = loadYAML(`
 version: "2.0"
@@ -318,8 +318,8 @@ services:
   foo:
     image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "version"))
 }
 
 func TestInvalidVersion(t *testing.T) {
@@ -329,8 +329,8 @@ services:
   foo:
     image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version must be a string")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "version must be a string"))
 }
 
 func TestV1Unsupported(t *testing.T) {
@@ -338,7 +338,7 @@ func TestV1Unsupported(t *testing.T) {
 foo:
   image: busybox
 `)
-	assert.Error(t, err)
+	assert.Check(t, is.ErrorContains(err, ""))
 }
 
 func TestNonMappingObject(t *testing.T) {
@@ -348,16 +348,16 @@ services:
   - foo:
       image: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 services:
   foo: busybox
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.foo must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.foo must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -365,16 +365,16 @@ networks:
   - default:
       driver: bridge
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "networks must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "networks must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 networks:
   default: bridge
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "networks.default must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "networks.default must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -382,16 +382,16 @@ volumes:
   - data:
       driver: local
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "volumes must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "volumes must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 volumes:
   data: local
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "volumes.data must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "volumes.data must be a mapping"))
 }
 
 func TestNonStringImage(t *testing.T) {
@@ -401,8 +401,8 @@ services:
   foo:
     image: ["busybox", "latest"]
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.foo.image must be a string")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.foo.image must be a string"))
 }
 
 func TestLoadWithEnvironment(t *testing.T) {
@@ -426,7 +426,7 @@ services:
       - QUX=
       - QUUX
 `, map[string]string{"QUX": "qux"})
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	expected := types.MappingWithEquals{
 		"FOO":  strPtr("1"),
@@ -436,10 +436,10 @@ services:
 		"QUUX": nil,
 	}
 
-	assert.Equal(t, 2, len(config.Services))
+	assert.Check(t, is.Equal(2, len(config.Services)))
 
 	for _, service := range config.Services {
-		assert.Equal(t, expected, service.Environment)
+		assert.Check(t, is.DeepEqual(expected, service.Environment))
 	}
 }
 
@@ -452,8 +452,8 @@ services:
     environment:
       FOO: ["1"]
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.dict-env.environment.FOO must be a string, number or null")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.dict-env.environment.FOO must be a string, number or null"))
 }
 
 func TestInvalidEnvironmentObject(t *testing.T) {
@@ -464,8 +464,8 @@ services:
     image: busybox
     environment: "FOO=1"
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.dict-env.environment must be a mapping")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.dict-env.environment must be a mapping"))
 }
 
 func TestLoadWithEnvironmentInterpolation(t *testing.T) {
@@ -491,7 +491,7 @@ volumes:
 		"FOO":  "foo",
 	})
 
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expectedLabels := types.Labels{
 		"home1":       home,
@@ -500,9 +500,9 @@ volumes:
 		"default":     "default",
 	}
 
-	assert.Equal(t, expectedLabels, config.Services[0].Labels)
-	assert.Equal(t, home, config.Networks["test"].Driver)
-	assert.Equal(t, home, config.Volumes["test"].Driver)
+	assert.Check(t, is.DeepEqual(expectedLabels, config.Services[0].Labels))
+	assert.Check(t, is.Equal(home, config.Networks["test"].Driver))
+	assert.Check(t, is.Equal(home, config.Volumes["test"].Driver))
 }
 
 func TestLoadWithInterpolationCastFull(t *testing.T) {
@@ -563,7 +563,7 @@ networks:
     attachable: $thebool
 
 `))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	env := map[string]string{
 		"theint":   "555",
 		"thefloat": "3.14",
@@ -571,7 +571,7 @@ networks:
 	}
 
 	config, err := Load(buildConfigDetails(dict, env))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
 		Version:  "3.4",
@@ -647,7 +647,7 @@ networks:
 		},
 	}
 
-	assert.Equal(t, expected, config)
+	assert.Check(t, is.DeepEqual(expected, config))
 }
 
 func TestUnsupportedProperties(t *testing.T) {
@@ -666,15 +666,15 @@ services:
     build:
      context: ./db
 `))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	configDetails := buildConfigDetails(dict, nil)
 
 	_, err = Load(configDetails)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	unsupported := GetUnsupportedProperties(dict)
-	assert.Equal(t, []string{"build", "links", "pid"}, unsupported)
+	assert.Check(t, is.DeepEqual([]string{"build", "links", "pid"}, unsupported))
 }
 
 func TestBuildProperties(t *testing.T) {
@@ -691,10 +691,10 @@ services:
     build:
      context: ./db
 `))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	configDetails := buildConfigDetails(dict, nil)
 	_, err = Load(configDetails)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 }
 
 func TestDeprecatedProperties(t *testing.T) {
@@ -709,17 +709,17 @@ services:
     container_name: db
     expose: ["5434"]
 `))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	configDetails := buildConfigDetails(dict, nil)
 
 	_, err = Load(configDetails)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	deprecated := GetDeprecatedProperties(dict)
-	assert.Len(t, deprecated, 2)
-	assert.Contains(t, deprecated, "container_name")
-	assert.Contains(t, deprecated, "expose")
+	assert.Check(t, is.Len(deprecated, 2))
+	assert.Check(t, is.Contains(deprecated, "container_name"))
+	assert.Check(t, is.Contains(deprecated, "expose"))
 }
 
 func TestForbiddenProperties(t *testing.T) {
@@ -736,14 +736,14 @@ services:
       service: foo
 `)
 
-	require.Error(t, err)
+	assert.Assert(t, is.ErrorContains(err, ""))
 	forbidden, ok := err.(*ForbiddenPropertiesError)
-	assert.True(t, ok, "error type is %T instead of ForbiddenPropertiesError", err)
+	assert.Check(t, ok, "error type is %T instead of ForbiddenPropertiesError", err)
 
 	props := forbidden.Properties
-	assert.Len(t, props, 2)
-	assert.Contains(t, props, "volume_driver")
-	assert.Contains(t, props, "extends")
+	assert.Check(t, is.Len(props, 2))
+	assert.Check(t, is.Contains(props, "volume_driver"))
+	assert.Check(t, is.Contains(props, "extends"))
 }
 
 func TestInvalidResource(t *testing.T) {
@@ -757,8 +757,8 @@ func TestInvalidResource(t *testing.T) {
                 impossible:
                   x: 1
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Additional property impossible is not allowed")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "Additional property impossible is not allowed"))
 }
 
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
@@ -770,9 +770,9 @@ volumes:
     driver: foobar
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"driver\" specified for volume")
-	assert.Contains(t, err.Error(), "external_volume")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"driver\" specified for volume"))
+	assert.Check(t, is.Contains(err.Error(), "external_volume"))
 }
 
 func TestInvalidExternalAndDirverOptsCombination(t *testing.T) {
@@ -785,9 +785,9 @@ volumes:
       beep: boop
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"driver_opts\" specified for volume")
-	assert.Contains(t, err.Error(), "external_volume")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"driver_opts\" specified for volume"))
+	assert.Check(t, is.Contains(err.Error(), "external_volume"))
 }
 
 func TestInvalidExternalAndLabelsCombination(t *testing.T) {
@@ -800,9 +800,9 @@ volumes:
       - beep=boop
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "conflicting parameters \"external\" and \"labels\" specified for volume")
-	assert.Contains(t, err.Error(), "external_volume")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "conflicting parameters \"external\" and \"labels\" specified for volume"))
+	assert.Check(t, is.Contains(err.Error(), "external_volume"))
 }
 
 func TestLoadVolumeInvalidExternalNameAndNameCombination(t *testing.T) {
@@ -815,9 +815,9 @@ volumes:
       name:	external_name
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "volume.external.name and volume.name conflict; only use volume.name")
-	assert.Contains(t, err.Error(), "external_volume")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "volume.external.name and volume.name conflict; only use volume.name"))
+	assert.Check(t, is.Contains(err.Error(), "external_volume"))
 }
 
 func durationPtr(value time.Duration) *time.Duration {
@@ -834,21 +834,21 @@ func uint32Ptr(value uint32) *uint32 {
 
 func TestFullExample(t *testing.T) {
 	bytes, err := ioutil.ReadFile("full-example.yml")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	homeDir := "/home/foo"
 	env := map[string]string{"HOME": homeDir, "QUX": "qux_from_environment"}
 	config, err := loadYAMLWithEnv(string(bytes), env)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	workingDir, err := os.Getwd()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expectedConfig := fullExampleConfig(workingDir, homeDir)
 
-	assert.Equal(t, expectedConfig.Services, config.Services)
-	assert.Equal(t, expectedConfig.Networks, config.Networks)
-	assert.Equal(t, expectedConfig.Volumes, config.Volumes)
+	assert.Check(t, is.DeepEqual(expectedConfig.Services, config.Services))
+	assert.Check(t, is.DeepEqual(expectedConfig.Networks, config.Networks))
+	assert.Check(t, is.DeepEqual(expectedConfig.Volumes, config.Volumes))
 }
 
 func TestLoadTmpfsVolume(t *testing.T) {
@@ -863,7 +863,7 @@ services:
         tmpfs:
           size: 10000
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.ServiceVolumeConfig{
 		Target: "/app",
@@ -873,9 +873,9 @@ services:
 		},
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Len(t, config.Services[0].Volumes, 1)
-	assert.Equal(t, expected, config.Services[0].Volumes[0])
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
 }
 
 func TestLoadTmpfsVolumeAdditionalPropertyNotAllowed(t *testing.T) {
@@ -890,8 +890,8 @@ services:
         tmpfs:
           size: 10000
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed"))
 }
 
 func TestLoadBindMountSourceMustNotBeEmpty(t *testing.T) {
@@ -904,7 +904,7 @@ services:
       - type: bind
         target: /app
 `)
-	require.EqualError(t, err, `invalid mount config for type "bind": field Source must not be empty`)
+	assert.Error(t, err, `invalid mount config for type "bind": field Source must not be empty`)
 }
 
 func TestLoadBindMountWithSource(t *testing.T) {
@@ -918,10 +918,10 @@ services:
         target: /app
         source: "."
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	workingDir, err := os.Getwd()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.ServiceVolumeConfig{
 		Type:   "bind",
@@ -929,9 +929,9 @@ services:
 		Target: "/app",
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Len(t, config.Services[0].Volumes, 1)
-	assert.Equal(t, expected, config.Services[0].Volumes[0])
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
 }
 
 func TestLoadTmpfsVolumeSizeCanBeZero(t *testing.T) {
@@ -946,7 +946,7 @@ services:
         tmpfs:
           size: 0
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.ServiceVolumeConfig{
 		Target: "/app",
@@ -954,9 +954,9 @@ services:
 		Tmpfs:  &types.ServiceVolumeTmpfs{},
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Len(t, config.Services[0].Volumes, 1)
-	assert.Equal(t, expected, config.Services[0].Volumes[0])
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
 }
 
 func TestLoadTmpfsVolumeSizeMustBeGTEQZero(t *testing.T) {
@@ -971,8 +971,8 @@ services:
         tmpfs:
           size: -1
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0"))
 }
 
 func TestLoadTmpfsVolumeSizeMustBeInteger(t *testing.T) {
@@ -987,8 +987,8 @@ services:
         tmpfs:
           size: 0.0001
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0.tmpfs.size must be a integer")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "services.tmpfs.volumes.0.tmpfs.size must be a integer"))
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
@@ -1012,7 +1012,7 @@ networks:
   mynet2:
     driver: bridge
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := map[string]types.NetworkConfig{
 		"mynet1": {
@@ -1025,7 +1025,7 @@ networks:
 		},
 	}
 
-	assert.Equal(t, expected, config.Networks)
+	assert.Check(t, is.DeepEqual(expected, config.Networks))
 }
 
 func TestLoadExpandedPortFormat(t *testing.T) {
@@ -1046,7 +1046,7 @@ services:
         target: 22
         published: 10022
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := []types.ServicePortConfig{
 		{
@@ -1109,8 +1109,8 @@ services:
 		},
 	}
 
-	assert.Len(t, config.Services, 1)
-	assert.Equal(t, expected, config.Services[0].Ports)
+	assert.Check(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Ports))
 }
 
 func TestLoadExpandedMountFormat(t *testing.T) {
@@ -1127,7 +1127,7 @@ services:
 volumes:
   foo: {}
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.ServiceVolumeConfig{
 		Type:     "volume",
@@ -1136,9 +1136,9 @@ volumes:
 		ReadOnly: true,
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Len(t, config.Services[0].Volumes, 1)
-	assert.Equal(t, expected, config.Services[0].Volumes[0])
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
 }
 
 func TestLoadExtraHostsMap(t *testing.T) {
@@ -1151,15 +1151,15 @@ services:
       "zulu": "162.242.195.82"
       "alpha": "50.31.209.229"
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"alpha:50.31.209.229",
 		"zulu:162.242.195.82",
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].ExtraHosts))
 }
 
 func TestLoadExtraHostsList(t *testing.T) {
@@ -1173,7 +1173,7 @@ services:
       - "alpha:50.31.209.229"
       - "zulu:ff02::1"
 `)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"zulu:162.242.195.82",
@@ -1181,8 +1181,8 @@ services:
 		"zulu:ff02::1",
 	}
 
-	require.Len(t, config.Services, 1)
-	assert.Equal(t, expected, config.Services[0].ExtraHosts)
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].ExtraHosts))
 }
 
 func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
@@ -1197,15 +1197,15 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 		},
 	}
 	volumes, err := LoadVolumes(source, "3.4")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := map[string]types.VolumeConfig{
 		"foo": {
 			Name:     "oops",
 			External: types.External{External: true},
 		},
 	}
-	assert.Equal(t, expected, volumes)
-	assert.Contains(t, buf.String(), "volume.external.name is deprecated")
+	assert.Check(t, is.DeepEqual(expected, volumes))
+	assert.Check(t, is.Contains(buf.String(), "volume.external.name is deprecated"))
 
 }
 
@@ -1228,15 +1228,15 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {
 		},
 	}
 	volumes, err := LoadVolumes(source, "3.3")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := map[string]types.VolumeConfig{
 		"foo": {
 			Name:     "oops",
 			External: types.External{External: true},
 		},
 	}
-	assert.Equal(t, expected, volumes)
-	assert.Equal(t, "", buf.String())
+	assert.Check(t, is.DeepEqual(expected, volumes))
+	assert.Check(t, is.Equal("", buf.String()))
 }
 
 func TestLoadV35(t *testing.T) {
@@ -1261,11 +1261,11 @@ secrets:
     name: barqux
     file: ./full-example.yml
 `)
-	require.NoError(t, err)
-	assert.Len(t, actual.Services, 1)
-	assert.Len(t, actual.Secrets, 2)
-	assert.Len(t, actual.Configs, 2)
-	assert.Equal(t, "process", actual.Services[0].Isolation)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Len(actual.Secrets, 2))
+	assert.Check(t, is.Len(actual.Configs, 2))
+	assert.Check(t, is.Equal("process", actual.Services[0].Isolation))
 }
 
 func TestLoadV35InvalidIsolation(t *testing.T) {
@@ -1280,9 +1280,9 @@ configs:
   super:
     external: true
 `)
-	require.NoError(t, err)
-	require.Len(t, actual.Services, 1)
-	assert.Equal(t, "invalid", actual.Services[0].Isolation)
+	assert.NilError(t, err)
+	assert.Assert(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Equal("invalid", actual.Services[0].Isolation))
 }
 
 func TestLoadSecretInvalidExternalNameAndNameCombination(t *testing.T) {
@@ -1295,9 +1295,9 @@ secrets:
       name:	external_name
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "secret.external.name and secret.name conflict; only use secret.name")
-	assert.Contains(t, err.Error(), "external_secret")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "secret.external.name and secret.name conflict; only use secret.name"))
+	assert.Check(t, is.Contains(err.Error(), "external_secret"))
 }
 
 func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
@@ -1315,15 +1315,15 @@ func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 		Version: "3.5",
 	}
 	secrets, err := LoadSecrets(source, details)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := map[string]types.SecretConfig{
 		"foo": {
 			Name:     "oops",
 			External: types.External{External: true},
 		},
 	}
-	assert.Equal(t, expected, secrets)
-	assert.Contains(t, buf.String(), "secret.external.name is deprecated")
+	assert.Check(t, is.DeepEqual(expected, secrets))
+	assert.Check(t, is.Contains(buf.String(), "secret.external.name is deprecated"))
 }
 
 func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
@@ -1338,15 +1338,15 @@ func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 		},
 	}
 	networks, err := LoadNetworks(source, "3.5")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := map[string]types.NetworkConfig{
 		"foo": {
 			Name:     "oops",
 			External: types.External{External: true},
 		},
 	}
-	assert.Equal(t, expected, networks)
-	assert.Contains(t, buf.String(), "network.external.name is deprecated")
+	assert.Check(t, is.DeepEqual(expected, networks))
+	assert.Check(t, is.Contains(buf.String(), "network.external.name is deprecated"))
 
 }
 
@@ -1362,15 +1362,15 @@ func TestLoadNetworksWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 		},
 	}
 	networks, err := LoadNetworks(source, "3.4")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := map[string]types.NetworkConfig{
 		"foo": {
 			Name:     "oops",
 			External: types.External{External: true},
 		},
 	}
-	assert.Equal(t, expected, networks)
-	assert.Equal(t, "", buf.String())
+	assert.Check(t, is.DeepEqual(expected, networks))
+	assert.Check(t, is.Equal("", buf.String()))
 }
 
 func TestLoadNetworkInvalidExternalNameAndNameCombination(t *testing.T) {
@@ -1383,7 +1383,7 @@ networks:
       name:	external_name
 `)
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "network.external.name and network.name conflict; only use network.name")
-	assert.Contains(t, err.Error(), "foo")
+	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Contains(err.Error(), "network.external.name and network.name conflict; only use network.name"))
+	assert.Check(t, is.Contains(err.Error(), "foo"))
 }

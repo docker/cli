@@ -9,8 +9,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPushCommandErrors(t *testing.T) {
@@ -72,6 +72,6 @@ func TestNewPushCommandSuccess(t *testing.T) {
 		cmd := NewPushCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 	}
 }

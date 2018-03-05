@@ -13,8 +13,8 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmUpdateErrors(t *testing.T) {
@@ -173,7 +173,7 @@ func TestSwarmUpdate(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(cli.OutBuffer())
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }

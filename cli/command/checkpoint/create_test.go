@@ -8,8 +8,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckpointCreateErrors(t *testing.T) {
@@ -63,10 +64,10 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 	cmd.SetArgs([]string{"container-foo", checkpoint})
 	cmd.Flags().Set("leave-running", "true")
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "container-foo", containerID)
-	assert.Equal(t, checkpoint, checkpointID)
-	assert.Equal(t, "/dir/foo", checkpointDir)
-	assert.Equal(t, false, exit)
-	assert.Equal(t, checkpoint, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("container-foo", containerID))
+	assert.Check(t, is.Equal(checkpoint, checkpointID))
+	assert.Check(t, is.Equal("/dir/foo", checkpointDir))
+	assert.Check(t, is.Equal(false, exit))
+	assert.Check(t, is.Equal(checkpoint, strings.TrimSpace(cli.OutBuffer().String())))
 }

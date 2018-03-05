@@ -7,8 +7,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSecretRemoveErrors(t *testing.T) {
@@ -52,9 +53,9 @@ func TestSecretRemoveWithName(t *testing.T) {
 	})
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetArgs(names)
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n"))
-	assert.Equal(t, names, removedSecrets)
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n")))
+	assert.Check(t, is.DeepEqual(names, removedSecrets))
 }
 
 func TestSecretRemoveContinueAfterError(t *testing.T) {
@@ -74,6 +75,6 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs(names)
-	assert.EqualError(t, cmd.Execute(), "error removing secret: foo")
-	assert.Equal(t, names, removedSecrets)
+	assert.Check(t, is.Error(cmd.Execute(), "error removing secret: foo"))
+	assert.Check(t, is.DeepEqual(names, removedSecrets))
 }

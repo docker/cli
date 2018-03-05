@@ -10,8 +10,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -106,7 +107,7 @@ func TestParseExec(t *testing.T) {
 
 	for _, testcase := range testcases {
 		execConfig := parseExec(testcase.options, &testcase.configFile)
-		assert.Equal(t, testcase.expected, *execConfig)
+		assert.Check(t, is.DeepEqual(testcase.expected, *execConfig))
 	}
 }
 
@@ -152,12 +153,12 @@ func TestRunExec(t *testing.T) {
 			if testcase.expectedError != "" {
 				testutil.ErrorContains(t, err, testcase.expectedError)
 			} else {
-				if !assert.NoError(t, err) {
+				if !assert.Check(t, err) {
 					return
 				}
 			}
-			assert.Equal(t, testcase.expectedOut, cli.OutBuffer().String())
-			assert.Equal(t, testcase.expectedErr, cli.ErrBuffer().String())
+			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))
 		})
 	}
 }
@@ -192,12 +193,12 @@ func TestGetExecExitStatus(t *testing.T) {
 	for _, testcase := range testcases {
 		client := &fakeClient{
 			execInspectFunc: func(id string) (types.ContainerExecInspect, error) {
-				assert.Equal(t, execID, id)
+				assert.Check(t, is.Equal(execID, id))
 				return types.ContainerExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), client, execID)
-		assert.Equal(t, testcase.expectedError, err)
+		assert.Check(t, is.DeepEqual(testcase.expectedError, err))
 	}
 }
 

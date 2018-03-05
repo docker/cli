@@ -14,19 +14,19 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCIDFileNoOPWithNoFilename(t *testing.T) {
 	file, err := newCIDFile("")
-	require.NoError(t, err)
-	assert.Equal(t, &cidFile{}, file)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(&cidFile{}, file))
 
-	assert.NoError(t, file.Write("id"))
-	assert.NoError(t, file.Close())
+	assert.Check(t, file.Write("id"))
+	assert.Check(t, file.Close())
 }
 
 func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
@@ -43,12 +43,12 @@ func TestCIDFileCloseWithNoWrite(t *testing.T) {
 
 	path := tempdir.Join("cidfile")
 	file, err := newCIDFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, file.path, path)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(file.path, path))
 
-	assert.NoError(t, file.Close())
+	assert.Check(t, file.Close())
 	_, err = os.Stat(path)
-	assert.True(t, os.IsNotExist(err))
+	assert.Check(t, os.IsNotExist(err))
 }
 
 func TestCIDFileCloseWithWrite(t *testing.T) {
@@ -57,18 +57,18 @@ func TestCIDFileCloseWithWrite(t *testing.T) {
 
 	path := tempdir.Join("cidfile")
 	file, err := newCIDFile(path)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	content := "id"
-	assert.NoError(t, file.Write(content))
+	assert.Check(t, file.Write(content))
 
 	actual, err := ioutil.ReadFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, content, string(actual))
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(content, string(actual)))
 
-	assert.NoError(t, file.Close())
+	assert.Check(t, file.Close())
 	_, err = os.Stat(path)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 }
 
 func TestCreateContainerPullsImageIfMissing(t *testing.T) {
@@ -108,11 +108,11 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 		HostConfig: &container.HostConfig{},
 	}
 	body, err := createContainer(context.Background(), cli, config, "name", runtime.GOOS)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := container.ContainerCreateCreatedBody{ID: containerID}
-	assert.Equal(t, expected, *body)
+	assert.Check(t, is.DeepEqual(expected, *body))
 	stderr := cli.ErrBuffer().String()
-	assert.Contains(t, stderr, "Unable to find image 'does-not-exist-locally:latest' locally")
+	assert.Check(t, is.Contains(stderr, "Unable to find image 'does-not-exist-locally:latest' locally"))
 }
 
 type fakeNotFound struct{}

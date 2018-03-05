@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmUnlockErrors(t *testing.T) {
@@ -95,5 +95,5 @@ func TestSwarmUnlock(t *testing.T) {
 	})
 	dockerCli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }

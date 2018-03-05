@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetConfigDetails(t *testing.T) {
@@ -22,11 +22,11 @@ services:
 	defer file.Remove()
 
 	details, err := getConfigDetails([]string{file.Path()}, nil)
-	require.NoError(t, err)
-	assert.Equal(t, filepath.Dir(file.Path()), details.WorkingDir)
-	require.Len(t, details.ConfigFiles, 1)
-	assert.Equal(t, "3.0", details.ConfigFiles[0].Config["version"])
-	assert.Len(t, details.Environment, len(os.Environ()))
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(filepath.Dir(file.Path()), details.WorkingDir))
+	assert.Assert(t, is.Len(details.ConfigFiles, 1))
+	assert.Check(t, is.Equal("3.0", details.ConfigFiles[0].Config["version"]))
+	assert.Check(t, is.Len(details.Environment, len(os.Environ())))
 }
 
 func TestGetConfigDetailsStdin(t *testing.T) {
@@ -37,11 +37,11 @@ services:
     image: alpine:3.5
 `
 	details, err := getConfigDetails([]string{"-"}, strings.NewReader(content))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	assert.Equal(t, cwd, details.WorkingDir)
-	require.Len(t, details.ConfigFiles, 1)
-	assert.Equal(t, "3.0", details.ConfigFiles[0].Config["version"])
-	assert.Len(t, details.Environment, len(os.Environ()))
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(cwd, details.WorkingDir))
+	assert.Assert(t, is.Len(details.ConfigFiles, 1))
+	assert.Check(t, is.Equal("3.0", details.ConfigFiles[0].Config["version"]))
+	assert.Check(t, is.Len(details.Environment, len(os.Environ())))
 }

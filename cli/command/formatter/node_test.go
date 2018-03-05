@@ -10,8 +10,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestNodeContext(t *testing.T) {
@@ -203,9 +203,9 @@ foobar_boo  Unknown
 		testcase.context.Output = out
 		err := NodeWrite(testcase.context, nodes, types.Info{Swarm: swarm.Info{Cluster: &testcase.clusterInfo}})
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }
@@ -255,8 +255,8 @@ func TestNodeContextWriteJSON(t *testing.T) {
 			msg := fmt.Sprintf("Output: line %d: %s", i, line)
 			var m map[string]interface{}
 			err := json.Unmarshal([]byte(line), &m)
-			require.NoError(t, err, msg)
-			assert.Equal(t, testcase.expected[i], m, msg)
+			assert.NilError(t, err, msg)
+			assert.Check(t, is.DeepEqual(testcase.expected[i], m), msg)
 		}
 	}
 }
@@ -275,8 +275,8 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
 		var s string
 		err := json.Unmarshal([]byte(line), &s)
-		require.NoError(t, err, msg)
-		assert.Equal(t, nodes[i].ID, s, msg)
+		assert.NilError(t, err, msg)
+		assert.Check(t, is.Equal(nodes[i].ID, s), msg)
 	}
 }
 
@@ -344,5 +344,5 @@ data
  Issuer Subject:	c3ViamVjdA==
  Issuer Public Key:	cHViS2V5
 `
-	assert.Equal(t, expected, out.String())
+	assert.Check(t, is.Equal(expected, out.String()))
 }

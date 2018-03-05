@@ -3,37 +3,38 @@ package swarm
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestNodeAddrOptionSetHostAndPort(t *testing.T) {
 	opt := NewNodeAddrOption("old:123")
 	addr := "newhost:5555"
-	assert.NoError(t, opt.Set(addr))
-	assert.Equal(t, addr, opt.Value())
+	assert.Check(t, opt.Set(addr))
+	assert.Check(t, is.Equal(addr, opt.Value()))
 }
 
 func TestNodeAddrOptionSetHostOnly(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.NoError(t, opt.Set("newhost"))
-	assert.Equal(t, "newhost:2377", opt.Value())
+	assert.Check(t, opt.Set("newhost"))
+	assert.Check(t, is.Equal("newhost:2377", opt.Value()))
 }
 
 func TestNodeAddrOptionSetHostOnlyIPv6(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.NoError(t, opt.Set("::1"))
-	assert.Equal(t, "[::1]:2377", opt.Value())
+	assert.Check(t, opt.Set("::1"))
+	assert.Check(t, is.Equal("[::1]:2377", opt.Value()))
 }
 
 func TestNodeAddrOptionSetPortOnly(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.NoError(t, opt.Set(":4545"))
-	assert.Equal(t, "0.0.0.0:4545", opt.Value())
+	assert.Check(t, opt.Set(":4545"))
+	assert.Check(t, is.Equal("0.0.0.0:4545", opt.Value()))
 }
 
 func TestNodeAddrOptionSetInvalidFormat(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.EqualError(t, opt.Set("http://localhost:4545"), "Invalid proto, expected tcp: http://localhost:4545")
+	assert.Check(t, is.Error(opt.Set("http://localhost:4545"), "Invalid proto, expected tcp: http://localhost:4545"))
 }
 
 func TestExternalCAOptionErrors(t *testing.T) {
@@ -64,7 +65,7 @@ func TestExternalCAOptionErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		opt := &ExternalCAOption{}
-		assert.EqualError(t, opt.Set(tc.externalCA), tc.expectedError)
+		assert.Check(t, is.Error(opt.Set(tc.externalCA), tc.expectedError))
 	}
 }
 
@@ -96,15 +97,15 @@ func TestExternalCAOption(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		opt := &ExternalCAOption{}
-		assert.NoError(t, opt.Set(tc.externalCA))
-		assert.Equal(t, tc.expected, opt.String())
+		assert.Check(t, opt.Set(tc.externalCA))
+		assert.Check(t, is.Equal(tc.expected, opt.String()))
 	}
 }
 
 func TestExternalCAOptionMultiple(t *testing.T) {
 	opt := &ExternalCAOption{}
-	assert.NoError(t, opt.Set("protocol=cfssl,url=https://example.com"))
-	assert.NoError(t, opt.Set("protocol=CFSSL,url=anything"))
-	assert.Len(t, opt.Value(), 2)
-	assert.Equal(t, "cfssl: https://example.com, cfssl: anything", opt.String())
+	assert.Check(t, opt.Set("protocol=cfssl,url=https://example.com"))
+	assert.Check(t, opt.Set("protocol=CFSSL,url=anything"))
+	assert.Check(t, is.Len(opt.Value(), 2))
+	assert.Check(t, is.Equal("cfssl: https://example.com, cfssl: anything", opt.String()))
 }

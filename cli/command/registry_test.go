@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
@@ -80,12 +81,12 @@ func TestElectAuthServer(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
 		server := ElectAuthServer(context.Background(), cli)
-		assert.Equal(t, tc.expectedAuthServer, server)
+		assert.Check(t, is.Equal(tc.expectedAuthServer, server))
 		actual := cli.ErrBuffer().String()
 		if tc.expectedWarning == "" {
-			assert.Empty(t, actual)
+			assert.Check(t, is.Len(actual, 0))
 		} else {
-			assert.Contains(t, actual, tc.expectedWarning)
+			assert.Check(t, is.Contains(actual, tc.expectedWarning))
 		}
 	}
 }
@@ -136,11 +137,11 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		serverAddress := tc.inputServerAddress
 		authconfig, err := GetDefaultAuthConfig(cli, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
 		if tc.expectedErr != "" {
-			assert.NotNil(t, err)
-			assert.Equal(t, tc.expectedErr, err.Error())
+			assert.Check(t, err != nil)
+			assert.Check(t, is.Equal(tc.expectedErr, err.Error()))
 		} else {
-			assert.Nil(t, err)
-			assert.Equal(t, tc.expectedAuthConfig, *authconfig)
+			assert.Check(t, err)
+			assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, *authconfig))
 		}
 	}
 }

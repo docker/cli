@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func fakeClientForRemoveStackTest(version string) *fakeClient {
@@ -45,11 +46,11 @@ func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, buildObjectIDs(client.services), client.removedServices)
-	assert.Equal(t, buildObjectIDs(client.networks), client.removedNetworks)
-	assert.Len(t, client.removedSecrets, 0)
-	assert.Len(t, client.removedConfigs, 0)
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
+	assert.Check(t, is.Len(client.removedSecrets, 0))
+	assert.Check(t, is.Len(client.removedConfigs, 0))
 }
 
 func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
@@ -57,11 +58,11 @@ func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, buildObjectIDs(client.services), client.removedServices)
-	assert.Equal(t, buildObjectIDs(client.networks), client.removedNetworks)
-	assert.Equal(t, buildObjectIDs(client.secrets), client.removedSecrets)
-	assert.Len(t, client.removedConfigs, 0)
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.secrets), client.removedSecrets))
+	assert.Check(t, is.Len(client.removedConfigs, 0))
 }
 
 func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
@@ -69,11 +70,11 @@ func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, buildObjectIDs(client.services), client.removedServices)
-	assert.Equal(t, buildObjectIDs(client.networks), client.removedNetworks)
-	assert.Equal(t, buildObjectIDs(client.secrets), client.removedSecrets)
-	assert.Equal(t, buildObjectIDs(client.configs), client.removedConfigs)
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.secrets), client.removedSecrets))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(client.configs), client.removedConfigs))
 }
 
 func TestRemoveStackSkipEmpty(t *testing.T) {
@@ -100,19 +101,19 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	cmd := newRemoveCommand(fakeCli)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	expectedList := []string{"Removing service bar_service1",
 		"Removing service bar_service2",
 		"Removing secret bar_secret1",
 		"Removing config bar_config1",
 		"Removing network bar_network1\n",
 	}
-	assert.Equal(t, strings.Join(expectedList, "\n"), fakeCli.OutBuffer().String())
-	assert.Contains(t, fakeCli.ErrBuffer().String(), "Nothing found in stack: foo\n")
-	assert.Equal(t, allServiceIDs, fakeClient.removedServices)
-	assert.Equal(t, allNetworkIDs, fakeClient.removedNetworks)
-	assert.Equal(t, allSecretIDs, fakeClient.removedSecrets)
-	assert.Equal(t, allConfigIDs, fakeClient.removedConfigs)
+	assert.Check(t, is.Equal(strings.Join(expectedList, "\n"), fakeCli.OutBuffer().String()))
+	assert.Check(t, is.Contains(fakeCli.ErrBuffer().String(), "Nothing found in stack: foo\n"))
+	assert.Check(t, is.DeepEqual(allServiceIDs, fakeClient.removedServices))
+	assert.Check(t, is.DeepEqual(allNetworkIDs, fakeClient.removedNetworks))
+	assert.Check(t, is.DeepEqual(allSecretIDs, fakeClient.removedSecrets))
+	assert.Check(t, is.DeepEqual(allConfigIDs, fakeClient.removedConfigs))
 }
 
 func TestRemoveContinueAfterError(t *testing.T) {
@@ -149,9 +150,9 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.EqualError(t, cmd.Execute(), "Failed to remove some resources from stack: foo")
-	assert.Equal(t, allServiceIDs, removedServices)
-	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
-	assert.Equal(t, allSecretIDs, cli.removedSecrets)
-	assert.Equal(t, allConfigIDs, cli.removedConfigs)
+	assert.Check(t, is.Error(cmd.Execute(), "Failed to remove some resources from stack: foo"))
+	assert.Check(t, is.DeepEqual(allServiceIDs, removedServices))
+	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
+	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))
+	assert.Check(t, is.DeepEqual(allConfigIDs, cli.removedConfigs))
 }

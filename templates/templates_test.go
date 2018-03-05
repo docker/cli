@@ -4,38 +4,39 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 // GitHub #32120
 func TestParseJSONFunctions(t *testing.T) {
 	tm, err := Parse(`{{json .Ports}}`)
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	var b bytes.Buffer
-	assert.NoError(t, tm.Execute(&b, map[string]string{"Ports": "0.0.0.0:2->8/udp"}))
+	assert.Check(t, tm.Execute(&b, map[string]string{"Ports": "0.0.0.0:2->8/udp"}))
 	want := "\"0.0.0.0:2->8/udp\""
-	assert.Equal(t, want, b.String())
+	assert.Check(t, is.Equal(want, b.String()))
 }
 
 func TestParseStringFunctions(t *testing.T) {
 	tm, err := Parse(`{{join (split . ":") "/"}}`)
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	var b bytes.Buffer
-	assert.NoError(t, tm.Execute(&b, "text:with:colon"))
+	assert.Check(t, tm.Execute(&b, "text:with:colon"))
 	want := "text/with/colon"
-	assert.Equal(t, want, b.String())
+	assert.Check(t, is.Equal(want, b.String()))
 }
 
 func TestNewParse(t *testing.T) {
 	tm, err := NewParse("foo", "this is a {{ . }}")
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	var b bytes.Buffer
-	assert.NoError(t, tm.Execute(&b, "string"))
+	assert.Check(t, tm.Execute(&b, "string"))
 	want := "this is a string"
-	assert.Equal(t, want, b.String())
+	assert.Check(t, is.Equal(want, b.String()))
 }
 
 func TestParseTruncateFunction(t *testing.T) {
@@ -65,24 +66,24 @@ func TestParseTruncateFunction(t *testing.T) {
 
 	for _, testCase := range testCases {
 		tm, err := Parse(testCase.template)
-		assert.NoError(t, err)
+		assert.Check(t, err)
 
 		t.Run("Non Empty Source Test with template: "+testCase.template, func(t *testing.T) {
 			var b bytes.Buffer
-			assert.NoError(t, tm.Execute(&b, source))
-			assert.Equal(t, testCase.expected, b.String())
+			assert.Check(t, tm.Execute(&b, source))
+			assert.Check(t, is.Equal(testCase.expected, b.String()))
 		})
 
 		t.Run("Empty Source Test with template: "+testCase.template, func(t *testing.T) {
 			var c bytes.Buffer
-			assert.NoError(t, tm.Execute(&c, ""))
-			assert.Equal(t, "", c.String())
+			assert.Check(t, tm.Execute(&c, ""))
+			assert.Check(t, is.Equal("", c.String()))
 		})
 
 		t.Run("Nil Source Test with template: "+testCase.template, func(t *testing.T) {
 			var c bytes.Buffer
-			assert.Error(t, tm.Execute(&c, nil))
-			assert.Equal(t, "", c.String())
+			assert.Check(t, is.ErrorContains(tm.Execute(&c, nil), ""))
+			assert.Check(t, is.Equal("", c.String()))
 		})
 	}
 }

@@ -8,9 +8,10 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
@@ -74,7 +75,7 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		assert.EqualError(t, cmd.Execute(), tc.expectedError)
+		assert.Check(t, is.Error(cmd.Execute(), tc.expectedError))
 	}
 }
 
@@ -119,7 +120,7 @@ func TestSwarmInit(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("init-%s.golden", tc.name))
 	}
 }

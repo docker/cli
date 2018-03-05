@@ -7,8 +7,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/network"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -54,7 +55,7 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-			assert.Equal(t, expectedOpts, config.IPAMConfig, "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedOpts, config.IPAMConfig), "not expected driver error")
 			return nil
 		},
 	})
@@ -66,5 +67,5 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 	cmd.Flags().Set("ip-range", "192.168.4.0/24")
 	cmd.Flags().Set("gateway", "192.168.4.1/24")
 	cmd.Flags().Set("subnet", "192.168.4.0/24")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }

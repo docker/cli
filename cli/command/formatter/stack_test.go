@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestStackContextWrite(t *testing.T) {
@@ -56,9 +57,9 @@ bar
 		testcase.context.Output = out
 		err := StackWrite(testcase.context, stacks)
 		if err != nil {
-			assert.Error(t, err, testcase.expected)
+			assert.Check(t, is.ErrorContains(err, ""), testcase.expected)
 		} else {
-			assert.Equal(t, out.String(), testcase.expected)
+			assert.Check(t, is.Equal(out.String(), testcase.expected))
 		}
 	}
 }

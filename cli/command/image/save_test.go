@@ -9,9 +9,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewSaveCommandErrors(t *testing.T) {
@@ -69,8 +69,8 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 			args:       []string{"-o", "save_tmp_file", "arg1"},
 			isTerminal: true,
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				require.Len(t, images, 1)
-				assert.Equal(t, "arg1", images[0])
+				assert.Assert(t, is.Len(images, 1))
+				assert.Check(t, is.Equal("arg1", images[0]))
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 			deferredFunc: func() {
@@ -81,9 +81,9 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 			args:       []string{"arg1", "arg2"},
 			isTerminal: false,
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				require.Len(t, images, 2)
-				assert.Equal(t, "arg1", images[0])
-				assert.Equal(t, "arg2", images[1])
+				assert.Assert(t, is.Len(images, 2))
+				assert.Check(t, is.Equal("arg1", images[0]))
+				assert.Check(t, is.Equal("arg2", images[1]))
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 		},
@@ -96,7 +96,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		if tc.deferredFunc != nil {
 			tc.deferredFunc()
 		}

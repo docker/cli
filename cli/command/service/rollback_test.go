@@ -10,7 +10,8 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"golang.org/x/net/context"
 )
 
@@ -50,8 +51,8 @@ func TestRollback(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
 		cmd.SetOutput(ioutil.Discard)
-		assert.NoError(t, cmd.Execute())
-		assert.Equal(t, strings.TrimSpace(cli.ErrBuffer().String()), tc.expectedDockerCliErr)
+		assert.Check(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(cli.ErrBuffer().String()), tc.expectedDockerCliErr))
 	}
 }
 

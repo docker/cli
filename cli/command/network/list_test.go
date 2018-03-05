@@ -12,9 +12,10 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -54,7 +55,7 @@ func TestNetworkListWithFlags(t *testing.T) {
 
 	cli := test.NewFakeCli(&fakeClient{
 		networkListFunc: func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
-			assert.Equal(t, expectedOpts, options, "not expected options error")
+			assert.Check(t, is.DeepEqual(expectedOpts, options), "not expected options error")
 			return []types.NetworkResource{*NetworkResource(NetworkResourceID("123454321"),
 				NetworkResourceName("network_1"),
 				NetworkResourceDriver("09.7.01"),
@@ -64,6 +65,6 @@ func TestNetworkListWithFlags(t *testing.T) {
 	cmd := newListCommand(cli)
 
 	cmd.Flags().Set("filter", "image.name=ubuntu")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, strings.TrimSpace(cli.OutBuffer().String()), "network-list.golden")
 }
