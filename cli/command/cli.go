@@ -22,7 +22,6 @@ import (
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -260,12 +259,12 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 		verStr = tmpStr
 	}
 
-	httpClient, err := newHTTPClient(host, opts.TLSOptions)
-	if err != nil {
-		return &client.Client{}, err
-	}
-
-	return client.NewClient(host, verStr, httpClient, customHeaders)
+	return client.NewClientWithOpts(
+		withHTTPClient(opts.TLSOptions),
+		client.WithHTTPHeaders(customHeaders),
+		client.WithVersion(verStr),
+		client.WithHost(host),
+	)
 }
 
 func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error) {
@@ -282,35 +281,32 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 	return dopts.ParseHost(tlsOptions != nil, host)
 }
 
-func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, error) {
-	if tlsOptions == nil {
-		// let the api client configure the default transport.
-		return nil, nil
-	}
-	opts := *tlsOptions
-	opts.ExclusiveRootPools = true
-	config, err := tlsconfig.Client(opts)
-	if err != nil {
-		return nil, err
-	}
-	tr := &http.Transport{
-		TLSClientConfig: config,
-		DialContext: (&net.Dialer{
-			KeepAlive: 30 * time.Second,
-			Timeout:   30 * time.Second,
-		}).DialContext,
-	}
-	hostURL, err := client.ParseHostURL(host)
-	if err != nil {
-		return nil, err
-	}
+func withHTTPClient(tlsOpts *tlsconfig.Options) func(*client.Client) error {
+	return func(c *client.Client) error {
+		if tlsOpts == nil {
+			// Use the default HTTPClient
+			return nil
+		}
 
-	sockets.ConfigureTransport(tr, hostURL.Scheme, hostURL.Host)
+		opts := *tlsOpts
+		opts.ExclusiveRootPools = true
+		tlsConfig, err := tlsconfig.Client(opts)
+		if err != nil {
+			return err
+		}
 
-	return &http.Client{
-		Transport:     tr,
-		CheckRedirect: client.CheckRedirect,
-	}, nil
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+				DialContext: (&net.Dialer{
+					KeepAlive: 30 * time.Second,
+					Timeout:   30 * time.Second,
+				}).DialContext,
+			},
+			CheckRedirect: client.CheckRedirect,
+		}
+		return client.WithHTTPClient(httpClient)(c)
+	}
 }
 
 // UserAgent returns the user agent string used for making API requests
