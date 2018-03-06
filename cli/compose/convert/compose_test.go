@@ -121,7 +121,7 @@ func TestSecrets(t *testing.T) {
 	}
 
 	specs, err := Secrets(namespace, source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(specs, 1))
 	secret := specs[0]
 	assert.Check(t, is.Equal("foo_one", secret.Name))
@@ -152,7 +152,7 @@ func TestConfigs(t *testing.T) {
 	}
 
 	specs, err := Configs(namespace, source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(specs, 1))
 	config := specs[0]
 	assert.Check(t, is.Equal("foo_one", config.Name))

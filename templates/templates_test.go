@@ -11,7 +11,7 @@ import (
 // GitHub #32120
 func TestParseJSONFunctions(t *testing.T) {
 	tm, err := Parse(`{{json .Ports}}`)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
 	assert.Check(t, tm.Execute(&b, map[string]string{"Ports": "0.0.0.0:2->8/udp"}))
@@ -21,7 +21,7 @@ func TestParseJSONFunctions(t *testing.T) {
 
 func TestParseStringFunctions(t *testing.T) {
 	tm, err := Parse(`{{join (split . ":") "/"}}`)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
 	assert.Check(t, tm.Execute(&b, "text:with:colon"))
@@ -31,7 +31,7 @@ func TestParseStringFunctions(t *testing.T) {
 
 func TestNewParse(t *testing.T) {
 	tm, err := NewParse("foo", "this is a {{ . }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
 	assert.Check(t, tm.Execute(&b, "string"))
@@ -66,7 +66,7 @@ func TestParseTruncateFunction(t *testing.T) {
 
 	for _, testCase := range testCases {
 		tm, err := Parse(testCase.template)
-		assert.Check(t, err)
+		assert.NilError(t, err)
 
 		t.Run("Non Empty Source Test with template: "+testCase.template, func(t *testing.T) {
 			var b bytes.Buffer

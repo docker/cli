@@ -24,7 +24,7 @@ func TestTaskPrintWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{*Task(TaskID("id-foo"))}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-quiet-option.golden")
 }
 
@@ -38,7 +38,7 @@ func TestTaskPrintWithNoTruncOption(t *testing.T) {
 		*Task(TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .ID }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-no-trunc-option.golden")
 }
 
@@ -52,7 +52,7 @@ func TestTaskPrintWithGlobalService(t *testing.T) {
 		*Task(TaskServiceID("service-id-foo"), TaskNodeID("node-id-bar"), TaskSlot(0)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-global-service.golden")
 }
 
@@ -66,7 +66,7 @@ func TestTaskPrintWithReplicatedService(t *testing.T) {
 		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-replicated-service.golden")
 }
 
@@ -102,7 +102,7 @@ func TestTaskPrintWithIndentation(t *testing.T) {
 		),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-indentation.golden")
 }
 
@@ -123,6 +123,6 @@ func TestTaskPrintWithResolution(t *testing.T) {
 		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }} {{ .Node }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-resolution.golden")
 }

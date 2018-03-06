@@ -140,7 +140,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 			assert.Check(t, err != nil)
 			assert.Check(t, is.Equal(tc.expectedErr, err.Error()))
 		} else {
-			assert.Check(t, err)
+			assert.NilError(t, err)
 			assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, *authconfig))
 		}
 	}

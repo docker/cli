@@ -26,7 +26,7 @@ func TestLoadFileV01Success(t *testing.T) {
 	}`)
 
 	bundle, err := LoadFile(reader)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal("0.1", bundle.Version))
 	assert.Check(t, is.Len(bundle.Services, 2))
 }

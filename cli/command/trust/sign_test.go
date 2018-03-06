@@ -60,7 +60,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 	}
 	// change to a tmpdir
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 	for _, tc := range testCases {
@@ -83,15 +83,15 @@ func TestTrustSignCommandOfflineErrors(t *testing.T) {
 
 func TestGetOrGenerateNotaryKey(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	// repo is empty, try making a root key
 	rootKeyA, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, rootKeyA != nil)
 
 	// we should only have one newly generated key
@@ -101,7 +101,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 
 	// this time we should get back the same key if we ask for another root key
 	rootKeyB, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, rootKeyB != nil)
 
 	// we should only have one newly generated key
@@ -114,7 +114,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 
 	// Now also try with a delegation key
 	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, data.RoleName(trust.ReleasesRole))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, releasesKey != nil)
 
 	// we should now have two keys
@@ -128,20 +128,20 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 
 func TestAddStageSigners(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	// stage targets/user
 	userRole := data.RoleName("targets/user")
 	userKey := data.NewPublicKey("algoA", []byte("a"))
 	err = addStagedSigner(notaryRepo, userRole, []data.PublicKey{userKey})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	// check the changelist for four total changes: two on targets/releases and two on targets/user
 	cl, err := notaryRepo.GetChangelist()
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	changeList := cl.List()
 	assert.Check(t, is.Len(changeList, 4))
 	// ordering is determinstic:
@@ -213,11 +213,11 @@ func TestAddStageSigners(t *testing.T) {
 
 func TestGetSignedManifestHashAndSize(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	target := &client.Target{}
 	target.Hashes, target.Length, err = getSignedManifestHashAndSize(notaryRepo, "test")
 	assert.Check(t, is.Error(err, "client is offline"))
@@ -241,11 +241,11 @@ func TestGetReleasedTargetHashAndSize(t *testing.T) {
 
 func TestCreateTarget(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	_, err = createTarget(notaryRepo, "")
 	assert.Check(t, is.Error(err, "No tag specified"))
 	_, err = createTarget(notaryRepo, "1")
@@ -254,11 +254,11 @@ func TestCreateTarget(t *testing.T) {
 
 func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	_, err = getExistingSignatureInfoForReleasedTag(notaryRepo, "test")
 	assert.Check(t, is.Error(err, "client is offline"))
 }
@@ -274,7 +274,7 @@ func TestPrettyPrintExistingSignatureInfo(t *testing.T) {
 
 func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	config.SetDir(tmpDir)
@@ -288,7 +288,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	assert.Assert(t, is.ErrorContains(err, ""))
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	cl, err := notaryRepo.GetChangelist()
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(len(cl.List()), 0))

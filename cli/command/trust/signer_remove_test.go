@@ -90,7 +90,7 @@ func TestRemoveLastSignerWarning(t *testing.T) {
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 
 	err := removeSigner(cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Contains(cli.OutBuffer().String(),
 		"The signer \"alice\" signed the last released version of signed-repo. "+
 			"Removing this signer will make signed-repo unpullable. "+

@@ -83,7 +83,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	name := "foo"
 
 	data, err := ioutil.ReadFile(filepath.Join("testdata", configDataFile))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	expected := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{

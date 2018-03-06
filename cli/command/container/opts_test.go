@@ -71,7 +71,7 @@ func parseMustError(t *testing.T, args string) {
 
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
 	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	return config, hostConfig
 }
 

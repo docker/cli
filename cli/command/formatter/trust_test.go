@@ -153,7 +153,7 @@ func TestTrustTagContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := TrustTagWrite(emptyCase.context, emptySignedTags)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 
@@ -172,7 +172,7 @@ func TestSignerInfoContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := SignerInfoWrite(emptyCase.context, emptySignerInfo)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 

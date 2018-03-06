@@ -20,7 +20,7 @@ import (
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
 	policy, err := convertRestartPolicy("no", nil)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual((*swarm.RestartPolicy)(nil), policy))
 }
 
@@ -34,7 +34,7 @@ func TestConvertRestartPolicyFromAlways(t *testing.T) {
 	expected := &swarm.RestartPolicy{
 		Condition: swarm.RestartPolicyConditionAny,
 	}
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, policy))
 }
 
@@ -45,7 +45,7 @@ func TestConvertRestartPolicyFromFailure(t *testing.T) {
 		Condition:   swarm.RestartPolicyConditionOnFailure,
 		MaxAttempts: &attempts,
 	}
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, policy))
 }
 
@@ -84,7 +84,7 @@ func TestConvertResourcesFull(t *testing.T) {
 		},
 	}
 	resources, err := convertResources(source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
@@ -109,7 +109,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 		},
 	}
 	resources, err := convertResources(source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
@@ -140,7 +140,7 @@ func TestConvertHealthcheck(t *testing.T) {
 	}
 
 	healthcheck, err := convertHealthcheck(source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, healthcheck))
 }
 
@@ -151,7 +151,7 @@ func TestConvertHealthcheckDisable(t *testing.T) {
 	}
 
 	healthcheck, err := convertHealthcheck(source)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, healthcheck))
 }
 
@@ -195,7 +195,7 @@ func TestConvertEndpointSpec(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, *endpoint))
 }
 
@@ -212,7 +212,7 @@ func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
@@ -250,7 +250,7 @@ func TestConvertServiceNetworks(t *testing.T) {
 	sortedConfigs := byTargetSort(configs)
 	sort.Sort(&sortedConfigs)
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(sortedConfigs)))
 }
 
@@ -273,7 +273,7 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(configs)))
 }
 
@@ -294,7 +294,7 @@ func (s byTargetSort) Swap(i, j int) {
 func TestConvertDNSConfigEmpty(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nil, nil)
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual((*swarm.DNSConfig)(nil), dnsConfig))
 }
 
@@ -305,7 +305,7 @@ var (
 
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nameservers, search)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      search,
@@ -314,7 +314,7 @@ func TestConvertDNSConfigAll(t *testing.T) {
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nameservers, nil)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      nil,
@@ -323,7 +323,7 @@ func TestConvertDNSConfigNameservers(t *testing.T) {
 
 func TestConvertDNSConfigSearch(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nil, search)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
@@ -332,20 +332,20 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 
 func TestConvertCredentialSpec(t *testing.T) {
 	swarmSpec, err := convertCredentialSpec(composetypes.CredentialSpecConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Nil(swarmSpec))
 
 	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
 		File: "/foo",
 	})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(swarmSpec.File, "/foo"))
 	assert.Check(t, is.Equal(swarmSpec.Registry, ""))
 
 	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
 		Registry: "foo",
 	})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(swarmSpec.File, ""))
 	assert.Check(t, is.Equal(swarmSpec.Registry, "foo"))
 

@@ -19,7 +19,7 @@ func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -174,7 +174,7 @@ func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -221,7 +221,7 @@ func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -245,7 +245,7 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 		Target: "/foo",
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -274,7 +274,7 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -296,7 +296,7 @@ func TestConvertVolumeToMountBind(t *testing.T) {
 		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
@@ -326,7 +326,7 @@ func TestConvertTmpfsToMountVolume(t *testing.T) {
 		TmpfsOptions: &mount.TmpfsOptions{SizeBytes: 1000},
 	}
 	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }
 

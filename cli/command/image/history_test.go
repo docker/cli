@@ -91,7 +91,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		actual := cli.OutBuffer().String()
 		golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
 	}

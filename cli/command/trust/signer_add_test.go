@@ -51,7 +51,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		},
 	}
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
@@ -67,12 +67,12 @@ func TestTrustSignerAddErrors(t *testing.T) {
 
 func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.Remove(tmpfile.Name())
 
 	cli := test.NewFakeCli(&fakeClient{})
@@ -86,7 +86,7 @@ func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 
 func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
@@ -101,12 +101,12 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 
 func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
 	pubKeyDir, err := ioutil.TempDir("", "key-load-test-pubkey-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyDir)
 	pubKeyFilepath := filepath.Join(pubKeyDir, "pubkey.pem")
 	assert.Check(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
@@ -130,7 +130,7 @@ func TestIngestPublicKeys(t *testing.T) {
 	assert.Check(t, is.Error(err, "unable to read public key from file: open foo: no such file or directory"))
 	// Call with real file path
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.Remove(tmpfile.Name())
 	_, err = ingestPublicKeys([]string{tmpfile.Name()})
 	assert.Check(t, is.Error(err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name())))

@@ -61,7 +61,7 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 		retries:     10,
 	}
 	config, err := opt.toHealthConfig()
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test:        []string{"CMD-SHELL", "curl"},
 		Interval:    time.Second,
@@ -76,7 +76,7 @@ func TestHealthCheckOptionsToHealthConfigNoHealthcheck(t *testing.T) {
 		noHealthcheck: true,
 	}
 	config, err := opt.toHealthConfig()
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test: []string{"NONE"},
 	}, config))
@@ -123,7 +123,7 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 
 	for _, opt := range correctOptions {
 		r, err := opt.ToResourceRequirements()
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
 

@@ -16,41 +16,41 @@ import (
 
 func TestGetTag(t *testing.T) {
 	ref, err := reference.ParseNormalizedNamed("ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	tag := getTag(ref)
 	assert.Check(t, is.Equal("", tag))
 
 	ref, err = reference.ParseNormalizedNamed("alpine:latest")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	tag = getTag(ref)
 	assert.Check(t, is.Equal(tag, "latest"))
 
 	ref, err = reference.ParseNormalizedNamed("alpine")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	tag = getTag(ref)
 	assert.Check(t, is.Equal(tag, ""))
 }
 
 func TestGetDigest(t *testing.T) {
 	ref, err := reference.ParseNormalizedNamed("ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	d := getDigest(ref)
 	assert.Check(t, is.Equal(digest.Digest("sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2"), d))
 
 	ref, err = reference.ParseNormalizedNamed("alpine:latest")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	d = getDigest(ref)
 	assert.Check(t, is.Equal(digest.Digest(""), d))
 
 	ref, err = reference.ParseNormalizedNamed("alpine")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	d = getDigest(ref)
 	assert.Check(t, is.Equal(digest.Digest(""), d))
 }
 
 func TestGetSignableRolesError(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})

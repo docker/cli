@@ -42,7 +42,7 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	}
 
 	err := Validate(config, "3.4")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestValidateSecretConfigNames(t *testing.T) {
@@ -61,7 +61,7 @@ func TestValidateSecretConfigNames(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestValidateInvalidVersion(t *testing.T) {

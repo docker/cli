@@ -52,7 +52,7 @@ func TestSecretCreateErrors(t *testing.T) {
 func TestSecretCreateWithName(t *testing.T) {
 	name := "foo"
 	data, err := ioutil.ReadFile(filepath.Join("testdata", secretDataFile))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	expected := swarm.SecretSpec{
 		Annotations: swarm.Annotations{

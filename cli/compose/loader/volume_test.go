@@ -13,7 +13,7 @@ func TestParseVolumeAnonymousVolume(t *testing.T) {
 	for _, path := range []string{"/path", "/path/foo"} {
 		volume, err := ParseVolume(path)
 		expected := types.ServiceVolumeConfig{Type: "volume", Target: path}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -22,7 +22,7 @@ func TestParseVolumeAnonymousVolumeWindows(t *testing.T) {
 	for _, path := range []string{"C:\\path", "Z:\\path\\foo"} {
 		volume, err := ParseVolume(path)
 		expected := types.ServiceVolumeConfig{Type: "volume", Target: path}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -36,7 +36,7 @@ func TestParseVolumeShortVolumes(t *testing.T) {
 	for _, path := range []string{".", "/a"} {
 		volume, err := ParseVolume(path)
 		expected := types.ServiceVolumeConfig{Type: "volume", Target: path}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -56,7 +56,7 @@ func TestParseVolumeBindMount(t *testing.T) {
 			Source: path,
 			Target: "/target",
 		}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -74,7 +74,7 @@ func TestParseVolumeRelativeBindMountWindows(t *testing.T) {
 			Source: path,
 			Target: "d:\\target",
 		}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -87,7 +87,7 @@ func TestParseVolumeWithBindOptions(t *testing.T) {
 		Target: "/target",
 		Bind:   &types.ServiceVolumeBind{Propagation: "slave"},
 	}
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, volume))
 }
 
@@ -100,13 +100,13 @@ func TestParseVolumeWithBindOptionsWindows(t *testing.T) {
 		ReadOnly: true,
 		Bind:     &types.ServiceVolumeBind{Propagation: "rprivate"},
 	}
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, volume))
 }
 
 func TestParseVolumeWithInvalidVolumeOptions(t *testing.T) {
 	_, err := ParseVolume("name:/target:bogus")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestParseVolumeWithVolumeOptions(t *testing.T) {
@@ -117,7 +117,7 @@ func TestParseVolumeWithVolumeOptions(t *testing.T) {
 		Target: "/target",
 		Volume: &types.ServiceVolumeVolume{NoCopy: true},
 	}
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, volume))
 }
 
@@ -130,7 +130,7 @@ func TestParseVolumeWithReadOnly(t *testing.T) {
 			Target:   "/target",
 			ReadOnly: true,
 		}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }
@@ -144,7 +144,7 @@ func TestParseVolumeWithRW(t *testing.T) {
 			Target:   "/target",
 			ReadOnly: false,
 		}
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(expected, volume))
 	}
 }

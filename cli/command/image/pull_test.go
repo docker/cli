@@ -73,7 +73,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
 	}
 }

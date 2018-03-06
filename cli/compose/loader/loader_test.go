@@ -410,7 +410,7 @@ services:
       - QUX=
       - QUUX
 `, map[string]string{"QUX": "qux"})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	expected := types.MappingWithEquals{
 		"FOO":  strPtr("1"),

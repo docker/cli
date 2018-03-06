@@ -122,7 +122,7 @@ func TestGetExitStatus(t *testing.T) {
 		}
 		err := getExitStatus(errC, resultC)
 		if testcase.expectedError == nil {
-			assert.Check(t, err)
+			assert.NilError(t, err)
 		} else {
 			assert.Check(t, is.Error(err, testcase.expectedError.Error()))
 		}

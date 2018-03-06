@@ -36,7 +36,7 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 	}
 
 	tmpDir, err := ioutil.TempDir("", "docker-key-generate-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
@@ -51,11 +51,11 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 
 func TestGenerateKeySuccess(t *testing.T) {
 	pubKeyCWD, err := ioutil.TempDir("", "pub-keys-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyCWD)
 
 	privKeyStorageDir, err := ioutil.TempDir("", "priv-keys-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(privKeyStorageDir)
 
 	passwd := "password"
@@ -63,10 +63,10 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// generate a single key
 	keyName := "alice"
 	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, cannedPasswordRetriever)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	pubKeyPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	assert.Check(t, is.Equal(keyName, pubKeyPEM.Headers["role"]))
 	// the default GUN is empty
@@ -77,10 +77,10 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// check that an appropriate ~/<trust_dir>/private/<key_id>.key file exists
 	expectedPrivKeyDir := filepath.Join(privKeyStorageDir, notary.PrivDir)
 	_, err = os.Stat(expectedPrivKeyDir)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	keyFiles, err := ioutil.ReadDir(expectedPrivKeyDir)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Len(keyFiles, 1))
 	privKeyFilePath := filepath.Join(expectedPrivKeyDir, keyFiles[0].Name())
 
@@ -96,28 +96,28 @@ func TestGenerateKeySuccess(t *testing.T) {
 	assert.Check(t, is.Equal("ENCRYPTED PRIVATE KEY", privKeyPEM.Type))
 	// check that the passphrase matches
 	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(passwd))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	// check that the public key exists at the correct path if we use the helper:
 	returnedPath, err := writePubKeyPEMToDir(pubKeyPEM, keyName, pubKeyCWD)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	expectedPubKeyPath := filepath.Join(pubKeyCWD, keyName+".pub")
 	assert.Check(t, is.Equal(returnedPath, expectedPubKeyPath))
 	_, err = os.Stat(expectedPubKeyPath)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	// check that the public key is the only file output in CWD
 	cwdKeyFiles, err := ioutil.ReadDir(pubKeyCWD)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Len(cwdKeyFiles, 1))
 }
 
 func TestValidateKeyArgs(t *testing.T) {
 	pubKeyCWD, err := ioutil.TempDir("", "pub-keys-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyCWD)
 
 	err = validateKeyArgs("a", pubKeyCWD)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	err = validateKeyArgs("a/b", pubKeyCWD)
 	assert.Error(t, err, "key name \"a/b\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")

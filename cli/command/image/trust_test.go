@@ -64,7 +64,7 @@ func TestNonOfficialTrustServer(t *testing.T) {
 
 func TestAddTargetToAllSignableRolesError(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})

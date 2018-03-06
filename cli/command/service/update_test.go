@@ -244,7 +244,7 @@ func TestUpdatePorts(t *testing.T) {
 	}
 
 	err := updatePorts(flags, &portConfigs)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(portConfigs, 2))
 	// Do a sort to have the order (might have changed by map)
 	targetPorts := []int{int(portConfigs[0].TargetPort), int(portConfigs[1].TargetPort)}
@@ -268,7 +268,7 @@ func TestUpdatePortsDuplicate(t *testing.T) {
 	}
 
 	err := updatePorts(flags, &portConfigs)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(portConfigs, 1))
 	assert.Check(t, is.Equal(uint32(80), portConfigs[0].TargetPort))
 }
@@ -346,7 +346,7 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 		if c.err != "" {
 			assert.Check(t, is.Error(err, c.err))
 		} else {
-			assert.Check(t, err)
+			assert.NilError(t, err)
 			if !reflect.DeepEqual(cspec.Healthcheck, c.expected) {
 				t.Errorf("incorrect result for test %d, expected health config:\n\t%#v\ngot:\n\t%#v", i, c.expected, cspec.Healthcheck)
 			}
@@ -369,7 +369,7 @@ func TestUpdateHosts(t *testing.T) {
 	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 ipv6.net"}
 
 	err := updateHosts(flags, &hosts)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, hosts))
 }
 
@@ -381,7 +381,7 @@ func TestUpdateHostsPreservesOrder(t *testing.T) {
 
 	hosts := []string{}
 	err := updateHosts(flags, &hosts)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]string{"127.0.0.2 foobar", "127.0.0.1 foobar", "127.0.0.3 foobar"}, hosts))
 }
 
@@ -403,7 +403,7 @@ func TestUpdatePortsRmWithProtocol(t *testing.T) {
 	}
 
 	err := updatePorts(flags, &portConfigs)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(portConfigs, 2))
 	assert.Check(t, is.Equal(uint32(81), portConfigs[0].TargetPort))
 	assert.Check(t, is.Equal(uint32(82), portConfigs[1].TargetPort))
@@ -460,7 +460,7 @@ func TestUpdateSecretUpdateInPlace(t *testing.T) {
 
 	updatedSecrets, err := getUpdatedSecrets(apiClient, flags, secrets)
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Assert(t, is.Len(updatedSecrets, 1))
 	assert.Check(t, is.Equal("tn9qiblgnuuut11eufquw5dev", updatedSecrets[0].SecretID))
 	assert.Check(t, is.Equal("foo", updatedSecrets[0].SecretName))
@@ -640,7 +640,7 @@ func TestUpdateNetworks(t *testing.T) {
 	err = flags.Set(flagNetworkRemove, "id999")
 	assert.NilError(t, err)
 	err = updateService(ctx, client, flags, &svc)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()
@@ -649,6 +649,6 @@ func TestUpdateNetworks(t *testing.T) {
 	err = flags.Set(flagNetworkRemove, "aaa-network")
 	assert.NilError(t, err)
 	err = updateService(ctx, client, flags, &svc)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id999"}}, svc.TaskTemplate.Networks))
 }

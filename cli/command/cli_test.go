@@ -163,7 +163,7 @@ func TestExperimentalCLI(t *testing.T) {
 			cli := &DockerCli{client: apiclient, err: os.Stderr}
 			cliconfig.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
-			assert.Check(t, err)
+			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental))
 		})
 	}
@@ -266,7 +266,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 				options.Common.Orchestrator = testcase.flagOrchestrator
 			}
 			err := cli.Initialize(options)
-			assert.Check(t, err)
+			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes()))
 			assert.Check(t, is.Equal(testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator)))
 		})
@@ -334,7 +334,7 @@ func TestGetClientWithPassword(t *testing.T) {
 				return
 			}
 
-			assert.Check(t, err)
+			assert.NilError(t, err)
 		})
 	}
 }

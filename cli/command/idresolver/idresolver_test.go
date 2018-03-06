@@ -41,7 +41,7 @@ func TestResolveWithNoResolveOption(t *testing.T) {
 	idResolver := New(cli, true)
 	id, err := idResolver.Resolve(context.Background(), swarm.Node{}, "nodeID")
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal("nodeID", id))
 	assert.Check(t, !resolved)
 }
@@ -60,7 +60,7 @@ func TestResolveWithCache(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 2; i++ {
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, "nodeID")
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.Equal("node-foo", id))
 	}
 
@@ -104,7 +104,7 @@ func TestResolveNode(t *testing.T) {
 		idResolver := New(cli, false)
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, tc.nodeID)
 
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.Equal(tc.expectedID, id))
 	}
 }
@@ -139,7 +139,7 @@ func TestResolveService(t *testing.T) {
 		idResolver := New(cli, false)
 		id, err := idResolver.Resolve(ctx, swarm.Service{}, tc.serviceID)
 
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.Equal(tc.expectedID, id))
 	}
 }

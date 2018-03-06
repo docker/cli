@@ -14,11 +14,11 @@ import (
 
 func TestGetOrGenerateNotaryKeyAndInitRepo(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	err = getOrGenerateRootKeyAndInitRepo(notaryRepo)
 	assert.Check(t, is.Error(err, "client is offline"))
