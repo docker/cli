@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/gotestyourself/gotestyourself/fs"
+	"golang.org/x/net/context"
 )
 
 const userErr = "userunknownError"
@@ -131,22 +131,27 @@ func TestRunLogin(t *testing.T) {
 			expectedErr:     testAuthErrMsg,
 		},
 	}
-	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{})
-		errBuf := new(bytes.Buffer)
-		cli.SetErr(errBuf)
-		if tc.inputStoredCred != nil {
-			cred := *tc.inputStoredCred
-			cli.ConfigFile().GetCredentialsStore(cred.ServerAddress).Store(cred)
-		}
-		loginErr := runLogin(cli, tc.inputLoginOption)
-		if tc.expectedErr != "" {
-			assert.Check(t, is.Equal(tc.expectedErr, loginErr.Error()))
-		} else {
-			assert.Check(t, loginErr)
-			savedCred, credStoreErr := cli.ConfigFile().GetCredentialsStore(tc.inputStoredCred.ServerAddress).Get(tc.inputStoredCred.ServerAddress)
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			tmpFile := fs.NewFile(t, "test-run-login")
+			defer tmpFile.Remove()
+			cli := test.NewFakeCli(&fakeClient{})
+			configfile := cli.ConfigFile()
+			configfile.Filename = tmpFile.Path()
+
+			if tc.inputStoredCred != nil {
+				cred := *tc.inputStoredCred
+				configfile.GetCredentialsStore(cred.ServerAddress).Store(cred)
+			}
+			loginErr := runLogin(cli, tc.inputLoginOption)
+			if tc.expectedErr != "" {
+				assert.Error(t, loginErr, tc.expectedErr)
+				return
+			}
+			assert.NilError(t, loginErr)
+			savedCred, credStoreErr := configfile.GetCredentialsStore(tc.inputStoredCred.ServerAddress).Get(tc.inputStoredCred.ServerAddress)
 			assert.Check(t, credStoreErr)
-			assert.Check(t, is.DeepEqual(tc.expectedSavedCred, savedCred))
-		}
+			assert.DeepEqual(t, tc.expectedSavedCred, savedCred)
+		})
 	}
 }
