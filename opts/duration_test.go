@@ -26,5 +26,5 @@ func TestPositiveDurationOptSetAndValue(t *testing.T) {
 	var duration PositiveDurationOpt
 	assert.NilError(t, duration.Set("300s"))
 	assert.Check(t, is.Equal(time.Duration(300*10e8), *duration.Value()))
-	assert.Check(t, is.Error(duration.Set("-300s"), "duration cannot be negative"))
+	assert.Error(t, duration.Set("-300s"), "duration cannot be negative")
 }

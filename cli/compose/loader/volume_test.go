@@ -29,7 +29,7 @@ func TestParseVolumeAnonymousVolumeWindows(t *testing.T) {
 
 func TestParseVolumeTooManyColons(t *testing.T) {
 	_, err := ParseVolume("/foo:/foo:ro:foo")
-	assert.Check(t, is.Error(err, "invalid spec: /foo:/foo:ro:foo: too many colons"))
+	assert.Error(t, err, "invalid spec: /foo:/foo:ro:foo: too many colons")
 }
 
 func TestParseVolumeShortVolumes(t *testing.T) {

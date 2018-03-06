@@ -344,7 +344,7 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 		}
 		err := updateHealthcheck(flags, cspec)
 		if c.err != "" {
-			assert.Check(t, is.Error(err, c.err))
+			assert.Error(t, err, c.err)
 		} else {
 			assert.NilError(t, err)
 			if !reflect.DeepEqual(cspec.Healthcheck, c.expected) {
@@ -626,14 +626,14 @@ func TestUpdateNetworks(t *testing.T) {
 	err = flags.Set(flagNetworkAdd, "aaa-network")
 	assert.NilError(t, err)
 	err = updateService(ctx, client, flags, &svc)
-	assert.Check(t, is.Error(err, "service is already attached to network aaa-network"))
+	assert.Error(t, err, "service is already attached to network aaa-network")
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()
 	err = flags.Set(flagNetworkAdd, "id555")
 	assert.NilError(t, err)
 	err = updateService(ctx, client, flags, &svc)
-	assert.Check(t, is.Error(err, "service is already attached to network id555"))
+	assert.Error(t, err, "service is already attached to network id555")
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()

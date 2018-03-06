@@ -9,7 +9,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 )
@@ -75,7 +74,7 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		assert.Check(t, is.Error(cmd.Execute(), tc.expectedError))
+		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

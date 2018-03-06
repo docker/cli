@@ -58,7 +58,7 @@ func TestInvalidInterpolation(t *testing.T) {
 		},
 	}
 	_, err := Interpolate(services, Options{LookupValue: defaultMapping})
-	assert.Check(t, is.Error(err, `invalid interpolation format for servicea.image: "${". You may need to escape any $ with another $.`))
+	assert.Error(t, err, `invalid interpolation format for servicea.image: "${". You may need to escape any $ with another $.`)
 }
 
 func TestInterpolateWithDefaults(t *testing.T) {

@@ -52,7 +52,7 @@ D: /usr/app/old_app.js
 		testcase.context.Output = out
 		err := DiffWrite(testcase.context, diffs)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

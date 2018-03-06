@@ -143,5 +143,5 @@ func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {
 	assert.NilError(t, err)
 	target := client.Target{}
 	err = getSignableRolesForTargetAndRemove(target, notaryRepo)
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }

@@ -57,5 +57,5 @@ func TestGetSignableRolesError(t *testing.T) {
 	assert.NilError(t, err)
 	target := client.Target{}
 	_, err = GetSignableRoles(notaryRepo, &target)
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }

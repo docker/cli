@@ -26,7 +26,7 @@ func TestConvertRestartPolicyFromNone(t *testing.T) {
 
 func TestConvertRestartPolicyFromUnknown(t *testing.T) {
 	_, err := convertRestartPolicy("unknown", nil)
-	assert.Check(t, is.Error(err, "unknown restart policy: unknown"))
+	assert.Error(t, err, "unknown restart policy: unknown")
 }
 
 func TestConvertRestartPolicyFromAlways(t *testing.T) {
@@ -161,7 +161,7 @@ func TestConvertHealthcheckDisableWithTest(t *testing.T) {
 		Test:    []string{"EXEC", "touch"},
 	}
 	_, err := convertHealthcheck(source)
-	assert.Check(t, is.Error(err, "test and disable can't be set at the same time"))
+	assert.Error(t, err, "test and disable can't be set at the same time")
 }
 
 func TestConvertEndpointSpec(t *testing.T) {

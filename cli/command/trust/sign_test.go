@@ -220,7 +220,7 @@ func TestGetSignedManifestHashAndSize(t *testing.T) {
 	assert.NilError(t, err)
 	target := &client.Target{}
 	target.Hashes, target.Length, err = getSignedManifestHashAndSize(notaryRepo, "test")
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }
 
 func TestGetReleasedTargetHashAndSize(t *testing.T) {
@@ -231,7 +231,7 @@ func TestGetReleasedTargetHashAndSize(t *testing.T) {
 		oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: unreleasedTgt})
 	}
 	_, _, err := getReleasedTargetHashAndSize(oneReleasedTgt, "unreleased")
-	assert.Check(t, is.Error(err, "No valid trust data for unreleased"))
+	assert.Error(t, err, "No valid trust data for unreleased")
 	releasedTgt := client.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
 	oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: releasedTgt})
 	hash, _, _ := getReleasedTargetHashAndSize(oneReleasedTgt, "unreleased")
@@ -247,9 +247,9 @@ func TestCreateTarget(t *testing.T) {
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, err = createTarget(notaryRepo, "")
-	assert.Check(t, is.Error(err, "No tag specified"))
+	assert.Error(t, err, "No tag specified")
 	_, err = createTarget(notaryRepo, "1")
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }
 
 func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
@@ -260,7 +260,7 @@ func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, err = getExistingSignatureInfoForReleasedTag(notaryRepo, "test")
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }
 
 func TestPrettyPrintExistingSignatureInfo(t *testing.T) {

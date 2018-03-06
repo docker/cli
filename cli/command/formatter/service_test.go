@@ -126,7 +126,7 @@ bar
 		testcase.context.Output = out
 		err := ServiceListWrite(testcase.context, services, info)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

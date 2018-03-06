@@ -13,7 +13,6 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 )
 
@@ -61,7 +60,7 @@ func TestNodePsErrors(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		assert.Check(t, is.Error(cmd.Execute(), tc.expectedError))
+		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

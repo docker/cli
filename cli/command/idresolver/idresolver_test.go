@@ -22,7 +22,7 @@ func TestResolveError(t *testing.T) {
 	idResolver := New(cli, false)
 	_, err := idResolver.Resolve(context.Background(), struct{}{}, "nodeID")
 
-	assert.Check(t, is.Error(err, "unsupported type"))
+	assert.Error(t, err, "unsupported type")
 }
 
 func TestResolveWithNoResolveOption(t *testing.T) {

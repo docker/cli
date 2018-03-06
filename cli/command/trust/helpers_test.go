@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
@@ -21,5 +20,5 @@ func TestGetOrGenerateNotaryKeyAndInitRepo(t *testing.T) {
 	assert.NilError(t, err)
 
 	err = getOrGenerateRootKeyAndInitRepo(notaryRepo)
-	assert.Check(t, is.Error(err, "client is offline"))
+	assert.Error(t, err, "client is offline")
 }

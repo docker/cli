@@ -60,7 +60,7 @@ func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 		filter:   opts.NewFilterOpt(),
 	}
 	_, _, err := createFilter(context.Background(), client, options)
-	assert.Check(t, is.Error(err, "multiple services found with provided prefix: aaa"))
+	assert.Error(t, err, "multiple services found with provided prefix: aaa")
 }
 
 func TestCreateFilterNoneFound(t *testing.T) {
@@ -70,7 +70,7 @@ func TestCreateFilterNoneFound(t *testing.T) {
 		filter:   opts.NewFilterOpt(),
 	}
 	_, _, err := createFilter(context.Background(), client, options)
-	assert.Check(t, is.Error(err, "no such service: foo\nno such service: notfound"))
+	assert.Error(t, err, "no such service: foo\nno such service: notfound")
 }
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
@@ -89,7 +89,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		format:   "{{.ID}}",
 	}
 	err := runPS(cli, options)
-	assert.Check(t, is.Error(err, "no such service: bar"))
+	assert.Error(t, err, "no such service: bar")
 }
 
 func TestRunPSQuiet(t *testing.T) {

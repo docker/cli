@@ -294,7 +294,7 @@ image_id: imageID3
 		testcase.context.Output = out
 		err := ImageWrite(testcase.context, images)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

@@ -74,6 +74,6 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs(names)
-	assert.Check(t, is.Error(cmd.Execute(), "error removing secret: foo"))
+	assert.Error(t, cmd.Execute(), "error removing secret: foo")
 	assert.Check(t, is.DeepEqual(names, removedSecrets))
 }

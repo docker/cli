@@ -278,7 +278,7 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.Check(t, is.Error(port.Set(tc.value), tc.expectedError))
+		assert.Error(t, port.Set(tc.value), tc.expectedError)
 	}
 }
 

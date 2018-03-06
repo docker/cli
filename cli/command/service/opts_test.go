@@ -88,7 +88,7 @@ func TestHealthCheckOptionsToHealthConfigConflict(t *testing.T) {
 		noHealthcheck: true,
 	}
 	_, err := opt.toHealthConfig()
-	assert.Check(t, is.Error(err, "--no-healthcheck conflicts with --health-* options"))
+	assert.Error(t, err, "--no-healthcheck conflicts with --health-* options")
 }
 
 func TestResourceOptionsToResourceRequirements(t *testing.T) {

@@ -34,7 +34,7 @@ func TestNodeAddrOptionSetPortOnly(t *testing.T) {
 
 func TestNodeAddrOptionSetInvalidFormat(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.Check(t, is.Error(opt.Set("http://localhost:4545"), "Invalid proto, expected tcp: http://localhost:4545"))
+	assert.Error(t, opt.Set("http://localhost:4545"), "Invalid proto, expected tcp: http://localhost:4545")
 }
 
 func TestExternalCAOptionErrors(t *testing.T) {
@@ -65,7 +65,7 @@ func TestExternalCAOptionErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		opt := &ExternalCAOption{}
-		assert.Check(t, is.Error(opt.Set(tc.externalCA), tc.expectedError))
+		assert.Error(t, opt.Set(tc.externalCA), tc.expectedError)
 	}
 }
 

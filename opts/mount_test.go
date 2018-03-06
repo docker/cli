@@ -82,23 +82,23 @@ func TestMountOptDefaultType(t *testing.T) {
 
 func TestMountOptSetErrorNoTarget(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,source=/foo"), "target is required"))
+	assert.Error(t, mount.Set("type=volume,source=/foo"), "target is required")
 }
 
 func TestMountOptSetErrorInvalidKey(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'"))
+	assert.Error(t, mount.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'")
 }
 
 func TestMountOptSetErrorInvalidField(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair"))
+	assert.Error(t, mount.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair")
 }
 
 func TestMountOptSetErrorInvalidReadOnly(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,readonly=no"), "invalid value for readonly: no"))
-	assert.Check(t, is.Error(mount.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid"))
+	assert.Error(t, mount.Set("type=volume,readonly=no"), "invalid value for readonly: no")
+	assert.Error(t, mount.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid")
 }
 
 func TestMountOptDefaultEnableReadOnly(t *testing.T) {

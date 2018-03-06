@@ -38,7 +38,7 @@ func TestLoadFileSyntaxError(t *testing.T) {
 	}`)
 
 	_, err := LoadFile(reader)
-	assert.Check(t, is.Error(err, "JSON syntax error at byte 37: invalid character 'u' looking for beginning of value"))
+	assert.Error(t, err, "JSON syntax error at byte 37: invalid character 'u' looking for beginning of value")
 }
 
 func TestLoadFileTypeError(t *testing.T) {
@@ -53,7 +53,7 @@ func TestLoadFileTypeError(t *testing.T) {
 	}`)
 
 	_, err := LoadFile(reader)
-	assert.Check(t, is.Error(err, "Unexpected type at byte 94. Expected []string but received string."))
+	assert.Error(t, err, "Unexpected type at byte 94. Expected []string but received string.")
 }
 
 func TestPrint(t *testing.T) {

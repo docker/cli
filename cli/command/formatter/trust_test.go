@@ -127,7 +127,7 @@ tag3                bbbbbbbb
 		testcase.context.Output = out
 		err := TrustTagWrite(testcase.context, signedTags)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
@@ -231,7 +231,7 @@ eve                 foobarbazquxquux, key31, key32
 		testcase.context.Output = out
 		err := SignerInfoWrite(testcase.context, signerInfo)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
