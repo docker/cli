@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -78,7 +77,7 @@ func TestEmptyFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
-	testutil.ErrorContains(t, err, "EOF")
+	assert.ErrorContains(t, err, "EOF")
 }
 
 func TestEmptyJSON(t *testing.T) {
@@ -122,7 +121,7 @@ email`: "Invalid auth configuration file",
 		assert.NilError(t, err)
 
 		_, err = Load(tmpHome)
-		testutil.ErrorContains(t, err, expectedError)
+		assert.ErrorContains(t, err, expectedError)
 	}
 }
 
@@ -469,7 +468,7 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 	config, err := LoadFromReader(strings.NewReader(js))
 	assert.NilError(t, err)
 	err = config.Save()
-	testutil.ErrorContains(t, err, "with empty filename")
+	assert.ErrorContains(t, err, "with empty filename")
 
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
@@ -500,7 +499,7 @@ func TestLegacyJSONSaveWithNoFile(t *testing.T) {
 	config, err := LegacyLoadFromReader(strings.NewReader(js))
 	assert.NilError(t, err)
 	err = config.Save()
-	testutil.ErrorContains(t, err, "with empty filename")
+	assert.ErrorContains(t, err, "with empty filename")
 
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)

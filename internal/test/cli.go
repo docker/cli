@@ -40,12 +40,14 @@ func NewFakeCli(client client.APIClient) *FakeCli {
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
 	return &FakeCli{
-		client:     client,
-		out:        command.NewOutStream(outBuffer),
-		outBuffer:  outBuffer,
-		err:        errBuffer,
-		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
-		configfile: configfile.New("configfile"),
+		client:    client,
+		out:       command.NewOutStream(outBuffer),
+		outBuffer: outBuffer,
+		err:       errBuffer,
+		in:        command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		// Use an empty string for filename so that tests don't create configfiles
+		// Set cli.ConfigFile().Filename to a tempfile to support Save.
+		configfile: configfile.New(""),
 	}
 }
 
