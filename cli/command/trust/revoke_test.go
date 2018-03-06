@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
@@ -60,8 +60,8 @@ func TestTrustRevokeCommandOfflineErrors(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
@@ -83,8 +83,8 @@ func TestTrustRevokeCommandUninitializedErrors(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
@@ -107,8 +107,8 @@ func TestTrustRevokeCommandEmptyNotaryRepo(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
@@ -130,19 +130,19 @@ func TestNewRevokeTrustAllSigConfirmation(t *testing.T) {
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"alpine"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 
-	assert.Contains(t, cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action.")
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action."))
 }
 
 func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.NoError(t, err)
+	assert.Check(t, err)
 	defer os.RemoveAll(tmpDir)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	target := client.Target{}
 	err = getSignableRolesForTargetAndRemove(target, notaryRepo)
-	assert.EqualError(t, err, "client is offline")
+	assert.Check(t, is.Error(err, "client is offline"))
 }

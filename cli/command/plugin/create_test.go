@@ -9,8 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateErrors(t *testing.T) {
@@ -109,6 +110,6 @@ func TestCreatePlugin(t *testing.T) {
 
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "plugin-foo\n", cli.OutBuffer().String())
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

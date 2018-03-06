@@ -7,7 +7,8 @@ import (
 
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/progress"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 type mockProgress struct {
@@ -36,9 +37,9 @@ func (u updaterTester) testUpdater(tasks []swarm.Task, expectedConvergence bool,
 	u.p.clear()
 
 	converged, err := u.updater.update(u.service, tasks, u.activeNodes, u.rollback)
-	assert.NoError(u.t, err)
-	assert.Equal(u.t, expectedConvergence, converged)
-	assert.Equal(u.t, expectedProgress, u.p.p)
+	assert.Check(u.t, err)
+	assert.Check(u.t, is.Equal(expectedConvergence, converged))
+	assert.Check(u.t, is.DeepEqual(expectedProgress, u.p.p))
 }
 
 func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {

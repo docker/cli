@@ -7,8 +7,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types/container"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -64,6 +65,6 @@ func TestWaitExitOrRemoved(t *testing.T) {
 	for _, testcase := range testcases {
 		statusC := waitExitOrRemoved(context.Background(), client, testcase.cid, true)
 		exitCode := <-statusC
-		assert.Equal(t, testcase.exitCode, exitCode)
+		assert.Check(t, is.Equal(testcase.exitCode, exitCode))
 	}
 }

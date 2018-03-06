@@ -9,8 +9,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmJoinErrors(t *testing.T) {
@@ -94,7 +95,7 @@ func TestSwarmJoin(t *testing.T) {
 		})
 		cmd := newJoinCommand(cli)
 		cmd.SetArgs([]string{"remote"})
-		assert.NoError(t, cmd.Execute())
-		assert.Equal(t, strings.TrimSpace(cli.OutBuffer().String()), tc.expected)
+		assert.Check(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(cli.OutBuffer().String()), tc.expected))
 	}
 }

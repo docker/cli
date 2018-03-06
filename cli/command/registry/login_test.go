@@ -11,7 +11,8 @@ import (
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 const userErr = "userunknownError"
@@ -63,9 +64,9 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 		cli.SetErr(errBuf)
 		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
 		outputString := cli.OutBuffer().String()
-		assert.Equal(t, tc.expectedMsg, outputString)
+		assert.Check(t, is.Equal(tc.expectedMsg, outputString))
 		errorString := errBuf.String()
-		assert.Equal(t, tc.expectedErr, errorString)
+		assert.Check(t, is.Equal(tc.expectedErr, errorString))
 	}
 }
 
@@ -140,12 +141,12 @@ func TestRunLogin(t *testing.T) {
 		}
 		loginErr := runLogin(cli, tc.inputLoginOption)
 		if tc.expectedErr != "" {
-			assert.Equal(t, tc.expectedErr, loginErr.Error())
+			assert.Check(t, is.Equal(tc.expectedErr, loginErr.Error()))
 		} else {
-			assert.Nil(t, loginErr)
+			assert.Check(t, loginErr)
 			savedCred, credStoreErr := cli.ConfigFile().GetCredentialsStore(tc.inputStoredCred.ServerAddress).Get(tc.inputStoredCred.ServerAddress)
-			assert.Nil(t, credStoreErr)
-			assert.Equal(t, tc.expectedSavedCred, savedCred)
+			assert.Check(t, credStoreErr)
+			assert.Check(t, is.DeepEqual(tc.expectedSavedCred, savedCred))
 		}
 	}
 }

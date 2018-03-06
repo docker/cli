@@ -1,15 +1,19 @@
 package testutil
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
+
+type helperT interface {
+	Helper()
+}
 
 // ErrorContains checks that the error is not nil, and contains the expected
 // substring.
-// TODO: replace with testify if https://github.com/stretchr/testify/pull/486
-// is accepted.
-func ErrorContains(t require.TestingT, err error, expectedError string) {
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), expectedError)
+// Deprecated: use assert.Assert(t, cmp.ErrorContains(err, expected))
+func ErrorContains(t assert.TestingT, err error, expectedError string) {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
+	assert.ErrorContains(t, err, expectedError)
 }

@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -136,7 +136,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			require.NoError(t, cmd.Flags().Set(key, value))
+			assert.NilError(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -155,8 +155,8 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-			assert.Equal(t, expectedDriver, createBody.Driver, "not expected driver error")
-			assert.Equal(t, expectedOpts, createBody.IPAM.Config, "not expected driver error")
+			assert.Check(t, is.Equal(expectedDriver, createBody.Driver), "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedOpts, createBody.IPAM.Config), "not expected driver error")
 			return types.NetworkCreateResponse{
 				ID: name,
 			}, nil
@@ -170,6 +170,6 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("ip-range", "192.168.4.0/24")
 	cmd.Flags().Set("gateway", "192.168.4.1/24")
 	cmd.Flags().Set("subnet", "192.168.4.0/24")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "banana", strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))
 }

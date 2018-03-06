@@ -7,8 +7,9 @@ import (
 
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/google/go-cmp/cmp"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 type fakeRef struct {
@@ -29,20 +30,20 @@ func ref(name string) fakeRef {
 
 func sref(t *testing.T, name string) *types.SerializableNamed {
 	named, err := reference.ParseNamed("example.com/" + name)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return &types.SerializableNamed{Named: named}
 }
 
 func newTestStore(t *testing.T) (Store, func()) {
 	tmpdir, err := ioutil.TempDir("", "manifest-store-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	return NewStore(tmpdir), func() { os.RemoveAll(tmpdir) }
 }
 
 func getFiles(t *testing.T, store Store) []os.FileInfo {
 	infos, err := ioutil.ReadDir(store.(*fsStore).root)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return infos
 }
 
@@ -52,11 +53,11 @@ func TestStoreRemove(t *testing.T) {
 
 	listRef := ref("list")
 	data := types.ImageManifest{Ref: sref(t, "abcdef")}
-	require.NoError(t, store.Save(listRef, ref("manifest"), data))
-	require.Len(t, getFiles(t, store), 1)
+	assert.NilError(t, store.Save(listRef, ref("manifest"), data))
+	assert.Assert(t, is.Len(getFiles(t, store), 1))
 
-	assert.NoError(t, store.Remove(listRef))
-	assert.Len(t, getFiles(t, store), 0)
+	assert.Check(t, store.Remove(listRef))
+	assert.Check(t, is.Len(getFiles(t, store), 0))
 }
 
 func TestStoreSaveAndGet(t *testing.T) {
@@ -66,7 +67,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 	listRef := ref("list")
 	data := types.ImageManifest{Ref: sref(t, "abcdef")}
 	err := store.Save(listRef, ref("exists"), data)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	var testcases = []struct {
 		listRef     reference.Reference
@@ -92,18 +93,22 @@ func TestStoreSaveAndGet(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		actual, err := store.Get(testcase.listRef, testcase.manifestRef)
-		if testcase.expectedErr != "" {
-			assert.EqualError(t, err, testcase.expectedErr)
-			assert.True(t, IsNotFound(err))
-			continue
-		}
-		if !assert.NoError(t, err, testcase.manifestRef.String()) {
-			continue
-		}
-		assert.Equal(t, testcase.expected, actual, testcase.manifestRef.String())
+		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
+			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
+			if testcase.expectedErr != "" {
+				assert.Check(t, is.Error(err, testcase.expectedErr))
+				assert.Check(t, IsNotFound(err))
+				return
+			}
+			assert.NilError(t, err)
+			assert.DeepEqual(t, testcase.expected, actual, cmpReferenceNamed)
+		})
 	}
 }
+
+var cmpReferenceNamed = cmp.Transformer("namedref", func(r reference.Named) string {
+	return r.String()
+})
 
 func TestStoreGetList(t *testing.T) {
 	store, cleanup := newTestStore(t)
@@ -111,13 +116,13 @@ func TestStoreGetList(t *testing.T) {
 
 	listRef := ref("list")
 	first := types.ImageManifest{Ref: sref(t, "first")}
-	require.NoError(t, store.Save(listRef, ref("first"), first))
+	assert.NilError(t, store.Save(listRef, ref("first"), first))
 	second := types.ImageManifest{Ref: sref(t, "second")}
-	require.NoError(t, store.Save(listRef, ref("exists"), second))
+	assert.NilError(t, store.Save(listRef, ref("exists"), second))
 
 	list, err := store.GetList(listRef)
-	require.NoError(t, err)
-	assert.Len(t, list, 2)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(list, 2))
 }
 
 func TestStoreGetListDoesNotExist(t *testing.T) {
@@ -126,6 +131,6 @@ func TestStoreGetListDoesNotExist(t *testing.T) {
 
 	listRef := ref("list")
 	_, err := store.GetList(listRef)
-	assert.EqualError(t, err, "No such manifest: list")
-	assert.True(t, IsNotFound(err))
+	assert.Check(t, is.Error(err, "No such manifest: list"))
+	assert.Check(t, IsNotFound(err))
 }

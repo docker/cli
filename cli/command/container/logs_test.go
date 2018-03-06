@@ -10,7 +10,8 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
@@ -51,12 +52,12 @@ func TestRunLogs(t *testing.T) {
 			if testcase.expectedError != "" {
 				testutil.ErrorContains(t, err, testcase.expectedError)
 			} else {
-				if !assert.NoError(t, err) {
+				if !assert.Check(t, err) {
 					return
 				}
 			}
-			assert.Equal(t, testcase.expectedOut, cli.OutBuffer().String())
-			assert.Equal(t, testcase.expectedErr, cli.ErrBuffer().String())
+			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))
 		})
 	}
 }

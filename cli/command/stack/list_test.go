@@ -10,9 +10,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListErrors(t *testing.T) {
@@ -72,7 +72,7 @@ func TestListWithFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-with-format.golden")
 }
 
@@ -88,7 +88,7 @@ func TestListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-without-format.golden")
 }
 
@@ -141,7 +141,7 @@ func TestListOrder(t *testing.T) {
 			},
 		})
 		cmd := newListCommand(cli)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), uc.golden)
 	}
 }

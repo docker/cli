@@ -6,8 +6,8 @@ import (
 	"github.com/docker/cli/internal/test/network"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -57,7 +57,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 		networks := []string{testcase.network}
 		err := validateExternalNetworks(context.Background(), fakeClient, networks)
 		if testcase.expectedMsg == "" {
-			assert.NoError(t, err)
+			assert.Check(t, err)
 		} else {
 			testutil.ErrorContains(t, err, testcase.expectedMsg)
 		}

@@ -5,7 +5,8 @@ import (
 
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestPortOptValidSimpleSyntax(t *testing.T) {
@@ -99,8 +100,8 @@ func TestPortOptValidSimpleSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.NoError(t, port.Set(tc.value))
-		assert.Len(t, port.Value(), len(tc.expected))
+		assert.Check(t, port.Set(tc.value))
+		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
 		for _, expectedPortConfig := range tc.expected {
 			assertContains(t, port.Value(), expectedPortConfig)
 		}
@@ -190,8 +191,8 @@ func TestPortOptValidComplexSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.NoError(t, port.Set(tc.value))
-		assert.Len(t, port.Value(), len(tc.expected))
+		assert.Check(t, port.Set(tc.value))
+		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
 		for _, expectedPortConfig := range tc.expected {
 			assertContains(t, port.Value(), expectedPortConfig)
 		}
@@ -278,7 +279,7 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.EqualError(t, port.Set(tc.value), tc.expectedError)
+		assert.Check(t, is.Error(port.Set(tc.value), tc.expectedError))
 	}
 }
 

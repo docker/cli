@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func swarmSpecWithFullCAConfig() *swarm.Spec {
@@ -35,13 +35,13 @@ func swarmSpecWithFullCAConfig() *swarm.Spec {
 func TestDisplayTrustRootNoRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	err := displayTrustRoot(buffer, swarm.Swarm{})
-	assert.EqualError(t, err, "No CA information available")
+	assert.Check(t, is.Error(err, "No CA information available"))
 }
 
 func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	// we need an actual PEMfile to test
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.NoError(t, err)
+	assert.Check(t, err)
 	defer os.Remove(tmpfile.Name())
 	tmpfile.Write([]byte(`
 -----BEGIN CERTIFICATE-----
@@ -95,7 +95,7 @@ PQQDAgNIADBFAiEAqD3Kb2rgsy6NoTk+zEgcUi/aGBCsvQDG3vML1PXN8j0CIBjj
 					}, nil
 				},
 			}))
-		assert.NoError(t, cmd.Flags().Parse(args))
+		assert.Check(t, cmd.Flags().Parse(args))
 		cmd.SetOutput(ioutil.Discard)
 		testutil.ErrorContains(t, cmd.Execute(), "flag requires the `--rotate` flag to update the CA")
 	}
@@ -109,8 +109,8 @@ func TestDisplayTrustRoot(t *testing.T) {
 			TLSInfo: swarm.TLSInfo{TrustRoot: trustRoot},
 		},
 	})
-	require.NoError(t, err)
-	assert.Equal(t, trustRoot+"\n", buffer.String())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(trustRoot+"\n", buffer.String()))
 }
 
 func TestUpdateSwarmSpecDefaultRotate(t *testing.T) {
@@ -122,7 +122,7 @@ func TestUpdateSwarmSpecDefaultRotate(t *testing.T) {
 	expected.CAConfig.ForceRotate = 2
 	expected.CAConfig.SigningCACert = ""
 	expected.CAConfig.SigningCAKey = ""
-	assert.Equal(t, expected, spec)
+	assert.Check(t, is.DeepEqual(expected, spec))
 }
 
 func TestUpdateSwarmSpecPartial(t *testing.T) {
@@ -134,7 +134,7 @@ func TestUpdateSwarmSpecPartial(t *testing.T) {
 
 	expected := swarmSpecWithFullCAConfig()
 	expected.CAConfig.SigningCACert = "cacert"
-	assert.Equal(t, expected, spec)
+	assert.Check(t, is.DeepEqual(expected, spec))
 }
 
 func TestUpdateSwarmSpecFullFlags(t *testing.T) {
@@ -151,5 +151,5 @@ func TestUpdateSwarmSpecFullFlags(t *testing.T) {
 	expected.CAConfig.SigningCACert = "cacert"
 	expected.CAConfig.SigningCAKey = "cakey"
 	expected.CAConfig.NodeCertExpiry = 3 * time.Minute
-	assert.Equal(t, expected, spec)
+	assert.Check(t, is.DeepEqual(expected, spec))
 }

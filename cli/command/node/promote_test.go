@@ -6,11 +6,11 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNodePromoteErrors(t *testing.T) {
@@ -64,7 +64,7 @@ func TestNodePromoteNoChange(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }
 
 func TestNodePromoteMultipleNode(t *testing.T) {
@@ -81,5 +81,5 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }

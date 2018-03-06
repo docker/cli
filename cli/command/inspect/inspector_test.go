@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/templates"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 type testElement struct {
@@ -243,17 +243,17 @@ func TestTemplateInspectorRawFallbackNumber(t *testing.T) {
 	}
 	b := new(bytes.Buffer)
 	tmpl, err := templates.Parse("{{.Size}} {{.Id}}")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	i := NewTemplateInspector(b, tmpl)
 	for _, tc := range testcases {
 		err = i.Inspect(typedElem, tc.raw)
-		require.NoError(t, err)
+		assert.NilError(t, err)
 
 		err = i.Flush()
-		require.NoError(t, err)
+		assert.NilError(t, err)
 
-		assert.Equal(t, tc.exp, b.String())
+		assert.Check(t, is.Equal(tc.exp, b.String()))
 		b.Reset()
 	}
 }

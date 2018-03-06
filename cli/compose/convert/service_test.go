@@ -12,21 +12,21 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
 	policy, err := convertRestartPolicy("no", nil)
-	assert.NoError(t, err)
-	assert.Equal(t, (*swarm.RestartPolicy)(nil), policy)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual((*swarm.RestartPolicy)(nil), policy))
 }
 
 func TestConvertRestartPolicyFromUnknown(t *testing.T) {
 	_, err := convertRestartPolicy("unknown", nil)
-	assert.EqualError(t, err, "unknown restart policy: unknown")
+	assert.Check(t, is.Error(err, "unknown restart policy: unknown"))
 }
 
 func TestConvertRestartPolicyFromAlways(t *testing.T) {
@@ -34,8 +34,8 @@ func TestConvertRestartPolicyFromAlways(t *testing.T) {
 	expected := &swarm.RestartPolicy{
 		Condition: swarm.RestartPolicyConditionAny,
 	}
-	assert.NoError(t, err)
-	assert.Equal(t, expected, policy)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, policy))
 }
 
 func TestConvertRestartPolicyFromFailure(t *testing.T) {
@@ -45,8 +45,8 @@ func TestConvertRestartPolicyFromFailure(t *testing.T) {
 		Condition:   swarm.RestartPolicyConditionOnFailure,
 		MaxAttempts: &attempts,
 	}
-	assert.NoError(t, err)
-	assert.Equal(t, expected, policy)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, policy))
 }
 
 func strPtr(val string) *string {
@@ -60,7 +60,7 @@ func TestConvertEnvironment(t *testing.T) {
 	}
 	env := convertEnvironment(source)
 	sort.Strings(env)
-	assert.Equal(t, []string{"foo=bar", "key=value"}, env)
+	assert.Check(t, is.DeepEqual([]string{"foo=bar", "key=value"}, env))
 }
 
 func TestConvertExtraHosts(t *testing.T) {
@@ -69,7 +69,7 @@ func TestConvertExtraHosts(t *testing.T) {
 		"alpha:127.0.0.1",
 		"zulu:ff02::1",
 	}
-	assert.Equal(t, []string{"127.0.0.2 zulu", "127.0.0.1 alpha", "ff02::1 zulu"}, convertExtraHosts(source))
+	assert.Check(t, is.DeepEqual([]string{"127.0.0.2 zulu", "127.0.0.1 alpha", "ff02::1 zulu"}, convertExtraHosts(source)))
 }
 
 func TestConvertResourcesFull(t *testing.T) {
@@ -84,7 +84,7 @@ func TestConvertResourcesFull(t *testing.T) {
 		},
 	}
 	resources, err := convertResources(source)
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
@@ -96,7 +96,7 @@ func TestConvertResourcesFull(t *testing.T) {
 			MemoryBytes: 200000000,
 		},
 	}
-	assert.Equal(t, expected, resources)
+	assert.Check(t, is.DeepEqual(expected, resources))
 }
 
 func TestConvertResourcesOnlyMemory(t *testing.T) {
@@ -109,7 +109,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 		},
 	}
 	resources, err := convertResources(source)
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Resources{
@@ -119,7 +119,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 			MemoryBytes: 200000000,
 		},
 	}
-	assert.Equal(t, expected, resources)
+	assert.Check(t, is.DeepEqual(expected, resources))
 }
 
 func TestConvertHealthcheck(t *testing.T) {
@@ -140,8 +140,8 @@ func TestConvertHealthcheck(t *testing.T) {
 	}
 
 	healthcheck, err := convertHealthcheck(source)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, healthcheck)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, healthcheck))
 }
 
 func TestConvertHealthcheckDisable(t *testing.T) {
@@ -151,8 +151,8 @@ func TestConvertHealthcheckDisable(t *testing.T) {
 	}
 
 	healthcheck, err := convertHealthcheck(source)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, healthcheck)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, healthcheck))
 }
 
 func TestConvertHealthcheckDisableWithTest(t *testing.T) {
@@ -161,7 +161,7 @@ func TestConvertHealthcheckDisableWithTest(t *testing.T) {
 		Test:    []string{"EXEC", "touch"},
 	}
 	_, err := convertHealthcheck(source)
-	assert.EqualError(t, err, "test and disable can't be set at the same time")
+	assert.Check(t, is.Error(err, "test and disable can't be set at the same time"))
 }
 
 func TestConvertEndpointSpec(t *testing.T) {
@@ -195,8 +195,8 @@ func TestConvertEndpointSpec(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, *endpoint)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, *endpoint))
 }
 
 func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
@@ -212,8 +212,8 @@ func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, configs)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
 func TestConvertServiceNetworks(t *testing.T) {
@@ -250,8 +250,8 @@ func TestConvertServiceNetworks(t *testing.T) {
 	sortedConfigs := byTargetSort(configs)
 	sort.Sort(&sortedConfigs)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, []swarm.NetworkAttachmentConfig(sortedConfigs))
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(sortedConfigs)))
 }
 
 func TestConvertServiceNetworksCustomDefault(t *testing.T) {
@@ -273,8 +273,8 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, []swarm.NetworkAttachmentConfig(configs))
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(configs)))
 }
 
 type byTargetSort []swarm.NetworkAttachmentConfig
@@ -294,8 +294,8 @@ func (s byTargetSort) Swap(i, j int) {
 func TestConvertDNSConfigEmpty(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nil, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, (*swarm.DNSConfig)(nil), dnsConfig)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual((*swarm.DNSConfig)(nil), dnsConfig))
 }
 
 var (
@@ -305,74 +305,74 @@ var (
 
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nameservers, search)
-	assert.NoError(t, err)
-	assert.Equal(t, &swarm.DNSConfig{
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      search,
-	}, dnsConfig)
+	}, dnsConfig))
 }
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nameservers, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, &swarm.DNSConfig{
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      nil,
-	}, dnsConfig)
+	}, dnsConfig))
 }
 
 func TestConvertDNSConfigSearch(t *testing.T) {
 	dnsConfig, err := convertDNSConfig(nil, search)
-	assert.NoError(t, err)
-	assert.Equal(t, &swarm.DNSConfig{
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
-	}, dnsConfig)
+	}, dnsConfig))
 }
 
 func TestConvertCredentialSpec(t *testing.T) {
 	swarmSpec, err := convertCredentialSpec(composetypes.CredentialSpecConfig{})
-	assert.NoError(t, err)
-	assert.Nil(t, swarmSpec)
+	assert.Check(t, err)
+	assert.Check(t, is.Nil(swarmSpec))
 
 	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
 		File: "/foo",
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, swarmSpec.File, "/foo")
-	assert.Equal(t, swarmSpec.Registry, "")
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(swarmSpec.File, "/foo"))
+	assert.Check(t, is.Equal(swarmSpec.Registry, ""))
 
 	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
 		Registry: "foo",
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, swarmSpec.File, "")
-	assert.Equal(t, swarmSpec.Registry, "foo")
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(swarmSpec.File, ""))
+	assert.Check(t, is.Equal(swarmSpec.Registry, "foo"))
 
 	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
 		File:     "/asdf",
 		Registry: "foo",
 	})
-	assert.Error(t, err)
-	assert.Nil(t, swarmSpec)
+	assert.Check(t, is.ErrorContains(err, ""))
+	assert.Check(t, is.Nil(swarmSpec))
 }
 
 func TestConvertUpdateConfigOrder(t *testing.T) {
 	// test default behavior
 	updateConfig := convertUpdateConfig(&composetypes.UpdateConfig{})
-	assert.Equal(t, "", updateConfig.Order)
+	assert.Check(t, is.Equal("", updateConfig.Order))
 
 	// test start-first
 	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
 		Order: "start-first",
 	})
-	assert.Equal(t, updateConfig.Order, "start-first")
+	assert.Check(t, is.Equal(updateConfig.Order, "start-first"))
 
 	// test stop-first
 	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
 		Order: "stop-first",
 	})
-	assert.Equal(t, updateConfig.Order, "stop-first")
+	assert.Check(t, is.Equal(updateConfig.Order, "stop-first"))
 }
 
 func TestConvertFileObject(t *testing.T) {
@@ -385,7 +385,7 @@ func TestConvertFileObject(t *testing.T) {
 		Mode:   uint32Ptr(0644),
 	}
 	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := swarmReferenceObject{
 		Name: "testing_source",
@@ -396,7 +396,7 @@ func TestConvertFileObject(t *testing.T) {
 			Mode: os.FileMode(0644),
 		},
 	}
-	assert.Equal(t, expected, swarmRef)
+	assert.Check(t, is.DeepEqual(expected, swarmRef))
 }
 
 func lookupConfig(key string) (composetypes.FileObjectConfig, error) {
@@ -410,7 +410,7 @@ func TestConvertFileObjectDefaults(t *testing.T) {
 	namespace := NewNamespace("testing")
 	config := composetypes.FileReferenceConfig{Source: "source"}
 	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := swarmReferenceObject{
 		Name: "testing_source",
@@ -421,7 +421,7 @@ func TestConvertFileObjectDefaults(t *testing.T) {
 			Mode: os.FileMode(0444),
 		},
 	}
-	assert.Equal(t, expected, swarmRef)
+	assert.Check(t, is.DeepEqual(expected, swarmRef))
 }
 
 func TestServiceConvertsIsolation(t *testing.T) {
@@ -429,8 +429,8 @@ func TestServiceConvertsIsolation(t *testing.T) {
 		Isolation: "hyperv",
 	}
 	result, err := Service("1.35", Namespace{name: "foo"}, src, nil, nil, nil, nil)
-	require.NoError(t, err)
-	assert.Equal(t, container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation))
 }
 
 func TestConvertServiceSecrets(t *testing.T) {
@@ -449,8 +449,8 @@ func TestConvertServiceSecrets(t *testing.T) {
 	}
 	client := &fakeClient{
 		secretListFunc: func(opts types.SecretListOptions) ([]swarm.Secret, error) {
-			assert.Contains(t, opts.Filters.Get("name"), "foo_secret")
-			assert.Contains(t, opts.Filters.Get("name"), "bar_secret")
+			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_secret"))
+			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_secret"))
 			return []swarm.Secret{
 				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
 				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
@@ -458,7 +458,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 		},
 	}
 	refs, err := convertServiceSecrets(client, namespace, secrets, secretSpecs)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := []*swarm.SecretReference{
 		{
 			SecretName: "bar_secret",
@@ -479,7 +479,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expected, refs)
+	assert.DeepEqual(t, expected, refs)
 }
 
 func TestConvertServiceConfigs(t *testing.T) {
@@ -498,8 +498,8 @@ func TestConvertServiceConfigs(t *testing.T) {
 	}
 	client := &fakeClient{
 		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
-			assert.Contains(t, opts.Filters.Get("name"), "foo_config")
-			assert.Contains(t, opts.Filters.Get("name"), "bar_config")
+			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
+			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
 			return []swarm.Config{
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
@@ -507,7 +507,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 		},
 	}
 	refs, err := convertServiceConfigObjs(client, namespace, configs, configSpecs)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expected := []*swarm.ConfigReference{
 		{
 			ConfigName: "bar_config",
@@ -528,7 +528,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expected, refs)
+	assert.DeepEqual(t, expected, refs)
 }
 
 type fakeClient struct {

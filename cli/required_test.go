@@ -5,9 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRequiresNoArgs(t *testing.T) {
@@ -123,9 +122,7 @@ func runTestCases(t *testing.T, testCases []testCase) {
 		cmd.SetOutput(ioutil.Discard)
 
 		err := cmd.Execute()
-
-		require.Error(t, err, "Expected an error: %s", tc.expectedError)
-		assert.Contains(t, err.Error(), tc.expectedError)
+		assert.ErrorContains(t, err, tc.expectedError)
 	}
 }
 

@@ -2,38 +2,39 @@ package swarm
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestLoadBundlefileErrors(t *testing.T) {
 	testCases := []struct {
 		namespace     string
 		path          string
-		expectedError error
+		expectedError string
 	}{
 		{
 			namespace:     "namespace_foo",
-			expectedError: fmt.Errorf("Bundle %s.dab not found", "namespace_foo"),
+			expectedError: "Bundle namespace_foo.dab not found",
 		},
 		{
 			namespace:     "namespace_foo",
 			path:          "invalid_path",
-			expectedError: fmt.Errorf("Bundle %s not found", "invalid_path"),
+			expectedError: "Bundle invalid_path not found",
 		},
-		{
-			namespace:     "namespace_foo",
-			path:          filepath.Join("testdata", "bundlefile_with_invalid_syntax"),
-			expectedError: fmt.Errorf("Error reading"),
-		},
+		// FIXME: this test never working, testdata file is missing from repo
+		//{
+		//	namespace:     "namespace_foo",
+		//	path:          string(golden.Get(t, "bundlefile_with_invalid_syntax")),
+		//	expectedError: "Error reading",
+		//},
 	}
 
 	for _, tc := range testCases {
 		_, err := loadBundlefile(&bytes.Buffer{}, tc.namespace, tc.path)
-		assert.Error(t, err, tc.expectedError)
+		assert.ErrorContains(t, err, tc.expectedError)
 	}
 }
 
@@ -44,6 +45,6 @@ func TestLoadBundlefile(t *testing.T) {
 	path := filepath.Join("testdata", "bundlefile_with_two_services.dab")
 	bundleFile, err := loadBundlefile(buf, namespace, path)
 
-	assert.NoError(t, err)
-	assert.Equal(t, len(bundleFile.Services), 2)
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(len(bundleFile.Services), 2))
 }

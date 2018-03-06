@@ -12,8 +12,8 @@ import (
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSecretInspectErrors(t *testing.T) {
@@ -98,7 +98,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 		})
 		cmd := newSecretInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-without-format.%s.golden", tc.name))
 	}
 }
@@ -135,7 +135,7 @@ func TestSecretInspectWithFormat(t *testing.T) {
 		cmd := newSecretInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-with-format.%s.golden", tc.name))
 	}
 }
@@ -168,7 +168,7 @@ func TestSecretInspectPretty(t *testing.T) {
 		cmd := newSecretInspectCommand(cli)
 		cmd.SetArgs([]string{"secretID"})
 		cmd.Flags().Set("pretty", "true")
-		assert.NoError(t, cmd.Execute())
+		assert.Check(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-pretty.%s.golden", tc.name))
 	}
 }

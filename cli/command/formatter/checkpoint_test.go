@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
 
 func TestCheckpointContextFormatWrite(t *testing.T) {
@@ -46,10 +46,7 @@ checkpoint-3:
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		err := CheckpointWrite(testcase.context, checkpoints)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Equal(t, out.String(), testcase.expected)
-		}
+		assert.NilError(t, err)
+		assert.Equal(t, out.String(), testcase.expected)
 	}
 }

@@ -9,7 +9,8 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestImageContext(t *testing.T) {
@@ -83,7 +84,7 @@ func TestImageContext(t *testing.T) {
 		if strings.Contains(v, ",") {
 			compareMultipleValues(t, v, c.expValue)
 		} else {
-			assert.Equal(t, c.expValue, v)
+			assert.Check(t, is.Equal(c.expValue, v))
 		}
 	}
 }
@@ -293,9 +294,9 @@ image_id: imageID3
 		testcase.context.Output = out
 		err := ImageWrite(testcase.context, images)
 		if err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }
@@ -348,7 +349,7 @@ func TestImageContextWriteWithNoImage(t *testing.T) {
 
 	for _, context := range contexts {
 		ImageWrite(context.context, images)
-		assert.Equal(t, context.expected, out.String())
+		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
 	}

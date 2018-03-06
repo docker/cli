@@ -4,26 +4,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestDurationOptString(t *testing.T) {
 	dur := time.Duration(300 * 10e8)
 	duration := DurationOpt{value: &dur}
-	assert.Equal(t, "5m0s", duration.String())
+	assert.Check(t, is.Equal("5m0s", duration.String()))
 }
 
 func TestDurationOptSetAndValue(t *testing.T) {
 	var duration DurationOpt
-	assert.NoError(t, duration.Set("300s"))
-	assert.Equal(t, time.Duration(300*10e8), *duration.Value())
-	assert.NoError(t, duration.Set("-300s"))
-	assert.Equal(t, time.Duration(-300*10e8), *duration.Value())
+	assert.Check(t, duration.Set("300s"))
+	assert.Check(t, is.Equal(time.Duration(300*10e8), *duration.Value()))
+	assert.Check(t, duration.Set("-300s"))
+	assert.Check(t, is.Equal(time.Duration(-300*10e8), *duration.Value()))
 }
 
 func TestPositiveDurationOptSetAndValue(t *testing.T) {
 	var duration PositiveDurationOpt
-	assert.NoError(t, duration.Set("300s"))
-	assert.Equal(t, time.Duration(300*10e8), *duration.Value())
-	assert.EqualError(t, duration.Set("-300s"), "duration cannot be negative")
+	assert.Check(t, duration.Set("300s"))
+	assert.Check(t, is.Equal(time.Duration(300*10e8), *duration.Value()))
+	assert.Check(t, is.Error(duration.Set("-300s"), "duration cannot be negative"))
 }

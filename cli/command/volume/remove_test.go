@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVolumeRemoveErrors(t *testing.T) {
@@ -41,5 +41,5 @@ func TestVolumeRemoveErrors(t *testing.T) {
 func TestNodeRemoveMultiple(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"volume1", "volume2"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 }

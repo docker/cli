@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestContainerStatsContext(t *testing.T) {
@@ -116,9 +117,9 @@ container2  --
 		te.context.Output = &out
 		err := ContainerStatsWrite(te.context, stats, "linux", false)
 		if err != nil {
-			assert.EqualError(t, err, te.expected)
+			assert.Check(t, is.Error(err, te.expected))
 		} else {
-			assert.Equal(t, te.expected, out.String())
+			assert.Check(t, is.Equal(te.expected, out.String()))
 		}
 	}
 }
@@ -182,9 +183,9 @@ container2  --  --
 		te.context.Output = &out
 		err := ContainerStatsWrite(te.context, stats, "windows", false)
 		if err != nil {
-			assert.EqualError(t, err, te.expected)
+			assert.Check(t, is.Error(err, te.expected))
 		} else {
-			assert.Equal(t, te.expected, out.String())
+			assert.Check(t, is.Equal(te.expected, out.String()))
 		}
 	}
 }
@@ -221,7 +222,7 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 
 	for _, context := range contexts {
 		ContainerStatsWrite(context.context, []StatsEntry{}, "linux", false)
-		assert.Equal(t, context.expected, out.String())
+		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
 	}
@@ -259,7 +260,7 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 
 	for _, context := range contexts {
 		ContainerStatsWrite(context.context, []StatsEntry{}, "windows", false)
-		assert.Equal(t, context.expected, out.String())
+		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
 	}
@@ -293,7 +294,7 @@ func TestContainerStatsContextWriteTrunc(t *testing.T) {
 
 	for _, context := range contexts {
 		ContainerStatsWrite(context.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", context.trunc)
-		assert.Equal(t, context.expected, out.String())
+		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
 	}

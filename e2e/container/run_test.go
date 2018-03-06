@@ -6,10 +6,10 @@ import (
 
 	"github.com/docker/cli/e2e/internal/fixtures"
 	shlex "github.com/flynn-archive/go-shlex"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
@@ -19,7 +19,7 @@ func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 		"docker run --rm %s echo this is output", image))
 
 	result.Assert(t, icmd.Success)
-	assert.Equal(t, "this is output\n", result.Stdout())
+	assert.Check(t, is.Equal("this is output\n", result.Stdout()))
 	golden.Assert(t, result.Stderr(), "run-attached-from-remote-and-remove.golden")
 }
 
@@ -36,6 +36,6 @@ func createRemoteImage(t *testing.T) string {
 // TODO: move to gotestyourself
 func shell(t *testing.T, format string, args ...interface{}) icmd.Cmd {
 	cmd, err := shlex.Split(fmt.Sprintf(format, args...))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return icmd.Cmd{Command: cmd}
 }

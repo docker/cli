@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
 )
 
 func TestLoadTwoDifferentVersion(t *testing.T) {
@@ -19,7 +19,7 @@ func TestLoadTwoDifferentVersion(t *testing.T) {
 		},
 	}
 	_, err := Load(configDetails)
-	require.EqualError(t, err, "version mismatched between two composefiles : 3.1 and 3.4")
+	assert.Error(t, err, "version mismatched between two composefiles : 3.1 and 3.4")
 }
 
 func TestLoadLogging(t *testing.T) {
@@ -204,8 +204,8 @@ func TestLoadLogging(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -323,8 +323,8 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -449,8 +449,8 @@ func TestLoadMultipleSecretsConfig(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -575,8 +575,8 @@ func TestLoadMultipleConfigobjsConfig(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -691,8 +691,8 @@ func TestLoadMultipleUlimits(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -810,8 +810,8 @@ func TestLoadMultipleNetworks(t *testing.T) {
 				},
 			}
 			config, err := Load(configDetails)
-			require.NoError(t, err)
-			require.Equal(t, &types.Config{
+			assert.NilError(t, err)
+			assert.DeepEqual(t, &types.Config{
 				Filename: "base.yml",
 				Version:  "3.4",
 				Services: []types.ServiceConfig{
@@ -898,8 +898,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 		},
 	}
 	config, err := Load(configDetails)
-	require.NoError(t, err)
-	require.Equal(t, &types.Config{
+	assert.NilError(t, err)
+	assert.DeepEqual(t, &types.Config{
 		Filename: "base.yml",
 		Version:  "3.4",
 		Services: []types.ServiceConfig{

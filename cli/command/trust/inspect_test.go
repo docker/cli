@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTrustInspectCommandErrors(t *testing.T) {
@@ -85,7 +85,7 @@ func TestTrustInspectCommandEmptyNotaryRepo(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-empty-repo.golden")
 }
 
@@ -94,7 +94,7 @@ func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-no-signers.golden")
 }
 
@@ -103,7 +103,7 @@ func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
 	cli.SetNotaryClient(getLoadedWithNoSignersNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:green"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-one-tag-no-signers.golden")
 }
 
@@ -112,7 +112,7 @@ func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-with-signers.golden")
 }
 
@@ -121,7 +121,7 @@ func TestTrustInspectCommandMultipleFullReposWithSigners(t *testing.T) {
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo", "signed-repo"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-multiple-repos-with-signers.golden")
 }
 
@@ -130,6 +130,6 @@ func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cli.SetNotaryClient(getLoadedNotaryRepository)
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-unsigned-tag-with-signers.golden")
 }

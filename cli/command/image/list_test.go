@@ -9,9 +9,10 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewImagesCommandErrors(t *testing.T) {
@@ -65,7 +66,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			name: "match-name",
 			args: []string{"image"},
 			imageListFunc: func(options types.ImageListOptions) ([]types.ImageSummary, error) {
-				assert.Equal(t, "image", options.Filters.Get("reference")[0])
+				assert.Check(t, is.Equal("image", options.Filters.Get("reference")[0]))
 				return []types.ImageSummary{{}}, nil
 			},
 		},
@@ -73,7 +74,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			name: "filters",
 			args: []string{"--filter", "name=value"},
 			imageListFunc: func(options types.ImageListOptions) ([]types.ImageSummary, error) {
-				assert.Equal(t, "value", options.Filters.Get("name")[0])
+				assert.Check(t, is.Equal("value", options.Filters.Get("name")[0]))
 				return []types.ImageSummary{{}}, nil
 			},
 		},
@@ -85,14 +86,14 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.NoError(t, err)
+		assert.Check(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("list-command-success.%s.golden", tc.name))
 	}
 }
 
 func TestNewListCommandAlias(t *testing.T) {
 	cmd := newListCommand(test.NewFakeCli(&fakeClient{}))
-	assert.True(t, cmd.HasAlias("images"))
-	assert.True(t, cmd.HasAlias("list"))
-	assert.False(t, cmd.HasAlias("other"))
+	assert.Check(t, cmd.HasAlias("images"))
+	assert.Check(t, cmd.HasAlias("list"))
+	assert.Check(t, !cmd.HasAlias("other"))
 }

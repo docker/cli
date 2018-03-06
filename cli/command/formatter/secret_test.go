@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestSecretContextFormatWrite(t *testing.T) {
@@ -55,9 +56,9 @@ id_rsa
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		if err := SecretWrite(testcase.context, secrets); err != nil {
-			assert.EqualError(t, err, testcase.expected)
+			assert.Check(t, is.Error(err, testcase.expected))
 		} else {
-			assert.Equal(t, testcase.expected, out.String())
+			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
 	}
 }

@@ -5,8 +5,9 @@ import (
 
 	"strconv"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/env"
-	"github.com/stretchr/testify/assert"
 )
 
 var defaults = map[string]string{
@@ -46,8 +47,8 @@ func TestInterpolate(t *testing.T) {
 		},
 	}
 	result, err := Interpolate(services, Options{LookupValue: defaultMapping})
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, result))
 }
 
 func TestInvalidInterpolation(t *testing.T) {
@@ -57,7 +58,7 @@ func TestInvalidInterpolation(t *testing.T) {
 		},
 	}
 	_, err := Interpolate(services, Options{LookupValue: defaultMapping})
-	assert.EqualError(t, err, `invalid interpolation format for servicea.image: "${". You may need to escape any $ with another $.`)
+	assert.Check(t, is.Error(err, `invalid interpolation format for servicea.image: "${". You may need to escape any $ with another $.`))
 }
 
 func TestInterpolateWithDefaults(t *testing.T) {
@@ -74,8 +75,8 @@ func TestInterpolateWithDefaults(t *testing.T) {
 		},
 	}
 	result, err := Interpolate(config, Options{})
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, result))
 }
 
 func TestInterpolateWithCast(t *testing.T) {
@@ -91,13 +92,13 @@ func TestInterpolateWithCast(t *testing.T) {
 		LookupValue:     defaultMapping,
 		TypeCastMapping: map[Path]Cast{NewPath(PathMatchAll, "replicas"): toInt},
 	})
-	assert.NoError(t, err)
+	assert.Check(t, err)
 	expected := map[string]interface{}{
 		"foo": map[string]interface{}{
 			"replicas": 5,
 		},
 	}
-	assert.Equal(t, expected, result)
+	assert.Check(t, is.DeepEqual(expected, result))
 }
 
 func TestPathMatches(t *testing.T) {
@@ -141,6 +142,6 @@ func TestPathMatches(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		assert.Equal(t, testcase.expected, testcase.path.matches(testcase.pattern))
+		assert.Check(t, is.Equal(testcase.expected, testcase.path.matches(testcase.pattern)))
 	}
 }

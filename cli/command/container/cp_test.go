@@ -12,10 +12,10 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/skip"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRunCopyWithInvalidArguments(t *testing.T) {
@@ -44,7 +44,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
 			err := runCopy(test.NewFakeCli(nil), testcase.options)
-			assert.EqualError(t, err, testcase.expectedErr)
+			assert.Check(t, is.Error(err, testcase.expectedErr))
 		})
 	}
 }
@@ -54,16 +54,16 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 
 	fakeClient := &fakeClient{
 		containerCopyFromFunc: func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
-			assert.Equal(t, "container", container)
+			assert.Check(t, is.Equal("container", container))
 			return ioutil.NopCloser(strings.NewReader(tarContent)), types.ContainerPathStat{}, nil
 		},
 	}
 	options := copyOptions{source: "container:/path", destination: "-"}
 	cli := test.NewFakeCli(fakeClient)
 	err := runCopy(cli, options)
-	require.NoError(t, err)
-	assert.Equal(t, tarContent, cli.OutBuffer().String())
-	assert.Equal(t, "", cli.ErrBuffer().String())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(tarContent, cli.OutBuffer().String()))
+	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 }
 
 func TestRunCopyFromContainerToFilesystem(t *testing.T) {
@@ -73,7 +73,7 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 
 	fakeClient := &fakeClient{
 		containerCopyFromFunc: func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
-			assert.Equal(t, "container", container)
+			assert.Check(t, is.Equal("container", container))
 			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
 			return readCloser, types.ContainerPathStat{}, err
 		},
@@ -81,13 +81,13 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 	options := copyOptions{source: "container:/path", destination: destDir.Path()}
 	cli := test.NewFakeCli(fakeClient)
 	err := runCopy(cli, options)
-	require.NoError(t, err)
-	assert.Equal(t, "", cli.OutBuffer().String())
-	assert.Equal(t, "", cli.ErrBuffer().String())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("", cli.OutBuffer().String()))
+	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 
 	content, err := ioutil.ReadFile(destDir.Join("file1"))
-	require.NoError(t, err)
-	assert.Equal(t, "content\n", string(content))
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("content\n", string(content)))
 }
 
 func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.T) {
@@ -97,7 +97,7 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 
 	fakeClient := &fakeClient{
 		containerCopyFromFunc: func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
-			assert.Equal(t, "container", container)
+			assert.Check(t, is.Equal("container", container))
 			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
 			return readCloser, types.ContainerPathStat{}, err
 		},
@@ -181,8 +181,8 @@ func TestSplitCpArg(t *testing.T) {
 			skip.IfCondition(t, testcase.os != "" && testcase.os != runtime.GOOS)
 
 			container, path := splitCpArg(testcase.path)
-			assert.Equal(t, testcase.expectedContainer, container)
-			assert.Equal(t, testcase.expectedPath, path)
+			assert.Check(t, is.Equal(testcase.expectedContainer, container))
+			assert.Check(t, is.Equal(testcase.expectedPath, path))
 		})
 	}
 }

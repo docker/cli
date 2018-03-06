@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -24,7 +25,7 @@ func TestRevokeImage(t *testing.T) {
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithNotary, fixtures.WithConfig(dir.Path()))
 	result.Assert(t, icmd.Success)
-	assert.Contains(t, result.Stdout(), "Successfully deleted signature for registry:5000/revoke:v1")
+	assert.Check(t, is.Contains(result.Stdout(), "Successfully deleted signature for registry:5000/revoke:v1"))
 }
 
 func TestRevokeRepo(t *testing.T) {
@@ -36,7 +37,7 @@ func TestRevokeRepo(t *testing.T) {
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithNotary, fixtures.WithConfig(dir.Path()))
 	result.Assert(t, icmd.Success)
-	assert.Contains(t, result.Stdout(), "Successfully deleted signature for registry:5000/revoke")
+	assert.Check(t, is.Contains(result.Stdout(), "Successfully deleted signature for registry:5000/revoke"))
 }
 
 func setupTrustedImagesForRevoke(t *testing.T, dir fs.Dir) {

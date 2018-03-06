@@ -7,8 +7,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwarmLeaveErrors(t *testing.T) {
@@ -45,6 +46,6 @@ func TestSwarmLeaveErrors(t *testing.T) {
 func TestSwarmLeave(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newLeaveCommand(cli)
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String())))
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +23,7 @@ func TestPruneServices(t *testing.T) {
 	dockerCli := test.NewFakeCli(client)
 
 	pruneServices(ctx, dockerCli, namespace, services)
-	assert.Equal(t, buildObjectIDs([]string{objectName("foo", "remove")}), client.removedServices)
+	assert.Check(t, is.DeepEqual(buildObjectIDs([]string{objectName("foo", "remove")}), client.removedServices))
 }
 
 // TestServiceUpdateResolveImageChanged tests that the service's
@@ -93,9 +94,9 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 			},
 		}
 		err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
-		assert.NoError(t, err)
-		assert.Equal(t, testcase.expectedQueryRegistry, receivedOptions.QueryRegistry)
-		assert.Equal(t, testcase.expectedImage, receivedService.TaskTemplate.ContainerSpec.Image)
+		assert.Check(t, err)
+		assert.Check(t, is.Equal(testcase.expectedQueryRegistry, receivedOptions.QueryRegistry))
+		assert.Check(t, is.Equal(testcase.expectedImage, receivedService.TaskTemplate.ContainerSpec.Image))
 
 		receivedService = swarm.ServiceSpec{}
 		receivedOptions = types.ServiceUpdateOptions{}

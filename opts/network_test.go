@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestNetworkOptLegacySyntax(t *testing.T) {
@@ -23,8 +24,8 @@ func TestNetworkOptLegacySyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var network NetworkOpt
-		assert.NoError(t, network.Set(tc.value))
-		assert.Equal(t, tc.expected, network.Value())
+		assert.Check(t, network.Set(tc.value))
+		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
 	}
 }
 
@@ -70,8 +71,8 @@ func TestNetworkOptCompleteSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var network NetworkOpt
-		assert.NoError(t, network.Set(tc.value))
-		assert.Equal(t, tc.expected, network.Value())
+		assert.Check(t, network.Set(tc.value))
+		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
 	}
 }
 

@@ -12,9 +12,9 @@ import (
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -105,16 +105,16 @@ func TestNativeStoreAddCredentials(t *testing.T) {
 		ServerAddress: validServerAddress,
 	}
 	err := s.Store(auth)
-	require.NoError(t, err)
-	assert.Len(t, f.GetAuthConfigs(), 1)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(f.GetAuthConfigs(), 1))
 
 	actual, ok := f.GetAuthConfigs()[validServerAddress]
-	assert.True(t, ok)
+	assert.Check(t, ok)
 	expected := types.AuthConfig{
 		Email:         auth.Email,
 		ServerAddress: auth.ServerAddress,
 	}
-	assert.Equal(t, expected, actual)
+	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestNativeStoreAddInvalidCredentials(t *testing.T) {
@@ -130,7 +130,7 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 		ServerAddress: invalidServerAddress,
 	})
 	testutil.ErrorContains(t, err, "program failed")
-	assert.Len(t, f.GetAuthConfigs(), 0)
+	assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
 }
 
 func TestNativeStoreGet(t *testing.T) {
@@ -144,14 +144,14 @@ func TestNativeStoreGet(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	actual, err := s.Get(validServerAddress)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.AuthConfig{
 		Username: "foo",
 		Password: "bar",
 		Email:    "foo@example.com",
 	}
-	assert.Equal(t, expected, actual)
+	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestNativeStoreGetIdentityToken(t *testing.T) {
@@ -166,13 +166,13 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	actual, err := s.Get(validServerAddress2)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := types.AuthConfig{
 		IdentityToken: "abcd1234",
 		Email:         "foo@example2.com",
 	}
-	assert.Equal(t, expected, actual)
+	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestNativeStoreGetAll(t *testing.T) {
@@ -187,8 +187,8 @@ func TestNativeStoreGetAll(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	as, err := s.GetAll()
-	require.NoError(t, err)
-	assert.Len(t, as, 2)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(as, 2))
 
 	if as[validServerAddress].Username != "foo" {
 		t.Fatalf("expected username `foo` for %s, got %s", validServerAddress, as[validServerAddress].Username)
@@ -228,7 +228,7 @@ func TestNativeStoreGetMissingCredentials(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	_, err := s.Get(missingCredsAddress)
-	assert.NoError(t, err)
+	assert.Check(t, err)
 }
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {
@@ -258,8 +258,8 @@ func TestNativeStoreErase(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	err := s.Erase(validServerAddress)
-	require.NoError(t, err)
-	assert.Len(t, f.GetAuthConfigs(), 0)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
 }
 
 func TestNativeStoreEraseInvalidAddress(t *testing.T) {

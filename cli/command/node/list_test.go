@@ -8,11 +8,12 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
@@ -48,7 +49,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 		})
 		cmd := newListCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
-		assert.EqualError(t, cmd.Execute(), tc.expectedError)
+		assert.Check(t, is.Error(cmd.Execute(), tc.expectedError))
 	}
 }
 
@@ -71,7 +72,7 @@ func TestNodeList(t *testing.T) {
 	})
 
 	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-sort.golden")
 }
 
@@ -85,8 +86,8 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, cli.OutBuffer().String(), "nodeID1\n")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal(cli.OutBuffer().String(), "nodeID1\n"))
 }
 
 func TestNodeListDefaultFormatFromConfig(t *testing.T) {
@@ -110,7 +111,7 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-from-config.golden")
 }
 
@@ -135,6 +136,6 @@ func TestNodeListFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-flag.golden")
 }

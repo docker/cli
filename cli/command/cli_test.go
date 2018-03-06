@@ -12,10 +12,10 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -28,15 +28,15 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 		},
 	}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
-	require.NoError(t, err)
-	assert.Equal(t, host, apiclient.DaemonHost())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(host, apiclient.DaemonHost()))
 
 	expectedHeaders := map[string]string{
 		"My-Header":  "Custom-Value",
 		"User-Agent": UserAgent(),
 	}
-	assert.Equal(t, expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders())
-	assert.Equal(t, api.DefaultVersion, apiclient.ClientVersion())
+	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
+	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
 }
 
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
@@ -46,20 +46,20 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	opts := &flags.CommonOptions{}
 	configFile := &configfile.ConfigFile{}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
-	require.NoError(t, err)
-	assert.Equal(t, customVersion, apiclient.ClientVersion())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(customVersion, apiclient.ClientVersion()))
 }
 
 // TODO: use gotestyourself/env.Patch
 func patchEnvVariable(t *testing.T, key, value string) func() {
 	oldValue, ok := os.LookupEnv(key)
-	require.NoError(t, os.Setenv(key, value))
+	assert.NilError(t, os.Setenv(key, value))
 	return func() {
 		if !ok {
-			require.NoError(t, os.Unsetenv(key))
+			assert.NilError(t, os.Unsetenv(key))
 			return
 		}
-		require.NoError(t, os.Setenv(key, oldValue))
+		assert.NilError(t, os.Setenv(key, oldValue))
 	}
 }
 
@@ -125,8 +125,8 @@ func TestInitializeFromClient(t *testing.T) {
 
 			cli := &DockerCli{client: apiclient}
 			cli.initializeFromClient()
-			assert.Equal(t, testcase.expectedServer, cli.serverInfo)
-			assert.Equal(t, testcase.negotiated, apiclient.negotiated)
+			assert.Check(t, is.DeepEqual(testcase.expectedServer, cli.serverInfo))
+			assert.Check(t, is.Equal(testcase.negotiated, apiclient.negotiated))
 		})
 	}
 }
@@ -164,8 +164,8 @@ func TestExperimentalCLI(t *testing.T) {
 			cli := &DockerCli{client: apiclient, err: os.Stderr}
 			cliconfig.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
-			assert.NoError(t, err)
-			assert.Equal(t, testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental)
+			assert.Check(t, err)
+			assert.Check(t, is.Equal(testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental))
 		})
 	}
 }
@@ -267,9 +267,9 @@ func TestOrchestratorSwitch(t *testing.T) {
 				options.Common.Orchestrator = testcase.flagOrchestrator
 			}
 			err := cli.Initialize(options)
-			assert.NoError(t, err)
-			assert.Equal(t, testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes())
-			assert.Equal(t, testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator))
+			assert.Check(t, err)
+			assert.Check(t, is.Equal(testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes()))
+			assert.Check(t, is.Equal(testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator)))
 		})
 	}
 }
@@ -335,7 +335,7 @@ func TestGetClientWithPassword(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			assert.Check(t, err)
 		})
 	}
 }

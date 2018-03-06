@@ -5,7 +5,8 @@ import (
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
@@ -18,8 +19,8 @@ func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountAnonymousBind(t *testing.T) {
@@ -31,7 +32,7 @@ func TestConvertVolumeToMountAnonymousBind(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.EqualError(t, err, "invalid bind source, source cannot be empty")
+	assert.Check(t, is.Error(err, "invalid bind source, source cannot be empty"))
 }
 
 func TestConvertVolumeToMountUnapprovedType(t *testing.T) {
@@ -40,7 +41,7 @@ func TestConvertVolumeToMountUnapprovedType(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.EqualError(t, err, "volume type must be volume, bind, or tmpfs")
+	assert.Check(t, is.Error(err, "volume type must be volume, bind, or tmpfs"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInVolume(t *testing.T) {
@@ -55,7 +56,7 @@ func TestConvertVolumeToMountConflictingOptionsBindInVolume(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "bind options are incompatible with type volume")
+	assert.Check(t, is.Error(err, "bind options are incompatible with type volume"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsTmpfsInVolume(t *testing.T) {
@@ -70,7 +71,7 @@ func TestConvertVolumeToMountConflictingOptionsTmpfsInVolume(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "tmpfs options are incompatible with type volume")
+	assert.Check(t, is.Error(err, "tmpfs options are incompatible with type volume"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsVolumeInBind(t *testing.T) {
@@ -85,7 +86,7 @@ func TestConvertVolumeToMountConflictingOptionsVolumeInBind(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "volume options are incompatible with type bind")
+	assert.Check(t, is.Error(err, "volume options are incompatible with type bind"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsTmpfsInBind(t *testing.T) {
@@ -100,7 +101,7 @@ func TestConvertVolumeToMountConflictingOptionsTmpfsInBind(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "tmpfs options are incompatible with type bind")
+	assert.Check(t, is.Error(err, "tmpfs options are incompatible with type bind"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInTmpfs(t *testing.T) {
@@ -114,7 +115,7 @@ func TestConvertVolumeToMountConflictingOptionsBindInTmpfs(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "bind options are incompatible with type tmpfs")
+	assert.Check(t, is.Error(err, "bind options are incompatible with type tmpfs"))
 }
 
 func TestConvertVolumeToMountConflictingOptionsVolumeInTmpfs(t *testing.T) {
@@ -128,7 +129,7 @@ func TestConvertVolumeToMountConflictingOptionsVolumeInTmpfs(t *testing.T) {
 		},
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "volume options are incompatible with type tmpfs")
+	assert.Check(t, is.Error(err, "volume options are incompatible with type tmpfs"))
 }
 
 func TestConvertVolumeToMountNamedVolume(t *testing.T) {
@@ -173,8 +174,8 @@ func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
@@ -220,8 +221,8 @@ func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
@@ -244,8 +245,8 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 		Target: "/foo",
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
@@ -273,8 +274,8 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 		},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountBind(t *testing.T) {
@@ -295,8 +296,8 @@ func TestConvertVolumeToMountBind(t *testing.T) {
 		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
 	}
 	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertVolumeToMountVolumeDoesNotExist(t *testing.T) {
@@ -308,7 +309,7 @@ func TestConvertVolumeToMountVolumeDoesNotExist(t *testing.T) {
 		ReadOnly: true,
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.EqualError(t, err, "undefined volume \"unknown\"")
+	assert.Check(t, is.Error(err, "undefined volume \"unknown\""))
 }
 
 func TestConvertTmpfsToMountVolume(t *testing.T) {
@@ -325,8 +326,8 @@ func TestConvertTmpfsToMountVolume(t *testing.T) {
 		TmpfsOptions: &mount.TmpfsOptions{SizeBytes: 1000},
 	}
 	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.NoError(t, err)
-	assert.Equal(t, expected, mount)
+	assert.Check(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }
 
 func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
@@ -340,5 +341,5 @@ func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 	}
 
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.EqualError(t, err, "invalid tmpfs source, source must be empty")
+	assert.Check(t, is.Error(err, "invalid tmpfs source, source must be empty"))
 }

@@ -4,7 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func compareMultipleValues(t *testing.T, value, expected string) {
@@ -23,5 +24,5 @@ func compareMultipleValues(t *testing.T, value, expected string) {
 		keyval := strings.Split(expected, "=")
 		expMap[keyval[0]] = keyval[1]
 	}
-	assert.Equal(t, expMap, entriesMap)
+	assert.Check(t, is.DeepEqual(expMap, entriesMap))
 }

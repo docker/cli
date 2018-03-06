@@ -11,8 +11,9 @@ import (
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 const secretDataFile = "secret-create-with-name.golden"
@@ -52,7 +53,7 @@ func TestSecretCreateErrors(t *testing.T) {
 func TestSecretCreateWithName(t *testing.T) {
 	name := "foo"
 	data, err := ioutil.ReadFile(filepath.Join("testdata", secretDataFile))
-	assert.NoError(t, err)
+	assert.Check(t, err)
 
 	expected := swarm.SecretSpec{
 		Annotations: swarm.Annotations{
@@ -75,8 +76,8 @@ func TestSecretCreateWithName(t *testing.T) {
 
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
 func TestSecretCreateWithDriver(t *testing.T) {
@@ -104,8 +105,8 @@ func TestSecretCreateWithDriver(t *testing.T) {
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name})
 	cmd.Flags().Set("driver", expectedDriver.Name)
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
 func TestSecretCreateWithTemplatingDriver(t *testing.T) {
@@ -133,8 +134,8 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name})
 	cmd.Flags().Set("template-driver", expectedDriver.Name)
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
 func TestSecretCreateWithLabels(t *testing.T) {
@@ -164,6 +165,6 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
