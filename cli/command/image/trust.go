@@ -198,7 +198,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), trustedRef.String())
+		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, AuthResolver(cli), trustedRef.String())
 		if err != nil {
 			return err
 		}
@@ -293,35 +293,24 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 
 // TrustedReference returns the canonical trusted reference for an image reference
 func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs registry.Service) (reference.Canonical, error) {
-	var (
-		repoInfo *registry.RepositoryInfo
-		err      error
-	)
-	if rs != nil {
-		repoInfo, err = rs.ResolveRepository(ref)
-	} else {
-		repoInfo, err = registry.ParseRepositoryInfo(ref)
-	}
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, rs, AuthResolver(cli), ref.String())
 	if err != nil {
 		return nil, err
 	}
 
-	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
-
-	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
+	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, []string{"pull"})
 	if err != nil {
 		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
 
 	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
 	if err != nil {
-		return nil, trust.NotaryError(repoInfo.Name.Name(), err)
+		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), err)
 	}
 	// Only list tags in the top level targets role or the releases delegation role - ignore
 	// all other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(repoInfo.Name.Name(), client.ErrNoSuchTarget(ref.Tag()))
+		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), client.ErrNoSuchTarget(ref.Tag()))
 	}
 	r, err := convertTarget(t.Target)
 	if err != nil {

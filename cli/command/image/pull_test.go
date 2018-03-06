@@ -93,7 +93,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 			args:          []string{"image:tag"},
 		},
 		{
-			name:          "empty-notary-server",
+			name:          "uninitialized-notary-server",
 			notaryFunc:    notary.GetUninitializedNotaryRepository,
 			expectedError: "remote trust data does not exist",
 			args:          []string{"image:tag"},

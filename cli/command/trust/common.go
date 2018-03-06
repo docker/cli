@@ -66,7 +66,7 @@ type trustKey struct {
 // This information is to be pretty printed or serialized into a machine-readable format.
 func lookupTrustInfo(cli command.Cli, remote string) (trustTagRowList, []client.RoleWithSignatures, []data.Role, error) {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), remote)
 	if err != nil {
 		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}

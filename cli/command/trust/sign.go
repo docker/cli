@@ -42,7 +42,7 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 func runSignImage(cli command.Cli, options signOptions) error {
 	imageName := options.imageName
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), imageName)
 	if err != nil {
 		return err
 	}
