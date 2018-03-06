@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/pkg/errors"
 )
 
 func setupConfigDir(t *testing.T) (string, func()) {
@@ -77,7 +79,8 @@ func TestEmptyFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
-	assert.ErrorContains(t, err, "EOF")
+	assert.Equal(t, errors.Cause(err), io.EOF)
+	assert.ErrorContains(t, err, ConfigFileName)
 }
 
 func TestEmptyJSON(t *testing.T) {
