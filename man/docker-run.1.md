@@ -243,18 +243,21 @@ See **config-json(5)** for documentation on using a configuration file.
 **--detach-keys**=""
    Override the key sequence for detaching a container. Format is a single character `[a-Z]` or `ctrl-<value>` where `<value>` is one of: `a-z`, `@`, `^`, `[`, `,` or `_`.
 
-**--device**=[]
-   Add a host device to the container (e.g. --device=/dev/sdc:/dev/xvdc:rwm)
+**--device**=*onhost*:*incontainer*[:*mode*]
+   Add a host device *onhost* to the container under the *incontainer* name.
+Optional *mode* parameter can be used to specify device permissions, it is
+a combination of **r** (for read), **w** (for write), and **m** (for **mknod**(2)).
 
-**--device-cgroup-rule**=[]
-   Add a rule to the cgroup allowed devices list.
-   
-   The rule is expected to be in the format specified in the Linux kernel documentation (Documentation/cgroup-v1/devices.txt):
-     - type: `a` (all), `c` (char) or `b` (block)
-     - major and minor: either a number or `*` for all
-     - permission: a composition of `r` (read), `w` (write) and `m` (mknod)
+For example, **--device=/dev/sdc:/dev/xvdc:rwm** will give a container all
+permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside the container.
 
-   Example: `c 1:3 mr`: allow for character device with major `1` and minor `3` to be created (`m`) and read (`r`)
+**--device-cgroup-rule**="*type* *major*:*minor* *mode*"
+   Add a rule to the cgroup allowed devices list. The rule is expected to be in the format specified in the Linux kernel documentation (Documentation/cgroup-v1/devices.txt):
+     - *type*: **a** (all), **c** (char), or **b** (block);
+     - *major* and *minor*: either a number, or __*__ for all;
+     - *mode*: a composition of **r** (read), **w** (write), and **m** (**mknod**(2)).
+
+   Example: **--device-cgroup-rule "c 1:3 mr"**: allow for a character device idendified by **1:3**  to be created and read.
 
 **--device-read-bps**=[]
    Limit read rate from a device (e.g. --device-read-bps=/dev/sda:1mb)
