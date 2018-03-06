@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 )
@@ -41,7 +40,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -51,14 +50,14 @@ func TestTrustInspectCommandOfflineErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd = newInspectCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 }
 
 func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
@@ -67,7 +66,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -75,7 +74,7 @@ func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
 }
 

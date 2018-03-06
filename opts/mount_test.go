@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -151,8 +150,8 @@ func TestMountOptVolumeNoCopy(t *testing.T) {
 
 func TestMountOptTypeConflict(t *testing.T) {
 	var m MountOpt
-	testutil.ErrorContains(t, m.Set("type=bind,target=/foo,source=/foo,volume-nocopy=true"), "cannot mix")
-	testutil.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
+	assert.ErrorContains(t, m.Set("type=bind,target=/foo,source=/foo,volume-nocopy=true"), "cannot mix")
+	assert.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
 }
 
 func TestMountOptSetTmpfsNoError(t *testing.T) {
@@ -180,7 +179,7 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 
 func TestMountOptSetTmpfsError(t *testing.T) {
 	var m MountOpt
-	testutil.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-size=foo"), "invalid value for tmpfs-size")
-	testutil.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
-	testutil.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
+	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-size=foo"), "invalid value for tmpfs-size")
+	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
+	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }

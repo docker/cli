@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
 )
@@ -93,7 +92,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

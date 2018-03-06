@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary/client"
@@ -50,7 +49,7 @@ func TestTrustRevokeCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -74,7 +73,7 @@ func TestTrustRevokeCommandOfflineErrors(t *testing.T) {
 	cmd = newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: client is offline")
+	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: client is offline")
 }
 
 func TestTrustRevokeCommandUninitializedErrors(t *testing.T) {
@@ -91,14 +90,14 @@ func TestTrustRevokeCommandUninitializedErrors(t *testing.T) {
 	cmd = newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image", "-y"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:  does not have trust data for")
+	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:  does not have trust data for")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
 	cmd = newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag:  does not have trust data for")
+	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag:  does not have trust data for")
 }
 
 func TestTrustRevokeCommandEmptyNotaryRepo(t *testing.T) {
@@ -115,14 +114,14 @@ func TestTrustRevokeCommandEmptyNotaryRepo(t *testing.T) {
 	cmd = newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image", "-y"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image: no signed tags to remove")
+	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image: no signed tags to remove")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd = newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: No valid trust data for tag")
+	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: No valid trust data for tag")
 }
 
 func TestNewRevokeTrustAllSigConfirmation(t *testing.T) {

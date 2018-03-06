@@ -3,7 +3,6 @@ package opts
 import (
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -243,7 +242,7 @@ func TestPortOptInvalidComplexSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		testutil.ErrorContains(t, port.Set(tc.value), tc.expectedError)
+		assert.ErrorContains(t, port.Set(tc.value), tc.expectedError)
 	}
 }
 

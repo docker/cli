@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -139,7 +138,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 			assert.NilError(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -109,7 +108,7 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 	}
 	cli := test.NewFakeCli(fakeClient)
 	err := runCopy(cli, options)
-	testutil.ErrorContains(t, err, destDir.Join("missing"))
+	assert.ErrorContains(t, err, destDir.Join("missing"))
 }
 
 func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
@@ -122,7 +121,7 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 	}
 	cli := test.NewFakeCli(&fakeClient{})
 	err := runCopy(cli, options)
-	testutil.ErrorContains(t, err, "not a directory")
+	assert.ErrorContains(t, err, "not a directory")
 }
 
 func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
@@ -136,7 +135,7 @@ func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		expected = "cannot find the file specified"
 	}
-	testutil.ErrorContains(t, err, expected)
+	assert.ErrorContains(t, err, expected)
 }
 
 func TestSplitCpArg(t *testing.T) {

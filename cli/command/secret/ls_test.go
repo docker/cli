@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
@@ -43,7 +42,7 @@ func TestSecretListErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

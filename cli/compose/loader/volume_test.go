@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
@@ -45,7 +44,7 @@ func TestParseVolumeShortVolumes(t *testing.T) {
 func TestParseVolumeMissingSource(t *testing.T) {
 	for _, spec := range []string{":foo", "/foo::ro"} {
 		_, err := ParseVolume(spec)
-		testutil.ErrorContains(t, err, "empty section between colons")
+		assert.ErrorContains(t, err, "empty section between colons")
 	}
 }
 
@@ -215,10 +214,10 @@ func TestParseVolumeSplitCases(t *testing.T) {
 
 func TestParseVolumeInvalidEmptySpec(t *testing.T) {
 	_, err := ParseVolume("")
-	testutil.ErrorContains(t, err, "invalid empty volume spec")
+	assert.ErrorContains(t, err, "invalid empty volume spec")
 }
 
 func TestParseVolumeInvalidSections(t *testing.T) {
 	_, err := ParseVolume("/foo::rw")
-	testutil.ErrorContains(t, err, "invalid spec")
+	assert.ErrorContains(t, err, "invalid spec")
 }

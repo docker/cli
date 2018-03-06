@@ -11,7 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -46,7 +45,7 @@ func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
 	defer cleanup()
 
 	_, _, err := GetContextFromLocalDir(contextDir, "")
-	testutil.ErrorContains(t, err, "Dockerfile")
+	assert.ErrorContains(t, err, "Dockerfile")
 }
 
 func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
@@ -56,7 +55,7 @@ func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(fakePath, "")
-	testutil.ErrorContains(t, err, "fake")
+	assert.ErrorContains(t, err, "fake")
 }
 
 func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
@@ -66,7 +65,7 @@ func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(contextDir, fakePath)
-	testutil.ErrorContains(t, err, "fake")
+	assert.ErrorContains(t, err, "fake")
 }
 
 func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {

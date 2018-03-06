@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 )
 
 func TestNodePromoteErrors(t *testing.T) {
@@ -46,7 +45,7 @@ func TestNodePromoteErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
