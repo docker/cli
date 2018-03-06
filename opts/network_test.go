@@ -3,7 +3,6 @@ package opts
 import (
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
@@ -96,6 +95,6 @@ func TestNetworkOptInvalidSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var network NetworkOpt
-		testutil.ErrorContains(t, network.Set(tc.value), tc.expectedError)
+		assert.ErrorContains(t, network.Set(tc.value), tc.expectedError)
 	}
 }

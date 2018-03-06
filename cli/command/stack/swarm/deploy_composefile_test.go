@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
@@ -59,7 +58,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 		if testcase.expectedMsg == "" {
 			assert.Check(t, err)
 		} else {
-			testutil.ErrorContains(t, err, testcase.expectedMsg)
+			assert.ErrorContains(t, err, testcase.expectedMsg)
 		}
 	}
 }

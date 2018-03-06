@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -51,7 +50,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

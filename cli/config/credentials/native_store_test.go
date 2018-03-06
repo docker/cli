@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker/api/types"
@@ -129,7 +128,7 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 		Email:         "foo@example.com",
 		ServerAddress: invalidServerAddress,
 	})
-	testutil.ErrorContains(t, err, "program failed")
+	assert.ErrorContains(t, err, "program failed")
 	assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
 }
 
@@ -243,7 +242,7 @@ func TestNativeStoreGetInvalidAddress(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	_, err := s.Get(invalidServerAddress)
-	testutil.ErrorContains(t, err, "program failed")
+	assert.ErrorContains(t, err, "program failed")
 }
 
 func TestNativeStoreErase(t *testing.T) {
@@ -274,5 +273,5 @@ func TestNativeStoreEraseInvalidAddress(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	err := s.Erase(invalidServerAddress)
-	testutil.ErrorContains(t, err, "program failed")
+	assert.ErrorContains(t, err, "program failed")
 }

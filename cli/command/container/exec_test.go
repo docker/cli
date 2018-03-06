@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -151,7 +150,7 @@ func TestRunExec(t *testing.T) {
 
 			err := runExec(cli, testcase.options)
 			if testcase.expectedError != "" {
-				testutil.ErrorContains(t, err, testcase.expectedError)
+				assert.ErrorContains(t, err, testcase.expectedError)
 			} else {
 				if !assert.Check(t, err) {
 					return
@@ -223,6 +222,6 @@ func TestNewExecCommandErrors(t *testing.T) {
 		cmd := NewExecCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

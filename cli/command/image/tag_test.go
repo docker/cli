@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
@@ -21,7 +20,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), expectedError)
+		assert.ErrorContains(t, cmd.Execute(), expectedError)
 	}
 }
 

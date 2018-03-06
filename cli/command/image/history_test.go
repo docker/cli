@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/image"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
@@ -39,7 +38,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 		cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

@@ -8,7 +8,6 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -331,7 +330,7 @@ func TestGetClientWithPassword(t *testing.T) {
 
 			_, err := getClientWithPassword(passRetriever, newClient)
 			if testcase.expectedErr != "" {
-				testutil.ErrorContains(t, err, testcase.expectedErr)
+				assert.ErrorContains(t, err, testcase.expectedErr)
 				return
 			}
 

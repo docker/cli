@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -50,7 +49,7 @@ func TestRunLogs(t *testing.T) {
 
 			err := runLogs(cli, testcase.options)
 			if testcase.expectedError != "" {
-				testutil.ErrorContains(t, err, testcase.expectedError)
+				assert.ErrorContains(t, err, testcase.expectedError)
 			} else {
 				if !assert.Check(t, err) {
 					return

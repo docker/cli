@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -167,7 +166,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	// IPv6
 	flags.Set("dns-add", "2001:db8:abc8::1")
 	// Invalid dns record
-	testutil.ErrorContains(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
+	assert.ErrorContains(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
 
 	// domains with duplicates
 	flags.Set("dns-search-add", "example.com")
@@ -175,7 +174,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	flags.Set("dns-search-add", "example.org")
 	flags.Set("dns-search-rm", "example.org")
 	// Invalid dns search domain
-	testutil.ErrorContains(t, flags.Set("dns-search-add", "example$com"), "example$com is not a valid domain")
+	assert.ErrorContains(t, flags.Set("dns-search-add", "example$com"), "example$com is not a valid domain")
 
 	flags.Set("dns-option-add", "ndots:9")
 	flags.Set("dns-option-rm", "timeout:3")
@@ -364,7 +363,7 @@ func TestUpdateHosts(t *testing.T) {
 	// just hostname should work as well
 	flags.Set("host-rm", "example.net")
 	// bad format error
-	testutil.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
+	assert.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
 	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net"}
 	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 ipv6.net"}

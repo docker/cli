@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary"
@@ -62,7 +61,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		cmd := newSignerAddCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

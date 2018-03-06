@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -52,7 +51,7 @@ func TestTrustViewCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -62,14 +61,14 @@ func TestTrustViewCommandOfflineErrors(t *testing.T) {
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getOfflineNotaryRepository)
 	cmd = newViewCommand(cli)
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 }
 
 func TestTrustViewCommandUninitializedErrors(t *testing.T) {
@@ -78,14 +77,14 @@ func TestTrustViewCommandUninitializedErrors(t *testing.T) {
 	cmd := newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
 	cmd = newViewCommand(cli)
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
+	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
 }
 
 func TestTrustViewCommandEmptyNotaryRepoErrors(t *testing.T) {

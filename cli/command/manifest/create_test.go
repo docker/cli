@@ -6,7 +6,6 @@ import (
 
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/distribution/reference"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -35,7 +34,7 @@ func TestManifestCreateErrors(t *testing.T) {
 		cmd := newCreateListCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -72,7 +71,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

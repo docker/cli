@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
@@ -236,7 +235,7 @@ func TestRunFlagsParseWithMemory(t *testing.T) {
 	flags, _ := setupRunFlags()
 	args := []string{"--memory=invalid", "img", "cmd"}
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
+	assert.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
 
 	_, hostconfig := mustParse(t, "--memory=1G")
 	assert.Check(t, is.Equal(int64(1073741824), hostconfig.Memory))
@@ -246,7 +245,7 @@ func TestParseWithMemorySwap(t *testing.T) {
 	flags, _ := setupRunFlags()
 	args := []string{"--memory-swap=invalid", "img", "cmd"}
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
+	assert.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
 
 	_, hostconfig := mustParse(t, "--memory-swap=1G")
 	assert.Check(t, is.Equal(int64(1073741824), hostconfig.MemorySwap))
@@ -375,7 +374,7 @@ func TestParseModes(t *testing.T) {
 	args := []string{"--pid=container:", "img", "cmd"}
 	assert.NilError(t, flags.Parse(args))
 	_, err := parse(flags, copts)
-	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
+	assert.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
 	_, hostconfig, _, err := parseRun([]string{"--pid=host", "img", "cmd"})
@@ -386,7 +385,7 @@ func TestParseModes(t *testing.T) {
 
 	// uts ko
 	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"})
-	testutil.ErrorContains(t, err, "--uts: invalid UTS mode")
+	assert.ErrorContains(t, err, "--uts: invalid UTS mode")
 
 	// uts ok
 	_, hostconfig, _, err = parseRun([]string{"--uts=host", "img", "cmd"})
@@ -402,7 +401,7 @@ func TestRunFlagsParseShmSize(t *testing.T) {
 	args := []string{"--shm-size=a128m", "img", "cmd"}
 	expectedErr := `invalid argument "a128m" for "--shm-size" flag: invalid size: 'a128m'`
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, expectedErr)
+	assert.ErrorContains(t, err, expectedErr)
 
 	// shm-size ok
 	_, hostconfig, _, err := parseRun([]string{"--shm-size=128m", "img", "cmd"})

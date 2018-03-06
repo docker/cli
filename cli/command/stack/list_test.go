@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
@@ -55,7 +54,7 @@ func TestListErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

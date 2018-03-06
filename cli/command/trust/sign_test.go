@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary"
@@ -69,7 +68,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -301,6 +300,6 @@ func TestSignCommandLocalFlag(t *testing.T) {
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "error during connect: Get /images/reg-name.io/image:red/json: unsupported protocol scheme")
+	assert.ErrorContains(t, cmd.Execute(), "error during connect: Get /images/reg-name.io/image:red/json: unsupported protocol scheme")
 
 }

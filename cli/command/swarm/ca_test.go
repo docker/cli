@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -97,7 +96,7 @@ PQQDAgNIADBFAiEAqD3Kb2rgsy6NoTk+zEgcUi/aGBCsvQDG3vML1PXN8j0CIBjj
 			}))
 		assert.Check(t, cmd.Flags().Parse(args))
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), "flag requires the `--rotate` flag to update the CA")
+		assert.ErrorContains(t, cmd.Execute(), "flag requires the `--rotate` flag to update the CA")
 	}
 }
 

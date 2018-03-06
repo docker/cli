@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
@@ -39,7 +38,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
