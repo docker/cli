@@ -285,7 +285,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 
 	err = cmd.Execute()
-	assert.Assert(t, is.ErrorContains(err, ""))
+	assert.Assert(t, err != nil)
 
 	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
