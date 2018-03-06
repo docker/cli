@@ -332,7 +332,7 @@ redirection on the host system.
 **-i**, **--interactive**=*true*|*false*
    Keep STDIN open even if not attached. The default is *false*.
 
-   When set to true, keep stdin open even if not attached. The default is false.
+   When set to true, keep stdin open even if not attached.
 
 **--ip**=""
    Sets the container's interface IPv4 address (e.g., 172.23.0.9)
