@@ -83,7 +83,7 @@ docker-run - Run a command in a new container
 [**--sig-proxy**[=*true*]]
 [**--sysctl**[=*[]*]]
 [**-t**|**--tty**]
-[**--tmpfs**[=*[CONTAINER-DIR[:<OPTIONS>]*]]
+[**--tmpfs**[=*[CONTAINER-DIR[:OPTIONS]*]]
 [**-u**|**--user**[=*USER*]]
 [**--ulimit**[=*[]*]]
 [**--uts**[=*[]*]]
@@ -240,8 +240,8 @@ running) using a configurable key sequence. The default sequence is `CTRL-p CTRL
 You configure the key sequence using the **--detach-keys** option or a configuration file.
 See **config-json(5)** for documentation on using a configuration file.
 
-**--detach-keys**=""
-   Override the key sequence for detaching a container. Format is a single character `[a-Z]` or `ctrl-<value>` where `<value>` is one of: `a-z`, `@`, `^`, `[`, `,` or `_`.
+**--detach-keys**=*key*
+   Override the key sequence for detaching a container; *key* is a single character from the [a-Z] range, or **ctrl**-*value*, where *value* is one of: **a-z**, **@**, **^**, **[**, **,**, or **_**.
 
 **--device**=*onhost*:*incontainer*[:*mode*]
    Add a host device *onhost* to the container under the *incontainer* name.
@@ -364,14 +364,14 @@ or **shareable**, depending on the daemon version and configuration.
 that the default on Windows server is `process`, and the default on Windows client
 is `hyperv`. Linux only supports `default`.
 
-**-l**, **--label**=[]
-   Set metadata on the container (e.g., --label com.example.key=value)
+**-l**, **--label** *key*=*value*
+   Set metadata on the container (for example, **--label com.example.key=value**).
 
-**--kernel-memory**=""
-   Kernel memory limit (format: `<number>[<unit>]`, where unit = b, k, m or g)
+**--kernel-memory**=*number*[*S*]
+   Kernel memory limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    Constrains the kernel memory available to a container. If a limit of 0
-is specified (not using `--kernel-memory`), the container's kernel memory
+is specified (not using **--kernel-memory**), the container's kernel memory
 is not limited. If you specify a limit, it may be rounded up to a multiple
 of the operating system's page size and the value can be very large,
 millions of trillions.
@@ -379,9 +379,8 @@ millions of trillions.
 **--label-file**=[]
    Read in a line delimited file of labels
 
-**--link**=[]
-   Add link to another container in the form of <name or id>:alias or just <name or id>
-in which case the alias will match the name
+**--link**=*name-or-id*[:*alias*]
+   Add link to another container.
 
    If the operator
 uses **--link** when starting the new client container, then the client
@@ -393,15 +392,15 @@ which interface and port to use.
    Add one or more link-local IPv4/IPv6 addresses to the container's interface
 
 **--log-driver**="*json-file*|*syslog*|*journald*|*gelf*|*fluentd*|*awslogs*|*splunk*|*etwlogs*|*gcplogs*|*none*"
-  Logging driver for the container. Default is defined by daemon `--log-driver` flag.
+  Logging driver for the container. Default is defined by daemon **--log-driver** flag.
   **Warning**: the `docker logs` command works only for the `json-file` and
   `journald` logging drivers.
 
 **--log-opt**=[]
   Logging driver specific options.
 
-**-m**, **--memory**=""
-   Memory limit (format: <number>[<unit>], where unit = b, k, m or g)
+**-m**, **--memory**=*number*[*S]
+   Memory limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    Allows you to constrain the memory available to a container. If the host
 supports swap memory, then the **-m** memory setting can be larger than physical
@@ -409,8 +408,8 @@ RAM. If a limit of 0 is specified (not using **-m**), the container's memory is
 not limited. The actual limit may be rounded up to a multiple of the operating
 system's page size (the value would be very large, that's millions of trillions).
 
-**--memory-reservation**=""
-   Memory soft limit (format: <number>[<unit>], where unit = b, k, m or g)
+**--memory-reservation**=*number*[*S]
+   Memory soft limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    After setting memory reservation, when the system detects memory contention
 or low memory, containers are forced to restrict their consumption to their
@@ -418,24 +417,19 @@ reservation. So you should always set the value below **--memory**, otherwise th
 hard limit will take precedence. By default, memory reservation will be the same
 as memory limit.
 
-**--memory-swap**="LIMIT"
-   A limit value equal to memory plus swap. Must be used with the  **-m**
-(**--memory**) flag. The swap `LIMIT` should always be larger than **-m**
-(**--memory**) value.  By default, the swap `LIMIT` will be set to double
-the value of --memory.
+**--memory-swap**=*number*[*S*]
+   Combined memory plus swap limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
-   The format of `LIMIT` is `<number>[<unit>]`. Unit can be `b` (bytes),
-`k` (kilobytes), `m` (megabytes), or `g` (gigabytes). If you don't specify a
-unit, `b` is used. Set LIMIT to `-1` to enable unlimited swap.
+   This option can only be used together with **--memory**. The argument should always be larger than that of **--memory**. Default is double the value of **--memory**. Set to **-1** to enable unlimited swap.
 
 **--mac-address**=""
-   Container MAC address (e.g., 92:d0:c6:0a:29:33)
+   Container MAC address (e.g., **92:d0:c6:0a:29:33**)
 
    Remember that the MAC address in an Ethernet network must be unique.
 The IPv6 link-local address will be based on the device's MAC address
 according to RFC4862.
 
-**--mount**=[*[type=TYPE[,TYPE-SPECIFIC-OPTIONS]]*]
+**--mount** **type=**_TYPE_,*TYPE-SPECIFIC-OPTION*[,...]
    Attach a filesystem mount to the container
 
    Current supported mount `TYPES` are `bind`, `volume`, and `tmpfs`.
@@ -488,7 +482,7 @@ string name. The name is useful when defining links (see **--link**) (or any
 other place you need to identify a container). This works for both background
 and foreground Docker containers.
 
-**--network**="*bridge*"
+**--network**=*type*
    Set the Network mode for the container. Supported values are:
 
 | Value                       | Description                                                                              |
@@ -519,18 +513,17 @@ exposed port accessible on the host and the ports will be available to any
 client that can reach the host. When using -P, Docker will bind any exposed
 port to a random port on the host within an *ephemeral port range* defined by
 `/proc/sys/net/ipv4/ip_local_port_range`. To find the mapping between the host
-ports and the exposed ports, use `docker port`.
+ports and the exposed ports, use `docker port`(1).
 
-**-p**, **--publish**=[]
+**-p**, **--publish** *ip*:[*hostPort*]:*containerPort* | [*hostPort*:]*containerPort*
    Publish a container's port, or range of ports, to the host.
 
-   Format: `ip:hostPort:containerPort | ip::containerPort | hostPort:containerPort | containerPort`
-Both hostPort and containerPort can be specified as a range of ports.
-When specifying ranges for both, the number of container ports in the range must match the number of host ports in the range.
-(e.g., `docker run -p 1234-1236:1222-1224 --name thisWorks -t busybox`
-but not `docker run -p 1230-1236:1230-1240 --name RangeContainerPortsBiggerThanRangeHostPorts -t busybox`)
-With ip: `docker run -p 127.0.0.1:$HOSTPORT:$CONTAINERPORT --name CONTAINER -t someimage`
-Use `docker port` to see the actual mapping: `docker port CONTAINER $CONTAINERPORT`
+Both *hostPort* and *containerPort* can be specified as a range.
+When specifying ranges for both, the number of ports in ranges should be equal.
+
+Examples: **-p 1234-1236:1222-1224**, **-p 127.0.0.1:$HOSTPORT:$CONTAINERPORT**.
+
+Use `docker port`(1) to see the actual mapping, e.g. `docker port CONTAINER $CONTAINERPORT`.
 
 **--pid**=""
    Set the PID mode for the container
@@ -543,34 +536,29 @@ Use `docker port` to see the actual mapping: `docker port CONTAINER $CONTAINERPO
      **host**: use the host usernamespace and enable all privileged options (e.g., `pid=host` or `--privileged`).
 
 **--pids-limit**=""
-   Tune the container's pids limit. Set `-1` to have unlimited pids for the container.
+   Tune the container's pids (process IDs) limit. Set to `-1` to have unlimited pids for the container.
 
-**--uts**=*host*
-   Set the UTS mode for the container
-     **host**: use the host's UTS namespace inside the container.
+**--uts**=*type*
+   Set the UTS mode for the container. The only possible *type* is **host**, meaning to
+use the host's UTS namespace inside the container.
      Note: the host mode gives the container access to changing the host's hostname and is therefore considered insecure.
 
-**--privileged**=*true*|*false*
-   Give extended privileges to this container. The default is *false*.
-
-   By default, Docker containers are
-“unprivileged” (=false) and cannot, for example, run a Docker daemon inside the
-Docker container. This is because by default a container is not allowed to
-access any devices. A “privileged” container is given access to all devices.
+**--privileged** [**true**|**false**]
+   Give extended privileges to this container. A "privileged" container is given access to all devices.
 
    When the operator executes **docker run --privileged**, Docker will enable access
 to all devices on the host as well as set some configuration in AppArmor to
 allow the container nearly all the same access to the host as processes running
 outside of a container on the host.
 
-**--read-only**=*true*|*false*
+**--read-only**=**true**|**false**
    Mount the container's root filesystem as read only.
 
    By default a container will have its root filesystem writable allowing processes
 to write files anywhere.  By specifying the `--read-only` flag the container will have
 its root filesystem mounted as read only prohibiting any writes.
 
-**--restart**=""
+**--restart** *policy*
    Restart policy to apply when a container exits. Supported values are:
 
 | Policy                         | Result                |
@@ -582,13 +570,13 @@ its root filesystem mounted as read only prohibiting any writes.
 
 Default is **no**.
 
-**--rm**=*true*|*false*
-   Automatically remove the container when it exits. The default is *false*.
+**--rm** **true**|**false**
+   Automatically remove the container when it exits. The default is **false**.
    `--rm` flag can work together with `-d`, and auto-removal will be done on daemon side. Note that it's
 incompatible with any restart policy other than `none`.
 
-**--security-opt**=[]
-   Security Options
+**--security-opt** *value*[,...]
+   Security Options for the container. The following options can be given:
 
     "label=user:USER"   : Set the label user for the container
     "label=role:ROLE"   : Set the label role for the container
@@ -603,7 +591,7 @@ incompatible with any restart policy other than `none`.
     "apparmor=unconfined" : Turn off apparmor confinement for the container
     "apparmor=your-profile" : Set the apparmor confinement profile for the container
 
-**--storage-opt**=[]
+**--storage-opt**
    Storage driver options per container
 
    $ docker run -it --storage-opt size=120G fedora /bin/bash
