@@ -70,7 +70,7 @@ func TestConfigCreateWithName(t *testing.T) {
 
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, string(actual), configDataFile)
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
@@ -109,7 +109,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
@@ -138,6 +138,6 @@ func TestConfigCreateWithTemplatingDriver(t *testing.T) {
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("template-driver", expectedDriver.Name)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }

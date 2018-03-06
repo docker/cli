@@ -94,5 +94,5 @@ func TestSwarmUnlock(t *testing.T) {
 	})
 	dockerCli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }

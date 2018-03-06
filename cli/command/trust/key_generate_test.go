@@ -125,7 +125,7 @@ func TestValidateKeyArgs(t *testing.T) {
 	err = validateKeyArgs("-", pubKeyCWD)
 	assert.Error(t, err, "key name \"-\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
-	assert.Check(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
+	assert.NilError(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
 	err = validateKeyArgs("a", pubKeyCWD)
 	assert.Error(t, err, fmt.Sprintf("public key file already exists: \"%s/a.pub\"", pubKeyCWD))
 

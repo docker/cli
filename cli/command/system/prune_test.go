@@ -11,7 +11,7 @@ import (
 func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
 	cmd := newPruneCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	expected := `WARNING! This will remove:
         - all stopped containers
         - all networks not used by at least one container

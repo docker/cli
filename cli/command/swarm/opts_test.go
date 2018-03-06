@@ -10,25 +10,25 @@ import (
 func TestNodeAddrOptionSetHostAndPort(t *testing.T) {
 	opt := NewNodeAddrOption("old:123")
 	addr := "newhost:5555"
-	assert.Check(t, opt.Set(addr))
+	assert.NilError(t, opt.Set(addr))
 	assert.Check(t, is.Equal(addr, opt.Value()))
 }
 
 func TestNodeAddrOptionSetHostOnly(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.Check(t, opt.Set("newhost"))
+	assert.NilError(t, opt.Set("newhost"))
 	assert.Check(t, is.Equal("newhost:2377", opt.Value()))
 }
 
 func TestNodeAddrOptionSetHostOnlyIPv6(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.Check(t, opt.Set("::1"))
+	assert.NilError(t, opt.Set("::1"))
 	assert.Check(t, is.Equal("[::1]:2377", opt.Value()))
 }
 
 func TestNodeAddrOptionSetPortOnly(t *testing.T) {
 	opt := NewListenAddrOption()
-	assert.Check(t, opt.Set(":4545"))
+	assert.NilError(t, opt.Set(":4545"))
 	assert.Check(t, is.Equal("0.0.0.0:4545", opt.Value()))
 }
 
@@ -97,15 +97,15 @@ func TestExternalCAOption(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		opt := &ExternalCAOption{}
-		assert.Check(t, opt.Set(tc.externalCA))
+		assert.NilError(t, opt.Set(tc.externalCA))
 		assert.Check(t, is.Equal(tc.expected, opt.String()))
 	}
 }
 
 func TestExternalCAOptionMultiple(t *testing.T) {
 	opt := &ExternalCAOption{}
-	assert.Check(t, opt.Set("protocol=cfssl,url=https://example.com"))
-	assert.Check(t, opt.Set("protocol=CFSSL,url=anything"))
+	assert.NilError(t, opt.Set("protocol=cfssl,url=https://example.com"))
+	assert.NilError(t, opt.Set("protocol=CFSSL,url=anything"))
 	assert.Check(t, is.Len(opt.Value(), 2))
 	assert.Check(t, is.Equal("cfssl: https://example.com, cfssl: anything", opt.String()))
 }

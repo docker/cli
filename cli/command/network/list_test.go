@@ -58,6 +58,6 @@ func TestNetworkListWithFlags(t *testing.T) {
 	cmd := newListCommand(cli)
 
 	cmd.Flags().Set("filter", "image.name=ubuntu")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, strings.TrimSpace(cli.OutBuffer().String()), "network-list.golden")
 }

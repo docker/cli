@@ -52,7 +52,7 @@ func TestSecretRemoveWithName(t *testing.T) {
 	})
 	cmd := newSecretRemoveCommand(cli)
 	cmd.SetArgs(names)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n")))
 	assert.Check(t, is.DeepEqual(names, removedSecrets))
 }

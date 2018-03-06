@@ -71,6 +71,6 @@ func TestNewPushCommandSuccess(t *testing.T) {
 		cmd := NewPushCommand(cli)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 	}
 }

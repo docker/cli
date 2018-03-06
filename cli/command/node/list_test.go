@@ -72,7 +72,7 @@ func TestNodeList(t *testing.T) {
 	})
 
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-sort.golden")
 }
 
@@ -86,7 +86,7 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(cli.OutBuffer().String(), "nodeID1\n"))
 }
 
@@ -111,7 +111,7 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-from-config.golden")
 }
 
@@ -136,6 +136,6 @@ func TestNodeListFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-flag.golden")
 }

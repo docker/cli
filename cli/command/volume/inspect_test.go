@@ -98,7 +98,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 		})
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-without-format.%s.golden", tc.name))
 	}
 }
@@ -135,7 +135,7 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
 	}
 }

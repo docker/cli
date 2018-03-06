@@ -75,7 +75,7 @@ func TestSecretCreateWithName(t *testing.T) {
 
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
@@ -104,7 +104,7 @@ func TestSecretCreateWithDriver(t *testing.T) {
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name})
 	cmd.Flags().Set("driver", expectedDriver.Name)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
@@ -133,7 +133,7 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	cmd := newSecretCreateCommand(cli)
 	cmd.SetArgs([]string{name})
 	cmd.Flags().Set("template-driver", expectedDriver.Name)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
@@ -164,6 +164,6 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }

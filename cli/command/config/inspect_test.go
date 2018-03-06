@@ -95,7 +95,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{configInspectFunc: tc.configInspectFunc})
 		cmd := newConfigInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-without-format.%s.golden", tc.name))
 	}
 }
@@ -132,7 +132,7 @@ func TestConfigInspectWithFormat(t *testing.T) {
 		cmd := newConfigInspectCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("format", tc.format)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-with-format.%s.golden", tc.name))
 	}
 }
@@ -166,7 +166,7 @@ func TestConfigInspectPretty(t *testing.T) {
 
 		cmd.SetArgs([]string{"configID"})
 		cmd.Flags().Set("pretty", "true")
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("config-inspect-pretty.%s.golden", tc.name))
 	}
 }

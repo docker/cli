@@ -18,7 +18,7 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, Validate(config, "3.0"))
+	assert.NilError(t, Validate(config, "3.0"))
 }
 
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
@@ -99,7 +99,7 @@ func TestValidatePlacement(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, Validate(config, "3.3"))
+	assert.NilError(t, Validate(config, "3.3"))
 }
 
 func TestValidateIsolation(t *testing.T) {
@@ -112,5 +112,5 @@ func TestValidateIsolation(t *testing.T) {
 			},
 		},
 	}
-	assert.Check(t, Validate(config, "3.5"))
+	assert.NilError(t, Validate(config, "3.5"))
 }

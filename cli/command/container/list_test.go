@@ -68,7 +68,7 @@ func TestContainerListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format.golden")
 }
 
@@ -83,7 +83,7 @@ func TestContainerListNoTrunc(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("no-trunc", "true")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format-no-trunc.golden")
 }
 
@@ -99,7 +99,7 @@ func TestContainerListNamesMultipleTime(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{.Names}} {{.Names}}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-name-name.golden")
 }
 
@@ -115,7 +115,7 @@ func TestContainerListFormatTemplateWithArg(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", `{{.Names}} {{.Label "some.label"}}`)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-with-arg.golden")
 }
 
@@ -128,7 +128,7 @@ func TestContainerListFormatSizeSetsOption(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", `{{.Size}}`)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }
 
 func TestContainerListWithConfigFormat(t *testing.T) {
@@ -144,7 +144,7 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }}",
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-config-format.golden")
 }
 
@@ -159,6 +159,6 @@ func TestContainerListWithFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-format.golden")
 }

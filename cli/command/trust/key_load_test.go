@@ -121,7 +121,7 @@ func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) 
 	assert.NilError(t, err)
 	defer os.RemoveAll(privKeyDir)
 	privKeyFilepath := filepath.Join(privKeyDir, "privkey.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, notary.PrivNoExecPerms))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, notary.PrivNoExecPerms))
 
 	keyStorageDir, err := ioutil.TempDir("", "loaded-keys-")
 	assert.NilError(t, err)
@@ -175,7 +175,7 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(privKeyDir)
 	privKeyFilepath := filepath.Join(privKeyDir, "privkey477.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0477))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0477))
 
 	keyStorageDir, err := ioutil.TempDir("", "loaded-keys-")
 	assert.NilError(t, err)
@@ -187,27 +187,27 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0677))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0677))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0777))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0777))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0400))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0400))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NilError(t, err)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey600.pem")
-	assert.Check(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0600))
+	assert.NilError(t, ioutil.WriteFile(privKeyFilepath, privKeyFixture, 0600))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NilError(t, err)
@@ -223,7 +223,7 @@ func TestLoadPubKeyFailure(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyDir)
 	pubKeyFilepath := filepath.Join(pubKeyDir, "pubkey.pem")
-	assert.Check(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
+	assert.NilError(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
 	keyStorageDir, err := ioutil.TempDir("", "loaded-keys-")
 	assert.NilError(t, err)
 	defer os.RemoveAll(keyStorageDir)

@@ -10,8 +10,8 @@ import (
 
 func TestBuildContainerListOptions(t *testing.T) {
 	filters := opts.NewFilterOpt()
-	assert.Check(t, filters.Set("foo=bar"))
-	assert.Check(t, filters.Set("baz=foo"))
+	assert.NilError(t, filters.Set("foo=bar"))
+	assert.NilError(t, filters.Set("baz=foo"))
 
 	contexts := []struct {
 		psOpts          *psOptions

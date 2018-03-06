@@ -99,7 +99,7 @@ func TestPortOptValidSimpleSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.Check(t, port.Set(tc.value))
+		assert.NilError(t, port.Set(tc.value))
 		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
 		for _, expectedPortConfig := range tc.expected {
 			assertContains(t, port.Value(), expectedPortConfig)
@@ -190,7 +190,7 @@ func TestPortOptValidComplexSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var port PortOpt
-		assert.Check(t, port.Set(tc.value))
+		assert.NilError(t, port.Set(tc.value))
 		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
 		for _, expectedPortConfig := range tc.expected {
 			assertContains(t, port.Value(), expectedPortConfig)

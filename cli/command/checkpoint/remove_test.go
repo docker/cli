@@ -58,7 +58,7 @@ func TestCheckpointRemoveWithOptions(t *testing.T) {
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"container-foo", "checkpoint-bar"})
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("container-foo", containerID))
 	assert.Check(t, is.Equal("checkpoint-bar", checkpointID))
 	assert.Check(t, is.Equal("/dir/foo", checkpointDir))

@@ -59,7 +59,7 @@ func TestTrustRevokeCommandOfflineErrors(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -82,7 +82,7 @@ func TestTrustRevokeCommandUninitializedErrors(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -106,7 +106,7 @@ func TestTrustRevokeCommandEmptyNotaryRepo(t *testing.T) {
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -129,7 +129,7 @@ func TestNewRevokeTrustAllSigConfirmation(t *testing.T) {
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"alpine"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action."))
 }

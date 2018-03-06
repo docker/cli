@@ -94,7 +94,7 @@ func TestSwarmJoin(t *testing.T) {
 		})
 		cmd := newJoinCommand(cli)
 		cmd.SetArgs([]string{"remote"})
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		assert.Check(t, is.Equal(strings.TrimSpace(cli.OutBuffer().String()), tc.expected))
 	}
 }

@@ -35,7 +35,7 @@ func TestCliNewTagCommand(t *testing.T) {
 		}))
 	cmd.SetArgs([]string{"image1", "image2"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	value, _ := cmd.Flags().GetBool("interspersed")
 	assert.Check(t, !value)
 }

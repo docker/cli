@@ -88,7 +88,7 @@ func TestStackServicesEmptyServiceList(t *testing.T) {
 	})
 	cmd := newServicesCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("", fakeCli.OutBuffer().String()))
 	assert.Check(t, is.Equal("Nothing found in stack: foo\n", fakeCli.ErrBuffer().String()))
 }
@@ -102,7 +102,7 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-quiet-option.golden")
 }
 
@@ -117,7 +117,7 @@ func TestStackServicesWithFormat(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-format.golden")
 }
 
@@ -134,7 +134,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-config-format.golden")
 }
 
@@ -157,6 +157,6 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-without-format.golden")
 }

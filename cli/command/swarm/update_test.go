@@ -172,7 +172,7 @@ func TestSwarmUpdate(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(cli.OutBuffer())
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }

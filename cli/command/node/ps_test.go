@@ -123,7 +123,7 @@ func TestNodePs(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-ps.%s.golden", tc.name))
 	}
 }

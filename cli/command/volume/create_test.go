@@ -72,14 +72,14 @@ func TestVolumeCreateWithName(t *testing.T) {
 	// Test by flags
 	cmd := newCreateCommand(cli)
 	cmd.Flags().Set("name", name)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
 
 	// Then by args
 	buf.Reset()
 	cmd = newCreateCommand(cli)
 	cmd.SetArgs([]string{name})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
 }
 
@@ -121,6 +121,6 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("opt", "baz=baz")
 	cmd.Flags().Set("label", "lbl1=v1")
 	cmd.Flags().Set("label", "lbl2=v2")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(name, strings.TrimSpace(cli.OutBuffer().String())))
 }

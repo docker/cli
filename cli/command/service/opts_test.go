@@ -21,7 +21,7 @@ func TestMemBytesString(t *testing.T) {
 
 func TestMemBytesSetAndValue(t *testing.T) {
 	var mem opts.MemBytes
-	assert.Check(t, mem.Set("5kb"))
+	assert.NilError(t, mem.Set("5kb"))
 	assert.Check(t, is.Equal(int64(5120), mem.Value()))
 }
 
@@ -32,7 +32,7 @@ func TestNanoCPUsString(t *testing.T) {
 
 func TestNanoCPUsSetAndValue(t *testing.T) {
 	var cpus opts.NanoCPUs
-	assert.Check(t, cpus.Set("0.35"))
+	assert.NilError(t, cpus.Set("0.35"))
 	assert.Check(t, is.Equal(int64(350000000), cpus.Value()))
 }
 
@@ -47,7 +47,7 @@ func TestUint64OptString(t *testing.T) {
 
 func TestUint64OptSetAndValue(t *testing.T) {
 	var opt Uint64Opt
-	assert.Check(t, opt.Set("14445"))
+	assert.NilError(t, opt.Set("14445"))
 	assert.Check(t, is.Equal(uint64(14445), *opt.Value()))
 }
 

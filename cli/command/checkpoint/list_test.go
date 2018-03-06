@@ -60,7 +60,7 @@ func TestCheckpointListWithOptions(t *testing.T) {
 	cmd := newListCommand(cli)
 	cmd.SetArgs([]string{"container-foo"})
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("container-foo", containerID))
 	assert.Check(t, is.Equal("/dir/foo", checkpointDir))
 	golden.Assert(t, cli.OutBuffer().String(), "checkpoint-list-with-options.golden")

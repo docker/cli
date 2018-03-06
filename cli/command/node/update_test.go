@@ -164,6 +164,6 @@ func TestNodeUpdate(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 	}
 }

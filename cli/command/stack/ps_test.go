@@ -74,7 +74,7 @@ func TestStackPsWithQuietOption(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-quiet-option.golden")
 
 }
@@ -89,7 +89,7 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-trunc", "true")
 	cmd.Flags().Set("format", "{{ .ID }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-trunc-option.golden")
 }
 
@@ -108,7 +108,7 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-resolve", "true")
 	cmd.Flags().Set("format", "{{ .Node }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-resolve-option.golden")
 }
 
@@ -121,7 +121,7 @@ func TestStackPsWithFormat(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-format.golden")
 }
 
@@ -136,7 +136,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-config-format.golden")
 }
 
@@ -158,6 +158,6 @@ func TestStackPsWithoutFormat(t *testing.T) {
 	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-without-format.golden")
 }

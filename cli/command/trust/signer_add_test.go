@@ -109,7 +109,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyDir)
 	pubKeyFilepath := filepath.Join(pubKeyDir, "pubkey.pem")
-	assert.Check(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
+	assert.NilError(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
 
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)

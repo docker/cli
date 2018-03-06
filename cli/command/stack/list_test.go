@@ -71,7 +71,7 @@ func TestListWithFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-with-format.golden")
 }
 
@@ -87,7 +87,7 @@ func TestListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-without-format.golden")
 }
 
@@ -140,7 +140,7 @@ func TestListOrder(t *testing.T) {
 			},
 		})
 		cmd := newListCommand(cli)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), uc.golden)
 	}
 }

@@ -74,7 +74,7 @@ func TestSecretList(t *testing.T) {
 		},
 	})
 	cmd := newSecretListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-sort.golden")
 }
 
@@ -91,7 +91,7 @@ func TestSecretListWithQuietOption(t *testing.T) {
 	})
 	cmd := newSecretListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-quiet-option.golden")
 }
 
@@ -110,7 +110,7 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 		SecretFormat: "{{ .Name }} {{ .Labels }}",
 	})
 	cmd := newSecretListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-config-format.golden")
 }
 
@@ -127,7 +127,7 @@ func TestSecretListWithFormat(t *testing.T) {
 	})
 	cmd := newSecretListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Labels }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-format.golden")
 }
 
@@ -155,6 +155,6 @@ func TestSecretListWithFilter(t *testing.T) {
 	cmd := newSecretListCommand(cli)
 	cmd.Flags().Set("filter", "name=foo")
 	cmd.Flags().Set("filter", "label=lbl1=Label-bar")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-filter.golden")
 }

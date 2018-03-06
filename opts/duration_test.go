@@ -16,15 +16,15 @@ func TestDurationOptString(t *testing.T) {
 
 func TestDurationOptSetAndValue(t *testing.T) {
 	var duration DurationOpt
-	assert.Check(t, duration.Set("300s"))
+	assert.NilError(t, duration.Set("300s"))
 	assert.Check(t, is.Equal(time.Duration(300*10e8), *duration.Value()))
-	assert.Check(t, duration.Set("-300s"))
+	assert.NilError(t, duration.Set("-300s"))
 	assert.Check(t, is.Equal(time.Duration(-300*10e8), *duration.Value()))
 }
 
 func TestPositiveDurationOptSetAndValue(t *testing.T) {
 	var duration PositiveDurationOpt
-	assert.Check(t, duration.Set("300s"))
+	assert.NilError(t, duration.Set("300s"))
 	assert.Check(t, is.Equal(time.Duration(300*10e8), *duration.Value()))
 	assert.Check(t, is.Error(duration.Set("-300s"), "duration cannot be negative"))
 }

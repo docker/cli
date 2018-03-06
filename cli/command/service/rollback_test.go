@@ -50,7 +50,7 @@ func TestRollback(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
 		cmd.SetOutput(ioutil.Discard)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		assert.Check(t, is.Equal(strings.TrimSpace(cli.ErrBuffer().String()), tc.expectedDockerCliErr))
 	}
 }

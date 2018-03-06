@@ -40,5 +40,5 @@ func TestVolumeRemoveErrors(t *testing.T) {
 func TestNodeRemoveMultiple(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"volume1", "volume2"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }

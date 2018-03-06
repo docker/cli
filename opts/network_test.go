@@ -23,7 +23,7 @@ func TestNetworkOptLegacySyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var network NetworkOpt
-		assert.Check(t, network.Set(tc.value))
+		assert.NilError(t, network.Set(tc.value))
 		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
 	}
 }
@@ -70,7 +70,7 @@ func TestNetworkOptCompleteSyntax(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		var network NetworkOpt
-		assert.Check(t, network.Set(tc.value))
+		assert.NilError(t, network.Set(tc.value))
 		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
 	}
 }

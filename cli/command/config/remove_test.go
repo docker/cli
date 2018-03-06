@@ -52,7 +52,7 @@ func TestConfigRemoveWithName(t *testing.T) {
 	})
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n")))
 	assert.Check(t, is.DeepEqual(names, removedConfigs))
 }
