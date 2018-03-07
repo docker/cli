@@ -161,12 +161,16 @@ COPY data /data
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that build contexts
 // starting with `github.com/` are special-cased, and the build command attempts
 // to clone the remote repo.
+// TODO: test "context selection" logic directly when runBuild is refactored
+// to support testing (ex: docker/cli#294)
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	cmd := NewBuildCommand(test.NewFakeCli(nil))
-	cmd.SetArgs([]string{"github.com/docker/no-such-repository"})
+	// Clone a small repo that exists so git doesn't prompt for credentials
+	cmd.SetArgs([]string{"github.com/docker/for-win"})
 	cmd.SetOutput(ioutil.Discard)
 	err := cmd.Execute()
-	assert.ErrorContains(t, err, "unable to prepare context: unable to 'git clone'")
+	assert.ErrorContains(t, err, "unable to prepare context")
+	assert.ErrorContains(t, err, "docker-build-git")
 }
 
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that a local directory
