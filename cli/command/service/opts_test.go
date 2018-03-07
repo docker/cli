@@ -21,7 +21,7 @@ func TestMemBytesString(t *testing.T) {
 
 func TestMemBytesSetAndValue(t *testing.T) {
 	var mem opts.MemBytes
-	assert.Check(t, mem.Set("5kb"))
+	assert.NilError(t, mem.Set("5kb"))
 	assert.Check(t, is.Equal(int64(5120), mem.Value()))
 }
 
@@ -32,7 +32,7 @@ func TestNanoCPUsString(t *testing.T) {
 
 func TestNanoCPUsSetAndValue(t *testing.T) {
 	var cpus opts.NanoCPUs
-	assert.Check(t, cpus.Set("0.35"))
+	assert.NilError(t, cpus.Set("0.35"))
 	assert.Check(t, is.Equal(int64(350000000), cpus.Value()))
 }
 
@@ -47,7 +47,7 @@ func TestUint64OptString(t *testing.T) {
 
 func TestUint64OptSetAndValue(t *testing.T) {
 	var opt Uint64Opt
-	assert.Check(t, opt.Set("14445"))
+	assert.NilError(t, opt.Set("14445"))
 	assert.Check(t, is.Equal(uint64(14445), *opt.Value()))
 }
 
@@ -61,7 +61,7 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 		retries:     10,
 	}
 	config, err := opt.toHealthConfig()
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test:        []string{"CMD-SHELL", "curl"},
 		Interval:    time.Second,
@@ -76,7 +76,7 @@ func TestHealthCheckOptionsToHealthConfigNoHealthcheck(t *testing.T) {
 		noHealthcheck: true,
 	}
 	config, err := opt.toHealthConfig()
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
 		Test: []string{"NONE"},
 	}, config))
@@ -88,7 +88,7 @@ func TestHealthCheckOptionsToHealthConfigConflict(t *testing.T) {
 		noHealthcheck: true,
 	}
 	_, err := opt.toHealthConfig()
-	assert.Check(t, is.Error(err, "--no-healthcheck conflicts with --health-* options"))
+	assert.Error(t, err, "--no-healthcheck conflicts with --health-* options")
 }
 
 func TestResourceOptionsToResourceRequirements(t *testing.T) {
@@ -123,7 +123,7 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 
 	for _, opt := range correctOptions {
 		r, err := opt.ToResourceRequirements()
-		assert.Check(t, err)
+		assert.NilError(t, err)
 		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
 

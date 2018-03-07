@@ -95,7 +95,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		if tc.deferredFunc != nil {
 			tc.deferredFunc()
 		}

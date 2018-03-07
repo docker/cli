@@ -96,7 +96,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
 			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
 			if testcase.expectedErr != "" {
-				assert.Check(t, is.Error(err, testcase.expectedErr))
+				assert.Error(t, err, testcase.expectedErr)
 				assert.Check(t, IsNotFound(err))
 				return
 			}
@@ -131,6 +131,6 @@ func TestStoreGetListDoesNotExist(t *testing.T) {
 
 	listRef := ref("list")
 	_, err := store.GetList(listRef)
-	assert.Check(t, is.Error(err, "No such manifest: list"))
+	assert.Error(t, err, "No such manifest: list")
 	assert.Check(t, IsNotFound(err))
 }

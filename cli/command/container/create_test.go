@@ -25,8 +25,8 @@ func TestCIDFileNoOPWithNoFilename(t *testing.T) {
 	assert.NilError(t, err)
 	assert.DeepEqual(t, &cidFile{}, file, cmp.AllowUnexported(cidFile{}))
 
-	assert.Check(t, file.Write("id"))
-	assert.Check(t, file.Close())
+	assert.NilError(t, file.Write("id"))
+	assert.NilError(t, file.Close())
 }
 
 func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
@@ -46,7 +46,7 @@ func TestCIDFileCloseWithNoWrite(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(file.path, path))
 
-	assert.Check(t, file.Close())
+	assert.NilError(t, file.Close())
 	_, err = os.Stat(path)
 	assert.Check(t, os.IsNotExist(err))
 }
@@ -60,13 +60,13 @@ func TestCIDFileCloseWithWrite(t *testing.T) {
 	assert.NilError(t, err)
 
 	content := "id"
-	assert.Check(t, file.Write(content))
+	assert.NilError(t, file.Write(content))
 
 	actual, err := ioutil.ReadFile(path)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(content, string(actual)))
 
-	assert.Check(t, file.Close())
+	assert.NilError(t, file.Close())
 	_, err = os.Stat(path)
 	assert.NilError(t, err)
 }

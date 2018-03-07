@@ -56,7 +56,7 @@ id_rsa
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
 		if err := SecretWrite(testcase.context, secrets); err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

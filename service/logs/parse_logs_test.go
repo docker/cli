@@ -25,7 +25,7 @@ func TestParseLogDetails(t *testing.T) {
 		t.Run(testcase.line, func(t *testing.T) {
 			actual, err := ParseLogDetails(testcase.line)
 			if testcase.err != nil {
-				assert.Check(t, is.Error(err, testcase.err.Error()))
+				assert.Error(t, err, testcase.err.Error())
 				return
 			}
 			assert.Check(t, is.DeepEqual(testcase.expected, actual))

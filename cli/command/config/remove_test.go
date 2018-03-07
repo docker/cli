@@ -52,7 +52,7 @@ func TestConfigRemoveWithName(t *testing.T) {
 	})
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(names, strings.Split(strings.TrimSpace(cli.OutBuffer().String()), "\n")))
 	assert.Check(t, is.DeepEqual(names, removedConfigs))
 }
@@ -74,6 +74,6 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, is.Error(cmd.Execute(), "error removing config: foo"))
+	assert.Error(t, cmd.Execute(), "error removing config: foo")
 	assert.Check(t, is.DeepEqual(names, removedConfigs))
 }

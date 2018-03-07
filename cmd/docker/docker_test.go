@@ -19,7 +19,7 @@ func TestClientDebugEnabled(t *testing.T) {
 	cmd.Flags().Set("debug", "true")
 
 	err := cmd.PersistentPreRunE(cmd, []string{})
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal("1", os.Getenv("DEBUG")))
 	assert.Check(t, is.Equal(logrus.DebugLevel, logrus.GetLevel()))
 }
@@ -29,5 +29,5 @@ func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
 	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard))
 	cmd.SetArgs([]string{"help", "invalid"})
 	err := cmd.Execute()
-	assert.Check(t, is.Error(err, "unknown help topic: invalid"))
+	assert.Error(t, err, "unknown help topic: invalid")
 }

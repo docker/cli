@@ -169,6 +169,6 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("ip-range", "192.168.4.0/24")
 	cmd.Flags().Set("gateway", "192.168.4.1/24")
 	cmd.Flags().Set("subnet", "192.168.4.0/24")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))
 }

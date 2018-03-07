@@ -45,6 +45,6 @@ func TestSwarmLeaveErrors(t *testing.T) {
 func TestSwarmLeave(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newLeaveCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String())))
 }

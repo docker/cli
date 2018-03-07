@@ -133,7 +133,7 @@ foobar_bar
 		testcase.context.Output = out
 		err := VolumeWrite(testcase.context, volumes)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

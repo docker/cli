@@ -34,13 +34,13 @@ func swarmSpecWithFullCAConfig() *swarm.Spec {
 func TestDisplayTrustRootNoRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	err := displayTrustRoot(buffer, swarm.Swarm{})
-	assert.Check(t, is.Error(err, "No CA information available"))
+	assert.Error(t, err, "No CA information available")
 }
 
 func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	// we need an actual PEMfile to test
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.Remove(tmpfile.Name())
 	tmpfile.Write([]byte(`
 -----BEGIN CERTIFICATE-----

@@ -127,7 +127,7 @@ tag3                bbbbbbbb
 		testcase.context.Output = out
 		err := TrustTagWrite(testcase.context, signedTags)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}
@@ -153,7 +153,7 @@ func TestTrustTagContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := TrustTagWrite(emptyCase.context, emptySignedTags)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 
@@ -172,7 +172,7 @@ func TestSignerInfoContextEmptyWrite(t *testing.T) {
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
 	err := SignerInfoWrite(emptyCase.context, emptySignerInfo)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
 
@@ -231,7 +231,7 @@ eve                 foobarbazquxquux, key31, key32
 		testcase.context.Output = out
 		err := SignerInfoWrite(testcase.context, signerInfo)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

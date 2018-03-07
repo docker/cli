@@ -45,6 +45,6 @@ func TestLoadBundlefile(t *testing.T) {
 	path := filepath.Join("testdata", "bundlefile_with_two_services.dab")
 	bundleFile, err := loadBundlefile(buf, namespace, path)
 
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(len(bundleFile.Services), 2))
 }

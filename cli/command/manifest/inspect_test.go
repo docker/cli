@@ -15,7 +15,7 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/opencontainers/go-digest"
+	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -65,7 +65,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.Check(t, is.Error(err, "No such manifest: example.com/alpine:3.0"))
+	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
 }
 
 func TestInspectCommandNotFound(t *testing.T) {
@@ -87,7 +87,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.Check(t, is.Error(err, "No such manifest: example.com/alpine:3.0"))
+	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
 }
 
 func TestInspectCommandLocalManifest(t *testing.T) {

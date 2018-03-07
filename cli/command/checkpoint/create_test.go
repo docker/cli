@@ -63,7 +63,7 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 	cmd.SetArgs([]string{"container-foo", checkpoint})
 	cmd.Flags().Set("leave-running", "true")
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("container-foo", containerID))
 	assert.Check(t, is.Equal(checkpoint, checkpointID))
 	assert.Check(t, is.Equal("/dir/foo", checkpointDir))

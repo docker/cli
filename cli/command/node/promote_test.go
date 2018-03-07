@@ -63,7 +63,7 @@ func TestNodePromoteNoChange(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }
 
 func TestNodePromoteMultipleNode(t *testing.T) {
@@ -80,5 +80,5 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }

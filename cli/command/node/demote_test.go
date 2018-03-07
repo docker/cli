@@ -63,7 +63,7 @@ func TestNodeDemoteNoChange(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }
 
 func TestNodeDemoteMultipleNode(t *testing.T) {
@@ -80,5 +80,5 @@ func TestNodeDemoteMultipleNode(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }

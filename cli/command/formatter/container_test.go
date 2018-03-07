@@ -244,7 +244,7 @@ size: 0B
 		testcase.context.Output = out
 		err := ContainerWrite(testcase.context, containers)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

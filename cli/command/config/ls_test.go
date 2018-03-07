@@ -72,7 +72,7 @@ func TestConfigList(t *testing.T) {
 		},
 	})
 	cmd := newConfigListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "config-list-sort.golden")
 }
 
@@ -89,7 +89,7 @@ func TestConfigListWithQuietOption(t *testing.T) {
 	})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("quiet", "true")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "config-list-with-quiet-option.golden")
 }
 
@@ -108,7 +108,7 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 		ConfigFormat: "{{ .Name }} {{ .Labels }}",
 	})
 	cmd := newConfigListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "config-list-with-config-format.golden")
 }
 
@@ -125,7 +125,7 @@ func TestConfigListWithFormat(t *testing.T) {
 	})
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Labels }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "config-list-with-format.golden")
 }
 
@@ -153,6 +153,6 @@ func TestConfigListWithFilter(t *testing.T) {
 	cmd := newConfigListCommand(cli)
 	cmd.Flags().Set("filter", "name=foo")
 	cmd.Flags().Set("filter", "label=lbl1=Label-bar")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "config-list-with-filter.golden")
 }

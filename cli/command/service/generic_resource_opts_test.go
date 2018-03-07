@@ -18,6 +18,6 @@ func TestValidateSingleGenericResource(t *testing.T) {
 
 	for _, v := range correct {
 		_, err := ValidateSingleGenericResource(v)
-		assert.Check(t, err)
+		assert.NilError(t, err)
 	}
 }

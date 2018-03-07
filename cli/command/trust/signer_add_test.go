@@ -51,7 +51,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		},
 	}
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
@@ -67,12 +67,12 @@ func TestTrustSignerAddErrors(t *testing.T) {
 
 func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.Remove(tmpfile.Name())
 
 	cli := test.NewFakeCli(&fakeClient{})
@@ -81,12 +81,12 @@ func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	cmd.SetArgs([]string{"--key", tmpfile.Name(), "alice", "alpine", "linuxkit/alpine"})
 
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, is.Error(cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name())))
+	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
 }
 
 func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
@@ -96,20 +96,20 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	cmd.SetArgs([]string{"--key", "/path/to/key.pem", "alice", "alpine"})
 
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, is.Error(cmd.Execute(), "unable to read public key from file: open /path/to/key.pem: no such file or directory"))
+	assert.Error(t, cmd.Execute(), "unable to read public key from file: open /path/to/key.pem: no such file or directory")
 }
 
 func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "docker-sign-test-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
 	config.SetDir(tmpDir)
 
 	pubKeyDir, err := ioutil.TempDir("", "key-load-test-pubkey-")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(pubKeyDir)
 	pubKeyFilepath := filepath.Join(pubKeyDir, "pubkey.pem")
-	assert.Check(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
+	assert.NilError(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
 
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getUninitializedNotaryRepository)
@@ -118,7 +118,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	cmd.SetArgs([]string{"--key", pubKeyFilepath, "alice", imageName})
 
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, is.Error(cmd.Execute(), "Failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd"))
+	assert.Error(t, cmd.Execute(), "Failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
 	expectedErr := fmt.Sprintf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n\n", imageName)
 
 	assert.Check(t, is.Equal(expectedErr, cli.ErrBuffer().String()))
@@ -127,11 +127,11 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 func TestIngestPublicKeys(t *testing.T) {
 	// Call with a bad path
 	_, err := ingestPublicKeys([]string{"foo", "bar"})
-	assert.Check(t, is.Error(err, "unable to read public key from file: open foo: no such file or directory"))
+	assert.Error(t, err, "unable to read public key from file: open foo: no such file or directory")
 	// Call with real file path
 	tmpfile, err := ioutil.TempFile("", "pemfile")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	defer os.Remove(tmpfile.Name())
 	_, err = ingestPublicKeys([]string{tmpfile.Name()})
-	assert.Check(t, is.Error(err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name())))
+	assert.Error(t, err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
 }

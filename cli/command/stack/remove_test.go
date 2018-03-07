@@ -46,7 +46,7 @@ func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
 	assert.Check(t, is.Len(client.removedSecrets, 0))
@@ -58,7 +58,7 @@ func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.secrets), client.removedSecrets))
@@ -70,7 +70,7 @@ func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.services), client.removedServices))
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.networks), client.removedNetworks))
 	assert.Check(t, is.DeepEqual(buildObjectIDs(client.secrets), client.removedSecrets))
@@ -101,7 +101,7 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	cmd := newRemoveCommand(fakeCli)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	expectedList := []string{"Removing service bar_service1",
 		"Removing service bar_service2",
 		"Removing secret bar_secret1",
@@ -150,7 +150,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Check(t, is.Error(cmd.Execute(), "Failed to remove some resources from stack: foo"))
+	assert.Error(t, cmd.Execute(), "Failed to remove some resources from stack: foo")
 	assert.Check(t, is.DeepEqual(allServiceIDs, removedServices))
 	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
 	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))

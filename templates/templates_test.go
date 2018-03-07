@@ -11,30 +11,30 @@ import (
 // GitHub #32120
 func TestParseJSONFunctions(t *testing.T) {
 	tm, err := Parse(`{{json .Ports}}`)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
-	assert.Check(t, tm.Execute(&b, map[string]string{"Ports": "0.0.0.0:2->8/udp"}))
+	assert.NilError(t, tm.Execute(&b, map[string]string{"Ports": "0.0.0.0:2->8/udp"}))
 	want := "\"0.0.0.0:2->8/udp\""
 	assert.Check(t, is.Equal(want, b.String()))
 }
 
 func TestParseStringFunctions(t *testing.T) {
 	tm, err := Parse(`{{join (split . ":") "/"}}`)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
-	assert.Check(t, tm.Execute(&b, "text:with:colon"))
+	assert.NilError(t, tm.Execute(&b, "text:with:colon"))
 	want := "text/with/colon"
 	assert.Check(t, is.Equal(want, b.String()))
 }
 
 func TestNewParse(t *testing.T) {
 	tm, err := NewParse("foo", "this is a {{ . }}")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 
 	var b bytes.Buffer
-	assert.Check(t, tm.Execute(&b, "string"))
+	assert.NilError(t, tm.Execute(&b, "string"))
 	want := "this is a string"
 	assert.Check(t, is.Equal(want, b.String()))
 }
@@ -66,17 +66,17 @@ func TestParseTruncateFunction(t *testing.T) {
 
 	for _, testCase := range testCases {
 		tm, err := Parse(testCase.template)
-		assert.Check(t, err)
+		assert.NilError(t, err)
 
 		t.Run("Non Empty Source Test with template: "+testCase.template, func(t *testing.T) {
 			var b bytes.Buffer
-			assert.Check(t, tm.Execute(&b, source))
+			assert.NilError(t, tm.Execute(&b, source))
 			assert.Check(t, is.Equal(testCase.expected, b.String()))
 		})
 
 		t.Run("Empty Source Test with template: "+testCase.template, func(t *testing.T) {
 			var c bytes.Buffer
-			assert.Check(t, tm.Execute(&c, ""))
+			assert.NilError(t, tm.Execute(&c, ""))
 			assert.Check(t, is.Equal("", c.String()))
 		})
 

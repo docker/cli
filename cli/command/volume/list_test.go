@@ -64,7 +64,7 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-without-format.golden")
 }
 
@@ -86,7 +86,7 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 		VolumesFormat: "{{ .Name }} {{ .Driver }} {{ .Labels }}",
 	})
 	cmd := newListCommand(cli)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-config-format.golden")
 }
 
@@ -106,6 +106,6 @@ func TestVolumeListWithFormat(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}")
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-format.golden")
 }

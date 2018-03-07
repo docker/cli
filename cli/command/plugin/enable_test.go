@@ -65,6 +65,6 @@ func TestPluginEnable(t *testing.T) {
 
 	cmd := newEnableCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

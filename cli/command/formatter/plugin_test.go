@@ -132,7 +132,7 @@ foobar_bar
 		testcase.context.Output = out
 		err := PluginWrite(testcase.context, plugins)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

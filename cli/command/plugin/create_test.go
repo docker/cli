@@ -109,6 +109,6 @@ func TestCreatePlugin(t *testing.T) {
 
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

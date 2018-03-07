@@ -10,8 +10,8 @@ import (
 
 func TestBuildContainerListOptions(t *testing.T) {
 	filters := opts.NewFilterOpt()
-	assert.Check(t, filters.Set("foo=bar"))
-	assert.Check(t, filters.Set("baz=foo"))
+	assert.NilError(t, filters.Set("foo=bar"))
+	assert.NilError(t, filters.Set("baz=foo"))
 
 	contexts := []struct {
 		psOpts          *psOptions
@@ -102,7 +102,7 @@ func TestBuildContainerListOptions(t *testing.T) {
 
 	for _, c := range contexts {
 		options, err := buildContainerListOptions(c.psOpts)
-		assert.Check(t, err)
+		assert.NilError(t, err)
 
 		assert.Check(t, is.Equal(c.expectedAll, options.All))
 		assert.Check(t, is.Equal(c.expectedSize, options.Size))

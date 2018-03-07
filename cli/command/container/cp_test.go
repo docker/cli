@@ -43,7 +43,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
 			err := runCopy(test.NewFakeCli(nil), testcase.options)
-			assert.Check(t, is.Error(err, testcase.expectedErr))
+			assert.Error(t, err, testcase.expectedErr)
 		})
 	}
 }

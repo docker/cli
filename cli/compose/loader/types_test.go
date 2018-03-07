@@ -319,12 +319,12 @@ configs: {}
 `
 
 	actual, err := yaml.Marshal(cfg)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(expected, string(actual)))
 
 	// Make sure the expected still
 	dict, err := ParseYAML([]byte("version: '3.6'\n" + expected))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 	_, err = Load(buildConfigDetails(dict, map[string]string{}))
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }

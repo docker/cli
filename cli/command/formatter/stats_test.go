@@ -117,7 +117,7 @@ container2  --
 		te.context.Output = &out
 		err := ContainerStatsWrite(te.context, stats, "linux", false)
 		if err != nil {
-			assert.Check(t, is.Error(err, te.expected))
+			assert.Error(t, err, te.expected)
 		} else {
 			assert.Check(t, is.Equal(te.expected, out.String()))
 		}
@@ -183,7 +183,7 @@ container2  --  --
 		te.context.Output = &out
 		err := ContainerStatsWrite(te.context, stats, "windows", false)
 		if err != nil {
-			assert.Check(t, is.Error(err, te.expected))
+			assert.Error(t, err, te.expected)
 		} else {
 			assert.Check(t, is.Equal(te.expected, out.String()))
 		}

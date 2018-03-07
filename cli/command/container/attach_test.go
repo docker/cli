@@ -10,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
 )
 
@@ -122,9 +121,9 @@ func TestGetExitStatus(t *testing.T) {
 		}
 		err := getExitStatus(errC, resultC)
 		if testcase.expectedError == nil {
-			assert.Check(t, err)
+			assert.NilError(t, err)
 		} else {
-			assert.Check(t, is.Error(err, testcase.expectedError.Error()))
+			assert.Error(t, err, testcase.expectedError.Error())
 		}
 	}
 }

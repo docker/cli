@@ -28,7 +28,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	defer dest.Remove()
 
 	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		assert.Check(t, archive.Untar(context, dest.Path(), nil))
+		assert.NilError(t, archive.Untar(context, dest.Path(), nil))
 
 		body := new(bytes.Buffer)
 		return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
@@ -67,7 +67,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 		buffer := new(bytes.Buffer)
 		tee := io.TeeReader(context, buffer)
 
-		assert.Check(t, archive.Untar(tee, dest, nil))
+		assert.NilError(t, archive.Untar(tee, dest, nil))
 		dockerfileName = options.Dockerfile
 
 		header := buffer.Bytes()[:10]
@@ -132,7 +132,7 @@ COPY data /data
 		buffer := new(bytes.Buffer)
 		tee := io.TeeReader(context, buffer)
 
-		assert.Check(t, archive.Untar(tee, dest, nil))
+		assert.NilError(t, archive.Untar(tee, dest, nil))
 		dockerfileName = options.Dockerfile
 
 		body := new(bytes.Buffer)

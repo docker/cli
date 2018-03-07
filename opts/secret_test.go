@@ -12,7 +12,7 @@ func TestSecretOptionsSimple(t *testing.T) {
 	var opt SecretOpt
 
 	testCase := "app-secret"
-	assert.Check(t, opt.Set(testCase))
+	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
@@ -27,7 +27,7 @@ func TestSecretOptionsSourceTarget(t *testing.T) {
 	var opt SecretOpt
 
 	testCase := "source=foo,target=testing"
-	assert.Check(t, opt.Set(testCase))
+	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
@@ -40,7 +40,7 @@ func TestSecretOptionsShorthand(t *testing.T) {
 	var opt SecretOpt
 
 	testCase := "src=foo,target=testing"
-	assert.Check(t, opt.Set(testCase))
+	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
@@ -52,7 +52,7 @@ func TestSecretOptionsCustomUidGid(t *testing.T) {
 	var opt SecretOpt
 
 	testCase := "source=foo,target=testing,uid=1000,gid=1001"
-	assert.Check(t, opt.Set(testCase))
+	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
@@ -67,7 +67,7 @@ func TestSecretOptionsCustomMode(t *testing.T) {
 	var opt SecretOpt
 
 	testCase := "source=foo,target=testing,uid=1000,gid=1001,mode=0444"
-	assert.Check(t, opt.Set(testCase))
+	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))

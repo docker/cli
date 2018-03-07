@@ -75,7 +75,7 @@ foobar_bar foo2
 		testcase.context.Output = out
 		err := TaskWrite(testcase.context, tasks, names, nodes)
 		if err != nil {
-			assert.Check(t, is.Error(err, testcase.expected))
+			assert.Error(t, err, testcase.expected)
 		} else {
 			assert.Check(t, is.Equal(testcase.expected, out.String()))
 		}

@@ -227,7 +227,7 @@ func TestNativeStoreGetMissingCredentials(t *testing.T) {
 		fileStore:   NewFileStore(f),
 	}
 	_, err := s.Get(missingCredsAddress)
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {

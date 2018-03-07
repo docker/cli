@@ -18,7 +18,7 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, Validate(config, "3.0"))
+	assert.NilError(t, Validate(config, "3.0"))
 }
 
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
@@ -42,7 +42,7 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	}
 
 	err := Validate(config, "3.4")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestValidateSecretConfigNames(t *testing.T) {
@@ -61,7 +61,7 @@ func TestValidateSecretConfigNames(t *testing.T) {
 	}
 
 	err := Validate(config, "3.5")
-	assert.Check(t, err)
+	assert.NilError(t, err)
 }
 
 func TestValidateInvalidVersion(t *testing.T) {
@@ -99,7 +99,7 @@ func TestValidatePlacement(t *testing.T) {
 		},
 	}
 
-	assert.Check(t, Validate(config, "3.3"))
+	assert.NilError(t, Validate(config, "3.3"))
 }
 
 func TestValidateIsolation(t *testing.T) {
@@ -112,5 +112,5 @@ func TestValidateIsolation(t *testing.T) {
 			},
 		},
 	}
-	assert.Check(t, Validate(config, "3.5"))
+	assert.NilError(t, Validate(config, "3.5"))
 }

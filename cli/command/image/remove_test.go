@@ -126,7 +126,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			cmd := NewRemoveCommand(cli)
 			cmd.SetOutput(ioutil.Discard)
 			cmd.SetArgs(tc.args)
-			assert.Check(t, cmd.Execute())
+			assert.NilError(t, cmd.Execute())
 			assert.Check(t, is.Equal(tc.expectedStderr, cli.ErrBuffer().String()))
 			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("remove-command-success.%s.golden", tc.name))
 		})

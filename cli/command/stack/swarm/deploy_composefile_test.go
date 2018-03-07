@@ -56,7 +56,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 		networks := []string{testcase.network}
 		err := validateExternalNetworks(context.Background(), fakeClient, networks)
 		if testcase.expectedMsg == "" {
-			assert.Check(t, err)
+			assert.NilError(t, err)
 		} else {
 			assert.ErrorContains(t, err, testcase.expectedMsg)
 		}

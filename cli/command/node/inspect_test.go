@@ -112,7 +112,7 @@ func TestNodeInspectPretty(t *testing.T) {
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs([]string{"nodeID"})
 		cmd.Flags().Set("pretty", "true")
-		assert.Check(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-inspect-pretty.%s.golden", tc.name))
 	}
 }

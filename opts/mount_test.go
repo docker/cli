@@ -38,7 +38,7 @@ func TestMountOptSetBindNoErrorBind(t *testing.T) {
 	} {
 		var mount MountOpt
 
-		assert.Check(t, mount.Set(testcase))
+		assert.NilError(t, mount.Set(testcase))
 
 		mounts := mount.Value()
 		assert.Assert(t, is.Len(mounts, 1))
@@ -60,7 +60,7 @@ func TestMountOptSetVolumeNoError(t *testing.T) {
 	} {
 		var mount MountOpt
 
-		assert.Check(t, mount.Set(testcase))
+		assert.NilError(t, mount.Set(testcase))
 
 		mounts := mount.Value()
 		assert.Assert(t, is.Len(mounts, 1))
@@ -76,74 +76,74 @@ func TestMountOptSetVolumeNoError(t *testing.T) {
 // volume mount.
 func TestMountOptDefaultType(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, mount.Set("target=/target,source=/foo"))
+	assert.NilError(t, mount.Set("target=/target,source=/foo"))
 	assert.Check(t, is.Equal(mounttypes.TypeVolume, mount.values[0].Type))
 }
 
 func TestMountOptSetErrorNoTarget(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,source=/foo"), "target is required"))
+	assert.Error(t, mount.Set("type=volume,source=/foo"), "target is required")
 }
 
 func TestMountOptSetErrorInvalidKey(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'"))
+	assert.Error(t, mount.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'")
 }
 
 func TestMountOptSetErrorInvalidField(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair"))
+	assert.Error(t, mount.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair")
 }
 
 func TestMountOptSetErrorInvalidReadOnly(t *testing.T) {
 	var mount MountOpt
-	assert.Check(t, is.Error(mount.Set("type=volume,readonly=no"), "invalid value for readonly: no"))
-	assert.Check(t, is.Error(mount.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid"))
+	assert.Error(t, mount.Set("type=volume,readonly=no"), "invalid value for readonly: no")
+	assert.Error(t, mount.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid")
 }
 
 func TestMountOptDefaultEnableReadOnly(t *testing.T) {
 	var m MountOpt
-	assert.Check(t, m.Set("type=bind,target=/foo,source=/foo"))
+	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo"))
 	assert.Check(t, !m.values[0].ReadOnly)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=bind,target=/foo,source=/foo,readonly"))
+	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly"))
 	assert.Check(t, m.values[0].ReadOnly)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=bind,target=/foo,source=/foo,readonly=1"))
+	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=1"))
 	assert.Check(t, m.values[0].ReadOnly)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=bind,target=/foo,source=/foo,readonly=true"))
+	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=true"))
 	assert.Check(t, m.values[0].ReadOnly)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=bind,target=/foo,source=/foo,readonly=0"))
+	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=0"))
 	assert.Check(t, !m.values[0].ReadOnly)
 }
 
 func TestMountOptVolumeNoCopy(t *testing.T) {
 	var m MountOpt
-	assert.Check(t, m.Set("type=volume,target=/foo,volume-nocopy"))
+	assert.NilError(t, m.Set("type=volume,target=/foo,volume-nocopy"))
 	assert.Check(t, is.Equal("", m.values[0].Source))
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=volume,target=/foo,source=foo"))
+	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo"))
 	assert.Check(t, m.values[0].VolumeOptions == nil)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=true"))
+	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=true"))
 	assert.Check(t, m.values[0].VolumeOptions != nil)
 	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy"))
+	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy"))
 	assert.Check(t, m.values[0].VolumeOptions != nil)
 	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
 
 	m = MountOpt{}
-	assert.Check(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=1"))
+	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=1"))
 	assert.Check(t, m.values[0].VolumeOptions != nil)
 	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
 }
@@ -162,7 +162,7 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 	} {
 		var mount MountOpt
 
-		assert.Check(t, mount.Set(testcase))
+		assert.NilError(t, mount.Set(testcase))
 
 		mounts := mount.Value()
 		assert.Assert(t, is.Len(mounts, 1))
