@@ -1,19 +1,17 @@
 <#
 .NOTES
-    Author:  @vdemeester
-
     Summary: Windows native build script.
 
              It does however provided the minimum necessary to support parts of local Windows
              development and Windows to Windows CI.
 
              Usage Examples (run from repo root):
-                "hack\make.ps1 -Client" to build docker.exe client 64-bit binary (remote repo)
-                "hack\make.ps1 -TestUnit" to run unit tests
-                "hack\make.ps1 -Daemon -TestUnit" to build the daemon and run unit tests
-                "hack\make.ps1 -All" to run everything this script knows about that can run in a container
-                "hack\make.ps1" to build the daemon binary (same as -Daemon)
-                "hack\make.ps1 -Binary" shortcut to -Client and -Daemon
+                "scripts/make.ps1 -Client" to build docker.exe client 64-bit binary (remote repo)
+                "scripts/make.ps1 -TestUnit" to run unit tests
+                "scripts/make.ps1 -Daemon -TestUnit" to build the daemon and run unit tests
+                "scripts/make.ps1 -All" to run everything this script knows about that can run in a container
+                "scripts/make.ps1" to build the daemon binary (same as -Daemon)
+                "scripts/make.ps1 -Binary" shortcut to -Client and -Daemon
 
 .PARAMETER Binary
      Builds the client and daemon binaries. A convenient shortcut to `make.ps1 -Client -Daemon`.
@@ -60,29 +58,6 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $pushed=$False  # To restore the directory if we have temporarily pushed to one.
-
-# Utility function to get the commit ID of the repository
-Function Get-GitCommit() {
-    if (-not (Test-Path ".\.git")) {
-        # If we don't have a .git directory, but we do have the environment
-        # variable DOCKER_GITCOMMIT set, that can override it.
-        if ($env:DOCKER_GITCOMMIT.Length -eq 0) {
-            Throw ".git directory missing and DOCKER_GITCOMMIT environment variable not specified."
-        }
-        Write-Host "INFO: Git commit ($env:DOCKER_GITCOMMIT) assumed from DOCKER_GITCOMMIT environment variable"
-        return $env:DOCKER_GITCOMMIT
-    }
-    $gitCommit=$(git rev-parse --short HEAD)
-    if ($(git status --porcelain --untracked-files=no).Length -ne 0) {
-        $gitCommit="$gitCommit-unsupported"
-        Write-Host ""
-        Write-Warning "This version is unsupported because there are uncommitted file(s)."
-        Write-Warning "Either commit these changes, or add them to .gitignore."
-        git status --porcelain --untracked-files=no | Write-Warning
-        Write-Host ""
-    }
-    return $gitCommit
-}
 
 # Build a binary (client or daemon)
 Function Execute-Build($additionalBuildTags, $directory) {
