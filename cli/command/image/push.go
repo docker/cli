@@ -11,26 +11,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type pushOptions struct {
+	remote    string
+	untrusted bool
+}
+
 // NewPushCommand creates a new `docker push` command
 func NewPushCommand(dockerCli command.Cli) *cobra.Command {
+	var opts pushOptions
+
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] NAME[:TAG]",
 		Short: "Push an image or a repository to a registry",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPush(dockerCli, args[0])
+			opts.remote = args[0]
+			return runPush(dockerCli, opts)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	command.AddTrustSigningFlags(flags)
+	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
 
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, remote string) error {
-	ref, err := reference.ParseNormalizedNamed(remote)
+func runPush(dockerCli command.Cli, opts pushOptions) error {
+	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	if err != nil {
 		return err
 	}
@@ -47,7 +55,7 @@ func runPush(dockerCli command.Cli, remote string) error {
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
 
-	if command.IsTrusted() {
+	if !opts.untrusted && dockerCli.IsTrusted() {
 		return TrustedPush(ctx, dockerCli, repoInfo, ref, authConfig, requestPrivilege)
 	}
 

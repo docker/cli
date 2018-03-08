@@ -13,30 +13,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type pushOptions struct {
+	name      string
+	untrusted bool
+}
+
 func newPushCommand(dockerCli command.Cli) *cobra.Command {
+	var opts pushOptions
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] PLUGIN[:TAG]",
 		Short: "Push a plugin to a registry",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPush(dockerCli, args[0])
+			opts.name = args[0]
+			return runPush(dockerCli, opts)
 		},
 	}
 
 	flags := cmd.Flags()
 
-	command.AddTrustSigningFlags(flags)
+	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
 
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, name string) error {
-	named, err := reference.ParseNormalizedNamed(name)
+func runPush(dockerCli command.Cli, opts pushOptions) error {
+	named, err := reference.ParseNormalizedNamed(opts.name)
 	if err != nil {
 		return err
 	}
 	if _, ok := named.(reference.Canonical); ok {
-		return errors.Errorf("invalid name: %s", name)
+		return errors.Errorf("invalid name: %s", opts.name)
 	}
 
 	named = reference.TagNameOnly(named)
@@ -60,7 +67,7 @@ func runPush(dockerCli command.Cli, name string) error {
 	}
 	defer responseBody.Close()
 
-	if command.IsTrusted() {
+	if !opts.untrusted && dockerCli.IsTrusted() {
 		repoInfo.Class = "plugin"
 		return image.PushTrustedReference(dockerCli, repoInfo, named, authConfig, responseBody)
 	}

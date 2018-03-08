@@ -24,11 +24,12 @@ type pluginOptions struct {
 	disable         bool
 	args            []string
 	skipRemoteCheck bool
+	untrusted       bool
 }
 
-func loadPullFlags(opts *pluginOptions, flags *pflag.FlagSet) {
+func loadPullFlags(dockerCli command.Cli, opts *pluginOptions, flags *pflag.FlagSet) {
 	flags.BoolVar(&opts.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
-	command.AddTrustVerificationFlags(flags)
+	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
 }
 
 func newInstallCommand(dockerCli command.Cli) *cobra.Command {
@@ -47,7 +48,7 @@ func newInstallCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	loadPullFlags(&options, flags)
+	loadPullFlags(dockerCli, &options, flags)
 	flags.BoolVar(&options.disable, "disable", false, "Do not enable the plugin on install")
 	flags.StringVar(&options.localName, "alias", "", "Local name for plugin")
 	return cmd
@@ -90,7 +91,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 	remote := ref.String()
 
 	_, isCanonical := ref.(reference.Canonical)
-	if command.IsTrusted() && !isCanonical {
+	if !opts.untrusted && dockerCli.IsTrusted() && !isCanonical {
 		ref = reference.TagNameOnly(ref)
 		nt, ok := ref.(reference.NamedTagged)
 		if !ok {

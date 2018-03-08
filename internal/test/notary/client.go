@@ -1,4 +1,4 @@
-package trust
+package notary
 
 import (
 	"github.com/docker/cli/cli/trust"
@@ -12,107 +12,142 @@ import (
 	"github.com/theupdateframework/notary/tuf/signed"
 )
 
-// Sample mock CLI interfaces
-
-func getOfflineNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+// GetOfflineNotaryRepository returns a OfflineNotaryRepository
+func GetOfflineNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	return OfflineNotaryRepository{}, nil
 }
 
 // OfflineNotaryRepository is a mock Notary repository that is offline
 type OfflineNotaryRepository struct{}
 
+// Initialize creates a new repository by using rootKey as the root Key for the
+// TUF repository.
 func (o OfflineNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
 	return storage.ErrOffline{}
 }
 
+// InitializeWithCertificate initializes the repository with root keys and their corresponding certificates
 func (o OfflineNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
 	return storage.ErrOffline{}
 }
+
+// Publish pushes the local changes in signed material to the remote notary-server
+// Conceptually it performs an operation similar to a `git rebase`
 func (o OfflineNotaryRepository) Publish() error {
 	return storage.ErrOffline{}
 }
 
+// AddTarget creates new changelist entries to add a target to the given roles
+// in the repository when the changelist gets applied at publish time.
 func (o OfflineNotaryRepository) AddTarget(target *client.Target, roles ...data.RoleName) error {
 	return nil
 }
+
+// RemoveTarget creates new changelist entries to remove a target from the given
+// roles in the repository when the changelist gets applied at publish time.
 func (o OfflineNotaryRepository) RemoveTarget(targetName string, roles ...data.RoleName) error {
 	return nil
 }
+
+// ListTargets lists all targets for the current repository. The list of
+// roles should be passed in order from highest to lowest priority.
 func (o OfflineNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	return nil, storage.ErrOffline{}
 }
 
+// GetTargetByName returns a target by the given name.
 func (o OfflineNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
 	return nil, storage.ErrOffline{}
 }
 
+// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
+// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
 func (o OfflineNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
 	return nil, storage.ErrOffline{}
 }
 
+// GetChangelist returns the list of the repository's unpublished changes
 func (o OfflineNotaryRepository) GetChangelist() (changelist.Changelist, error) {
 	return changelist.NewMemChangelist(), nil
 }
 
+// ListRoles returns a list of RoleWithSignatures objects for this repo
 func (o OfflineNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
 	return nil, storage.ErrOffline{}
 }
 
+// GetDelegationRoles returns the keys and roles of the repository's delegations
 func (o OfflineNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return nil, storage.ErrOffline{}
 }
 
+// AddDelegation creates changelist entries to add provided delegation public keys and paths.
 func (o OfflineNotaryRepository) AddDelegation(name data.RoleName, delegationKeys []data.PublicKey, paths []string) error {
 	return nil
 }
 
+// AddDelegationRoleAndKeys creates a changelist entry to add provided delegation public keys.
 func (o OfflineNotaryRepository) AddDelegationRoleAndKeys(name data.RoleName, delegationKeys []data.PublicKey) error {
 	return nil
 }
 
+// AddDelegationPaths creates a changelist entry to add provided paths to an existing delegation.
 func (o OfflineNotaryRepository) AddDelegationPaths(name data.RoleName, paths []string) error {
 	return nil
 }
 
+// RemoveDelegationKeysAndPaths creates changelist entries to remove provided delegation key IDs and paths.
 func (o OfflineNotaryRepository) RemoveDelegationKeysAndPaths(name data.RoleName, keyIDs, paths []string) error {
 	return nil
 }
 
+// RemoveDelegationRole creates a changelist to remove all paths and keys from a role, and delete the role in its entirety.
 func (o OfflineNotaryRepository) RemoveDelegationRole(name data.RoleName) error {
 	return nil
 }
 
+// RemoveDelegationPaths creates a changelist entry to remove provided paths from an existing delegation.
 func (o OfflineNotaryRepository) RemoveDelegationPaths(name data.RoleName, paths []string) error {
 	return nil
 }
 
+// RemoveDelegationKeys creates a changelist entry to remove provided keys from an existing delegation.
 func (o OfflineNotaryRepository) RemoveDelegationKeys(name data.RoleName, keyIDs []string) error {
 	return nil
 }
 
+// ClearDelegationPaths creates a changelist entry to remove all paths from an existing delegation.
 func (o OfflineNotaryRepository) ClearDelegationPaths(name data.RoleName) error {
 	return nil
 }
 
+// Witness creates change objects to witness (i.e. re-sign) the given
+// roles on the next publish. One change is created per role
 func (o OfflineNotaryRepository) Witness(roles ...data.RoleName) ([]data.RoleName, error) {
 	return nil, nil
 }
 
+// RotateKey rotates a private key and returns the public component from the remote server
 func (o OfflineNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
 	return storage.ErrOffline{}
 }
 
+// GetCryptoService is the getter for the repository's CryptoService
 func (o OfflineNotaryRepository) GetCryptoService() signed.CryptoService {
 	return nil
 }
 
+// SetLegacyVersions allows the number of legacy versions of the root
+// to be inspected for old signing keys to be configured.
 func (o OfflineNotaryRepository) SetLegacyVersions(version int) {}
 
+// GetGUN is a getter for the GUN object from a Repository
 func (o OfflineNotaryRepository) GetGUN() data.GUN {
 	return data.GUN("gun")
 }
 
-func getUninitializedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+// GetUninitializedNotaryRepository returns an UninitializedNotaryRepository
+func GetUninitializedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	return UninitializedNotaryRepository{}, nil
 }
 
@@ -123,42 +158,57 @@ type UninitializedNotaryRepository struct {
 	OfflineNotaryRepository
 }
 
+// Initialize creates a new repository by using rootKey as the root Key for the
+// TUF repository.
 func (u UninitializedNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
 	return client.ErrRepositoryNotExist{}
 }
 
+// InitializeWithCertificate initializes the repository with root keys and their corresponding certificates
 func (u UninitializedNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
 	return client.ErrRepositoryNotExist{}
 }
+
+// Publish pushes the local changes in signed material to the remote notary-server
+// Conceptually it performs an operation similar to a `git rebase`
 func (u UninitializedNotaryRepository) Publish() error {
 	return client.ErrRepositoryNotExist{}
 }
 
+// ListTargets lists all targets for the current repository. The list of
+// roles should be passed in order from highest to lowest priority.
 func (u UninitializedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	return nil, client.ErrRepositoryNotExist{}
 }
 
+// GetTargetByName returns a target by the given name.
 func (u UninitializedNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
 	return nil, client.ErrRepositoryNotExist{}
 }
 
+// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
+// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
 func (u UninitializedNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
 	return nil, client.ErrRepositoryNotExist{}
 }
 
+// ListRoles returns a list of RoleWithSignatures objects for this repo
 func (u UninitializedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
 	return nil, client.ErrRepositoryNotExist{}
 }
 
+// GetDelegationRoles returns the keys and roles of the repository's delegations
 func (u UninitializedNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return nil, client.ErrRepositoryNotExist{}
 }
 
+// RotateKey rotates a private key and returns the public component from the remote server
 func (u UninitializedNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
 	return client.ErrRepositoryNotExist{}
 }
 
-func getEmptyTargetsNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+// GetEmptyTargetsNotaryRepository returns an EmptyTargetsNotaryRepository
+func GetEmptyTargetsNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	return EmptyTargetsNotaryRepository{}, nil
 }
 
@@ -168,29 +218,41 @@ type EmptyTargetsNotaryRepository struct {
 	OfflineNotaryRepository
 }
 
+// Initialize creates a new repository by using rootKey as the root Key for the
+// TUF repository.
 func (e EmptyTargetsNotaryRepository) Initialize(rootKeyIDs []string, serverManagedRoles ...data.RoleName) error {
 	return nil
 }
 
+// InitializeWithCertificate initializes the repository with root keys and their corresponding certificates
 func (e EmptyTargetsNotaryRepository) InitializeWithCertificate(rootKeyIDs []string, rootCerts []data.PublicKey, serverManagedRoles ...data.RoleName) error {
 	return nil
 }
+
+// Publish pushes the local changes in signed material to the remote notary-server
+// Conceptually it performs an operation similar to a `git rebase`
 func (e EmptyTargetsNotaryRepository) Publish() error {
 	return nil
 }
 
+// ListTargets lists all targets for the current repository. The list of
+// roles should be passed in order from highest to lowest priority.
 func (e EmptyTargetsNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	return []*client.TargetWithRole{}, nil
 }
 
+// GetTargetByName returns a target by the given name.
 func (e EmptyTargetsNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
 	return nil, client.ErrNoSuchTarget(name)
 }
 
+// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
+// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
 func (e EmptyTargetsNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
 	return nil, client.ErrNoSuchTarget(name)
 }
 
+// ListRoles returns a list of RoleWithSignatures objects for this repo
 func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
 	rootRole := data.Role{
 		RootRole: data.RootRole{
@@ -212,15 +274,18 @@ func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, 
 		{Role: targetsRole}}, nil
 }
 
+// GetDelegationRoles returns the keys and roles of the repository's delegations
 func (e EmptyTargetsNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return []data.Role{}, nil
 }
 
+// RotateKey rotates a private key and returns the public component from the remote server
 func (e EmptyTargetsNotaryRepository) RotateKey(role data.RoleName, serverManagesKey bool, keyList []string) error {
 	return nil
 }
 
-func getLoadedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+// GetLoadedNotaryRepository returns a LoadedNotaryRepository
+func GetLoadedNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	return LoadedNotaryRepository{}, nil
 }
 
@@ -316,6 +381,7 @@ var loadedTargets = []client.TargetSignedStruct{
 	{Target: loadedGreenTarget, Role: loadedReleasesRole},
 }
 
+// ListRoles returns a list of RoleWithSignatures objects for this repo
 func (l LoadedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error) {
 	rootRole := data.Role{
 		RootRole: data.RootRole{
@@ -368,6 +434,8 @@ func (l LoadedNotaryRepository) ListRoles() ([]client.RoleWithSignatures, error)
 	}, nil
 }
 
+// ListTargets lists all targets for the current repository. The list of
+// roles should be passed in order from highest to lowest priority.
 func (l LoadedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	filteredTargets := []*client.TargetWithRole{}
 	for _, tgt := range loadedTargets {
@@ -378,6 +446,7 @@ func (l LoadedNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.T
 	return filteredTargets, nil
 }
 
+// GetTargetByName returns a target by the given name.
 func (l LoadedNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
 	for _, tgt := range loadedTargets {
 		if name == tgt.Target.Name {
@@ -389,6 +458,8 @@ func (l LoadedNotaryRepository) GetTargetByName(name string, roles ...data.RoleN
 	return nil, client.ErrNoSuchTarget(name)
 }
 
+// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
+// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
 func (l LoadedNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
 	if name == "" {
 		return loadedTargets, nil
@@ -405,14 +476,17 @@ func (l LoadedNotaryRepository) GetAllTargetMetadataByName(name string) ([]clien
 	return filteredTargets, nil
 }
 
+// GetGUN is a getter for the GUN object from a Repository
 func (l LoadedNotaryRepository) GetGUN() data.GUN {
 	return data.GUN("signed-repo")
 }
 
+// GetDelegationRoles returns the keys and roles of the repository's delegations
 func (l LoadedNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return loadedDelegationRoles, nil
 }
 
+// GetCryptoService is the getter for the repository's CryptoService
 func (l LoadedNotaryRepository) GetCryptoService() signed.CryptoService {
 	if l.statefulCryptoService == nil {
 		// give it an in-memory cryptoservice with a root key and targets key
@@ -423,7 +497,8 @@ func (l LoadedNotaryRepository) GetCryptoService() signed.CryptoService {
 	return l.statefulCryptoService
 }
 
-func getLoadedWithNoSignersNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+// GetLoadedWithNoSignersNotaryRepository returns a LoadedWithNoSignersNotaryRepository
+func GetLoadedWithNoSignersNotaryRepository(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	return LoadedWithNoSignersNotaryRepository{}, nil
 }
 
@@ -433,6 +508,8 @@ type LoadedWithNoSignersNotaryRepository struct {
 	LoadedNotaryRepository
 }
 
+// ListTargets lists all targets for the current repository. The list of
+// roles should be passed in order from highest to lowest priority.
 func (l LoadedWithNoSignersNotaryRepository) ListTargets(roles ...data.RoleName) ([]*client.TargetWithRole, error) {
 	filteredTargets := []*client.TargetWithRole{}
 	for _, tgt := range loadedTargets {
@@ -443,6 +520,7 @@ func (l LoadedWithNoSignersNotaryRepository) ListTargets(roles ...data.RoleName)
 	return filteredTargets, nil
 }
 
+// GetTargetByName returns a target by the given name.
 func (l LoadedWithNoSignersNotaryRepository) GetTargetByName(name string, roles ...data.RoleName) (*client.TargetWithRole, error) {
 	if name == "" || name == loadedGreenTarget.Name {
 		return &client.TargetWithRole{Target: loadedGreenTarget, Role: data.CanonicalTargetsRole}, nil
@@ -450,6 +528,8 @@ func (l LoadedWithNoSignersNotaryRepository) GetTargetByName(name string, roles 
 	return nil, client.ErrNoSuchTarget(name)
 }
 
+// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
+// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
 func (l LoadedWithNoSignersNotaryRepository) GetAllTargetMetadataByName(name string) ([]client.TargetSignedStruct, error) {
 	if name == "" || name == loadedGreenTarget.Name {
 		return []client.TargetSignedStruct{{Target: loadedGreenTarget, Role: loadedTargetsRole}}, nil
@@ -457,6 +537,7 @@ func (l LoadedWithNoSignersNotaryRepository) GetAllTargetMetadataByName(name str
 	return nil, client.ErrNoSuchTarget(name)
 }
 
+// GetDelegationRoles returns the keys and roles of the repository's delegations
 func (l LoadedWithNoSignersNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return []data.Role{}, nil
 }

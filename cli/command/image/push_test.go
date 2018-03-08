@@ -37,11 +37,6 @@ func TestNewPushCommandErrors(t *testing.T) {
 				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
 			},
 		},
-		{
-			name:          "trust-error",
-			args:          []string{"--disable-content-trust=false", "image:repo"},
-			expectedError: "you are not authorized to perform this operation: server returned 401.",
-		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imagePushFunc: tc.imagePushFunc})

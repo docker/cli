@@ -14,9 +14,10 @@ import (
 )
 
 type pullOptions struct {
-	remote   string
-	all      bool
-	platform string
+	remote    string
+	all       bool
+	platform  string
+	untrusted bool
 }
 
 // NewPullCommand creates a new `docker pull` command
@@ -38,7 +39,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Download all tagged images in the repository")
 
 	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags)
+	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
 
 	return cmd
 }
@@ -65,7 +66,7 @@ func runPull(cli command.Cli, opts pullOptions) error {
 
 	// Check if reference has a digest
 	_, isCanonical := distributionRef.(reference.Canonical)
-	if command.IsTrusted() && !isCanonical {
+	if !opts.untrusted && cli.IsTrusted() && !isCanonical {
 		err = trustedPull(ctx, cli, imgRefAndAuth, opts.platform)
 	} else {
 		err = imagePullPrivileged(ctx, cli, imgRefAndAuth, opts.all, opts.platform)

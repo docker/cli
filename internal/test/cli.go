@@ -16,7 +16,8 @@ import (
 	notaryclient "github.com/theupdateframework/notary/client"
 )
 
-type notaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+// NotaryClientFuncType defines a function that returns a fake notary client
+type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 type clientInfoFuncType func() command.ClientInfo
 
 // FakeCli emulates the default DockerCli
@@ -30,16 +31,17 @@ type FakeCli struct {
 	in               *command.InStream
 	server           command.ServerInfo
 	clientInfoFunc   clientInfoFuncType
-	notaryClientFunc notaryClientFuncType
+	notaryClientFunc NotaryClientFuncType
 	manifestStore    manifeststore.Store
 	registryClient   registryclient.RegistryClient
+	isTrusted        bool
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
-func NewFakeCli(client client.APIClient) *FakeCli {
+func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
-	return &FakeCli{
+	c := &FakeCli{
 		client:    client,
 		out:       command.NewOutStream(outBuffer),
 		outBuffer: outBuffer,
@@ -49,6 +51,10 @@ func NewFakeCli(client client.APIClient) *FakeCli {
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
 		configfile: configfile.New(""),
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 // SetIn sets the input of the cli to the specified ReadCloser
@@ -120,7 +126,7 @@ func (c *FakeCli) ErrBuffer() *bytes.Buffer {
 }
 
 // SetNotaryClient sets the internal getter for retrieving a NotaryClient
-func (c *FakeCli) SetNotaryClient(notaryClientFunc notaryClientFuncType) {
+func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
 	c.notaryClientFunc = notaryClientFunc
 }
 
@@ -150,4 +156,14 @@ func (c *FakeCli) SetManifestStore(store manifeststore.Store) {
 // SetRegistryClient on the fake cli
 func (c *FakeCli) SetRegistryClient(client registryclient.RegistryClient) {
 	c.registryClient = client
+}
+
+// IsTrusted on the fake cli
+func (c *FakeCli) IsTrusted() bool {
+	return c.isTrusted
+}
+
+// IsTrusted sets "enables" content trust on the fake cli
+func IsTrusted(c *FakeCli) {
+	c.isTrusted = true
 }

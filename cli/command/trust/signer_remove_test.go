@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary/client"
@@ -57,7 +58,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 	}
 	for _, tc := range testCasesWithOutput {
 		cli := test.NewFakeCli(&fakeClient{})
-		cli.SetNotaryClient(getOfflineNotaryRepository)
+		cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 		cmd := newSignerRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -69,7 +70,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 
 func TestRemoveSingleSigner(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	err := removeSingleSigner(cli, "signed-repo", "test", true)
 	assert.Error(t, err, "No signer test for repository signed-repo")
 	err = removeSingleSigner(cli, "signed-repo", "releases", true)
@@ -78,7 +79,7 @@ func TestRemoveSingleSigner(t *testing.T) {
 
 func TestRemoveMultipleSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	err := removeSigner(cli, signerRemoveOptions{signer: "test", repos: []string{"signed-repo", "signed-repo"}, forceYes: true})
 	assert.Error(t, err, "Error removing signer from: signed-repo, signed-repo")
 	assert.Check(t, is.Contains(cli.ErrBuffer().String(),
@@ -87,7 +88,7 @@ func TestRemoveMultipleSigners(t *testing.T) {
 }
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 
 	err := removeSigner(cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
 	assert.NilError(t, err)

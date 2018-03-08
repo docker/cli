@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
+	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary"
@@ -58,7 +59,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
-		cli.SetNotaryClient(getOfflineNotaryRepository)
+		cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 		cmd := newSignerAddCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
@@ -77,7 +78,7 @@ func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignerAddCommand(cli)
 	cmd.SetArgs([]string{"--key", tmpfile.Name(), "alice", "alpine", "linuxkit/alpine"})
 
@@ -92,7 +93,7 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	config.SetDir(tmpDir)
 
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignerAddCommand(cli)
 	cmd.SetArgs([]string{"--key", "/path/to/key.pem", "alice", "alpine"})
 
@@ -117,7 +118,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	assert.NilError(t, ioutil.WriteFile(pubKeyFilepath, pubKeyFixture, notary.PrivNoExecPerms))
 
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getUninitializedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetUninitializedNotaryRepository)
 	cmd := newSignerAddCommand(cli)
 	imageName := "870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd"
 	cmd.SetArgs([]string{"--key", pubKeyFilepath, "alice", imageName})

@@ -16,7 +16,7 @@ import (
 )
 
 func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm.ServiceSpec) error {
-	if !command.IsTrusted() {
+	if !dockerCli.IsTrusted() {
 		// When not using content trust, digest resolution happens later when
 		// contacting the registry to retrieve image information.
 		return nil
