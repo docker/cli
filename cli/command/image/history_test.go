@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
 )
 
@@ -42,7 +43,13 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 }
 
+func notUTCTimezone() bool {
+	now := time.Now()
+	return now != now.UTC()
+}
+
 func TestNewHistoryCommandSuccess(t *testing.T) {
+	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
 	testCases := []struct {
 		name             string
 		args             []string

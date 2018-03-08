@@ -3,6 +3,7 @@ package image
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,30 +15,21 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"golang.org/x/net/context"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
-	dest, err := ioutil.TempDir("", "test-build-compress-dest")
-	assert.NilError(t, err)
-	defer os.RemoveAll(dest)
-
-	var dockerfileName string
-	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		buffer := new(bytes.Buffer)
+	buffer := new(bytes.Buffer)
+	fakeBuild := newFakeBuild()
+	fakeImageBuild := func(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
 		tee := io.TeeReader(context, buffer)
-
-		assert.NilError(t, archive.Untar(tee, dest, nil))
-		dockerfileName = options.Dockerfile
-
-		header := buffer.Bytes()[:10]
-		assert.Check(t, is.Equal(archive.Gzip, archive.DetectCompression(header)))
-
-		body := new(bytes.Buffer)
-		return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+		gzipReader, err := gzip.NewReader(tee)
+		assert.NilError(t, err)
+		return fakeBuild.build(ctx, gzipReader, options)
 	}
 
 	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
@@ -47,35 +39,57 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	`)
 	cli.SetIn(command.NewInStream(ioutil.NopCloser(dockerfile)))
 
-	dir, err := ioutil.TempDir("", "test-build-compress")
-	assert.NilError(t, err)
-	defer os.RemoveAll(dir)
-
-	ioutil.WriteFile(filepath.Join(dir, "foo"), []byte("some content"), 0644)
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile("foo", "some content"))
+	defer dir.Remove()
 
 	options := newBuildOptions()
 	options.compress = true
 	options.dockerfileName = "-"
-	options.context = dir
+	options.context = dir.Path()
 	options.untrusted = true
+	assert.NilError(t, runBuild(cli, options))
 
-	err = runBuild(cli, options)
-	assert.NilError(t, err)
+	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "foo"}
+	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
 
-	files, err := ioutil.ReadDir(dest)
-	assert.NilError(t, err)
-	actual := []string{}
-	for _, fileInfo := range files {
-		actual = append(actual, fileInfo.Name())
+	header := buffer.Bytes()[:10]
+	assert.Equal(t, archive.Gzip, archive.DetectCompression(header))
+}
+
+func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
+	skip.If(t, os.Getuid() != 0, "root is required to chown files")
+	fakeBuild := newFakeBuild()
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
+
+	dir := fs.NewDir(t, "test-build-context",
+		fs.WithFile("foo", "some content", fs.AsUser(65534, 65534)),
+		fs.WithFile("Dockerfile", `
+			FROM alpine:3.6
+			COPY foo bar /
+		`),
+	)
+	defer dir.Remove()
+
+	options := newBuildOptions()
+	options.context = dir.Path()
+	options.untrusted = true
+	assert.NilError(t, runBuild(cli, options))
+
+	headers := fakeBuild.headers(t)
+	expected := []*tar.Header{
+		{Name: "Dockerfile"},
+		{Name: "foo"},
 	}
-	sort.Strings(actual)
-	assert.Check(t, is.DeepEqual([]string{dockerfileName, ".dockerignore", "foo"}, actual))
+	var cmpTarHeaderNameAndOwner = cmp.Comparer(func(x, y tar.Header) bool {
+		return x.Name == y.Name && x.Uid == y.Uid && x.Gid == y.Gid
+	})
+	assert.DeepEqual(t, expected, headers, cmpTarHeaderNameAndOwner)
 }
 
 func TestRunBuildDockerfileOutsideContext(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
-		fs.WithFile("data", "data file"),
-	)
+		fs.WithFile("data", "data file"))
 	defer dir.Remove()
 
 	// Dockerfile outside of build-context
@@ -87,40 +101,17 @@ COPY data /data
 	)
 	defer df.Remove()
 
-	dest, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(dest)
-
-	var dockerfileName string
-	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		buffer := new(bytes.Buffer)
-		tee := io.TeeReader(context, buffer)
-
-		assert.NilError(t, archive.Untar(tee, dest, nil))
-		dockerfileName = options.Dockerfile
-
-		body := new(bytes.Buffer)
-		return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
-	}
-
-	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
+	fakeBuild := newFakeBuild()
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
 
 	options := newBuildOptions()
 	options.context = dir.Path()
 	options.dockerfileName = df.Path()
 	options.untrusted = true
+	assert.NilError(t, runBuild(cli, options))
 
-	err = runBuild(cli, options)
-	assert.NilError(t, err)
-
-	files, err := ioutil.ReadDir(dest)
-	assert.NilError(t, err)
-	var actual []string
-	for _, fileInfo := range files {
-		actual = append(actual, fileInfo.Name())
-	}
-	sort.Strings(actual)
-	assert.Check(t, is.DeepEqual([]string{dockerfileName, ".dockerignore", "data"}, actual))
+	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "data"}
+	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
 }
 
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that build contexts
@@ -172,28 +163,54 @@ RUN echo hello world
 		fs.WithSymlink("context-link", "context"))
 	defer tmpDir.Remove()
 
-	files := []string{}
-	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		tarReader := tar.NewReader(context)
-		for {
-			hdr, err := tarReader.Next()
-			switch err {
-			case io.EOF:
-				body := new(bytes.Buffer)
-				return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
-			case nil:
-				files = append(files, hdr.Name)
-			default:
-				return types.ImageBuildResponse{}, err
-			}
-		}
-	}
-
-	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
+	fakeBuild := newFakeBuild()
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
 	options := newBuildOptions()
 	options.context = tmpDir.Join("context-link")
 	options.untrusted = true
 	assert.NilError(t, runBuild(cli, options))
 
-	assert.DeepEqual(t, files, []string{"Dockerfile"})
+	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
+}
+
+type fakeBuild struct {
+	context *tar.Reader
+	options types.ImageBuildOptions
+}
+
+func newFakeBuild() *fakeBuild {
+	return &fakeBuild{}
+}
+
+func (f *fakeBuild) build(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	f.context = tar.NewReader(context)
+	f.options = options
+	body := new(bytes.Buffer)
+	return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+}
+
+func (f *fakeBuild) headers(t *testing.T) []*tar.Header {
+	t.Helper()
+	headers := []*tar.Header{}
+	for {
+		hdr, err := f.context.Next()
+		switch err {
+		case io.EOF:
+			return headers
+		case nil:
+			headers = append(headers, hdr)
+		default:
+			assert.NilError(t, err)
+		}
+	}
+}
+
+func (f *fakeBuild) filenames(t *testing.T) []string {
+	t.Helper()
+	names := []string{}
+	for _, header := range f.headers(t) {
+		names = append(names, header.Name)
+	}
+	sort.Strings(names)
+	return names
 }
