@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"os"
 	"syscall"
 	"testing"
 
@@ -15,10 +16,12 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"golang.org/x/net/context"
 )
 
 func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
+	skip.If(t, os.Getuid() != 0, "require root to run")
 	dest := fs.NewDir(t, "test-build-context-dest")
 	defer dest.Remove()
 
