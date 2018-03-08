@@ -17,10 +17,12 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"golang.org/x/net/context"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
+	skip.If(t, os.Getuid() != 0, "require root to run")
 	dest, err := ioutil.TempDir("", "test-build-compress-dest")
 	assert.NilError(t, err)
 	defer os.RemoveAll(dest)
@@ -72,6 +74,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 }
 
 func TestRunBuildDockerfileOutsideContext(t *testing.T) {
+	skip.If(t, os.Getuid() != 0, "require root to run")
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("data", "data file"),
 	)

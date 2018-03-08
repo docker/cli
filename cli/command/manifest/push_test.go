@@ -2,12 +2,14 @@ package manifest
 
 import (
 	"io/ioutil"
+	"os"
 	"testing"
 
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution/reference"
 	"github.com/gotestyourself/gotestyourself/assert"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -51,6 +53,7 @@ func TestManifestPushErrors(t *testing.T) {
 
 // store a one-image manifest list and puah it
 func TestManifestPush(t *testing.T) {
+	skip.If(t, os.Getuid() != 0, "require root to run")
 	store, sCleanup := newTempManifestStore(t)
 	defer sCleanup()
 
