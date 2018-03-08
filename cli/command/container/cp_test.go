@@ -121,7 +121,12 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 	}
 	cli := test.NewFakeCli(&fakeClient{})
 	err := runCopy(cli, options)
-	assert.ErrorContains(t, err, "not a directory")
+
+	expectedError := "not a directory"
+	if runtime.GOOS == "windows" {
+		expectedError = "The filename, directory name, or volume label syntax is incorrect"
+	}
+	assert.ErrorContains(t, err, expectedError)
 }
 
 func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {

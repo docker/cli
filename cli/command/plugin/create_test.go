@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -14,7 +15,10 @@ import (
 )
 
 func TestCreateErrors(t *testing.T) {
-
+	noSuchFile := "no such file or directory"
+	if runtime.GOOS == "windows" {
+		noSuchFile = "The system cannot find the file specified."
+	}
 	testCases := []struct {
 		args          []string
 		expectedError string
@@ -29,7 +33,7 @@ func TestCreateErrors(t *testing.T) {
 		},
 		{
 			args:          []string{"plugin-foo", "nonexistent_context_dir"},
-			expectedError: "no such file or directory",
+			expectedError: noSuchFile,
 		},
 	}
 
@@ -61,7 +65,12 @@ func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "config.json: no such file or directory")
+
+	expectedErr := "config.json: no such file or directory"
+	if runtime.GOOS == "windows" {
+		expectedErr = "config.json: The system cannot find the file specified."
+	}
+	assert.ErrorContains(t, cmd.Execute(), expectedErr)
 }
 
 func TestCreateErrorOnInvalidConfig(t *testing.T) {

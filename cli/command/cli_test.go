@@ -3,6 +3,7 @@ package command
 import (
 	"crypto/x509"
 	"os"
+	"runtime"
 	"testing"
 
 	cliconfig "github.com/docker/cli/cli/config"
@@ -20,6 +21,9 @@ import (
 
 func TestNewAPIClientFromFlags(t *testing.T) {
 	host := "unix://path"
+	if runtime.GOOS == "windows" {
+		host = "npipe://./"
+	}
 	opts := &flags.CommonOptions{Hosts: []string{host}}
 	configFile := &configfile.ConfigFile{
 		HTTPHeaders: map[string]string{

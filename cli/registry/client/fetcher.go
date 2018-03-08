@@ -155,7 +155,7 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		}
 		v, ok := manifest.(*schema2.DeserializedManifest)
 		if !ok {
-			return nil, fmt.Errorf("unsupported manifest format: %s", v)
+			return nil, fmt.Errorf("unsupported manifest format: %v", v)
 		}
 
 		manifestRef, err := reference.WithDigest(ref, manifestDescriptor.Digest)

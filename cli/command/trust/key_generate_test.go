@@ -127,7 +127,7 @@ func TestValidateKeyArgs(t *testing.T) {
 
 	assert.NilError(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
 	err = validateKeyArgs("a", pubKeyCWD)
-	assert.Error(t, err, fmt.Sprintf("public key file already exists: \"%s/a.pub\"", pubKeyCWD))
+	assert.Error(t, err, fmt.Sprintf("public key file already exists: \"%s\"", filepath.Join(pubKeyCWD, "a.pub")))
 
 	err = validateKeyArgs("a", "/random/dir/")
 	assert.Error(t, err, "public key path does not exist: \"/random/dir/\"")

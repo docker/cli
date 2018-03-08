@@ -1,12 +1,11 @@
 package formatter
 
 import (
+	"bytes"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	"bytes"
 
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
@@ -51,6 +50,7 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
+	dateStr := "2009-11-10T23:00:00Z"
 	var ctx historyContext
 	cases := []historyCase{
 		{
@@ -65,7 +65,7 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 				h:     image.HistoryResponseItem{Created: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).Unix()},
 				trunc: false,
 				human: false,
-			}, "2009-11-10T23:00:00Z", ctx.CreatedSince,
+			}, dateStr, ctx.CreatedSince,
 		},
 	}
 
