@@ -1,6 +1,9 @@
 package image
 
 import (
+	"fmt"
+	"strings"
+
 	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
@@ -8,6 +11,7 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +20,9 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] NAME[:TAG]",
 		Short: "Push an image or a repository to a registry",
-		Args:  cli.ExactArgs(1),
+		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPush(dockerCli, args[0])
+			return pushImages(dockerCli, args)
 		},
 	}
 
@@ -29,7 +33,29 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, remote string) error {
+func pushImages(dockerCli command.Cli, args []string) error {
+	var errs []string
+
+	ctx := context.Background()
+
+	for _, remote := range args {
+		if err := runPush(ctx, dockerCli, remote); err != nil {
+			errs = append(errs, err.Error())
+			continue
+		}
+
+		fmt.Fprintln(dockerCli.Out(), remote)
+	}
+
+	if len(errs) > 0 {
+		return errors.Errorf("%s", strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+
+func runPush(ctx context.Context, dockerCli command.Cli, remote string) error {
+
 	ref, err := reference.ParseNormalizedNamed(remote)
 	if err != nil {
 		return err
@@ -40,8 +66,6 @@ func runPush(dockerCli command.Cli, remote string) error {
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
