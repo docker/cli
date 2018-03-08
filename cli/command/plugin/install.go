@@ -29,7 +29,7 @@ type pluginOptions struct {
 
 func loadPullFlags(dockerCli command.Cli, opts *pluginOptions, flags *pflag.FlagSet) {
 	flags.BoolVar(&opts.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
+	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 }
 
 func newInstallCommand(dockerCli command.Cli) *cobra.Command {
@@ -91,7 +91,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 	remote := ref.String()
 
 	_, isCanonical := ref.(reference.Canonical)
-	if !opts.untrusted && dockerCli.IsTrusted() && !isCanonical {
+	if !opts.untrusted && !isCanonical {
 		ref = reference.TagNameOnly(ref)
 		nt, ok := ref.(reference.NamedTagged)
 		if !ok {

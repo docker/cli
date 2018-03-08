@@ -54,7 +54,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Bool("help", false, "Print usage")
 
 	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
+	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
 	return cmd
 }
@@ -159,7 +159,6 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
-// nolint: gocyclo
 func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
@@ -184,8 +183,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	if named, ok := ref.(reference.Named); ok {
 		namedRef = reference.TagNameOnly(named)
 
-		isContentTrustEnabled := !opts.untrusted && dockerCli.IsTrusted()
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && isContentTrustEnabled {
+		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !opts.untrusted {
 			var err error
 			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef, nil)
 			if err != nil {

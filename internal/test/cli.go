@@ -34,7 +34,7 @@ type FakeCli struct {
 	notaryClientFunc NotaryClientFuncType
 	manifestStore    manifeststore.Store
 	registryClient   registryclient.RegistryClient
-	isTrusted        bool
+	contentTrust     bool
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -158,12 +158,12 @@ func (c *FakeCli) SetRegistryClient(client registryclient.RegistryClient) {
 	c.registryClient = client
 }
 
-// IsTrusted on the fake cli
-func (c *FakeCli) IsTrusted() bool {
-	return c.isTrusted
+// ContentTrustEnabled on the fake cli
+func (c *FakeCli) ContentTrustEnabled() bool {
+	return c.contentTrust
 }
 
-// IsTrusted sets "enables" content trust on the fake cli
-func IsTrusted(c *FakeCli) {
-	c.isTrusted = true
+// EnableContentTrust on the fake cli
+func EnableContentTrust(c *FakeCli) {
+	c.contentTrust = true
 }

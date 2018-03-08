@@ -32,7 +32,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.IsTrusted())
+	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 
 	return cmd
 }
@@ -55,7 +55,7 @@ func runPush(dockerCli command.Cli, opts pushOptions) error {
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
 
-	if !opts.untrusted && dockerCli.IsTrusted() {
+	if !opts.untrusted {
 		return TrustedPush(ctx, dockerCli, repoInfo, ref, authConfig, requestPrivilege)
 	}
 

@@ -110,7 +110,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), fmt.Errorf("shouldn't try to pull image")
 			},
-		}, test.IsTrusted)
+		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewPullCommand(cli)
 		cmd.SetOutput(ioutil.Discard)

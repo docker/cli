@@ -108,8 +108,9 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 		HostConfig: &container.HostConfig{},
 	}
 	body, err := createContainer(context.Background(), cli, config, &createOptions{
-		name:     "name",
-		platform: runtime.GOOS,
+		name:      "name",
+		platform:  runtime.GOOS,
+		untrusted: true,
 	})
 	assert.NilError(t, err)
 	expected := container.ContainerCreateCreatedBody{ID: containerID}
