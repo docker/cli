@@ -1,6 +1,7 @@
 package image
 
 import (
+	"archive/tar"
 	"bytes"
 	"io"
 	"io/ioutil"
@@ -155,4 +156,41 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	err = cmd.Execute()
 	assert.NilError(t, err)
+}
+
+func TestRunBuildWithSymlinkedContext(t *testing.T) {
+	dockerfile := `
+FROM alpine:3.6
+RUN echo hello world
+`
+
+	tmpDir := fs.NewDir(t, t.Name(),
+		fs.WithDir("context",
+			fs.WithFile("Dockerfile", dockerfile)),
+		fs.WithSymlink("context-link", "context"))
+	defer tmpDir.Remove()
+
+	files := []string{}
+	fakeImageBuild := func(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+		tarReader := tar.NewReader(context)
+		for {
+			hdr, err := tarReader.Next()
+			switch err {
+			case io.EOF:
+				body := new(bytes.Buffer)
+				return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+			case nil:
+				files = append(files, hdr.Name)
+			default:
+				return types.ImageBuildResponse{}, err
+			}
+		}
+	}
+
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
+	options := newBuildOptions()
+	options.context = tmpDir.Join("context-link")
+	assert.NilError(t, runBuild(cli, options))
+
+	assert.DeepEqual(t, files, []string{"Dockerfile"})
 }
