@@ -52,18 +52,20 @@ type Cli interface {
 	DefaultVersion() string
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
+	ContentTrustEnabled() bool
 }
 
 // DockerCli is an instance the docker command line client.
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
-	configFile *configfile.ConfigFile
-	in         *InStream
-	out        *OutStream
-	err        io.Writer
-	client     client.APIClient
-	serverInfo ServerInfo
-	clientInfo ClientInfo
+	configFile   *configfile.ConfigFile
+	in           *InStream
+	out          *OutStream
+	err          io.Writer
+	client       client.APIClient
+	serverInfo   ServerInfo
+	clientInfo   ClientInfo
+	contentTrust bool
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
@@ -119,6 +121,12 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 // ClientInfo returns the client details for the cli
 func (cli *DockerCli) ClientInfo() ClientInfo {
 	return cli.clientInfo
+}
+
+// ContentTrustEnabled returns if content trust has been enabled by an
+// environment variable.
+func (cli *DockerCli) ContentTrustEnabled() bool {
+	return cli.contentTrust
 }
 
 // ManifestStore returns a store for local manifests
@@ -237,8 +245,8 @@ func (c ClientInfo) HasKubernetes() bool {
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
-func NewDockerCli(in io.ReadCloser, out, err io.Writer) *DockerCli {
-	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err}
+func NewDockerCli(in io.ReadCloser, out, err io.Writer, isTrusted bool) *DockerCli {
+	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err, contentTrust: isTrusted}
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags

@@ -30,7 +30,7 @@ func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	loadPullFlags(&options, flags)
+	loadPullFlags(dockerCli, &options, flags)
 	flags.BoolVar(&options.skipRemoteCheck, "skip-remote-check", false, "Do not check if specified remote plugin matches existing plugin image")
 	return cmd
 }

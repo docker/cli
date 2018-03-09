@@ -107,6 +107,7 @@ COPY data /data
 	options := newBuildOptions()
 	options.context = dir.Path()
 	options.dockerfileName = df.Path()
+	options.untrusted = true
 
 	err = runBuild(cli, options)
 	assert.NilError(t, err)
