@@ -16,7 +16,6 @@ func NewTrustCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{"experimentalCLI": ""},
 	}
 	cmd.AddCommand(
-		newViewCommand(dockerCli),
 		newRevokeCommand(dockerCli),
 		newSignCommand(dockerCli),
 		newTrustKeyCommand(dockerCli),

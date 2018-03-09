@@ -18,12 +18,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 	}{
 		{
 			name:          "not-enough-args",
-			expectedError: "requires exactly 1 argument",
-		},
-		{
-			name:          "too-many-args",
-			args:          []string{"remote1", "remote2"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires at least 1 argument",
 		},
 		{
 			name:          "sha-reference",
@@ -37,8 +32,9 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newViewCommand(
+		cmd := newInspectCommand(
 			test.NewFakeCli(&fakeClient{}))
+		cmd.Flags().Set("pretty", "true")
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
