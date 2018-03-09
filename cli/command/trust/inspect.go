@@ -14,9 +14,8 @@ import (
 
 type inspectOptions struct {
 	remotes []string
-	/* FIXME(n4ss): this is consistent with `docker service inspect` but we should provide
-	 * a `--format` flag too. (format and pretty-print should be exclusive)
-	 */
+	// FIXME(n4ss): this is consistent with `docker service inspect` but we should provide
+	// a `--format` flag too. (format and pretty-print should be exclusive)
 	prettyPrint bool
 }
 
@@ -41,7 +40,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 
 func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	if opts.prettyPrint {
-		var err error = nil
+		var err error
 
 		for index, remote := range opts.remotes {
 			if err = prettyPrintTrustInfo(dockerCli, remote); err != nil {
@@ -49,7 +48,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 			}
 
 			// Additional separator between the inspection output of each image
-			if index < len(opts.remotes) - 1 {
+			if index < len(opts.remotes)-1 {
 				fmt.Fprint(dockerCli.Out(), "\n\n")
 			}
 		}

@@ -17,7 +17,7 @@ import (
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
-/* TODO(n4ss): remove common tests with the regular inspect command */
+// TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
 	dockerClient.Client
@@ -65,7 +65,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -83,7 +83,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetUninitializedNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -99,17 +99,17 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
-	cmd := newInspectCommand(cli)
+	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOutput(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
 }
 
 func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
