@@ -4,34 +4,21 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strings"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 )
 
-func newViewCommand(dockerCli command.Cli) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "view IMAGE[:TAG]",
-		Short: "Display detailed information about keys and signatures",
-		Args:  cli.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return viewTrustInfo(dockerCli, args[0])
-		},
-	}
-	return cmd
-}
-
-func viewTrustInfo(cli command.Cli, remote string) error {
+func prettyPrintTrustInfo(cli command.Cli, remote string) error {
 	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
 	if err != nil {
 		return err
 	}
 
 	if len(signatureRows) > 0 {
+		fmt.Fprintf(cli.Out(), "\nSignatures for %s\n\n", remote)
+
 		if err := printSignatures(cli.Out(), signatureRows); err != nil {
 			return err
 		}
@@ -42,14 +29,14 @@ func viewTrustInfo(cli command.Cli, remote string) error {
 
 	// If we do not have additional signers, do not display
 	if len(signerRoleToKeyIDs) > 0 {
-		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s:\n\n", strings.Split(remote, ":")[0])
+		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s\n\n", remote)
 		if err := printSignerInfo(cli.Out(), signerRoleToKeyIDs); err != nil {
 			return err
 		}
 	}
 
 	// This will always have the root and targets information
-	fmt.Fprintf(cli.Out(), "\nAdministrative keys for %s:\n", strings.Split(remote, ":")[0])
+	fmt.Fprintf(cli.Out(), "\nAdministrative keys for %s\n\n", remote)
 	printSortedAdminKeys(cli.Out(), adminRolesWithSigs)
 	return nil
 }
@@ -57,7 +44,9 @@ func viewTrustInfo(cli command.Cli, remote string) error {
 func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures) {
 	sort.Slice(adminRoles, func(i, j int) bool { return adminRoles[i].Name > adminRoles[j].Name })
 	for _, adminRole := range adminRoles {
-		fmt.Fprintf(out, "%s", formatAdminRole(adminRole))
+		if formattedAdminRole := formatAdminRole(adminRole); formattedAdminRole != "" {
+			fmt.Fprintf(out, "  %s", formattedAdminRole)
+		}
 	}
 }
 
