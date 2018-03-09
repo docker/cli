@@ -10,7 +10,7 @@ import (
 func newTrustSignerCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "signer",
-		Short: "Manage entities who can sign Docker images (experimental)",
+		Short: "Manage entities who can sign Docker images",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
