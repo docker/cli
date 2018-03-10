@@ -16,3 +16,8 @@ cli/winresources/rsrc_amd64.syso
 /docs/yaml/gen/
 coverage.txt
 profile.out
+
+# vendor exclusions
+# these files are unnecessary, take considerable amount
+# of space and cannot be excluded by vendor management tool
+vendor/k8s.io/kubernetes/Godeps/LICENSES

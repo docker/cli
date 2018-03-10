@@ -1,0 +1,57 @@
+# Gopkg.toml
+#
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+
+[[constraint]]
+  name = "github.com/cpuguy83/go-md2man"
+  version = "1.0.8"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/flynn-archive/go-shlex"
+
+[[constraint]]
+  name = "github.com/gogo/protobuf"
+  version = "0.4.0"
+
+[[constraint]]
+  name = "github.com/google/go-cmp"
+  version = "0.2.0"
+
+[[constraint]]
+  name = "github.com/mattn/go-shellwords"
+  version = "1.0.3"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.3"
+
+[[constraint]]
+  name = "github.com/theupdateframework/notary"
+  version = "0.6.0"
+
+[[constraint]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.8.2"
+
+[[constraint]]
+  name = "k8s.io/apimachinery"
+  version = "kubernetes-1.8.2"
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.8.2"
+
+[[constraint]]
+  name = "k8s.io/kubernetes"
+  version = "1.8.2"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
