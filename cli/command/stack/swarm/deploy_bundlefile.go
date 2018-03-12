@@ -39,7 +39,7 @@ func deployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deplo
 	networks := make(map[string]types.NetworkCreate)
 	for _, service := range bundle.Services {
 		for _, networkName := range service.Networks {
-			networks[networkName] = types.NetworkCreate{
+			networks[namespace.Scope(networkName)] = types.NetworkCreate{
 				Labels: convert.AddStackLabel(namespace, nil),
 			}
 		}

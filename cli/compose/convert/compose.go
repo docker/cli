@@ -87,7 +87,12 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 			}
 			createOpts.IPAM.Config = append(createOpts.IPAM.Config, config)
 		}
-		result[internalName] = createOpts
+
+		networkName := namespace.Scope(internalName)
+		if network.Name != "" {
+			networkName = network.Name
+		}
+		result[networkName] = createOpts
 	}
 
 	return result, externalNetworks
