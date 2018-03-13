@@ -30,8 +30,6 @@ Options:
 
 `docker trust sign` adds signatures to tags to create signed repositories.
 
-`docker trust sign` is currently experimental.
-
 ## Examples
 
 ### Sign a tag as a repo admin

@@ -10,7 +10,7 @@ import (
 func newTrustKeyCommand(dockerCli command.Streams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "key",
-		Short: "Manage keys for signing Docker images (experimental)",
+		Short: "Manage keys for signing Docker images",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}

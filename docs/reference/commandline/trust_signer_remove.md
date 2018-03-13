@@ -29,8 +29,6 @@ Options:
 
 `docker trust signer remove` removes signers from signed repositories.
 
-`docker trust signer remove` is currently experimental.
-
 ## Examples
 
 ### Remove a signer from a repo

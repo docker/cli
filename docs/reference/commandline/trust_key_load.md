@@ -1,7 +1,7 @@
 ---
 title: "key load"
 description: "The key load command description and usage"
-keywords: "Key, notary, trust"
+keywords: "key, notary, trust"
 ---
 
 <!-- This file is maintained within the docker/cli Github
@@ -28,8 +28,6 @@ Options:
 ## Description
 
 `docker trust key load` adds private keys to the local docker trust keystore. To add a signer to a repository use `docker trust signer add`.
-
-`docker trust key load` is currently experimental.
 
 ## Examples
 

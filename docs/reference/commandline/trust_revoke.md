@@ -29,8 +29,6 @@ Options:
 
 `docker trust revoke` removes signatures from tags in signed repositories.
 
-`docker trust revoke` is currently experimental.
-
 ## Examples
 
 ### Revoke signatures from a signed tag

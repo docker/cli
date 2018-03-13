@@ -1,7 +1,7 @@
 ---
 title: "key generate"
 description: "The key generate command description and usage"
-keywords: "Key, notary, trust"
+keywords: "key, notary, trust"
 ---
 
 <!-- This file is maintained within the docker/cli Github
@@ -29,8 +29,6 @@ Options:
 
 `docker trust key generate` generates a key-pair to be used with signing,
  and loads the private key into the local docker trust keystore.
-
-`docker trust key generate` is currently experimental.
 
 ## Examples
 
