@@ -29,8 +29,6 @@ Options:
 
 `docker trust signer add` adds signers to signed repositories.
 
-`docker trust signer add` is currently experimental.
-
 ## Examples
 
 ### Add a signer to a repo
