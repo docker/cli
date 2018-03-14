@@ -4713,9 +4713,9 @@ _docker_tag() {
 
 _docker_trust() {
 	local subcommands="
+		inspect
 		revoke
 		sign
-		view
 	"
 	__docker_subcommands "$subcommands" && return
 
@@ -4725,6 +4725,20 @@ _docker_trust() {
 			;;
 		*)
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_trust_inspect() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --pretty" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_images --repo --tag
+			fi
 			;;
 	esac
 }
@@ -4752,20 +4766,6 @@ _docker_trust_sign() {
 			local counter=$(__docker_pos_first_nonflag)
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_images --force-tag --id
-			fi
-			;;
-	esac
-}
-
-_docker_trust_view() {
-	case "$cur" in
-		-*)
-			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
-			;;
-		*)
-			local counter=$(__docker_pos_first_nonflag)
-			if [ "$cword" -eq "$counter" ]; then
-				__docker_complete_images --repo --tag
 			fi
 			;;
 	esac
@@ -4947,6 +4947,7 @@ _docker() {
 		stack
 		swarm
 		system
+		trust
 		volume
 	)
 
@@ -4999,7 +5000,6 @@ _docker() {
 	local experimental_commands=(
 		checkpoint
 		deploy
-		trust
 	)
 
 	local commands=(${management_commands[*]} ${top_level_commands[*]})
