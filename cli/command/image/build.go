@@ -297,7 +297,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			buildCtx = replaceDockerfileForContentTrust(ctx, buildCtx, relDockerfile, translator, &resolvedTags)
 		} else if dockerfileCtx != nil {
 			// if there was not archive context still do the possible replacements in Dockerfile
-			newDockerfile, _, err := rewriteDockerfileFrom(ctx, dockerfileCtx, translator, !options.untrusted)
+			newDockerfile, _, err := rewriteDockerfileFromForContentTrust(ctx, dockerfileCtx, translator)
 			if err != nil {
 				return err
 			}
@@ -500,11 +500,12 @@ type resolvedTag struct {
 	tagRef    reference.NamedTagged
 }
 
-// rewriteDockerfileFrom rewrites the given Dockerfile by resolving images in
+// rewriteDockerfileFromForContentTrust rewrites the given Dockerfile by resolving images in
 // "FROM <image>" instructions to a digest reference. `translator` is a
 // function that takes a repository name and tag reference and returns a
 // trusted digest reference.
-func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator translatorFunc, istrusted bool) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
+// This should be called *only* when content trust is enabled
+func rewriteDockerfileFromForContentTrust(ctx context.Context, dockerfile io.Reader, translator translatorFunc) (newDockerfile []byte, resolvedTags []*resolvedTag, err error) {
 	scanner := bufio.NewScanner(dockerfile)
 	buf := bytes.NewBuffer(nil)
 
@@ -521,7 +522,7 @@ func rewriteDockerfileFrom(ctx context.Context, dockerfile io.Reader, translator
 				return nil, nil, err
 			}
 			ref = reference.TagNameOnly(ref)
-			if ref, ok := ref.(reference.NamedTagged); ok && istrusted {
+			if ref, ok := ref.(reference.NamedTagged); ok {
 				trustedRef, err := translator(ctx, ref)
 				if err != nil {
 					return nil, nil, err
@@ -574,7 +575,7 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 				// generated from a directory on the local filesystem, the
 				// Dockerfile will only appear once in the archive.
 				var newDockerfile []byte
-				newDockerfile, *resolvedTags, err = rewriteDockerfileFrom(ctx, content, translator, true)
+				newDockerfile, *resolvedTags, err = rewriteDockerfileFromForContentTrust(ctx, content, translator)
 				if err != nil {
 					pipeWriter.CloseWithError(err)
 					return
