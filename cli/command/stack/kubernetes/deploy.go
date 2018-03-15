@@ -43,10 +43,6 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	configMaps := composeClient.ConfigMaps()
 	secrets := composeClient.Secrets()
 	services := composeClient.Services()
-	pods := composeClient.Pods()
-	watcher := DeployWatcher{
-		Pods: pods,
-	}
 
 	// FIXME(vdemeester) handle warnings server-side
 	if err = IsColliding(services, stack, cfg); err != nil {
@@ -79,10 +75,17 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 
 	fmt.Fprintln(cmdOut, "Waiting for the stack to be stable and running...")
 
-	<-watcher.Watch(stack, serviceNames(cfg))
+	pods := composeClient.Pods()
+	watcher := &deployWatcher{
+		out:    dockerCli.Out(),
+		stacks: stacks,
+		pods:   pods,
+	}
+	if err := watcher.Watch(stack, serviceNames(cfg)); err != nil {
+		return err
+	}
 
 	fmt.Fprintf(cmdOut, "Stack %s is stable and running\n\n", stack.Name)
-	// TODO: fmt.Fprintf(cmdOut, "Read the logs with:\n  $ %s stack logs %s\n", filepath.Base(os.Args[0]), stack.Name)
 
 	return nil
 }

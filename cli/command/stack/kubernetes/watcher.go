@@ -2,41 +2,75 @@ package kubernetes
 
 import (
 	"fmt"
+	"io"
 	"time"
 
+	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset_generated/clientset/typed/compose/v1beta1"
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/docker/cli/kubernetes/labels"
+	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // DeployWatcher watches a stack deployement
-type DeployWatcher struct {
-	Pods corev1.PodInterface
+type deployWatcher struct {
+	pods   corev1.PodInterface
+	stacks composev1beta1.StackInterface
+	out    io.Writer
 }
 
 // Watch watches a stuck deployement and return a chan that will holds the state of the stack
-func (w DeployWatcher) Watch(stack *apiv1beta1.Stack, serviceNames []string) chan bool {
-	stop := make(chan bool)
+func (w *deployWatcher) Watch(stack *apiv1beta1.Stack, serviceNames []string) error {
+	err := make(chan error)
 
-	go w.waitForPods(stack.Name, serviceNames, stop)
+	go w.watchStackStatus(stack.Name, err)
+	go w.waitForPods(stack.Name, serviceNames, err)
 
-	return stop
+	return <-err
 }
 
-func (w DeployWatcher) waitForPods(stackName string, serviceNames []string, stop chan bool) {
-	starts := map[string]int32{}
+func (w *deployWatcher) watchStackStatus(stackname string, e chan error) {
+
+	watcher, err := w.stacks.Watch(metav1.ListOptions{
+		LabelSelector: "com.docker.stack.namespace=" + stackname,
+	})
+	if err != nil {
+		e <- err
+		return
+	}
 
 	for {
-		time.Sleep(1 * time.Second)
+		select {
+		case ev := <-watcher.ResultChan():
+			if ev.Type != watch.Added && ev.Type != watch.Modified {
+				continue
+			}
+			stack := ev.Object.(*apiv1beta1.Stack)
+			if stack.Status.Phase == apiv1beta1.StackFailure {
+				e <- errors.Errorf("stack %s failed with status %s", stackname, stack.Status.Phase)
+				return
+			}
+		case <-e:
+			return
+		}
+	}
+}
 
-		list, err := w.Pods.List(metav1.ListOptions{
+func (w *deployWatcher) waitForPods(stackName string, serviceNames []string, e chan error) {
+	starts := map[string]int32{}
+	t := time.NewTicker(250 * time.Millisecond)
+	defer t.Stop()
+
+	for {
+		list, err := w.pods.List(metav1.ListOptions{
 			LabelSelector:        labels.SelectorForStack(stackName),
 			IncludeUninitialized: true,
 		})
 		if err != nil {
-			stop <- true
+			e <- err
 			return
 		}
 
@@ -60,7 +94,13 @@ func (w DeployWatcher) waitForPods(stackName string, serviceNames []string, stop
 		}
 
 		if allReady(list.Items, serviceNames) {
-			stop <- true
+			e <- nil
+			return
+		}
+		select {
+		case <-t.C:
+			continue
+		case <-e:
 			return
 		}
 	}
