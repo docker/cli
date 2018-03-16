@@ -1,28 +1,30 @@
+FROM    golang:1.9.4-alpine3.6 AS buildbase
+RUN     apk --no-cache add git make bash coreutils ca-certificates
 
-FROM    golang:1.9.4-alpine3.6
+FROM    buildbase AS tools
 
-RUN     apk add -U git make bash coreutils ca-certificates
-
-ARG     VNDR_SHA=a6e196d8b4b0cbbdc29aebdb20c59ac6926bb384
+ARG	VNDR_SHA=a6e196d8b4b0cbbdc29aebdb20c59ac6926bb384
 RUN     go get -d github.com/LK4D4/vndr && \
         cd /go/src/github.com/LK4D4/vndr && \
         git checkout -q "$VNDR_SHA" && \
-        go build -v -o /usr/bin/vndr . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+        go build -v -o /usr/bin/vndr .
 
 ARG     ESC_SHA=58d9cde84f237ecdd89bd7f61c2de2853f4c5c6e
 RUN     go get -d github.com/mjibson/esc && \
         cd /go/src/github.com/mjibson/esc && \
         git checkout -q "$ESC_SHA" && \
-        go build -v -o /usr/bin/esc . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+        go build -v -o /usr/bin/esc .
 
 ARG     FILEWATCHER_SHA=2e12ea42f6c8c089b19e992145bb94e8adaecedb
 RUN     go get -d github.com/dnephin/filewatcher && \
         cd /go/src/github.com/dnephin/filewatcher && \
         git checkout -q "$FILEWATCHER_SHA" && \
-        go build -v -o /usr/bin/filewatcher . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+        go build -v -o /usr/bin/filewatcher .
+
+FROM    buildbase
+COPY    --from=tools /usr/bin/vndr /usr/bin/vndr
+COPY    --from=tools /usr/bin/esc /usr/bin/esc
+COPY    --from=tools /usr/bin/filewatcher /usr/bin/filewatcher
 
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
