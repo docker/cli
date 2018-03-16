@@ -123,7 +123,7 @@ func (cli *DockerCli) ClientInfo() ClientInfo {
 	return cli.clientInfo
 }
 
-// ContentTrustEnabled returns if content trust has been enabled by an
+// ContentTrustEnabled returns whether content trust has been enabled by an
 // environment variable.
 func (cli *DockerCli) ContentTrustEnabled() bool {
 	return cli.contentTrust

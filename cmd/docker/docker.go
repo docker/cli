@@ -156,7 +156,7 @@ func main() {
 	stdin, stdout, stderr := term.StdStreams()
 	logrus.SetOutput(stderr)
 
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, isContentTrustEnabled())
+	dockerCli := command.NewDockerCli(stdin, stdout, stderr, contentTrustEnabled())
 	cmd := newDockerCommand(dockerCli)
 
 	if err := cmd.Execute(); err != nil {
@@ -176,7 +176,7 @@ func main() {
 	}
 }
 
-func isContentTrustEnabled() bool {
+func contentTrustEnabled() bool {
 	if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
 		if t, err := strconv.ParseBool(e); t || err != nil {
 			// treat any other value as true
