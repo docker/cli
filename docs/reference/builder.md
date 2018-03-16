@@ -1024,6 +1024,11 @@ the source will be copied inside the destination container.
     COPY test relativeDir/   # adds "test" to `WORKDIR`/relativeDir/
     COPY test /absoluteDir/  # adds "test" to /absoluteDir/
 
+If `<src>` contains subdirectories, those subdirectories won't be copied. For
+example, if host has `a/b/c.txt`:
+
+    COPY a/b dir/            # container has "dir/c.txt"
+    COPY a/b dir/a/b         # container has "dir/a/b/c.txt"
 
 When copying files or directories that contain special characters (such as `[`
 and `]`), you need to escape those paths following the Golang rules to prevent
