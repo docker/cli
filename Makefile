@@ -12,14 +12,14 @@ clean: ## remove build artifacts
 
 .PHONY: test-unit
 test-unit: ## run unit test
-	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/|/e2eengine/')
 
 .PHONY: test
 test: test-unit ## run tests
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/|/e2eengine/')
 
 .PHONY: lint
 lint: ## run all the lint tools

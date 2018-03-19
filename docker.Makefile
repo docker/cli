@@ -105,7 +105,7 @@ shellcheck: build_shell_validate_image ## run shellcheck validation
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
 
 .PHONY: test-e2e ## run e2e tests
-test-e2e: test-e2e-non-experimental test-e2e-experimental
+test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-containerized
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build_e2e_image
@@ -114,6 +114,14 @@ test-e2e-experimental: build_e2e_image
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build_e2e_image
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
+
+.PHONY: test-e2e-containerized
+test-e2e-containerized: build_e2e_image
+	docker run --rm --privileged \
+	    -v /var/lib/docker \
+	    -v /var/lib/containerd \
+	    -v /lib/modules:/lib/modules \
+	    $(E2E_IMAGE_NAME) /go/src/github.com/docker/cli/scripts/test/engine/entry
 
 .PHONY: help
 help: ## print this help

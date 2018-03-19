@@ -1,0 +1,11 @@
+TYPE                VERSION             NOTES
+current             1.1.0               
+patch               1.1.1               https://docs.docker.com/releasenotes/1.1.1
+patch               1.1.2               https://docs.docker.com/releasenotes/1.1.2
+patch               1.1.3-beta1         https://docs.docker.com/releasenotes/1.1.3-beta1
+upgrade             1.2.0               https://docs.docker.com/releasenotes/1.2.0
+upgrade             2.0.0               https://docs.docker.com/releasenotes/2.0.0
+upgrade             2.1.0-beta1         https://docs.docker.com/releasenotes/2.1.0-beta1
+downgrade           1.0.1               https://docs.docker.com/releasenotes/1.0.1
+downgrade           1.0.2               https://docs.docker.com/releasenotes/1.0.2
+downgrade           1.0.3-beta1         https://docs.docker.com/releasenotes/1.0.3-beta1

@@ -13,6 +13,7 @@ import (
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
 
 	. "github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -78,6 +79,8 @@ func TestElectAuthServer(t *testing.T) {
 			},
 		},
 	}
+	// Enable debug to see warnings we're checking for
+	debug.Enable()
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
 		server := ElectAuthServer(context.Background(), cli)
