@@ -2,13 +2,12 @@ package image
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/output"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/pkg/errors"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
@@ -28,56 +27,77 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		withWorkingDir(dir))
 
 	result.Assert(t, icmd.Expected{Err: icmd.None})
-	assertBuildOutput(t, result.Stdout(), map[int]lineCompare{
-		0:  prefix("Sending build context to Docker daemon"),
-		1:  equals("Step 1/4 : FROM\tregistry:5000/alpine:3.6"),
-		3:  equals("Step 2/4 : COPY\trun /usr/bin/run"),
-		5:  equals("Step 3/4 : RUN\t\trun"),
-		7:  equals("running"),
-		8:  prefix("Removing intermediate container "),
-		10: equals("Step 4/4 : COPY\tdata /data"),
-		12: prefix("Successfully built "),
-		13: equals("Successfully tagged myimage:latest"),
+	output.Assert(t, result.Stdout(), map[int]func(string) error{
+		0:  output.Prefix("Sending build context to Docker daemon"),
+		1:  output.Equals("Step 1/4 : FROM\tregistry:5000/alpine:3.6"),
+		3:  output.Equals("Step 2/4 : COPY\trun /usr/bin/run"),
+		5:  output.Equals("Step 3/4 : RUN\t\trun"),
+		7:  output.Equals("running"),
+		8:  output.Prefix("Removing intermediate container "),
+		10: output.Equals("Step 4/4 : COPY\tdata /data"),
+		12: output.Prefix("Successfully built "),
+		13: output.Equals("Successfully tagged myimage:latest"),
+	})
+}
+
+func TestTrustedBuild(t *testing.T) {
+	dir := fixtures.SetupConfigFile(t)
+	defer dir.Remove()
+	image1 := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-build1", "latest")
+	image2 := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-build2", "latest")
+
+	buildDir := fs.NewDir(t, "test-trusted-build-context-dir",
+		fs.WithFile("Dockerfile", fmt.Sprintf(`
+	FROM %s as build-base
+	RUN echo ok > /foo
+	FROM %s
+	COPY --from=build-base foo bar
+		`, image1, image2)))
+	defer buildDir.Remove()
+
+	result := icmd.RunCmd(
+		icmd.Command("docker", "build", "-t", "myimage", "."),
+		withWorkingDir(buildDir),
+		fixtures.WithConfig(dir.Path()),
+		fixtures.WithTrust,
+		fixtures.WithNotary,
+	)
+
+	result.Assert(t, icmd.Expected{
+		Out: fmt.Sprintf("FROM %s@sha", image1[:len(image1)-7]),
+		Err: fmt.Sprintf("Tagging %s@sha", image1[:len(image1)-7]),
+	})
+	result.Assert(t, icmd.Expected{
+		Out: fmt.Sprintf("FROM %s@sha", image2[:len(image2)-7]),
+	})
+}
+
+func TestTrustedBuildUntrustedImage(t *testing.T) {
+	dir := fixtures.SetupConfigFile(t)
+	defer dir.Remove()
+	buildDir := fs.NewDir(t, "test-trusted-build-context-dir",
+		fs.WithFile("Dockerfile", fmt.Sprintf(`
+	FROM %s
+	RUN []
+		`, fixtures.AlpineImage)))
+	defer buildDir.Remove()
+
+	result := icmd.RunCmd(
+		icmd.Command("docker", "build", "-t", "myimage", "."),
+		withWorkingDir(buildDir),
+		fixtures.WithConfig(dir.Path()),
+		fixtures.WithTrust,
+		fixtures.WithNotary,
+	)
+
+	result.Assert(t, icmd.Expected{
+		ExitCode: 1,
+		Err:      "does not have trust data for",
 	})
 }
 
 func withWorkingDir(dir *fs.Dir) func(*icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
 		cmd.Dir = dir.Path()
-	}
-}
-
-func assertBuildOutput(t *testing.T, actual string, expectedLines map[int]lineCompare) {
-	for i, line := range strings.Split(actual, "\n") {
-		cmp, ok := expectedLines[i]
-		if !ok {
-			continue
-		}
-		if err := cmp(line); err != nil {
-			t.Errorf("line %d: %s", i, err)
-		}
-	}
-	if t.Failed() {
-		t.Log(actual)
-	}
-}
-
-type lineCompare func(string) error
-
-func prefix(expected string) func(string) error {
-	return func(actual string) error {
-		if strings.HasPrefix(actual, expected) {
-			return nil
-		}
-		return errors.Errorf("expected %s to start with %s", actual, expected)
-	}
-}
-
-func equals(expected string) func(string) error {
-	return func(actual string) error {
-		if expected == actual {
-			return nil
-		}
-		return errors.Errorf("got %s, expected %s", actual, expected)
 	}
 }

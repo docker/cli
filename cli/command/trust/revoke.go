@@ -36,7 +36,7 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 
 func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), remote)
 	if err != nil {
 		return err
 	}

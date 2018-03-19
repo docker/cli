@@ -80,7 +80,7 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 
 func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), repoName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
 	if err != nil {
 		return err
 	}

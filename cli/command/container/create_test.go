@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -117,6 +119,51 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 	assert.Check(t, is.DeepEqual(expected, *body))
 	stderr := cli.ErrBuffer().String()
 	assert.Check(t, is.Contains(stderr, "Unable to find image 'does-not-exist-locally:latest' locally"))
+}
+
+func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
+	testCases := []struct {
+		name          string
+		args          []string
+		expectedError string
+		notaryFunc    test.NotaryClientFuncType
+	}{
+		{
+			name:          "offline-notary-server",
+			notaryFunc:    notary.GetOfflineNotaryRepository,
+			expectedError: "client is offline",
+			args:          []string{"image:tag"},
+		},
+		{
+			name:          "uninitialized-notary-server",
+			notaryFunc:    notary.GetUninitializedNotaryRepository,
+			expectedError: "remote trust data does not exist",
+			args:          []string{"image:tag"},
+		},
+		{
+			name:          "empty-notary-server",
+			notaryFunc:    notary.GetEmptyTargetsNotaryRepository,
+			expectedError: "No valid trust data for tag",
+			args:          []string{"image:tag"},
+		},
+	}
+	for _, tc := range testCases {
+		cli := test.NewFakeCli(&fakeClient{
+			createContainerFunc: func(config *container.Config,
+				hostConfig *container.HostConfig,
+				networkingConfig *network.NetworkingConfig,
+				containerName string,
+			) (container.ContainerCreateCreatedBody, error) {
+				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
+			},
+		}, test.EnableContentTrust)
+		cli.SetNotaryClient(tc.notaryFunc)
+		cmd := NewCreateCommand(cli)
+		cmd.SetOutput(ioutil.Discard)
+		cmd.SetArgs(tc.args)
+		err := cmd.Execute()
+		assert.ErrorContains(t, err, tc.expectedError)
+	}
 }
 
 type fakeNotFound struct{}

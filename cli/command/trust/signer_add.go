@@ -82,7 +82,7 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 
 func addSignerToRepo(cli command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), repoName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
 	if err != nil {
 		return err
 	}

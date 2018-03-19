@@ -57,6 +57,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	options.compress = true
 	options.dockerfileName = "-"
 	options.context = dir
+	options.untrusted = true
 
 	err = runBuild(cli, options)
 	assert.NilError(t, err)
@@ -191,6 +192,7 @@ RUN echo hello world
 	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
 	options := newBuildOptions()
 	options.context = tmpDir.Join("context-link")
+	options.untrusted = true
 	assert.NilError(t, runBuild(cli, options))
 
 	assert.DeepEqual(t, files, []string{"Dockerfile"})

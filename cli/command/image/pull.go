@@ -59,7 +59,7 @@ func runPull(cli command.Cli, opts pullOptions) error {
 	}
 
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), distributionRef.String())
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, AuthResolver(cli), distributionRef.String())
 	if err != nil {
 		return err
 	}

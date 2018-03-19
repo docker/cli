@@ -41,6 +41,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 
 	options := newBuildOptions()
 	options.context = dir.Path()
+	options.untrusted = true
 
 	err := runBuild(cli, options)
 	assert.NilError(t, err)
