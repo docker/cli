@@ -51,12 +51,7 @@ Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
    {{- end}}
   {{- end}}
  {{- end}}
- {{- end}}{{- end}}
- {{- if .KubernetesOK}}{{with .Kubernetes}}
- Kubernetes:
-  Version:	{{.Kubernetes}}
-  Stack API:	{{.StackAPI}}
-{{- end}}{{end}}`
+ {{- end}}{{- end}}`
 
 type versionOptions struct {
 	format     string
@@ -65,9 +60,8 @@ type versionOptions struct {
 
 // versionInfo contains version information of both the Client, and Server
 type versionInfo struct {
-	Client     clientVersion
-	Server     *types.Version
-	Kubernetes *kubernetesVersion
+	Client clientVersion
+	Server *types.Version
 }
 
 type clientVersion struct {
@@ -94,10 +88,6 @@ type kubernetesVersion struct {
 // and parse the information received. It returns false otherwise.
 func (v versionInfo) ServerOK() bool {
 	return v.Server != nil
-}
-
-func (v versionInfo) KubernetesOK() bool {
-	return v.Kubernetes != nil
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
@@ -160,21 +150,27 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
 			Orchestrator:      string(dockerCli.ClientInfo().Orchestrator),
 		},
-		Kubernetes: getKubernetesVersion(dockerCli, opts.kubeConfig),
 	}
 
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
 	if err == nil {
 		vd.Server = &sv
+		kubeVersion := getKubernetesVersion(dockerCli, opts.kubeConfig)
 		foundEngine := false
+		foundKubernetes := false
 		for _, component := range sv.Components {
-			if component.Name == "Engine" {
+			switch component.Name {
+			case "Engine":
 				foundEngine = true
 				buildTime, ok := component.Details["BuildTime"]
 				if ok {
 					component.Details["BuildTime"] = reformatDate(buildTime)
 				}
-				break
+			case "Kubernetes":
+				foundKubernetes = true
+				if _, ok := component.Details["StackAPI"]; !ok && kubeVersion != nil {
+					component.Details["StackAPI"] = kubeVersion.StackAPI
+				}
 			}
 		}
 
@@ -191,6 +187,15 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 					"Arch":          sv.Arch,
 					"BuildTime":     reformatDate(vd.Server.BuildTime),
 					"Experimental":  fmt.Sprintf("%t", sv.Experimental),
+				},
+			})
+		}
+		if !foundKubernetes && kubeVersion != nil {
+			vd.Server.Components = append(vd.Server.Components, types.ComponentVersion{
+				Name:    "Kubernetes",
+				Version: kubeVersion.Kubernetes,
+				Details: map[string]string{
+					"StackAPI": kubeVersion.StackAPI,
 				},
 			})
 		}
