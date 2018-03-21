@@ -1,3 +1,0 @@
-#!/bin/sh
-# shellcheck disable=SC2016
-exec filewatcher -L 6 -x build -x script go test -timeout 30s -v './${dir}'
