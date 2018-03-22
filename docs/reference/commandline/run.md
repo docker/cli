@@ -592,7 +592,7 @@ Docker supports the following restart policies:
 |:---------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `no`                       | Do not automatically restart the container when it exits. This is the default.                                                                                                                                                                                   |
 | `on-failure[:max-retries]` | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts.                                                                                                                     |
-| `unless-stopped`           | Restart the container unless it is explicitly stopped or Docker itself is stopped or restarted. |
+| `unless-stopped`           | Restart the container unless it is explicitly stopped or Docker itself is stopped or restarted.                                                                                                                                                                  |
 | `always`                   | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
 
 ```bash
@@ -603,7 +603,7 @@ This will run the `redis` container with a restart policy of **always**
 so that if the container exits, Docker will restart it.
 
 More detailed information on restart policies can be found in the
-[Restart Policies (--restart)](../run.md#restart-policies-restart)
+[Restart Policies (--restart)](../run.md#restart-policies---restart)
 section of the Docker run reference page.
 
 ### Add entries to container hosts file (--add-host)

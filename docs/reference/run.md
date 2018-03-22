@@ -620,7 +620,7 @@ systems can really pile up. If instead you'd like Docker to
 **automatically clean up the container and remove the file system when
 the container exits**, you can add the `--rm` flag:
 
-    --rm=false: Automatically remove the container when it exits (incompatible with -d)
+    --rm=false: Automatically remove the container when it exits
 
 > **Note**: When you set the `--rm` flag, Docker also removes the anonymous volumes
 associated with the container when the container is removed. This is similar
