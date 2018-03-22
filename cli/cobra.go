@@ -128,7 +128,7 @@ Examples:
 {{ .Example }}
 
 {{- end}}
-{{- if .HasFlags}}
+{{- if .HasAvailableFlags}}
 
 Options:
 {{ wrappedFlagUsages . | trimRightSpace}}
