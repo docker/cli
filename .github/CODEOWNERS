@@ -1,9 +1,8 @@
 # GitHub code owners
 # See https://github.com/blog/2392-introducing-code-owners
 
-cli/command/stack/**        @dnephin @vdemeester
-cli/compose/**              @dnephin @vdemeester
+cli/command/stack/**        @vdemeester
+cli/compose/**              @vdemeester
 contrib/completion/bash/**  @albers
 contrib/completion/zsh/**   @sdurrheimer
 docs/**                     @mistyhacks @vdemeester @thaJeztah
-scripts/**                  @dnephin
