@@ -27,7 +27,8 @@ func TestPruneServices(t *testing.T) {
 }
 
 // TestServiceUpdateResolveImageChanged tests that the service's
-// image digest is preserved if the image did not change in the compose file
+// image digest, and "ForceUpdate" is preserved if the image did not change in
+// the compose file
 func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	namespace := convert.NewNamespace("mystack")
 
@@ -49,6 +50,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 							ContainerSpec: &swarm.ContainerSpec{
 								Image: "foobar:1.2.3@sha256:deadbeef",
 							},
+							ForceUpdate: 123,
 						},
 					},
 				},
@@ -65,18 +67,21 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 		image                 string
 		expectedQueryRegistry bool
 		expectedImage         string
+		expectedForceUpdate   uint64
 	}{
 		// Image not changed
 		{
 			image: "foobar:1.2.3",
 			expectedQueryRegistry: false,
 			expectedImage:         "foobar:1.2.3@sha256:deadbeef",
+			expectedForceUpdate:   123,
 		},
 		// Image changed
 		{
 			image: "foobar:1.2.4",
 			expectedQueryRegistry: true,
 			expectedImage:         "foobar:1.2.4",
+			expectedForceUpdate:   123,
 		},
 	}
 
@@ -95,8 +100,9 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 		}
 		err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
 		assert.NilError(t, err)
-		assert.Check(t, is.Equal(testcase.expectedQueryRegistry, receivedOptions.QueryRegistry))
-		assert.Check(t, is.Equal(testcase.expectedImage, receivedService.TaskTemplate.ContainerSpec.Image))
+		assert.Check(t, is.Equal(receivedOptions.QueryRegistry, testcase.expectedQueryRegistry))
+		assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, testcase.expectedImage))
+		assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, testcase.expectedForceUpdate))
 
 		receivedService = swarm.ServiceSpec{}
 		receivedOptions = types.ServiceUpdateOptions{}
