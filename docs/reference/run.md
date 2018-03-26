@@ -525,9 +525,9 @@ Docker supports the following restart policies:
     <tr>
       <td><strong>unless-stopped</strong></td>
       <td>
-        Always restart the container regardless of the exit status, but
-        do not start it on daemon startup if the container has been put
-        to a stopped state before.
+        Always restart the container regardless of the exit status,
+        including on daemon startup, except if the container was put
+        into a stopped state before the Docker daemon was stopped.
       </td>
     </tr>
   </tbody>
