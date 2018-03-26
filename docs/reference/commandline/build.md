@@ -411,13 +411,13 @@ files. The `ARG` instruction lets Dockerfile authors define values that users
 can set at build-time using the  `--build-arg` flag:
 
 ```bash
-$ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 .
+$ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 --build-arg FTP_PROXY=http://40.50.60.5:4567 .
 ```
 
 This flag allows you to pass the build-time variables that are
 accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
-like `ENV` values do.
+like `ENV` values do.   You must add `--build-arg` for each build argument.  
 
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
