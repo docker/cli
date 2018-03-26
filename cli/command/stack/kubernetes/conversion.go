@@ -116,25 +116,31 @@ func (t tasksBySlot) Less(i, j int) bool {
 	return t[j].Meta.CreatedAt.Before(t[i].CreatedAt)
 }
 
+const (
+	publishedServiceSuffix      = "-published"
+	publishedOnRandomPortSuffix = "-random-ports"
+)
+
 // Replicas conversion
 func replicasToServices(replicas *appsv1beta2.ReplicaSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]formatter.ServiceListInfo, error) {
 	result := make([]swarm.Service, len(replicas.Items))
 	infos := make(map[string]formatter.ServiceListInfo, len(replicas.Items))
 	for i, r := range replicas.Items {
-		service, ok := findService(services, r.Labels[labels.ForServiceName])
+		serviceName := r.Labels[labels.ForServiceName]
+		serviceHeadless, ok := findService(services, serviceName)
 		if !ok {
-			return nil, nil, fmt.Errorf("could not find service '%s'", r.Labels[labels.ForServiceName])
+			return nil, nil, fmt.Errorf("could not find service '%s'", serviceName)
 		}
-		stack, ok := service.Labels[labels.ForStackName]
+		stack, ok := serviceHeadless.Labels[labels.ForStackName]
 		if ok {
 			stack += "_"
 		}
-		uid := string(service.UID)
+		uid := string(serviceHeadless.UID)
 		s := swarm.Service{
 			ID: uid,
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{
-					Name: stack + service.Name,
+					Name: stack + serviceHeadless.Name,
 				},
 				TaskTemplate: swarm.TaskSpec{
 					ContainerSpec: &swarm.ContainerSpec{
@@ -143,17 +149,11 @@ func replicasToServices(replicas *appsv1beta2.ReplicaSetList, services *apiv1.Se
 				},
 			},
 		}
-		if service.Spec.Type == apiv1.ServiceTypeLoadBalancer {
-			configs := make([]swarm.PortConfig, len(service.Spec.Ports))
-			for i, p := range service.Spec.Ports {
-				configs[i] = swarm.PortConfig{
-					PublishMode:   swarm.PortConfigPublishModeIngress,
-					PublishedPort: uint32(p.Port),
-					TargetPort:    uint32(p.TargetPort.IntValue()),
-					Protocol:      toSwarmProtocol(p.Protocol),
-				}
-			}
-			s.Endpoint = swarm.Endpoint{Ports: configs}
+		if serviceNodePort, ok := findService(services, serviceName+publishedOnRandomPortSuffix); ok && serviceNodePort.Spec.Type == apiv1.ServiceTypeNodePort {
+			s.Endpoint = serviceEndpoint(serviceNodePort, swarm.PortConfigPublishModeHost)
+		}
+		if serviceLoadBalancer, ok := findService(services, serviceName+publishedServiceSuffix); ok && serviceLoadBalancer.Spec.Type == apiv1.ServiceTypeLoadBalancer {
+			s.Endpoint = serviceEndpoint(serviceLoadBalancer, swarm.PortConfigPublishModeIngress)
 		}
 		result[i] = s
 		infos[uid] = formatter.ServiceListInfo{
@@ -171,4 +171,17 @@ func findService(services *apiv1.ServiceList, name string) (apiv1.Service, bool)
 		}
 	}
 	return apiv1.Service{}, false
+}
+
+func serviceEndpoint(service apiv1.Service, publishMode swarm.PortConfigPublishMode) swarm.Endpoint {
+	configs := make([]swarm.PortConfig, len(service.Spec.Ports))
+	for i, p := range service.Spec.Ports {
+		configs[i] = swarm.PortConfig{
+			PublishMode:   publishMode,
+			PublishedPort: uint32(p.Port),
+			TargetPort:    uint32(p.TargetPort.IntValue()),
+			Protocol:      toSwarmProtocol(p.Protocol),
+		}
+	}
+	return swarm.Endpoint{Ports: configs}
 }
