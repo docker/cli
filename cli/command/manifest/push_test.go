@@ -12,9 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newFakeRegistryClient(t *testing.T) *fakeRegistryClient {
-	assert.NilError(t, nil)
-
+func newFakeRegistryClient() *fakeRegistryClient {
 	return &fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, _ reference.Named) (manifesttypes.ImageManifest, error) {
 			return manifesttypes.ImageManifest{}, errors.New("")
@@ -49,12 +47,11 @@ func TestManifestPushErrors(t *testing.T) {
 	}
 }
 
-// store a one-image manifest list and puah it
 func TestManifestPush(t *testing.T) {
 	store, sCleanup := newTempManifestStore(t)
 	defer sCleanup()
 
-	registry := newFakeRegistryClient(t)
+	registry := newFakeRegistryClient()
 
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)

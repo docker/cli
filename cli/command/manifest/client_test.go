@@ -10,7 +10,6 @@ import (
 )
 
 type fakeRegistryClient struct {
-	client.RegistryClient
 	getManifestFunc     func(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error)
 	getManifestListFunc func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error)
 	mountBlobFunc       func(ctx context.Context, source reference.Canonical, target reference.Named) error
@@ -44,3 +43,5 @@ func (c *fakeRegistryClient) PutManifest(ctx context.Context, ref reference.Name
 	}
 	return digest.Digest(""), nil
 }
+
+var _ client.RegistryClient = &fakeRegistryClient{}
