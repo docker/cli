@@ -35,6 +35,7 @@ func TestNetworks(t *testing.T) {
 		"outside":       {},
 		"default":       {},
 		"attachablenet": {},
+		"named":         {},
 	}
 	source := networkMap{
 		"normal": composetypes.NetworkConfig{
@@ -62,14 +63,17 @@ func TestNetworks(t *testing.T) {
 			Driver:     "overlay",
 			Attachable: true,
 		},
+		"named": composetypes.NetworkConfig{
+			Name: "othername",
+		},
 	}
 	expected := map[string]types.NetworkCreate{
-		"default": {
+		"foo_default": {
 			Labels: map[string]string{
 				LabelNamespace: "foo",
 			},
 		},
-		"normal": {
+		"foo_normal": {
 			Driver: "overlay",
 			IPAM: &network.IPAM{
 				Driver: "driver",
@@ -87,18 +91,21 @@ func TestNetworks(t *testing.T) {
 				"something":    "labeled",
 			},
 		},
-		"attachablenet": {
+		"foo_attachablenet": {
 			Driver:     "overlay",
 			Attachable: true,
 			Labels: map[string]string{
 				LabelNamespace: "foo",
 			},
 		},
+		"othername": {
+			Labels: map[string]string{LabelNamespace: "foo"},
+		},
 	}
 
 	networks, externals := Networks(namespace, source, serviceNetworks)
-	assert.Check(t, is.DeepEqual(expected, networks))
-	assert.Check(t, is.DeepEqual([]string{"special"}, externals))
+	assert.DeepEqual(t, expected, networks)
+	assert.DeepEqual(t, []string{"special"}, externals)
 }
 
 func TestSecrets(t *testing.T) {

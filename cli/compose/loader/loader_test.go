@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/sirupsen/logrus"
@@ -1356,4 +1357,41 @@ networks:
 
 	assert.ErrorContains(t, err, "network.external.name and network.name conflict; only use network.name")
 	assert.ErrorContains(t, err, "foo")
+}
+
+func TestLoadNetworkWithName(t *testing.T) {
+	config, err := loadYAML(`
+version: '3.5'
+services:
+  hello-world:
+    image: redis:alpine
+    networks:
+      - network1
+      - network3
+
+networks:
+  network1:
+    name: network2
+  network3:
+`)
+	assert.NilError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.5",
+		Services: types.Services{
+			{
+				Name:  "hello-world",
+				Image: "redis:alpine",
+				Networks: map[string]*types.ServiceNetworkConfig{
+					"network1": nil,
+					"network3": nil,
+				},
+			},
+		},
+		Networks: map[string]types.NetworkConfig{
+			"network1": {Name: "network2"},
+			"network3": {},
+		},
+	}
+	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
 }
