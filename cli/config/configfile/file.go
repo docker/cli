@@ -307,3 +307,8 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 	}
 	return auths, nil
 }
+
+// GetFilename returns the file name that this config file is based on.
+func (configFile *ConfigFile) GetFilename() string {
+	return configFile.Filename
+}

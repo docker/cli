@@ -20,6 +20,10 @@ func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
 	return f.configs
 }
 
+func (f *fakeStore) GetFilename() string {
+	return "/tmp/docker-fakestore"
+}
+
 func newStore(auths map[string]types.AuthConfig) store {
 	return &fakeStore{configs: auths}
 }
