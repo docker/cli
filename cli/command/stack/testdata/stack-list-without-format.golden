@@ -1,2 +1,2 @@
-NAME                SERVICES
-service-name-foo    1
+NAME                SERVICES            ORCHESTRATOR
+service-name-foo    1                   Swarm

@@ -39,9 +39,9 @@ The following command shows all stacks and some additional information:
 ```bash
 $ docker stack ls
 
-ID                 SERVICES
-vossibility-stack  6
-myapp              2
+ID                 SERVICES            ORCHESTRATOR
+myapp              2                   Kubernetes
+vossibility-stack  6                   Swarm
 ```
 
 ### Formatting
@@ -50,10 +50,11 @@ The formatting option (`--format`) pretty-prints stacks using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-| Placeholder | Description        |
-| ----------- | ------------------ |
-| `.Name`     | Stack name         |
-| `.Services` | Number of services |
+| Placeholder     | Description        |
+| --------------- | ------------------ |
+| `.Name`         | Stack name         |
+| `.Services`     | Number of services |
+| `.Orchestrator` | Orchestrator name  |
 
 When using the `--format` option, the `stack ls` command either outputs
 the data exactly as the template declares or, when using the

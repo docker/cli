@@ -27,9 +27,9 @@ func TestStackContextWrite(t *testing.T) {
 		// Table format
 		{
 			Context{Format: NewStackFormat("table")},
-			`NAME                SERVICES
-baz                 2
-bar                 1
+			`NAME                SERVICES            ORCHESTRATOR
+baz                 2                   orchestrator1
+bar                 1                   orchestrator2
 `,
 		},
 		{
@@ -49,8 +49,8 @@ bar
 	}
 
 	stacks := []*Stack{
-		{Name: "baz", Services: 2},
-		{Name: "bar", Services: 1},
+		{Name: "baz", Services: 2, Orchestrator: "orchestrator1"},
+		{Name: "bar", Services: 1, Orchestrator: "orchestrator2"},
 	}
 	for _, testcase := range cases {
 		out := bytes.NewBufferString("")
