@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
@@ -47,8 +46,8 @@ func TestHTTPENVTrustServer(t *testing.T) {
 func TestOfficialTrustServer(t *testing.T) {
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: true}
 	output, err := trust.Server(indexInfo)
-	if err != nil || output != registry.NotaryServer {
-		t.Fatalf("Expected server to be %s, got %s", registry.NotaryServer, output)
+	if err != nil || output != trust.NotaryServer {
+		t.Fatalf("Expected server to be %s, got %s", trust.NotaryServer, output)
 	}
 }
 

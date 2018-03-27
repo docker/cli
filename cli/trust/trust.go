@@ -41,6 +41,8 @@ var (
 	ActionsPullOnly = []string{"pull"}
 	// ActionsPushAndPull defines the actions for read-write interactions with a Notary Repository
 	ActionsPushAndPull = []string{"pull", "push"}
+	// NotaryServer is the endpoint serving the Notary trust server
+	NotaryServer = "https://notary.docker.io"
 )
 
 // GetTrustDirectory returns the base trust directory name
@@ -71,7 +73,7 @@ func Server(index *registrytypes.IndexInfo) (string, error) {
 		return s, nil
 	}
 	if index.Official {
-		return registry.NotaryServer, nil
+		return NotaryServer, nil
 	}
 	return "https://" + index.Name, nil
 }
