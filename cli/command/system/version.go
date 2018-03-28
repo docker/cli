@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"sort"
+	"text/tabwriter"
 	"text/template"
 	"time"
 
@@ -200,11 +201,12 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			})
 		}
 	}
-
-	if err2 := tmpl.Execute(dockerCli.Out(), vd); err2 != nil && err == nil {
+	t := tabwriter.NewWriter(dockerCli.Out(), 15, 1, 1, ' ', 0)
+	if err2 := tmpl.Execute(t, vd); err2 != nil && err == nil {
 		err = err2
 	}
-	dockerCli.Out().Write([]byte{'\n'})
+	t.Write([]byte("\n"))
+	t.Flush()
 	return err
 }
 
