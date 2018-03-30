@@ -43,11 +43,7 @@ func NewOptions(flags *flag.FlagSet) Options {
 func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	var err error
 	cli := &KubeCli{
-		Cli:           dockerCli,
-		kubeNamespace: "default",
-	}
-	if opts.Namespace != "" {
-		cli.kubeNamespace = opts.Namespace
+		Cli: dockerCli,
 	}
 	kubeConfig := opts.Config
 	if kubeConfig == "" {
@@ -57,7 +53,19 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 			kubeConfig = filepath.Join(homedir.Get(), ".kube/config")
 		}
 	}
-	config, err := kubernetes.NewKubernetesConfig(kubeConfig)
+
+	clientConfig := kubernetes.NewKubernetesConfig(kubeConfig)
+
+	cli.kubeNamespace = opts.Namespace
+	if opts.Namespace == "default" {
+		configNamespace, _, err := clientConfig.Namespace()
+		if err != nil {
+			return nil, err
+		}
+		cli.kubeNamespace = configNamespace
+	}
+
+	config, err := clientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
