@@ -711,7 +711,7 @@ func TestLoadMultipleUlimits(t *testing.T) {
 	}
 }
 
-func TestLoadMultipleNetworks(t *testing.T) {
+func TestLoadMultipleServiceNetworks(t *testing.T) {
 	networkCases := []struct {
 		name            string
 		networkBase     map[string]interface{}
@@ -941,5 +941,76 @@ func TestLoadMultipleConfigs(t *testing.T) {
 		Volumes:  map[string]types.VolumeConfig{},
 		Secrets:  map[string]types.SecretConfig{},
 		Configs:  map[string]types.ConfigObjConfig{},
+	}, config)
+}
+
+// Issue#972
+func TestLoadMultipleNetworks(t *testing.T) {
+	base := map[string]interface{}{
+		"version": "3.4",
+		"services": map[string]interface{}{
+			"foo": map[string]interface{}{
+				"image": "baz",
+			},
+		},
+		"volumes": map[string]interface{}{},
+		"networks": map[string]interface{}{
+			"hostnet": map[string]interface{}{
+				"driver": "overlay",
+				"ipam": map[string]interface{}{
+					"driver": "default",
+					"config": []interface{}{
+						map[string]interface{}{
+							"subnet": "10.0.0.0/20",
+						},
+					},
+				},
+			},
+		},
+		"secrets": map[string]interface{}{},
+		"configs": map[string]interface{}{},
+	}
+	override := map[string]interface{}{
+		"version":  "3.4",
+		"services": map[string]interface{}{},
+		"volumes":  map[string]interface{}{},
+		"networks": map[string]interface{}{
+			"hostnet": map[string]interface{}{
+				"external": map[string]interface{}{
+					"name": "host",
+				},
+			},
+		},
+		"secrets": map[string]interface{}{},
+		"configs": map[string]interface{}{},
+	}
+	configDetails := types.ConfigDetails{
+		ConfigFiles: []types.ConfigFile{
+			{Filename: "base.yml", Config: base},
+			{Filename: "override.yml", Config: override},
+		},
+	}
+	config, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, &types.Config{
+		Filename: "base.yml",
+		Version:  "3.4",
+		Services: []types.ServiceConfig{
+			{
+				Name:        "foo",
+				Image:       "baz",
+				Environment: types.MappingWithEquals{},
+			}},
+		Networks: map[string]types.NetworkConfig{
+			"hostnet": {
+				Name: "host",
+				External: types.External{
+					External: true,
+				},
+			},
+		},
+		Volumes: map[string]types.VolumeConfig{},
+		Secrets: map[string]types.SecretConfig{},
+		Configs: map[string]types.ConfigObjConfig{},
 	}, config)
 }

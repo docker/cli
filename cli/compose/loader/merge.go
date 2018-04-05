@@ -61,7 +61,7 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 	}
 	for name, overrideService := range overrideServices {
 		if baseService, ok := baseServices[name]; ok {
-			if err := mergo.Merge(&baseService, &overrideService, mergo.WithOverride, mergo.WithTransformers(specials)); err != nil {
+			if err := mergo.Merge(&baseService, &overrideService, mergo.WithAppendSlice, mergo.WithOverride, mergo.WithTransformers(specials)); err != nil {
 				return base, errors.Wrapf(err, "cannot merge service %s", name)
 			}
 			baseServices[name] = baseService
@@ -213,21 +213,21 @@ func mapByName(services []types.ServiceConfig) map[string]types.ServiceConfig {
 }
 
 func mergeVolumes(base, override map[string]types.VolumeConfig) (map[string]types.VolumeConfig, error) {
-	err := mergo.Map(&base, &override)
+	err := mergo.Map(&base, &override, mergo.WithOverride)
 	return base, err
 }
 
 func mergeNetworks(base, override map[string]types.NetworkConfig) (map[string]types.NetworkConfig, error) {
-	err := mergo.Map(&base, &override)
+	err := mergo.Map(&base, &override, mergo.WithOverride)
 	return base, err
 }
 
 func mergeSecrets(base, override map[string]types.SecretConfig) (map[string]types.SecretConfig, error) {
-	err := mergo.Map(&base, &override)
+	err := mergo.Map(&base, &override, mergo.WithOverride)
 	return base, err
 }
 
 func mergeConfigs(base, override map[string]types.ConfigObjConfig) (map[string]types.ConfigObjConfig, error) {
-	err := mergo.Map(&base, &override)
+	err := mergo.Map(&base, &override, mergo.WithOverride)
 	return base, err
 }
