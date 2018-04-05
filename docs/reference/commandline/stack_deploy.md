@@ -81,7 +81,7 @@ configuration and environment-specific overrides, you can provide multiple
 `--compose-file` flags.
 
 ```bash
-$ docker stack deploy --compose-file docker-compose.yml -f docker-compose.prod.yml vossibility
+$ docker stack deploy --compose-file docker-compose.yml -c docker-compose.prod.yml vossibility
 
 Ignoring unsupported options: links
 
