@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top unpause version wait stats
+        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
             return 1
         end
     end
@@ -32,6 +32,40 @@ function __fish_print_docker_containers --description 'Print a list of docker co
         case all
             docker ps -a --no-trunc --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
     end
+end
+
+function __fish_docker_no_subcommand_trust --description 'Test if docker has yet to be given the trust subcommand'
+    if __fish_seen_subcommand_from trust
+        for i in (commandline -opc)
+            if contains -- $i inspect key revoke sign signer
+                return 1
+            end
+        end
+        return 0
+    end
+    return 1
+end
+
+function __fish_docker_subcommand_path --description 'Test if command has all arguments in any order'
+    set -l cmd (commandline -poc)
+    set -e cmd[1]
+    for sub in $argv
+        if not contains -- $sub $cmd
+            return 1
+        end
+    end
+    return 0
+end
+
+function __fish_docker_subcommand_path_without --description 'Test if command has all arguments in any order'
+    set -l cmd (commandline -poc)
+    set -e cmd[1]
+    for sub in $argv
+        if contains -- $sub $cmd
+            return 1
+        end
+    end
+    return 0
 end
 
 function __fish_print_docker_images --description 'Print a list of docker images'
@@ -395,6 +429,34 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from tag' -l help -d 'Print 
 complete -c docker -f -n '__fish_docker_no_subcommand' -a top -d 'Lookup the running processes of a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from top' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from top' -a '(__fish_print_docker_containers running)' -d "Container"
+
+#trust
+complete -c docker -f -n '__fish_docker_no_subcommand' -a trust -d 'Manage trust on Docker images'
+complete -c docker -A -f -n '__fish_seen_subcommand_from trust' -l help -d 'Print usage'
+
+#trust inspect
+complete -c docker -A -f -n '__fish_docker_no_subcommand_trust' -a inspect -d 'Return low-level information about keys and signatures'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust inspect' -l pretty -d 'Print the information in a human friendly format'
+
+#trust key
+complete -c docker -A -f -n '__fish_docker_no_subcommand_trust' -a key -d 'Manage keys for signing Docker images'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust key; and __fish_docker_subcommand_path_without generate load' -a generate -d 'Generate and load a signing key-pair'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust key load' -l dir -d 'Directory to generate key in, defaults to current directory'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust key; and __fish_docker_subcommand_path_without generate load' -a load -d 'Load a private key file for signing'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust key load' -l name -d 'Name for the loaded key (default "signer")'
+
+#trust revoke
+complete -c docker -A -f -n '__fish_docker_no_subcommand_trust' -a revoke -d 'Remove trust for an image'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust revoke' -s y -l yes -d 'Do not prompt for confirmation'
+
+#trust sign
+complete -c docker -A -f -n '__fish_docker_no_subcommand_trust' -a sign -d 'Sign an image'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust sign' -l local -d 'Sign a locally tagged image'
+
+#trust signer
+complete -c docker -A -f -n '__fish_docker_no_subcommand_trust' -a signer -d 'Manage entities who can sign Docker images'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust signer; and __fish_docker_subcommand_path_without add remove' -a add -d 'Add a signer'
+complete -c docker -A -f -n '__fish_docker_subcommand_path trust signer; and __fish_docker_subcommand_path_without add remove' -a remove -d 'remove a signer'
 
 # unpause
 complete -c docker -f -n '__fish_docker_no_subcommand' -a unpause -d 'Unpause a paused container'
