@@ -65,7 +65,7 @@ Options:
 ### manifest create 
 
 ```bash
-Usage:  docker manifest create MANFEST_LIST MANIFEST [MANIFEST...]
+Usage:  docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]
 
 Create a local manifest list for annotating and pushing to a registry
 
