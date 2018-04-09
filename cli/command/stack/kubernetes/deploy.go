@@ -17,11 +17,11 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	// Initialize clients
-	stacks, err := dockerCli.stacks()
+	composeClient, err := dockerCli.composeClient()
 	if err != nil {
 		return err
 	}
-	composeClient, err := dockerCli.composeClient()
+	stacks, err := composeClient.Stacks()
 	if err != nil {
 		return err
 	}

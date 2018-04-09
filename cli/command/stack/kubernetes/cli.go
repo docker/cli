@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
 	"github.com/docker/docker/pkg/homedir"
-	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -81,21 +80,5 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 }
 
 func (c *KubeCli) composeClient() (*Factory, error) {
-	return NewFactory(c.kubeNamespace, c.kubeConfig)
-}
-
-func (c *KubeCli) stacks() (stackClient, error) {
-	version, err := kubernetes.GetStackAPIVersion(c.clientSet)
-	if err != nil {
-		return nil, err
-	}
-
-	switch version {
-	case kubernetes.StackAPIV1Beta1:
-		return newStackV1Beta1(c.kubeConfig, c.kubeNamespace)
-	case kubernetes.StackAPIV1Beta2:
-		return newStackV1Beta2(c.kubeConfig, c.kubeNamespace)
-	default:
-		return nil, errors.Errorf("no supported Stack API version")
-	}
+	return NewFactory(c.kubeNamespace, c.kubeConfig, c.clientSet)
 }

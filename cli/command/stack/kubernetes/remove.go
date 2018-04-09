@@ -8,7 +8,11 @@ import (
 
 // RunRemove is the kubernetes implementation of docker stack remove
 func RunRemove(dockerCli *KubeCli, opts options.Remove) error {
-	stacks, err := dockerCli.stacks()
+	composeClient, err := dockerCli.composeClient()
+	if err != nil {
+		return err
+	}
+	stacks, err := composeClient.Stacks()
 	if err != nil {
 		return err
 	}

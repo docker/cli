@@ -34,12 +34,14 @@ func (n byName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n byName) Less(i, j int) bool { return sortorder.NaturalLess(n[i].Name, n[j].Name) }
 
 func getStacks(kubeCli *KubeCli) ([]*formatter.Stack, error) {
-	stackSvc, err := kubeCli.stacks()
+	composeClient, err := kubeCli.composeClient()
 	if err != nil {
 		return nil, err
 	}
-
-	stacks, err := stackSvc.List(metav1.ListOptions{})
+	stackSvc, err := composeClient.Stacks()
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
