@@ -31,5 +31,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print stacks using a Go template")
+	flags.BoolVarP(&opts.AllNamespaces, "all-namespaces", "", false, "List stacks among all Kubernetes namespaces")
+	flags.SetAnnotation("all-namespaces", "kubernetes", nil)
 	return cmd
 }

@@ -12,7 +12,7 @@ func RunRemove(dockerCli *KubeCli, opts options.Remove) error {
 	if err != nil {
 		return err
 	}
-	stacks, err := composeClient.Stacks()
+	stacks, err := composeClient.Stacks(false)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"github.com/docker/cli/kubernetes"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	appsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	typesappsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
@@ -70,22 +71,27 @@ func (s *Factory) ReplicationControllers() corev1.ReplicationControllerInterface
 	return s.coreClientSet.ReplicationControllers(s.namespace)
 }
 
-// ReplicaSets return a client for kubernetes replace sets
+// ReplicaSets returns a client for kubernetes replace sets
 func (s *Factory) ReplicaSets() typesappsv1beta2.ReplicaSetInterface {
 	return s.appsClientSet.ReplicaSets(s.namespace)
 }
 
-func (c *Factory) Stacks() (stackClient, error) {
-	version, err := kubernetes.GetStackAPIVersion(c.clientSet)
+// Stacks returns a client for Docker's Stack on Kubernetes
+func (s *Factory) Stacks(allNamespaces bool) (StackClient, error) {
+	version, err := kubernetes.GetStackAPIVersion(s.clientSet)
 	if err != nil {
 		return nil, err
+	}
+	namespace := s.namespace
+	if allNamespaces {
+		namespace = metav1.NamespaceAll
 	}
 
 	switch version {
 	case kubernetes.StackAPIV1Beta1:
-		return newStackV1Beta1(c.config, c.namespace)
+		return newStackV1Beta1(s.config, namespace)
 	case kubernetes.StackAPIV1Beta2:
-		return newStackV1Beta2(c.config, c.namespace)
+		return newStackV1Beta2(s.config, namespace)
 	default:
 		return nil, errors.Errorf("no supported Stack API version")
 	}

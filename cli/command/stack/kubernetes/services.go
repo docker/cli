@@ -16,7 +16,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	if err != nil {
 		return nil
 	}
-	stacks, err := client.Stacks()
+	stacks, err := client.Stacks(false)
 	if err != nil {
 		return err
 	}
