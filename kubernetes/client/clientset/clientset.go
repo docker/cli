@@ -3,10 +3,10 @@ package clientset
 import (
 	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
 	composev1beta2 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta2"
-	glog "github.com/golang/glog"
-	discovery "k8s.io/client-go/discovery"
-	rest "k8s.io/client-go/rest"
-	flowcontrol "k8s.io/client-go/util/flowcontrol"
+	"github.com/golang/glog"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/flowcontrol"
 )
 
 // Interface defines the methods a compose kube client should have

@@ -2,9 +2,9 @@ package v1beta2
 
 import (
 	"github.com/docker/cli/kubernetes/client/clientset/scheme"
-	v1beta2 "github.com/docker/cli/kubernetes/compose/v1beta2"
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
-	rest "k8s.io/client-go/rest"
+	"github.com/docker/cli/kubernetes/compose/v1beta2"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/rest"
 )
 
 // ComposeV1beta2Interface defines the methods a compose v1beta2 client has

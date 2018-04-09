@@ -1,12 +1,12 @@
 package v1beta1
 
 import (
-	scheme "github.com/docker/cli/kubernetes/client/clientset/scheme"
-	v1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	"github.com/docker/cli/kubernetes/client/clientset/scheme"
+	"github.com/docker/cli/kubernetes/compose/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/rest"
 )
 
 // StacksGetter has a method to return a StackInterface.
