@@ -24,12 +24,12 @@ func RunList(dockerCli command.Cli, opts options.List) error {
 		return err
 	}
 	format := opts.Format
-	if len(format) == 0 {
-		format = formatter.TableFormatKey
+	if format == "" || format == formatter.TableFormatKey {
+		format = formatter.SwarmStackTableFormat
 	}
 	stackCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewStackFormat(format),
+		Format: formatter.Format(format),
 	}
 	sort.Sort(byName(stacks))
 	return formatter.StackWrite(stackCtx, stacks)

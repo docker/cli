@@ -5,10 +5,14 @@ import (
 )
 
 const (
-	defaultStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
+	// KubernetesStackTableFormat is the default Kubernetes stack format
+	KubernetesStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}\t{{.Namespace}}"
+	// SwarmStackTableFormat is the default Swarm stack format
+	SwarmStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
 
 	stackServicesHeader      = "SERVICES"
 	stackOrchestrastorHeader = "ORCHESTRATOR"
+	stackNamespaceHeader     = "NAMESPACE"
 )
 
 // Stack contains deployed stack information.
@@ -17,17 +21,10 @@ type Stack struct {
 	Name string
 	// Services is the number of the services
 	Services int
-	// Orchestratort is the platform on which the stack is deployed
+	// Orchestrator is the platform where the stack is deployed
 	Orchestrator string
-}
-
-// NewStackFormat returns a format for use with a stack Context
-func NewStackFormat(source string) Format {
-	switch source {
-	case TableFormatKey:
-		return defaultStackTableFormat
-	}
-	return Format(source)
+	// Namespace is the Kubernetes namespace assigned to the stack
+	Namespace string
 }
 
 // StackWrite writes formatted stacks using the Context
@@ -54,6 +51,7 @@ func newStackContext() *stackContext {
 		"Name":         nameHeader,
 		"Services":     stackServicesHeader,
 		"Orchestrator": stackOrchestrastorHeader,
+		"Namespace":    stackNamespaceHeader,
 	}
 	return &stackCtx
 }
@@ -72,4 +70,8 @@ func (s *stackContext) Services() string {
 
 func (s *stackContext) Orchestrator() string {
 	return s.s.Orchestrator
+}
+
+func (s *stackContext) Namespace() string {
+	return s.s.Namespace
 }

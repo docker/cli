@@ -15,6 +15,7 @@ import (
 // stack is the main type used by stack commands so they remain independent from kubernetes compose component version.
 type stack struct {
 	name        string
+	namespace   string
 	composeFile string
 	spec        *v1beta2.StackSpec
 }
