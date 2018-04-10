@@ -55,9 +55,9 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 	dur := time.Second
 	opt := healthCheckOptions{
 		cmd:         "curl",
-		interval:    opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
-		timeout:     opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
-		startPeriod: opts.PositiveDurationOpt{*opts.NewDurationOpt(&dur)},
+		interval:    opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		timeout:     opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		startPeriod: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
 		retries:     10,
 	}
 	config, err := opt.toHealthConfig()

@@ -189,7 +189,7 @@ func mockDelegationRoleWithName(name string) data.DelegationRole {
 		data.RoleName(name),
 		notary.MinThreshold,
 	)
-	return data.DelegationRole{baseRole, []string{}}
+	return data.DelegationRole{BaseRole: baseRole, Paths: []string{}}
 }
 
 func TestMatchEmptySignatures(t *testing.T) {
