@@ -146,10 +146,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	expectedDriver := "foo"
 	expectedOpts := []network.IPAMConfig{
 		{
-			"192.168.4.0/24",
-			"192.168.4.0/24",
-			"192.168.4.1/24",
-			map[string]string{},
+			Subnet:     "192.168.4.0/24",
+			IPRange:    "192.168.4.0/24",
+			Gateway:    "192.168.4.1/24",
+			AuxAddress: map[string]string{},
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{

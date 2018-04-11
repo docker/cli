@@ -100,7 +100,7 @@ func TestGetExitStatus(t *testing.T) {
 		},
 		{
 			result: &container.ContainerWaitOKBody{
-				Error: &container.ContainerWaitOKBodyError{expectedErr.Error()},
+				Error: &container.ContainerWaitOKBodyError{Message: expectedErr.Error()},
 			},
 			expectedError: expectedErr,
 		},

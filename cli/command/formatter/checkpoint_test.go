@@ -38,9 +38,9 @@ checkpoint-3:
 	}
 
 	checkpoints := []types.Checkpoint{
-		{"checkpoint-1"},
-		{"checkpoint-2"},
-		{"checkpoint-3"},
+		{Name: "checkpoint-1"},
+		{Name: "checkpoint-2"},
+		{Name: "checkpoint-3"},
 	}
 	for _, testcase := range cases {
 		out := bytes.NewBufferString("")

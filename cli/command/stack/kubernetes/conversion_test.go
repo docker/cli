@@ -50,8 +50,8 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 				makeSwarmService("stack_service2", "uid2", nil),
 			},
 			map[string]formatter.ServiceListInfo{
-				"uid1": {"replicated", "2/5"},
-				"uid2": {"replicated", "3/3"},
+				"uid1": {Mode: "replicated", Replicas: "2/5"},
+				"uid2": {Mode: "replicated", Replicas: "3/3"},
 			},
 		},
 		// Headless service and LoadBalancer Service are tied to the same Swarm service
@@ -84,7 +84,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 				}),
 			},
 			map[string]formatter.ServiceListInfo{
-				"uid1": {"replicated", "1/1"},
+				"uid1": {Mode: "replicated", Replicas: "1/1"},
 			},
 		},
 		// Headless service and NodePort Service are tied to the same Swarm service
@@ -118,7 +118,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 				}),
 			},
 			map[string]formatter.ServiceListInfo{
-				"uid1": {"replicated", "1/1"},
+				"uid1": {Mode: "replicated", Replicas: "1/1"},
 			},
 		},
 	}

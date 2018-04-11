@@ -42,9 +42,9 @@ D: /usr/app/old_app.js
 	}
 
 	diffs := []container.ContainerChangeResponseItem{
-		{archive.ChangeModify, "/var/log/app.log"},
-		{archive.ChangeAdd, "/usr/app/app.js"},
-		{archive.ChangeDelete, "/usr/app/old_app.js"},
+		{Kind: archive.ChangeModify, Path: "/var/log/app.log"},
+		{Kind: archive.ChangeAdd, Path: "/usr/app/app.js"},
+		{Kind: archive.ChangeDelete, Path: "/usr/app/old_app.js"},
 	}
 
 	for _, testcase := range cases {
