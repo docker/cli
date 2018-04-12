@@ -14,9 +14,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{
-			"kubernetes": "",
-			"swarm":      "",
-			"version":    "1.25",
+			"version": "1.25",
 		},
 	}
 	cmd.AddCommand(
