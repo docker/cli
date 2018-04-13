@@ -248,6 +248,12 @@ func deployServices(
 				// service update.
 				serviceSpec.TaskTemplate.ContainerSpec.Image = service.Spec.TaskTemplate.ContainerSpec.Image
 			}
+
+			// Stack deploy does not have a `--force` option. Preserve existing ForceUpdate
+			// value so that tasks are not re-deployed if not updated.
+			// TODO move this to API client?
+			serviceSpec.TaskTemplate.ForceUpdate = service.Spec.TaskTemplate.ForceUpdate
+
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,
