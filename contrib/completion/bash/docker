@@ -1220,14 +1220,18 @@ _docker_config_create() {
 		--label|-l)
 			return
 			;;
+		--template-driver)
+			COMPREPLY=( $( compgen -W "golang" -- "$cur" ) )
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --label -l" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --label -l --template-driver" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--label|-l')
+			local counter=$(__docker_pos_first_nonflag '--label|-l|--template-driver')
 			if [ "$cword" -eq "$((counter + 1))" ]; then
 				_filedir
 			fi
@@ -4238,14 +4242,18 @@ _docker_secret_create() {
 		--driver|-d|--label|-l)
 			return
 			;;
+		--template-driver)
+			COMPREPLY=( $( compgen -W "golang" -- "$cur" ) )
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--driver -d --help --label -l" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--driver -d --help --label -l --template-driver" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--driver|-d|--label|-l')
+			local counter=$(__docker_pos_first_nonflag '--driver|-d|--label|-l|--template-driver')
 			if [ "$cword" -eq "$((counter + 1))" ]; then
 				_filedir
 			fi
