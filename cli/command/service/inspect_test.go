@@ -48,12 +48,18 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 						{
 							ConfigID:   "mtc3i44r1awdoziy2iceg73z8",
 							ConfigName: "configtest.conf",
+							File: &swarm.ConfigReferenceFileTarget{
+								Name: "/configtest.conf",
+							},
 						},
 					},
 					Secrets: []*swarm.SecretReference{
 						{
 							SecretID:   "3hv39ehbbb4hdozo7spod9ftn",
 							SecretName: "secrettest.conf",
+							File: &swarm.SecretReferenceFileTarget{
+								Name: "/secrettest.conf",
+							},
 						},
 					},
 				},
@@ -144,4 +150,11 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Check(t, is.DeepEqual(m1, m2))
+}
+
+func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
+	s := formatServiceInspect(t, formatter.NewServiceFormat("pretty"), time.Now())
+
+	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
+	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")
 }
