@@ -44,6 +44,18 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			TaskTemplate: swarm.TaskSpec{
 				ContainerSpec: &swarm.ContainerSpec{
 					Image: "foo/bar@sha256:this_is_a_test",
+					Configs: []*swarm.ConfigReference{
+						{
+							ConfigID:   "mtc3i44r1awdoziy2iceg73z8",
+							ConfigName: "configtest.conf",
+						},
+					},
+					Secrets: []*swarm.SecretReference{
+						{
+							SecretID:   "3hv39ehbbb4hdozo7spod9ftn",
+							SecretName: "secrettest.conf",
+						},
+					},
 				},
 				Networks: []swarm.NetworkAttachmentConfig{
 					{
