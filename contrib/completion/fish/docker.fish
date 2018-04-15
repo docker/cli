@@ -166,6 +166,8 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -a '(__fish_pri
 
 # cp
 complete -c docker -f -n '__fish_docker_no_subcommand' -a cp -d "Copy files/folders between a container and the local filesystem"
+complete -c docker -A -f -n '__fish_seen_subcommand_from cp' -s a -l archive -d 'Archive mode (copy all uid/gid information)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from cp' -s L -l follow-link -d 'Always follow symbol link in SRC_PATH'
 complete -c docker -A -f -n '__fish_seen_subcommand_from cp' -l help -d 'Print usage'
 
 # create
