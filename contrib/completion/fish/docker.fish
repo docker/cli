@@ -125,14 +125,35 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -a '(__fish_pri
 
 # build
 complete -c docker -f -n '__fish_docker_no_subcommand' -a build -d 'Build an image from a Dockerfile'
-complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s f -l file -d "Name of the Dockerfile(Default is 'Dockerfile' at context root)"
-complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l force-rm -d 'Always remove intermediate containers, even after unsuccessful builds'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l add-host -d 'Add a custom host-to-IP mapping (host:ip)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l build-arg -d 'Set build-time variables'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cache-from -d 'Images to consider as cache sources'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cgroup-parent -d 'Optional parent cgroup for the container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l compress -d 'Compress the build context using gzip'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpu-period -d 'Limit the CPU CFS (Completely Fair Scheduler) period'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpu-quota -d 'Limit the CPU CFS (Completely Fair Scheduler) quota'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s c -l cpu-shares -d 'CPU shares (relative weight)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpuset-cpus -d 'CPUs in which to allow execution (0-3, 0,1)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpuset-mems -d 'MEMs in which to allow execution (0-3, 0,1)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l disable-content-trust -d 'Skip image verification'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s f -l file -d "Name of the Dockerfile (Default is ‘PATH/Dockerfile’)"
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l force-rm -d 'Always remove intermediate containers'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l iddfile -d 'Write the image ID to the file'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l isolation -d 'Container isolation technology'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l label -d 'Set metadata for an image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s m -l memory -d 'Memory limit'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l memory-swap -d 'Swap limit equal to memory plus swap: ‘-1’ to enable unlimited swap'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l network -d 'Set the networking mode for the RUN instructions during build'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l no-cache -d 'Do not use cache when building the image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l pull -d 'Always attempt to pull a newer version of the image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s q -l quiet -d 'Suppress the build output and print image ID on success'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l rm -d 'Remove intermediate containers after a successful build'
-complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s t -l tag -d 'Repository name (and optionally a tag) to be applied to the resulting image in case of success'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l security-opt -d 'Security options'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l shm-size -d 'Size of /dev/shm'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s t -l tag -d 'Name and optionally a tag in the ‘name:tag’ format'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l target -d 'Set the target build stage to build'
+complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l ulimit -d 'Ulimit options'
 
 # commit
 complete -c docker -f -n '__fish_docker_no_subcommand' -a commit -d "Create a new image from a container's changes"
