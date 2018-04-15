@@ -116,10 +116,11 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -s v -l version -d 'Print
 
 # subcommands
 # attach
-complete -c docker -f -n '__fish_docker_no_subcommand' -a attach -d 'Attach to a running container'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a attach -d 'Attach local standard input, output, and error streams to a running container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l detach-keys -d 'Override the key sequence for detaching a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l no-stdin -d 'Do not attach STDIN'
-complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l sig-proxy -d 'Proxy all received signals to the process (non-TTY mode only). SIGCHLD, SIGKILL, and SIGSTOP are not proxied.'
+complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l sig-proxy -d 'Proxy all received signals to the process'
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # build
