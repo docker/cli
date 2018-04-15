@@ -158,6 +158,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l ulimit -d 'Ul
 # commit
 complete -c docker -f -n '__fish_docker_no_subcommand' -a commit -d "Create a new image from a container's changes"
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s a -l author -d 'Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")'
+complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s c -l change -d 'Apply Dockerfile instruction to the created image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s m -l message -d 'Commit message'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s p -l pause -d 'Pause container during commit'
