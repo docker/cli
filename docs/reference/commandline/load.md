@@ -35,7 +35,7 @@ bzip2, or xz) from a file or STDIN. It restores both images and tags.
 ## Examples
 
 ```bash
-$ docker docker image ls
+$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 
