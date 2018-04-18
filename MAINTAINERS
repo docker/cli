@@ -27,6 +27,7 @@
 			"cpuguy83",
 			"dnephin",
 			"justincormack",
+			"silvin-lubecki",
 			"stevvooe",
 			"tibor",
 			"tonistiigi",
@@ -102,6 +103,11 @@
 	Name = "Jeff Anderson"
 	Email = "jeff@docker.com"
 	GitHub = "programmerq"
+
+	[people.silvin-lubecki]
+	Name = "Silvin Lubecki"
+	Email = "silvin.lubecki@docker.com"
+	GitHub = "silvin-lubecki"
 
 	[people.stevvooe]
 	Name = "Stephen Day"
