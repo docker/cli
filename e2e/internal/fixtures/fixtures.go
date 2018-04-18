@@ -24,6 +24,7 @@ const (
 
 //SetupConfigFile creates a config.json file for testing
 func SetupConfigFile(t *testing.T) fs.Dir {
+	t.Helper()
 	dir := fs.NewDir(t, "trust_test", fs.WithMode(0700), fs.WithFile("config.json", `
 	{
 		"auths": {
@@ -97,12 +98,14 @@ func WithNotaryServer(notaryURL string) func(*icmd.Cmd) {
 // CreateMaskedTrustedRemoteImage creates a remote image that is signed with
 // content trust, then pushes a different untrusted image at the same tag.
 func CreateMaskedTrustedRemoteImage(t *testing.T, registryPrefix, repo, tag string) string {
+	t.Helper()
 	image := createTrustedRemoteImage(t, registryPrefix, repo, tag)
 	createNamedUnsignedImageFromBusyBox(t, image)
 	return image
 }
 
 func createTrustedRemoteImage(t *testing.T, registryPrefix, repo, tag string) string {
+	t.Helper()
 	image := fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tag)
 	icmd.RunCommand("docker", "image", "pull", AlpineImage).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "image", "tag", AlpineImage, image).Assert(t, icmd.Success)
@@ -115,6 +118,7 @@ func createTrustedRemoteImage(t *testing.T, registryPrefix, repo, tag string) st
 }
 
 func createNamedUnsignedImageFromBusyBox(t *testing.T, image string) {
+	t.Helper()
 	icmd.RunCommand("docker", "image", "pull", BusyboxImage).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "image", "tag", BusyboxImage, image).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "image", "push", image).Assert(t, icmd.Success)
