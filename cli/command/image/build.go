@@ -170,6 +170,10 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
+	if os.Getenv("DOCKER_BUILDKIT") == "1" {
+		return runBuildBuildKit(dockerCli, options)
+	}
+
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
