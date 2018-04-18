@@ -55,22 +55,15 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// unencryptedPrompt prompts the user to find out whether they want to continue
-// with insecure credential storage. If stdin is not a terminal, we assume they
-// want it (sadly), because people may have been scripting insecure logins and
-// we don't want to break them. Maybe they'll see the warning in their logs and
-// fix things.
-func unencryptedPrompt(dockerCli command.Streams, filename string) error {
-	fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, filename))
+// displayUnencryptedWarning warns the user when using an insecure credential storage.
+// After a deprecation period, user will get prompted if stdin and stderr are a terminal.
+// Otherwise, we'll assume they want it (sadly), because people may have been scripting
+// insecure logins and we don't want to break them. Maybe they'll see the warning in their
+// logs and fix things.
+func displayUnencryptedWarning(dockerCli command.Streams, filename string) error {
+	_, err := fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, filename))
 
-	if dockerCli.In().IsTerminal() {
-		if command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), "") {
-			return nil
-		}
-		return errors.Errorf("User refused unencrypted credentials storage.")
-	}
-
-	return nil
+	return err
 }
 
 type isFileStore interface {
@@ -146,7 +139,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 
 	store, isDefault := creds.(isFileStore)
 	if isDefault {
-		err = unencryptedPrompt(dockerCli, store.GetFilename())
+		err = displayUnencryptedWarning(dockerCli, store.GetFilename())
 		if err != nil {
 			return err
 		}
