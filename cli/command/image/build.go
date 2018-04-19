@@ -396,6 +396,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		Target:         options.target,
 		RemoteContext:  remote,
 		Platform:       options.platform,
+		Version:        types.BuilderV1,
 	}
 
 	if s != nil {
@@ -420,9 +421,9 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	defer response.Body.Close()
 
 	imageID := ""
-	aux := func(m jsonmessage.JSONMessage) {
+	aux := func(msg jsonmessage.JSONMessage) {
 		var result types.BuildResult
-		if err := json.Unmarshal(*m.Aux, &result); err != nil {
+		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
 			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
 		} else {
 			imageID = result.ID
