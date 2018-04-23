@@ -9,6 +9,7 @@ import (
 
 // Assert checks wether the output contains the specified lines
 func Assert(t *testing.T, actual string, expectedLines map[int]func(string) error) {
+	t.Helper()
 	for i, line := range strings.Split(actual, "\n") {
 		cmp, ok := expectedLines[i]
 		if !ok {
