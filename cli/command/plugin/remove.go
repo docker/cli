@@ -40,7 +40,6 @@ func runRemove(dockerCli command.Cli, opts *rmOptions) error {
 
 	var errs cli.Errors
 	for _, name := range opts.plugins {
-		// TODO: pass names to api instead of making multiple api calls
 		if err := dockerCli.Client().PluginRemove(ctx, name, types.PluginRemoveOptions{Force: opts.force}); err != nil {
 			errs = append(errs, err)
 			continue

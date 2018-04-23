@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/gotestyourself/gotestyourself/env"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -44,26 +45,13 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	customVersion := "v3.3.3"
-	defer patchEnvVariable(t, "DOCKER_API_VERSION", customVersion)()
+	defer env.Patch(t, "DOCKER_API_VERSION", customVersion)()
 
 	opts := &flags.CommonOptions{}
 	configFile := &configfile.ConfigFile{}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(customVersion, apiclient.ClientVersion()))
-}
-
-// TODO: use gotestyourself/env.Patch
-func patchEnvVariable(t *testing.T, key, value string) func() {
-	oldValue, ok := os.LookupEnv(key)
-	assert.NilError(t, os.Setenv(key, value))
-	return func() {
-		if !ok {
-			assert.NilError(t, os.Unsetenv(key))
-			return
-		}
-		assert.NilError(t, os.Setenv(key, oldValue))
-	}
 }
 
 type fakeClient struct {
@@ -260,7 +248,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 				version: defaultVersion,
 			}
 			if testcase.envOrchestrator != "" {
-				defer patchEnvVariable(t, "DOCKER_ORCHESTRATOR", testcase.envOrchestrator)()
+				defer env.Patch(t, "DOCKER_ORCHESTRATOR", testcase.envOrchestrator)()
 			}
 
 			cli := &DockerCli{client: apiclient, err: os.Stderr}

@@ -124,9 +124,8 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCli, opts.remote),
-		// TODO: Rename PrivilegeFunc, it has nothing to do with privileges
-		PrivilegeFunc: registryAuthFunc,
-		Args:          opts.args,
+		PrivilegeFunc:         registryAuthFunc,
+		Args:                  opts.args,
 	}
 	return options, nil
 }

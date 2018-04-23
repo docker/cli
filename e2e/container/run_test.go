@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
-	shlex "github.com/flynn-archive/go-shlex"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
@@ -17,8 +16,8 @@ const registryPrefix = "registry:5000"
 func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 	image := createRemoteImage(t)
 
-	result := icmd.RunCmd(shell(t,
-		"docker run --rm %s echo this is output", image))
+	result := icmd.RunCommand("docker", "run", "--rm", image,
+		"echo", "this", "is", "output")
 
 	result.Assert(t, icmd.Success)
 	assert.Check(t, is.Equal("this is output\n", result.Stdout()))
@@ -53,11 +52,4 @@ func createRemoteImage(t *testing.T) string {
 	icmd.RunCommand("docker", "push", image).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
 	return image
-}
-
-// TODO: move to gotestyourself
-func shell(t *testing.T, format string, args ...interface{}) icmd.Cmd {
-	cmd, err := shlex.Split(fmt.Sprintf(format, args...))
-	assert.NilError(t, err)
-	return icmd.Cmd{Command: cmd}
 }
