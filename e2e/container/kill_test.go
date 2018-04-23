@@ -32,17 +32,14 @@ func TestKillContainer(t *testing.T) {
 }
 
 func runBackgroundTop(t *testing.T) string {
-	result := icmd.RunCmd(shell(t,
-		"docker run -d %s top", fixtures.AlpineImage))
+	result := icmd.RunCommand("docker", "run", "-d", fixtures.AlpineImage, "top")
 	result.Assert(t, icmd.Success)
 	return strings.TrimSpace(result.Stdout())
 }
 
 func containerStatus(t *testing.T, containerID, status string) func(poll.LogT) poll.Result {
 	return func(poll.LogT) poll.Result {
-		result := icmd.RunCmd(
-			shell(t, "docker inspect -f '{{ .State.Status }}' %s", containerID),
-		)
+		result := icmd.RunCommand("docker", "inspect", "-f", "{{ .State.Status }}", containerID)
 		result.Assert(t, icmd.Success)
 		actual := strings.TrimSpace(result.Stdout())
 		if actual == status {
