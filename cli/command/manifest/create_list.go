@@ -30,7 +30,7 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&opts.insecure, "insecure", false, "allow communication with an insecure registry")
+	flags.BoolVar(&opts.insecure, "insecure", false, "Allow communication with an insecure registry")
 	flags.BoolVarP(&opts.amend, "amend", "a", false, "Amend an existing manifest list")
 	return cmd
 }

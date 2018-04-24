@@ -44,7 +44,7 @@ an image name in `docker pull` and `docker run` commands, for example.
 
 Ideally a manifest list is created from images that are identical in function for
 different os/arch combinations. For this reason, manifest lists are often referred to as
-"multi-arch images." However, a user could create a manifest list that points
+"multi-arch images". However, a user could create a manifest list that points
 to two images -- one for windows on amd64, and one for darwin on amd64.
 
 ### manifest inspect
@@ -54,11 +54,11 @@ manifest inspect --help
 
 Usage:  docker manifest inspect [OPTIONS] [MANIFEST_LIST] MANIFEST
 
-isplay an image manifest, or manifest list
+Display an image manifest, or manifest list
 
 Options:
       --help       Print usage
-      --insecure   allow communication with an insecure registry
+      --insecure   Allow communication with an insecure registry
   -v, --verbose    Output additional info including layers and platform
 ```
 
@@ -70,9 +70,9 @@ Usage:  docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]
 Create a local manifest list for annotating and pushing to a registry
 
 Options:
-  -a, --amend   Amend an existing manifest list
-      --insecure   allow communication with an insecure registry
-      --help    Print usage
+  -a, --amend      Amend an existing manifest list
+      --insecure   Allow communication with an insecure registry
+      --help       Print usage
 ```
 
 ### manifest annotate
@@ -97,9 +97,9 @@ Usage:  docker manifest push [OPTIONS] MANIFEST_LIST
 Push a manifest list to a repository
 
 Options:
-      --help    Print usage
-      --insecure   allow push to an insecure registry
-  -p, --purge   Remove the local manifest list after push
+      --help       Print usage
+      --insecure   Allow push to an insecure registry
+  -p, --purge      Remove the local manifest list after push
 ```
 
 ### Working with insecure registries
@@ -108,7 +108,7 @@ The manifest command interacts solely with a Docker registry. Because of this, i
 
 ## Examples
 
-### inspect an image's manifest object
+### Inspect an image's manifest object
  
 ```bash
 $ docker manifest inspect hello-world
@@ -141,7 +141,7 @@ without a tag, or by digest (e.g. hello-world@sha256:f3b3b28a45160805bb16542c953
 Here is an example of inspecting an image's manifest with the `--verbose` flag:
 
 ```bash
-$ docker manifest inspect -v hello-world
+$ docker manifest inspect --verbose hello-world
 {
         "Ref": "docker.io/library/hello-world:latest",
         "Digest": "sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f",
