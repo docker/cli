@@ -64,8 +64,23 @@ dn7m7nhhfb9y  myapp_db        1/1       mysql@sha256:a9a5b559f8821fe73d58c3606c8
 The currently supported filters are:
 
 * id / ID (`--filter id=7be5ei6sqeye`, or `--filter ID=7be5ei6sqeye`)
-* name (`--filter name=myapp_web`)
+  * Swarm: supported
+  * Kubernetes: not supported
 * label (`--filter label=key=value`)
+  * Swarm: supported
+  * Kubernetes: supported
+* mode (`--filter mode=replicated`, or `--filter mode=global`)
+  * Swarm: not supported
+  * Kubernetes: supported
+* name (`--filter name=myapp_web`)
+  * Swarm: supported
+  * Kubernetes: supported
+* node (`--filter node=mynode`)
+  * Swarm: not supported
+  * Kubernetes: supported
+* service (`--filter service=web`)
+  * Swarm: not supported
+  * Kubernetes: supported
 
 ### Formatting
 
