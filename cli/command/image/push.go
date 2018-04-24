@@ -1,6 +1,9 @@
 package image
 
 import (
+	"fmt"
+	"strings"
+
 	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
@@ -12,7 +15,6 @@ import (
 )
 
 type pushOptions struct {
-	remote    string
 	untrusted bool
 }
 
@@ -21,12 +23,11 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	var opts pushOptions
 
 	cmd := &cobra.Command{
-		Use:   "push [OPTIONS] NAME[:TAG]",
-		Short: "Push an image or a repository to a registry",
-		Args:  cli.ExactArgs(1),
+		Use:   "push [OPTIONS] NAME[:TAG] [NAME[:TAG]...]",
+		Short: "Push images or a repository to a registry",
+		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.remote = args[0]
-			return runPush(dockerCli, opts)
+			return pushImages(dockerCli, args, opts)
 		},
 	}
 
@@ -37,8 +38,35 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, opts pushOptions) error {
-	ref, err := reference.ParseNormalizedNamed(opts.remote)
+func pushImages(dockerCli command.Cli, remotes []string, opts pushOptions) error {
+	errChan := make(chan error, len(remotes))
+	defer close(errChan)
+
+	ctx := context.Background()
+
+	for _, r := range remotes {
+		go func(remote string) {
+			errChan <- runPush(ctx, dockerCli, remote, opts)
+		}(r)
+	}
+
+	var errMessages []string
+	for range remotes {
+		err := <-errChan
+		if err != nil {
+			errMessages = append(errMessages, err.Error())
+		}
+	}
+
+	if len(errMessages) > 0 {
+		return fmt.Errorf("%s", strings.Join(errMessages, "\n"))
+	}
+
+	return nil
+}
+
+func runPush(ctx context.Context, dockerCli command.Cli, remote string, opts pushOptions) error {
+	ref, err := reference.ParseNormalizedNamed(remote)
 	if err != nil {
 		return err
 	}
@@ -48,8 +76,6 @@ func runPush(dockerCli command.Cli, opts pushOptions) error {
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
