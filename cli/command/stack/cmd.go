@@ -1,10 +1,14 @@
 package stack
 
 import (
+	"fmt"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
 )
+
+var errUnsupportedAllOrchestrator = fmt.Errorf(`no orchestrator specified: use either "kubernetes" or "swarm"`)
 
 // NewStackCommand returns a cobra command for `stack` subcommands
 func NewStackCommand(dockerCli command.Cli) *cobra.Command {

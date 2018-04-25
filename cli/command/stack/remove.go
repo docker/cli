@@ -19,14 +19,18 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespaces = args
-			if dockerCli.ClientInfo().HasKubernetes() {
+			switch {
+			case dockerCli.ClientInfo().HasAll():
+				return errUnsupportedAllOrchestrator
+			case dockerCli.ClientInfo().HasKubernetes():
 				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
 				if err != nil {
 					return err
 				}
 				return kubernetes.RunRemove(kli, opts)
+			default:
+				return swarm.RunRemove(dockerCli, opts)
 			}
-			return swarm.RunRemove(dockerCli, opts)
 		},
 	}
 	return cmd

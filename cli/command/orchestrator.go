@@ -13,6 +13,8 @@ const (
 	OrchestratorKubernetes = Orchestrator("kubernetes")
 	// OrchestratorSwarm orchestrator
 	OrchestratorSwarm = Orchestrator("swarm")
+	// OrchestratorAll orchestrator
+	OrchestratorAll   = Orchestrator("all")
 	orchestratorUnset = Orchestrator("unset")
 
 	defaultOrchestrator      = OrchestratorSwarm
@@ -27,8 +29,10 @@ func normalize(value string) (Orchestrator, error) {
 		return OrchestratorSwarm, nil
 	case "":
 		return orchestratorUnset, nil
+	case "all":
+		return OrchestratorAll, nil
 	default:
-		return defaultOrchestrator, fmt.Errorf("specified orchestrator %q is invalid, please use either kubernetes or swarm", value)
+		return defaultOrchestrator, fmt.Errorf("specified orchestrator %q is invalid, please use either kubernetes, swarm or all", value)
 	}
 }
 

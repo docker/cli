@@ -2,48 +2,18 @@ package swarm
 
 import (
 	"context"
-	"sort"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"vbom.ml/util/sortorder"
 )
 
-// RunList is the swarm implementation of docker stack ls
-func RunList(dockerCli command.Cli, opts options.List) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
-
-	stacks, err := getStacks(ctx, client)
-	if err != nil {
-		return err
-	}
-	format := opts.Format
-	if format == "" || format == formatter.TableFormatKey {
-		format = formatter.SwarmStackTableFormat
-	}
-	stackCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: formatter.Format(format),
-	}
-	sort.Sort(byName(stacks))
-	return formatter.StackWrite(stackCtx, stacks)
-}
-
-type byName []*formatter.Stack
-
-func (n byName) Len() int           { return len(n) }
-func (n byName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
-func (n byName) Less(i, j int) bool { return sortorder.NaturalLess(n[i].Name, n[j].Name) }
-
-func getStacks(ctx context.Context, apiclient client.APIClient) ([]*formatter.Stack, error) {
-	services, err := apiclient.ServiceList(
-		ctx,
+// GetStacks lists the swarm stacks.
+func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
+	services, err := dockerCli.Client().ServiceList(
+		context.Background(),
 		types.ServiceListOptions{Filters: getAllStacksFilter()})
 	if err != nil {
 		return nil, err

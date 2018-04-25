@@ -19,14 +19,18 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
-			if dockerCli.ClientInfo().HasKubernetes() {
+			switch {
+			case dockerCli.ClientInfo().HasAll():
+				return errUnsupportedAllOrchestrator
+			case dockerCli.ClientInfo().HasKubernetes():
 				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
 				if err != nil {
 					return err
 				}
 				return kubernetes.RunDeploy(kli, opts)
+			default:
+				return swarm.RunDeploy(dockerCli, opts)
 			}
-			return swarm.RunDeploy(dockerCli, opts)
 		},
 	}
 

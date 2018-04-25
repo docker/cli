@@ -171,6 +171,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 		flagOrchestrator     string
 		expectedOrchestrator string
 		expectedKubernetes   bool
+		expectedSwarm        bool
 	}{
 		{
 			doc: "default",
@@ -179,6 +180,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			}`,
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
+			expectedSwarm:        true,
 		},
 		{
 			doc: "kubernetesIsExperimental",
@@ -190,6 +192,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			flagOrchestrator:     "kubernetes",
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
+			expectedSwarm:        true,
 		},
 		{
 			doc: "kubernetesConfigFile",
@@ -199,6 +202,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			}`,
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
+			expectedSwarm:        false,
 		},
 		{
 			doc: "kubernetesEnv",
@@ -208,6 +212,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			envOrchestrator:      "kubernetes",
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
+			expectedSwarm:        false,
 		},
 		{
 			doc: "kubernetesFlag",
@@ -217,6 +222,17 @@ func TestOrchestratorSwitch(t *testing.T) {
 			flagOrchestrator:     "kubernetes",
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
+			expectedSwarm:        false,
+		},
+		{
+			doc: "allOrchestratorFlag",
+			configfile: `{
+				"experimental": "enabled"
+			}`,
+			flagOrchestrator:     "all",
+			expectedOrchestrator: "all",
+			expectedKubernetes:   true,
+			expectedSwarm:        true,
 		},
 		{
 			doc: "envOverridesConfigFile",
@@ -227,6 +243,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			envOrchestrator:      "swarm",
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
+			expectedSwarm:        true,
 		},
 		{
 			doc: "flagOverridesEnv",
@@ -237,6 +254,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			flagOrchestrator:     "swarm",
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
+			expectedSwarm:        true,
 		},
 	}
 
@@ -260,6 +278,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			err := cli.Initialize(options)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedKubernetes, cli.ClientInfo().HasKubernetes()))
+			assert.Check(t, is.Equal(testcase.expectedSwarm, cli.ClientInfo().HasSwarm()))
 			assert.Check(t, is.Equal(testcase.expectedOrchestrator, string(cli.ClientInfo().Orchestrator)))
 		})
 	}
