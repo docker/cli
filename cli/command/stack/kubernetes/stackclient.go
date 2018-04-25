@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/docker/cli/cli/compose/loader"
+	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	composev1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
 	composev1beta2 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta2"
+	v1beta1types "github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/docker/cli/kubernetes/labels"
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -105,6 +109,7 @@ func verify(services corev1.ServiceInterface, stackName string, service string) 
 }
 
 func (s *stackV1Beta1) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (stack, error) {
+	cfg.Version = v1beta1types.MaxComposeVersion
 	st, err := fromCompose(stderr, name, cfg)
 	if err != nil {
 		return stack{}, err
@@ -113,6 +118,15 @@ func (s *stackV1Beta1) FromCompose(stderr io.Writer, name string, cfg *composety
 	if err != nil {
 		return stack{}, err
 	}
+	// reload the result to check that it produced a valid 3.5 compose file
+	resparsedConfig, err := loader.ParseYAML(res)
+	if err != nil {
+		return stack{}, err
+	}
+	if err = schema.Validate(resparsedConfig, v1beta1types.MaxComposeVersion); err != nil {
+		return stack{}, errors.Wrapf(err, "the compose yaml file is invalid with v%s", v1beta1types.MaxComposeVersion)
+	}
+
 	st.composeFile = string(res)
 	return st, nil
 }
