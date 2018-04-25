@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-connections/nat"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -147,6 +148,9 @@ func ConvertPortToPortConfig(
 	ports := []swarm.PortConfig{}
 
 	for _, binding := range portBindings[port] {
+		if binding.HostIP != "" && binding.HostIP != "0.0.0.0" {
+			logrus.Warnf("ignoring IP-address (%s:%s:%s) service will listen on '0.0.0.0'", binding.HostIP, binding.HostPort, port)
+		}
 		hostPort, err := strconv.ParseUint(binding.HostPort, 10, 16)
 		if err != nil && binding.HostPort != "" {
 			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%s)", binding.HostPort, port.Port())
