@@ -19,7 +19,7 @@ func TestDeployWithNamedResources(t *testing.T) {
 
 	result.Assert(t, icmd.Success)
 	stdout := strings.Split(result.Stdout(), "\n")
-	expected := strings.Split(string(golden.Get(t, "stack-deploy-with-nanes.golden")), "\n")
+	expected := strings.Split(string(golden.Get(t, "stack-deploy-with-names.golden")), "\n")
 	sort.Strings(stdout)
 	sort.Strings(expected)
 	assert.DeepEqual(t, stdout, expected)
