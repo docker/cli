@@ -33,5 +33,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			}
 		},
 	}
+	flags := cmd.Flags()
+	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }

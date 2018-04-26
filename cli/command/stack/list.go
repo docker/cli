@@ -28,7 +28,10 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print stacks using a Go template")
-	flags.BoolVarP(&opts.AllNamespaces, "all-namespaces", "", false, "List stacks among all Kubernetes namespaces")
+	flags.StringSliceVar(&opts.Namespaces, "namespace", []string{}, "Kubernetes namespaces to use")
+	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.SetAnnotation("namespace", "experimentalCLI", nil)
+	flags.BoolVarP(&opts.AllNamespaces, "all-namespaces", "", false, "List stacks from all Kubernetes namespaces")
 	flags.SetAnnotation("all-namespaces", "kubernetes", nil)
 	flags.SetAnnotation("all-namespaces", "experimentalCLI", nil)
 	return cmd
@@ -44,16 +47,16 @@ func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error
 		stacks = append(stacks, ss...)
 	}
 	if dockerCli.ClientInfo().HasKubernetes() {
-		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
-		if err != nil {
-			return err
-		}
-		ss, err := kubernetes.GetStacks(kli, opts)
+		ss, err := kubernetes.GetStacks(dockerCli, opts, kubernetes.NewOptions(cmd.Flags()))
 		if err != nil {
 			return err
 		}
 		stacks = append(stacks, ss...)
 	}
+	return format(dockerCli, opts, stacks)
+}
+
+func format(dockerCli command.Cli, opts options.List, stacks []*formatter.Stack) error {
 	format := opts.Format
 	if format == "" || format == formatter.TableFormatKey {
 		format = formatter.SwarmStackTableFormat
@@ -66,7 +69,9 @@ func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error
 		Format: formatter.Format(format),
 	}
 	sort.Slice(stacks, func(i, j int) bool {
-		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name)
+		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name) ||
+			!sortorder.NaturalLess(stacks[j].Name, stacks[i].Name) &&
+				sortorder.NaturalLess(stacks[j].Namespace, stacks[i].Namespace)
 	})
 	return formatter.StackWrite(stackCtx, stacks)
 }

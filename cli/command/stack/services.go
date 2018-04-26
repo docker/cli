@@ -38,6 +38,6 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print services using a Go template")
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
 	flags.SetAnnotation("filter", "swarm", nil)
-
+	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }

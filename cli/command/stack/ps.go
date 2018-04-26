@@ -40,6 +40,6 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("filter", "swarm", nil)
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display task IDs")
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print tasks using a Go template")
-
+	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }

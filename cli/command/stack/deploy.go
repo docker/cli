@@ -49,5 +49,6 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	flags.SetAnnotation("resolve-image", "swarm", nil)
+	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }
