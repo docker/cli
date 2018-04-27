@@ -13,7 +13,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-type pullOptions struct {
+// PullOptions defines what and how to pull
+type PullOptions struct {
 	remote    string
 	all       bool
 	platform  string
@@ -22,7 +23,7 @@ type pullOptions struct {
 
 // NewPullCommand creates a new `docker pull` command
 func NewPullCommand(dockerCli command.Cli) *cobra.Command {
-	var opts pullOptions
+	var opts PullOptions
 
 	cmd := &cobra.Command{
 		Use:   "pull [OPTIONS] NAME[:TAG|@DIGEST]",
@@ -30,7 +31,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runPull(dockerCli, opts)
+			return RunPull(dockerCli, opts)
 		},
 	}
 
@@ -44,7 +45,8 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPull(cli command.Cli, opts pullOptions) error {
+// RunPull performs a pull against the engine based on the specified options
+func RunPull(cli command.Cli, opts PullOptions) error {
 	distributionRef, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
