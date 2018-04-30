@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	defaultStackTableFormat = "table {{.Name}}\t{{.Services}}"
+	defaultStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
 
-	stackServicesHeader = "SERVICES"
+	stackServicesHeader      = "SERVICES"
+	stackOrchestrastorHeader = "ORCHESTRATOR"
 )
 
 // Stack contains deployed stack information.
@@ -16,6 +17,8 @@ type Stack struct {
 	Name string
 	// Services is the number of the services
 	Services int
+	// Orchestratort is the platform on which the stack is deployed
+	Orchestrator string
 }
 
 // NewStackFormat returns a format for use with a stack Context
@@ -48,8 +51,9 @@ type stackContext struct {
 func newStackContext() *stackContext {
 	stackCtx := stackContext{}
 	stackCtx.header = map[string]string{
-		"Name":     nameHeader,
-		"Services": stackServicesHeader,
+		"Name":         nameHeader,
+		"Services":     stackServicesHeader,
+		"Orchestrator": stackOrchestrastorHeader,
 	}
 	return &stackCtx
 }
@@ -64,4 +68,8 @@ func (s *stackContext) Name() string {
 
 func (s *stackContext) Services() string {
 	return strconv.Itoa(s.s.Services)
+}
+
+func (s *stackContext) Orchestrator() string {
+	return s.s.Orchestrator
 }

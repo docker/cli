@@ -59,8 +59,9 @@ func getStacks(ctx context.Context, apiclient client.APIClient) ([]*formatter.St
 		ztack, ok := m[name]
 		if !ok {
 			m[name] = &formatter.Stack{
-				Name:     name,
-				Services: 1,
+				Name:         name,
+				Services:     1,
+				Orchestrator: "Swarm",
 			}
 		} else {
 			ztack.Services++
