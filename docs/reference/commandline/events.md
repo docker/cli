@@ -48,6 +48,7 @@ Docker containers report the following events:
 - `die`
 - `exec_create`
 - `exec_detach`
+- `exec_die`
 - `exec_start`
 - `export`
 - `health_status`
