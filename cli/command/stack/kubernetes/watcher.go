@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/docker/cli/kubernetes/labels"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,10 +16,10 @@ type DeployWatcher struct {
 }
 
 // Watch watches a stuck deployement and return a chan that will holds the state of the stack
-func (w DeployWatcher) Watch(stack *apiv1beta1.Stack, serviceNames []string) chan bool {
+func (w DeployWatcher) Watch(name string, serviceNames []string) chan bool {
 	stop := make(chan bool)
 
-	go w.waitForPods(stack.Name, serviceNames, stop)
+	go w.waitForPods(name, serviceNames, stop)
 
 	return stop
 }
