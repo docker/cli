@@ -102,7 +102,7 @@ func getHTTPTransport(authConfig authtypes.AuthConfig, endpoint registry.APIEndp
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, passThruTokenHandler))
 	} else {
 		creds := registry.NewStaticCredentialStore(&authConfig)
-		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, "*")
+		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, "push", "pull")
 		basicHandler := auth.NewBasicHandler(creds)
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
 	}
