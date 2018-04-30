@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"io"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,7 +38,7 @@ func stackFromV1beta1(in *v1beta1.Stack) (stack, error) {
 	return stack{
 		name:        in.ObjectMeta.Name,
 		composeFile: in.Spec.ComposeFile,
-		spec:        fromComposeConfig(cfg),
+		spec:        fromComposeConfig(ioutil.Discard, cfg),
 	}, nil
 }
 
@@ -67,10 +69,11 @@ func stackToV1beta2(s stack) *v1beta2.Stack {
 	}
 }
 
-func fromComposeConfig(c *composeTypes.Config) *v1beta2.StackSpec {
+func fromComposeConfig(stderr io.Writer, c *composeTypes.Config) *v1beta2.StackSpec {
 	if c == nil {
 		return nil
 	}
+	warnUnsupportedFeatures(stderr, c)
 	serviceConfigs := make([]v1beta2.ServiceConfig, len(c.Services))
 	for i, s := range c.Services {
 		serviceConfigs[i] = fromComposeServiceConfig(s)

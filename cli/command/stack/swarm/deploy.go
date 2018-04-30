@@ -75,7 +75,7 @@ func pruneServices(ctx context.Context, dockerCli command.Cli, namespace convert
 
 	oldServices, err := getServices(ctx, client, namespace.Name())
 	if err != nil {
-		fmt.Fprintf(dockerCli.Err(), "Failed to list services: %s", err)
+		fmt.Fprintf(dockerCli.Err(), "Failed to list services: %s\n", err)
 	}
 
 	pruneServices := []swarm.Service{}
