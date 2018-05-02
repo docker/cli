@@ -1,6 +1,10 @@
 package kubernetes
 
 import (
+	"fmt"
+	"net"
+	"net/url"
+
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
 	flag "github.com/spf13/pflag"
@@ -69,9 +73,43 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	}
 	cli.clientSet = clientSet
 
+	if dockerCli.ClientInfo().HasAll() {
+		if err := cli.checkHostsMatch(); err != nil {
+			return nil, err
+		}
+	}
 	return cli, nil
 }
 
 func (c *KubeCli) composeClient() (*Factory, error) {
 	return NewFactory(c.kubeNamespace, c.kubeConfig, c.clientSet)
+}
+
+func (c *KubeCli) checkHostsMatch() error {
+	daemonEndpoint, err := url.Parse(c.Client().DaemonHost())
+	if err != nil {
+		return err
+	}
+	kubeEndpoint, err := url.Parse(c.kubeConfig.Host)
+	if err != nil {
+		return err
+	}
+	if daemonEndpoint.Hostname() == kubeEndpoint.Hostname() {
+		return nil
+	}
+	// The daemon can be local in Docker for Desktop, e.g. "npipe", "unix", ...
+	if daemonEndpoint.Scheme != "tcp" {
+		ips, err := net.LookupIP(kubeEndpoint.Hostname())
+		if err != nil {
+			return err
+		}
+		for _, ip := range ips {
+			if ip.IsLoopback() {
+				return nil
+			}
+		}
+	}
+	fmt.Fprintf(c.Err(), "WARNING: Swarm and Kubernetes hosts do not match (docker host=%s, kubernetes host=%s).\n"+
+		"         Update $DOCKER_HOST (or pass -H), or use 'kubectl config use-context' to match.\n", daemonEndpoint.Hostname(), kubeEndpoint.Hostname())
+	return nil
 }
