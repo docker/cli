@@ -283,9 +283,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l until -d 'St
 # exec
 complete -c docker -f -n '__fish_docker_no_subcommand' -a exec -d 'Run a command in a running container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s d -l detach -d 'Detached mode: run command in the background'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l detach-keys -d 'Override the key sequence for detaching a container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s e -l env -d 'Set environment variables'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s i -l interactive -d 'Keep STDIN open even if not attached'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l privileged -d 'Give extended privileges to the command'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s t -l tty -d 'Allocate a pseudo-TTY'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s u -l user -d 'Username or UID (format: <name|uid>[:<group|gid>])'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s w -l workdir -d 'Working directory inside the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print_docker_containers running)' -d "Container"
 
