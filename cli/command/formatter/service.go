@@ -97,6 +97,18 @@ Mounts:
    ReadOnly = {{ $mount.ReadOnly }}
    Type = {{ $mount.Type }}
 {{- end -}}
+{{- if .Configs}}
+Configs:
+{{- range $config := .Configs }}
+ Target:	{{$config.File.Name}}
+  Source:	{{$config.ConfigName}}
+{{- end }}{{ end }}
+{{- if .Secrets }}
+Secrets:
+{{- range $secret := .Secrets }}
+ Target:	{{$secret.File.Name}}
+  Source:	{{$secret.SecretName}}
+{{- end }}{{ end }}
 {{- if .HasResources }}
 Resources:
 {{- if .HasResourceReservations }}
@@ -198,6 +210,14 @@ func (ctx *serviceInspectContext) Name() string {
 
 func (ctx *serviceInspectContext) Labels() map[string]string {
 	return ctx.Service.Spec.Labels
+}
+
+func (ctx *serviceInspectContext) Configs() []*swarm.ConfigReference {
+	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Configs
+}
+
+func (ctx *serviceInspectContext) Secrets() []*swarm.SecretReference {
+	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Secrets
 }
 
 func (ctx *serviceInspectContext) IsModeGlobal() bool {
