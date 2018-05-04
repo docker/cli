@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/hex"
 
 	"github.com/docker/cli/cli/command"
@@ -12,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/data"
-	"golang.org/x/net/context"
 )
 
 func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm.ServiceSpec) error {

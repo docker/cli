@@ -2,13 +2,12 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"sort"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"

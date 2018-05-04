@@ -1,13 +1,13 @@
 package swarm
 
 import (
+	"context"
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type notFound struct {

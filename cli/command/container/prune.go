@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/opts"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type pruneOptions struct {

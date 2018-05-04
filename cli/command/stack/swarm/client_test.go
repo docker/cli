@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"strings"
 
 	"github.com/docker/cli/cli/compose/convert"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 )
 
 type fakeClient struct {

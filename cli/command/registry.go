@@ -2,6 +2,7 @@ package command
 
 import (
 	"bufio"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -16,7 +17,6 @@ import (
 	"github.com/docker/docker/pkg/term"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // ElectAuthServer returns the default registry to use (by asking the daemon)

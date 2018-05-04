@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net"
@@ -31,7 +32,6 @@ import (
 	"github.com/theupdateframework/notary/trustpinning"
 	"github.com/theupdateframework/notary/tuf/data"
 	"github.com/theupdateframework/notary/tuf/signed"
-	"golang.org/x/net/context"
 )
 
 var (

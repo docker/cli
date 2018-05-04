@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"context"
 	"os"
 	"sort"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {

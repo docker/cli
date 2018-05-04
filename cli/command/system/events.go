@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,7 +17,6 @@ import (
 	"github.com/docker/docker/api/types"
 	eventtypes "github.com/docker/docker/api/types/events"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type eventsOptions struct {

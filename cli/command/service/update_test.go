@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sort"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"golang.org/x/net/context"
 )
 
 func TestUpdateServiceArgs(t *testing.T) {

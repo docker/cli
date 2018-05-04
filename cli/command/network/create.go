@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type createOptions struct {

@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -17,7 +18,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/golden"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func newTempManifestStore(t *testing.T) (store.Store, func()) {

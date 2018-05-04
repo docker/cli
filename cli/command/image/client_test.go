@@ -1,6 +1,7 @@
 package image
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 )
 
 type fakeClient struct {

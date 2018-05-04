@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sort"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type infoOptions struct {

@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/docker/cli/cli/command"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 func waitExitOrRemoved(ctx context.Context, dockerCli command.Cli, containerID string, waitRemove bool) <-chan int {

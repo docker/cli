@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type logsOptions struct {

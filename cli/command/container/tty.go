@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"os"
 	gosignal "os/signal"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 // resizeTtyTo resizes tty to specific height and width

@@ -1,7 +1,7 @@
 package image
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"

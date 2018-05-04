@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"runtime"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/term"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 // The default escape key sequence: ctrl-p, ctrl-q

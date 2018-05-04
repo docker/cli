@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"sort"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 	"vbom.ml/util/sortorder"
 )
 

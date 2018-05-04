@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"text/template"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type pruneOptions struct {

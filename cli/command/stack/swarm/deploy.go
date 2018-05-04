@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli/command"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // Resolve image constants

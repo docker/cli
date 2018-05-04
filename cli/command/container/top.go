@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"text/tabwriter"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type topOptions struct {

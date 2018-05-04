@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"io"
 	"net"
 	"net/http"
@@ -28,7 +29,6 @@ import (
 	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
-	"golang.org/x/net/context"
 )
 
 // Streams is an interface which exposes the standard input and output streams

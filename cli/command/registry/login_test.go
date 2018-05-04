@@ -2,6 +2,7 @@ package registry
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
-	"golang.org/x/net/context"
 )
 
 const userErr = "userunknownError"

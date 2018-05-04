@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"io"
 	"io/ioutil"
 	"os"
@@ -19,7 +20,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/skip"
-	"golang.org/x/net/context"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {

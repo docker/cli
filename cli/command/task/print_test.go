@@ -1,13 +1,13 @@
 package task
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/internal/test"
-	"golang.org/x/net/context"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"

@@ -1,6 +1,7 @@
 package image
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -19,7 +20,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
-	"golang.org/x/net/context"
 )
 
 type target struct {

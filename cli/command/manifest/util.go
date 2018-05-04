@@ -1,11 +1,12 @@
 package manifest
 
 import (
+	"context"
+
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
-	"golang.org/x/net/context"
 )
 
 type osArch struct {
