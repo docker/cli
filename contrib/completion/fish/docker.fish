@@ -321,6 +321,8 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from images' -a '(__fish_pri
 
 # import
 complete -c docker -f -n '__fish_docker_no_subcommand' -a import -d 'Create a new filesystem image from the contents of a tarball'
+complete -c docker -A -f -n '__fish_seen_subcommand_from import' -s c -l change -d 'Apply Dockerfile instruction to the created image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from import' -s m -l message -d 'Set commit message for imported image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from import' -l help -d 'Print usage'
 
 # info
