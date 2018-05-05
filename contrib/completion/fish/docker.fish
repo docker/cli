@@ -310,8 +310,10 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_pr
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (by default filter out the intermediate image layers)'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d "Provide filter values (i.e., 'dangling=true')"
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (default hides intermediate images)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l digests -d 'Show digests'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d 'Filter output based on conditions provided'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Pretty-print images using a Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s q -l quiet -d 'Only show numeric IDs'
