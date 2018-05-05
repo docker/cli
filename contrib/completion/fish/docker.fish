@@ -296,6 +296,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print
 # export
 complete -c docker -f -n '__fish_docker_no_subcommand' -a export -d 'Stream the contents of a container as a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from export' -s o -l output -d 'Write to a file, instead of STDOUT'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_print_docker_containers all)' -d "Container"
 
 # history
