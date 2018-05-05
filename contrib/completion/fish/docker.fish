@@ -349,6 +349,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -a '(__fish_print
 complete -c docker -f -n '__fish_docker_no_subcommand' -a load -d 'Load an image from a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s i -l input -d 'Read from a tar archive file, instead of STDIN'
+complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s q -l quiet -d 'Suppress the load output'
 
 # login
 complete -c docker -f -n '__fish_docker_no_subcommand' -a login -d 'Log in to a Docker registry server'
