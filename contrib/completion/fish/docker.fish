@@ -301,7 +301,9 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_pri
 
 # history
 complete -c docker -f -n '__fish_docker_no_subcommand' -a history -d 'Show the history of an image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l format -d 'Pretty-print images using a Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
