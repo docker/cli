@@ -157,6 +157,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	}
 
 	ctx, cancelFun := context.WithCancel(context.Background())
+	defer cancelFun()
 
 	createResponse, err := createContainer(ctx, dockerCli, containerConfig, &opts.createOptions)
 	if err != nil {

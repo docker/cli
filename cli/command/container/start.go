@@ -55,6 +55,7 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 // nolint: gocyclo
 func runStart(dockerCli command.Cli, opts *startOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
+	defer cancelFun()
 
 	if opts.attach || opts.openStdin {
 		// We're going to attach to a container.
