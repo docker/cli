@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"io/ioutil"
-	"path"
+	"path/filepath"
 	"sort"
 
 	"github.com/docker/cli/kubernetes/compose/v1beta2"
@@ -36,7 +36,7 @@ func (s *stack) createFileBasedConfigMaps(configMaps corev1.ConfigMapInterface) 
 			continue
 		}
 
-		fileName := path.Base(config.File)
+		fileName := filepath.Base(config.File)
 		content, err := ioutil.ReadFile(config.File)
 		if err != nil {
 			return err
@@ -76,7 +76,7 @@ func (s *stack) createFileBasedSecrets(secrets corev1.SecretInterface) error {
 			continue
 		}
 
-		fileName := path.Base(secret.File)
+		fileName := filepath.Base(secret.File)
 		content, err := ioutil.ReadFile(secret.File)
 		if err != nil {
 			return err
