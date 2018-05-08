@@ -128,6 +128,10 @@ func confirmationMessage(options pruneOptions) string {
 	if options.pruneBuildCache {
 		warnings = append(warnings, "all build cache")
 	}
+	if len(options.filter.String()) > 0 {
+		warnings = append(warnings, "Elements to be pruned will be filtered with:")
+		warnings = append(warnings, "label="+options.filter.String())
+	}
 
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &warnings)
