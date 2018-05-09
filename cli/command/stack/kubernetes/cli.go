@@ -1,13 +1,8 @@
 package kubernetes
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
-	"github.com/docker/docker/pkg/homedir"
-	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -43,21 +38,20 @@ func NewOptions(flags *flag.FlagSet) Options {
 func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	var err error
 	cli := &KubeCli{
-		Cli:           dockerCli,
-		kubeNamespace: "default",
+		Cli: dockerCli,
 	}
-	if opts.Namespace != "" {
-		cli.kubeNamespace = opts.Namespace
-	}
-	kubeConfig := opts.Config
-	if kubeConfig == "" {
-		if config := os.Getenv("KUBECONFIG"); config != "" {
-			kubeConfig = config
-		} else {
-			kubeConfig = filepath.Join(homedir.Get(), ".kube/config")
+	clientConfig := kubernetes.NewKubernetesConfig(opts.Config)
+
+	cli.kubeNamespace = opts.Namespace
+	if opts.Namespace == "" {
+		configNamespace, _, err := clientConfig.Namespace()
+		if err != nil {
+			return nil, err
 		}
+		cli.kubeNamespace = configNamespace
 	}
-	config, err := kubernetes.NewKubernetesConfig(kubeConfig)
+
+	config, err := clientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -73,21 +67,5 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 }
 
 func (c *KubeCli) composeClient() (*Factory, error) {
-	return NewFactory(c.kubeNamespace, c.kubeConfig)
-}
-
-func (c *KubeCli) stacks() (stackClient, error) {
-	version, err := kubernetes.GetStackAPIVersion(c.clientSet)
-	if err != nil {
-		return nil, err
-	}
-
-	switch version {
-	case kubernetes.StackAPIV1Beta1:
-		return newStackV1Beta1(c.kubeConfig, c.kubeNamespace)
-	case kubernetes.StackAPIV1Beta2:
-		return newStackV1Beta2(c.kubeConfig, c.kubeNamespace)
-	default:
-		return nil, errors.Errorf("no supported Stack API version")
-	}
+	return NewFactory(c.kubeNamespace, c.kubeConfig, c.clientSet)
 }

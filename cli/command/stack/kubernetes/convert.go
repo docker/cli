@@ -37,6 +37,7 @@ func stackFromV1beta1(in *v1beta1.Stack) (stack, error) {
 	}
 	return stack{
 		name:        in.ObjectMeta.Name,
+		namespace:   in.ObjectMeta.Namespace,
 		composeFile: in.Spec.ComposeFile,
 		spec:        fromComposeConfig(ioutil.Discard, cfg),
 	}, nil
@@ -55,8 +56,9 @@ func stackToV1beta1(s stack) *v1beta1.Stack {
 
 func stackFromV1beta2(in *v1beta2.Stack) stack {
 	return stack{
-		name: in.ObjectMeta.Name,
-		spec: in.Spec,
+		name:      in.ObjectMeta.Name,
+		namespace: in.ObjectMeta.Namespace,
+		spec:      in.Spec,
 	}
 }
 

@@ -14,7 +14,8 @@ type Deploy struct {
 
 // List holds docker stack ls options
 type List struct {
-	Format string
+	Format        string
+	AllNamespaces bool
 }
 
 // PS holds docker stack ps options

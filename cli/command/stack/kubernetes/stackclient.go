@@ -14,8 +14,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// stackClient talks to a kubernetes compose component.
-type stackClient interface {
+// StackClient talks to a kubernetes compose component.
+type StackClient interface {
 	CreateOrUpdate(s stack) error
 	Delete(name string) error
 	Get(name string) (stack, error)
@@ -29,7 +29,7 @@ type stackV1Beta1 struct {
 	stacks composev1beta1.StackInterface
 }
 
-func newStackV1Beta1(config *rest.Config, namespace string) (stackClient, error) {
+func newStackV1Beta1(config *rest.Config, namespace string) (StackClient, error) {
 	client, err := composev1beta1.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ type stackV1Beta2 struct {
 	stacks composev1beta2.StackInterface
 }
 
-func newStackV1Beta2(config *rest.Config, namespace string) (stackClient, error) {
+func newStackV1Beta2(config *rest.Config, namespace string) (StackClient, error) {
 	client, err := composev1beta2.NewForConfig(config)
 	if err != nil {
 		return nil, err

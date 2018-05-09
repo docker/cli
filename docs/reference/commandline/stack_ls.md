@@ -55,6 +55,7 @@ Valid placeholders for the Go template are listed below:
 | `.Name`         | Stack name         |
 | `.Services`     | Number of services |
 | `.Orchestrator` | Orchestrator name  |
+| `.Namespace`    | Namespace          |
 
 When using the `--format` option, the `stack ls` command either outputs
 the data exactly as the template declares or, when using the

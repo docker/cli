@@ -25,7 +25,7 @@ func RunPS(dockerCli *KubeCli, options options.PS) error {
 	if err != nil {
 		return err
 	}
-	stacks, err := dockerCli.stacks()
+	stacks, err := client.Stacks(false)
 	if err != nil {
 		return err
 	}
