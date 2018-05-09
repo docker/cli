@@ -1,12 +1,8 @@
 package kubernetes
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
-	"github.com/docker/docker/pkg/homedir"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -44,19 +40,10 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	cli := &KubeCli{
 		Cli: dockerCli,
 	}
-	kubeConfig := opts.Config
-	if kubeConfig == "" {
-		if config := os.Getenv("KUBECONFIG"); config != "" {
-			kubeConfig = config
-		} else {
-			kubeConfig = filepath.Join(homedir.Get(), ".kube/config")
-		}
-	}
-
-	clientConfig := kubernetes.NewKubernetesConfig(kubeConfig)
+	clientConfig := kubernetes.NewKubernetesConfig(opts.Config)
 
 	cli.kubeNamespace = opts.Namespace
-	if opts.Namespace == "default" {
+	if opts.Namespace == "" {
 		configNamespace, _, err := clientConfig.Namespace()
 		if err != nil {
 			return nil, err
