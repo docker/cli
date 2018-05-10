@@ -108,16 +108,14 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	
+
 	if string.TrimSpace(flags.Args()) == "" {
 		&options.dockerfileName = "."
 		flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
-	}
-	else {
-		
+	} else {
+
 		flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
 	}
-
 
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
