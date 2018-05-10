@@ -115,6 +115,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	if &options.dockerfileName == " " {
 		&options.dockerfileName = '.'
+	}else{
+		flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
 	}
 
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
