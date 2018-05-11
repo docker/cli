@@ -162,3 +162,65 @@ func TestToServiceNetwork(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks))
 }
+
+func TestToServiceUpdateRollback(t *testing.T) {
+	expected := swarm.ServiceSpec{
+		UpdateConfig: &swarm.UpdateConfig{
+			Parallelism:     23,
+			Delay:           34 * time.Second,
+			Monitor:         54321 * time.Nanosecond,
+			FailureAction:   "pause",
+			MaxFailureRatio: 0.6,
+			Order:           "stop-first",
+		},
+		RollbackConfig: &swarm.UpdateConfig{
+			Parallelism:     12,
+			Delay:           23 * time.Second,
+			Monitor:         12345 * time.Nanosecond,
+			FailureAction:   "continue",
+			MaxFailureRatio: 0.5,
+			Order:           "start-first",
+		},
+	}
+
+	// Note: in test-situation, the flags are only used to detect if an option
+	// was set; the actual value itself is read from the serviceOptions below.
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("update-parallelism", "23")
+	flags.Set("update-delay", "34s")
+	flags.Set("update-monitor", "54321ns")
+	flags.Set("update-failure-action", "pause")
+	flags.Set("update-max-failure-ratio", "0.6")
+	flags.Set("update-order", "stop-first")
+
+	flags.Set("rollback-parallelism", "12")
+	flags.Set("rollback-delay", "23s")
+	flags.Set("rollback-monitor", "12345ns")
+	flags.Set("rollback-failure-action", "continue")
+	flags.Set("rollback-max-failure-ratio", "0.5")
+	flags.Set("rollback-order", "start-first")
+
+	o := newServiceOptions()
+	o.mode = "replicated"
+	o.update = updateOptions{
+		parallelism:     23,
+		delay:           34 * time.Second,
+		monitor:         54321 * time.Nanosecond,
+		onFailure:       "pause",
+		maxFailureRatio: 0.6,
+		order:           "stop-first",
+	}
+	o.rollback = updateOptions{
+		parallelism:     12,
+		delay:           23 * time.Second,
+		monitor:         12345 * time.Nanosecond,
+		onFailure:       "continue",
+		maxFailureRatio: 0.5,
+		order:           "start-first",
+	}
+
+	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(service.UpdateConfig, expected.UpdateConfig))
+	assert.Check(t, is.DeepEqual(service.RollbackConfig, expected.RollbackConfig))
+}

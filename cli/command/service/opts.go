@@ -645,7 +645,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		},
 		Mode:           serviceMode,
 		UpdateConfig:   options.update.updateConfig(flags),
-		RollbackConfig: options.update.rollbackConfig(flags),
+		RollbackConfig: options.rollback.rollbackConfig(flags),
 		EndpointSpec:   options.endpoint.ToEndpointSpec(),
 	}
 
