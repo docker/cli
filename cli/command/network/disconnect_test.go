@@ -1,13 +1,13 @@
 package network
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestNetworkDisconnectErrors(t *testing.T) {

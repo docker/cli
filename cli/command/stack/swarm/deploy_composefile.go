@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli/command"
@@ -14,7 +15,6 @@ import (
 	apiclient "github.com/docker/docker/client"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {

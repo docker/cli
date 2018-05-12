@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -18,7 +19,6 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"golang.org/x/net/context"
 )
 
 type int64Value interface {

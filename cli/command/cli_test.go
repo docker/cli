@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"crypto/x509"
 	"os"
 	"runtime"
@@ -17,7 +18,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/env"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestNewAPIClientFromFlags(t *testing.T) {

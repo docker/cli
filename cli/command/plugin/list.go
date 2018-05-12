@@ -1,12 +1,13 @@
 package plugin
 
 import (
+	"context"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type listOptions struct {

@@ -1,10 +1,11 @@
 package network
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
-	"golang.org/x/net/context"
 )
 
 // FakeClient is a fake NetworkAPIClient

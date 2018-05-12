@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/net/context"
 )
 
 type createOptions struct {

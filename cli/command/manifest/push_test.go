@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func newFakeRegistryClient() *fakeRegistryClient {

@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type inspectOptions struct {

@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http/httputil"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type startOptions struct {
@@ -55,6 +55,7 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 // nolint: gocyclo
 func runStart(dockerCli command.Cli, opts *startOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
+	defer cancelFun()
 
 	if opts.attach || opts.openStdin {
 		// We're going to attach to a container.

@@ -1,6 +1,7 @@
 package image
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type saveOptions struct {

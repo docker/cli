@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"golang.org/x/net/context"
 )
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {

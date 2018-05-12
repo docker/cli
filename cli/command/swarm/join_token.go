@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type joinTokenOptions struct {

@@ -1,9 +1,10 @@
 package system
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 )
 
 type fakeClient struct {

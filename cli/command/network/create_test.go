@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -11,7 +12,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestNetworkCreateErrors(t *testing.T) {

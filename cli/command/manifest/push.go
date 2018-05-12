@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type pushOpts struct {

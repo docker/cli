@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type commitOptions struct {

@@ -1,11 +1,10 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/bundlefile"

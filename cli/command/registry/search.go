@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"sort"
 
 	"github.com/docker/cli/cli"
@@ -11,7 +12,6 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type searchOptions struct {

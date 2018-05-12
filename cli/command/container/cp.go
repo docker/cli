@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/docker/pkg/system"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type copyOptions struct {

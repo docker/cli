@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"golang.org/x/net/context"
 )
 
 func TestServiceListOrder(t *testing.T) {

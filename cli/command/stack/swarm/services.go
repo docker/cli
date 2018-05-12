@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli/command"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"golang.org/x/net/context"
 )
 
 // RunServices is the swarm implementation of docker stack services

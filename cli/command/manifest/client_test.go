@@ -1,12 +1,13 @@
 package manifest
 
 import (
+	"context"
+
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/cli/registry/client"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
-	"golang.org/x/net/context"
 )
 
 type fakeRegistryClient struct {

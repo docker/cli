@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
@@ -11,7 +12,6 @@ import (
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestManifestCreateErrors(t *testing.T) {

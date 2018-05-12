@@ -1,13 +1,13 @@
 package service
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service/progress"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"golang.org/x/net/context"
 )
 
 // waitOnService waits for the service to converge. It outputs a progress bar,

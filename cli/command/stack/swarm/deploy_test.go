@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"context"
 	"testing"
 
 	"github.com/docker/cli/cli/compose/convert"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"golang.org/x/net/context"
 )
 
 func TestPruneServices(t *testing.T) {

@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/api/types/swarm"
-	"golang.org/x/net/context"
 )
 
 type tasksBySlot []swarm.Task

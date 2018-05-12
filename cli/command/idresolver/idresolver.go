@@ -1,7 +1,7 @@
 package idresolver
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"

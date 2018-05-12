@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type listOptions struct {

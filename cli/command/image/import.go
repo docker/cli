@@ -1,6 +1,7 @@
 package image
 
 import (
+	"context"
 	"io"
 	"os"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type importOptions struct {

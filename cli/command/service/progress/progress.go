@@ -1,6 +1,7 @@
 package progress
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -16,7 +17,6 @@ import (
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
-	"golang.org/x/net/context"
 )
 
 var (

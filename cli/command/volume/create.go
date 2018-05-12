@@ -1,6 +1,7 @@
 package volume
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -9,7 +10,6 @@ import (
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type createOptions struct {

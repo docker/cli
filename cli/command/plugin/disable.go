@@ -1,13 +1,13 @@
 package plugin
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 func newDisableCommand(dockerCli command.Cli) *cobra.Command {

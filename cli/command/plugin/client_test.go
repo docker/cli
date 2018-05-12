@@ -1,11 +1,11 @@
 package plugin
 
 import (
+	"context"
 	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 )
 
 type fakeClient struct {

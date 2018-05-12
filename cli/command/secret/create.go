@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/pkg/system"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type createOptions struct {

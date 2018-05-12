@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {

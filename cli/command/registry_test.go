@@ -2,13 +2,13 @@ package command_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
 

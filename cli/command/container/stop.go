@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type stopOptions struct {

@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	apiclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type inspectOptions struct {

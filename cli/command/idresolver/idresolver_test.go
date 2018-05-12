@@ -7,9 +7,10 @@ import (
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	// Import builders to get the builder function as package function
+	"context"
+
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 func TestResolveError(t *testing.T) {

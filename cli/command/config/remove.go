@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 type removeOptions struct {
