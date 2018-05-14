@@ -92,10 +92,10 @@ ContainerSpec:
 Mounts:
 {{- end }}
 {{- range $mount := .ContainerMounts }}
-  Target = {{ $mount.Target }}
-   Source = {{ $mount.Source }}
-   ReadOnly = {{ $mount.ReadOnly }}
-   Type = {{ $mount.Type }}
+ Target:	{{ $mount.Target }}
+  Source:	{{ $mount.Source }}
+  ReadOnly:	{{ $mount.ReadOnly }}
+  Type:		{{ $mount.Type }}
 {{- end -}}
 {{- if .Configs}}
 Configs:
