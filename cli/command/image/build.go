@@ -109,10 +109,17 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
+	if strings.TrimSpace(flags.Args()) == "" {
+		&options.dockerfileName = "."
+		flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
+	} else {
+
+		flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
+	}
+
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
 	flags.Var(options.ulimits, "ulimit", "Ulimit options")
-	flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
 	flags.Var(&options.shmSize, "shm-size", "Size of /dev/shm")
