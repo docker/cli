@@ -1418,10 +1418,27 @@ The following environment variables are set for Linux containers:
 
 
 Additionally, the operator can **set any environment variable** in the
-container by using one or more `-e` flags, even overriding those mentioned
-above, or already defined by the developer with a Dockerfile `ENV`. If the
-operator names an environment variable without specifying a value, then the
-current value of the named variable is propagated into the container's environment:
+container, even overriding those mentioned above, or already defined by
+the developer with a Dockerfile `ENV`.
+
+The following `run` command options work with environment variables:
+
+    -e=[], --env=[] : Set an environment variable.
+                        Format: environmentVariable | environmentVariable=value
+                        If the operator names an environment variable without
+                        specifying a value, then the current value of the named
+                        variable is propagated into the container's environment.
+    --env-file=[]   : Read in a file of environment variables.
+                        The --env-file flag takes a filename as an argument and
+                        expects each line to be in the VAR=VAL format, mimicking
+                        the argument passed to --env. Comment lines need only be
+                        prefixed with #
+
+To set an environment variable, an operator can start the container with
+the -e flag. The environment variable is available inside the container.
+To pass through a host environment variable, an operator can use the -e
+flag without specifying a value, the current value of the named variable
+is propagated into the container's environment.
 
 ```bash
 $ export today=Wednesday
