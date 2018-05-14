@@ -1,4 +1,4 @@
-FROM    golang:1.9.5-alpine3.6
+FROM    golang:1.10.2-alpine
 
 RUN     apk add -U git bash coreutils gcc musl-dev
 
