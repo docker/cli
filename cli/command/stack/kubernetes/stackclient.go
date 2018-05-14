@@ -33,7 +33,7 @@ type stackV1Beta1 struct {
 	stacks composev1beta1.StackInterface
 }
 
-func newStackV1Beta1(config *rest.Config, namespace string) (StackClient, error) {
+func newStackV1Beta1(config *rest.Config, namespace string) (*stackV1Beta1, error) {
 	client, err := composev1beta1.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ type stackV1Beta2 struct {
 	stacks composev1beta2.StackInterface
 }
 
-func newStackV1Beta2(config *rest.Config, namespace string) (StackClient, error) {
+func newStackV1Beta2(config *rest.Config, namespace string) (*stackV1Beta2, error) {
 	client, err := composev1beta2.NewForConfig(config)
 	if err != nil {
 		return nil, err

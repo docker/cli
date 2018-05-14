@@ -2,9 +2,12 @@ package kubernetes
 
 import (
 	"fmt"
+	"io"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
 
@@ -39,10 +42,6 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	configMaps := composeClient.ConfigMaps()
 	secrets := composeClient.Secrets()
 	services := composeClient.Services()
-	pods := composeClient.Pods()
-	watcher := DeployWatcher{
-		Pods: pods,
-	}
 
 	if err := stacks.IsColliding(services, stack); err != nil {
 		return err
@@ -61,10 +60,109 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 	}
 
 	fmt.Fprintln(cmdOut, "Waiting for the stack to be stable and running...")
+	v1beta1Cli, err := dockerCli.stacksv1beta1()
+	if err != nil {
+		return err
+	}
 
-	<-watcher.Watch(stack.name, stack.getServices())
+	pods := composeClient.Pods()
+	watcher := &deployWatcher{
+		stacks: v1beta1Cli,
+		pods:   pods,
+	}
+	statusUpdates := make(chan serviceStatus)
+	displayDone := make(chan struct{})
+	go func() {
+		defer close(displayDone)
+		display := newStatusDisplay(dockerCli.Out())
+		for status := range statusUpdates {
+			display.OnStatus(status)
+		}
+	}()
 
-	fmt.Fprintf(cmdOut, "Stack %s is stable and running\n\n", stack.name)
-
+	err = watcher.Watch(stack.name, stack.getServices(), statusUpdates)
+	close(statusUpdates)
+	<-displayDone
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cmdOut, "\nStack %s is stable and running\n\n", stack.name)
 	return nil
+
+}
+
+type statusDisplay interface {
+	OnStatus(serviceStatus)
+}
+type metaServiceState string
+
+const (
+	metaServiceStateReady   = metaServiceState("Ready")
+	metaServiceStatePending = metaServiceState("Pending")
+	metaServiceStateFailed  = metaServiceState("Failed")
+)
+
+func metaStateFromStatus(status serviceStatus) metaServiceState {
+	switch {
+	case status.podsReady > 0:
+		return metaServiceStateReady
+	case status.podsPending > 0:
+		return metaServiceStatePending
+	default:
+		return metaServiceStateFailed
+	}
+}
+
+type forwardOnlyStatusDisplay struct {
+	o      *command.OutStream
+	states map[string]metaServiceState
+}
+
+func (d *forwardOnlyStatusDisplay) OnStatus(status serviceStatus) {
+	state := metaStateFromStatus(status)
+	if d.states[status.name] != state {
+		d.states[status.name] = state
+		fmt.Fprintf(d.o, "%s: %s\n", status.name, state)
+	}
+}
+
+type interactiveStatusDisplay struct {
+	o        *command.OutStream
+	statuses []serviceStatus
+}
+
+func (d *interactiveStatusDisplay) OnStatus(status serviceStatus) {
+	b := aec.EmptyBuilder
+	for ix := 0; ix < len(d.statuses); ix++ {
+		b = b.Up(1).EraseLine(aec.EraseModes.All)
+	}
+	b = b.Column(0)
+	fmt.Fprint(d.o, b.ANSI)
+	updated := false
+	for ix, s := range d.statuses {
+		if s.name == status.name {
+			d.statuses[ix] = status
+			s = status
+			updated = true
+		}
+		displayInteractiveServiceStatus(s, d.o)
+	}
+	if !updated {
+		d.statuses = append(d.statuses, status)
+		displayInteractiveServiceStatus(status, d.o)
+	}
+}
+
+func displayInteractiveServiceStatus(status serviceStatus, o io.Writer) {
+	state := metaStateFromStatus(status)
+	totalFailed := status.podsFailed + status.podsSucceeded + status.podsUnknown
+	fmt.Fprintf(o, "%[1]s: %[2]s\t\t[pod status: %[3]d/%[6]d ready, %[4]d/%[6]d pending, %[5]d/%[6]d failed]\n", status.name, state,
+		status.podsReady, status.podsPending, totalFailed, status.podsTotal)
+}
+
+func newStatusDisplay(o *command.OutStream) statusDisplay {
+	if !o.IsTerminal() {
+		return &forwardOnlyStatusDisplay{o: o, states: map[string]metaServiceState{}}
+	}
+	return &interactiveStatusDisplay{o: o}
 }
