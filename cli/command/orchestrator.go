@@ -19,41 +19,39 @@ const (
 	envVarDockerOrchestrator = "DOCKER_ORCHESTRATOR"
 )
 
-func normalize(flag string) Orchestrator {
-	switch flag {
+func normalize(value string) (Orchestrator, error) {
+	switch value {
 	case "kubernetes":
-		return OrchestratorKubernetes
+		return OrchestratorKubernetes, nil
 	case "swarm":
-		return OrchestratorSwarm
+		return OrchestratorSwarm, nil
+	case "":
+		return orchestratorUnset, nil
 	default:
-		return orchestratorUnset
+		return defaultOrchestrator, fmt.Errorf("specified orchestrator %q is invalid, please use either kubernetes or swarm", value)
 	}
 }
 
 // GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(isExperimental bool, flagValue, value string) Orchestrator {
+func GetOrchestrator(isExperimental bool, flagValue, value string) (Orchestrator, error) {
 	// Non experimental CLI has kubernetes disabled
 	if !isExperimental {
-		return defaultOrchestrator
+		return defaultOrchestrator, nil
 	}
 	// Check flag
-	if o := normalize(flagValue); o != orchestratorUnset {
-		return o
+	if o, err := normalize(flagValue); o != orchestratorUnset {
+		return o, err
 	}
 	// Check environment variable
 	env := os.Getenv(envVarDockerOrchestrator)
-	if o := normalize(env); o != orchestratorUnset {
-		return o
+	if o, err := normalize(env); o != orchestratorUnset {
+		return o, err
 	}
 	// Check specified orchestrator
-	if o := normalize(value); o != orchestratorUnset {
-		return o
-	}
-
-	if value != "" {
-		fmt.Fprintf(os.Stderr, "Specified orchestrator %q is invalid. Please use either kubernetes or swarm\n", value)
+	if o, err := normalize(value); o != orchestratorUnset {
+		return o, err
 	}
 	// Nothing set, use default orchestrator
-	return defaultOrchestrator
+	return defaultOrchestrator, nil
 }
