@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/pkg/errors"
 	core_v1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -19,9 +20,16 @@ import (
 // GetStacks lists the kubernetes stacks
 func GetStacks(kubeCli *KubeCli, opts options.List) ([]*formatter.Stack, error) {
 	if opts.AllNamespaces || len(opts.Namespaces) == 0 {
+		if isAllNamespacesDisabled(kubeCli.ConfigFile().Kubernetes) {
+			opts.AllNamespaces = true
+		}
 		return getStacksWithAllNamespaces(kubeCli, opts)
 	}
 	return getStacksWithNamespaces(kubeCli, opts, removeDuplicates(opts.Namespaces))
+}
+
+func isAllNamespacesDisabled(kubeCliConfig *configfile.KubernetesConfig) bool {
+	return kubeCliConfig == nil || kubeCliConfig != nil && kubeCliConfig.AllNamespaces != "disabled"
 }
 
 func getStacks(kubeCli *KubeCli, opts options.List) ([]*formatter.Stack, error) {

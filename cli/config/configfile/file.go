@@ -46,6 +46,7 @@ type ConfigFile struct {
 	Proxies              map[string]ProxyConfig      `json:"proxies,omitempty"`
 	Experimental         string                      `json:"experimental,omitempty"`
 	Orchestrator         string                      `json:"orchestrator,omitempty"`
+	Kubernetes           *KubernetesConfig           `json:"kubernetes,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -54,6 +55,11 @@ type ProxyConfig struct {
 	HTTPSProxy string `json:"httpsProxy,omitempty"`
 	NoProxy    string `json:"noProxy,omitempty"`
 	FTPProxy   string `json:"ftpProxy,omitempty"`
+}
+
+// KubernetesConfig contains Kubernetes orchestrator settings
+type KubernetesConfig struct {
+	AllNamespaces string `json:"allNamespaces,omitempty"`
 }
 
 // New initializes an empty configuration file for the given filename 'fn'
