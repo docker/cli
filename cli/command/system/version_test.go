@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 
@@ -39,8 +38,7 @@ func fakeServerVersion(_ context.Context) (types.Version, error) {
 }
 
 func TestVersionWithOrchestrator(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
-	cli.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "swarm"} })
+	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion}, test.OrchestratorSwarm)
 	cmd := NewVersionCommand(cli)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))

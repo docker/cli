@@ -244,7 +244,17 @@ type ClientInfo struct {
 
 // HasKubernetes checks if kubernetes orchestrator is enabled
 func (c ClientInfo) HasKubernetes() bool {
-	return c.HasExperimental && c.Orchestrator == OrchestratorKubernetes
+	return c.HasExperimental && (c.Orchestrator == OrchestratorKubernetes || c.Orchestrator == OrchestratorAll)
+}
+
+// HasSwarm checks if swarm orchestrator is enabled
+func (c ClientInfo) HasSwarm() bool {
+	return c.Orchestrator == OrchestratorSwarm || c.Orchestrator == OrchestratorAll
+}
+
+// HasAll checks if all orchestrator is enabled
+func (c ClientInfo) HasAll() bool {
+	return c.Orchestrator == OrchestratorAll
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.

@@ -1,10 +1,14 @@
 package stack
 
 import (
+	"fmt"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
 )
+
+var errUnsupportedAllOrchestrator = fmt.Errorf(`no orchestrator specified: use either "kubernetes" or "swarm"`)
 
 // NewStackCommand returns a cobra command for `stack` subcommands
 func NewStackCommand(dockerCli command.Cli) *cobra.Command {
@@ -27,9 +31,6 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newServicesCommand(dockerCli),
 	)
 	flags := cmd.PersistentFlags()
-	flags.String("namespace", "", "Kubernetes namespace to use")
-	flags.SetAnnotation("namespace", "kubernetes", nil)
-	flags.SetAnnotation("namespace", "experimentalCLI", nil)
 	flags.String("kubeconfig", "", "Kubernetes config file")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
 	flags.SetAnnotation("kubeconfig", "experimentalCLI", nil)

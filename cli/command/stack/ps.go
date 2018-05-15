@@ -19,14 +19,18 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
-			if dockerCli.ClientInfo().HasKubernetes() {
+			switch {
+			case dockerCli.ClientInfo().HasAll():
+				return errUnsupportedAllOrchestrator
+			case dockerCli.ClientInfo().HasKubernetes():
 				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
 				if err != nil {
 					return err
 				}
 				return kubernetes.RunPS(kli, opts)
+			default:
+				return swarm.RunPS(dockerCli, opts)
 			}
-			return swarm.RunPS(dockerCli, opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -36,6 +40,6 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("filter", "swarm", nil)
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display task IDs")
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print tasks using a Go template")
-
+	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }

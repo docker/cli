@@ -34,9 +34,15 @@ func NewOptions(flags *flag.FlagSet) Options {
 	return opts
 }
 
+// AddNamespaceFlag adds the namespace flag to the given flag set
+func AddNamespaceFlag(flags *flag.FlagSet) {
+	flags.String("namespace", "", "Kubernetes namespace to use")
+	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.SetAnnotation("namespace", "experimentalCLI", nil)
+}
+
 // WrapCli wraps command.Cli with kubernetes specifics
 func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
-	var err error
 	cli := &KubeCli{
 		Cli: dockerCli,
 	}
