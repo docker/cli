@@ -51,7 +51,7 @@ each `docker` command with `sudo`. To avoid having to use `sudo` with the
 `docker` and add users to it.
 
 For more information about installing Docker or `sudo` configuration, refer to
-the [installation](https://docs.docker.com/engine/installation/) instructions for your operating system.
+the [installation](https://docs.docker.com/install/) instructions for your operating system.
 
 ### Environment variables
 
