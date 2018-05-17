@@ -1,0 +1,3 @@
+Removing service test-stack-remove-swarm_one
+Removing service test-stack-remove-swarm_two
+Removing network test-stack-remove-swarm_default

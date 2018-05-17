@@ -28,6 +28,12 @@ func Setup() error {
 		}
 	}
 
+	if kubeConfig := os.Getenv("TEST_KUBECONFIG"); kubeConfig != "" {
+		if err := os.Setenv("KUBECONFIG", kubeConfig); err != nil {
+			return err
+		}
+	}
+
 	if val := boolFromString(os.Getenv("TEST_REMOTE_DAEMON")); val {
 		if err := os.Setenv("REMOTE_DAEMON", "1"); err != nil {
 			return err
@@ -41,6 +47,11 @@ func Setup() error {
 	}
 
 	return nil
+}
+
+// KubernetesEnabled returns if Kubernetes testing is enabled
+func KubernetesEnabled() bool {
+	return os.Getenv("KUBECONFIG") != ""
 }
 
 // RemoteDaemon returns true if running against a remote daemon
