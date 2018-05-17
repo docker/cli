@@ -10,12 +10,9 @@ services:
       command: ['--insecure-registry=registry:5000']
 
   notary-server:
-      image: 'notary:server-0.4.2'
+      build:
+        context: ./testdata
+        dockerfile: Dockerfile.notary-server
       ports:
         - 4443:4443
-      volumes:
-       - notary-fixtures:/fixtures
       command: ['notary-server', '-config=/fixtures/notary-config.json']
-
-volumes:
-  notary-fixtures: {}

@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 )
 
 func TestPushWithContentTrust(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := createImage(t, registryPrefix, "trust-push", "latest")
@@ -52,6 +56,8 @@ func TestPushWithContentTrust(t *testing.T) {
 }
 
 func TestPushWithContentTrustUnreachableServer(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := createImage(t, registryPrefix, "trust-push-unreachable", "latest")
@@ -68,6 +74,8 @@ func TestPushWithContentTrustUnreachableServer(t *testing.T) {
 }
 
 func TestPushWithContentTrustExistingTag(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := createImage(t, registryPrefix, "trust-push-existing", "latest")
@@ -98,6 +106,8 @@ func TestPushWithContentTrustExistingTag(t *testing.T) {
 }
 
 func TestPushWithContentTrustReleasesDelegationOnly(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	role := "targets/releases"
 
 	dir := fixtures.SetupConfigFile(t)
@@ -147,6 +157,8 @@ func TestPushWithContentTrustReleasesDelegationOnly(t *testing.T) {
 }
 
 func TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	copyPrivateKey(t, dir.Join("trust", "private"), privkey1)
@@ -211,6 +223,8 @@ func TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor(t *testing.T) 
 }
 
 func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	copyPrivateKey(t, dir.Join("trust", "private"), privkey1)
