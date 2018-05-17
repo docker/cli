@@ -1,8 +1,10 @@
 package client // import "github.com/docker/docker/client"
 
 import (
+	"context"
 	"io"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -14,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	volumetypes "github.com/docker/docker/api/types/volume"
-	"golang.org/x/net/context"
 )
 
 // CommonAPIClient is the common methods between stable and experimental versions of APIClient.
@@ -33,6 +34,7 @@ type CommonAPIClient interface {
 	VolumeAPIClient
 	ClientVersion() string
 	DaemonHost() string
+	HTTPClient() *http.Client
 	ServerVersion(ctx context.Context) (types.Version, error)
 	NegotiateAPIVersion(ctx context.Context)
 	NegotiateAPIVersionPing(types.Ping)
@@ -168,10 +170,10 @@ type SystemAPIClient interface {
 
 // VolumeAPIClient defines API client methods for the volumes
 type VolumeAPIClient interface {
-	VolumeCreate(ctx context.Context, options volumetypes.VolumesCreateBody) (types.Volume, error)
+	VolumeCreate(ctx context.Context, options volumetypes.VolumeCreateBody) (types.Volume, error)
 	VolumeInspect(ctx context.Context, volumeID string) (types.Volume, error)
 	VolumeInspectWithRaw(ctx context.Context, volumeID string) (types.Volume, []byte, error)
-	VolumeList(ctx context.Context, filter filters.Args) (volumetypes.VolumesListOKBody, error)
+	VolumeList(ctx context.Context, filter filters.Args) (volumetypes.VolumeListOKBody, error)
 	VolumeRemove(ctx context.Context, volumeID string, force bool) error
 	VolumesPrune(ctx context.Context, pruneFilter filters.Args) (types.VolumesPruneReport, error)
 }
