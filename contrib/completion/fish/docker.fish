@@ -274,37 +274,46 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from diff' -a '(__fish_print
 
 # events
 complete -c docker -f -n '__fish_docker_no_subcommand' -a events -d 'Get real time events from the server'
-complete -c docker -A -f -n '__fish_seen_subcommand_from events' -s f -l filter -d "Provide filter values (i.e., 'event=stop')"
+complete -c docker -A -f -n '__fish_seen_subcommand_from events' -s f -l filter -d "Filter output based on conditions provided"
+complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l format -d 'Format the output using the given Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l since -d 'Show all events created since timestamp'
 complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l until -d 'Stream events until this timestamp'
-complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l format -d 'Format the output using the given go template'
 
 # exec
 complete -c docker -f -n '__fish_docker_no_subcommand' -a exec -d 'Run a command in a running container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s d -l detach -d 'Detached mode: run command in the background'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l detach-keys -d 'Override the key sequence for detaching a container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s e -l env -d 'Set environment variables'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s i -l interactive -d 'Keep STDIN open even if not attached'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l privileged -d 'Give extended privileges to the command'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s t -l tty -d 'Allocate a pseudo-TTY'
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s u -l user -d 'Username or UID (format: <name|uid>[:<group|gid>])'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s w -l workdir -d 'Working directory inside the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # export
 complete -c docker -f -n '__fish_docker_no_subcommand' -a export -d 'Stream the contents of a container as a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from export' -s o -l output -d 'Write to a file, instead of STDOUT'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_print_docker_containers all)' -d "Container"
 
 # history
 complete -c docker -f -n '__fish_docker_no_subcommand' -a history -d 'Show the history of an image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l format -d 'Pretty-print images using a Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (by default filter out the intermediate image layers)'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d "Provide filter values (i.e., 'dangling=true')"
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (default hides intermediate images)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l digests -d 'Show digests'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d 'Filter output based on conditions provided'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Pretty-print images using a Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s q -l quiet -d 'Only show numeric IDs'
@@ -312,6 +321,8 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from images' -a '(__fish_pri
 
 # import
 complete -c docker -f -n '__fish_docker_no_subcommand' -a import -d 'Create a new filesystem image from the contents of a tarball'
+complete -c docker -A -f -n '__fish_seen_subcommand_from import' -s c -l change -d 'Apply Dockerfile instruction to the created image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from import' -s m -l message -d 'Set commit message for imported image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from import' -l help -d 'Print usage'
 
 # info
@@ -324,6 +335,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a inspect -d 'Return low
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s f -l format -d 'Format the output using the given go template.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s s -l size -d 'Display total file sizes if the type is container.'
+complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l type -d 'Return JSON for specified type'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_images)' -d "Image"
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_containers all)' -d "Container"
 
@@ -337,12 +349,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -a '(__fish_print
 complete -c docker -f -n '__fish_docker_no_subcommand' -a load -d 'Load an image from a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s i -l input -d 'Read from a tar archive file, instead of STDIN'
+complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s q -l quiet -d 'Suppress the load output'
 
 # login
 complete -c docker -f -n '__fish_docker_no_subcommand' -a login -d 'Log in to a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s p -l password -d 'Password'
-complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l password-stdin -d 'Read password from stdin'
+complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l password-stdin -d 'Take the password from stdin'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s u -l username -d 'Username'
 
 # logout
