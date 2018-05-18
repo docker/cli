@@ -20,7 +20,7 @@ func TestVolumeListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
 		flags          map[string]string
-		volumeListFunc func(filter filters.Args) (volumetypes.VolumesListOKBody, error)
+		volumeListFunc func(filter filters.Args) (volumetypes.VolumeListOKBody, error)
 		expectedError  string
 	}{
 		{
@@ -28,8 +28,8 @@ func TestVolumeListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
-				return volumetypes.VolumesListOKBody{}, errors.Errorf("error listing volumes")
+			volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+				return volumetypes.VolumeListOKBody{}, errors.Errorf("error listing volumes")
 			},
 			expectedError: "error listing volumes",
 		},
@@ -51,8 +51,8 @@ func TestVolumeListErrors(t *testing.T) {
 
 func TestVolumeListWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
-			return volumetypes.VolumesListOKBody{
+		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+			return volumetypes.VolumeListOKBody{
 				Volumes: []*types.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),
@@ -70,8 +70,8 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 
 func TestVolumeListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
-			return volumetypes.VolumesListOKBody{
+		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+			return volumetypes.VolumeListOKBody{
 				Volumes: []*types.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),
@@ -92,8 +92,8 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 
 func TestVolumeListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumesListOKBody, error) {
-			return volumetypes.VolumesListOKBody{
+		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+			return volumetypes.VolumeListOKBody{
 				Volumes: []*types.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),

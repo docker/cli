@@ -52,7 +52,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 func runCreate(dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
 
-	volReq := volumetypes.VolumesCreateBody{
+	volReq := volumetypes.VolumeCreateBody{
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,

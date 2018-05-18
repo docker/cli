@@ -133,7 +133,7 @@ func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Na
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse repo name from %s", ref)
 	}
-	return distributionclient.NewRepository(ctx, repoName, repoEndpoint.BaseURL(), httpTransport)
+	return distributionclient.NewRepository(repoName, repoEndpoint.BaseURL(), httpTransport)
 }
 
 func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoint repositoryEndpoint) (http.RoundTripper, error) {

@@ -18,7 +18,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
 		flags            map[string]string
-		volumeCreateFunc func(volumetypes.VolumesCreateBody) (types.Volume, error)
+		volumeCreateFunc func(volumetypes.VolumeCreateBody) (types.Volume, error)
 		expectedError    string
 	}{
 		{
@@ -33,7 +33,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 			expectedError: "requires at most 1 argument",
 		},
 		{
-			volumeCreateFunc: func(createBody volumetypes.VolumesCreateBody) (types.Volume, error) {
+			volumeCreateFunc: func(createBody volumetypes.VolumeCreateBody) (types.Volume, error) {
 				return types.Volume{}, errors.Errorf("error creating volume")
 			},
 			expectedError: "error creating volume",
@@ -57,7 +57,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 func TestVolumeCreateWithName(t *testing.T) {
 	name := "foo"
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
+		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
 			if body.Name != name {
 				return types.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
 			}
@@ -96,7 +96,7 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	name := "banana"
 
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volumetypes.VolumesCreateBody) (types.Volume, error) {
+		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
 			if body.Name != "" {
 				return types.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)
 			}

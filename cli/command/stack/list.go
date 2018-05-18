@@ -47,7 +47,11 @@ func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error
 		stacks = append(stacks, ss...)
 	}
 	if dockerCli.ClientInfo().HasKubernetes() {
-		ss, err := kubernetes.GetStacks(dockerCli, opts, kubernetes.NewOptions(cmd.Flags()))
+		kubeCli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
+		if err != nil {
+			return err
+		}
+		ss, err := kubernetes.GetStacks(kubeCli, opts)
 		if err != nil {
 			return err
 		}
