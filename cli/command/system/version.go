@@ -48,7 +48,7 @@ Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
   Version:	{{$component.Version}}
   {{- $detailsOrder := getDetailsOrder $component}}
   {{- range $key := $detailsOrder}}
-  {{$key}}:		{{index $component.Details $key}}
+  {{$key}}:	{{index $component.Details $key}}
    {{- end}}
   {{- end}}
  {{- end}}
