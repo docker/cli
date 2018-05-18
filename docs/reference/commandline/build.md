@@ -508,7 +508,7 @@ images (saving space).
 
 For most use cases, multi-stage are a better alternative, as they give more
 fine-grained control over your build, and can take advantage of future
-optimizations in the builder. Refer to the [use multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/)
+optimizations in the builder. Refer to the [use multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/)
 section in the userguide for more information.
 
 
