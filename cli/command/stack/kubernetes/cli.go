@@ -42,7 +42,6 @@ func NewOptions(flags *flag.FlagSet) Options {
 func AddNamespaceFlag(flags *flag.FlagSet) {
 	flags.String("namespace", "", "Kubernetes namespace to use")
 	flags.SetAnnotation("namespace", "kubernetes", nil)
-	flags.SetAnnotation("namespace", "experimentalCLI", nil)
 }
 
 // WrapCli wraps command.Cli with kubernetes specifics

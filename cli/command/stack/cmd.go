@@ -33,7 +33,6 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.PersistentFlags()
 	flags.String("kubeconfig", "", "Kubernetes config file")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
-	flags.SetAnnotation("kubeconfig", "experimentalCLI", nil)
 	return cmd
 }
 

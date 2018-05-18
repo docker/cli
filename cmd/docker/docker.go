@@ -53,8 +53,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 
 	// Install persistent flags
 	persistentFlags := cmd.PersistentFlags()
-	persistentFlags.StringVar(&opts.Common.Orchestrator, "orchestrator", "", "Orchestrator to use (swarm|kubernetes|all) (experimental)")
-	persistentFlags.SetAnnotation("orchestrator", "experimentalCLI", nil)
+	persistentFlags.StringVar(&opts.Common.Orchestrator, "orchestrator", "", "Orchestrator to use (swarm|kubernetes|all)")
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
 
