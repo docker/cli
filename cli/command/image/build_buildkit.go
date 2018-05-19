@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/containerd/console"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/image/build"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -46,9 +48,45 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	var body io.Reader
 	switch {
 	case options.contextFromStdin():
-		body = os.Stdin
-		remote = uploadRequestRemote
+		rc, isArchive, err := build.DetectArchiveReader(os.Stdin)
+		if err != nil {
+			return err
+		}
+		if isArchive {
+			body = rc
+			remote = uploadRequestRemote
+		} else {
+			dockerfileDir, err := build.WriteTempDockerfile(rc)
+			if err != nil {
+				return err
+			}
+			defer os.RemoveAll(dockerfileDir)
+			emptyDir, _ := ioutil.TempDir("", "stupid-empty-dir")
+			defer os.RemoveAll(emptyDir)
+			s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
+				{
+					Name: "context",
+					Dir: emptyDir,
+				},
+				{
+					Name: "dockerfile",
+					Dir:  string(dockerfileDir),
+				},
+			}))
+			remote = clientSessionRemote
+		}
 	case isLocalDir(options.context):
+		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
+			{
+				Name: "context",
+				Dir:  options.context,
+				Map:  resetUIDAndGID,
+			},
+			{
+				Name: "dockerfile",
+				Dir:  filepath.Dir(options.dockerfileName),
+			},
+		}))
 		remote = clientSessionRemote
 	case urlutil.IsGitURL(options.context):
 		remote = options.context
@@ -64,20 +102,6 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	// if span := opentracing.SpanFromContext(ctx); span != nil {
 	// 	statusContext = opentracing.ContextWithSpan(statusContext, span)
 	// }
-
-	if remote == clientSessionRemote {
-		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
-			{
-				Name: "context",
-				Dir:  options.context,
-				Map:  resetUIDAndGID,
-			},
-			{
-				Name: "dockerfile",
-				Dir:  filepath.Dir(options.dockerfileName),
-			},
-		}))
-	}
 
 	s.Allow(authprovider.NewDockerAuthProvider())
 

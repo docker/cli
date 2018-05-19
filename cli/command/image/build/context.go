@@ -81,59 +81,81 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 	})
 }
 
-// GetContextFromReader will read the contents of the given reader as either a
-// Dockerfile or tar archive. Returns a tar archive used as a context and a
-// path to the Dockerfile inside the tar.
-func GetContextFromReader(r io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
-	buf := bufio.NewReader(r)
+// DetectArchiveReader detects whether the input stream is an archive or a
+// Dockerfile and returns a buffered version of input, safe to consume in lieu
+// of input. If an archive is detected, isArchive is set to true, and to false
+// otherwise, in which case it is safe to assume input represents the contents
+// of a Dockerfile.
+func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool, err error) {
+	buf := bufio.NewReader(input)
 
 	magic, err := buf.Peek(archiveHeaderSize)
 	if err != nil && err != io.EOF {
-		return nil, "", errors.Errorf("failed to peek context header from STDIN: %v", err)
+		return nil, false, errors.Errorf("failed to peek context header from STDIN: %v", err)
 	}
 
-	if IsArchive(magic) {
-		return ioutils.NewReadCloserWrapper(buf, func() error { return r.Close() }), dockerfileName, nil
+	return ioutils.NewReadCloserWrapper(buf, func() error { return input.Close() }), IsArchive(magic), nil
+}
+
+
+// WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
+// name specified by DefaultDockerfileName and returns the path to the
+// temporary directory containing the Dockerfile.
+func WriteTempDockerfile(rc io.ReadCloser) (string, error) {
+	dockerfileDir, err := ioutil.TempDir("", "docker-build-tempdockerfile-")
+	if err != nil {
+		return "", errors.Errorf("unable to create temporary context directory: %v", err)
 	}
+
+	f, err := os.Create(filepath.Join(dockerfileDir, DefaultDockerfileName))
+	if err != nil {
+		return "", err
+	}
+	_, err = io.Copy(f, rc)
+	if err != nil {
+		f.Close()
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+	return dockerfileDir, rc.Close()
+}
+
+// GetContextFromReader will read the contents of the given reader as either a
+// Dockerfile or tar archive. Returns a tar archive used as a context and a
+// path to the Dockerfile inside the tar.
+func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
+	rc, isArchive, err := DetectArchiveReader(rc)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if isArchive {
+		return rc, dockerfileName, nil
+	}
+
+	// Input should be read as a Dockerfile.
 
 	if dockerfileName == "-" {
 		return nil, "", errors.New("build context is not an archive")
 	}
 
-	// Input should be read as a Dockerfile.
-	tmpDir, err := ioutil.TempDir("", "docker-build-context-")
-	if err != nil {
-		return nil, "", errors.Errorf("unable to create temporary context directory: %v", err)
-	}
-
-	f, err := os.Create(filepath.Join(tmpDir, DefaultDockerfileName))
+	dockerfileDir, err := WriteTempDockerfile(rc)
 	if err != nil {
 		return nil, "", err
 	}
-	_, err = io.Copy(f, buf)
-	if err != nil {
-		f.Close()
-		return nil, "", err
-	}
 
-	if err := f.Close(); err != nil {
-		return nil, "", err
-	}
-	if err := r.Close(); err != nil {
-		return nil, "", err
-	}
-
-	tar, err := archive.Tar(tmpDir, archive.Uncompressed)
+	tar, err := archive.Tar(dockerfileDir, archive.Uncompressed)
 	if err != nil {
 		return nil, "", err
 	}
 
 	return ioutils.NewReadCloserWrapper(tar, func() error {
 		err := tar.Close()
-		os.RemoveAll(tmpDir)
+		os.RemoveAll(dockerfileDir)
 		return err
 	}), DefaultDockerfileName, nil
-
 }
 
 // IsArchive checks for the magic bytes of a tar or any supported compression
