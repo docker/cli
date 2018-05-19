@@ -27,6 +27,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const uploadRequestRemote = "upload-request"
+
 func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	ctx := appcontext.Context()
 
@@ -38,11 +40,14 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		return errors.Errorf("buildkit not supported by daemon")
 	}
 
+	buildID := stringid.GenerateRandomID()
+
 	var remote string
 	var body io.Reader
 	switch {
 	case options.contextFromStdin():
 		body = os.Stdin
+		remote = uploadRequestRemote
 	case isLocalDir(options.context):
 		remote = clientSessionRemote
 	case urlutil.IsGitURL(options.context):
@@ -82,12 +87,26 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		return s.Run(context.TODO(), dockerCli.Client().DialSession)
 	})
 
+	if body != nil {
+		eg.Go(func() error {
+			buildOptions := types.ImageBuildOptions{
+				Version: types.BuilderBuildKit,
+				BuildID: uploadRequestRemote + ":" + buildID,
+			}
+
+			response, err := dockerCli.Client().ImageBuild(context.Background(), body, buildOptions)
+			if err != nil {
+				return err
+			}
+			defer response.Body.Close()
+			return nil
+		})
+	}
+
 	eg.Go(func() error {
 		defer func() { // make sure the Status ends cleanly on build errors
 			s.Close()
 		}()
-
-		buildID := stringid.GenerateRandomID()
 
 		configFile := dockerCli.ConfigFile()
 		buildOptions := types.ImageBuildOptions{
@@ -110,7 +129,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			ShmSize:        options.shmSize.Value(),
 			Ulimits:        options.ulimits.GetList(),
 			BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
-			// AuthConfigs:    authConfigs,
+			// AuthConfigs:    authConfigs, // handled by session
 			Labels:        opts.ConvertKVStringsToMap(options.labels.GetAll()),
 			CacheFrom:     options.cacheFrom,
 			SecurityOpt:   options.securityOpt,
@@ -125,7 +144,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			BuildID:       buildID,
 		}
 
-		response, err := dockerCli.Client().ImageBuild(context.Background(), body, buildOptions)
+		response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
 		if err != nil {
 			return err
 		}
