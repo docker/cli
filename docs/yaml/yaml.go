@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/cli/cli"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	yaml "gopkg.in/yaml.v2"
@@ -96,7 +95,7 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 	}
 
 	if cmd.Runnable() {
-		cliDoc.Usage = cli.UseLine(cmd)
+		cliDoc.Usage = cmd.UseLine()
 	}
 
 	if len(cmd.Example) > 0 {

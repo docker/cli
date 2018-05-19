@@ -41,7 +41,8 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 			}
 			return isSupported(cmd, dockerCli)
 		},
-		Version: fmt.Sprintf("%s, build %s", cli.Version, cli.GitCommit),
+		Version:               fmt.Sprintf("%s, build %s", cli.Version, cli.GitCommit),
+		DisableFlagsInUseLine: true,
 	}
 	cli.SetupRootCommand(cmd)
 
@@ -57,9 +58,17 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd.SetOutput(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
+	disableFlagsInUseLine(cmd)
 	setValidateArgs(dockerCli, cmd, flags, opts)
 
 	return cmd
+}
+
+func disableFlagsInUseLine(cmd *cobra.Command) {
+	visitAll(cmd, func(ccmd *cobra.Command) {
+		// do not add a `[flags]` to the end of the usage line.
+		ccmd.DisableFlagsInUseLine = true
+	})
 }
 
 func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
