@@ -17,12 +17,12 @@ func SetupRootCommand(rootCmd *cobra.Command) {
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
 	cobra.AddTemplateFunc("wrappedFlagUsages", wrappedFlagUsages)
-	cobra.AddTemplateFunc("useLine", UseLine)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
 	rootCmd.SetHelpTemplate(helpTemplate)
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	rootCmd.SetHelpCommand(helpCommand)
+	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
@@ -99,19 +99,9 @@ func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	return cmds
 }
 
-// UseLine returns the usage line for a command. This implementation is different
-// from the default Command.UseLine in that it does not add a `[flags]` to the
-// end of the line.
-func UseLine(cmd *cobra.Command) string {
-	if cmd.HasParent() {
-		return cmd.Parent().CommandPath() + " " + cmd.Use
-	}
-	return cmd.Use
-}
-
 var usageTemplate = `Usage:
 
-{{- if not .HasSubCommands}}	{{ useLine . }}{{end}}
+{{- if not .HasSubCommands}}	{{.UseLine}}{{end}}
 {{- if .HasSubCommands}}	{{ .CommandPath}} COMMAND{{end}}
 
 {{ .Short | trim }}

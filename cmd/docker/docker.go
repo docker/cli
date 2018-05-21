@@ -32,13 +32,6 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceErrors:    true,
 		TraverseChildren: true,
 		Args:             noArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.Version {
-				showVersion()
-				return nil
-			}
-			return command.ShowHelp(dockerCli.Err())(cmd, args)
-		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// flags must be the top-level command flags, not cmd.Flags()
 			opts.Common.SetDefaultOptions(flags)
@@ -48,11 +41,13 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 			}
 			return isSupported(cmd, dockerCli)
 		},
+		Version:               fmt.Sprintf("%s, build %s", cli.Version, cli.GitCommit),
+		DisableFlagsInUseLine: true,
 	}
 	cli.SetupRootCommand(cmd)
 
 	flags = cmd.Flags()
-	flags.BoolVarP(&opts.Version, "version", "v", false, "Print version information and quit")
+	flags.BoolP("version", "v", false, "Print version information and quit")
 	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
 	opts.Common.InstallFlags(flags)
 
@@ -63,9 +58,17 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd.SetOutput(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
+	disableFlagsInUseLine(cmd)
 	setValidateArgs(dockerCli, cmd, flags, opts)
 
 	return cmd
+}
+
+func disableFlagsInUseLine(cmd *cobra.Command) {
+	visitAll(cmd, func(ccmd *cobra.Command) {
+		// do not add a `[flags]` to the end of the usage line.
+		ccmd.DisableFlagsInUseLine = true
+	})
 }
 
 func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
@@ -184,10 +187,6 @@ func contentTrustEnabled() bool {
 		}
 	}
 	return false
-}
-
-func showVersion() {
-	fmt.Printf("Docker version %s, build %s\n", cli.Version, cli.GitCommit)
 }
 
 func dockerPreRun(opts *cliflags.ClientOptions) {

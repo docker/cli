@@ -4,7 +4,6 @@ package flags
 type ClientOptions struct {
 	Common    *CommonOptions
 	ConfigDir string
-	Version   bool
 }
 
 // NewClientOptions returns a new ClientOptions
