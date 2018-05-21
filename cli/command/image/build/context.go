@@ -47,7 +47,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 				return errors.Errorf("can't stat '%s'", filePath)
 			}
 			if os.IsNotExist(err) {
-				return nil
+				return errors.Errorf("file ('%s') not found or excluded by .dockerignore", filePath)
 			}
 			return err
 		}
