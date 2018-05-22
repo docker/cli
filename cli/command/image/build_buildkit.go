@@ -44,8 +44,11 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 
 	buildID := stringid.GenerateRandomID()
 
-	var remote string
-	var body io.Reader
+	var (
+		remote string
+		body io.Reader
+		dockerfileName = filepath.Base(options.dockerfileName)
+	)
 	switch {
 	case options.contextFromStdin():
 		rc, isArchive, err := build.DetectArchiveReader(os.Stdin)
@@ -70,12 +73,21 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 				},
 				{
 					Name: "dockerfile",
-					Dir:  string(dockerfileDir),
+					Dir:  dockerfileDir,
 				},
 			}))
 			remote = clientSessionRemote
 		}
 	case isLocalDir(options.context):
+		dockerfileDir := filepath.Dir(options.dockerfileName)
+		if options.dockerfileFromStdin() {
+			dockerfileDir, err = build.WriteTempDockerfile(os.Stdin)
+			if err != nil {
+				return err
+			}
+			defer os.RemoveAll(dockerfileDir)
+			dockerfileName = build.DefaultDockerfileName
+		}
 		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
 			{
 				Name: "context",
@@ -84,7 +96,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			},
 			{
 				Name: "dockerfile",
-				Dir:  filepath.Dir(options.dockerfileName),
+				Dir:  dockerfileDir,
 			},
 		}))
 		remote = clientSessionRemote
@@ -149,7 +161,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			CPUQuota:       options.cpuQuota,
 			CPUPeriod:      options.cpuPeriod,
 			CgroupParent:   options.cgroupParent,
-			Dockerfile:     filepath.Base(options.dockerfileName),
+			Dockerfile:     dockerfileName,
 			ShmSize:        options.shmSize.Value(),
 			Ulimits:        options.ulimits.GetList(),
 			BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
