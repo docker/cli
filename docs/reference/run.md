@@ -1275,7 +1275,7 @@ container's logging driver. The following options are supported:
 
 The `docker logs` command is available only for the `json-file` and `journald`
 logging drivers.  For detailed information on working with logging drivers, see
-[Configure a logging driver](https://docs.docker.com/engine/admin/logging/overview/).
+[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
 
 
 ## Overriding Dockerfile image defaults
@@ -1398,7 +1398,7 @@ If the operator uses `--link` when starting a new client container in the
 default bridge network, then the client container can access the exposed
 port via a private networking interface.
 If `--link` is used when starting a container in a user-defined network as
-described in [*Docker network overview*](https://docs.docker.com/engine/userguide/networking/),
+described in [*Networking overview*](https://docs.docker.com/network/),
 it will provide a named alias for the container being linked to.
 
 ### ENV (environment variables)
@@ -1571,8 +1571,7 @@ The example below mounts an empty tmpfs into the container with the `rw`,
 > a volume.
 
 The volumes commands are complex enough to have their own documentation
-in section [*Manage data in
-containers*](https://docs.docker.com/engine/tutorials/dockervolumes/). A developer can define
+in section [*Use volumes*](https://docs.docker.com/storage/volumes/). A developer can define
 one or more `VOLUME`'s associated with an image, but only the operator
 can give access from one container to another (or from a container to a
 volume mounted on the host).

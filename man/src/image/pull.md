@@ -56,7 +56,7 @@ same image, their layers are stored only once and do not consume extra disk
 space.
 
 For more information about images, layers, and the content-addressable store,
-refer to [understand images, containers, and storage drivers](https://docs.docker.com/engine/userguide/storagedriver/imagesandcontainers/)
+refer to [about storage drivers](https://docs.docker.com/storage/storagedriver/)
 in the online documentation.
 
 
