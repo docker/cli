@@ -196,6 +196,21 @@ credentials for specific registries. If this property is set, the binary
 for a specific registry. For more information, see the
 [**Credential helpers** section in the `docker login` documentation](login.md#credential-helpers)
 
+The property `proxies` specifies proxy environment variables to be automatically
+set on containers, and set as `--build-arg` on containers used during `docker build`.
+A `"default"` set of proxies can be configured, and will be used for any docker
+daemon that the client connects to, or a configuration per host (docker daemon),
+for example, "https://docker-daemon1.example.com". The following properties can
+be set for each environment:
+
+* `httpProxy` (sets the value of `HTTP_PROXY` and `http_proxy`)
+* `httpsProxy` (sets the value of `HTTPS_PROXY` and `https_proxy`)
+* `ftpProxy` (sets the value of `FTP_PROXY` and `ftp_proxy`)
+* `allProxy` (sets the value of `ALL_PROXY` and `all_proxy`)
+* `noProxy` (sets the value of `NO_PROXY` and `no_proxy`)
+
+> `allProxy` is available in Docker 18.06 and above
+
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
 using the `detachKeys` property. Specify a `<sequence>` value for the
@@ -236,6 +251,19 @@ Following is a sample `config.json` file:
   "credHelpers": {
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
+  },
+  "proxies": {
+    "default": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128",
+      "noProxy":    "http://user:pass@example.com:3128",
+      "ftpProxy":   "http://user:pass@example.com:3128",
+    },
+    "https://manager1.mycorp.example.com:2377": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128",
+      "allProxy":   "http://user:pass@example.com:3128",
+    },
   }
 }
 {% endraw %}

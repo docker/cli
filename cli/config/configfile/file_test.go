@@ -25,11 +25,13 @@ func TestProxyConfig(t *testing.T) {
 	httpProxy := "http://proxy.mycorp.com:3128"
 	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
 	ftpProxy := "http://ftpproxy.mycorp.com:21"
+	allProxy := "http://all-proxy.mycorp.com:3128"
 	noProxy := "*.intra.mycorp.com"
 	defaultProxyConfig := ProxyConfig{
 		HTTPProxy:  httpProxy,
 		HTTPSProxy: httpsProxy,
 		FTPProxy:   ftpProxy,
+		AllProxy:   allProxy,
 		NoProxy:    noProxy,
 	}
 
@@ -47,6 +49,8 @@ func TestProxyConfig(t *testing.T) {
 		"https_proxy": &httpsProxy,
 		"FTP_PROXY":   &ftpProxy,
 		"ftp_proxy":   &ftpProxy,
+		"ALL_PROXY":   &allProxy,
+		"all_proxy":   &allProxy,
 		"NO_PROXY":    &noProxy,
 		"no_proxy":    &noProxy,
 	}
@@ -59,11 +63,13 @@ func TestProxyConfigOverride(t *testing.T) {
 	overrideNoProxy := ""
 	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
 	ftpProxy := "http://ftpproxy.mycorp.com:21"
+	allProxy := "http://all-proxy.mycorp.com:3128"
 	noProxy := "*.intra.mycorp.com"
 	defaultProxyConfig := ProxyConfig{
 		HTTPProxy:  httpProxy,
 		HTTPSProxy: httpsProxy,
 		FTPProxy:   ftpProxy,
+		AllProxy:   allProxy,
 		NoProxy:    noProxy,
 	}
 
@@ -85,6 +91,8 @@ func TestProxyConfigOverride(t *testing.T) {
 		"https_proxy": &httpsProxy,
 		"FTP_PROXY":   &ftpProxy,
 		"ftp_proxy":   &ftpProxy,
+		"ALL_PROXY":   &allProxy,
+		"all_proxy":   &allProxy,
 		"NO_PROXY":    &overrideNoProxy,
 		"no_proxy":    &noProxy,
 	}
@@ -95,23 +103,27 @@ func TestProxyConfigPerHost(t *testing.T) {
 	httpProxy := "http://proxy.mycorp.com:3128"
 	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
 	ftpProxy := "http://ftpproxy.mycorp.com:21"
+	allProxy := "http://all-proxy.mycorp.com:3128"
 	noProxy := "*.intra.mycorp.com"
 
 	extHTTPProxy := "http://proxy.example.com:3128"
 	extHTTPSProxy := "https://user:password@proxy.example.com:3129"
 	extFTPProxy := "http://ftpproxy.example.com:21"
+	extAllProxy := "http://all-proxy.example.com:3128"
 	extNoProxy := "*.intra.example.com"
 
 	defaultProxyConfig := ProxyConfig{
 		HTTPProxy:  httpProxy,
 		HTTPSProxy: httpsProxy,
 		FTPProxy:   ftpProxy,
+		AllProxy:   allProxy,
 		NoProxy:    noProxy,
 	}
 	externalProxyConfig := ProxyConfig{
 		HTTPProxy:  extHTTPProxy,
 		HTTPSProxy: extHTTPSProxy,
 		FTPProxy:   extFTPProxy,
+		AllProxy:   extAllProxy,
 		NoProxy:    extNoProxy,
 	}
 
@@ -130,6 +142,8 @@ func TestProxyConfigPerHost(t *testing.T) {
 		"https_proxy": &extHTTPSProxy,
 		"FTP_PROXY":   &extFTPProxy,
 		"ftp_proxy":   &extFTPProxy,
+		"ALL_PROXY":   &extAllProxy,
+		"all_proxy":   &extAllProxy,
 		"NO_PROXY":    &extNoProxy,
 		"no_proxy":    &extNoProxy,
 	}

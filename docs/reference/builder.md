@@ -1585,8 +1585,12 @@ corresponding `ARG` instruction in the Dockerfile.
 * `https_proxy`
 * `FTP_PROXY`
 * `ftp_proxy`
+* `ALL_PROXY`
+* `all_proxy`
 * `NO_PROXY`
 * `no_proxy`
+
+> **Note**: `ALL_PROXY` and `all_proxy` were added as predefined ARG in Docker 18.06.
 
 To use these, simply pass them on the command line using the flag:
 

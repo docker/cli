@@ -52,6 +52,7 @@ type ConfigFile struct {
 type ProxyConfig struct {
 	HTTPProxy  string `json:"httpProxy,omitempty"`
 	HTTPSProxy string `json:"httpsProxy,omitempty"`
+	AllProxy   string `json:"allProxy,omitempty"`
 	NoProxy    string `json:"noProxy,omitempty"`
 	FTPProxy   string `json:"ftpProxy,omitempty"`
 }
@@ -194,6 +195,7 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts []string) ma
 	permitted := map[string]*string{
 		"HTTP_PROXY":  &config.HTTPProxy,
 		"HTTPS_PROXY": &config.HTTPSProxy,
+		"ALL_PROXY":   &config.AllProxy,
 		"NO_PROXY":    &config.NoProxy,
 		"FTP_PROXY":   &config.FTPProxy,
 	}
