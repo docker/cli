@@ -11,6 +11,8 @@ func TestInspectInvalidReference(t *testing.T) {
 	// This test should work on both Windows and Linux
 	result := icmd.RunCmd(icmd.Command("docker", "inspect", "FooBar"))
 	result.Assert(t, icmd.Expected{
-		Out: "[]\nError: No such object: FooBar",
+		Out:      "[]",
+		Err:      "Error: No such object: FooBar",
+		ExitCode: 1,
 	})
 }
