@@ -221,6 +221,23 @@ running `docker stack` management commands. Valid values are `"swarm"`,
 `"kubernetes"`, and `"all"`. This property can be overridden with the
 `DOCKER_STACK_ORCHESTRATOR` environment variable, or the `--orchestrator` flag.
 
+The property `proxies` specifies proxy environment variables to be automatically
+set on containers, and set as `--build-arg` on containers used during `docker build`.
+A `"default"` set of proxies can be configured, and will be used for any docker
+daemon that the client connects to, or a configuration per host (docker daemon),
+for example, "https://docker-daemon1.example.com". The following properties can
+be set for each environment:
+
+* `httpProxy` (sets the value of `HTTP_PROXY` and `http_proxy`)
+* `httpsProxy` (sets the value of `HTTPS_PROXY` and `https_proxy`)
+* `ftpProxy` (sets the value of `FTP_PROXY` and `ftp_proxy`)
+* `noProxy` (sets the value of `NO_PROXY` and `no_proxy`)
+
+> **Warning**: Proxy settings may contain sensitive information (for example,
+> if the proxy requires authentication). Environment variables are stored as
+> plain text in the container's configuration, and as such can be inspected
+> through the remote API or committed to an image when using `docker commit`.
+
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
 using the `detachKeys` property. Specify a `<sequence>` value for the
@@ -275,6 +292,18 @@ Following is a sample `config.json` file:
       "anotheroption": "anothervalue",
       "athirdoption": "athirdvalue"
     }
+  },
+  "proxies": {
+    "default": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128",
+      "noProxy":    "http://user:pass@example.com:3128",
+      "ftpProxy":   "http://user:pass@example.com:3128"
+    },
+    "https://manager1.mycorp.example.com:2377": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128"
+    },
   }
 }
 {% endraw %}
