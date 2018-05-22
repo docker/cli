@@ -35,6 +35,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var errStdinConflict = errors.New("invalid argument: can't use stdin for both build context and dockerfile")
+
 type buildOptions struct {
 	context        string
 	dockerfileName string
@@ -192,7 +194,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	if options.dockerfileFromStdin() {
 		if options.contextFromStdin() {
-			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
+			return errStdinConflict
 		}
 		dockerfileCtx = dockerCli.In()
 	}

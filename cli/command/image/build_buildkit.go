@@ -51,6 +51,9 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	)
 	switch {
 	case options.contextFromStdin():
+		if options.dockerfileFromStdin() {
+			return errStdinConflict
+		}
 		rc, isArchive, err := build.DetectArchiveReader(os.Stdin)
 		if err != nil {
 			return err
