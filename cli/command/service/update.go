@@ -313,12 +313,13 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		return err
 	}
 
-	if flags.Changed(flagLimitCPU) || flags.Changed(flagLimitMemory) {
+	if anyChanged(flags, flagLimitCPU, flagLimitMemory) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
 		updateInt64Value(flagLimitCPU, &task.Resources.Limits.NanoCPUs)
 		updateInt64Value(flagLimitMemory, &task.Resources.Limits.MemoryBytes)
 	}
-	if flags.Changed(flagReserveCPU) || flags.Changed(flagReserveMemory) {
+
+	if anyChanged(flags, flagReserveCPU, flagReserveMemory) {
 		taskResources().Reservations = spec.TaskTemplate.Resources.Reservations
 		updateInt64Value(flagReserveCPU, &task.Resources.Reservations.NanoCPUs)
 		updateInt64Value(flagReserveMemory, &task.Resources.Reservations.MemoryBytes)
