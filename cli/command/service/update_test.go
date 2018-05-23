@@ -587,6 +587,50 @@ func TestUpdateIsolationValid(t *testing.T) {
 	assert.Check(t, is.Equal(container.IsolationProcess, spec.TaskTemplate.ContainerSpec.Isolation))
 }
 
+// TestUpdateLimitsReservations tests that limits and reservations are updated,
+// and that values are not updated are not reset to their default value
+func TestUpdateLimitsReservations(t *testing.T) {
+	spec := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+			Resources: &swarm.ResourceRequirements{
+				Limits: &swarm.Resources{
+					NanoCPUs:    1000000000,
+					MemoryBytes: 104857600,
+				},
+				Reservations: &swarm.Resources{
+					NanoCPUs:    1000000000,
+					MemoryBytes: 104857600,
+				},
+			},
+		},
+	}
+
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set(flagLimitCPU, "2")
+	assert.NilError(t, err)
+	err = flags.Set(flagReserveCPU, "2")
+	assert.NilError(t, err)
+	err = updateService(context.Background(), nil, flags, &spec)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagLimitMemory, "200M")
+	assert.NilError(t, err)
+	err = flags.Set(flagReserveMemory, "200M")
+	assert.NilError(t, err)
+	err = updateService(context.Background(), nil, flags, &spec)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+}
+
 func TestUpdateIsolationInvalid(t *testing.T) {
 	// validation depends on daemon os / version so validation should be done on the daemon side
 	flags := newUpdateCommand(nil).Flags()
