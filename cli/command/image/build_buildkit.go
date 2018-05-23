@@ -31,6 +31,8 @@ import (
 
 const uploadRequestRemote = "upload-request"
 
+var errDockerfileConflict = errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
+
 func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	ctx := appcontext.Context()
 
@@ -45,10 +47,14 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	buildID := stringid.GenerateRandomID()
 
 	var (
-		remote string
-		body io.Reader
-		dockerfileName = filepath.Base(options.dockerfileName)
+		remote           string
+		body             io.Reader
+		dockerfileName   = options.dockerfileName
+		dockerfileReader io.ReadCloser
+		dockerfileDir    string
+		contextDir       string
 	)
+
 	switch {
 	case options.contextFromStdin():
 		if options.dockerfileFromStdin() {
@@ -62,46 +68,25 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			body = rc
 			remote = uploadRequestRemote
 		} else {
-			dockerfileDir, err := build.WriteTempDockerfile(rc)
-			if err != nil {
-				return err
+			if options.dockerfileName != "" {
+				return errDockerfileConflict
 			}
-			defer os.RemoveAll(dockerfileDir)
-			emptyDir, _ := ioutil.TempDir("", "stupid-empty-dir")
-			defer os.RemoveAll(emptyDir)
-			s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
-				{
-					Name: "context",
-					Dir: emptyDir,
-				},
-				{
-					Name: "dockerfile",
-					Dir:  dockerfileDir,
-				},
-			}))
+			dockerfileReader = rc
 			remote = clientSessionRemote
+			// TODO: make fssync handle empty contextdir
+			contextDir, _ = ioutil.TempDir("", "empty-dir")
+			defer os.RemoveAll(contextDir)
 		}
 	case isLocalDir(options.context):
-		dockerfileDir := filepath.Dir(options.dockerfileName)
+		contextDir = options.context
 		if options.dockerfileFromStdin() {
-			dockerfileDir, err = build.WriteTempDockerfile(os.Stdin)
-			if err != nil {
-				return err
-			}
-			defer os.RemoveAll(dockerfileDir)
-			dockerfileName = build.DefaultDockerfileName
+			dockerfileReader = os.Stdin
+		} else if options.dockerfileName != "" {
+			dockerfileName = filepath.Base(options.dockerfileName)
+			dockerfileDir = filepath.Dir(options.dockerfileName)
+		} else {
+			dockerfileDir = options.context
 		}
-		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
-			{
-				Name: "context",
-				Dir:  options.context,
-				Map:  resetUIDAndGID,
-			},
-			{
-				Name: "dockerfile",
-				Dir:  dockerfileDir,
-			},
-		}))
 		remote = clientSessionRemote
 	case urlutil.IsGitURL(options.context):
 		remote = options.context
@@ -109,6 +94,29 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		remote = options.context
 	default:
 		return errors.Errorf("unable to prepare context: path %q not found", options.context)
+	}
+
+	if dockerfileReader != nil {
+		dockerfileName = build.DefaultDockerfileName
+		dockerfileDir, err = build.WriteTempDockerfile(dockerfileReader)
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(dockerfileDir)
+	}
+
+	if dockerfileDir != "" {
+		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
+			{
+				Name: "context",
+				Dir:  contextDir,
+				Map:  resetUIDAndGID,
+			},
+			{
+				Name: "dockerfile",
+				Dir:  dockerfileDir,
+			},
+		}))
 	}
 
 	// statusContext, cancelStatus := context.WithCancel(ctx)
