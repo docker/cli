@@ -2,10 +2,13 @@ package kubernetes
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/kubernetes/labels"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	apiv1 "k8s.io/api/core/v1"
@@ -65,13 +68,43 @@ func toSwarmProtocol(protocol apiv1.Protocol) swarm.PortConfigProtocol {
 	return swarm.PortConfigProtocol("unknown")
 }
 
-func fetchPods(namespace string, pods corev1.PodInterface) ([]apiv1.Pod, error) {
-	labelSelector := labels.SelectorForStack(namespace)
-	podsList, err := pods.List(metav1.ListOptions{LabelSelector: labelSelector})
+func fetchPods(stackName string, pods corev1.PodInterface, f filters.Args) ([]apiv1.Pod, error) {
+	services := f.Get("service")
+	// for existing script compatibility, support either <servicename> or <stackname>_<servicename> format
+	stackNamePrefix := stackName + "_"
+	for _, s := range services {
+		if strings.HasPrefix(s, stackNamePrefix) {
+			services = append(services, strings.TrimPrefix(s, stackNamePrefix))
+		}
+	}
+	listOpts := metav1.ListOptions{LabelSelector: labels.SelectorForStack(stackName, services...)}
+	var result []apiv1.Pod
+	podsList, err := pods.List(listOpts)
 	if err != nil {
 		return nil, err
 	}
-	return podsList.Items, nil
+	nodes := f.Get("node")
+	for _, pod := range podsList.Items {
+		if filterPod(pod, nodes) &&
+			// name filter is done client side for matching partials
+			f.FuzzyMatch("name", stackNamePrefix+pod.Name) {
+
+			result = append(result, pod)
+		}
+	}
+	return result, nil
+}
+
+func filterPod(pod apiv1.Pod, nodes []string) bool {
+	if len(nodes) == 0 {
+		return true
+	}
+	for _, name := range nodes {
+		if pod.Spec.NodeName == name {
+			return true
+		}
+	}
+	return false
 }
 
 func getContainerImage(containers []apiv1.Container) string {
@@ -121,56 +154,76 @@ const (
 	publishedOnRandomPortSuffix = "-random-ports"
 )
 
-// Replicas conversion
-func replicasToServices(replicas *appsv1beta2.ReplicaSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]formatter.ServiceListInfo, error) {
+func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta2.DaemonSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]formatter.ServiceListInfo, error) {
 	result := make([]swarm.Service, len(replicas.Items))
-	infos := make(map[string]formatter.ServiceListInfo, len(replicas.Items))
+	infos := make(map[string]formatter.ServiceListInfo, len(replicas.Items)+len(daemons.Items))
 	for i, r := range replicas.Items {
-		serviceName := r.Labels[labels.ForServiceName]
-		serviceHeadless, ok := findService(services, serviceName)
-		if !ok {
-			return nil, nil, fmt.Errorf("could not find service '%s'", serviceName)
+		s, err := convertToService(r.Labels[labels.ForServiceName], services, r.Spec.Template.Spec.Containers)
+		if err != nil {
+			return nil, nil, err
 		}
-		stack, ok := serviceHeadless.Labels[labels.ForStackName]
-		if ok {
-			stack += "_"
-		}
-		uid := string(serviceHeadless.UID)
-		s := swarm.Service{
-			ID: uid,
-			Spec: swarm.ServiceSpec{
-				Annotations: swarm.Annotations{
-					Name: stack + serviceHeadless.Name,
-				},
-				TaskTemplate: swarm.TaskSpec{
-					ContainerSpec: &swarm.ContainerSpec{
-						Image: getContainerImage(r.Spec.Template.Spec.Containers),
-					},
-				},
-			},
-		}
-		if serviceNodePort, ok := findService(services, serviceName+publishedOnRandomPortSuffix); ok && serviceNodePort.Spec.Type == apiv1.ServiceTypeNodePort {
-			s.Endpoint = serviceEndpoint(serviceNodePort, swarm.PortConfigPublishModeHost)
-		}
-		if serviceLoadBalancer, ok := findService(services, serviceName+publishedServiceSuffix); ok && serviceLoadBalancer.Spec.Type == apiv1.ServiceTypeLoadBalancer {
-			s.Endpoint = serviceEndpoint(serviceLoadBalancer, swarm.PortConfigPublishModeIngress)
-		}
-		result[i] = s
-		infos[uid] = formatter.ServiceListInfo{
+		result[i] = *s
+		infos[s.ID] = formatter.ServiceListInfo{
 			Mode:     "replicated",
 			Replicas: fmt.Sprintf("%d/%d", r.Status.AvailableReplicas, r.Status.Replicas),
 		}
 	}
+	for _, d := range daemons.Items {
+		s, err := convertToService(d.Labels[labels.ForServiceName], services, d.Spec.Template.Spec.Containers)
+		if err != nil {
+			return nil, nil, err
+		}
+		result = append(result, *s)
+		infos[s.ID] = formatter.ServiceListInfo{
+			Mode:     "global",
+			Replicas: fmt.Sprintf("%d/%d", d.Status.NumberReady, d.Status.DesiredNumberScheduled),
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].ID < result[j].ID
+	})
 	return result, infos, nil
 }
 
-func findService(services *apiv1.ServiceList, name string) (apiv1.Service, bool) {
+func convertToService(serviceName string, services *apiv1.ServiceList, containers []apiv1.Container) (*swarm.Service, error) {
+	serviceHeadless, err := findService(services, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	stack, ok := serviceHeadless.Labels[labels.ForStackName]
+	if ok {
+		stack += "_"
+	}
+	uid := string(serviceHeadless.UID)
+	s := &swarm.Service{
+		ID: uid,
+		Spec: swarm.ServiceSpec{
+			Annotations: swarm.Annotations{
+				Name: stack + serviceHeadless.Name,
+			},
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{
+					Image: getContainerImage(containers),
+				},
+			},
+		},
+	}
+	if serviceNodePort, err := findService(services, serviceName+publishedOnRandomPortSuffix); err == nil && serviceNodePort.Spec.Type == apiv1.ServiceTypeNodePort {
+		s.Endpoint = serviceEndpoint(serviceNodePort, swarm.PortConfigPublishModeHost)
+	}
+	if serviceLoadBalancer, err := findService(services, serviceName+publishedServiceSuffix); err == nil && serviceLoadBalancer.Spec.Type == apiv1.ServiceTypeLoadBalancer {
+		s.Endpoint = serviceEndpoint(serviceLoadBalancer, swarm.PortConfigPublishModeIngress)
+	}
+	return s, nil
+}
+
+func findService(services *apiv1.ServiceList, name string) (apiv1.Service, error) {
 	for _, s := range services.Items {
 		if s.Name == name {
-			return s, true
+			return s, nil
 		}
 	}
-	return apiv1.Service{}, false
+	return apiv1.Service{}, fmt.Errorf("could not find service '%s'", name)
 }
 
 func serviceEndpoint(service apiv1.Service, publishMode swarm.PortConfigPublishMode) swarm.Endpoint {

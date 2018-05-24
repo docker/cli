@@ -19,7 +19,7 @@ func TestReplicasConversionNeedsAService(t *testing.T) {
 		Items: []appsv1beta2.ReplicaSet{makeReplicaSet("unknown", 0, 0)},
 	}
 	services := apiv1.ServiceList{}
-	_, _, err := replicasToServices(&replicas, &services)
+	_, _, err := convertToServices(&replicas, &appsv1beta2.DaemonSetList{}, &services)
 	assert.ErrorContains(t, err, "could not find service")
 }
 
@@ -124,7 +124,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		swarmServices, listInfo, err := replicasToServices(tc.replicas, tc.services)
+		swarmServices, listInfo, err := convertToServices(tc.replicas, &appsv1beta2.DaemonSetList{}, tc.services)
 		assert.NilError(t, err)
 		assert.DeepEqual(t, tc.expectedServices, swarmServices)
 		assert.DeepEqual(t, tc.expectedListInfo, listInfo)

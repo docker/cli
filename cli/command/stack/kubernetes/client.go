@@ -76,6 +76,11 @@ func (s *Factory) ReplicaSets() typesappsv1beta2.ReplicaSetInterface {
 	return s.appsClientSet.ReplicaSets(s.namespace)
 }
 
+// DaemonSets returns a client for kubernetes daemon sets
+func (s *Factory) DaemonSets() typesappsv1beta2.DaemonSetInterface {
+	return s.appsClientSet.DaemonSets(s.namespace)
+}
+
 // Stacks returns a client for Docker's Stack on Kubernetes
 func (s *Factory) Stacks(allNamespaces bool) (StackClient, error) {
 	version, err := kubernetes.GetStackAPIVersion(s.clientSet)
