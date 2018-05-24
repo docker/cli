@@ -3,7 +3,7 @@ FROM    golang:1.10.2-alpine
 
 RUN     apk add -U git make bash coreutils ca-certificates curl
 
-ARG     VNDR_SHA=a6e196d8b4b0cbbdc29aebdb20c59ac6926bb384
+ARG     VNDR_SHA=1fc68ee0c852556a9ed53cbde16247033f104111
 RUN     go get -d github.com/LK4D4/vndr && \
         cd /go/src/github.com/LK4D4/vndr && \
         git checkout -q "$VNDR_SHA" && \
