@@ -24,14 +24,11 @@ var supportedServicesFilters = map[string]bool{
 func generateSelector(labels map[string][]string) []string {
 	var result []string
 	for k, v := range labels {
-		switch len(v) {
-		case 0:
+		for _, val := range v {
+			result = append(result, fmt.Sprintf("%s=%s", k, val))
+		}
+		if len(v) == 0 {
 			result = append(result, k)
-		case 1:
-			result = append(result, fmt.Sprintf("%s=%s", k, v[0]))
-		default:
-			sort.Strings(v)
-			result = append(result, fmt.Sprintf("%s in (%s)", k, strings.Join(v, ",")))
 		}
 	}
 	return result
