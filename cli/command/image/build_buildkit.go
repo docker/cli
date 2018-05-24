@@ -150,7 +150,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		})
 	}
 
-	eg.Go(func() error {
+	eg.Go(func() (finalErr error) {
 		defer func() { // make sure the Status ends cleanly on build errors
 			s.Close()
 		}()
@@ -209,16 +209,53 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		})
 
 		t := newTracer()
-		var auxCb func(jsonmessage.JSONMessage)
-		if c, err := console.ConsoleFromFile(os.Stderr); err == nil {
-			// not using shared context to not disrupt display but let is finish reporting errors
-			auxCb = t.write
-			eg.Go(func() error {
-				return progressui.DisplaySolveStatus(context.TODO(), c, t.displayCh)
-			})
-			defer close(t.displayCh)
+		ssArr := []*client.SolveStatus{}
+
+		displayStatus := func(displayCh chan *client.SolveStatus) {
+			if c, err := console.ConsoleFromFile(os.Stderr); err == nil {
+				// not using shared context to not disrupt display but let is finish reporting errors
+				eg.Go(func() error {
+					return progressui.DisplaySolveStatus(context.TODO(), c, displayCh)
+				})
+			} else {
+				// read from t.displayCh and send json to Stderr
+				eg.Go(func() error {
+					enc := json.NewEncoder(os.Stderr)
+					for ss := range displayCh {
+						if err := enc.Encode(ss); err != nil {
+							return err
+						}
+					}
+					return nil
+				})
+			}
 		}
-		err = jsonmessage.DisplayJSONMessagesStream(response.Body, os.Stdout, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), auxCb)
+
+		if options.quiet {
+			eg.Go(func() error {
+				// TODO: make sure t.displayCh closes
+				for ss := range t.displayCh {
+					ssArr = append(ssArr, ss)
+				}
+				<-done
+				// TODO: verify that finalErr is indeed set when error occurs
+				if finalErr != nil {
+					displayCh := make(chan *client.SolveStatus)
+					go func() {
+						for _, ss := range ssArr {
+							displayCh <- ss
+						}
+						close(displayCh)
+					}()
+					displayStatus(displayCh)
+				}
+				return nil
+			})
+		} else {
+			displayStatus(t.displayCh)
+		}
+		defer close(t.displayCh)
+		err = jsonmessage.DisplayJSONMessagesStream(response.Body, os.Stdout, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), t.write)
 		if err != nil {
 			if jerr, ok := err.(*jsonmessage.JSONError); ok {
 				// If no error code is set, default to 1
