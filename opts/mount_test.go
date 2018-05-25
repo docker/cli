@@ -183,3 +183,27 @@ func TestMountOptSetTmpfsError(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
 	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }
+
+func TestMountOptSetTmpfsExecOpt(t *testing.T) {
+	for _, testcase := range []struct{
+		opts string
+		expected string
+	}{
+		{"type=tmpfs,target=/target,tmpfs-opt=exec", "exec"},
+		{"type=tmpfs,target=/target,tmpfs-opt=noexec", "noexec"},
+	} {
+		var mount MountOpt
+
+		assert.NilError(t, mount.Set(testcase.opts))
+
+		mounts := mount.Value()
+		assert.Assert(t, is.Len(mounts, 1))
+		assert.Check(t, is.DeepEqual(mounttypes.Mount{
+			Type: mounttypes.TypeTmpfs,
+			Target: "/target",
+			TmpfsOptions: &mounttypes.TmpfsOptions{
+				RawOptions: testcase.expected,
+			},
+		}, mounts[0]))
+	}
+}
