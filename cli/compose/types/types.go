@@ -319,6 +319,7 @@ type ServiceVolumeVolume struct {
 // ServiceVolumeTmpfs are options for a service volume of type tmpfs
 type ServiceVolumeTmpfs struct {
 	Size int64 `yaml:",omitempty"`
+	Options string `yaml:",omitempty"`
 }
 
 // FileReferenceConfig for a reference to a swarm file object
