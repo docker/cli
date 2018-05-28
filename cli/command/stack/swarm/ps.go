@@ -13,19 +13,21 @@ import (
 
 // RunPS is the swarm implementation of docker stack ps
 func RunPS(dockerCli command.Cli, opts options.PS) error {
-	namespace := opts.Namespace
-	client := dockerCli.Client()
-	ctx := context.Background()
+	if err := validateStackName(opts.Namespace); err != nil {
+		return err
+	}
 
 	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 
+	ctx := context.Background()
+	client := dockerCli.Client()
 	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
 	if err != nil {
 		return err
 	}
 
 	if len(tasks) == 0 {
-		return fmt.Errorf("nothing found in stack: %s", namespace)
+		return fmt.Errorf("nothing found in stack: %s", opts.Namespace)
 	}
 
 	format := opts.Format

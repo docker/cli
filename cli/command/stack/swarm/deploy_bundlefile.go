@@ -16,6 +16,9 @@ import (
 )
 
 func deployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
+	if err := validateStackName(opts.Namespace); err != nil {
+		return err
+	}
 	bundle, err := loadBundlefile(dockerCli.Err(), opts.Namespace, opts.Bundlefile)
 	if err != nil {
 		return err

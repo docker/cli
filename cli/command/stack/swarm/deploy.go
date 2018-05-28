@@ -24,6 +24,9 @@ const (
 func RunDeploy(dockerCli command.Cli, opts options.Deploy) error {
 	ctx := context.Background()
 
+	if err := validateStackName(opts.Namespace); err != nil {
+		return err
+	}
 	if err := validateResolveImageFlag(dockerCli, &opts); err != nil {
 		return err
 	}
