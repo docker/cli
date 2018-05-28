@@ -16,12 +16,15 @@ import (
 
 // RunRemove is the swarm implementation of docker stack remove
 func RunRemove(dockerCli command.Cli, opts options.Remove) error {
-	namespaces := opts.Namespaces
+	if err := validateStackNames(opts.Namespaces); err != nil {
+		return err
+	}
+
 	client := dockerCli.Client()
 	ctx := context.Background()
 
 	var errs []string
-	for _, namespace := range namespaces {
+	for _, namespace := range opts.Namespaces {
 		services, err := getStackServices(ctx, client, namespace)
 		if err != nil {
 			return err
