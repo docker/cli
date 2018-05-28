@@ -55,8 +55,6 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(&commonOpts.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
 	flags.BoolVar(&commonOpts.TLS, "tls", dockerTLS, "Use TLS; implied by --tlsverify")
 	flags.BoolVar(&commonOpts.TLSVerify, FlagTLSVerify, dockerTLSVerify, "Use TLS and verify the remote")
-	flags.StringVar(&commonOpts.Orchestrator, "orchestrator", "", "Orchestrator to use (swarm|kubernetes|all) (experimental)")
-	flags.SetAnnotation("orchestrator", "experimentalCLI", nil)
 
 	// TODO use flag flags.String("identity"}, "i", "", "Path to libtrust key file")
 
