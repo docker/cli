@@ -22,7 +22,7 @@ func RunRemove(dockerCli command.Cli, opts options.Remove) error {
 
 	var errs []string
 	for _, namespace := range namespaces {
-		services, err := getServices(ctx, client, namespace)
+		services, err := getStackServices(ctx, client, namespace)
 		if err != nil {
 			return err
 		}
