@@ -166,7 +166,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return errors.Wrap(err, "Experimental field")
 	}
-	orchestrator, err := GetOrchestrator(hasExperimental, opts.Common.Orchestrator, cli.configFile.Orchestrator)
+	orchestrator, err := GetOrchestrator(opts.Common.Orchestrator, cli.configFile.Orchestrator)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ type ClientInfo struct {
 
 // HasKubernetes checks if kubernetes orchestrator is enabled
 func (c ClientInfo) HasKubernetes() bool {
-	return c.HasExperimental && (c.Orchestrator == OrchestratorKubernetes || c.Orchestrator == OrchestratorAll)
+	return c.Orchestrator == OrchestratorKubernetes || c.Orchestrator == OrchestratorAll
 }
 
 // HasSwarm checks if swarm orchestrator is enabled
