@@ -371,3 +371,45 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
+
+func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
+	testCases := []struct {
+		name        string
+		config      *KubernetesConfig
+		expectError bool
+	}{
+		{
+			"no kubernetes config is valid",
+			nil,
+			false,
+		},
+		{
+			"enabled is valid",
+			&KubernetesConfig{AllNamespaces: "enabled"},
+			false,
+		},
+		{
+			"disabled is valid",
+			&KubernetesConfig{AllNamespaces: "disabled"},
+			false,
+		},
+		{
+			"empty string is valid",
+			&KubernetesConfig{AllNamespaces: ""},
+			false,
+		},
+		{
+			"other value is invalid",
+			&KubernetesConfig{AllNamespaces: "unknown"},
+			true,
+		},
+	}
+	for _, test := range testCases {
+		err := checkKubernetesConfiguration(test.config)
+		if test.expectError {
+			assert.Assert(t, err != nil, test.name)
+		} else {
+			assert.NilError(t, err, test.name)
+		}
+	}
+}

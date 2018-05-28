@@ -3,6 +3,7 @@ package configfile
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -125,7 +126,7 @@ func (configFile *ConfigFile) LoadFromReader(configData io.Reader) error {
 		ac.ServerAddress = addr
 		configFile.AuthConfigs[addr] = ac
 	}
-	return nil
+	return checkKubernetesConfiguration(configFile.Kubernetes)
 }
 
 // ContainsAuth returns whether there is authentication configured
@@ -317,4 +318,18 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 // GetFilename returns the file name that this config file is based on.
 func (configFile *ConfigFile) GetFilename() string {
 	return configFile.Filename
+}
+
+func checkKubernetesConfiguration(kubeConfig *KubernetesConfig) error {
+	if kubeConfig == nil {
+		return nil
+	}
+	switch kubeConfig.AllNamespaces {
+	case "":
+	case "enabled":
+	case "disabled":
+	default:
+		return fmt.Errorf("invalid 'kubernetes.allNamespaces' value, should be 'enabled' or 'disabled': %s", kubeConfig.AllNamespaces)
+	}
+	return nil
 }
