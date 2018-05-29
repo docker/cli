@@ -190,14 +190,15 @@ type LoggingConfig struct {
 
 // DeployConfig the deployment configuration for a service
 type DeployConfig struct {
-	Mode          string         `yaml:",omitempty"`
-	Replicas      *uint64        `yaml:",omitempty"`
-	Labels        Labels         `yaml:",omitempty"`
-	UpdateConfig  *UpdateConfig  `mapstructure:"update_config" yaml:"update_config,omitempty"`
-	Resources     Resources      `yaml:",omitempty"`
-	RestartPolicy *RestartPolicy `mapstructure:"restart_policy" yaml:"restart_policy,omitempty"`
-	Placement     Placement      `yaml:",omitempty"`
-	EndpointMode  string         `mapstructure:"endpoint_mode" yaml:"endpoint_mode,omitempty"`
+	Mode           string         `yaml:",omitempty"`
+	Replicas       *uint64        `yaml:",omitempty"`
+	Labels         Labels         `yaml:",omitempty"`
+	UpdateConfig   *UpdateConfig  `mapstructure:"update_config" yaml:"update_config,omitempty"`
+	RollbackConfig *UpdateConfig  `mapstructure:"rollback_config" yaml:"rollback_config,omitempty"`
+	Resources      Resources      `yaml:",omitempty"`
+	RestartPolicy  *RestartPolicy `mapstructure:"restart_policy" yaml:"restart_policy,omitempty"`
+	Placement      Placement      `yaml:",omitempty"`
+	EndpointMode   string         `mapstructure:"endpoint_mode" yaml:"endpoint_mode,omitempty"`
 }
 
 // HealthCheckConfig the healthcheck configuration for a service

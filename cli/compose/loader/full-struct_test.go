@@ -10,7 +10,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.6",
+		Version:  "3.7",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -41,6 +41,14 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				Mode:     "replicated",
 				Replicas: uint64Ptr(6),
 				Labels:   map[string]string{"FOO": "BAR"},
+				RollbackConfig: &types.UpdateConfig{
+					Parallelism:     uint64Ptr(3),
+					Delay:           time.Duration(10 * time.Second),
+					FailureAction:   "continue",
+					Monitor:         time.Duration(60 * time.Second),
+					MaxFailureRatio: 0.3,
+					Order:           "start-first",
+				},
 				UpdateConfig: &types.UpdateConfig{
 					Parallelism:     uint64Ptr(3),
 					Delay:           time.Duration(10 * time.Second),
@@ -393,7 +401,7 @@ func volumes() map[string]types.VolumeConfig {
 }
 
 func fullExampleYAML(workingDir string) string {
-	return fmt.Sprintf(`version: "3.6"
+	return fmt.Sprintf(`version: "3.7"
 services:
   foo:
     build:
@@ -430,6 +438,13 @@ services:
       labels:
         FOO: BAR
       update_config:
+        parallelism: 3
+        delay: 10s
+        failure_action: continue
+        monitor: 1m0s
+        max_failure_ratio: 0.3
+        order: start-first
+      rollback_config:
         parallelism: 3
         delay: 10s
         failure_action: continue

@@ -1,4 +1,4 @@
-version: "3.6"
+version: "3.7"
 
 services:
   foo:
@@ -39,6 +39,13 @@ services:
       mode: replicated
       replicas: 6
       labels: [FOO=BAR]
+      rollback_config:
+        parallelism: 3
+        delay: 10s
+        failure_action: continue
+        monitor: 60s
+        max_failure_ratio: 0.3
+        order: start-first
       update_config:
         parallelism: 3
         delay: 10s

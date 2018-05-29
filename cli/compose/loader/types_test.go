@@ -19,7 +19,7 @@ func TestMarshallConfig(t *testing.T) {
 	assert.Check(t, is.Equal(expected, string(actual)))
 
 	// Make sure the expected still
-	dict, err := ParseYAML([]byte("version: '3.6'\n" + expected))
+	dict, err := ParseYAML([]byte("version: '3.7'\n" + expected))
 	assert.NilError(t, err)
 	_, err = Load(buildConfigDetails(dict, map[string]string{}))
 	assert.NilError(t, err)
