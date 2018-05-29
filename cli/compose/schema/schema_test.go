@@ -114,3 +114,92 @@ func TestValidateIsolation(t *testing.T) {
 	}
 	assert.NilError(t, Validate(config, "3.5"))
 }
+
+func TestValidateRollbackConfig(t *testing.T) {
+	config := dict{
+		"version": "3.4",
+		"services": dict{
+			"foo": dict{
+				"image": "busybox",
+				"deploy": dict{
+					"rollback_config": dict{
+						"parallelism": 1,
+					},
+				},
+			},
+		},
+	}
+
+	assert.NilError(t, Validate(config, "3.7"))
+}
+
+func TestValidateRollbackConfigWithOrder(t *testing.T) {
+	config := dict{
+		"version": "3.4",
+		"services": dict{
+			"foo": dict{
+				"image": "busybox",
+				"deploy": dict{
+					"rollback_config": dict{
+						"parallelism": 1,
+						"order":       "start-first",
+					},
+				},
+			},
+		},
+	}
+
+	assert.NilError(t, Validate(config, "3.7"))
+}
+
+func TestValidateRollbackConfigWithUpdateConfig(t *testing.T) {
+	config := dict{
+		"version": "3.4",
+		"services": dict{
+			"foo": dict{
+				"image": "busybox",
+				"deploy": dict{
+					"update_config": dict{
+						"parallelism": 1,
+						"order":       "start-first",
+					},
+					"rollback_config": dict{
+						"parallelism": 1,
+						"order":       "start-first",
+					},
+				},
+			},
+		},
+	}
+
+	assert.NilError(t, Validate(config, "3.7"))
+}
+
+func TestValidateRollbackConfigWithUpdateConfigFull(t *testing.T) {
+	config := dict{
+		"version": "3.4",
+		"services": dict{
+			"foo": dict{
+				"image": "busybox",
+				"deploy": dict{
+					"update_config": dict{
+						"parallelism":    1,
+						"order":          "start-first",
+						"delay":          "10s",
+						"failure_action": "pause",
+						"monitor":        "10s",
+					},
+					"rollback_config": dict{
+						"parallelism":    1,
+						"order":          "start-first",
+						"delay":          "10s",
+						"failure_action": "pause",
+						"monitor":        "10s",
+					},
+				},
+			},
+		},
+	}
+
+	assert.NilError(t, Validate(config, "3.7"))
+}

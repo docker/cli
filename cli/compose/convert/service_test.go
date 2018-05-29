@@ -550,3 +550,17 @@ func (c *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOpt
 	}
 	return []swarm.Config{}, nil
 }
+
+func TestConvertUpdateConfigParallelism(t *testing.T) {
+	parallel := uint64(4)
+
+	// test default behavior
+	updateConfig := convertUpdateConfig(&composetypes.UpdateConfig{})
+	assert.Check(t, is.Equal(uint64(1), updateConfig.Parallelism))
+
+	// Non default value
+	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
+		Parallelism: &parallel,
+	})
+	assert.Check(t, is.Equal(parallel, updateConfig.Parallelism))
+}
