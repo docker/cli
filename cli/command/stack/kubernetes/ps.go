@@ -68,7 +68,7 @@ func printTasks(dockerCli command.Cli, options options.PS, namespace string, cli
 	names := map[string]string{}
 	nodes := map[string]string{}
 
-	n, err := client.Nodes().List(metav1.ListOptions{})
+	n, err := listNodes(client, options.NoResolve)
 	if err != nil {
 		return err
 	}
@@ -102,4 +102,11 @@ func resolveNode(name string, nodes *apiv1.NodeList, noResolve bool) (string, er
 		return "", fmt.Errorf("could not find node '%s'", name)
 	}
 	return name, nil
+}
+
+func listNodes(client corev1.NodesGetter, noResolve bool) (*apiv1.NodeList, error) {
+	if noResolve {
+		return client.Nodes().List(metav1.ListOptions{})
+	}
+	return nil, nil
 }
