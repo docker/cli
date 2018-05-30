@@ -9,6 +9,7 @@ BINARY_NATIVE_IMAGE_NAME = docker-cli-native$(IMAGE_TAG)
 LINTER_IMAGE_NAME = docker-cli-lint$(IMAGE_TAG)
 CROSS_IMAGE_NAME = docker-cli-cross$(IMAGE_TAG)
 VALIDATE_IMAGE_NAME = docker-cli-shell-validate$(IMAGE_TAG)
+E2E_IMAGE_NAME = docker-cli-e2e$(IMAGE_TAG)
 MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM
@@ -34,6 +35,10 @@ build_shell_validate_image:
 .PHONY: build_binary_native_image
 build_binary_native_image:
 	docker build -t $(BINARY_NATIVE_IMAGE_NAME) -f ./dockerfiles/Dockerfile.binary-native .
+
+.PHONY: build_e2e_image
+build_e2e_image:
+	docker build -t $(E2E_IMAGE_NAME) --build-arg VERSION=$(VERSION) --build-arg GITCOMMIT=$(GITCOMMIT) -f ./dockerfiles/Dockerfile.e2e .
 
 
 # build executable using a container
@@ -114,5 +119,5 @@ shellcheck: build_shell_validate_image
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
 
 .PHONY: test-e2e
-test-e2e: binary
-	./scripts/test/e2e/wrapper
+test-e2e: build_e2e_image
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)

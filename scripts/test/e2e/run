@@ -9,9 +9,13 @@ function container_ip {
         -f "{{.NetworkSettings.Networks.${network}.IPAddress}}" "$cid"
 }
 
+function fetch_images {
+    ./scripts/test/e2e/load-image fetch-only
+}
+
 function setup {
     local project=$1
-    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose up -d >&2
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose up --build -d >&2
 
     local network="${project}_default"
     # TODO: only run if inside a container
@@ -21,9 +25,8 @@ function setup {
     engine_host="tcp://$engine_ip:2375"
     (
         export DOCKER_HOST="$engine_host"
-        timeout -t 200 ./scripts/test/e2e/wait-on-daemon
-        ./scripts/test/e2e/load-alpine
-        ./scripts/test/e2e/load-busybox
+        timeout 200 ./scripts/test/e2e/wait-on-daemon
+        ./scripts/test/e2e/load-image
         is_swarm_enabled || docker swarm init
     ) >&2
     echo "$engine_host"
@@ -34,17 +37,22 @@ function is_swarm_enabled {
 }
 
 function cleanup {
-    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v >&2
+    local project=$1
+    local network="${project}_default"
+    docker network disconnect "$network" "$(hostname)"
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v --rmi local >&2
 }
 
 function runtests {
     local engine_host=$1
 
-    # TODO: only run if inside a container
-    update-ca-certificates
     # shellcheck disable=SC2086
     env -i \
         TEST_DOCKER_HOST="$engine_host" \
+        TEST_DOCKER_CERT_PATH="${DOCKER_CERT_PATH-}" \
+        TEST_KUBECONFIG="${KUBECONFIG-}" \
+        TEST_REMOTE_DAEMON="${REMOTE_DAEMON-}" \
+        TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \
         PATH="$PWD/build/" \
         "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
@@ -62,6 +70,10 @@ case "$cmd" in
         ;;
     cleanup)
         cleanup "$unique_id" "$compose_env_file"
+        exit
+        ;;
+    fetch-images)
+        fetch_images
         exit
         ;;
     test)

@@ -9,16 +9,20 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
 	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
 )
 
 const registryPrefix = "registry:5000"
 
 func TestInstallWithContentTrust(t *testing.T) {
+	skip.If(t, environment.SkipPluginTests())
+
 	pluginName := fmt.Sprintf("%s/plugin-content-trust", registryPrefix)
 
 	dir := fixtures.SetupConfigFile(t)
@@ -51,6 +55,8 @@ func TestInstallWithContentTrust(t *testing.T) {
 }
 
 func TestInstallWithContentTrustUntrusted(t *testing.T) {
+	skip.If(t, environment.SkipPluginTests())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 

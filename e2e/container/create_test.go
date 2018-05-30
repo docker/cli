@@ -5,10 +5,14 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 )
 
 func TestCreateWithContentTrust(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-create", "latest")

@@ -17,12 +17,6 @@ RUN     go get -d github.com/mjibson/esc && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-# FIXME(vdemeester) only used for e2e, could be in e2e special image in the future
-ARG     NOTARY_VERSION=v0.6.0
-RUN     export URL=https://github.com/theupdateframework/notary/releases/download; \
-        curl -Ls $URL/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary && \
-        chmod +x /usr/local/bin/notary
-
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
         DISABLE_WARN_OUTSIDE_CONTAINER=1

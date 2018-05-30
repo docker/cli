@@ -5,15 +5,19 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 )
 
 const registryPrefix = "registry:5000"
 
 func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	image := createRemoteImage(t)
 
 	result := icmd.RunCommand("docker", "run", "--rm", image,
@@ -25,6 +29,8 @@ func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 }
 
 func TestRunWithContentTrust(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-run", "latest")

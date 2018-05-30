@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 )
 
 const (
@@ -17,6 +19,8 @@ const (
 )
 
 func TestSignLocalImage(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.AlpineImage)).Assert(t, icmd.Success)
@@ -31,6 +35,8 @@ func TestSignLocalImage(t *testing.T) {
 }
 
 func TestSignWithLocalFlag(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	setupTrustedImageForOverwrite(t, dir)

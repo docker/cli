@@ -5,9 +5,11 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
 	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/gotestyourself/gotestyourself/icmd"
+	"github.com/gotestyourself/gotestyourself/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
@@ -15,32 +17,35 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		fs.WithFile("run", "echo running", fs.WithMode(0755)),
 		fs.WithDir("data", fs.WithFile("one", "1111")),
 		fs.WithFile("Dockerfile", fmt.Sprintf(`
-	FROM	%s
-	COPY	run /usr/bin/run
-	RUN		run
-	COPY	data /data
+	FROM %s
+	COPY run /usr/bin/run
+	RUN run
+	COPY data /data
 		`, fixtures.AlpineImage)))
 	defer dir.Remove()
 
 	result := icmd.RunCmd(
 		icmd.Command("docker", "build", "-t", "myimage", "."),
 		withWorkingDir(dir))
+	defer icmd.RunCommand("docker", "image", "rm", "myimage")
 
 	result.Assert(t, icmd.Expected{Err: icmd.None})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Prefix("Sending build context to Docker daemon"),
-		1:  output.Equals("Step 1/4 : FROM\tregistry:5000/alpine:3.6"),
-		3:  output.Equals("Step 2/4 : COPY\trun /usr/bin/run"),
-		5:  output.Equals("Step 3/4 : RUN\t\trun"),
-		7:  output.Equals("running"),
-		8:  output.Prefix("Removing intermediate container "),
-		10: output.Equals("Step 4/4 : COPY\tdata /data"),
-		12: output.Prefix("Successfully built "),
-		13: output.Equals("Successfully tagged myimage:latest"),
+		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:3.6"),
+		3:  output.Suffix("Step 2/4 : COPY run /usr/bin/run"),
+		5:  output.Suffix("Step 3/4 : RUN run"),
+		7:  output.Suffix("running"),
+		8:  output.Contains("Removing intermediate container"),
+		10: output.Suffix("Step 4/4 : COPY data /data"),
+		12: output.Contains("Successfully built "),
+		13: output.Suffix("Successfully tagged myimage:latest"),
 	})
 }
 
 func TestTrustedBuild(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image1 := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-build1", "latest")
@@ -73,6 +78,8 @@ func TestTrustedBuild(t *testing.T) {
 }
 
 func TestTrustedBuildUntrustedImage(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	buildDir := fs.NewDir(t, "test-trusted-build-context-dir",
