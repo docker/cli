@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
@@ -66,6 +67,9 @@ func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 func Load(configDir string) (*configfile.ConfigFile, error) {
 	if configDir == "" {
 		configDir = Dir()
+	}
+	if strings.HasPrefix(configDir, homedir.GetShortcutString()) {
+		configDir = filepath.Join(homedir.Get(), strings.TrimPrefix(configDir, homedir.GetShortcutString()))
 	}
 
 	filename := filepath.Join(configDir, ConfigFileName)
