@@ -2,13 +2,13 @@ package kubernetes
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/kubernetes/labels"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/swarm"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -49,15 +49,7 @@ func parseLabelFilters(rawFilters []string) map[string][]string {
 }
 
 func generateLabelSelector(f filters.Args, stackName string) string {
-	names := f.Get("name")
-	sort.Strings(names)
-	for _, n := range names {
-		if strings.HasPrefix(n, stackName+"_") {
-			// also accepts with unprefixed service name (for compat with existing swarm scripts where service names are prefixed by stack names)
-			names = append(names, strings.TrimPrefix(n, stackName+"_"))
-		}
-	}
-	selectors := append(generateSelector(parseLabelFilters(f.Get("label"))), labels.SelectorForStack(stackName, names...))
+	selectors := append(generateSelector(parseLabelFilters(f.Get("label"))), labels.SelectorForStack(stackName))
 	return strings.Join(selectors, ",")
 }
 
@@ -120,6 +112,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	if err != nil {
 		return err
 	}
+	services = filterServicesByName(services, filters.Get("name"), stackName)
 
 	if opts.Quiet {
 		info = map[string]formatter.ServiceListInfo{}
@@ -139,4 +132,27 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 		Format: formatter.NewServiceListFormat(format, opts.Quiet),
 	}
 	return formatter.ServiceListWrite(servicesCtx, services, info)
+}
+
+func filterServicesByName(services []swarm.Service, names []string, stackName string) []swarm.Service {
+	if len(names) == 0 {
+		return services
+	}
+	prefix := stackName + "_"
+	// Accepts unprefixed service name (for compatibility with existing swarm scripts where service names are prefixed by stack names)
+	for i, n := range names {
+		if !strings.HasPrefix(n, prefix) {
+			names[i] = stackName + "_" + n
+		}
+	}
+	// Filter services
+	result := []swarm.Service{}
+	for _, s := range services {
+		for _, n := range names {
+			if strings.HasPrefix(s.Spec.Name, n) {
+				result = append(result, s)
+			}
+		}
+	}
+	return result
 }
