@@ -96,6 +96,40 @@ func TestPortOptValidSimpleSyntax(t *testing.T) {
 				},
 			},
 		},
+		{
+			value: "80-82:8080/udp",
+			expected: []swarm.PortConfig{
+				{
+					Protocol:      "udp",
+					TargetPort:    8080,
+					PublishedPort: 80,
+					PublishMode:   swarm.PortConfigPublishModeIngress,
+				},
+				{
+					Protocol:      "udp",
+					TargetPort:    8080,
+					PublishedPort: 81,
+					PublishMode:   swarm.PortConfigPublishModeIngress,
+				},
+				{
+					Protocol:      "udp",
+					TargetPort:    8080,
+					PublishedPort: 82,
+					PublishMode:   swarm.PortConfigPublishModeIngress,
+				},
+			},
+		},
+		{
+			value: "80-80:8080/tcp",
+			expected: []swarm.PortConfig{
+				{
+					Protocol:      "tcp",
+					TargetPort:    8080,
+					PublishedPort: 80,
+					PublishMode:   swarm.PortConfigPublishModeIngress,
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		var port PortOpt
