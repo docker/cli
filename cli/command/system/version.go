@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/kubernetes"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	kubernetesClient "k8s.io/client-go/kubernetes"
@@ -121,19 +122,10 @@ func reformatDate(buildTime string) string {
 }
 
 func runVersion(dockerCli command.Cli, opts *versionOptions) error {
-	templateFormat := versionTemplate
-	tmpl := templates.New("version")
-	if opts.format != "" {
-		templateFormat = opts.format
-	} else {
-		tmpl = tmpl.Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
-	}
-
 	var err error
-	tmpl, err = tmpl.Parse(templateFormat)
+	tmpl, err := newVersionTemplate(opts.format)
 	if err != nil {
-		return cli.StatusError{StatusCode: 64,
-			Status: "Template parsing error: " + err.Error()}
+		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
 
 	vd := versionInfo{
@@ -200,13 +192,28 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			})
 		}
 	}
-	t := tabwriter.NewWriter(dockerCli.Out(), 15, 1, 1, ' ', 0)
-	if err2 := tmpl.Execute(t, vd); err2 != nil && err == nil {
+	if err2 := prettyPrintVersion(dockerCli, vd, tmpl); err2 != nil && err == nil {
 		err = err2
 	}
+	return err
+}
+
+func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Template) error {
+	t := tabwriter.NewWriter(dockerCli.Out(), 15, 1, 1, ' ', 0)
+	err := tmpl.Execute(t, vd)
 	t.Write([]byte("\n"))
 	t.Flush()
 	return err
+}
+
+func newVersionTemplate(templateFormat string) (*template.Template, error) {
+	if templateFormat == "" {
+		templateFormat = versionTemplate
+	}
+	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
+	tmpl, err := tmpl.Parse(templateFormat)
+
+	return tmpl, errors.Wrap(err, "Template parsing error")
 }
 
 func getDetailsOrder(v types.ComponentVersion) []string {

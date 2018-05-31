@@ -8,6 +8,7 @@ import (
 
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/gotestyourself/gotestyourself/golden"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
@@ -42,6 +43,30 @@ func TestVersionWithOrchestrator(t *testing.T) {
 	cmd := NewVersionCommand(cli)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))
+}
+
+func TestVersionAlign(t *testing.T) {
+	vi := versionInfo{
+		Client: clientVersion{
+			Version:           "18.99.5-ce",
+			APIVersion:        "1.38",
+			DefaultAPIVersion: "1.38",
+			GitCommit:         "deadbeef",
+			GoVersion:         "go1.10.2",
+			Os:                "linux",
+			Arch:              "amd64",
+			BuildTime:         "Wed May 30 22:21:05 2018",
+			Experimental:      true,
+			Orchestrator:      "swarm",
+		},
+	}
+
+	cli := test.NewFakeCli(&fakeClient{})
+	tmpl, err := newVersionTemplate("")
+	assert.NilError(t, err)
+	assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
+	assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.golden"))
+	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 }
 
 func cleanTabs(line string) string {

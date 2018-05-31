@@ -1,0 +1,9 @@
+Client:
+ Version:      18.99.5-ce
+ API version:  1.38
+ Go version:   go1.10.2
+ Git commit:   deadbeef
+ Built:        Wed May 30 22:21:05 2018
+ OS/Arch:      linux/amd64
+ Experimental: true
+ Orchestrator: swarm
