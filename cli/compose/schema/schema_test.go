@@ -45,6 +45,39 @@ func TestValidateAllowsXTopLevelFields(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+func TestValidateAllowsXFields(t *testing.T) {
+	config := dict{
+		"version": "3.7",
+		"services": dict{
+			"bar": dict{
+				"x-extra-stuff": dict{},
+			},
+		},
+		"volumes": dict{
+			"bar": dict{
+				"x-extra-stuff": dict{},
+			},
+		},
+		"networks": dict{
+			"bar": dict{
+				"x-extra-stuff": dict{},
+			},
+		},
+		"configs": dict{
+			"bar": dict{
+				"x-extra-stuff": dict{},
+			},
+		},
+		"secrets": dict{
+			"bar": dict{
+				"x-extra-stuff": dict{},
+			},
+		},
+	}
+	err := Validate(config, "3.7")
+	assert.NilError(t, err)
+}
+
 func TestValidateSecretConfigNames(t *testing.T) {
 	config := dict{
 		"version": "3.5",
