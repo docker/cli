@@ -25,6 +25,7 @@ type cmdOption struct {
 	ExperimentalCLI bool
 	Kubernetes      bool
 	Swarm           bool
+	OSType          string `yaml:"os_type,omitempty"`
 }
 
 type cmdDoc struct {
@@ -48,6 +49,7 @@ type cmdDoc struct {
 	ExperimentalCLI  bool
 	Kubernetes       bool
 	Swarm            bool
+	OSType           string `yaml:"os_type,omitempty"`
 }
 
 // GenYamlTree creates yaml structured ref files
@@ -120,6 +122,9 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 		}
 		if _, ok := curr.Annotations["swarm"]; ok && !cliDoc.Swarm {
 			cliDoc.Swarm = true
+		}
+		if os, ok := curr.Annotations["ostype"]; ok && cliDoc.OSType == "" {
+			cliDoc.OSType = os
 		}
 	}
 
@@ -205,6 +210,15 @@ func genFlagResult(flags *pflag.FlagSet) []cmdOption {
 		}
 		if _, ok := flag.Annotations["swarm"]; ok {
 			opt.Swarm = true
+		}
+
+		// Note that the annotation can have multiple ostypes set, however, multiple
+		// values are currently not used (and unlikely will).
+		//
+		// To simplify usage of the os_type property in the YAML, and for consistency
+		// with the same property for commands, we're only using the first ostype that's set.
+		if ostypes, ok := flag.Annotations["ostype"]; ok && len(opt.OSType) == 0 && len(ostypes) > 0 {
+			opt.OSType = ostypes[0]
 		}
 
 		result = append(result, opt)
