@@ -54,6 +54,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	// Install persistent flags
 	persistentFlags := cmd.PersistentFlags()
 	persistentFlags.StringVar(&opts.Common.Orchestrator, "orchestrator", "", "Orchestrator to use (swarm|kubernetes|all)")
+	persistentFlags.SetAnnotation("orchestrator", "top-level", []string{"version", "stack"})
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
 
@@ -245,6 +246,12 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 		if !isOSTypeSupported(f, osType) || !isVersionSupported(f, clientVersion) {
 			f.Hidden = true
 		}
+		// root command shows all top-level flags
+		if cmd.Parent() != nil {
+			if commands, ok := f.Annotations["top-level"]; ok {
+				f.Hidden = !findCommand(cmd, commands)
+			}
+		}
 	})
 
 	for _, subcmd := range cmd.Commands() {
@@ -260,6 +267,19 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 			subcmd.Hidden = true
 		}
 	}
+}
+
+// Checks if a command or one of its ancestors is in the list
+func findCommand(cmd *cobra.Command, commands []string) bool {
+	if cmd == nil {
+		return false
+	}
+	for _, c := range commands {
+		if c == cmd.Name() {
+			return true
+		}
+	}
+	return findCommand(cmd.Parent(), commands)
 }
 
 func isSupported(cmd *cobra.Command, details versionDetails) error {
