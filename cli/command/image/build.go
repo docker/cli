@@ -182,6 +182,10 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		remote        string
 	)
 
+	if options.compress && options.stream {
+		return errors.New("--compress conflicts with --stream options")
+	}
+
 	if options.dockerfileFromStdin() {
 		if options.contextFromStdin() {
 			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
