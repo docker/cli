@@ -2,6 +2,7 @@ package image
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -37,7 +38,8 @@ func trySession(dockerCli command.Cli, contextDir string) (*session.Session, err
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get build shared key")
 		}
-		s, err = session.NewSession(filepath.Base(contextDir), sharedKey)
+		ctx := context.Background()
+		s, err = session.NewSession(ctx, filepath.Base(contextDir), sharedKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create session")
 		}
