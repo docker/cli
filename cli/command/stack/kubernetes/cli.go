@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
+	cliv1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -111,4 +112,12 @@ func (c *KubeCli) checkHostsMatch() error {
 	fmt.Fprintf(c.Err(), "WARNING: Swarm and Kubernetes hosts do not match (docker host=%s, kubernetes host=%s).\n"+
 		"         Update $DOCKER_HOST (or pass -H), or use 'kubectl config use-context' to match.\n", daemonEndpoint.Hostname(), kubeEndpoint.Hostname())
 	return nil
+}
+
+func (c *KubeCli) stacksv1beta1() (cliv1beta1.StackInterface, error) {
+	raw, err := newStackV1Beta1(c.kubeConfig, c.kubeNamespace)
+	if err != nil {
+		return nil, err
+	}
+	return raw.stacks, nil
 }
