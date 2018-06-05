@@ -14,6 +14,8 @@ func fullExampleConfig(workingDir, homeDir string) *types.Config {
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
+		Configs:  configs(),
+		Secrets:  secrets(),
 	}
 }
 
@@ -31,10 +33,22 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				CacheFrom:  []string{"foo", "bar"},
 				Labels:     map[string]string{"FOO": "BAR"},
 			},
-			CapAdd:        []string{"ALL"},
-			CapDrop:       []string{"NET_ADMIN", "SYS_ADMIN"},
-			CgroupParent:  "m-executor-abcd",
-			Command:       []string{"bundle", "exec", "thin", "-p", "3000"},
+			CapAdd:       []string{"ALL"},
+			CapDrop:      []string{"NET_ADMIN", "SYS_ADMIN"},
+			CgroupParent: "m-executor-abcd",
+			Command:      []string{"bundle", "exec", "thin", "-p", "3000"},
+			Configs: []types.ServiceConfigObjConfig{
+				{
+					Source: "config1",
+				},
+				{
+					Source: "config2",
+					Target: "/my_config",
+					UID:    "103",
+					GID:    "103",
+					Mode:   uint32Ptr(0440),
+				},
+			},
 			ContainerName: "my-web-container",
 			DependsOn:     []string{"db", "redis"},
 			Deploy: types.DeployConfig{
@@ -300,6 +314,18 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			Privileged: true,
 			ReadOnly:   true,
 			Restart:    "always",
+			Secrets: []types.ServiceSecretConfig{
+				{
+					Source: "secret1",
+				},
+				{
+					Source: "secret2",
+					Target: "my_secret",
+					UID:    "103",
+					GID:    "103",
+					Mode:   uint32Ptr(0440),
+				},
+			},
 			SecurityOpt: []string{
 				"label=level:s0:c100,c200",
 				"label=type:svirt_apache_t",
@@ -353,6 +379,9 @@ func networks() map[string]types.NetworkConfig {
 					{Subnet: "2001:3984:3989::/64"},
 				},
 			},
+			Labels: map[string]string{
+				"foo": "bar",
+			},
 		},
 
 		"external-network": {
@@ -376,6 +405,9 @@ func volumes() map[string]types.VolumeConfig {
 				"foo": "bar",
 				"baz": "1",
 			},
+			Labels: map[string]string{
+				"foo": "bar",
+			},
 		},
 		"another-volume": {
 			Name:   "user_specified_name",
@@ -396,6 +428,48 @@ func volumes() map[string]types.VolumeConfig {
 		"external-volume3": {
 			Name:     "this-is-volume3",
 			External: types.External{External: true},
+		},
+	}
+}
+
+func configs() map[string]types.ConfigObjConfig {
+	return map[string]types.ConfigObjConfig{
+		"config1": {
+			File: "./config_data",
+			Labels: map[string]string{
+				"foo": "bar",
+			},
+		},
+		"config2": {
+			Name:     "my_config",
+			External: types.External{External: true},
+		},
+		"config3": {
+			External: types.External{External: true},
+		},
+		"config4": {
+			Name: "foo",
+		},
+	}
+}
+
+func secrets() map[string]types.SecretConfig {
+	return map[string]types.SecretConfig{
+		"secret1": {
+			File: "./secret_data",
+			Labels: map[string]string{
+				"foo": "bar",
+			},
+		},
+		"secret2": {
+			Name:     "my_secret",
+			External: types.External{External: true},
+		},
+		"secret3": {
+			External: types.External{External: true},
+		},
+		"secret4": {
+			Name: "bar",
 		},
 	}
 }
@@ -428,6 +502,13 @@ services:
     - thin
     - -p
     - "3000"
+    configs:
+    - source: config1
+    - source: config2
+      target: /my_config
+      uid: "103"
+      gid: "103"
+      mode: 288
     container_name: my-web-container
     depends_on:
     - db
@@ -628,6 +709,13 @@ services:
     privileged: true
     read_only: true
     restart: always
+    secrets:
+    - source: secret1
+    - source: secret2
+      target: my_secret
+      uid: "103"
+      gid: "103"
+      mode: 288
     security_opt:
     - label=level:s0:c100,c200
     - label=type:svirt_apache_t
@@ -689,6 +777,8 @@ networks:
       config:
       - subnet: 172.16.238.0/24
       - subnet: 2001:3984:3989::/64
+    labels:
+      foo: bar
   some-network: {}
 volumes:
   another-volume:
@@ -711,8 +801,32 @@ volumes:
     driver_opts:
       baz: "1"
       foo: bar
+    labels:
+      foo: bar
   some-volume: {}
-secrets: {}
-configs: {}
+secrets:
+  secret1:
+    file: ./secret_data
+    labels:
+      foo: bar
+  secret2:
+    name: my_secret
+    external: true
+  secret3:
+    external: true
+  secret4:
+    name: bar
+configs:
+  config1:
+    file: ./config_data
+    labels:
+      foo: bar
+  config2:
+    name: my_config
+    external: true
+  config3:
+    external: true
+  config4:
+    name: foo
 `, filepath.Join(workingDir, "static"), filepath.Join(workingDir, "opt"))
 }
