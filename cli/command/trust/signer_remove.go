@@ -46,10 +46,8 @@ func removeSigner(cli command.Cli, options signerRemoveOptions) error {
 		if didRemove, err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
 			fmt.Fprintln(cli.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repo)
-		} else {
-			if didRemove {
-				fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", options.signer, repo)
-			}
+		} else if didRemove {
+			fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", options.signer, repo)
 		}
 	}
 	if len(errRepos) > 0 {
