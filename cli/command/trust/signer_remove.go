@@ -43,11 +43,9 @@ func removeSigner(cli command.Cli, options signerRemoveOptions) error {
 	var errRepos []string
 	for _, repo := range options.repos {
 		fmt.Fprintf(cli.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
-		if didRemove, err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
+		if _, err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
 			fmt.Fprintln(cli.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repo)
-		} else if didRemove {
-			fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", options.signer, repo)
 		}
 	}
 	if len(errRepos) > 0 {
@@ -78,6 +76,8 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 	return counter < releasesRoleWithSigs.Threshold, nil
 }
 
+// removeSingleSigner returns whether the signer has been removed during this operation and an error
+// Note: the signer not being removed doesn't necessarily raise an error (eg. User saying "No" to the confirmation prompt)
 func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
 	ctx := context.Background()
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
@@ -135,6 +135,8 @@ func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes b
 	if err = notaryRepo.Publish(); err != nil {
 		return false, err
 	}
+
+	fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", signerName, repoName)
 
 	return true, nil
 }
