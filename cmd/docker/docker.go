@@ -83,7 +83,9 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *p
 	// is called.
 	flagErrorFunc := cmd.FlagErrorFunc()
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
-		initializeDockerCli(dockerCli, flags, opts)
+		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
+			return err
+		}
 		if err := isSupported(cmd, dockerCli); err != nil {
 			return err
 		}
@@ -94,7 +96,10 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *p
 func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		initializeDockerCli(dockerCli, flags, opts)
+		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
+			ccmd.Println(err)
+			return
+		}
 		if err := isSupported(ccmd, dockerCli); err != nil {
 			ccmd.Println(err)
 			return
@@ -123,7 +128,9 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 
 		cmdArgs := ccmd.Args
 		ccmd.Args = func(cmd *cobra.Command, args []string) error {
-			initializeDockerCli(dockerCli, flags, opts)
+			if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
+				return err
+			}
 			if err := isSupported(cmd, dockerCli); err != nil {
 				return err
 			}
@@ -132,13 +139,15 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 	})
 }
 
-func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
-	if dockerCli.Client() == nil { // when using --help, PersistentPreRun is not called, so initialization is needed.
-		// flags must be the top-level command flags, not cmd.Flags()
-		opts.Common.SetDefaultOptions(flags)
-		dockerPreRun(opts)
-		dockerCli.Initialize(opts)
+func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *cliflags.ClientOptions) error {
+	if dockerCli.Client() != nil {
+		return nil
 	}
+	// when using --help, PersistentPreRun is not called, so initialization is needed.
+	// flags must be the top-level command flags, not cmd.Flags()
+	opts.Common.SetDefaultOptions(flags)
+	dockerPreRun(opts)
+	return dockerCli.Initialize(opts)
 }
 
 // visitAll will traverse all commands from the root.
