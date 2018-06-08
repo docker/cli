@@ -6,10 +6,10 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 )
 
 func TestCheckpointListErrors(t *testing.T) {

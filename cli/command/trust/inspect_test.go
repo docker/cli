@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/golden"
+	"gotest.tools/assert"
+	"gotest.tools/golden"
 )
 
 func TestTrustInspectCommandErrors(t *testing.T) {

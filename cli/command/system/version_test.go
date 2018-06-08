@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/golden"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"

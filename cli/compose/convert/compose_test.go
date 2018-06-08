@@ -6,9 +6,9 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/fs"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/fs"
 )
 
 func TestNamespaceScope(t *testing.T) {

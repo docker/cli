@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/reference"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestGetTag(t *testing.T) {

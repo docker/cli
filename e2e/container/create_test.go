@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
-	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/gotestyourself/gotestyourself/skip"
+	"gotest.tools/icmd"
+	"gotest.tools/skip"
 )
 
 func TestCreateWithContentTrust(t *testing.T) {

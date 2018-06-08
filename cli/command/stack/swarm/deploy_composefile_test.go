@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/internal/test/network"
 	"github.com/docker/docker/api/types"
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 type notFound struct {

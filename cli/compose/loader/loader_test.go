@@ -11,9 +11,9 @@ import (
 
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/sirupsen/logrus"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {

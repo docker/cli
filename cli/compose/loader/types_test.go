@@ -3,9 +3,9 @@ package loader
 import (
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	yaml "gopkg.in/yaml.v2"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestMarshallConfig(t *testing.T) {

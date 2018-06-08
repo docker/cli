@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/environment"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/gotestyourself/gotestyourself/skip"
+	"gotest.tools/assert"
+	"gotest.tools/golden"
+	"gotest.tools/icmd"
+	"gotest.tools/skip"
 )
 
 func TestDeployWithNamedResources(t *testing.T) {

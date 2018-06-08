@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gotestyourself/gotestyourself/poll"
 	"github.com/pkg/errors"
+	"gotest.tools/poll"
 )
 
 // Setup a new environment

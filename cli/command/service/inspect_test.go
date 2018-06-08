@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {

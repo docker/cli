@@ -17,9 +17,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/google/go-cmp/cmp"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/gotestyourself/gotestyourself/skip"
+	"gotest.tools/assert"
+	"gotest.tools/fs"
+	"gotest.tools/skip"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {

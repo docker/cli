@@ -12,10 +12,10 @@ import (
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestValidateAttach(t *testing.T) {

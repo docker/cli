@@ -13,11 +13,11 @@ import (
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/golden"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 )
 
 func newTempManifestStore(t *testing.T) (store.Store, func()) {

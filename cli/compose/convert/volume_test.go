@@ -5,8 +5,8 @@ import (
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {

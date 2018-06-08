@@ -8,8 +8,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 func TestNewPushCommandErrors(t *testing.T) {

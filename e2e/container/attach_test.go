@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
-	"github.com/gotestyourself/gotestyourself/icmd"
+	"gotest.tools/icmd"
 )
 
 func TestAttachExitCode(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/golden"
+	"gotest.tools/assert"
+	"gotest.tools/golden"
 )
 
 func TestServiceListOrder(t *testing.T) {

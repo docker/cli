@@ -8,8 +8,8 @@ import (
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution/reference"
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 func newFakeRegistryClient() *fakeRegistryClient {

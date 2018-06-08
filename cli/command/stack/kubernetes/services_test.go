@@ -5,8 +5,8 @@ import (
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
 )
 
 func TestServiceFiltersLabelSelectorGen(t *testing.T) {
