@@ -372,38 +372,11 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	configFile := dockerCli.ConfigFile()
 	authConfigs, _ := configFile.GetAllCredentials()
-	buildOptions := types.ImageBuildOptions{
-		Memory:         options.memory.Value(),
-		MemorySwap:     options.memorySwap.Value(),
-		Tags:           options.tags.GetAll(),
-		SuppressOutput: options.quiet,
-		NoCache:        options.noCache,
-		Remove:         options.rm,
-		ForceRemove:    options.forceRm,
-		PullParent:     options.pull,
-		Isolation:      container.Isolation(options.isolation),
-		CPUSetCPUs:     options.cpuSetCpus,
-		CPUSetMems:     options.cpuSetMems,
-		CPUShares:      options.cpuShares,
-		CPUQuota:       options.cpuQuota,
-		CPUPeriod:      options.cpuPeriod,
-		CgroupParent:   options.cgroupParent,
-		Dockerfile:     relDockerfile,
-		ShmSize:        options.shmSize.Value(),
-		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
-		AuthConfigs:    authConfigs,
-		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
-		CacheFrom:      options.cacheFrom,
-		SecurityOpt:    options.securityOpt,
-		NetworkMode:    options.networkMode,
-		Squash:         options.squash,
-		ExtraHosts:     options.extraHosts.GetAll(),
-		Target:         options.target,
-		RemoteContext:  remote,
-		Platform:       options.platform,
-		Version:        types.BuilderV1,
-	}
+	buildOptions := imageBuildOptions(dockerCli, options)
+	buildOptions.Version = types.BuilderV1
+	buildOptions.Dockerfile = relDockerfile
+	buildOptions.AuthConfigs = authConfigs
+	buildOptions.RemoteContext = remote
 
 	if s != nil {
 		go func() {
@@ -612,4 +585,36 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 	}()
 
 	return pipeReader
+}
+
+func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
+	configFile := dockerCli.ConfigFile()
+	return types.ImageBuildOptions{
+		Memory:         options.memory.Value(),
+		MemorySwap:     options.memorySwap.Value(),
+		Tags:           options.tags.GetAll(),
+		SuppressOutput: options.quiet,
+		NoCache:        options.noCache,
+		Remove:         options.rm,
+		ForceRemove:    options.forceRm,
+		PullParent:     options.pull,
+		Isolation:      container.Isolation(options.isolation),
+		CPUSetCPUs:     options.cpuSetCpus,
+		CPUSetMems:     options.cpuSetMems,
+		CPUShares:      options.cpuShares,
+		CPUQuota:       options.cpuQuota,
+		CPUPeriod:      options.cpuPeriod,
+		CgroupParent:   options.cgroupParent,
+		ShmSize:        options.shmSize.Value(),
+		Ulimits:        options.ulimits.GetList(),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
+		CacheFrom:      options.cacheFrom,
+		SecurityOpt:    options.securityOpt,
+		NetworkMode:    options.networkMode,
+		Squash:         options.squash,
+		ExtraHosts:     options.extraHosts.GetAll(),
+		Target:         options.target,
+		Platform:       options.platform,
+	}
 }

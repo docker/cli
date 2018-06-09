@@ -12,9 +12,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
-	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/pkg/urlutil"
@@ -33,6 +31,7 @@ const uploadRequestRemote = "upload-request"
 
 var errDockerfileConflict = errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
 
+//nolint: gocyclo
 func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	ctx := appcontext.Context()
 
@@ -150,122 +149,97 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		})
 	}
 
-	eg.Go(func() (finalErr error) {
+	eg.Go(func() error {
 		defer func() { // make sure the Status ends cleanly on build errors
 			s.Close()
 		}()
 
-		configFile := dockerCli.ConfigFile()
-		buildOptions := types.ImageBuildOptions{
-			Memory:         options.memory.Value(),
-			MemorySwap:     options.memorySwap.Value(),
-			Tags:           options.tags.GetAll(),
-			SuppressOutput: options.quiet,
-			NoCache:        options.noCache,
-			Remove:         options.rm,
-			ForceRemove:    options.forceRm,
-			PullParent:     options.pull,
-			Isolation:      container.Isolation(options.isolation),
-			CPUSetCPUs:     options.cpuSetCpus,
-			CPUSetMems:     options.cpuSetMems,
-			CPUShares:      options.cpuShares,
-			CPUQuota:       options.cpuQuota,
-			CPUPeriod:      options.cpuPeriod,
-			CgroupParent:   options.cgroupParent,
-			Dockerfile:     dockerfileName,
-			ShmSize:        options.shmSize.Value(),
-			Ulimits:        options.ulimits.GetList(),
-			BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
-			// AuthConfigs:    authConfigs, // handled by session
-			Labels:        opts.ConvertKVStringsToMap(options.labels.GetAll()),
-			CacheFrom:     options.cacheFrom,
-			SecurityOpt:   options.securityOpt,
-			NetworkMode:   options.networkMode,
-			Squash:        options.squash,
-			ExtraHosts:    options.extraHosts.GetAll(),
-			Target:        options.target,
-			RemoteContext: remote,
-			Platform:      options.platform,
-			SessionID:     s.ID(),
-			Version:       types.BuilderBuildKit,
-			BuildID:       buildID,
-		}
-
-		response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
-		if err != nil {
-			return err
-		}
-		defer response.Body.Close()
-
-		done := make(chan struct{})
-		defer close(done)
-		eg.Go(func() error {
-			select {
-			case <-ctx.Done():
-				return dockerCli.Client().BuildCancel(context.TODO(), buildID)
-			case <-done:
-			}
-			return nil
-		})
-
-		t := newTracer()
-		ssArr := []*client.SolveStatus{}
-
-		displayStatus := func(displayCh chan *client.SolveStatus) {
-			var c console.Console
-			out := os.Stderr
-			if cons, err := console.ConsoleFromFile(out); err == nil && !options.noConsole {
-				c = cons
-			}
-			// not using shared context to not disrupt display but let is finish reporting errors
-			eg.Go(func() error {
-				return progressui.DisplaySolveStatus(context.TODO(), c, out, displayCh)
-			})
-		}
-
-		if options.quiet {
-			eg.Go(func() error {
-				// TODO: make sure t.displayCh closes
-				for ss := range t.displayCh {
-					ssArr = append(ssArr, ss)
-				}
-				<-done
-				// TODO: verify that finalErr is indeed set when error occurs
-				if finalErr != nil {
-					displayCh := make(chan *client.SolveStatus)
-					go func() {
-						for _, ss := range ssArr {
-							displayCh <- ss
-						}
-						close(displayCh)
-					}()
-					displayStatus(displayCh)
-				}
-				return nil
-			})
-		} else {
-			displayStatus(t.displayCh)
-		}
-		defer close(t.displayCh)
-		err = jsonmessage.DisplayJSONMessagesStream(response.Body, os.Stdout, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), t.write)
-		if err != nil {
-			if jerr, ok := err.(*jsonmessage.JSONError); ok {
-				// If no error code is set, default to 1
-				if jerr.Code == 0 {
-					jerr.Code = 1
-				}
-				// if options.quiet {
-				// 	fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
-				// }
-				return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
-			}
-			return err
-		}
-
-		return nil
+		buildOptions := imageBuildOptions(dockerCli, options)
+		buildOptions.Version = types.BuilderBuildKit
+		buildOptions.Dockerfile = dockerfileName
+		//buildOptions.AuthConfigs = authConfigs   // handled by session
+		buildOptions.RemoteContext = remote
+		buildOptions.SessionID = s.ID()
+		buildOptions.BuildID = buildID
+		return doBuild(ctx, eg, dockerCli, options, buildOptions)
 	})
 
 	return eg.Wait()
+}
+
+func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, options buildOptions, buildOptions types.ImageBuildOptions) (finalErr error) {
+	response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	done := make(chan struct{})
+	defer close(done)
+	eg.Go(func() error {
+		select {
+		case <-ctx.Done():
+			return dockerCli.Client().BuildCancel(context.TODO(), buildOptions.BuildID)
+		case <-done:
+		}
+		return nil
+	})
+
+	t := newTracer()
+	ssArr := []*client.SolveStatus{}
+
+	displayStatus := func(displayCh chan *client.SolveStatus) {
+		var c console.Console
+		out := os.Stderr
+		if cons, err := console.ConsoleFromFile(out); err == nil && !options.noConsole {
+			c = cons
+		}
+		// not using shared context to not disrupt display but let is finish reporting errors
+		eg.Go(func() error {
+			return progressui.DisplaySolveStatus(context.TODO(), c, out, displayCh)
+		})
+	}
+
+	if options.quiet {
+		eg.Go(func() error {
+			// TODO: make sure t.displayCh closes
+			for ss := range t.displayCh {
+				ssArr = append(ssArr, ss)
+			}
+			<-done
+			// TODO: verify that finalErr is indeed set when error occurs
+			if finalErr != nil {
+				displayCh := make(chan *client.SolveStatus)
+				go func() {
+					for _, ss := range ssArr {
+						displayCh <- ss
+					}
+					close(displayCh)
+				}()
+				displayStatus(displayCh)
+			}
+			return nil
+		})
+	} else {
+		displayStatus(t.displayCh)
+	}
+	defer close(t.displayCh)
+	err = jsonmessage.DisplayJSONMessagesStream(response.Body, os.Stdout, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), t.write)
+	if err != nil {
+		if jerr, ok := err.(*jsonmessage.JSONError); ok {
+			// If no error code is set, default to 1
+			if jerr.Code == 0 {
+				jerr.Code = 1
+			}
+			// if options.quiet {
+			// 	fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
+			// }
+			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+		}
+		return err
+	}
+
+	return nil
 }
 
 func resetUIDAndGID(s *fsutil.Stat) bool {

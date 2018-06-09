@@ -156,11 +156,3 @@ func tryNodeIdentifier() string {
 	}
 	return out
 }
-
-func defaultSessionName() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "unknown"
-	}
-	return filepath.Base(wd)
-}

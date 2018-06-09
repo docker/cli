@@ -97,7 +97,6 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool,
 	return ioutils.NewReadCloserWrapper(buf, func() error { return input.Close() }), IsArchive(magic), nil
 }
 
-
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
 // name specified by DefaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
