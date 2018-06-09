@@ -57,6 +57,7 @@ type buildOptions struct {
 	isolation      string
 	quiet          bool
 	noCache        bool
+	noConsole      bool
 	rm             bool
 	forceRm        bool
 	pull           bool
@@ -151,6 +152,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
 
+	flags.BoolVar(&options.noConsole, "no-console", false, "Show non-console output (with buildkit only)")
+	flags.SetAnnotation("no-console", "experimental", nil)
+	flags.SetAnnotation("no-console", "version", []string{"1.38"})
 	return cmd
 }
 

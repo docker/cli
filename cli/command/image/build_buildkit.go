@@ -212,23 +212,15 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		ssArr := []*client.SolveStatus{}
 
 		displayStatus := func(displayCh chan *client.SolveStatus) {
-			if c, err := console.ConsoleFromFile(os.Stderr); err == nil {
-				// not using shared context to not disrupt display but let is finish reporting errors
-				eg.Go(func() error {
-					return progressui.DisplaySolveStatus(context.TODO(), c, displayCh)
-				})
-			} else {
-				// read from t.displayCh and send json to Stderr
-				eg.Go(func() error {
-					enc := json.NewEncoder(os.Stderr)
-					for ss := range displayCh {
-						if err := enc.Encode(ss); err != nil {
-							return err
-						}
-					}
-					return nil
-				})
+			var c console.Console
+			out := os.Stderr
+			if cons, err := console.ConsoleFromFile(out); err == nil && !options.noConsole {
+				c = cons
 			}
+			// not using shared context to not disrupt display but let is finish reporting errors
+			eg.Go(func() error {
+				return progressui.DisplaySolveStatus(context.TODO(), c, out, displayCh)
+			})
 		}
 
 		if options.quiet {
