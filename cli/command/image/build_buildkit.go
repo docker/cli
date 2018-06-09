@@ -261,6 +261,10 @@ func newTracer() *tracer {
 func (t *tracer) write(msg jsonmessage.JSONMessage) {
 	var resp controlapi.StatusResponse
 
+	if msg.ID != "moby.buildkit.trace" {
+		return
+	}
+
 	var dt []byte
 	if err := json.Unmarshal(*msg.Aux, &dt); err != nil {
 		return
