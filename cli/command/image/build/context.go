@@ -111,12 +111,8 @@ func WriteTempDockerfile(rc io.ReadCloser) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, err = io.Copy(f, rc)
-	if err != nil {
-		f.Close()
-		return "", err
-	}
-	if err := f.Close(); err != nil {
+	defer f.Close()
+	if _, err := io.Copy(f, rc); err != nil {
 		return "", err
 	}
 	return dockerfileDir, rc.Close()
