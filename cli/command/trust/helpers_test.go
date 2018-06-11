@@ -5,10 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
+	"gotest.tools/assert"
 )
 
 func TestGetOrGenerateNotaryKeyAndInitRepo(t *testing.T) {

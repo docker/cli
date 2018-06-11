@@ -10,8 +10,8 @@ import (
 	"github.com/docker/docker/api/types"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/golden"
+	"gotest.tools/assert"
+	"gotest.tools/golden"
 )
 
 func TestContainerListErrors(t *testing.T) {

@@ -11,14 +11,14 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/storage"
 	"github.com/theupdateframework/notary/trustmanager"
 	tufutils "github.com/theupdateframework/notary/tuf/utils"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/skip"
 )
 
 func TestTrustKeyLoadErrors(t *testing.T) {

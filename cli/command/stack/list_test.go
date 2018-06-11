@@ -9,9 +9,9 @@ import (
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	"gotest.tools/golden"
 )
 
 func TestListErrors(t *testing.T) {

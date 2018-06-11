@@ -11,11 +11,11 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
-	"github.com/gotestyourself/gotestyourself/assert"
-	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	"gotest.tools/fs"
+	"gotest.tools/icmd"
+	"gotest.tools/skip"
 )
 
 const registryPrefix = "registry:5000"

@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/gotestyourself/gotestyourself/icmd"
+	"gotest.tools/fs"
+	"gotest.tools/icmd"
 )
 
 const (

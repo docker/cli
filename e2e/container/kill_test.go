@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
-	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/gotestyourself/gotestyourself/poll"
+	"gotest.tools/icmd"
+	"gotest.tools/poll"
 )
 
 func TestKillContainer(t *testing.T) {

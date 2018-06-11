@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	mounttypes "github.com/docker/docker/api/types/mount"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestMountOptString(t *testing.T) {

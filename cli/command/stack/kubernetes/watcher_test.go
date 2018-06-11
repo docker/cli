@@ -5,7 +5,7 @@ import (
 
 	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
 	composelabels "github.com/docker/cli/kubernetes/labels"
-	"github.com/gotestyourself/gotestyourself/assert"
+	"gotest.tools/assert"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"

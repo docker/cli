@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/spf13/cobra"
+	"gotest.tools/assert"
 )
 
 func TestRequiresNoArgs(t *testing.T) {

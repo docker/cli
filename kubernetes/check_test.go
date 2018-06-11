@@ -3,8 +3,8 @@ package kubernetes
 import (
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

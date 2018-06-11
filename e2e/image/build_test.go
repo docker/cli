@@ -7,9 +7,9 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
-	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/gotestyourself/gotestyourself/icmd"
-	"github.com/gotestyourself/gotestyourself/skip"
+	"gotest.tools/fs"
+	"gotest.tools/icmd"
+	"gotest.tools/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {

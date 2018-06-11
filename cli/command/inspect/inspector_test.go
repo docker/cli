@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/templates"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 type testElement struct {

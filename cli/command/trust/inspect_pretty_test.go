@@ -9,12 +9,12 @@ import (
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	dockerClient "github.com/docker/docker/client"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 )
 
 // TODO(n4ss): remove common tests with the regular inspect command

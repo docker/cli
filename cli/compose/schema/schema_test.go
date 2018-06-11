@@ -3,7 +3,7 @@ package schema
 import (
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
+	"gotest.tools/assert"
 )
 
 type dict map[string]interface{}

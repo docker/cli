@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestConfigRemoveErrors(t *testing.T) {

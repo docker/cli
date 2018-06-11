@@ -7,9 +7,9 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/sirupsen/logrus"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestClientDebugEnabled(t *testing.T) {

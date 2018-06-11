@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
 

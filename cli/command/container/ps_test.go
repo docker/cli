@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/opts"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestBuildContainerListOptions(t *testing.T) {

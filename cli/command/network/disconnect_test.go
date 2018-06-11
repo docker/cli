@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 func TestNetworkDisconnectErrors(t *testing.T) {

@@ -13,11 +13,11 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/env"
-	"github.com/gotestyourself/gotestyourself/fs"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/env"
+	"gotest.tools/fs"
 )
 
 func TestNewAPIClientFromFlags(t *testing.T) {

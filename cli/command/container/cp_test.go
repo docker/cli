@@ -11,10 +11,10 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/gotestyourself/gotestyourself/skip"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
+	"gotest.tools/fs"
+	"gotest.tools/skip"
 )
 
 func TestRunCopyWithInvalidArguments(t *testing.T) {
@@ -182,7 +182,7 @@ func TestSplitCpArg(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			skip.IfCondition(t, testcase.os != "" && testcase.os != runtime.GOOS)
+			skip.If(t, testcase.os != "" && testcase.os != runtime.GOOS)
 
 			container, path := splitCpArg(testcase.path)
 			assert.Check(t, is.Equal(testcase.expectedContainer, container))

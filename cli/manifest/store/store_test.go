@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
 	"github.com/google/go-cmp/cmp"
-	"github.com/gotestyourself/gotestyourself/assert"
-	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 type fakeRef struct {

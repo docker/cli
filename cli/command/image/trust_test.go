@@ -7,10 +7,10 @@ import (
 
 	"github.com/docker/cli/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
+	"gotest.tools/assert"
 )
 
 func unsetENV() {
