@@ -191,7 +191,9 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	displayStatus := func(displayCh chan *client.SolveStatus) {
 		var c console.Console
 		out := os.Stderr
-		if cons, err := console.ConsoleFromFile(out); err == nil && !options.noConsole {
+		// TODO: Handle interactive output in non-interactive environment.
+		consoleOpt := options.console.Value()
+		if cons, err := console.ConsoleFromFile(out); err == nil && (consoleOpt == nil || *consoleOpt) {
 			c = cons
 		}
 		// not using shared context to not disrupt display but let is finish reporting errors
