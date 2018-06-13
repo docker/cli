@@ -112,61 +112,11 @@ func TestNetworksCreatedWithoutServices(t *testing.T) {
 	namespace := Namespace{name: "foo"}
 	serviceNetworks := map[string]struct{}{}
 	source := networkMap{
-		"normal": composetypes.NetworkConfig{
-			Driver: "overlay",
-			DriverOpts: map[string]string{
-				"opt": "value",
-			},
-			Ipam: composetypes.IPAMConfig{
-				Driver: "driver",
-				Config: []*composetypes.IPAMPool{
-					{
-						Subnet: "10.0.0.0",
-					},
-				},
-			},
-			Labels: map[string]string{
-				"something": "labeled",
-			},
-		},
-		"outside": composetypes.NetworkConfig{
-			External: composetypes.External{External: true},
-			Name:     "special",
-		},
-		"attachablenet": composetypes.NetworkConfig{
-			Driver:     "overlay",
-			Attachable: true,
-		},
 		"named": composetypes.NetworkConfig{
 			Name: "othername",
 		},
 	}
 	expected := map[string]types.NetworkCreate{
-		"normal": {
-			Driver: "overlay",
-			IPAM: &network.IPAM{
-				Driver: "driver",
-				Config: []network.IPAMConfig{
-					{
-						Subnet: "10.0.0.0",
-					},
-				},
-			},
-			Options: map[string]string{
-				"opt": "value",
-			},
-			Labels: map[string]string{
-				"something":    "labeled",
-				LabelNamespace: "foo",
-			},
-		},
-		"attachablenet": {
-			Driver:     "overlay",
-			Attachable: true,
-			Labels: map[string]string{
-				LabelNamespace: "foo",
-			},
-		},
 		"named": {
 			Labels: map[string]string{
 				LabelNamespace: "foo",
@@ -176,7 +126,7 @@ func TestNetworksCreatedWithoutServices(t *testing.T) {
 
 	networks, externals := Networks(namespace, source, serviceNetworks)
 	assert.DeepEqual(t, expected, networks)
-	assert.DeepEqual(t, []string{"special"}, externals)
+	assert.DeepEqual(t, []string{}, externals)
 }
 
 func TestSecrets(t *testing.T) {
