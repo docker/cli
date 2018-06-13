@@ -100,11 +100,16 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool,
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
 // name specified by DefaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
-func WriteTempDockerfile(rc io.ReadCloser) (string, error) {
-	dockerfileDir, err := ioutil.TempDir("", "docker-build-tempdockerfile-")
+func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
+	dockerfileDir, err = ioutil.TempDir("", "docker-build-tempdockerfile-")
 	if err != nil {
 		return "", errors.Errorf("unable to create temporary context directory: %v", err)
 	}
+	defer func() {
+		if err != nil {
+			os.RemoveAll(dockerfileDir)
+		}
+	}()
 
 	f, err := os.Create(filepath.Join(dockerfileDir, DefaultDockerfileName))
 	if err != nil {
