@@ -414,7 +414,7 @@ func (c *diskUsageBuilderContext) Size() string {
 }
 
 func (c *diskUsageBuilderContext) Reclaimable() string {
-	inUseBytes := int64(0)
+	var inUseBytes int64
 	for _, bc := range c.buildCache {
 		if bc.InUse {
 			inUseBytes += bc.Size

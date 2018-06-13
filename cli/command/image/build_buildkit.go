@@ -43,8 +43,6 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		return errors.Errorf("buildkit not supported by daemon")
 	}
 
-	buildID := stringid.GenerateRandomID()
-
 	var (
 		remote           string
 		body             io.Reader
@@ -118,13 +116,6 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		}))
 	}
 
-	// statusContext, cancelStatus := context.WithCancel(ctx)
-	// defer cancelStatus()
-
-	// if span := opentracing.SpanFromContext(ctx); span != nil {
-	// 	statusContext = opentracing.ContextWithSpan(statusContext, span)
-	// }
-
 	s.Allow(authprovider.NewDockerAuthProvider())
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -133,6 +124,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		return s.Run(context.TODO(), dockerCli.Client().DialSession)
 	})
 
+	buildID := stringid.GenerateRandomID()
 	if body != nil {
 		eg.Go(func() error {
 			buildOptions := types.ImageBuildOptions{
@@ -233,20 +225,15 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 			if jerr.Code == 0 {
 				jerr.Code = 1
 			}
-			// if options.quiet {
-			// 	fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
-			// }
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
-		return err
 	}
-
-	return nil
+	return err
 }
 
 func resetUIDAndGID(s *fsutil.Stat) bool {
-	s.Uid = uint32(0)
-	s.Gid = uint32(0)
+	s.Uid = 0
+	s.Gid = 0
 	return true
 }
 
@@ -268,6 +255,7 @@ func (t *tracer) write(msg jsonmessage.JSONMessage) {
 	}
 
 	var dt []byte
+	// ignoring all messages that are not understood
 	if err := json.Unmarshal(*msg.Aux, &dt); err != nil {
 		return
 	}
