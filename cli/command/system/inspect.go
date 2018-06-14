@@ -22,7 +22,7 @@ type inspectOptions struct {
 }
 
 // NewInspectCommand creates a new cobra.Command for `docker inspect`
-func NewInspectCommand(dockerCli *command.DockerCli) *cobra.Command {
+func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -43,7 +43,7 @@ func NewInspectCommand(dockerCli *command.DockerCli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli *command.DockerCli, opts inspectOptions) error {
+func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	var elementSearcher inspect.GetRefFunc
 	switch opts.inspectType {
 	case "", "container", "image", "node", "network", "service", "volume", "task", "plugin", "secret":
@@ -54,62 +54,62 @@ func runInspect(dockerCli *command.DockerCli, opts inspectOptions) error {
 	return inspect.Inspect(dockerCli.Out(), opts.ids, opts.format, elementSearcher)
 }
 
-func inspectContainers(ctx context.Context, dockerCli *command.DockerCli, getSize bool) inspect.GetRefFunc {
+func inspectContainers(ctx context.Context, dockerCli command.Cli, getSize bool) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().ContainerInspectWithRaw(ctx, ref, getSize)
 	}
 }
 
-func inspectImages(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().ImageInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectNetwork(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{})
 	}
 }
 
-func inspectNode(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().NodeInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectService(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
 		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
 	}
 }
 
-func inspectTasks(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectTasks(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().TaskInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectVolume(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectVolume(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().VolumeInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectPlugin(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectPlugin(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().PluginInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectSecret(ctx context.Context, dockerCli *command.DockerCli) inspect.GetRefFunc {
+func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (interface{}, []byte, error) {
 		return dockerCli.Client().SecretInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectAll(ctx context.Context, dockerCli *command.DockerCli, getSize bool, typeConstraint string) inspect.GetRefFunc {
+func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
 	var inspectAutodetect = []struct {
 		objectType      string
 		isSizeSupported bool

@@ -24,7 +24,7 @@ import (
 )
 
 // AddCommands adds all the commands from cli/command to the root command
-func AddCommands(cmd *cobra.Command, dockerCli *command.DockerCli) {
+func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 	cmd.AddCommand(
 		// checkpoint
 		checkpoint.NewCheckpointCommand(dockerCli),
