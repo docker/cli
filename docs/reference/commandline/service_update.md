@@ -54,6 +54,7 @@ Options:
       --host-add list                      Add a custom host-to-IP mapping (host:ip)
       --host-rm list                       Remove a custom host-to-IP mapping (host:ip)
       --hostname string                    Container hostname
+      --init bool                          Use an init inside each service container to forward signals and reap processes
       --image string                       Service image tag
       --isolation string                   Service container isolation mode
       --label-add list                     Add or update a service label

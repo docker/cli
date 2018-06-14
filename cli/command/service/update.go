@@ -94,6 +94,8 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
 	flags.Var(&options.hosts, flagHostAdd, "Add a custom host-to-IP mapping (host:ip)")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
+	flags.BoolVar(&options.init, flagInit, false, "Use an init inside each service container to forward signals and reap processes")
+	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -235,6 +237,12 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 
 // nolint: gocyclo
 func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
+	updateBoolPtr := func(flag string, field **bool) {
+		if flags.Changed(flag) {
+			b, _ := flags.GetBool(flag)
+			*field = &b
+		}
+	}
 	updateString := func(flag string, field *string) {
 		if flags.Changed(flag) {
 			*field, _ = flags.GetString(flag)
@@ -306,6 +314,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	updateString(flagWorkdir, &cspec.Dir)
 	updateString(flagUser, &cspec.User)
 	updateString(flagHostname, &cspec.Hostname)
+	updateBoolPtr(flagInit, &cspec.Init)
 	if err := updateIsolation(flagIsolation, &cspec.Isolation); err != nil {
 		return err
 	}

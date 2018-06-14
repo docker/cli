@@ -85,6 +85,9 @@ ContainerSpec:
 {{- if .ContainerWorkDir }}
  Dir:		{{ .ContainerWorkDir }}
 {{- end -}}
+{{- if .HasContainerInit }}
+ Init:		{{ .ContainerInit }}
+{{- end -}}
 {{- if .ContainerUser }}
  User: {{ .ContainerUser }}
 {{- end }}
@@ -370,6 +373,14 @@ func (ctx *serviceInspectContext) ContainerWorkDir() string {
 
 func (ctx *serviceInspectContext) ContainerUser() string {
 	return ctx.Service.Spec.TaskTemplate.ContainerSpec.User
+}
+
+func (ctx *serviceInspectContext) HasContainerInit() bool {
+	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Init != nil
+}
+
+func (ctx *serviceInspectContext) ContainerInit() bool {
+	return *ctx.Service.Spec.TaskTemplate.ContainerSpec.Init
 }
 
 func (ctx *serviceInspectContext) ContainerMounts() []mounttypes.Mount {
