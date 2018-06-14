@@ -26,7 +26,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runPush(dockerCli, opts)
+			return RunPush(dockerCli, opts)
 		},
 	}
 
@@ -37,7 +37,8 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, opts pushOptions) error {
+// RunPush performs a push against the engine based on the specified options
+func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	if err != nil {
 		return err
