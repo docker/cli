@@ -35,6 +35,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var errStdinConflict = errors.New("invalid argument: can't use stdin for both build context and dockerfile")
+
 type buildOptions struct {
 	context        string
 	dockerfileName string
@@ -55,6 +57,7 @@ type buildOptions struct {
 	isolation      string
 	quiet          bool
 	noCache        bool
+	console        opts.NullableBool
 	rm             bool
 	forceRm        bool
 	pull           bool
@@ -149,6 +152,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
 
+	flags.Var(&options.console, "console", "Show console output (with buildkit only) (true, false, auto)")
+	flags.SetAnnotation("console", "experimental", nil)
+	flags.SetAnnotation("console", "version", []string{"1.38"})
 	return cmd
 }
 
@@ -170,6 +176,10 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
+	if os.Getenv("DOCKER_BUILDKIT") != "" {
+		return runBuildBuildKit(dockerCli, options)
+	}
+
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
@@ -188,7 +198,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	if options.dockerfileFromStdin() {
 		if options.contextFromStdin() {
-			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
+			return errStdinConflict
 		}
 		dockerfileCtx = dockerCli.In()
 	}
@@ -362,37 +372,11 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	configFile := dockerCli.ConfigFile()
 	authConfigs, _ := configFile.GetAllCredentials()
-	buildOptions := types.ImageBuildOptions{
-		Memory:         options.memory.Value(),
-		MemorySwap:     options.memorySwap.Value(),
-		Tags:           options.tags.GetAll(),
-		SuppressOutput: options.quiet,
-		NoCache:        options.noCache,
-		Remove:         options.rm,
-		ForceRemove:    options.forceRm,
-		PullParent:     options.pull,
-		Isolation:      container.Isolation(options.isolation),
-		CPUSetCPUs:     options.cpuSetCpus,
-		CPUSetMems:     options.cpuSetMems,
-		CPUShares:      options.cpuShares,
-		CPUQuota:       options.cpuQuota,
-		CPUPeriod:      options.cpuPeriod,
-		CgroupParent:   options.cgroupParent,
-		Dockerfile:     relDockerfile,
-		ShmSize:        options.shmSize.Value(),
-		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
-		AuthConfigs:    authConfigs,
-		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
-		CacheFrom:      options.cacheFrom,
-		SecurityOpt:    options.securityOpt,
-		NetworkMode:    options.networkMode,
-		Squash:         options.squash,
-		ExtraHosts:     options.extraHosts.GetAll(),
-		Target:         options.target,
-		RemoteContext:  remote,
-		Platform:       options.platform,
-	}
+	buildOptions := imageBuildOptions(dockerCli, options)
+	buildOptions.Version = types.BuilderV1
+	buildOptions.Dockerfile = relDockerfile
+	buildOptions.AuthConfigs = authConfigs
+	buildOptions.RemoteContext = remote
 
 	if s != nil {
 		go func() {
@@ -416,9 +400,9 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	defer response.Body.Close()
 
 	imageID := ""
-	aux := func(m jsonmessage.JSONMessage) {
+	aux := func(msg jsonmessage.JSONMessage) {
 		var result types.BuildResult
-		if err := json.Unmarshal(*m.Aux, &result); err != nil {
+		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
 			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
 		} else {
 			imageID = result.ID
@@ -601,4 +585,36 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 	}()
 
 	return pipeReader
+}
+
+func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
+	configFile := dockerCli.ConfigFile()
+	return types.ImageBuildOptions{
+		Memory:         options.memory.Value(),
+		MemorySwap:     options.memorySwap.Value(),
+		Tags:           options.tags.GetAll(),
+		SuppressOutput: options.quiet,
+		NoCache:        options.noCache,
+		Remove:         options.rm,
+		ForceRemove:    options.forceRm,
+		PullParent:     options.pull,
+		Isolation:      container.Isolation(options.isolation),
+		CPUSetCPUs:     options.cpuSetCpus,
+		CPUSetMems:     options.cpuSetMems,
+		CPUShares:      options.cpuShares,
+		CPUQuota:       options.cpuQuota,
+		CPUPeriod:      options.cpuPeriod,
+		CgroupParent:   options.cgroupParent,
+		ShmSize:        options.shmSize.Value(),
+		Ulimits:        options.ulimits.GetList(),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
+		CacheFrom:      options.cacheFrom,
+		SecurityOpt:    options.securityOpt,
+		NetworkMode:    options.networkMode,
+		Squash:         options.squash,
+		ExtraHosts:     options.extraHosts.GetAll(),
+		Target:         options.target,
+		Platform:       options.platform,
+	}
 }

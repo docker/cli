@@ -17,8 +17,8 @@ size: 0B
 reclaimable: 0B
 
 type: Build Cache
-total: 
-active: 
+total: 0
+active: 0
 size: 0B
 reclaimable: 0B
 

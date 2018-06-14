@@ -59,6 +59,7 @@ func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
 		},
 		LayersSize:  du.LayersSize,
 		BuilderSize: du.BuilderSize,
+		BuildCache:  du.BuildCache,
 		Images:      du.Images,
 		Containers:  du.Containers,
 		Volumes:     du.Volumes,

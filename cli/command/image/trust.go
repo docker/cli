@@ -49,7 +49,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	// Count the times of calling for handleTarget,
 	// if it is called more that once, that should be considered an error in a trusted push.
 	cnt := 0
-	handleTarget := func(m jsonmessage.JSONMessage) {
+	handleTarget := func(msg jsonmessage.JSONMessage) {
 		cnt++
 		if cnt > 1 {
 			// handleTarget should only be called once. This will be treated as an error.
@@ -57,7 +57,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		}
 
 		var pushResult types.PushResult
-		err := json.Unmarshal(*m.Aux, &pushResult)
+		err := json.Unmarshal(*msg.Aux, &pushResult)
 		if err == nil && pushResult.Tag != "" {
 			if dgst, err := digest.Parse(pushResult.Digest); err == nil {
 				h, err := hex.DecodeString(dgst.Hex())
