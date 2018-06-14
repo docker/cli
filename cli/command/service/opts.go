@@ -480,6 +480,7 @@ type serviceOptions struct {
 	user            string
 	groups          opts.ListOpts
 	credentialSpec  credentialSpecOpt
+	init            bool
 	stopSignal      string
 	tty             bool
 	readOnly        bool
@@ -624,6 +625,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				TTY:        options.tty,
 				ReadOnly:   options.readOnly,
 				Mounts:     options.mounts.Value(),
+				Init:       &options.init,
 				DNSConfig: &swarm.DNSConfig{
 					Nameservers: options.dns.GetAll(),
 					Search:      options.dnsSearch.GetAll(),
@@ -875,6 +877,7 @@ const (
 	flagRollbackMonitor         = "rollback-monitor"
 	flagRollbackOrder           = "rollback-order"
 	flagRollbackParallelism     = "rollback-parallelism"
+	flagInit                    = "init"
 	flagStopGracePeriod         = "stop-grace-period"
 	flagStopSignal              = "stop-signal"
 	flagTTY                     = "tty"

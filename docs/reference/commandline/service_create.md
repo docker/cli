@@ -43,6 +43,7 @@ Options:
       --help                               Print usage
       --host list                          Set one or more custom host-to-IP mappings (host:ip)
       --hostname string                    Container hostname
+      --init bool                          Use an init inside each service container to forward signals and reap processes
       --isolation string                   Service container isolation mode
   -l, --label list                         Service labels
       --limit-cpu decimal                  Limit CPUs
