@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -97,6 +98,7 @@ func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	// Take the first file version (2 files can't have different version)
 	details.Version = schema.Version(details.ConfigFiles[0].Config)
 	details.Environment, err = buildEnvironment(os.Environ())
+	details.HomeDir = homedir.Get()
 	return details, err
 }
 

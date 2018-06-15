@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/docker/pkg/homedir"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 	"gotest.tools/fs"
@@ -24,6 +25,7 @@ services:
 	details, err := getConfigDetails([]string{file.Path()}, nil)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(filepath.Dir(file.Path()), details.WorkingDir))
+	assert.Check(t, is.Equal(homedir.Get(), details.HomeDir))
 	assert.Assert(t, is.Len(details.ConfigFiles, 1))
 	assert.Check(t, is.Equal("3.0", details.ConfigFiles[0].Config["version"]))
 	assert.Check(t, is.Len(details.Environment, len(os.Environ())))
@@ -41,6 +43,7 @@ services:
 	cwd, err := os.Getwd()
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(cwd, details.WorkingDir))
+	assert.Check(t, is.Equal(homedir.Get(), details.HomeDir))
 	assert.Assert(t, is.Len(details.ConfigFiles, 1))
 	assert.Check(t, is.Equal("3.0", details.ConfigFiles[0].Config["version"]))
 	assert.Check(t, is.Len(details.Environment, len(os.Environ())))
