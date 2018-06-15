@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/docker/docker/pkg/homedir"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/assert"
@@ -28,6 +29,7 @@ func buildConfigDetails(source map[string]interface{}, env map[string]string) ty
 			{Filename: "filename.yml", Config: source},
 		},
 		Environment: env,
+		HomeDir:     homedir.Get(),
 	}
 }
 
@@ -905,15 +907,14 @@ func TestFullExample(t *testing.T) {
 	bytes, err := ioutil.ReadFile("full-example.yml")
 	assert.NilError(t, err)
 
-	homeDir := "/home/foo"
-	env := map[string]string{"HOME": homeDir, "QUX": "qux_from_environment"}
+	env := map[string]string{"QUX": "qux_from_environment"}
 	config, err := loadYAMLWithEnv(string(bytes), env)
 	assert.NilError(t, err)
 
 	workingDir, err := os.Getwd()
 	assert.NilError(t, err)
 
-	expectedConfig := fullExampleConfig(workingDir, homeDir)
+	expectedConfig := fullExampleConfig(workingDir, homedir.Get())
 
 	assert.Check(t, is.DeepEqual(expectedConfig.Services, config.Services))
 	assert.Check(t, is.DeepEqual(expectedConfig.Networks, config.Networks))
@@ -1316,6 +1317,7 @@ func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 	}
 	details := types.ConfigDetails{
 		Version: "3.5",
+		HomeDir: homedir.Get(),
 	}
 	secrets, err := LoadSecrets(source, details)
 	assert.NilError(t, err)
@@ -1663,4 +1665,80 @@ secrets:
 		},
 	}
 	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
+}
+
+func TestFilePathsCrossPlat(t *testing.T) {
+	cases := []struct {
+		path       string
+		workingDir string
+		expected   string
+		homeDir    string
+	}{
+		{
+			path:       `/var/data`,
+			workingDir: `/working/dir`,
+			expected:   `/var/data`,
+		},
+		{
+			path:       `/var/data`,
+			workingDir: `c:\working\dir`,
+			expected:   `/var/data`,
+		},
+		{
+			path:       `relative/data`,
+			workingDir: `/working/dir`,
+			expected:   `/working/dir/relative/data`,
+		},
+		{
+			path:       `relative/data`,
+			workingDir: `c:\working\dir`,
+			expected:   `c:\working\dir\relative\data`,
+		},
+		{
+			path:       `c:\var\data`,
+			workingDir: `/working/dir`,
+			expected:   `c:\var\data`,
+		},
+		{
+			path:       `c:\var\data`,
+			workingDir: `c:\working\dir`,
+			expected:   `c:\var\data`,
+		},
+		{
+			path:       `relative\data`,
+			workingDir: `/working/dir`,
+			expected:   `/working/dir/relative/data`,
+		},
+		{
+			path:       `relative\data`,
+			workingDir: `c:\working\dir`,
+			expected:   `c:\working\dir\relative\data`,
+		},
+		{
+			path:     `~\homerooted\data`,
+			homeDir:  `c:\users\user`,
+			expected: `c:\users\user\homerooted\data`,
+		},
+		{
+			path:     `~\homerooted\data`,
+			homeDir:  `/home/user`,
+			expected: `/home/user/homerooted/data`,
+		},
+
+		{
+			path:     `~/homerooted/data`,
+			homeDir:  `c:\users\user`,
+			expected: `c:\users\user\homerooted\data`,
+		},
+		{
+			path:     `~/homerooted/data`,
+			homeDir:  `/home/user`,
+			expected: `/home/user/homerooted/data`,
+		},
+	}
+	for _, c := range cases {
+		result, err := transformFilePath(c.path, c.workingDir, c.homeDir)
+		assert.NilError(t, err)
+		assert.Equal(t, c.expected, result)
+	}
 }

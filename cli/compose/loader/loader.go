@@ -2,7 +2,6 @@ package loader
 
 import (
 	"fmt"
-	"path"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -20,6 +19,7 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/simonferquel/crosspath"
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -137,7 +137,7 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "services",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Services, err = LoadServices(config, configDetails.WorkingDir, configDetails.LookupEnv)
+				cfg.Services, err = LoadServices(config, configDetails.WorkingDir, configDetails.HomeDir, configDetails.LookupEnv)
 				return err
 			},
 		},
@@ -377,11 +377,11 @@ func formatInvalidKeyError(keyPrefix string, key interface{}) error {
 
 // LoadServices produces a ServiceConfig map from a compose file Dict
 // the servicesDict is not validated if directly used. Use Load() to enable validation
-func LoadServices(servicesDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) ([]types.ServiceConfig, error) {
+func LoadServices(servicesDict map[string]interface{}, workingDir, homeDir string, lookupEnv template.Mapping) ([]types.ServiceConfig, error) {
 	var services []types.ServiceConfig
 
 	for name, serviceDef := range servicesDict {
-		serviceConfig, err := LoadService(name, serviceDef.(map[string]interface{}), workingDir, lookupEnv)
+		serviceConfig, err := LoadService(name, serviceDef.(map[string]interface{}), workingDir, homeDir, lookupEnv)
 		if err != nil {
 			return nil, err
 		}
@@ -393,7 +393,7 @@ func LoadServices(servicesDict map[string]interface{}, workingDir string, lookup
 
 // LoadService produces a single ServiceConfig from a compose file Dict
 // the serviceDict is not validated if directly used. Use Load() to enable validation
-func LoadService(name string, serviceDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) (*types.ServiceConfig, error) {
+func LoadService(name string, serviceDict map[string]interface{}, workingDir, homeDir string, lookupEnv template.Mapping) (*types.ServiceConfig, error) {
 	serviceConfig := &types.ServiceConfig{}
 	if err := Transform(serviceDict, serviceConfig); err != nil {
 		return nil, err
@@ -404,7 +404,7 @@ func LoadService(name string, serviceDict map[string]interface{}, workingDir str
 		return nil, err
 	}
 
-	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv); err != nil {
+	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, homeDir); err != nil {
 		return nil, err
 	}
 
@@ -468,7 +468,7 @@ func resolveEnvironment(serviceConfig *types.ServiceConfig, workingDir string, l
 	return nil
 }
 
-func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, lookupEnv template.Mapping) error {
+func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir, homeDir string) error {
 	for i, volume := range volumes {
 		if volume.Type != "bind" {
 			continue
@@ -478,32 +478,43 @@ func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, 
 			return errors.New(`invalid mount config for type "bind": field Source must not be empty`)
 		}
 
-		filePath := expandUser(volume.Source, lookupEnv)
-		// Check for a Unix absolute path first, to handle a Windows client
-		// with a Unix daemon. This handles a Windows client connecting to a
-		// Unix daemon. Note that this is not required for Docker for Windows
-		// when specifying a local Windows path, because Docker for Windows
-		// translates the Windows path into a valid path within the VM.
-		if !path.IsAbs(filePath) {
-			filePath = absPath(workingDir, filePath)
+		filePath, err := transformFilePath(volume.Source, workingDir, homeDir)
+		if err != nil {
+			return err
 		}
+
 		volume.Source = filePath
 		volumes[i] = volume
 	}
 	return nil
 }
 
-// TODO: make this more robust
-func expandUser(path string, lookupEnv template.Mapping) string {
-	if strings.HasPrefix(path, "~") {
-		home, ok := lookupEnv("HOME")
-		if !ok {
-			logrus.Warn("cannot expand '~', because the environment lacks HOME")
-			return path
-		}
-		return strings.Replace(path, "~", home, 1)
+func transformFilePath(origin string, workingDir, homeDir string) (string, error) {
+	path, err := crosspath.ParsePathWithDefaults(origin)
+	if err != nil {
+		return "", err
 	}
-	return path
+	switch path.Kind() {
+	case crosspath.Relative:
+		basePath, err := crosspath.ParsePathWithDefaults(workingDir)
+		if err != nil {
+			return "", err
+		}
+		path, err = basePath.Join(path)
+		if err != nil {
+			return "", err
+		}
+	case crosspath.HomeRooted:
+		basePath, err := crosspath.ParsePathWithDefaults(homeDir)
+		if err != nil {
+			return "", err
+		}
+		path, err = basePath.Join(path)
+		if err != nil {
+			return "", err
+		}
+	}
+	return path.String(), nil
 }
 
 func transformUlimits(data interface{}) (interface{}, error) {

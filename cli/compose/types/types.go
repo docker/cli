@@ -58,6 +58,7 @@ type ConfigFile struct {
 type ConfigDetails struct {
 	Version     string
 	WorkingDir  string
+	HomeDir     string
 	ConfigFiles []ConfigFile
 	Environment map[string]string
 }

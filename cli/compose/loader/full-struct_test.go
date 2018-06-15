@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/simonferquel/crosspath"
+
 	"github.com/docker/cli/cli/compose/types"
 )
 
@@ -28,6 +30,7 @@ func fullExampleConfig(workingDir, homeDir string) *types.Config {
 }
 
 func services(workingDir, homeDir string) []types.ServiceConfig {
+	configsPath, _ := crosspath.ParsePathWithDefaults(homeDir + "/configs")
 	return []types.ServiceConfig{
 		{
 			Name: "foo",
@@ -367,7 +370,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				{Source: "/opt/data", Target: "/var/lib/mysql", Type: "bind"},
 				{Source: workingDir, Target: "/code", Type: "bind"},
 				{Source: filepath.Join(workingDir, "static"), Target: "/var/www/html", Type: "bind"},
-				{Source: homeDir + "/configs", Target: "/etc/configs/", Type: "bind", ReadOnly: true},
+				{Source: configsPath.String(), Target: "/etc/configs/", Type: "bind", ReadOnly: true},
 				{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
 				{Source: filepath.Join(workingDir, "opt"), Target: "/opt", Consistency: "cached", Type: "bind"},
 				{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
