@@ -6,15 +6,17 @@ import (
 	"strings"
 )
 
-var delimiter = "\\$"
-var substitution = "[_a-z.][_a-z0-9.]*(?::?[-?][^}]*)?"
+var (
+	delimiter    = "\\$"
+	substitution = "[_a-z.][_a-z0-9.]*(?::?[-?][^}]*)?"
 
-var patternString = fmt.Sprintf(
-	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
-	delimiter, delimiter, substitution, substitution,
+	patternString = fmt.Sprintf(
+		"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
+		delimiter, delimiter, substitution, substitution,
+	)
+
+	pattern = regexp.MustCompile(patternString)
 )
-
-var pattern = regexp.MustCompile(patternString)
 
 // InvalidTemplateError is returned when a variable template is not in a valid
 // format
