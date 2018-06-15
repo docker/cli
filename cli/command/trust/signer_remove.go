@@ -43,11 +43,9 @@ func removeSigner(cli command.Cli, options signerRemoveOptions) error {
 	var errRepos []string
 	for _, repo := range options.repos {
 		fmt.Fprintf(cli.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
-		if err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
+		if _, err := removeSingleSigner(cli, repo, options.signer, options.forceYes); err != nil {
 			fmt.Fprintln(cli.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repo)
-		} else {
-			fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", options.signer, repo)
 		}
 	}
 	if len(errRepos) > 0 {
@@ -78,24 +76,26 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 	return counter < releasesRoleWithSigs.Threshold, nil
 }
 
-func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) error {
+// removeSingleSigner attempts to remove a single signer and returns whether signer removal happened.
+// The signer not being removed doesn't necessarily raise an error e.g. user choosing "No" when prompted for confirmation.
+func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
 	ctx := context.Background()
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	signerDelegation := data.RoleName("targets/" + signerName)
 	if signerDelegation == releasesRoleTUFName {
-		return fmt.Errorf("releases is a reserved keyword and cannot be removed")
+		return false, fmt.Errorf("releases is a reserved keyword and cannot be removed")
 	}
 	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
-		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
+		return false, trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		return errors.Wrapf(err, "error retrieving signers for %s", repoName)
+		return false, errors.Wrapf(err, "error retrieving signers for %s", repoName)
 	}
 	var role data.Role
 	for _, delRole := range delegationRoles {
@@ -105,11 +105,11 @@ func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes b
 		}
 	}
 	if role.Name == "" {
-		return fmt.Errorf("No signer %s for repository %s", signerName, repoName)
+		return false, fmt.Errorf("No signer %s for repository %s", signerName, repoName)
 	}
 	allRoles, err := notaryRepo.ListRoles()
 	if err != nil {
-		return err
+		return false, err
 	}
 	if ok, err := isLastSignerForReleases(role, allRoles); ok && !forceYes {
 		removeSigner := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("The signer \"%s\" signed the last released version of %s. "+
@@ -120,16 +120,23 @@ func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes b
 
 		if !removeSigner {
 			fmt.Fprintf(cli.Out(), "\nAborting action.\n")
-			return nil
+			return false, nil
 		}
 	} else if err != nil {
-		return err
+		return false, err
 	}
 	if err = notaryRepo.RemoveDelegationKeys(releasesRoleTUFName, role.KeyIDs); err != nil {
-		return err
+		return false, err
 	}
 	if err = notaryRepo.RemoveDelegationRole(signerDelegation); err != nil {
-		return err
+		return false, err
 	}
-	return notaryRepo.Publish()
+
+	if err = notaryRepo.Publish(); err != nil {
+		return false, err
+	}
+
+	fmt.Fprintf(cli.Out(), "Successfully removed %s from %s\n\n", signerName, repoName)
+
+	return true, nil
 }
