@@ -20,11 +20,13 @@ import (
 const PASS_FOLDER = "docker-credential-helpers"
 
 var (
-	PassInitialized bool
+	passInitialized bool
 )
 
-func init() {
-	PassInitialized = exec.Command("pass").Run() == nil
+func IsPresent() bool {
+	_, err := exec.LookPath("pass")
+	fmt.Println(err)
+	return err == nil
 }
 
 func runPass(stdinContent string, args ...string) (string, error) {
@@ -77,12 +79,38 @@ func runPass(stdinContent string, args ...string) (string, error) {
 	return string(result), nil
 }
 
+func isInitialized() bool {
+	if passInitialized {
+		return passInitialized
+	}
+	// In principle, we could just run `pass init`. However, pass has a bug
+	// where if gpg fails, it doesn't always exit 1. Additionally, pass
+	// uses gpg2, but gpg is the default, which may be confusing. So let's
+	// just explictily check that pass actually can store and retreive a
+	// password.
+	password := "pass is initialized"
+	name := path.Join(PASS_FOLDER, "docker-pass-initialized-check")
+
+	_, err := runPass(password, "insert", "-f", "-m", name)
+	if err != nil {
+		return false
+	}
+
+	stored, err := runPass("", "show", name)
+	passInitialized = err == nil && stored == password
+
+	if passInitialized {
+		runPass("", "rm", "-rf", name)
+	}
+	return passInitialized
+}
+
 // Pass handles secrets using Linux secret-service as a store.
 type Pass struct{}
 
 // Add adds new credentials to the keychain.
 func (h Pass) Add(creds *credentials.Credentials) error {
-	if !PassInitialized {
+	if !isInitialized() {
 		return errors.New("pass store is uninitialized")
 	}
 
@@ -98,7 +126,7 @@ func (h Pass) Add(creds *credentials.Credentials) error {
 
 // Delete removes credentials from the store.
 func (h Pass) Delete(serverURL string) error {
-	if !PassInitialized {
+	if !isInitialized() {
 		return errors.New("pass store is uninitialized")
 	}
 
@@ -111,10 +139,7 @@ func (h Pass) Delete(serverURL string) error {
 	return err
 }
 
-// listPassDir lists all the contents of a directory in the password store.
-// Pass uses fancy unicode to emit stuff to stdout, so rather than try
-// and parse this, let's just look at the directory structure instead.
-func listPassDir(args ...string) ([]os.FileInfo, error) {
+func getPassDir() string {
 	passDir := os.ExpandEnv("$HOME/.password-store")
 	for _, e := range os.Environ() {
 		parts := strings.SplitN(e, "=", 2)
@@ -130,6 +155,14 @@ func listPassDir(args ...string) ([]os.FileInfo, error) {
 		break
 	}
 
+	return passDir
+}
+
+// listPassDir lists all the contents of a directory in the password store.
+// Pass uses fancy unicode to emit stuff to stdout, so rather than try
+// and parse this, let's just look at the directory structure instead.
+func listPassDir(args ...string) ([]os.FileInfo, error) {
+	passDir := getPassDir()
 	p := path.Join(append([]string{passDir, PASS_FOLDER}, args...)...)
 	contents, err := ioutil.ReadDir(p)
 	if err != nil {
@@ -145,7 +178,7 @@ func listPassDir(args ...string) ([]os.FileInfo, error) {
 
 // Get returns the username and secret to use for a given registry server URL.
 func (h Pass) Get(serverURL string) (string, string, error) {
-	if !PassInitialized {
+	if !isInitialized() {
 		return "", "", errors.New("pass store is uninitialized")
 	}
 
@@ -154,6 +187,14 @@ func (h Pass) Get(serverURL string) (string, string, error) {
 	}
 
 	encoded := base64.URLEncoding.EncodeToString([]byte(serverURL))
+
+	if _, err := os.Stat(path.Join(getPassDir(), PASS_FOLDER, encoded)); err != nil {
+		if os.IsNotExist(err) {
+			return "", "", nil
+		}
+
+		return "", "", err
+	}
 
 	usernames, err := listPassDir(encoded)
 	if err != nil {
@@ -171,7 +212,7 @@ func (h Pass) Get(serverURL string) (string, string, error) {
 
 // List returns the stored URLs and corresponding usernames for a given credentials label
 func (h Pass) List() (map[string]string, error) {
-	if !PassInitialized {
+	if !isInitialized() {
 		return nil, errors.New("pass store is uninitialized")
 	}
 

@@ -5,7 +5,7 @@ import (
 )
 
 func defaultCredentialsStore() string {
-	if pass.PassInitialized {
+	if pass.IsPresent() {
 		return "pass"
 	}
 
