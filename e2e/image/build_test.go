@@ -2,11 +2,16 @@ package image
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
+	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 	"gotest.tools/fs"
 	"gotest.tools/icmd"
 	"gotest.tools/skip"
@@ -101,6 +106,33 @@ func TestTrustedBuildUntrustedImage(t *testing.T) {
 		ExitCode: 1,
 		Err:      "does not have trust data for",
 	})
+}
+
+func TestBuildIidFileSquash(t *testing.T) {
+	environment.SkipIfNotExperimentalDaemon(t)
+	dir := fs.NewDir(t, "test-iidfile-squash")
+	defer dir.Remove()
+	iidfile := filepath.Join(dir.Path(), "idsquash")
+	buildDir := fs.NewDir(t, "test-iidfile-squash-build",
+		fs.WithFile("Dockerfile", fmt.Sprintf(`
+	FROM %s
+	ENV FOO FOO
+	ENV BAR BAR
+	RUN touch /foop`, fixtures.AlpineImage)),
+	)
+	defer buildDir.Remove()
+
+	imageTag := "testbuildiidfilesquash"
+	result := icmd.RunCmd(
+		icmd.Command("docker", "build", "--iidfile", iidfile, "--squash", "-t", imageTag, "."),
+		withWorkingDir(buildDir),
+	)
+	result.Assert(t, icmd.Success)
+	id, err := ioutil.ReadFile(iidfile)
+	assert.NilError(t, err)
+	result = icmd.RunCommand("docker", "image", "inspect", "-f", "{{.Id}}", imageTag)
+	result.Assert(t, icmd.Success)
+	assert.Check(t, is.Equal(string(id), strings.TrimSpace(result.Combined())))
 }
 
 func withWorkingDir(dir *fs.Dir) func(*icmd.Cmd) {
