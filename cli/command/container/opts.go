@@ -74,6 +74,7 @@ type containerOptions struct {
 	containerIDFile    string
 	entrypoint         string
 	hostname           string
+	domainname         string
 	memory             opts.MemBytes
 	memoryReservation  opts.MemBytes
 	memorySwap         opts.MemSwapBytes
@@ -169,6 +170,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.StringVar(&copts.entrypoint, "entrypoint", "", "Overwrite the default ENTRYPOINT of the image")
 	flags.Var(&copts.groupAdd, "group-add", "Add additional groups to join")
 	flags.StringVarP(&copts.hostname, "hostname", "h", "", "Container host name")
+	flags.StringVar(&copts.domainname, "domainname", "", "Container NIS domain name")
 	flags.BoolVarP(&copts.stdin, "interactive", "i", false, "Keep STDIN open even if not attached")
 	flags.VarP(&copts.labels, "label", "l", "Set meta data on a container")
 	flags.Var(&copts.labelsFile, "label-file", "Read in a line delimited file of labels")
@@ -546,6 +548,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 
 	config := &container.Config{
 		Hostname:     copts.hostname,
+		Domainname:   copts.domainname,
 		ExposedPorts: ports,
 		User:         copts.user,
 		Tty:          copts.tty,

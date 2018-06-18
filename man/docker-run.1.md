@@ -35,6 +35,7 @@ docker-run - Run a command in a new container
 [**--dns**[=*[]*]]
 [**--dns-option**[=*[]*]]
 [**--dns-search**[=*[]*]]
+[**--domainname**[=*DOMAINNAME*]]
 [**-e**|**--env**[=*[]*]]
 [**--entrypoint**[=*ENTRYPOINT*]]
 [**--env-file**[=*[]*]]
@@ -284,6 +285,12 @@ permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside the c
 configuration passed to the container. Typically this is necessary when the
 host DNS configuration is invalid for the container (e.g., 127.0.0.1). When this
 is the case the **--dns** flags is necessary for every run.
+
+**--domainname**=""
+   Container NIS domain name
+
+   Sets the container's NIS domain name (see also **setdomainname(2)**) that is
+   available inside the container.
 
 **-e**, **--env**=[]
    Set environment variables

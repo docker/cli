@@ -53,6 +53,7 @@ Options:
       --dns value                     Set custom DNS servers (default [])
       --dns-option value              Set DNS options (default [])
       --dns-search value              Set custom DNS search domains (default [])
+      --domainname string             Container NIS domain name
       --entrypoint string             Overwrite the default ENTRYPOINT of the image
   -e, --env value                     Set environment variables (default [])
       --env-file value                Read in a file of environment variables (default [])

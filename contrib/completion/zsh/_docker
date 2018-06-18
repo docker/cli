@@ -617,6 +617,7 @@ __docker_container_subcommand() {
         "($help)*--dns=[Custom DNS servers]:DNS server: "
         "($help)*--dns-option=[Custom DNS options]:DNS option: "
         "($help)*--dns-search=[Custom DNS search domains]:DNS domains: "
+        "($help)*--domainname=[Container NIS domain name]:domainname:_hosts"
         "($help)*"{-e=,--env=}"[Environment variables]:environment variable: "
         "($help)--entrypoint=[Overwrite the default entrypoint of the image]:entry point: "
         "($help)*--env-file=[Read environment variables from a file]:environment file:_files"
