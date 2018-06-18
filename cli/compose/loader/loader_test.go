@@ -1415,3 +1415,60 @@ networks:
 	}
 	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
 }
+
+func TestLoadInit(t *testing.T) {
+	booleanFalse := false
+	booleanTrue := true
+	config, err := loadYAML(`
+version: '3.7'
+services:
+  foo:
+    image: alpine`)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(config, &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.7",
+		Services: types.Services{
+			{
+				Name:  "foo",
+				Image: "alpine",
+			},
+		},
+	}, cmpopts.EquateEmpty()))
+	config, err = loadYAML(`
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: true`)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(config, &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.7",
+		Services: types.Services{
+			{
+				Name:  "foo",
+				Image: "alpine",
+				Init:  &booleanTrue,
+			},
+		},
+	}, cmpopts.EquateEmpty()))
+	config, err = loadYAML(`
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: false`)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(config, &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.7",
+		Services: types.Services{
+			{
+				Name:  "foo",
+				Image: "alpine",
+				Init:  &booleanFalse,
+			},
+		},
+	}, cmpopts.EquateEmpty()))
+}

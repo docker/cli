@@ -119,7 +119,9 @@ type ServiceConfig struct {
 	Hostname        string                           `yaml:",omitempty"`
 	HealthCheck     *HealthCheckConfig               `yaml:",omitempty"`
 	Image           string                           `yaml:",omitempty"`
+	Init            *bool                            `yaml:",omitempty"`
 	Ipc             string                           `yaml:",omitempty"`
+	Isolation       string                           `mapstructure:"isolation" yaml:"isolation,omitempty"`
 	Labels          Labels                           `yaml:",omitempty"`
 	Links           []string                         `yaml:",omitempty"`
 	Logging         *LoggingConfig                   `yaml:",omitempty"`
@@ -142,8 +144,8 @@ type ServiceConfig struct {
 	User            string                           `yaml:",omitempty"`
 	Volumes         []ServiceVolumeConfig            `yaml:",omitempty"`
 	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty"`
-	Isolation       string                           `mapstructure:"isolation" yaml:"isolation,omitempty"`
-	Extras          map[string]interface{}           `yaml:",inline"`
+
+	Extras map[string]interface{} `yaml:",inline"`
 }
 
 // BuildConfig is a type for build
