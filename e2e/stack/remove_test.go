@@ -29,8 +29,8 @@ func testRemove(t *testing.T, orchestrator string) {
 	stackname := "test-stack-remove-" + orchestrator
 	deployFullStack(t, orchestrator, stackname)
 	defer cleanupFullStack(t, orchestrator, stackname)
-	result := icmd.RunCommand("docker", "--orchestrator", orchestrator,
-		"stack", "rm", stackname)
+	result := icmd.RunCommand("docker", "stack", "rm",
+		stackname, "--orchestrator", orchestrator)
 	result.Assert(t, icmd.Expected{Err: icmd.None})
 	golden.Assert(t, result.Stdout(),
 		fmt.Sprintf("stack-remove-%s-success.golden", orchestrator))
@@ -38,8 +38,8 @@ func testRemove(t *testing.T, orchestrator string) {
 
 func deployFullStack(t *testing.T, orchestrator, stackname string) {
 	// TODO: this stack should have full options not minimal options
-	result := icmd.RunCommand("docker", "--orchestrator", orchestrator,
-		"stack", "deploy", "--compose-file=./testdata/full-stack.yml", stackname)
+	result := icmd.RunCommand("docker", "stack", "deploy",
+		"--compose-file=./testdata/full-stack.yml", stackname, "--orchestrator", orchestrator)
 	result.Assert(t, icmd.Success)
 
 	poll.WaitOn(t, taskCount(orchestrator, stackname, 2), pollSettings)
@@ -53,7 +53,7 @@ func cleanupFullStack(t *testing.T, orchestrator, stackname string) {
 
 func stackRm(orchestrator, stackname string) func(t poll.LogT) poll.Result {
 	return func(poll.LogT) poll.Result {
-		result := icmd.RunCommand("docker", "--orchestrator", orchestrator, "stack", "rm", stackname)
+		result := icmd.RunCommand("docker", "stack", "rm", stackname, "--orchestrator", orchestrator)
 		if result.Error != nil {
 			if strings.Contains(result.Stderr(), "not found") {
 				return poll.Success()
@@ -66,7 +66,7 @@ func stackRm(orchestrator, stackname string) func(t poll.LogT) poll.Result {
 
 func taskCount(orchestrator, stackname string, expected int) func(t poll.LogT) poll.Result {
 	return func(poll.LogT) poll.Result {
-		args := []string{"--orchestrator", orchestrator, "stack", "ps", stackname}
+		args := []string{"stack", "ps", stackname, "--orchestrator", orchestrator}
 		// FIXME(chris-crone): remove when we support filtering by desired-state on kubernetes
 		if orchestrator == "swarm" {
 			args = append(args, "-f=desired-state=running")

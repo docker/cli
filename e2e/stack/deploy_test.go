@@ -30,10 +30,10 @@ func testDeployWithNamedResources(t *testing.T, orchestrator string) {
 	stackname := fmt.Sprintf("test-stack-deploy-with-names-%s", orchestrator)
 	composefile := golden.Path("stack-with-named-resources.yml")
 
-	result := icmd.RunCommand("docker", "--orchestrator", orchestrator,
-		"stack", "deploy", "-c", composefile, stackname)
-	defer icmd.RunCommand("docker", "--orchestrator", orchestrator,
-		"stack", "rm", stackname)
+	result := icmd.RunCommand("docker", "stack", "deploy",
+		"-c", composefile, stackname, "--orchestrator", orchestrator)
+	defer icmd.RunCommand("docker", "stack", "rm",
+		"--orchestrator", orchestrator, stackname)
 
 	result.Assert(t, icmd.Success)
 	stdout := strings.Split(result.Stdout(), "\n")

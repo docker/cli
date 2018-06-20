@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newPsCommand(dockerCli command.Cli) *cobra.Command {
+func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	opts := options.PS{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -20,10 +20,10 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
 			switch {
-			case dockerCli.ClientInfo().HasAll():
+			case common.orchestrator.HasAll():
 				return errUnsupportedAllOrchestrator
-			case dockerCli.ClientInfo().HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
+			case common.orchestrator.HasKubernetes():
+				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
 				if err != nil {
 					return err
 				}

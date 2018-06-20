@@ -44,7 +44,7 @@ func TestStackPsErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cmd := newPsCommand(test.NewFakeCli(&fakeClient{
 			taskListFunc: tc.taskListFunc,
-		}))
+		}), &orchestrator)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -57,7 +57,7 @@ func TestStackPsEmptyStack(t *testing.T) {
 			return []swarm.Task{}, nil
 		},
 	})
-	cmd := newPsCommand(fakeCli)
+	cmd := newPsCommand(fakeCli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	cmd.SetOutput(ioutil.Discard)
 
@@ -71,7 +71,7 @@ func TestStackPsWithQuietOption(t *testing.T) {
 			return []swarm.Task{*Task(TaskID("id-foo"))}, nil
 		},
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
 	assert.NilError(t, cmd.Execute())
@@ -85,7 +85,7 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 			return []swarm.Task{*Task(TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
 		},
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-trunc", "true")
 	cmd.Flags().Set("format", "{{ .ID }}")
@@ -104,7 +104,7 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-resolve", "true")
 	cmd.Flags().Set("format", "{{ .Node }}")
@@ -118,7 +118,7 @@ func TestStackPsWithFormat(t *testing.T) {
 			return []swarm.Task{*Task(TaskServiceID("service-id-foo"))}, nil
 		},
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NilError(t, cmd.Execute())
@@ -134,7 +134,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		TasksFormat: "{{ .Name }}",
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-config-format.golden")
@@ -156,7 +156,7 @@ func TestStackPsWithoutFormat(t *testing.T) {
 			return *Node(NodeName("node-name-bar")), nil, nil
 		},
 	})
-	cmd := newPsCommand(cli)
+	cmd := newPsCommand(cli, &orchestrator)
 	cmd.SetArgs([]string{"foo"})
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-without-format.golden")

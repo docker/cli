@@ -39,7 +39,7 @@ func fakeServerVersion(_ context.Context) (types.Version, error) {
 }
 
 func TestVersionWithOrchestrator(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion}, test.OrchestratorSwarm)
+	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
 	cmd := NewVersionCommand(cli)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))
@@ -57,7 +57,7 @@ func TestVersionAlign(t *testing.T) {
 			Arch:              "amd64",
 			BuildTime:         "Wed May 30 22:21:05 2018",
 			Experimental:      true,
-			Orchestrator:      "swarm",
+			StackOrchestrator: "swarm",
 		},
 	}
 

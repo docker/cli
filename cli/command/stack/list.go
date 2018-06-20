@@ -13,7 +13,7 @@ import (
 	"vbom.ml/util/sortorder"
 )
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	opts := options.List{}
 
 	cmd := &cobra.Command{
@@ -22,7 +22,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd, dockerCli, opts)
+			return runList(cmd, dockerCli, opts, common.orchestrator)
 		},
 	}
 
@@ -35,17 +35,17 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error {
+func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator) error {
 	stacks := []*formatter.Stack{}
-	if dockerCli.ClientInfo().HasSwarm() {
+	if orchestrator.HasSwarm() {
 		ss, err := swarm.GetStacks(dockerCli)
 		if err != nil {
 			return err
 		}
 		stacks = append(stacks, ss...)
 	}
-	if dockerCli.ClientInfo().HasKubernetes() {
-		kubeCli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
+	if orchestrator.HasKubernetes() {
+		kubeCli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), orchestrator))
 		if err != nil {
 			return err
 		}
@@ -55,14 +55,14 @@ func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error
 		}
 		stacks = append(stacks, ss...)
 	}
-	return format(dockerCli, opts, stacks)
+	return format(dockerCli, opts, orchestrator, stacks)
 }
 
-func format(dockerCli command.Cli, opts options.List, stacks []*formatter.Stack) error {
+func format(dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator, stacks []*formatter.Stack) error {
 	format := opts.Format
 	if format == "" || format == formatter.TableFormatKey {
 		format = formatter.SwarmStackTableFormat
-		if dockerCli.ClientInfo().HasKubernetes() {
+		if orchestrator.HasKubernetes() {
 			format = formatter.KubernetesStackTableFormat
 		}
 	}
