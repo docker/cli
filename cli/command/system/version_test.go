@@ -11,7 +11,6 @@ import (
 	"gotest.tools/golden"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 )
 
@@ -31,20 +30,6 @@ func TestVersionWithoutServer(t *testing.T) {
 	assert.Assert(t, !strings.Contains(out, "Server:"), "actual: %s", out)
 }
 
-func fakeServerVersion(_ context.Context) (types.Version, error) {
-	return types.Version{
-		Version:    "docker-dev",
-		APIVersion: api.DefaultVersion,
-	}, nil
-}
-
-func TestVersionWithOrchestrator(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{serverVersion: fakeServerVersion})
-	cmd := NewVersionCommand(cli)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Contains(cleanTabs(cli.OutBuffer().String()), "Orchestrator: swarm"))
-}
-
 func TestVersionAlign(t *testing.T) {
 	vi := versionInfo{
 		Client: clientVersion{
@@ -57,7 +42,6 @@ func TestVersionAlign(t *testing.T) {
 			Arch:              "amd64",
 			BuildTime:         "Wed May 30 22:21:05 2018",
 			Experimental:      true,
-			StackOrchestrator: "swarm",
 		},
 	}
 
@@ -67,8 +51,4 @@ func TestVersionAlign(t *testing.T) {
 	assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
 	assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.golden"))
 	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
-}
-
-func cleanTabs(line string) string {
-	return strings.Join(strings.Fields(line), " ")
 }

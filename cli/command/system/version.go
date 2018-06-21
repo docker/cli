@@ -29,7 +29,6 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Experimental:	{{.Experimental}}
- Stack Orchestrator:	{{.StackOrchestrator}}
 {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
@@ -78,7 +77,6 @@ type clientVersion struct {
 	Arch              string
 	BuildTime         string `json:",omitempty"`
 	Experimental      bool
-	StackOrchestrator string `json:",omitempty"`
 }
 
 type kubernetesVersion struct {
@@ -145,7 +143,6 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
-			StackOrchestrator: string(orchestrator),
 		},
 	}
 
