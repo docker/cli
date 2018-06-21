@@ -162,7 +162,12 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	if err != nil {
 		return err
 	}
-	hasExperimental, err := isEnabled(cli.configFile.Experimental)
+	var experimentalValue string
+	// Environment variable always overrides configuration
+	if experimentalValue = os.Getenv("DOCKER_CLI_EXPERIMENTAL"); experimentalValue == "" {
+		experimentalValue = cli.configFile.Experimental
+	}
+	hasExperimental, err := isEnabled(experimentalValue)
 	if err != nil {
 		return errors.Wrap(err, "Experimental field")
 	}
