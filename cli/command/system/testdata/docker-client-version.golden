@@ -6,4 +6,3 @@ Client:
  Built:        Wed May 30 22:21:05 2018
  OS/Arch:      linux/amd64
  Experimental: true
- Orchestrator: swarm

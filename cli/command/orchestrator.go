@@ -17,9 +17,24 @@ const (
 	OrchestratorAll   = Orchestrator("all")
 	orchestratorUnset = Orchestrator("unset")
 
-	defaultOrchestrator      = OrchestratorSwarm
-	envVarDockerOrchestrator = "DOCKER_ORCHESTRATOR"
+	defaultOrchestrator           = OrchestratorSwarm
+	envVarDockerStackOrchestrator = "DOCKER_STACK_ORCHESTRATOR"
 )
+
+// HasKubernetes returns true if defined orchestrator has Kubernetes capabilities.
+func (o Orchestrator) HasKubernetes() bool {
+	return o == OrchestratorKubernetes || o == OrchestratorAll
+}
+
+// HasSwarm returns true if defined orchestrator has Swarm capabilities.
+func (o Orchestrator) HasSwarm() bool {
+	return o == OrchestratorSwarm || o == OrchestratorAll
+}
+
+// HasAll returns true if defined orchestrator has both Swarm and Kubernetes capabilities.
+func (o Orchestrator) HasAll() bool {
+	return o == OrchestratorAll
+}
 
 func normalize(value string) (Orchestrator, error) {
 	switch value {
@@ -36,15 +51,15 @@ func normalize(value string) (Orchestrator, error) {
 	}
 }
 
-// GetOrchestrator checks DOCKER_ORCHESTRATOR environment variable and configuration file
+// GetStackOrchestrator checks DOCKER_STACK_ORCHESTRATOR environment variable and configuration file
 // orchestrator value and returns user defined Orchestrator.
-func GetOrchestrator(flagValue, value string) (Orchestrator, error) {
+func GetStackOrchestrator(flagValue, value string) (Orchestrator, error) {
 	// Check flag
 	if o, err := normalize(flagValue); o != orchestratorUnset {
 		return o, err
 	}
 	// Check environment variable
-	env := os.Getenv(envVarDockerOrchestrator)
+	env := os.Getenv(envVarDockerStackOrchestrator)
 	if o, err := normalize(env); o != orchestratorUnset {
 		return o, err
 	}

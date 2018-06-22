@@ -29,7 +29,6 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Experimental:	{{.Experimental}}
- Orchestrator:	{{.Orchestrator}}
 {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
@@ -78,7 +77,6 @@ type clientVersion struct {
 	Arch              string
 	BuildTime         string `json:",omitempty"`
 	Experimental      bool
-	Orchestrator      string `json:",omitempty"`
 }
 
 type kubernetesVersion struct {
@@ -107,7 +105,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
-	flags.StringVarP(&opts.kubeConfig, "kubeconfig", "k", "", "Kubernetes config file")
+	flags.StringVar(&opts.kubeConfig, "kubeconfig", "", "Kubernetes config file")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
 
 	return cmd
@@ -128,6 +126,11 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
 
+	orchestrator, err := command.GetStackOrchestrator("", dockerCli.ConfigFile().StackOrchestrator)
+	if err != nil {
+		return cli.StatusError{StatusCode: 64, Status: err.Error()}
+	}
+
 	vd := versionInfo{
 		Client: clientVersion{
 			Platform:          struct{ Name string }{cli.PlatformName},
@@ -140,14 +143,16 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
-			Orchestrator:      string(dockerCli.ClientInfo().Orchestrator),
 		},
 	}
 
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
 	if err == nil {
 		vd.Server = &sv
-		kubeVersion := getKubernetesVersion(dockerCli, opts.kubeConfig)
+		var kubeVersion *kubernetesVersion
+		if orchestrator.HasKubernetes() {
+			kubeVersion = getKubernetesVersion(opts.kubeConfig)
+		}
 		foundEngine := false
 		foundKubernetes := false
 		for _, component := range sv.Components {
@@ -225,11 +230,7 @@ func getDetailsOrder(v types.ComponentVersion) []string {
 	return out
 }
 
-func getKubernetesVersion(dockerCli command.Cli, kubeConfig string) *kubernetesVersion {
-	if !dockerCli.ClientInfo().HasKubernetes() {
-		return nil
-	}
-
+func getKubernetesVersion(kubeConfig string) *kubernetesVersion {
 	version := kubernetesVersion{
 		Kubernetes: "Unknown",
 		StackAPI:   "Unknown",

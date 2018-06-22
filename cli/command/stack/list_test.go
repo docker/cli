@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
@@ -12,6 +13,10 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	"gotest.tools/golden"
+)
+
+var (
+	orchestrator = commonOptions{orchestrator: command.OrchestratorSwarm}
 )
 
 func TestListErrors(t *testing.T) {
@@ -48,7 +53,7 @@ func TestListErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cmd := newListCommand(test.NewFakeCli(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
-		}, test.OrchestratorSwarm))
+		}), &orchestrator)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		for key, value := range tc.flags {
@@ -69,8 +74,8 @@ func TestListWithFormat(t *testing.T) {
 						}),
 					)}, nil
 			},
-		}, test.OrchestratorSwarm)
-	cmd := newListCommand(cli)
+		})
+	cmd := newListCommand(cli, &orchestrator)
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-with-format.golden")
@@ -86,8 +91,8 @@ func TestListWithoutFormat(t *testing.T) {
 					}),
 				)}, nil
 		},
-	}, test.OrchestratorSwarm)
-	cmd := newListCommand(cli)
+	})
+	cmd := newListCommand(cli, &orchestrator)
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-list-without-format.golden")
 }
@@ -139,8 +144,8 @@ func TestListOrder(t *testing.T) {
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 				return uc.swarmServices, nil
 			},
-		}, test.OrchestratorSwarm)
-		cmd := newListCommand(cli)
+		})
+		cmd := newListCommand(cli, &orchestrator)
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), uc.golden)
 	}

@@ -16,7 +16,7 @@ keywords: "stack, rm, remove, down"
 # stack rm
 
 ```markdown
-Usage:  docker stack rm STACK [STACK...]
+Usage:  docker stack rm [OPTIONS] STACK [STACK...]
 
 Remove one or more stacks
 
@@ -24,7 +24,10 @@ Aliases:
   rm, remove, down
 
 Options:
-      --help   Print usage
+      --help                  Print usage
+      --kubeconfig string     Kubernetes config file
+      --namespace string      Kubernetes namespace to use
+      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
 ```
 
 ## Description

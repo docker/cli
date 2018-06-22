@@ -23,13 +23,16 @@ type KubeCli struct {
 
 // Options contains resolved parameters to initialize kubernetes clients
 type Options struct {
-	Namespace string
-	Config    string
+	Namespace    string
+	Config       string
+	Orchestrator command.Orchestrator
 }
 
 // NewOptions returns an Options initialized with command line flags
-func NewOptions(flags *flag.FlagSet) Options {
-	var opts Options
+func NewOptions(flags *flag.FlagSet, orchestrator command.Orchestrator) Options {
+	opts := Options{
+		Orchestrator: orchestrator,
+	}
 	if namespace, err := flags.GetString("namespace"); err == nil {
 		opts.Namespace = namespace
 	}
@@ -73,7 +76,7 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	}
 	cli.clientSet = clientSet
 
-	if dockerCli.ClientInfo().HasAll() {
+	if opts.Orchestrator.HasAll() {
 		if err := cli.checkHostsMatch(); err != nil {
 			return nil, err
 		}

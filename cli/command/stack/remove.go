@@ -9,21 +9,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	var opts options.Remove
 
 	cmd := &cobra.Command{
-		Use:     "rm STACK [STACK...]",
+		Use:     "rm [OPTIONS] STACK [STACK...]",
 		Aliases: []string{"remove", "down"},
 		Short:   "Remove one or more stacks",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespaces = args
 			switch {
-			case dockerCli.ClientInfo().HasAll():
+			case common.orchestrator.HasAll():
 				return errUnsupportedAllOrchestrator
-			case dockerCli.ClientInfo().HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
+			case common.orchestrator.HasKubernetes():
+				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
 				if err != nil {
 					return err
 				}

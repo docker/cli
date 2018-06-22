@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newDeployCommand(dockerCli command.Cli) *cobra.Command {
+func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	var opts options.Deploy
 
 	cmd := &cobra.Command{
@@ -20,10 +20,12 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
 			switch {
-			case dockerCli.ClientInfo().HasAll():
+			case common == nil: // Top level deploy commad
+				return swarm.RunDeploy(dockerCli, opts)
+			case common.orchestrator.HasAll():
 				return errUnsupportedAllOrchestrator
-			case dockerCli.ClientInfo().HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags()))
+			case common.orchestrator.HasKubernetes():
+				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
 				if err != nil {
 					return err
 				}

@@ -31,13 +31,12 @@ var (
 
 // CommonOptions are options common to both the client and the daemon.
 type CommonOptions struct {
-	Debug        bool
-	Hosts        []string
-	Orchestrator string
-	LogLevel     string
-	TLS          bool
-	TLSVerify    bool
-	TLSOptions   *tlsconfig.Options
+	Debug      bool
+	Hosts      []string
+	LogLevel   string
+	TLS        bool
+	TLSVerify  bool
+	TLSOptions *tlsconfig.Options
 }
 
 // NewCommonOptions returns a new CommonOptions

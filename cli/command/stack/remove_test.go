@@ -43,7 +43,7 @@ func fakeClientForRemoveStackTest(version string) *fakeClient {
 
 func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.24")
-	cmd := newRemoveCommand(test.NewFakeCli(client))
+	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -55,7 +55,7 @@ func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 
 func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.25")
-	cmd := newRemoveCommand(test.NewFakeCli(client))
+	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -67,7 +67,7 @@ func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 
 func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.30")
-	cmd := newRemoveCommand(test.NewFakeCli(client))
+	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -98,7 +98,7 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 		configs:  allConfigs,
 	}
 	fakeCli := test.NewFakeCli(fakeClient)
-	cmd := newRemoveCommand(fakeCli)
+	cmd := newRemoveCommand(fakeCli, &orchestrator)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -146,7 +146,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 			return nil
 		},
 	}
-	cmd := newRemoveCommand(test.NewFakeCli(cli))
+	cmd := newRemoveCommand(test.NewFakeCli(cli), &orchestrator)
 	cmd.SetOutput(ioutil.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 

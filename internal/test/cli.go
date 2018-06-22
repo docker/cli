@@ -167,18 +167,3 @@ func (c *FakeCli) ContentTrustEnabled() bool {
 func EnableContentTrust(c *FakeCli) {
 	c.contentTrust = true
 }
-
-// OrchestratorSwarm sets a command.ClientInfo with Swarm orchestrator
-func OrchestratorSwarm(c *FakeCli) {
-	c.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "swarm"} })
-}
-
-// OrchestratorKubernetes sets a command.ClientInfo with Kubernetes orchestrator
-func OrchestratorKubernetes(c *FakeCli) {
-	c.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "kubernetes"} })
-}
-
-// OrchestratorAll sets a command.ClientInfo with all orchestrator
-func OrchestratorAll(c *FakeCli) {
-	c.SetClientInfo(func() command.ClientInfo { return command.ClientInfo{Orchestrator: "all"} })
-}

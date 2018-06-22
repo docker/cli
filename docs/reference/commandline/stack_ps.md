@@ -21,12 +21,15 @@ Usage:  docker stack ps [OPTIONS] STACK
 List the tasks in the stack
 
 Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print tasks using a Go template
-      --help            Print usage
-      --no-resolve      Do not map IDs to Names
-      --no-trunc        Do not truncate output
-  -q, --quiet           Only display task IDs
+  -f, --filter filter         Filter output based on conditions provided
+      --format string         Pretty-print tasks using a Go template
+      --help                  Print usage
+      --kubeconfig string     Kubernetes config file
+      --namespace string      Kubernetes namespace to use
+      --no-resolve            Do not map IDs to Names
+      --no-trunc              Do not truncate output
+      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
+  -q, --quiet                 Only display task IDs
 ```
 
 ## Description
