@@ -16,7 +16,7 @@ keywords: "stack, ls"
 # stack ls
 
 ```markdown
-Usage:	docker stack ls
+Usage:	docker stack ls [OPTIONS]
 
 List stacks
 
@@ -24,8 +24,11 @@ Aliases:
   ls, list
 
 Options:
-      --help            Print usage
-      --format string   Pretty-print stacks using a Go template
+      --help                  Print usage
+      --format string         Pretty-print stacks using a Go template
+      --kubeconfig string     Kubernetes config file
+      --namespace string      Kubernetes namespace to use
+      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
 ```
 
 ## Description

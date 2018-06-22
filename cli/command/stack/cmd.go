@@ -23,7 +23,7 @@ type commonOptions struct {
 func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	var opts commonOptions
 	cmd := &cobra.Command{
-		Use:   "stack",
+		Use:   "stack [OPTIONS]",
 		Short: "Manage Docker stacks",
 		Args:  cli.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

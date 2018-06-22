@@ -2,7 +2,6 @@
 title: "stack services"
 description: "The stack services command description and usage"
 keywords: "stack, services"
-advisory: "experimental"
 ---
 
 <!-- This file is maintained within the docker/cli GitHub
@@ -14,7 +13,7 @@ advisory: "experimental"
      will be rejected.
 -->
 
-# stack services (experimental)
+# stack services
 
 ```markdown
 Usage:	docker stack services [OPTIONS] STACK
@@ -22,10 +21,13 @@ Usage:	docker stack services [OPTIONS] STACK
 List the services in the stack
 
 Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print services using a Go template
-      --help            Print usage
-  -q, --quiet           Only display IDs
+  -f, --filter filter         Filter output based on conditions provided
+      --format string         Pretty-print services using a Go template
+      --help                  Print usage
+      --kubeconfig string     Kubernetes config file
+      --namespace string      Kubernetes namespace to use
+      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
+  -q, --quiet                 Only display IDs
 ```
 
 ## Description

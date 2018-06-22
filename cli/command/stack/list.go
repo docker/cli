@@ -17,7 +17,7 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 	opts := options.List{}
 
 	cmd := &cobra.Command{
-		Use:     "ls",
+		Use:     "ls [OPTIONS]",
 		Aliases: []string{"list"},
 		Short:   "List stacks",
 		Args:    cli.NoArgs,

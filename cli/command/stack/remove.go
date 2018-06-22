@@ -13,7 +13,7 @@ func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	var opts options.Remove
 
 	cmd := &cobra.Command{
-		Use:     "rm STACK [STACK...]",
+		Use:     "rm [OPTIONS] STACK [STACK...]",
 		Aliases: []string{"remove", "down"},
 		Short:   "Remove one or more stacks",
 		Args:    cli.RequiresMinArgs(1),

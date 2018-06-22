@@ -66,6 +66,7 @@ by the `docker` command line:
 * `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
   unsuitable for Docker.
 * `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
+* `DOCKER_STACK_ORCHESTRATOR` Configure the default orchestrator to use when using `docker stack` management commands.
 * `DOCKER_TLS` When set Docker uses TLS.
 * `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
 * `DOCKER_CONTENT_TRUST` When set Docker uses notary to sign and verify images.
@@ -196,6 +197,11 @@ credentials for specific registries. If this property is set, the binary
 for a specific registry. For more information, see the
 [**Credential helpers** section in the `docker login` documentation](login.md#credential-helpers)
 
+The property `stackOrchestrator` specifies the default orchestrator to use when
+running `docker stack` management commands. Valid values are `"swarm"`,
+`"kubernetes"`, and `"all"`. This property can be overridden with the
+`DOCKER_STACK_ORCHESTRATOR` environment variable, or the `--orchestrator` flag.
+
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
 using the `detachKeys` property. Specify a `<sequence>` value for the
@@ -236,7 +242,8 @@ Following is a sample `config.json` file:
   "credHelpers": {
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
-  }
+  },
+  "stackOrchestrator": "kubernetes"
 }
 {% endraw %}
 ```
