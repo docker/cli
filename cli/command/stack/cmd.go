@@ -3,6 +3,7 @@ package stack
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -26,7 +27,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Manage Docker stacks",
 		Args:  cli.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			orchestrator, err := getOrchestrator(dockerCli.ConfigFile(), cmd)
+			orchestrator, err := getOrchestrator(dockerCli.ConfigFile(), cmd, dockerCli.Err())
 			if err != nil {
 				return err
 			}
@@ -71,12 +72,12 @@ func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func getOrchestrator(config *configfile.ConfigFile, cmd *cobra.Command) (command.Orchestrator, error) {
+func getOrchestrator(config *configfile.ConfigFile, cmd *cobra.Command, stderr io.Writer) (command.Orchestrator, error) {
 	var orchestratorFlag string
 	if o, err := cmd.Flags().GetString("orchestrator"); err == nil {
 		orchestratorFlag = o
 	}
-	return command.GetStackOrchestrator(orchestratorFlag, config.StackOrchestrator)
+	return command.GetStackOrchestrator(orchestratorFlag, config.StackOrchestrator, stderr)
 }
 
 func hideOrchestrationFlags(cmd *cobra.Command, orchestrator command.Orchestrator) {

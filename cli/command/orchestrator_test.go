@@ -1,6 +1,7 @@
 package command
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -107,7 +108,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			err := cli.Initialize(options)
 			assert.NilError(t, err)
 
-			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, cli.ConfigFile().StackOrchestrator)
+			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, cli.ConfigFile().StackOrchestrator, ioutil.Discard)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedKubernetes, orchestrator.HasKubernetes()))
 			assert.Check(t, is.Equal(testcase.expectedSwarm, orchestrator.HasSwarm()))

@@ -126,7 +126,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
 
-	orchestrator, err := command.GetStackOrchestrator("", dockerCli.ConfigFile().StackOrchestrator)
+	orchestrator, err := command.GetStackOrchestrator("", dockerCli.ConfigFile().StackOrchestrator, dockerCli.Err())
 	if err != nil {
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
