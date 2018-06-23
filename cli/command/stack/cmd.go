@@ -3,11 +3,11 @@ package stack
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -27,12 +27,12 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Manage Docker stacks",
 		Args:  cli.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			orchestrator, err := getOrchestrator(dockerCli.ConfigFile(), cmd)
+			orchestrator, err := getOrchestrator(dockerCli.ConfigFile(), cmd, dockerCli.Err())
 			if err != nil {
 				return err
 			}
 			opts.orchestrator = orchestrator
-			hideFlag(cmd, orchestrator)
+			hideOrchestrationFlags(cmd, orchestrator)
 			return checkSupportedFlag(cmd, orchestrator)
 		},
 
@@ -43,13 +43,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		config := cliconfig.LoadDefaultConfigFile(dockerCli.Err()) // dockerCli is not yet initialized, but we only need config file here
-		o, err := getOrchestrator(config, cmd)
-		if err != nil {
-			fmt.Fprint(dockerCli.Err(), err)
-			return
-		}
-		hideFlag(cmd, o)
+		hideOrchestrationFlags(cmd, opts.orchestrator)
 		defaultHelpFunc(cmd, args)
 	})
 	cmd.AddCommand(
@@ -78,15 +72,15 @@ func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func getOrchestrator(config *configfile.ConfigFile, cmd *cobra.Command) (command.Orchestrator, error) {
+func getOrchestrator(config *configfile.ConfigFile, cmd *cobra.Command, stderr io.Writer) (command.Orchestrator, error) {
 	var orchestratorFlag string
 	if o, err := cmd.Flags().GetString("orchestrator"); err == nil {
 		orchestratorFlag = o
 	}
-	return command.GetStackOrchestrator(orchestratorFlag, config.StackOrchestrator)
+	return command.GetStackOrchestrator(orchestratorFlag, config.StackOrchestrator, stderr)
 }
 
-func hideFlag(cmd *cobra.Command, orchestrator command.Orchestrator) {
+func hideOrchestrationFlags(cmd *cobra.Command, orchestrator command.Orchestrator) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		if _, ok := f.Annotations["kubernetes"]; ok && !orchestrator.HasKubernetes() {
 			f.Hidden = true
@@ -96,7 +90,7 @@ func hideFlag(cmd *cobra.Command, orchestrator command.Orchestrator) {
 		}
 	})
 	for _, subcmd := range cmd.Commands() {
-		hideFlag(subcmd, orchestrator)
+		hideOrchestrationFlags(subcmd, orchestrator)
 	}
 }
 
