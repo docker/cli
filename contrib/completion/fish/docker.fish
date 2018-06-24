@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause plugin port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
+        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause plugin port ps pull push rename restart rm rmi run save secret search service start stats stop system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -598,6 +598,18 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from search' -l automated -d
 complete -c docker -A -f -n '__fish_seen_subcommand_from search' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from search' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from search' -s s -l stars -d 'Only displays with at least x stars'
+
+# service
+complete -c docker -f -n '__fish_docker_no_subcommand' -a service -d 'Manage services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a create -d 'Create a new service'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a inspect -d 'Display detailed information on one or more services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a logs -d 'Fetch the logs of a service or task'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a ls -d 'List services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a ps -d 'List the tasks of one or more services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a rm -d 'Remove one or more services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a rollback -d 'Revert changes to a service\'s configuration'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a scale -d ' Scale one or multiple replicated services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a update -d 'Update a service'
 
 # start
 complete -c docker -f -n '__fish_docker_no_subcommand' -a start -d 'Start a container'
