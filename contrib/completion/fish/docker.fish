@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
+        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version volume wait stats
             return 1
         end
     end
@@ -79,6 +79,10 @@ end
 
 function __fish_print_docker_repositories --description 'Print a list of docker repositories'
     docker images --format "{{.Repository}}" | command grep -v '<none>' | command sort | command uniq
+end
+
+function __fish_print_docker_volume_names --description 'Print a list of docker volumes'
+    docker volume ls --format "{{.Name}}"
 end
 
 # common options
@@ -577,6 +581,15 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from unpause' -a '(__fish_pr
 complete -c docker -f -n '__fish_docker_no_subcommand' -a version -d 'Show the Docker version information'
 complete -c docker -A -f -n '__fish_seen_subcommand_from version' -s f -l format  -d 'Format the output using the given go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from version' -l help -d 'Print usage'
+
+# volume
+complete -c docker -f -n '__fish_docker_no_subcommand' -a volume -d 'Manage volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a create -d 'Create a volume'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a inspect -d 'Display detailed information on one or more volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a ls -d 'List volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a prune -d 'Remove all unused local volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a rm -d 'Remove one or more volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume; and __fish_seen_subcommand_from rm' -a '(__fish_print_docker_volume_names)' -d 'Volume'
 
 # wait
 complete -c docker -f -n '__fish_docker_no_subcommand' -a wait -d 'Block until a container stops, then print its exit code'
