@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stats stop tag top trust unpause version volume wait
+        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save search start stats stop tag top trust unpause version volume wait
             return 1
         end
     end
@@ -400,6 +400,16 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from network rm' -a '(__fish
 complete -c docker -A -f -n '__fish_seen_subcommand_from network connect' -a '(__fish_print_docker_networks)' -d "Network"
 complete -c docker -A -f -n '__fish_seen_subcommand_from network disconnect' -a '(__fish_print_docker_networks)' -d "Network"
 complete -c docker -A -f -n '__fish_seen_subcommand_from network inspect' -a '(__fish_print_docker_networks)' -d "Network"
+
+# node
+complete -c docker -f -n '__fish_docker_no_subcommand' -a node -d 'Manage Swarm nodes'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a demote -d 'Demote one or more nodes from manager in the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a inspect -d 'Display detailed information on one or more nodes'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a ls -d 'List nodes in the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a promote -d 'Promote one or more nodes to manager in the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a ps -d 'List tasks running on one or more nodes, defaults to current node'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a rm -d 'Remove one or more nodes from the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a update -d 'Update a node'
 
 # port
 complete -c docker -f -n '__fish_docker_no_subcommand' -a port -d 'Lookup the public-facing port that is NAT-ed to PRIVATE_PORT'
