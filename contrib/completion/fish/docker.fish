@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop tag top trust unpause version volume wait
+        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -558,6 +558,13 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a stop -d 'Stop a contai
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -s t -l time -d 'Number of seconds to wait for the container to stop before killing it. Default is 10 seconds.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -a '(__fish_print_docker_containers running)' -d "Container"
+
+# system
+complete -c docker -f -n '__fish_docker_no_subcommand' -a system -d 'Manage Docker'
+complete -c docker -f -n '__fish_seen_subcommand_from system' -a df -d 'Show docker disk usage'
+complete -c docker -f -n '__fish_seen_subcommand_from system' -a events -d 'Get real time events from the server'
+complete -c docker -f -n '__fish_seen_subcommand_from system' -a info -d 'Display system-wide information'
+complete -c docker -f -n '__fish_seen_subcommand_from system' -a prune -d 'Remove unused data'
 
 # tag
 complete -c docker -f -n '__fish_docker_no_subcommand' -a tag -d 'Tag an image into a repository'
