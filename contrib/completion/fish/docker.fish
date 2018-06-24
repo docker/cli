@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
+        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause plugin port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -454,6 +454,19 @@ complete -c docker -f -n '__fish_seen_subcommand_from node' -a promote -d 'Promo
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a ps -d 'List tasks running on one or more nodes, defaults to current node'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a rm -d 'Remove one or more nodes from the swarm'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a update -d 'Update a node'
+
+# plugin
+complete -c docker -f -n '__fish_docker_no_subcommand' -a plugin -d 'Manage plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a create -d 'Create a plugin from a rootfs and configuration. Plugin data directory must contain config.json and rootfs directory.'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a disable -d 'Disable a plugin'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a enable -d 'Enable a plugin'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a inspect -d 'Display detailed information on one or more plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a install -d 'Install a plugin'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a ls -d 'List plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a push -d 'Push a plugin to a registry'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a rm -d 'Remove one or more plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a set -d 'Change settings for a plugin'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a upgrade -d 'Upgrade an existing plugin'
 
 # port
 complete -c docker -f -n '__fish_docker_no_subcommand' -a port -d 'Lookup the public-facing port that is NAT-ed to PRIVATE_PORT'
