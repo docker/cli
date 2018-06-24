@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
+        if contains -- $i attach build commit config cp create diff events exec export history image images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -323,6 +323,21 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human 
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
+
+# image
+complete -c docker -f -n '__fish_docker_no_subcommand' -a image -d 'Manage images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a build -d 'Build an image from a Dockerfile'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a history -d 'Show the history of an image'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a import -d 'Import the contents from a tarball to create a filesystem image'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a inspect -d 'Display detailed information on one or more images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a load -d 'Load an image from a tar archive or STDIN'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a ls -d 'List images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a prune -d 'Remove unused images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a pull -d 'Pull an image or a repository from a registry'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a push -d 'Push an image or a repository to a registry'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a rm -d 'Remove one or more images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a save -d 'Save one or more images to a tar archive (streamed to STDOUT by default)'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a tag -d 'Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE'
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
