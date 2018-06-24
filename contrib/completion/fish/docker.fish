@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause plugin port ps pull push rename restart rm rmi run save secret search service start stats stop system tag top trust unpause version volume wait
+        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause plugin port ps pull push rename restart rm rmi run save secret search service start stats stop swarm system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -627,6 +627,17 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a stop -d 'Stop a contai
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -s t -l time -d 'Number of seconds to wait for the container to stop before killing it. Default is 10 seconds.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -a '(__fish_print_docker_containers running)' -d "Container"
+
+# swarm
+complete -c docker -f -n '__fish_docker_no_subcommand' -a swarm -d 'Manage Swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a ca -d 'Display and rotate the root CA'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a init -d 'Initialize a swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a join -d 'Join a swarm as a node and/or manager'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a join-token -d 'Manage join tokens'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a leave -d 'Leave the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a unlock -d 'Unlock swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a unlock-key -d 'Manage the unlock key'
+complete -c docker -f -n '__fish_seen_subcommand_from swarm' -a update -d 'Update the swarm'
 
 # system
 complete -c docker -f -n '__fish_docker_no_subcommand' -a system -d 'Manage Docker'
