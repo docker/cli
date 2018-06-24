@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config cp create diff events exec export history image images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
+        if contains -- $i attach build commit config container cp create diff events exec export history image images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop system tag top trust unpause version volume wait
             return 1
         end
     end
@@ -179,6 +179,35 @@ complete -c docker -f -n '__fish_seen_subcommand_from config' -a create -d 'Crea
 complete -c docker -f -n '__fish_seen_subcommand_from config' -a inspect -d 'Display detailed information on one or more configs'
 complete -c docker -f -n '__fish_seen_subcommand_from config' -a ls -d 'List configs'
 complete -c docker -f -n '__fish_seen_subcommand_from config' -a rm -d 'Remove one or more configs'
+
+# container
+complete -c docker -f -n '__fish_docker_no_subcommand' -a container -d 'Manage containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a attach -d 'Attach local standard input, output, and error streams to a running container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a commit -d 'Create a new image from a container\'s changes'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a cp -d 'Copy files/folders between a container and the local filesystem'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a create -d 'Create a new container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a diff -d 'Inspect changes to files or directories on a container\'s filesystem'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a exec -d 'Run a command in a running container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a export -d 'Export a container\'s filesystem as a tar archive'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a inspect -d 'Display detailed information on one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a kill -d 'Kill one or more running containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a logs -d 'Fetch the logs of a container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a ls -d 'List containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a pause -d 'Pause all processes within one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a port -d 'List port mappings or a specific mapping for the container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a prune -d 'Remove all stopped containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a rename -d 'Rename a container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a restart -d 'Restart one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a rm -d 'Remove one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a run -d 'Run a command in a new container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a start -d 'Start one or more stopped containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a stats -d 'Display a live stream of container(s) resource usage statistics'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a stop -d 'Stop one or more running containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a top -d ' Display the running processes of a container'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a unpause -d 'Unpause all processes within one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a update -d 'Update configuration of one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a wait -d 'Block until one or more containers stop, then print their exit codes'
+
 
 # cp
 complete -c docker -f -n '__fish_docker_no_subcommand' -a cp -d "Copy files/folders between a container and the local filesystem"
