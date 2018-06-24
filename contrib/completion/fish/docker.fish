@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save search start stats stop tag top trust unpause version volume wait
+        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs network node pause port ps pull push rename restart rm rmi run save secret search start stats stop tag top trust unpause version volume wait
             return 1
         end
     end
@@ -525,6 +525,13 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a save -d 'Save an image
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -s o -l output -d 'Write to an file, instead of STDOUT'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_docker_images)' -d "Image"
+
+# secret
+complete -c docker -f -n '__fish_docker_no_subcommand' -a secret -d 'Manage Docker secrets'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a create -d 'Create a secret from a file or STDIN as content'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a inspect -d 'Display detailed information on one or more secrets'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a ls -d 'List secrets'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a rm -d 'Remove one or more secrets'
 
 # search
 complete -c docker -f -n '__fish_docker_no_subcommand' -a search -d 'Search for an image on the registry (defaults to the Docker Hub)'
