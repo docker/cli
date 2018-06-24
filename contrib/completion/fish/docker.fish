@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version volume wait stats
+        if contains -- $i attach build commit config cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stats stop tag top trust unpause version volume wait
             return 1
         end
     end
@@ -172,6 +172,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -l help -d 'Pri
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s m -l message -d 'Commit message'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s p -l pause -d 'Pause container during commit'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -a '(__fish_print_docker_containers all)' -d "Container"
+
+# config
+complete -c docker -f -n '__fish_docker_no_subcommand' -a config -d "Manage Docker configs"
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a create -d 'Create a config from a file or STDIN'
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a inspect -d 'Display detailed information on one or more configs'
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a ls -d 'List configs'
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a rm -d 'Remove one or more configs'
 
 # cp
 complete -c docker -f -n '__fish_docker_no_subcommand' -a cp -d "Copy files/folders between a container and the local filesystem"
