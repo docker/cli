@@ -278,6 +278,8 @@ services:
           size: 10000
 
     working_dir: /code
+    x-bar: baz
+    x-foo: bar
 
 networks:
   # Entries can be null, which specifies simply that a network
@@ -318,6 +320,8 @@ networks:
     # can be referred to within this file as "other-external-network"
     external:
       name: my-cool-network
+    x-bar: baz
+    x-foo: bar
 
 volumes:
   # Entries can be null, which specifies simply that a volume
@@ -361,6 +365,8 @@ volumes:
     # can be referred to within this file as "external-volume3"
     name: this-is-volume3
     external: true
+    x-bar: baz
+    x-foo: bar
 
 configs:
   config1:
@@ -374,6 +380,8 @@ configs:
     external: true
   config4:
     name: foo
+    x-bar: baz
+    x-foo: bar
 
 secrets:
   secret1:
@@ -387,3 +395,10 @@ secrets:
     external: true
   secret4:
     name: bar
+    x-bar: baz
+    x-foo: bar
+x-bar: baz
+x-foo: bar
+x-nested:
+  bar: baz
+  foo: bar

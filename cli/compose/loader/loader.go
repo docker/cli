@@ -147,6 +147,7 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 			return nil, err
 		}
 	}
+	cfg.Extras = getExtras(config)
 	return &cfg, nil
 }
 
@@ -364,7 +365,30 @@ func LoadService(name string, serviceDict map[string]interface{}, workingDir str
 	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv); err != nil {
 		return nil, err
 	}
+
+	serviceConfig.Extras = getExtras(serviceDict)
+
 	return serviceConfig, nil
+}
+
+func loadExtras(name string, source map[string]interface{}) map[string]interface{} {
+	if dict, ok := source[name].(map[string]interface{}); ok {
+		return getExtras(dict)
+	}
+	return nil
+}
+
+func getExtras(dict map[string]interface{}) map[string]interface{} {
+	extras := map[string]interface{}{}
+	for key, value := range dict {
+		if strings.HasPrefix(key, "x-") {
+			extras[key] = value
+		}
+	}
+	if len(extras) == 0 {
+		return nil
+	}
+	return extras
 }
 
 func updateEnvironment(environment map[string]*string, vars map[string]*string, lookupEnv template.Mapping) {
@@ -479,6 +503,7 @@ func LoadNetworks(source map[string]interface{}, version string) (map[string]typ
 		case network.Name == "":
 			network.Name = name
 		}
+		network.Extras = loadExtras(name, source)
 		networks[name] = network
 	}
 	return networks, nil
@@ -521,6 +546,7 @@ func LoadVolumes(source map[string]interface{}, version string) (map[string]type
 		case volume.Name == "":
 			volume.Name = name
 		}
+		volume.Extras = loadExtras(name, source)
 		volumes[name] = volume
 	}
 	return volumes, nil
@@ -538,7 +564,9 @@ func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (ma
 		if err != nil {
 			return nil, err
 		}
-		secrets[name] = types.SecretConfig(obj)
+		secretConfig := types.SecretConfig(obj)
+		secretConfig.Extras = loadExtras(name, source)
+		secrets[name] = secretConfig
 	}
 	return secrets, nil
 }
@@ -555,7 +583,9 @@ func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) 
 		if err != nil {
 			return nil, err
 		}
-		configs[name] = types.ConfigObjConfig(obj)
+		configConfig := types.ConfigObjConfig(obj)
+		configConfig.Extras = loadExtras(name, source)
+		configs[name] = configConfig
 	}
 	return configs, nil
 }
