@@ -1,6 +1,7 @@
 package template
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -147,4 +148,27 @@ func TestDefaultsForMandatoryVariables(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, is.Equal(tc.expected, result))
 	}
+}
+
+func TestSubstituteWithCustomFunc(t *testing.T) {
+	errIsMissing := func(substitution string, mapping Mapping) (string, bool, error) {
+		value, found := mapping(substitution)
+		if !found {
+			return "", true, &InvalidTemplateError{
+				Template: fmt.Sprintf("required variable %s is missing a value", substitution),
+			}
+		}
+		return value, true, nil
+	}
+
+	result, err := SubstituteWith("ok ${FOO}", defaultMapping, pattern, errIsMissing)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok first", result))
+
+	result, err = SubstituteWith("ok ${BAR}", defaultMapping, pattern, errIsMissing)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok ", result))
+
+	_, err = SubstituteWith("ok ${NOTHERE}", defaultMapping, pattern, errIsMissing)
+	assert.Check(t, is.ErrorContains(err, "required variable"))
 }
