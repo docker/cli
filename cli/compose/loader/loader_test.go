@@ -1417,58 +1417,49 @@ networks:
 }
 
 func TestLoadInit(t *testing.T) {
-	booleanFalse := false
 	booleanTrue := true
-	config, err := loadYAML(`
+	booleanFalse := false
+
+	var testcases = []struct {
+		doc  string
+		yaml string
+		init *bool
+	}{
+		{
+			doc: "no init defined",
+			yaml: `
 version: '3.7'
 services:
   foo:
-    image: alpine`)
-	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(config, &types.Config{
-		Filename: "filename.yml",
-		Version:  "3.7",
-		Services: types.Services{
-			{
-				Name:  "foo",
-				Image: "alpine",
-			},
+    image: alpine`,
 		},
-	}, cmpopts.EquateEmpty()))
-	config, err = loadYAML(`
-version: '3.7'
-services:
-  foo:
-    image: alpine
-    init: true`)
-	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(config, &types.Config{
-		Filename: "filename.yml",
-		Version:  "3.7",
-		Services: types.Services{
-			{
-				Name:  "foo",
-				Image: "alpine",
-				Init:  &booleanTrue,
-			},
-		},
-	}, cmpopts.EquateEmpty()))
-	config, err = loadYAML(`
+		{
+			doc: "has true init",
+			yaml: `
 version: '3.7'
 services:
   foo:
     image: alpine
-    init: false`)
-	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(config, &types.Config{
-		Filename: "filename.yml",
-		Version:  "3.7",
-		Services: types.Services{
-			{
-				Name:  "foo",
-				Image: "alpine",
-				Init:  &booleanFalse,
-			},
+    init: true`,
+			init: &booleanTrue,
 		},
-	}, cmpopts.EquateEmpty()))
+		{
+			doc: "has false init",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: false`,
+			init: &booleanFalse,
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			config, err := loadYAML(testcase.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services, 1))
+			assert.Check(t, is.DeepEqual(config.Services[0].Init, testcase.init))
+		})
+	}
 }
