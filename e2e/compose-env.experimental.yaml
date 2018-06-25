@@ -1,0 +1,6 @@
+version: '2.1'
+
+services:
+  engine:
+      command: ["--insecure-registry=registry:5000", "--experimental"]
+

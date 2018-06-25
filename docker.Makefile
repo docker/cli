@@ -119,5 +119,12 @@ shellcheck: build_shell_validate_image
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
 
 .PHONY: test-e2e
-test-e2e: build_e2e_image
+test-e2e: test-e2e-non-experimental test-e2e-experimental
+
+.PHONY: test-e2e-experimental
+test-e2e-experimental: build_e2e_image
+	docker run -e DOCKERD_EXPERIMENTAL=1 --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
+
+.PHONY: test-e2e-non-experimental
+test-e2e-non-experimental: build_e2e_image
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)

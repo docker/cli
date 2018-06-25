@@ -118,6 +118,7 @@ func TestBuildIidFileSquash(t *testing.T) {
 	FROM %s
 	ENV FOO FOO
 	ENV BAR BAR
+	RUN touch /fiip
 	RUN touch /foop`, fixtures.AlpineImage)),
 	)
 	defer buildDir.Remove()
