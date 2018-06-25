@@ -1415,3 +1415,51 @@ networks:
 	}
 	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
 }
+
+func TestLoadInit(t *testing.T) {
+	booleanTrue := true
+	booleanFalse := false
+
+	var testcases = []struct {
+		doc  string
+		yaml string
+		init *bool
+	}{
+		{
+			doc: "no init defined",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine`,
+		},
+		{
+			doc: "has true init",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: true`,
+			init: &booleanTrue,
+		},
+		{
+			doc: "has false init",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: false`,
+			init: &booleanFalse,
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			config, err := loadYAML(testcase.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services, 1))
+			assert.Check(t, is.DeepEqual(config.Services[0].Init, testcase.init))
+		})
+	}
+}
