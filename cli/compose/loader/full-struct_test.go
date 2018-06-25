@@ -14,8 +14,16 @@ func fullExampleConfig(workingDir, homeDir string) *types.Config {
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
-		Configs:  configs(),
-		Secrets:  secrets(),
+		Configs:  configs(workingDir),
+		Secrets:  secrets(workingDir),
+		Extras: map[string]interface{}{
+			"x-foo": "bar",
+			"x-bar": "baz",
+			"x-nested": map[string]interface{}{
+				"foo": "bar",
+				"bar": "baz",
+			},
+		},
 	}
 }
 
@@ -135,6 +143,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			ExtraHosts: []string{
 				"somehost:162.242.195.82",
 				"otherhost:50.31.209.229",
+			},
+			Extras: map[string]interface{}{
+				"x-bar": "baz",
+				"x-foo": "bar",
 			},
 			HealthCheck: &types.HealthCheckConfig{
 				Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
@@ -392,6 +404,10 @@ func networks() map[string]types.NetworkConfig {
 		"other-external-network": {
 			Name:     "my-cool-network",
 			External: types.External{External: true},
+			Extras: map[string]interface{}{
+				"x-bar": "baz",
+				"x-foo": "bar",
+			},
 		},
 	}
 }
@@ -428,14 +444,18 @@ func volumes() map[string]types.VolumeConfig {
 		"external-volume3": {
 			Name:     "this-is-volume3",
 			External: types.External{External: true},
+			Extras: map[string]interface{}{
+				"x-bar": "baz",
+				"x-foo": "bar",
+			},
 		},
 	}
 }
 
-func configs() map[string]types.ConfigObjConfig {
+func configs(workingDir string) map[string]types.ConfigObjConfig {
 	return map[string]types.ConfigObjConfig{
 		"config1": {
-			File: "./config_data",
+			File: filepath.Join(workingDir, "config_data"),
 			Labels: map[string]string{
 				"foo": "bar",
 			},
@@ -445,18 +465,24 @@ func configs() map[string]types.ConfigObjConfig {
 			External: types.External{External: true},
 		},
 		"config3": {
+			Name:     "config3",
 			External: types.External{External: true},
 		},
 		"config4": {
 			Name: "foo",
+			File: workingDir,
+			Extras: map[string]interface{}{
+				"x-bar": "baz",
+				"x-foo": "bar",
+			},
 		},
 	}
 }
 
-func secrets() map[string]types.SecretConfig {
+func secrets(workingDir string) map[string]types.SecretConfig {
 	return map[string]types.SecretConfig{
 		"secret1": {
-			File: "./secret_data",
+			File: filepath.Join(workingDir, "secret_data"),
 			Labels: map[string]string{
 				"foo": "bar",
 			},
@@ -466,10 +492,16 @@ func secrets() map[string]types.SecretConfig {
 			External: types.External{External: true},
 		},
 		"secret3": {
+			Name:     "secret3",
 			External: types.External{External: true},
 		},
 		"secret4": {
 			Name: "bar",
+			File: workingDir,
+			Extras: map[string]interface{}{
+				"x-bar": "baz",
+				"x-foo": "bar",
+			},
 		},
 	}
 }
@@ -760,6 +792,8 @@ services:
       tmpfs:
         size: 10000
     working_dir: /code
+    x-bar: baz
+    x-foo: bar
 networks:
   external-network:
     name: external-network
@@ -767,6 +801,8 @@ networks:
   other-external-network:
     name: my-cool-network
     external: true
+    x-bar: baz
+    x-foo: bar
   other-network:
     driver: overlay
     driver_opts:
@@ -793,6 +829,8 @@ volumes:
   external-volume3:
     name: this-is-volume3
     external: true
+    x-bar: baz
+    x-foo: bar
   other-external-volume:
     name: my-cool-volume
     external: true
@@ -806,27 +844,46 @@ volumes:
   some-volume: {}
 secrets:
   secret1:
-    file: ./secret_data
+    file: %s/secret_data
     labels:
       foo: bar
   secret2:
     name: my_secret
     external: true
   secret3:
+    name: secret3
     external: true
   secret4:
     name: bar
+    file: %s
+    x-bar: baz
+    x-foo: bar
 configs:
   config1:
-    file: ./config_data
+    file: %s/config_data
     labels:
       foo: bar
   config2:
     name: my_config
     external: true
   config3:
+    name: config3
     external: true
   config4:
     name: foo
-`, filepath.Join(workingDir, "static"), filepath.Join(workingDir, "opt"))
+    file: %s
+    x-bar: baz
+    x-foo: bar
+x-bar: baz
+x-foo: bar
+x-nested:
+  bar: baz
+  foo: bar
+`,
+		filepath.Join(workingDir, "static"),
+		filepath.Join(workingDir, "opt"),
+		workingDir,
+		workingDir,
+		workingDir,
+		workingDir)
 }
