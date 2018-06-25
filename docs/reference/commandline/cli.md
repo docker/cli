@@ -61,6 +61,7 @@ by the `docker` command line:
 * `DOCKER_API_VERSION` The API version to use (e.g. `1.19`)
 * `DOCKER_CONFIG` The location of your client configuration files.
 * `DOCKER_CERT_PATH` The location of your authentication keys.
+* `DOCKER_CLI_EXPERIMENTAL` Enable experimental features for the cli (e.g. `enabled` or `disabled`)
 * `DOCKER_DRIVER` The graph driver to use.
 * `DOCKER_HOST` Daemon socket to connect to.
 * `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
