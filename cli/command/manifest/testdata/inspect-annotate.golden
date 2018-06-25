@@ -1,22 +1,7 @@
 {
 	"Ref": "example.com/alpine:3.0",
 	"Digest": "sha256:7328f6f8b41890597575cbaadc884e7386ae0acc53b747401ebce5cf0d62abcd",
-	"SchemaV2Manifest": {
-		"schemaVersion": 2,
-		"mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-		"config": {
-			"mediaType": "application/vnd.docker.container.image.v1+json",
-			"size": 1520,
-			"digest": "sha256:7328f6f8b41890597575cbaadc884e7386ae0acc53b747401ebce5cf0d624560"
-		},
-		"layers": [
-			{
-				"mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
-				"size": 1990402,
-				"digest": "sha256:88286f41530e93dffd4b964e1db22ce4939fffa4a4c665dab8591fbab03d4926"
-			}
-		]
-	},
+	"SchemaV2Manifest": "ewogICAic2NoZW1hVmVyc2lvbiI6IDIsCiAgICJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLmRvY2tlci5kaXN0cmlidXRpb24ubWFuaWZlc3QudjIranNvbiIsCiAgICJjb25maWciOiB7CiAgICAgICJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLmRvY2tlci5jb250YWluZXIuaW1hZ2UudjEranNvbiIsCiAgICAgICJzaXplIjogMTUyMCwKICAgICAgImRpZ2VzdCI6ICJzaGEyNTY6NzMyOGY2ZjhiNDE4OTA1OTc1NzVjYmFhZGM4ODRlNzM4NmFlMGFjYzUzYjc0NzQwMWViY2U1Y2YwZDYyNDU2MCIKICAgfSwKICAgImxheWVycyI6IFsKICAgICAgewogICAgICAgICAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLAogICAgICAgICAic2l6ZSI6IDE5OTA0MDIsCiAgICAgICAgICJkaWdlc3QiOiAic2hhMjU2Ojg4Mjg2ZjQxNTMwZTkzZGZmZDRiOTY0ZTFkYjIyY2U0OTM5ZmZmYTRhNGM2NjVkYWI4NTkxZmJhYjAzZDQ5MjYiCiAgICAgIH0KICAgXQp9",
 	"Platform": {
 		"architecture": "arm",
 		"os": "freebsd",
