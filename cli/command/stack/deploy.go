@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
@@ -19,20 +20,11 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
-			switch {
-			case common == nil: // Top level deploy commad
-				return swarm.RunDeploy(dockerCli, opts)
-			case common.orchestrator.HasAll():
-				return errUnsupportedAllOrchestrator
-			case common.orchestrator.HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
-				if err != nil {
-					return err
-				}
-				return kubernetes.RunDeploy(kli, opts)
-			default:
-				return swarm.RunDeploy(dockerCli, opts)
+			commonOrchestrator := command.OrchestratorSwarm // default for top-level deploy command
+			if common != nil {
+				commonOrchestrator = common.orchestrator
 			}
+			return RunDeploy(dockerCli, cmd.Flags(), commonOrchestrator, opts)
 		},
 	}
 
@@ -53,4 +45,20 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	flags.SetAnnotation("resolve-image", "swarm", nil)
 	kubernetes.AddNamespaceFlag(flags)
 	return cmd
+}
+
+// RunDeploy performs a stack deploy against the specified orchestrator
+func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
+	switch {
+	case commonOrchestrator.HasAll():
+		return errUnsupportedAllOrchestrator
+	case commonOrchestrator.HasKubernetes():
+		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
+		if err != nil {
+			return err
+		}
+		return kubernetes.RunDeploy(kli, opts)
+	default:
+		return swarm.RunDeploy(dockerCli, opts)
+	}
 }
