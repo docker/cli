@@ -15,10 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func deployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
-	if err := validateStackName(opts.Namespace); err != nil {
-		return err
-	}
+// DeployBundle deploy a bundlefile (dab) on a swarm.
+func DeployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
 	bundle, err := loadBundlefile(dockerCli.Err(), opts.Namespace, opts.Bundlefile)
 	if err != nil {
 		return err

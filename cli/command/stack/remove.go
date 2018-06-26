@@ -19,6 +19,10 @@ func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespaces = args
+			if err := validateStackNames(opts.Namespaces); err != nil {
+				return err
+			}
+
 			switch {
 			case common.orchestrator.HasAll():
 				return errUnsupportedAllOrchestrator

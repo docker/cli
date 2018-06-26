@@ -14,9 +14,6 @@ import (
 
 // RunServices is the swarm implementation of docker stack services
 func RunServices(dockerCli command.Cli, opts options.Services) error {
-	if err := validateStackName(opts.Namespace); err != nil {
-		return err
-	}
 	ctx := context.Background()
 	client := dockerCli.Client()
 

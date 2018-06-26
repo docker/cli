@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -17,15 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
-	if err := validateStackName(opts.Namespace); err != nil {
-		return err
-	}
-	config, err := loader.LoadComposefile(dockerCli, opts)
-	if err != nil {
-		return err
-	}
-
+func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy, config *composetypes.Config) error {
 	if err := checkDaemonIsSwarmManager(ctx, dockerCli); err != nil {
 		return err
 	}

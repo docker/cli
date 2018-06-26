@@ -13,10 +13,6 @@ import (
 
 // RunPS is the swarm implementation of docker stack ps
 func RunPS(dockerCli command.Cli, opts options.PS) error {
-	if err := validateStackName(opts.Namespace); err != nil {
-		return err
-	}
-
 	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 
 	ctx := context.Background()

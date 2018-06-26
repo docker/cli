@@ -51,6 +51,14 @@ func TestStackPsErrors(t *testing.T) {
 	}
 }
 
+func TestRunPSWithEmptyName(t *testing.T) {
+	cmd := newPsCommand(test.NewFakeCli(&fakeClient{}), &orchestrator)
+	cmd.SetArgs([]string{"'   '"})
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
+}
+
 func TestStackPsEmptyStack(t *testing.T) {
 	fakeCli := test.NewFakeCli(&fakeClient{
 		taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {

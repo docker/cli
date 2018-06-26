@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
@@ -21,26 +22,14 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
-func RunDeploy(dockerCli command.Cli, opts options.Deploy) error {
+func RunDeploy(dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Config) error {
 	ctx := context.Background()
 
-	if err := validateStackName(opts.Namespace); err != nil {
-		return err
-	}
 	if err := validateResolveImageFlag(dockerCli, &opts); err != nil {
 		return err
 	}
 
-	switch {
-	case opts.Bundlefile == "" && len(opts.Composefiles) == 0:
-		return errors.Errorf("Please specify either a bundle file (with --bundle-file) or a Compose file (with --compose-file).")
-	case opts.Bundlefile != "" && len(opts.Composefiles) != 0:
-		return errors.Errorf("You cannot specify both a bundle file and a Compose file.")
-	case opts.Bundlefile != "":
-		return deployBundle(ctx, dockerCli, opts)
-	default:
-		return deployCompose(ctx, dockerCli, opts)
-	}
+	return deployCompose(ctx, dockerCli, opts, cfg)
 }
 
 // validateResolveImageFlag validates the opts.resolveImage command line option

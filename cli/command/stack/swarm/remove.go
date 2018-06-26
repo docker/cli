@@ -16,10 +16,6 @@ import (
 
 // RunRemove is the swarm implementation of docker stack remove
 func RunRemove(dockerCli command.Cli, opts options.Remove) error {
-	if err := validateStackNames(opts.Namespaces); err != nil {
-		return err
-	}
-
 	client := dockerCli.Client()
 	ctx := context.Background()
 
