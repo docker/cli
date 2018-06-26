@@ -16,6 +16,14 @@ var patternString = fmt.Sprintf(
 
 var pattern = regexp.MustCompile(patternString)
 
+// DefaultSubstituteFuncs contains the default SubstitueFunc used by the docker cli
+var DefaultSubstituteFuncs = []SubstituteFunc{
+	softDefault,
+	hardDefault,
+	requiredNonEmpty,
+	required,
+}
+
 // InvalidTemplateError is returned when a variable template is not in a valid
 // format
 type InvalidTemplateError struct {
@@ -32,8 +40,14 @@ func (e InvalidTemplateError) Error() string {
 // and the absence of a value.
 type Mapping func(string) (string, bool)
 
-// Substitute variables in the string with their values
-func Substitute(template string, mapping Mapping) (string, error) {
+// SubstituteFunc is a user-supplied function that apply substitution.
+// Returns the value as a string, a bool indicating if the function could apply
+// the substitution and an error.
+type SubstituteFunc func(string, Mapping) (string, bool, error)
+
+// SubstituteWith subsitute variables in the string with their values.
+// It accepts additional substitute function.
+func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, subsFuncs ...SubstituteFunc) (string, error) {
 	var err error
 	result := pattern.ReplaceAllStringFunc(template, func(substring string) string {
 		matches := pattern.FindStringSubmatch(substring)
@@ -47,49 +61,22 @@ func Substitute(template string, mapping Mapping) (string, error) {
 			substitution = groups["braced"]
 		}
 
-		switch {
-
-		case substitution == "":
+		if substitution == "" {
 			err = &InvalidTemplateError{Template: template}
 			return ""
+		}
 
-		// Soft default (fall back if unset or empty)
-		case strings.Contains(substitution, ":-"):
-			name, defaultValue := partition(substitution, ":-")
-			value, ok := mapping(name)
-			if !ok || value == "" {
-				return defaultValue
-			}
-			return value
-
-		// Hard default (fall back if-and-only-if empty)
-		case strings.Contains(substitution, "-"):
-			name, defaultValue := partition(substitution, "-")
-			value, ok := mapping(name)
-			if !ok {
-				return defaultValue
-			}
-			return value
-
-		case strings.Contains(substitution, ":?"):
-			name, errorMessage := partition(substitution, ":?")
-			value, ok := mapping(name)
-			if !ok || value == "" {
-				err = &InvalidTemplateError{
-					Template: fmt.Sprintf("required variable %s is missing a value: %s", name, errorMessage),
-				}
+		for _, f := range subsFuncs {
+			var (
+				value   string
+				applied bool
+			)
+			value, applied, err = f(substitution, mapping)
+			if err != nil {
 				return ""
 			}
-			return value
-
-		case strings.Contains(substitution, "?"):
-			name, errorMessage := partition(substitution, "?")
-			value, ok := mapping(name)
-			if !ok {
-				err = &InvalidTemplateError{
-					Template: fmt.Sprintf("required variable %s is missing a value: %s", name, errorMessage),
-				}
-				return ""
+			if !applied {
+				continue
 			}
 			return value
 		}
@@ -99,6 +86,65 @@ func Substitute(template string, mapping Mapping) (string, error) {
 	})
 
 	return result, err
+}
+
+// Substitute variables in the string with their values
+func Substitute(template string, mapping Mapping) (string, error) {
+	return SubstituteWith(template, mapping, pattern, DefaultSubstituteFuncs...)
+}
+
+// Soft default (fall back if unset or empty)
+func softDefault(substitution string, mapping Mapping) (string, bool, error) {
+	if !strings.Contains(substitution, ":-") {
+		return "", false, nil
+	}
+	name, defaultValue := partition(substitution, ":-")
+	value, ok := mapping(name)
+	if !ok || value == "" {
+		return defaultValue, true, nil
+	}
+	return value, true, nil
+}
+
+// Hard default (fall back if-and-only-if empty)
+func hardDefault(substitution string, mapping Mapping) (string, bool, error) {
+	if !strings.Contains(substitution, "-") {
+		return "", false, nil
+	}
+	name, defaultValue := partition(substitution, "-")
+	value, ok := mapping(name)
+	if !ok {
+		return defaultValue, true, nil
+	}
+	return value, true, nil
+}
+
+func requiredNonEmpty(substitution string, mapping Mapping) (string, bool, error) {
+	if !strings.Contains(substitution, ":?") {
+		return "", false, nil
+	}
+	name, errorMessage := partition(substitution, ":?")
+	value, ok := mapping(name)
+	if !ok || value == "" {
+		return "", true, &InvalidTemplateError{
+			Template: fmt.Sprintf("required variable %s is missing a value: %s", name, errorMessage),
+		}
+	}
+	return value, true, nil
+}
+
+func required(substitution string, mapping Mapping) (string, bool, error) {
+	if !strings.Contains(substitution, "?") {
+		return "", false, nil
+	}
+	name, errorMessage := partition(substitution, "?")
+	value, ok := mapping(name)
+	if !ok {
+		return "", true, &InvalidTemplateError{
+			Template: fmt.Sprintf("required variable %s is missing a value: %s", name, errorMessage),
+		}
+	}
+	return value, true, nil
 }
 
 func matchGroups(matches []string) map[string]string {

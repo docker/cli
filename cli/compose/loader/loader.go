@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	interp "github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
@@ -21,6 +22,16 @@ import (
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
+
+// Options supported by Load
+type Options struct {
+	// Skip schema validation
+	SkipValidation bool
+	// Skip interpolation
+	SkipInterpolation bool
+	// Interpolation options
+	Interpolate *interp.Options
+}
 
 // ParseYAML reads the bytes from a file, parses the bytes into a mapping
 // structure, and returns it.
@@ -41,12 +52,25 @@ func ParseYAML(source []byte) (map[string]interface{}, error) {
 }
 
 // Load reads a ConfigDetails and returns a fully loaded configuration
-func Load(configDetails types.ConfigDetails) (*types.Config, error) {
+func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.Config, error) {
 	if len(configDetails.ConfigFiles) < 1 {
 		return nil, errors.Errorf("No files specified")
 	}
 
+	opts := &Options{
+		Interpolate: &interp.Options{
+			Substitute:      template.Substitute,
+			LookupValue:     configDetails.LookupEnv,
+			TypeCastMapping: interpolateTypeCastMapping,
+		},
+	}
+
+	for _, op := range options {
+		op(opts)
+	}
+
 	configs := []*types.Config{}
+	var err error
 
 	for _, file := range configDetails.ConfigFiles {
 		configDict := file.Config
@@ -62,14 +86,17 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 			return nil, err
 		}
 
-		var err error
-		configDict, err = interpolateConfig(configDict, configDetails.LookupEnv)
-		if err != nil {
-			return nil, err
+		if !opts.SkipInterpolation {
+			configDict, err = interpolateConfig(configDict, *opts.Interpolate)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		if err := schema.Validate(configDict, configDetails.Version); err != nil {
-			return nil, err
+		if !opts.SkipValidation {
+			if err := schema.Validate(configDict, configDetails.Version); err != nil {
+				return nil, err
+			}
 		}
 
 		cfg, err := loadSections(configDict, configDetails)
