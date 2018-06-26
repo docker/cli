@@ -5,14 +5,14 @@ import (
 	"io"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
 
 // RunDeploy is the kubernetes implementation of docker stack deploy
-func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
+func RunDeploy(dockerCli *KubeCli, opts options.Deploy, cfg *composetypes.Config) error {
 	cmdOut := dockerCli.Out()
 	// Check arguments
 	if len(opts.Composefiles) == 0 {
@@ -29,11 +29,6 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy) error {
 		return err
 	}
 
-	// Parse the compose file
-	cfg, err := loader.LoadComposefile(dockerCli, opts)
-	if err != nil {
-		return err
-	}
 	stack, err := stacks.FromCompose(dockerCli.Err(), opts.Namespace, cfg)
 	if err != nil {
 		return err

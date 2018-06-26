@@ -19,6 +19,10 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Namespace = args[0]
+			if err := validateStackName(opts.Namespace); err != nil {
+				return err
+			}
+
 			switch {
 			case common.orchestrator.HasAll():
 				return errUnsupportedAllOrchestrator

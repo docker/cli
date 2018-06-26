@@ -41,6 +41,14 @@ func fakeClientForRemoveStackTest(version string) *fakeClient {
 	}
 }
 
+func TestRemoveWithEmptyName(t *testing.T) {
+	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}), &orchestrator)
+	cmd.SetArgs([]string{"good", "'   '", "alsogood"})
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
+}
+
 func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.24")
 	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)

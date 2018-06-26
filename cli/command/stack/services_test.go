@@ -80,6 +80,14 @@ func TestStackServicesErrors(t *testing.T) {
 	}
 }
 
+func TestRunServicesWithEmptyName(t *testing.T) {
+	cmd := newServicesCommand(test.NewFakeCli(&fakeClient{}), &orchestrator)
+	cmd.SetArgs([]string{"'   '"})
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
+}
+
 func TestStackServicesEmptyServiceList(t *testing.T) {
 	fakeCli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
