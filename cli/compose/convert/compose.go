@@ -110,7 +110,13 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, swarm.SecretSpec{Annotations: obj.Annotations, Data: obj.Data})
+		spec := swarm.SecretSpec{Annotations: obj.Annotations, Data: obj.Data}
+		if secret.TemplateDriver != "" {
+			spec.Templating = &swarm.Driver{
+				Name: secret.TemplateDriver,
+			}
+		}
+		result = append(result, spec)
 	}
 	return result, nil
 }
@@ -127,7 +133,13 @@ func Configs(namespace Namespace, configs map[string]composetypes.ConfigObjConfi
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, swarm.ConfigSpec{Annotations: obj.Annotations, Data: obj.Data})
+		spec := swarm.ConfigSpec{Annotations: obj.Annotations, Data: obj.Data}
+		if config.TemplateDriver != "" {
+			spec.Templating = &swarm.Driver{
+				Name: config.TemplateDriver,
+			}
+		}
+		result = append(result, spec)
 	}
 	return result, nil
 }

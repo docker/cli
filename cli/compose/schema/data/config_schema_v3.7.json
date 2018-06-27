@@ -532,7 +532,8 @@
             "name": {"type": "string"}
           }
         },
-        "labels": {"$ref": "#/definitions/list_or_dict"}
+        "labels": {"$ref": "#/definitions/list_or_dict"},
+        "template_driver": {"type": "string"}
       },
       "patternProperties": {"^x-": {}},
       "additionalProperties": false
@@ -550,7 +551,8 @@
             "name": {"type": "string"}
           }
         },
-        "labels": {"$ref": "#/definitions/list_or_dict"}
+        "labels": {"$ref": "#/definitions/list_or_dict"},
+        "template_driver": {"type": "string"}
       },
       "patternProperties": {"^x-": {}},
       "additionalProperties": false

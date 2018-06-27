@@ -414,11 +414,12 @@ type CredentialSpecConfig struct {
 
 // FileObjectConfig is a config type for a file used by a service
 type FileObjectConfig struct {
-	Name     string                 `yaml:",omitempty"`
-	File     string                 `yaml:",omitempty"`
-	External External               `yaml:",omitempty"`
-	Labels   Labels                 `yaml:",omitempty"`
-	Extras   map[string]interface{} `yaml:",inline"`
+	Name           string                 `yaml:",omitempty"`
+	File           string                 `yaml:",omitempty"`
+	External       External               `yaml:",omitempty"`
+	Labels         Labels                 `yaml:",omitempty"`
+	Extras         map[string]interface{} `yaml:",inline"`
+	TemplateDriver string                 `mapstructure:"template_driver" yaml:"template_driver,omitempty"`
 }
 
 // SecretConfig for a secret
