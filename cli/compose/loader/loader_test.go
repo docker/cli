@@ -1484,3 +1484,64 @@ func TestTransform(t *testing.T) {
 
 	assert.Check(t, is.DeepEqual(samplePortsConfig, ports))
 }
+
+func TestLoadTemplateDriver(t *testing.T) {
+	config, err := loadYAML(`
+version: '3.8'
+services:
+  hello-world:
+    image: redis:alpine
+    secrets:
+      - secret
+    configs:
+      - config
+
+configs:
+  config:
+    name: config
+    external: true
+    template_driver: config-driver
+
+secrets:
+  secret:
+    name: secret
+    external: true
+    template_driver: secret-driver
+`)
+	assert.NilError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.8",
+		Services: types.Services{
+			{
+				Name:  "hello-world",
+				Image: "redis:alpine",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "config",
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "secret",
+					},
+				},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"config": {
+				Name:           "config",
+				External:       types.External{External: true},
+				TemplateDriver: "config-driver",
+			},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"secret": {
+				Name:           "secret",
+				External:       types.External{External: true},
+				TemplateDriver: "secret-driver",
+			},
+		},
+	}
+	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
+}
