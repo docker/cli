@@ -8,12 +8,71 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/compose/loader"
+	"github.com/docker/cli/cli/compose/schema"
 	composeTypes "github.com/docker/cli/cli/compose/types"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/kubernetes/compose/v1beta1"
 	"github.com/docker/cli/kubernetes/compose/v1beta2"
+	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// NewStackConverter returns a converter from types.Config (compose) to the specified
+// stack version or error out if the version is not supported or existent.
+func NewStackConverter(version string) (StackConverter, error) {
+	switch version {
+	case "v1beta1":
+		return stackV1Beta1Converter{}, nil
+	case "v1beta2":
+		return stackV1Beta2Converter{}, nil
+	default:
+		return nil, errors.Errorf("stack version %s unsupported", version)
+	}
+}
+
+// StackConverter converts a compose types.Config to a Stack
+type StackConverter interface {
+	FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error)
+}
+
+type stackV1Beta1Converter struct{}
+
+func (s stackV1Beta1Converter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+	cfg.Version = v1beta1.MaxComposeVersion
+	st, err := fromCompose(stderr, name, cfg)
+	if err != nil {
+		return Stack{}, err
+	}
+	res, err := yaml.Marshal(cfg)
+	if err != nil {
+		return Stack{}, err
+	}
+	// reload the result to check that it produced a valid 3.5 compose file
+	resparsedConfig, err := loader.ParseYAML(res)
+	if err != nil {
+		return Stack{}, err
+	}
+	if err = schema.Validate(resparsedConfig, v1beta1.MaxComposeVersion); err != nil {
+		return Stack{}, errors.Wrapf(err, "the compose yaml file is invalid with v%s", v1beta1.MaxComposeVersion)
+	}
+
+	st.ComposeFile = string(res)
+	return st, nil
+}
+
+type stackV1Beta2Converter struct{}
+
+func (s stackV1Beta2Converter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+	return fromCompose(stderr, name, cfg)
+}
+
+func fromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+	return Stack{
+		Name: name,
+		Spec: fromComposeConfig(stderr, cfg),
+	}, nil
+}
 
 func loadStackData(composefile string) (*composetypes.Config, error) {
 	parsed, err := loader.ParseYAML([]byte(composefile))
@@ -30,44 +89,44 @@ func loadStackData(composefile string) (*composetypes.Config, error) {
 }
 
 // Conversions from internal stack to different stack compose component versions.
-func stackFromV1beta1(in *v1beta1.Stack) (stack, error) {
+func stackFromV1beta1(in *v1beta1.Stack) (Stack, error) {
 	cfg, err := loadStackData(in.Spec.ComposeFile)
 	if err != nil {
-		return stack{}, err
+		return Stack{}, err
 	}
-	return stack{
-		name:        in.ObjectMeta.Name,
-		namespace:   in.ObjectMeta.Namespace,
-		composeFile: in.Spec.ComposeFile,
-		spec:        fromComposeConfig(ioutil.Discard, cfg),
+	return Stack{
+		Name:        in.ObjectMeta.Name,
+		Namespace:   in.ObjectMeta.Namespace,
+		ComposeFile: in.Spec.ComposeFile,
+		Spec:        fromComposeConfig(ioutil.Discard, cfg),
 	}, nil
 }
 
-func stackToV1beta1(s stack) *v1beta1.Stack {
+func stackToV1beta1(s Stack) *v1beta1.Stack {
 	return &v1beta1.Stack{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: s.name,
+			Name: s.Name,
 		},
 		Spec: v1beta1.StackSpec{
-			ComposeFile: s.composeFile,
+			ComposeFile: s.ComposeFile,
 		},
 	}
 }
 
-func stackFromV1beta2(in *v1beta2.Stack) stack {
-	return stack{
-		name:      in.ObjectMeta.Name,
-		namespace: in.ObjectMeta.Namespace,
-		spec:      in.Spec,
+func stackFromV1beta2(in *v1beta2.Stack) Stack {
+	return Stack{
+		Name:      in.ObjectMeta.Name,
+		Namespace: in.ObjectMeta.Namespace,
+		Spec:      in.Spec,
 	}
 }
 
-func stackToV1beta2(s stack) *v1beta2.Stack {
+func stackToV1beta2(s Stack) *v1beta2.Stack {
 	return &v1beta2.Stack{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: s.name,
+			Name: s.Name,
 		},
-		Spec: s.spec,
+		Spec: s.Spec,
 	}
 }
 

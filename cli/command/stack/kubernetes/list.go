@@ -48,10 +48,10 @@ func getStacks(kubeCli *KubeCli, opts options.List) ([]*formatter.Stack, error) 
 	var formattedStacks []*formatter.Stack
 	for _, stack := range stacks {
 		formattedStacks = append(formattedStacks, &formatter.Stack{
-			Name:         stack.name,
+			Name:         stack.Name,
 			Services:     len(stack.getServices()),
 			Orchestrator: "Kubernetes",
-			Namespace:    stack.namespace,
+			Namespace:    stack.Namespace,
 		})
 	}
 	return formattedStacks, nil

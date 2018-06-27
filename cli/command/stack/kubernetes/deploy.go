@@ -75,13 +75,13 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy, cfg *composetypes.Config
 		}
 	}()
 
-	err = watcher.Watch(stack.name, stack.getServices(), statusUpdates)
+	err = watcher.Watch(stack.Name, stack.getServices(), statusUpdates)
 	close(statusUpdates)
 	<-displayDone
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cmdOut, "\nStack %s is stable and running\n\n", stack.name)
+	fmt.Fprintf(cmdOut, "\nStack %s is stable and running\n\n", stack.Name)
 	return nil
 
 }
