@@ -5,7 +5,8 @@ import (
 )
 
 func defaultCredentialsStore() string {
-	if pass.PassInitialized {
+	passStore := pass.Pass{}
+	if passStore.CheckInitialized() {
 		return "pass"
 	}
 
