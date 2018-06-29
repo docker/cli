@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/docker/cli/cli/manifest/types"
@@ -14,6 +15,7 @@ import (
 	distclient "github.com/docker/distribution/registry/client"
 	"github.com/docker/docker/registry"
 	digest "github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -72,7 +74,7 @@ func getManifest(ctx context.Context, repo distribution.Repository, ref referenc
 }
 
 func pullManifestSchemaV2(ctx context.Context, ref reference.Named, repo distribution.Repository, mfst schema2.DeserializedManifest) (types.ImageManifest, error) {
-	manifestDigest, err := validateManifestDigest(ref, mfst)
+	manifestDesc, err := validateManifestDigest(ref, mfst)
 	if err != nil {
 		return types.ImageManifest{}, err
 	}
@@ -81,11 +83,16 @@ func pullManifestSchemaV2(ctx context.Context, ref reference.Named, repo distrib
 		return types.ImageManifest{}, err
 	}
 
-	img, err := types.NewImageFromJSON(configJSON)
-	if err != nil {
+	if manifestDesc.Platform == nil {
+		manifestDesc.Platform = &ocispec.Platform{}
+	}
+
+	// Fill in os and architecture fields from config JSON
+	if err := json.Unmarshal(configJSON, manifestDesc.Platform); err != nil {
 		return types.ImageManifest{}, err
 	}
-	return types.NewImageManifest(ref, manifestDigest, *img, &mfst), nil
+
+	return types.NewImageManifest(ref, manifestDesc, &mfst), nil
 }
 
 func pullManifestSchemaV2ImageConfig(ctx context.Context, dgst digest.Digest, repo distribution.Repository) ([]byte, error) {
@@ -110,29 +117,26 @@ func pullManifestSchemaV2ImageConfig(ctx context.Context, dgst digest.Digest, re
 
 // validateManifestDigest computes the manifest digest, and, if pulling by
 // digest, ensures that it matches the requested digest.
-func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (digest.Digest, error) {
-	_, canonical, err := mfst.Payload()
+func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (ocispec.Descriptor, error) {
+	mediaType, canonical, err := mfst.Payload()
 	if err != nil {
-		return "", err
+		return ocispec.Descriptor{}, err
+	}
+	desc := ocispec.Descriptor{
+		Digest:    digest.FromBytes(canonical),
+		Size:      int64(len(canonical)),
+		MediaType: mediaType,
 	}
 
 	// If pull by digest, then verify the manifest digest.
 	if digested, isDigested := ref.(reference.Canonical); isDigested {
-		verifier := digested.Digest().Verifier()
-		if err != nil {
-			return "", err
-		}
-		if _, err := verifier.Write(canonical); err != nil {
-			return "", err
-		}
-		if !verifier.Verified() {
+		if digested.Digest() != desc.Digest {
 			err := fmt.Errorf("manifest verification failed for digest %s", digested.Digest())
-			return "", err
+			return ocispec.Descriptor{}, err
 		}
-		return digested.Digest(), nil
 	}
 
-	return digest.FromBytes(canonical), nil
+	return desc, nil
 }
 
 // pullManifestList handles "manifest lists" which point to various
@@ -166,7 +170,10 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		if err != nil {
 			return nil, err
 		}
-		imageManifest.Platform = manifestDescriptor.Platform
+
+		// Replace platform from config
+		imageManifest.Descriptor.Platform = types.OCIPlatform(&manifestDescriptor.Platform)
+
 		infos = append(infos, imageManifest)
 	}
 	return infos, nil
