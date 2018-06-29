@@ -2222,6 +2222,7 @@ _docker_daemon() {
 		--cpu-rt-period
 		--cpu-rt-runtime
 		--data-root
+		--default-address-pool
 		--default-gateway
 		--default-gateway-v6
 		--default-runtime
