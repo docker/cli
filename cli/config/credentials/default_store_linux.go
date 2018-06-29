@@ -1,12 +1,11 @@
 package credentials
 
 import (
-	"github.com/docker/docker-credential-helpers/pass"
+	"os/exec"
 )
 
 func defaultCredentialsStore() string {
-	passStore := pass.Pass{}
-	if passStore.CheckInitialized() {
+	if _, err := exec.LookPath("pass"); err == nil {
 		return "pass"
 	}
 
