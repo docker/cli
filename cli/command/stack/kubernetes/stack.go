@@ -12,18 +12,18 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// stack is the main type used by stack commands so they remain independent from kubernetes compose component version.
-type stack struct {
-	name        string
-	namespace   string
-	composeFile string
-	spec        *v1beta2.StackSpec
+// Stack is the main type used by stack commands so they remain independent from kubernetes compose component version.
+type Stack struct {
+	Name        string
+	Namespace   string
+	ComposeFile string
+	Spec        *v1beta2.StackSpec
 }
 
 // getServices returns all the stack service names, sorted lexicographically
-func (s *stack) getServices() []string {
-	services := make([]string, len(s.spec.Services))
-	for i, service := range s.spec.Services {
+func (s *Stack) getServices() []string {
+	services := make([]string, len(s.Spec.Services))
+	for i, service := range s.Spec.Services {
 		services[i] = service.Name
 	}
 	sort.Strings(services)
@@ -31,8 +31,8 @@ func (s *stack) getServices() []string {
 }
 
 // createFileBasedConfigMaps creates a Kubernetes ConfigMap for each Compose global file-based config.
-func (s *stack) createFileBasedConfigMaps(configMaps corev1.ConfigMapInterface) error {
-	for name, config := range s.spec.Configs {
+func (s *Stack) createFileBasedConfigMaps(configMaps corev1.ConfigMapInterface) error {
+	for name, config := range s.Spec.Configs {
 		if config.File == "" {
 			continue
 		}
@@ -43,7 +43,7 @@ func (s *stack) createFileBasedConfigMaps(configMaps corev1.ConfigMapInterface) 
 			return err
 		}
 
-		if _, err := configMaps.Create(toConfigMap(s.name, name, fileName, content)); err != nil {
+		if _, err := configMaps.Create(toConfigMap(s.Name, name, fileName, content)); err != nil {
 			return err
 		}
 	}
@@ -71,8 +71,8 @@ func toConfigMap(stackName, name, key string, content []byte) *apiv1.ConfigMap {
 }
 
 // createFileBasedSecrets creates a Kubernetes Secret for each Compose global file-based secret.
-func (s *stack) createFileBasedSecrets(secrets corev1.SecretInterface) error {
-	for name, secret := range s.spec.Secrets {
+func (s *Stack) createFileBasedSecrets(secrets corev1.SecretInterface) error {
+	for name, secret := range s.Spec.Secrets {
 		if secret.File == "" {
 			continue
 		}
@@ -83,7 +83,7 @@ func (s *stack) createFileBasedSecrets(secrets corev1.SecretInterface) error {
 			return err
 		}
 
-		if _, err := secrets.Create(toSecret(s.name, name, fileName, content)); err != nil {
+		if _, err := secrets.Create(toSecret(s.Name, name, fileName, content)); err != nil {
 			return err
 		}
 	}

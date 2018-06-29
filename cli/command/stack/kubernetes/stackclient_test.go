@@ -25,7 +25,7 @@ func TestFromCompose(t *testing.T) {
 		},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, "foo", s.name)
+	assert.Equal(t, "foo", s.Name)
 	assert.Equal(t, string(`version: "3.5"
 services:
   bar:
@@ -36,7 +36,7 @@ networks: {}
 volumes: {}
 secrets: {}
 configs: {}
-`), s.composeFile)
+`), s.ComposeFile)
 }
 
 func TestFromComposeUnsupportedVersion(t *testing.T) {
