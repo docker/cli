@@ -4618,6 +4618,7 @@ _docker_system_events() {
 				enable
 				exec_create
 				exec_detach
+				exec_die
 				exec_start
 				export
 				health_status
