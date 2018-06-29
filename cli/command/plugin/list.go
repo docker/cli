@@ -2,12 +2,14 @@ package plugin
 
 import (
 	"context"
+	"sort"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
+	"vbom.ml/util/sortorder"
 )
 
 type listOptions struct {
@@ -45,6 +47,10 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(plugins, func(i, j int) bool {
+		return sortorder.NaturalLess(plugins[i].Name, plugins[j].Name)
+	})
 
 	format := options.format
 	if len(format) == 0 {

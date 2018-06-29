@@ -135,6 +135,30 @@ func TestList(t *testing.T) {
 			golden:   "plugin-list-with-format.golden",
 			listFunc: singlePluginListFunc,
 		},
+		{
+			description: "list output is sorted based on plugin name",
+			args:        []string{},
+			flags: map[string]string{
+				"format": "{{ .Name }}",
+			},
+			golden: "plugin-list-sort.golden",
+			listFunc: func(filter filters.Args) (types.PluginsListResponse, error) {
+				return types.PluginsListResponse{
+					{
+						ID:   "id-1",
+						Name: "plugin-1-foo",
+					},
+					{
+						ID:   "id-2",
+						Name: "plugin-10-foo",
+					},
+					{
+						ID:   "id-3",
+						Name: "plugin-2-foo",
+					},
+				}, nil
+			},
+		},
 	}
 
 	for _, tc := range testCases {
