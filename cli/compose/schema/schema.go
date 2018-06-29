@@ -1,6 +1,6 @@
 package schema
 
-//go:generate esc -o bindata.go -pkg schema -private -modtime=1518458244 data
+//go:generate esc -o bindata.go -pkg schema -ignore .*\.go -private -modtime=1518458244 data
 
 import (
 	"fmt"
