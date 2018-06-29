@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -64,20 +65,23 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 	}
 
 	// Update the mf
+	if imageManifest.Descriptor.Platform == nil {
+		imageManifest.Descriptor.Platform = new(ocispec.Platform)
+	}
 	if opts.os != "" {
-		imageManifest.Platform.OS = opts.os
+		imageManifest.Descriptor.Platform.OS = opts.os
 	}
 	if opts.arch != "" {
-		imageManifest.Platform.Architecture = opts.arch
+		imageManifest.Descriptor.Platform.Architecture = opts.arch
 	}
 	for _, osFeature := range opts.osFeatures {
-		imageManifest.Platform.OSFeatures = appendIfUnique(imageManifest.Platform.OSFeatures, osFeature)
+		imageManifest.Descriptor.Platform.OSFeatures = appendIfUnique(imageManifest.Descriptor.Platform.OSFeatures, osFeature)
 	}
 	if opts.variant != "" {
-		imageManifest.Platform.Variant = opts.variant
+		imageManifest.Descriptor.Platform.Variant = opts.variant
 	}
 
-	if !isValidOSArch(imageManifest.Platform.OS, imageManifest.Platform.Architecture) {
+	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
 		return errors.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
 	}
 	return manifestStore.Save(targetRef, imgRef, imageManifest)
