@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -15,6 +16,7 @@ type fakeClient struct {
 	pluginEnableFunc  func(name string, options types.PluginEnableOptions) error
 	pluginRemoveFunc  func(name string, options types.PluginRemoveOptions) error
 	pluginInstallFunc func(name string, options types.PluginInstallOptions) (io.ReadCloser, error)
+	pluginListFunc    func(filter filters.Args) (types.PluginsListResponse, error)
 }
 
 func (c *fakeClient) PluginCreate(ctx context.Context, createContext io.Reader, createOptions types.PluginCreateOptions) error {
@@ -50,4 +52,12 @@ func (c *fakeClient) PluginInstall(context context.Context, name string, install
 		return c.pluginInstallFunc(name, installOptions)
 	}
 	return nil, nil
+}
+
+func (c *fakeClient) PluginList(context context.Context, filter filters.Args) (types.PluginsListResponse, error) {
+	if c.pluginListFunc != nil {
+		return c.pluginListFunc(filter)
+	}
+
+	return types.PluginsListResponse{}, nil
 }
