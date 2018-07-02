@@ -2222,6 +2222,7 @@ _docker_daemon() {
 		--cpu-rt-period
 		--cpu-rt-runtime
 		--data-root
+		--default-address-pool
 		--default-gateway
 		--default-gateway-v6
 		--default-runtime
@@ -4618,6 +4619,7 @@ _docker_system_events() {
 				enable
 				exec_create
 				exec_detach
+				exec_die
 				exec_start
 				export
 				health_status
