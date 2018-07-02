@@ -32,10 +32,6 @@ services:
     image: bar
   foo:
     image: foo
-networks: {}
-volumes: {}
-secrets: {}
-configs: {}
 `), s.ComposeFile)
 }
 
