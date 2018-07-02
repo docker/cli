@@ -8,16 +8,11 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/morikuni/aec"
-	"github.com/pkg/errors"
 )
 
 // RunDeploy is the kubernetes implementation of docker stack deploy
 func RunDeploy(dockerCli *KubeCli, opts options.Deploy, cfg *composetypes.Config) error {
 	cmdOut := dockerCli.Out()
-	// Check arguments
-	if len(opts.Composefiles) == 0 {
-		return errors.Errorf("Please specify only one compose file (with --compose-file).")
-	}
 
 	// Initialize clients
 	composeClient, err := dockerCli.composeClient()
