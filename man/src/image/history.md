@@ -41,7 +41,7 @@ The following example uses a template without headers and outputs the
 `ID` and `CreatedSince` entries separated by a colon for all images:
 
 ```bash
-$ docker images --format "{{.ID}}: {{.Created}} ago"
+$ docker images --format "{{.ID}}: {{.CreatedSince}} ago"
 
 cc1b61406712: 2 weeks ago
 <missing>: 2 weeks ago
