@@ -26,13 +26,11 @@ Test<Function Name><Test Case Name>
 where appropriate, but may not be appropriate in all cases.
 
 Assertions should be made using
-[testify/assert](https://godoc.org/github.com/stretchr/testify/assert) and test
-requirements should be verified using
-[testify/require](https://godoc.org/github.com/stretchr/testify/require).
+[gotest.tools/assert](https://godoc.org/gotest.tools/assert).
 
 Fakes, and testing utilities can be found in
 [internal/test](https://godoc.org/github.com/docker/cli/internal/test) and
-[gotestyourself](https://godoc.org/github.com/gotestyourself/gotestyourself).
+[gotest.tools](https://godoc.org/gotest.tools).
 
 ## End-to-End Test Suite
 
