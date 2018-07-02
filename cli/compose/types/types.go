@@ -73,11 +73,11 @@ type Config struct {
 	Filename string `yaml:"-"`
 	Version  string
 	Services Services
-	Networks map[string]NetworkConfig
-	Volumes  map[string]VolumeConfig
-	Secrets  map[string]SecretConfig
-	Configs  map[string]ConfigObjConfig
-	Extras   map[string]interface{} `yaml:",inline"`
+	Networks map[string]NetworkConfig   `yaml:",omitempty"`
+	Volumes  map[string]VolumeConfig    `yaml:",omitempty"`
+	Secrets  map[string]SecretConfig    `yaml:",omitempty"`
+	Configs  map[string]ConfigObjConfig `yaml:",omitempty"`
+	Extras   map[string]interface{}     `yaml:",inline"`
 }
 
 // Services is a list of ServiceConfig
