@@ -2,7 +2,6 @@ package manifest
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/manifest/types"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/distribution/manifest/manifestlist"
-	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
@@ -210,19 +208,6 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 	if err != nil {
 		return mountRequest{}, err
 	}
-
-	// This indentation has to be added to ensure sha parity with the registry
-	v2ManifestBytes, err := json.MarshalIndent(imageManifest.SchemaV2Manifest, "", "   ")
-	if err != nil {
-		return mountRequest{}, err
-	}
-	// indent only the DeserializedManifest portion of this, in order to maintain parity with the registry
-	// and not alter the sha
-	var v2Manifest schema2.DeserializedManifest
-	if err = v2Manifest.UnmarshalJSON(v2ManifestBytes); err != nil {
-		return mountRequest{}, err
-	}
-	imageManifest.SchemaV2Manifest = &v2Manifest
 
 	return mountRequest{ref: mountRef, manifest: imageManifest}, err
 }

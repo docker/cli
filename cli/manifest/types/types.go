@@ -15,14 +15,22 @@ import (
 type ImageManifest struct {
 	Ref              *SerializableNamed
 	Digest           digest.Digest
-	SchemaV2Manifest *schema2.DeserializedManifest `json:",omitempty"`
+	SchemaV2Manifest []byte `json:",omitempty"`
 	Platform         manifestlist.PlatformSpec
+}
+
+func (i ImageManifest) manifest() *schema2.DeserializedManifest {
+	var dm schema2.DeserializedManifest
+	if err := json.Unmarshal(i.SchemaV2Manifest, &dm); err != nil {
+		panic(err)
+	}
+	return &dm
 }
 
 // Blobs returns the digests for all the blobs referenced by this manifest
 func (i ImageManifest) Blobs() []digest.Digest {
 	digests := []digest.Digest{}
-	for _, descriptor := range i.SchemaV2Manifest.References() {
+	for _, descriptor := range i.manifest().References() {
 		digests = append(digests, descriptor.Digest)
 	}
 	return digests
@@ -31,8 +39,9 @@ func (i ImageManifest) Blobs() []digest.Digest {
 // Payload returns the media type and bytes for the manifest
 func (i ImageManifest) Payload() (string, []byte, error) {
 	switch {
-	case i.SchemaV2Manifest != nil:
-		return i.SchemaV2Manifest.Payload()
+	case len(i.SchemaV2Manifest) > 0:
+		media, _, err := i.manifest().Payload()
+		return media, i.SchemaV2Manifest, err
 	default:
 		return "", nil, errors.Errorf("%s has no payload", i.Ref)
 	}
@@ -42,8 +51,8 @@ func (i ImageManifest) Payload() (string, []byte, error) {
 // the underlying manifest.
 func (i ImageManifest) References() []distribution.Descriptor {
 	switch {
-	case i.SchemaV2Manifest != nil:
-		return i.SchemaV2Manifest.References()
+	case len(i.SchemaV2Manifest) > 0:
+		return i.manifest().References()
 	default:
 		return nil
 	}
@@ -58,10 +67,11 @@ func NewImageManifest(ref reference.Named, digest digest.Digest, img Image, mani
 		OSVersion:    img.OSVersion,
 		OSFeatures:   img.OSFeatures,
 	}
+	_, raw, _ := manifest.Payload()
 	return ImageManifest{
 		Ref:              &SerializableNamed{Named: ref},
 		Digest:           digest,
-		SchemaV2Manifest: manifest,
+		SchemaV2Manifest: raw,
 		Platform:         platform,
 	}
 }
