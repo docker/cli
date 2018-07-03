@@ -1,12 +1,15 @@
 package image
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/containerd/console"
 	"github.com/docker/cli/cli"
@@ -41,6 +44,13 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	}
 	if s == nil {
 		return errors.Errorf("buildkit not supported by daemon")
+	}
+
+	if options.imageIDFile != "" {
+		// Avoid leaving a stale file if we eventually fail
+		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
+			return errors.Wrap(err, "removing image ID file")
+		}
 	}
 
 	var (
@@ -159,6 +169,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	return eg.Wait()
 }
 
+//nolint: gocyclo
 func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, options buildOptions, buildOptions types.ImageBuildOptions) (finalErr error) {
 	response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
 	if err != nil {
@@ -180,9 +191,8 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	t := newTracer()
 	ssArr := []*client.SolveStatus{}
 
-	displayStatus := func(displayCh chan *client.SolveStatus) {
+	displayStatus := func(out *os.File, displayCh chan *client.SolveStatus) {
 		var c console.Console
-		out := os.Stderr
 		// TODO: Handle interactive output in non-interactive environment.
 		consoleOpt := options.console.Value()
 		if cons, err := console.ConsoleFromFile(out); err == nil && (consoleOpt == nil || *consoleOpt) {
@@ -210,15 +220,31 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 					}
 					close(displayCh)
 				}()
-				displayStatus(displayCh)
+				displayStatus(os.Stderr, displayCh)
 			}
 			return nil
 		})
 	} else {
-		displayStatus(t.displayCh)
+		displayStatus(os.Stdout, t.displayCh)
 	}
 	defer close(t.displayCh)
-	err = jsonmessage.DisplayJSONMessagesStream(response.Body, os.Stdout, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), t.write)
+
+	buf := bytes.NewBuffer(nil)
+
+	imageID := ""
+	writeAux := func(msg jsonmessage.JSONMessage) {
+		if msg.ID == "moby.image.id" {
+			var result types.BuildResult
+			if err := json.Unmarshal(*msg.Aux, &result); err != nil {
+				fmt.Fprintf(dockerCli.Err(), "failed to parse aux message: %v", err)
+			}
+			imageID = result.ID
+			return
+		}
+		t.write(msg)
+	}
+
+	err = jsonmessage.DisplayJSONMessagesStream(response.Body, buf, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), writeAux)
 	if err != nil {
 		if jerr, ok := err.(*jsonmessage.JSONError); ok {
 			// If no error code is set, default to 1
@@ -226,6 +252,26 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 				jerr.Code = 1
 			}
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+		}
+	}
+
+	// Everything worked so if -q was provided the output from the daemon
+	// should be just the image ID and we'll print that to stdout.
+	//
+	// TODO: we may want to use Aux messages with ID "moby.image.id" regardless of options.quiet (i.e. don't send HTTP param q=1)
+	// instead of assuming that output is image ID if options.quiet.
+	if options.quiet {
+		imageID = buf.String()
+		fmt.Fprint(dockerCli.Out(), imageID)
+	}
+
+	if options.imageIDFile != "" {
+		if imageID == "" {
+			return errors.Errorf("cannot write %s because server did not provide an image ID", options.imageIDFile)
+		}
+		imageID = strings.TrimSpace(imageID)
+		if err := ioutil.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
+			return errors.Wrap(err, "cannot write image ID file")
 		}
 	}
 	return err
