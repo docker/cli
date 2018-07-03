@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/types"
 	registryclient "github.com/docker/cli/cli/registry/client"
+	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
@@ -141,7 +142,9 @@ func buildManifestList(manifests []types.ImageManifest, targetRef reference.Name
 
 	descriptors := []manifestlist.ManifestDescriptor{}
 	for _, imageManifest := range manifests {
-		if imageManifest.Platform.Architecture == "" || imageManifest.Platform.OS == "" {
+		if imageManifest.Descriptor.Platform == nil ||
+			imageManifest.Descriptor.Platform.Architecture == "" ||
+			imageManifest.Descriptor.Platform.OS == "" {
 			return nil, errors.Errorf(
 				"manifest %s must have an OS and Architecture to be pushed to a registry", imageManifest.Ref)
 		}
@@ -167,17 +170,18 @@ func buildManifestDescriptor(targetRepo *registry.RepositoryInfo, imageManifest 
 		return manifestlist.ManifestDescriptor{}, errors.Errorf("cannot use source images from a different registry than the target image: %s != %s", manifestRepoHostname, targetRepoHostname)
 	}
 
-	mediaType, raw, err := imageManifest.Payload()
-	if err != nil {
-		return manifestlist.ManifestDescriptor{}, err
+	manifest := manifestlist.ManifestDescriptor{
+		Descriptor: distribution.Descriptor{
+			Digest:    imageManifest.Descriptor.Digest,
+			Size:      imageManifest.Descriptor.Size,
+			MediaType: imageManifest.Descriptor.MediaType,
+		},
 	}
 
-	manifest := manifestlist.ManifestDescriptor{
-		Platform: imageManifest.Platform,
+	platform := types.PlatformSpecFromOCI(imageManifest.Descriptor.Platform)
+	if platform != nil {
+		manifest.Platform = *platform
 	}
-	manifest.Descriptor.Digest = imageManifest.Digest
-	manifest.Size = int64(len(raw))
-	manifest.MediaType = mediaType
 
 	if err = manifest.Descriptor.Digest.Validate(); err != nil {
 		return manifestlist.ManifestDescriptor{}, errors.Wrapf(err,
@@ -195,7 +199,11 @@ func buildBlobRequestList(imageManifest types.ImageManifest, repoName reference.
 		if err != nil {
 			return nil, err
 		}
-		blobReqs = append(blobReqs, manifestBlob{canonical: canonical, os: imageManifest.Platform.OS})
+		var os string
+		if imageManifest.Descriptor.Platform != nil {
+			os = imageManifest.Descriptor.Platform.OS
+		}
+		blobReqs = append(blobReqs, manifestBlob{canonical: canonical, os: os})
 	}
 	return blobReqs, nil
 }
@@ -206,7 +214,7 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 	if err != nil {
 		return mountRequest{}, err
 	}
-	mountRef, err := reference.WithDigest(refWithoutTag, imageManifest.Digest)
+	mountRef, err := reference.WithDigest(refWithoutTag, imageManifest.Descriptor.Digest)
 	if err != nil {
 		return mountRequest{}, err
 	}

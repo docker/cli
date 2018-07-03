@@ -8,15 +8,46 @@ import (
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 )
 
 // ImageManifest contains info to output for a manifest object.
 type ImageManifest struct {
-	Ref              *SerializableNamed
-	Digest           digest.Digest
+	Ref        *SerializableNamed
+	Descriptor ocispec.Descriptor
+
+	// SchemaV2Manifest is used for inspection
+	// TODO: Deprecate this and store manifest blobs
 	SchemaV2Manifest *schema2.DeserializedManifest `json:",omitempty"`
-	Platform         manifestlist.PlatformSpec
+}
+
+// OCIPlatform creates an OCI platform from a manifest list platform spec
+func OCIPlatform(ps *manifestlist.PlatformSpec) *ocispec.Platform {
+	if ps == nil {
+		return nil
+	}
+	return &ocispec.Platform{
+		Architecture: ps.Architecture,
+		OS:           ps.OS,
+		OSVersion:    ps.OSVersion,
+		OSFeatures:   ps.OSFeatures,
+		Variant:      ps.Variant,
+	}
+}
+
+// PlatformSpecFromOCI creates a platform spec from OCI platform
+func PlatformSpecFromOCI(p *ocispec.Platform) *manifestlist.PlatformSpec {
+	if p == nil {
+		return nil
+	}
+	return &manifestlist.PlatformSpec{
+		Architecture: p.Architecture,
+		OS:           p.OS,
+		OSVersion:    p.OSVersion,
+		OSFeatures:   p.OSFeatures,
+		Variant:      p.Variant,
+	}
 }
 
 // Blobs returns the digests for all the blobs referenced by this manifest
@@ -30,6 +61,7 @@ func (i ImageManifest) Blobs() []digest.Digest {
 
 // Payload returns the media type and bytes for the manifest
 func (i ImageManifest) Payload() (string, []byte, error) {
+	// TODO: If available, read content from a content store by digest
 	switch {
 	case i.SchemaV2Manifest != nil:
 		return i.SchemaV2Manifest.Payload()
@@ -51,18 +83,11 @@ func (i ImageManifest) References() []distribution.Descriptor {
 
 // NewImageManifest returns a new ImageManifest object. The values for Platform
 // are initialized from those in the image
-func NewImageManifest(ref reference.Named, digest digest.Digest, img Image, manifest *schema2.DeserializedManifest) ImageManifest {
-	platform := manifestlist.PlatformSpec{
-		OS:           img.OS,
-		Architecture: img.Architecture,
-		OSVersion:    img.OSVersion,
-		OSFeatures:   img.OSFeatures,
-	}
+func NewImageManifest(ref reference.Named, desc ocispec.Descriptor, manifest *schema2.DeserializedManifest) ImageManifest {
 	return ImageManifest{
 		Ref:              &SerializableNamed{Named: ref},
-		Digest:           digest,
+		Descriptor:       desc,
 		SchemaV2Manifest: manifest,
-		Platform:         platform,
 	}
 }
 
@@ -86,22 +111,4 @@ func (s *SerializableNamed) UnmarshalJSON(b []byte) error {
 // MarshalJSON returns the JSON bytes representation
 func (s *SerializableNamed) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
-}
-
-// Image is the minimal set of fields required to set default platform settings
-// on a manifest.
-type Image struct {
-	Architecture string   `json:"architecture,omitempty"`
-	OS           string   `json:"os,omitempty"`
-	OSVersion    string   `json:"os.version,omitempty"`
-	OSFeatures   []string `json:"os.features,omitempty"`
-}
-
-// NewImageFromJSON creates an Image configuration from json.
-func NewImageFromJSON(src []byte) (*Image, error) {
-	img := &Image{}
-	if err := json.Unmarshal(src, img); err != nil {
-		return nil, err
-	}
-	return img, nil
 }
