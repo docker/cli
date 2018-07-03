@@ -27,7 +27,7 @@ Options:
       --cert-expiry duration            Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
       --data-path-addr string           Address or interface to use for data path traffic (format: <ip|interface>)
       --dispatcher-heartbeat duration   Dispatcher heartbeat period (ns|us|ms|s|m|h) (default 5s)
-      --external-ca external-ca         Specifications of one or more certificate signing endpoints
+      --external-ca external-ca         Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"
       --force-new-cluster               Force create a new cluster from current state
       --help                            Print usage
       --listen-addr node-addr           Listen address (format: <ip|interface>[:port]) (default 0.0.0.0:2377)

@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
+
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"gotest.tools/assert"
@@ -173,6 +174,7 @@ func TestSwarmUpdate(t *testing.T) {
 		}
 		cmd.SetOutput(cli.OutBuffer())
 		assert.NilError(t, cmd.Execute())
+		fmt.Println(cli.OutBuffer().String())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }
