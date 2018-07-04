@@ -270,10 +270,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
-		relDockerfile, err = archive.CanonicalTarNameForPath(relDockerfile)
-		if err != nil {
-			return errors.Errorf("cannot canonicalize dockerfile path %s: %v", relDockerfile, err)
-		}
+		relDockerfile = archive.CanonicalTarNameForPath(relDockerfile)
 
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
