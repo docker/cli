@@ -177,8 +177,8 @@ complete -c docker -f -n '__fish_seen_subcommand_from commit' -a '(__fish_print_
 complete -c docker -f -n '__fish_docker_no_subcommand' -a config -d "Manage Docker configs"
 complete -c docker -f -n '__fish_seen_subcommand_from config' -a create -d 'Create a config from a file or STDIN'
 complete -c docker -f -n '__fish_seen_subcommand_from config' -a inspect -d 'Display detailed information on one or more configs'
-complete -c docker -f -n '__fish_seen_subcommand_from config' -a ls -d 'List configs'
-complete -c docker -f -n '__fish_seen_subcommand_from config' -a rm -d 'Remove one or more configs'
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a 'ls list' -d 'List configs'
+complete -c docker -f -n '__fish_seen_subcommand_from config' -a 'rm remove' -d 'Remove one or more configs'
 
 # container
 complete -c docker -f -n '__fish_docker_no_subcommand' -a container -d 'Manage containers'
@@ -192,13 +192,13 @@ complete -c docker -f -n '__fish_seen_subcommand_from container' -a export -d 'E
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a inspect -d 'Display detailed information on one or more containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a kill -d 'Kill one or more running containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a logs -d 'Fetch the logs of a container'
-complete -c docker -f -n '__fish_seen_subcommand_from container' -a ls -d 'List containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a 'ls list' -d 'List containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a pause -d 'Pause all processes within one or more containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a port -d 'List port mappings or a specific mapping for the container'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a prune -d 'Remove all stopped containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a rename -d 'Rename a container'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a restart -d 'Restart one or more containers'
-complete -c docker -f -n '__fish_seen_subcommand_from container' -a rm -d 'Remove one or more containers'
+complete -c docker -f -n '__fish_seen_subcommand_from container' -a 'rm remove' -d 'Remove one or more containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a run -d 'Run a command in a new container'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a start -d 'Start one or more stopped containers'
 complete -c docker -f -n '__fish_seen_subcommand_from container' -a stats -d 'Display a live stream of container(s) resource usage statistics'
@@ -361,11 +361,11 @@ complete -c docker -f -n '__fish_seen_subcommand_from image' -a history -d 'Show
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a import -d 'Import the contents from a tarball to create a filesystem image'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a inspect -d 'Display detailed information on one or more images'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a load -d 'Load an image from a tar archive or STDIN'
-complete -c docker -f -n '__fish_seen_subcommand_from image' -a ls -d 'List images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a 'ls list' -d 'List images'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a prune -d 'Remove unused images'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a pull -d 'Pull an image or a repository from a registry'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a push -d 'Push an image or a repository to a registry'
-complete -c docker -f -n '__fish_seen_subcommand_from image' -a rm -d 'Remove one or more images'
+complete -c docker -f -n '__fish_seen_subcommand_from image' -a 'rm remove' -d 'Remove one or more images'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a save -d 'Save one or more images to a tar archive (streamed to STDOUT by default)'
 complete -c docker -f -n '__fish_seen_subcommand_from image' -a tag -d 'Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE'
 
@@ -450,10 +450,10 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from network inspect' -a '(_
 complete -c docker -f -n '__fish_docker_no_subcommand' -a node -d 'Manage Swarm nodes'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a demote -d 'Demote one or more nodes from manager in the swarm'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a inspect -d 'Display detailed information on one or more nodes'
-complete -c docker -f -n '__fish_seen_subcommand_from node' -a ls -d 'List nodes in the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a 'ls list' -d 'List nodes in the swarm'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a promote -d 'Promote one or more nodes to manager in the swarm'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a ps -d 'List tasks running on one or more nodes, defaults to current node'
-complete -c docker -f -n '__fish_seen_subcommand_from node' -a rm -d 'Remove one or more nodes from the swarm'
+complete -c docker -f -n '__fish_seen_subcommand_from node' -a 'rm remove' -d 'Remove one or more nodes from the swarm'
 complete -c docker -f -n '__fish_seen_subcommand_from node' -a update -d 'Update a node'
 
 # plugin
@@ -463,9 +463,9 @@ complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a disable -d 'Dis
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a enable -d 'Enable a plugin'
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a inspect -d 'Display detailed information on one or more plugins'
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a install -d 'Install a plugin'
-complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a ls -d 'List plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a'ls list' -d 'List plugins'
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a push -d 'Push a plugin to a registry'
-complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a rm -d 'Remove one or more plugins'
+complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a 'rm remove' -d 'Remove one or more plugins'
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a set -d 'Change settings for a plugin'
 complete -c docker -f -n '__fish_seen_subcommand_from plugin' -a upgrade -d 'Upgrade an existing plugin'
 
@@ -514,7 +514,7 @@ complete -c docker -f -n '__fish_seen_subcommand_from restart' -s t -l time -d '
 complete -c docker -f -n '__fish_seen_subcommand_from restart' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # rm
-complete -c docker -f -n '__fish_docker_no_subcommand' -a rm -d 'Remove one or more containers'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a 'rm remove' -d 'Remove one or more containers'
 complete -c docker -f -n '__fish_seen_subcommand_from rm' -s f -l force -d 'Force the removal of a running container (uses SIGKILL)'
 complete -c docker -f -n '__fish_seen_subcommand_from rm' -l help -d 'Print usage'
 complete -c docker -f -n '__fish_seen_subcommand_from rm' -s l -l link -d 'Remove the specified link and not the underlying container'
@@ -589,8 +589,8 @@ complete -c docker -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_do
 complete -c docker -f -n '__fish_docker_no_subcommand' -a secret -d 'Manage Docker secrets'
 complete -c docker -f -n '__fish_seen_subcommand_from secret' -a create -d 'Create a secret from a file or STDIN as content'
 complete -c docker -f -n '__fish_seen_subcommand_from secret' -a inspect -d 'Display detailed information on one or more secrets'
-complete -c docker -f -n '__fish_seen_subcommand_from secret' -a ls -d 'List secrets'
-complete -c docker -f -n '__fish_seen_subcommand_from secret' -a rm -d 'Remove one or more secrets'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a 'ls list' -d 'List secrets'
+complete -c docker -f -n '__fish_seen_subcommand_from secret' -a 'rm remove' -d 'Remove one or more secrets'
 
 # search
 complete -c docker -f -n '__fish_docker_no_subcommand' -a search -d 'Search for an image on the registry (defaults to the Docker Hub)'
@@ -604,9 +604,9 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a service -d 'Manage ser
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a create -d 'Create a new service'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a inspect -d 'Display detailed information on one or more services'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a logs -d 'Fetch the logs of a service or task'
-complete -c docker -f -n '__fish_seen_subcommand_from service' -a ls -d 'List services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a 'ls list' -d 'List services'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a ps -d 'List the tasks of one or more services'
-complete -c docker -f -n '__fish_seen_subcommand_from service' -a rm -d 'Remove one or more services'
+complete -c docker -f -n '__fish_seen_subcommand_from service' -a 'rm remove' -d 'Remove one or more services'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a rollback -d 'Revert changes to a service\'s configuration'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a scale -d ' Scale one or multiple replicated services'
 complete -c docker -f -n '__fish_seen_subcommand_from service' -a update -d 'Update a service'
@@ -699,9 +699,9 @@ complete -c docker -f -n '__fish_seen_subcommand_from version' -l help -d 'Print
 complete -c docker -f -n '__fish_docker_no_subcommand' -a volume -d 'Manage volumes'
 complete -c docker -f -n '__fish_seen_subcommand_from volume' -a create -d 'Create a volume'
 complete -c docker -f -n '__fish_seen_subcommand_from volume' -a inspect -d 'Display detailed information on one or more volumes'
-complete -c docker -f -n '__fish_seen_subcommand_from volume' -a ls -d 'List volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a 'ls list' -d 'List volumes'
 complete -c docker -f -n '__fish_seen_subcommand_from volume' -a prune -d 'Remove all unused local volumes'
-complete -c docker -f -n '__fish_seen_subcommand_from volume' -a rm -d 'Remove one or more volumes'
+complete -c docker -f -n '__fish_seen_subcommand_from volume' -a 'rm remove' -d 'Remove one or more volumes'
 complete -c docker -f -n '__fish_seen_subcommand_from volume; and __fish_seen_subcommand_from rm' -a '(__fish_print_docker_volume_names)' -d 'Volume'
 
 # wait
