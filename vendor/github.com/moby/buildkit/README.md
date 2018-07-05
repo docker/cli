@@ -1,5 +1,3 @@
-### Important: This repository is in an early development phase
-
 [![asciicinema example](https://asciinema.org/a/gPEIEo1NzmDTUu2bEPsUboqmU.png)](https://asciinema.org/a/gPEIEo1NzmDTUu2bEPsUboqmU)
 
 
@@ -28,6 +26,16 @@ Key features:
 Read the proposal from https://github.com/moby/moby/issues/32925
 
 Introductory blog post https://blog.mobyproject.org/introducing-buildkit-17e056cc5317
+
+### Used by
+
+[Moby](https://github.com/moby/moby/pull/37151)
+
+[img](https://github.com/genuinetools/img)
+
+[OpenFaaS Cloud](https://github.com/openfaas/openfaas-cloud)
+
+[container build interface](https://github.com/containerbuilding/cbi)
 
 ### Quick start
 
@@ -130,11 +138,11 @@ docker inspect myimage
 
 ##### Building a Dockerfile using [external frontend](https://hub.docker.com/r/tonistiigi/dockerfile/tags/):
 
-During development, an external version of the Dockerfile frontend is pushed to https://hub.docker.com/r/tonistiigi/dockerfile that can be used with the gateway frontend. The source for the external frontend is currently located in `./frontend/dockerfile/cmd/dockerfile-frontend` but will move out of this repository in the future ([#163](https://github.com/moby/buildkit/issues/163)).
+During development, an external version of the Dockerfile frontend is pushed to https://hub.docker.com/r/tonistiigi/dockerfile that can be used with the gateway frontend. The source for the external frontend is currently located in `./frontend/dockerfile/cmd/dockerfile-frontend` but will move out of this repository in the future ([#163](https://github.com/moby/buildkit/issues/163)). For automatic build from master branch of this repository `tonistiigi/dockerfile:master` image can be used.
 
 ```
-buildctl build --frontend=gateway.v0 --frontend-opt=source=tonistiigi/dockerfile:v0 --local context=. --local dockerfile=.
-buildctl build --frontend gateway.v0 --frontend-opt=source=tonistiigi/dockerfile:v0 --frontend-opt=context=git://github.com/moby/moby --frontend-opt build-arg:APT_MIRROR=cdn-fastly.deb.debian.org
+buildctl build --frontend=gateway.v0 --frontend-opt=source=tonistiigi/dockerfile --local context=. --local dockerfile=.
+buildctl build --frontend gateway.v0 --frontend-opt=source=tonistiigi/dockerfile --frontend-opt=context=git://github.com/moby/moby --frontend-opt build-arg:APT_MIRROR=cdn-fastly.deb.debian.org
 ````
 
 ### Exporters
