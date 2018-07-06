@@ -12,12 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type byNetworkName []types.NetworkResource
-
-func (r byNetworkName) Len() int           { return len(r) }
-func (r byNetworkName) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
-func (r byNetworkName) Less(i, j int) bool { return r[i].Name < r[j].Name }
-
 type listOptions struct {
 	quiet   bool
 	noTrunc bool
@@ -64,7 +58,9 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		}
 	}
 
-	sort.Sort(byNetworkName(networkResources))
+	sort.Slice(networkResources, func(i, j int) bool {
+		return networkResources[i].Name < networkResources[j].Name
+	})
 
 	networksCtx := formatter.Context{
 		Output: dockerCli.Out(),

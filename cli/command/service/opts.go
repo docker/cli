@@ -598,7 +598,9 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		}
 		networks[i].Target = nwID
 	}
-	sort.Sort(byNetworkTarget(networks))
+	sort.Slice(networks, func(i, j int) bool {
+		return networks[i].Target < networks[j].Target
+	})
 
 	resources, err := options.resources.ToResourceRequirements()
 	if err != nil {

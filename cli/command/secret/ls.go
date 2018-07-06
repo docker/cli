@@ -9,18 +9,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 	"vbom.ml/util/sortorder"
 )
-
-type bySecretName []swarm.Secret
-
-func (r bySecretName) Len() int      { return len(r) }
-func (r bySecretName) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
-func (r bySecretName) Less(i, j int) bool {
-	return sortorder.NaturalLess(r[i].Spec.Name, r[j].Spec.Name)
-}
 
 type listOptions struct {
 	quiet  bool
@@ -66,7 +57,9 @@ func runSecretList(dockerCli command.Cli, options listOptions) error {
 		}
 	}
 
-	sort.Sort(bySecretName(secrets))
+	sort.Slice(secrets, func(i, j int) bool {
+		return sortorder.NaturalLess(secrets[i].Spec.Name, secrets[j].Spec.Name)
+	})
 
 	secretCtx := formatter.Context{
 		Output: dockerCli.Out(),

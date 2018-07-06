@@ -753,20 +753,6 @@ func removeItems(
 	return newSeq
 }
 
-type byMountSource []mounttypes.Mount
-
-func (m byMountSource) Len() int      { return len(m) }
-func (m byMountSource) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
-func (m byMountSource) Less(i, j int) bool {
-	a, b := m[i], m[j]
-
-	if a.Source == b.Source {
-		return a.Target < b.Target
-	}
-
-	return a.Source < b.Source
-}
-
 func updateMounts(flags *pflag.FlagSet, mounts *[]mounttypes.Mount) error {
 	mountsByTarget := map[string]mounttypes.Mount{}
 
@@ -796,7 +782,15 @@ func updateMounts(flags *pflag.FlagSet, mounts *[]mounttypes.Mount) error {
 			newMounts = append(newMounts, mount)
 		}
 	}
-	sort.Sort(byMountSource(newMounts))
+	sort.Slice(newMounts, func(i, j int) bool {
+		a, b := newMounts[i], newMounts[j]
+
+		if a.Source == b.Source {
+			return a.Target < b.Target
+		}
+
+		return a.Source < b.Source
+	})
 	*mounts = newMounts
 	return nil
 }
@@ -886,16 +880,6 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 	return nil
 }
 
-type byPortConfig []swarm.PortConfig
-
-func (r byPortConfig) Len() int      { return len(r) }
-func (r byPortConfig) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
-func (r byPortConfig) Less(i, j int) bool {
-	// We convert PortConfig into `port/protocol`, e.g., `80/tcp`
-	// In updatePorts we already filter out with map so there is duplicate entries
-	return portConfigToString(&r[i]) < portConfigToString(&r[j])
-}
-
 func portConfigToString(portConfig *swarm.PortConfig) string {
 	protocol := portConfig.Protocol
 	mode := portConfig.PublishMode
@@ -944,7 +928,11 @@ portLoop:
 	}
 
 	// Sort the PortConfig to avoid unnecessary updates
-	sort.Sort(byPortConfig(newPorts))
+	sort.Slice(newPorts, func(i, j int) bool {
+		// We convert PortConfig into `port/protocol`, e.g., `80/tcp`
+		// In updatePorts we already filter out with map so there is duplicate entries
+		return portConfigToString(&newPorts[i]) < portConfigToString(&newPorts[j])
+	})
 	*portConfig = newPorts
 	return nil
 }
@@ -1142,14 +1130,6 @@ func updateHealthcheck(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec)
 	return nil
 }
 
-type byNetworkTarget []swarm.NetworkAttachmentConfig
-
-func (m byNetworkTarget) Len() int      { return len(m) }
-func (m byNetworkTarget) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
-func (m byNetworkTarget) Less(i, j int) bool {
-	return m[i].Target < m[j].Target
-}
-
 func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
 	// spec.TaskTemplate.Networks takes precedence over the deprecated
 	// spec.Networks field. If spec.Network is in use, we'll migrate those
@@ -1198,7 +1178,9 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 		}
 	}
 
-	sort.Sort(byNetworkTarget(newNetworks))
+	sort.Slice(newNetworks, func(i, j int) bool {
+		return newNetworks[i].Target < newNetworks[j].Target
+	})
 
 	spec.TaskTemplate.Networks = newNetworks
 	return nil
