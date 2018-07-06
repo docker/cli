@@ -370,9 +370,24 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		entrypoint = []string{""}
 	}
 
-	ports, portBindings, err := nat.ParsePortSpecs(copts.publish.GetAll())
+	publishOpts := copts.publish.GetAll()
+	var ports map[nat.Port]struct{}
+	var portBindings map[nat.Port][]nat.PortBinding
+
+	ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
+
+	// If simple port parsing fails try to parse as long format
 	if err != nil {
-		return nil, err
+		publishOpts, err = parsePortOpts(publishOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Merge in exposed ports to the map of published ports
@@ -659,6 +674,23 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		HostConfig:       hostConfig,
 		NetworkingConfig: networkingConfig,
 	}, nil
+}
+
+func parsePortOpts(publishOpts []string) ([]string, error) {
+	optsList := []string{}
+	for _, publish := range publishOpts {
+		params := map[string]string{"protocol": "tcp"}
+		for _, param := range strings.Split(publish, ",") {
+			opt := strings.Split(param, "=")
+			if len(opt) < 2 {
+				return optsList, errors.Errorf("invalid publish opts format (should be name=value but got '%s')", param)
+			}
+
+			params[opt[0]] = opt[1]
+		}
+		optsList = append(optsList, fmt.Sprintf("%s:%s/%s", params["target"], params["published"], params["protocol"]))
+	}
+	return optsList, nil
 }
 
 func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]string, error) {
