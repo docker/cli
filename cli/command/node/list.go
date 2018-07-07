@@ -9,18 +9,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 	"vbom.ml/util/sortorder"
 )
-
-type byHostname []swarm.Node
-
-func (n byHostname) Len() int      { return len(n) }
-func (n byHostname) Swap(i, j int) { n[i], n[j] = n[j], n[i] }
-func (n byHostname) Less(i, j int) bool {
-	return sortorder.NaturalLess(n[i].Description.Hostname, n[j].Description.Hostname)
-}
 
 type listOptions struct {
 	quiet  bool
@@ -80,6 +71,8 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		Output: dockerCli.Out(),
 		Format: formatter.NewNodeFormat(format, options.quiet),
 	}
-	sort.Sort(byHostname(nodes))
+	sort.Slice(nodes, func(i, j int) bool {
+		return sortorder.NaturalLess(nodes[i].Description.Hostname, nodes[j].Description.Hostname)
+	})
 	return formatter.NodeWrite(nodesCtx, nodes, info)
 }

@@ -44,12 +44,6 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-type byName []swarm.Service
-
-func (n byName) Len() int           { return len(n) }
-func (n byName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
-func (n byName) Less(i, j int) bool { return sortorder.NaturalLess(n[i].Spec.Name, n[j].Spec.Name) }
-
 func runList(dockerCli command.Cli, options listOptions) error {
 	ctx := context.Background()
 	client := dockerCli.Client()
@@ -60,7 +54,9 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		return err
 	}
 
-	sort.Sort(byName(services))
+	sort.Slice(services, func(i, j int) bool {
+		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+	})
 	info := map[string]formatter.ServiceListInfo{}
 	if len(services) > 0 && !options.quiet {
 		// only non-empty services and not quiet, should we call TaskList and NodeList api

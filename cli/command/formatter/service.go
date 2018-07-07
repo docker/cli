@@ -599,7 +599,13 @@ func (c *serviceContext) Ports() string {
 	pr := portRange{}
 	ports := []string{}
 
-	sort.Sort(byProtocolAndPublishedPort(c.service.Endpoint.Ports))
+	servicePorts := c.service.Endpoint.Ports
+	sort.Slice(servicePorts, func(i, j int) bool {
+		if servicePorts[i].Protocol == servicePorts[j].Protocol {
+			return servicePorts[i].PublishedPort < servicePorts[j].PublishedPort
+		}
+		return servicePorts[i].Protocol < servicePorts[j].Protocol
+	})
 
 	for _, p := range c.service.Endpoint.Ports {
 		if p.PublishMode == swarm.PortConfigPublishModeIngress {
@@ -632,15 +638,4 @@ func (c *serviceContext) Ports() string {
 		ports = append(ports, pr.String())
 	}
 	return strings.Join(ports, ", ")
-}
-
-type byProtocolAndPublishedPort []swarm.PortConfig
-
-func (a byProtocolAndPublishedPort) Len() int      { return len(a) }
-func (a byProtocolAndPublishedPort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byProtocolAndPublishedPort) Less(i, j int) bool {
-	if a[i].Protocol == a[j].Protocol {
-		return a[i].PublishedPort < a[j].PublishedPort
-	}
-	return a[i].Protocol < a[j].Protocol
 }

@@ -269,7 +269,10 @@ func DisplayablePorts(ports []types.Port) string {
 	var result []string
 	var hostMappings []string
 	var groupMapKeys []string
-	sort.Sort(byPortInfo(ports))
+	sort.Slice(ports, func(i, j int) bool {
+		return comparePorts(ports[i], ports[j])
+	})
+
 	for _, port := range ports {
 		current := port.PrivatePort
 		portKey := port.Type
@@ -322,23 +325,18 @@ func formGroup(key string, start, last uint16) string {
 	return fmt.Sprintf("%s/%s", group, groupType)
 }
 
-// byPortInfo is a temporary type used to sort types.Port by its fields
-type byPortInfo []types.Port
-
-func (r byPortInfo) Len() int      { return len(r) }
-func (r byPortInfo) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
-func (r byPortInfo) Less(i, j int) bool {
-	if r[i].PrivatePort != r[j].PrivatePort {
-		return r[i].PrivatePort < r[j].PrivatePort
+func comparePorts(i, j types.Port) bool {
+	if i.PrivatePort != j.PrivatePort {
+		return i.PrivatePort < j.PrivatePort
 	}
 
-	if r[i].IP != r[j].IP {
-		return r[i].IP < r[j].IP
+	if i.IP != j.IP {
+		return i.IP < j.IP
 	}
 
-	if r[i].PublicPort != r[j].PublicPort {
-		return r[i].PublicPort < r[j].PublicPort
+	if i.PublicPort != j.PublicPort {
+		return i.PublicPort < j.PublicPort
 	}
 
-	return r[i].Type < r[j].Type
+	return i.Type < j.Type
 }

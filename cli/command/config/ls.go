@@ -9,18 +9,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 	"vbom.ml/util/sortorder"
 )
-
-type byConfigName []swarm.Config
-
-func (r byConfigName) Len() int      { return len(r) }
-func (r byConfigName) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
-func (r byConfigName) Less(i, j int) bool {
-	return sortorder.NaturalLess(r[i].Spec.Name, r[j].Spec.Name)
-}
 
 type listOptions struct {
 	quiet  bool
@@ -67,7 +58,9 @@ func runConfigList(dockerCli command.Cli, options listOptions) error {
 		}
 	}
 
-	sort.Sort(byConfigName(configs))
+	sort.Slice(configs, func(i, j int) bool {
+		return sortorder.NaturalLess(configs[i].Spec.Name, configs[j].Spec.Name)
+	})
 
 	configCtx := formatter.Context{
 		Output: dockerCli.Out(),
