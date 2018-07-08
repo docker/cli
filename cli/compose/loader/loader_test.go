@@ -985,15 +985,11 @@ services:
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
-	sort.Sort(servicesByName(services))
+	sort.Slice(services, func(i, j int) bool {
+		return services[i].Name < services[j].Name
+	})
 	return services
 }
-
-type servicesByName []types.ServiceConfig
-
-func (sbn servicesByName) Len() int           { return len(sbn) }
-func (sbn servicesByName) Swap(i, j int)      { sbn[i], sbn[j] = sbn[j], sbn[i] }
-func (sbn servicesByName) Less(i, j int) bool { return sbn[i].Name < sbn[j].Name }
 
 func TestLoadAttachableNetwork(t *testing.T) {
 	config, err := loadYAML(`

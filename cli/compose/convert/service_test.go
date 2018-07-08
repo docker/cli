@@ -247,11 +247,8 @@ func TestConvertServiceNetworks(t *testing.T) {
 		},
 	}
 
-	sortedConfigs := byTargetSort(configs)
-	sort.Sort(&sortedConfigs)
-
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(sortedConfigs)))
+	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
 func TestConvertServiceNetworksCustomDefault(t *testing.T) {
@@ -275,20 +272,6 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(configs)))
-}
-
-type byTargetSort []swarm.NetworkAttachmentConfig
-
-func (s byTargetSort) Len() int {
-	return len(s)
-}
-
-func (s byTargetSort) Less(i, j int) bool {
-	return strings.Compare(s[i].Target, s[j].Target) < 0
-}
-
-func (s byTargetSort) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
 }
 
 func TestConvertDNSConfigEmpty(t *testing.T) {

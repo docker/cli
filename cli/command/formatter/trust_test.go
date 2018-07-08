@@ -222,7 +222,7 @@ eve                 foobarbazquxquux, key31, key32
 	}
 
 	for _, testcase := range cases {
-		signerInfo := SignerInfoList{
+		signerInfo := []SignerInfo{
 			{Name: "alice", Keys: []string{"key11", "key12"}},
 			{Name: "bob", Keys: []string{"key21"}},
 			{Name: "eve", Keys: []string{"key31", "key32", "foobarbazquxquux"}},

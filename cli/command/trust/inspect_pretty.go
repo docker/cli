@@ -51,7 +51,7 @@ func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures)
 }
 
 // pretty print with ordered rows
-func printSignatures(out io.Writer, signatureRows trustTagRowList) error {
+func printSignatures(out io.Writer, signatureRows []trustTagRow) error {
 	trustTagCtx := formatter.Context{
 		Output: out,
 		Format: formatter.NewTrustTagFormat(),
@@ -78,13 +78,15 @@ func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 		Format: formatter.NewSignerInfoFormat(),
 		Trunc:  true,
 	}
-	formattedSignerInfo := formatter.SignerInfoList{}
+	formattedSignerInfo := []formatter.SignerInfo{}
 	for name, keyIDs := range roleToKeyIDs {
 		formattedSignerInfo = append(formattedSignerInfo, formatter.SignerInfo{
 			Name: name,
 			Keys: keyIDs,
 		})
 	}
-	sort.Sort(formattedSignerInfo)
+	sort.Slice(formattedSignerInfo, func(i, j int) bool {
+		return formattedSignerInfo[i].Name < formattedSignerInfo[j].Name
+	})
 	return formatter.SignerInfoWrite(signerInfoCtx, formattedSignerInfo)
 }
