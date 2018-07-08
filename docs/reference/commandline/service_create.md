@@ -271,7 +271,7 @@ metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
 on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind mounts_, and _tmpfs_.
+as volumes), _bind mounts_, _tmpfs_, and _named pipes_.
 
 A **bind mount** makes a file or directory on the host available to the
 container it is mounted within. A bind mount may be either read-only or
@@ -290,6 +290,8 @@ containers. Docker uses a _volume driver_ to create, manage, and mount volumes.
 You can back up or restore volumes using Docker commands.
 
 A **tmpfs** mounts a tmpfs inside a container for volatile data.
+
+A **npipe** mounts a named pipe from the host into the container.
 
 Consider a situation where your image starts a lightweight web server. You could
 use that image as a base image, copy in your website's HTML files, and package
@@ -312,21 +314,22 @@ volumes in a service:
     <th>Description</th>
   </tr>
   <tr>
-    <td><b>types</b></td>
+    <td><b>type</b></td>
     <td></td>
     <td>
-      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, or <tt>tmpfs</tt>. Defaults to <tt>volume</tt> if no type is specified.
+      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.
       <ul>
         <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
         into the container.</li> <li><tt>bind</tt>:
         bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
+        <li><tt>npipe</tt>: mounts named pipe from the host into the container (Windows containers only).</li>
       </ul></p>
     </td>
   </tr>
   <tr>
     <td><b>src</b> or <b>source</b></td>
-    <td>for <tt>type=bind</tt> only></td>
+    <td>for <tt>type=bind</tt> and <tt>type=npipe</tt></td>
     <td>
       <ul>
         <li>
