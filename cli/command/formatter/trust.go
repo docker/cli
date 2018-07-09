@@ -133,18 +133,3 @@ func (c *signerInfoContext) Keys() string {
 func (c *signerInfoContext) Signer() string {
 	return c.s.Name
 }
-
-// SignerInfoList helps sort []SignerInfo by signer names
-type SignerInfoList []SignerInfo
-
-func (signerInfoComp SignerInfoList) Len() int {
-	return len(signerInfoComp)
-}
-
-func (signerInfoComp SignerInfoList) Less(i, j int) bool {
-	return signerInfoComp[i].Name < signerInfoComp[j].Name
-}
-
-func (signerInfoComp SignerInfoList) Swap(i, j int) {
-	signerInfoComp[i], signerInfoComp[j] = signerInfoComp[j], signerInfoComp[i]
-}

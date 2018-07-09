@@ -202,12 +202,6 @@ func sortStrings(strs []string) []string {
 	return strs
 }
 
-type byNetworkTarget []swarm.NetworkAttachmentConfig
-
-func (a byNetworkTarget) Len() int           { return len(a) }
-func (a byNetworkTarget) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byNetworkTarget) Less(i, j int) bool { return a[i].Target < a[j].Target }
-
 func convertServiceNetworks(
 	networks map[string]*composetypes.ServiceNetworkConfig,
 	networkConfigs networkMap,
@@ -246,7 +240,9 @@ func convertServiceNetworks(
 		nets = append(nets, netAttachConfig)
 	}
 
-	sort.Sort(byNetworkTarget(nets))
+	sort.Slice(nets, func(i, j int) bool {
+		return nets[i].Target < nets[j].Target
+	})
 	return nets, nil
 }
 
@@ -536,12 +532,6 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 	return resources, nil
 }
 
-type byPublishedPort []swarm.PortConfig
-
-func (a byPublishedPort) Len() int           { return len(a) }
-func (a byPublishedPort) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byPublishedPort) Less(i, j int) bool { return a[i].PublishedPort < a[j].PublishedPort }
-
 func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) (*swarm.EndpointSpec, error) {
 	portConfigs := []swarm.PortConfig{}
 	for _, port := range source {
@@ -554,7 +544,10 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 		portConfigs = append(portConfigs, portConfig)
 	}
 
-	sort.Sort(byPublishedPort(portConfigs))
+	sort.Slice(portConfigs, func(i, j int) bool {
+		return portConfigs[i].PublishedPort < portConfigs[j].PublishedPort
+	})
+
 	return &swarm.EndpointSpec{
 		Mode:  swarm.ResolutionMode(strings.ToLower(endpointMode)),
 		Ports: portConfigs,

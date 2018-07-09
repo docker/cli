@@ -28,24 +28,10 @@ type trustTagRow struct {
 	Signers []string
 }
 
-type trustTagRowList []trustTagRow
-
-func (tagComparator trustTagRowList) Len() int {
-	return len(tagComparator)
-}
-
-func (tagComparator trustTagRowList) Less(i, j int) bool {
-	return tagComparator[i].SignedTag < tagComparator[j].SignedTag
-}
-
-func (tagComparator trustTagRowList) Swap(i, j int) {
-	tagComparator[i], tagComparator[j] = tagComparator[j], tagComparator[i]
-}
-
 // trustRepo represents consumable information about a trusted repository
 type trustRepo struct {
 	Name              string
-	SignedTags        trustTagRowList
+	SignedTags        []trustTagRow
 	Signers           []trustSigner
 	AdminstrativeKeys []trustSigner
 }
@@ -64,20 +50,20 @@ type trustKey struct {
 
 // lookupTrustInfo returns processed signature and role information about a notary repository.
 // This information is to be pretty printed or serialized into a machine-readable format.
-func lookupTrustInfo(cli command.Cli, remote string) (trustTagRowList, []client.RoleWithSignatures, []data.Role, error) {
+func lookupTrustInfo(cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
 	ctx := context.Background()
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), remote)
 	if err != nil {
-		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, err
+		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}
 	tag := imgRefAndAuth.Tag()
 	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
-		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
+		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
 
 	if err = clearChangeList(notaryRepo); err != nil {
-		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, err
+		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}
 	defer clearChangeList(notaryRepo)
 
@@ -87,7 +73,7 @@ func lookupTrustInfo(cli command.Cli, remote string) (trustTagRowList, []client.
 		logrus.Debug(trust.NotaryError(remote, err))
 		// print an empty table if we don't have signed targets, but have an initialized notary repo
 		if _, ok := err.(client.ErrNoSuchTarget); !ok {
-			return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signatures or cannot access %s", remote)
+			return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signatures or cannot access %s", remote)
 		}
 	}
 	signatureRows := matchReleasedSignatures(allSignedTargets)
@@ -95,7 +81,7 @@ func lookupTrustInfo(cli command.Cli, remote string) (trustTagRowList, []client.
 	// get the administrative roles
 	adminRolesWithSigs, err := notaryRepo.ListRoles()
 	if err != nil {
-		return trustTagRowList{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signers for %s", remote)
+		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signers for %s", remote)
 	}
 
 	// get delegation roles with the canonical key IDs
@@ -138,8 +124,8 @@ func getDelegationRoleToKeyMap(rawDelegationRoles []data.Role) map[string][]stri
 
 // aggregate all signers for a "released" hash+tagname pair. To be "released," the tag must have been
 // signed into the "targets" or "targets/releases" role. Output is sorted by tag name
-func matchReleasedSignatures(allTargets []client.TargetSignedStruct) trustTagRowList {
-	signatureRows := trustTagRowList{}
+func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagRow {
+	signatureRows := []trustTagRow{}
 	// do a first pass to get filter on tags signed into "targets" or "targets/releases"
 	releasedTargetRows := map[trustTagKey][]string{}
 	for _, tgt := range allTargets {
@@ -162,6 +148,8 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) trustTagRow
 	for targetKey, signers := range releasedTargetRows {
 		signatureRows = append(signatureRows, trustTagRow{targetKey, signers})
 	}
-	sort.Sort(signatureRows)
+	sort.Slice(signatureRows, func(i, j int) bool {
+		return signatureRows[i].SignedTag < signatureRows[j].SignedTag
+	})
 	return signatureRows
 }
