@@ -230,7 +230,7 @@ func addSwarmFlags(flags *pflag.FlagSet, opts *swarmOptions) {
 	addSwarmCAFlags(flags, &opts.swarmCAOptions)
 }
 
-func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet) {
+func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
 	if flags.Changed(flagTaskHistoryLimit) {
 		spec.Orchestration.TaskHistoryRetentionLimit = &opts.taskHistoryLimit
 	}
@@ -246,7 +246,7 @@ func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet)
 	if flags.Changed(flagAutolock) {
 		spec.EncryptionConfig.AutoLockManagers = opts.autolock
 	}
-	opts.mergeSwarmSpecCAFlags(spec, flags)
+	opts.mergeSwarmSpecCAFlags(spec, flags, caCert)
 }
 
 type swarmCAOptions struct {
@@ -254,17 +254,20 @@ type swarmCAOptions struct {
 	externalCA     ExternalCAOption
 }
 
-func (opts *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet) {
+func (opts *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
 	if flags.Changed(flagCertExpiry) {
 		spec.CAConfig.NodeCertExpiry = opts.nodeCertExpiry
 	}
 	if flags.Changed(flagExternalCA) {
 		spec.CAConfig.ExternalCAs = opts.externalCA.Value()
+		for _, ca := range spec.CAConfig.ExternalCAs {
+			ca.CACert = caCert
+		}
 	}
 }
 
 func (opts *swarmOptions) ToSpec(flags *pflag.FlagSet) swarm.Spec {
 	var spec swarm.Spec
-	opts.mergeSwarmSpec(&spec, flags)
+	opts.mergeSwarmSpec(&spec, flags, "")
 	return spec
 }

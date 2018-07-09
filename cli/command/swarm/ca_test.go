@@ -13,6 +13,28 @@ import (
 	is "gotest.tools/assert/cmp"
 )
 
+const (
+	cert = `
+-----BEGIN CERTIFICATE-----
+MIIBuDCCAV4CCQDOqUYOWdqMdjAKBggqhkjOPQQDAzBjMQswCQYDVQQGEwJVUzEL
+MAkGA1UECAwCQ0ExFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xDzANBgNVBAoMBkRv
+Y2tlcjEPMA0GA1UECwwGRG9ja2VyMQ0wCwYDVQQDDARUZXN0MCAXDTE4MDcwMjIx
+MjkxOFoYDzMwMTcxMTAyMjEyOTE4WjBjMQswCQYDVQQGEwJVUzELMAkGA1UECAwC
+Q0ExFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xDzANBgNVBAoMBkRvY2tlcjEPMA0G
+A1UECwwGRG9ja2VyMQ0wCwYDVQQDDARUZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0D
+AQcDQgAEgvvZl5Vqpr1e+g5IhoU6TZHgRau+BZETVFTmqyWYajA/mooRQ1MZTozu
+s9ZZZA8tzUhIqS36gsFuyIZ4YiAlyjAKBggqhkjOPQQDAwNIADBFAiBQ7pCPQrj8
+8zaItMf0pk8j1NU5XrFqFEZICzvjzUJQBAIhAKq2gFwoTn8KH+cAAXZpAGJPmOsT
+zsBT8gBAOHhNA6/2
+-----END CERTIFICATE-----`
+	key = `
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEICyheZpw70pbgO4hEuwhZTETWyTpNJmJ3TyFaWT6WTRkoAoGCCqGSM49
+AwEHoUQDQgAEgvvZl5Vqpr1e+g5IhoU6TZHgRau+BZETVFTmqyWYajA/mooRQ1MZ
+Tozus9ZZZA8tzUhIqS36gsFuyIZ4YiAlyg==
+-----END EC PRIVATE KEY-----`
+)
+
 func swarmSpecWithFullCAConfig() *swarm.Spec {
 	return &swarm.Spec{
 		CAConfig: swarm.CAConfig{
@@ -37,51 +59,79 @@ func TestDisplayTrustRootNoRoot(t *testing.T) {
 	assert.Error(t, err, "No CA information available")
 }
 
+type invalidCATestCases struct {
+	args     []string
+	errorMsg string
+}
+
+func writeFile(data string) (string, error) {
+	tmpfile, err := ioutil.TempFile("", "testfile")
+	if err != nil {
+		return "", err
+	}
+	_, err = tmpfile.Write([]byte(data))
+	if err != nil {
+		return "", err
+	}
+	tmpfile.Close()
+	return tmpfile.Name(), nil
+}
+
 func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	// we need an actual PEMfile to test
-	tmpfile, err := ioutil.TempFile("", "pemfile")
+	tmpfile, err := writeFile(cert)
 	assert.NilError(t, err)
-	defer os.Remove(tmpfile.Name())
-	tmpfile.Write([]byte(`
------BEGIN CERTIFICATE-----
-MIIBajCCARCgAwIBAgIUe0+jYWhxN8fFOByC7yveIYgvx1kwCgYIKoZIzj0EAwIw
-EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMTcwNjI3MTUxNDAwWhcNMzcwNjIyMTUx
-NDAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH
-A0IABGgbOZLd7b4b262+6m4ignIecbAZKim6djNiIS1Kl5IHciXYn7gnSpsayjn7
-GQABpgkdPeM9TEQowmtR1qSnORujQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
-Af8EBTADAQH/MB0GA1UdDgQWBBQ6Rtcn823/fxRZyheRDFpDzuBMpTAKBggqhkjO
-PQQDAgNIADBFAiEAqD3Kb2rgsy6NoTk+zEgcUi/aGBCsvQDG3vML1PXN8j0CIBjj
-4nDj+GmHXcnKa8wXx70Z8OZEpRQIiKDDLmcXuslp
------END CERTIFICATE-----
-`))
-	tmpfile.Close()
+	defer os.Remove(tmpfile)
 
-	errorTestCases := [][]string{
+	errorTestCases := []invalidCATestCases{
 		{
-			"--ca-cert=" + tmpfile.Name(),
+			args:     []string{"--ca-cert=" + tmpfile},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
-			"--ca-key=" + tmpfile.Name(),
+			args:     []string{"--ca-key=" + tmpfile},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{ // to make sure we're not erroring because we didn't provide a CA key along with the CA cert
-
-			"--ca-cert=" + tmpfile.Name(),
-			"--ca-key=" + tmpfile.Name(),
+			args: []string{
+				"--ca-cert=" + tmpfile,
+				"--ca-key=" + tmpfile,
+			},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
-			"--cert-expiry=2160h0m0s",
+			args:     []string{"--cert-expiry=2160h0m0s"},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
-			"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+			args:     []string{"--external-ca=protocol=cfssl,url=https://some.com/https/url"},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{ // to make sure we're not erroring because we didn't provide a CA cert and external CA
-
-			"--ca-cert=" + tmpfile.Name(),
-			"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+			args: []string{
+				"--ca-cert=" + tmpfile,
+				"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+			},
+			errorMsg: "flag requires the `--rotate` flag to update the CA",
+		},
+		{
+			args: []string{
+				"--rotate",
+				"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+			},
+			errorMsg: "rotating to an external CA requires the `--ca-cert` flag to specify the external CA's cert - " +
+				"to add an external CA with the current root CA certificate, use the `update` command instead",
+		},
+		{
+			args: []string{
+				"--rotate",
+				"--ca-cert=" + tmpfile,
+			},
+			errorMsg: "the --ca-cert flag requires that a --ca-key flag and/or --external-ca flag be provided as well",
 		},
 	}
 
-	for _, args := range errorTestCases {
+	for _, testCase := range errorTestCases {
 		cmd := newCACommand(
 			test.NewFakeCli(&fakeClient{
 				swarmInspectFunc: func() (swarm.Swarm, error) {
@@ -94,9 +144,9 @@ PQQDAgNIADBFAiEAqD3Kb2rgsy6NoTk+zEgcUi/aGBCsvQDG3vML1PXN8j0CIBjj
 					}, nil
 				},
 			}))
-		assert.Check(t, cmd.Flags().Parse(args))
+		assert.Check(t, cmd.Flags().Parse(testCase.args))
 		cmd.SetOutput(ioutil.Discard)
-		assert.ErrorContains(t, cmd.Execute(), "flag requires the `--rotate` flag to update the CA")
+		assert.ErrorContains(t, cmd.Execute(), testCase.errorMsg)
 	}
 }
 
@@ -112,43 +162,139 @@ func TestDisplayTrustRoot(t *testing.T) {
 	assert.Check(t, is.Equal(trustRoot+"\n", buffer.String()))
 }
 
+type swarmUpdateRecorder struct {
+	spec swarm.Spec
+}
+
+func (s *swarmUpdateRecorder) swarmUpdate(sp swarm.Spec, _ swarm.UpdateFlags) error {
+	s.spec = sp
+	return nil
+}
+
+func swarmInspectFuncWithFullCAConfig() (swarm.Swarm, error) {
+	return swarm.Swarm{
+		ClusterInfo: swarm.ClusterInfo{
+			Spec: *swarmSpecWithFullCAConfig(),
+		},
+	}, nil
+}
+
 func TestUpdateSwarmSpecDefaultRotate(t *testing.T) {
-	spec := swarmSpecWithFullCAConfig()
-	flags := newCACommand(nil).Flags()
-	updateSwarmSpec(spec, flags, caOptions{})
+	s := &swarmUpdateRecorder{}
+	cli := test.NewFakeCli(&fakeClient{
+		swarmInspectFunc: swarmInspectFuncWithFullCAConfig,
+		swarmUpdateFunc:  s.swarmUpdate,
+	})
+	cmd := newCACommand(cli)
+	cmd.SetArgs([]string{"--rotate", "--detach"})
+	cmd.SetOutput(cli.OutBuffer())
+	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()
 	expected.CAConfig.ForceRotate = 2
 	expected.CAConfig.SigningCACert = ""
 	expected.CAConfig.SigningCAKey = ""
-	assert.Check(t, is.DeepEqual(expected, spec))
+	assert.Check(t, is.DeepEqual(*expected, s.spec))
 }
 
-func TestUpdateSwarmSpecPartial(t *testing.T) {
-	spec := swarmSpecWithFullCAConfig()
-	flags := newCACommand(nil).Flags()
-	updateSwarmSpec(spec, flags, caOptions{
-		rootCACert: PEMFile{contents: "cacert"},
+func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
+	certfile, err := writeFile(cert)
+	assert.NilError(t, err)
+	defer os.Remove(certfile)
+
+	keyfile, err := writeFile(key)
+	assert.NilError(t, err)
+	defer os.Remove(keyfile)
+
+	s := &swarmUpdateRecorder{}
+	cli := test.NewFakeCli(&fakeClient{
+		swarmInspectFunc: swarmInspectFuncWithFullCAConfig,
+		swarmUpdateFunc:  s.swarmUpdate,
 	})
+	cmd := newCACommand(cli)
+	cmd.SetArgs([]string{
+		"--rotate",
+		"--detach",
+		"--ca-cert=" + certfile,
+		"--ca-key=" + keyfile,
+		"--cert-expiry=3m"})
+	cmd.SetOutput(cli.OutBuffer())
+	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()
-	expected.CAConfig.SigningCACert = "cacert"
-	assert.Check(t, is.DeepEqual(expected, spec))
-}
-
-func TestUpdateSwarmSpecFullFlags(t *testing.T) {
-	flags := newCACommand(nil).Flags()
-	flags.Lookup(flagCertExpiry).Changed = true
-	spec := swarmSpecWithFullCAConfig()
-	updateSwarmSpec(spec, flags, caOptions{
-		rootCACert:     PEMFile{contents: "cacert"},
-		rootCAKey:      PEMFile{contents: "cakey"},
-		swarmCAOptions: swarmCAOptions{nodeCertExpiry: 3 * time.Minute},
-	})
-
-	expected := swarmSpecWithFullCAConfig()
-	expected.CAConfig.SigningCACert = "cacert"
-	expected.CAConfig.SigningCAKey = "cakey"
+	expected.CAConfig.SigningCACert = cert
+	expected.CAConfig.SigningCAKey = key
 	expected.CAConfig.NodeCertExpiry = 3 * time.Minute
-	assert.Check(t, is.DeepEqual(expected, spec))
+	assert.Check(t, is.DeepEqual(*expected, s.spec))
+}
+
+func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
+	certfile, err := writeFile(cert)
+	assert.NilError(t, err)
+	defer os.Remove(certfile)
+
+	s := &swarmUpdateRecorder{}
+	cli := test.NewFakeCli(&fakeClient{
+		swarmInspectFunc: swarmInspectFuncWithFullCAConfig,
+		swarmUpdateFunc:  s.swarmUpdate,
+	})
+	cmd := newCACommand(cli)
+	cmd.SetArgs([]string{
+		"--rotate",
+		"--detach",
+		"--ca-cert=" + certfile,
+		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
+	cmd.SetOutput(cli.OutBuffer())
+	assert.NilError(t, cmd.Execute())
+
+	expected := swarmSpecWithFullCAConfig()
+	expected.CAConfig.SigningCACert = cert
+	expected.CAConfig.SigningCAKey = ""
+	expected.CAConfig.ExternalCAs = []*swarm.ExternalCA{
+		{
+			Protocol: swarm.ExternalCAProtocolCFSSL,
+			URL:      "https://some.external.ca",
+			CACert:   cert,
+			Options:  make(map[string]string),
+		},
+	}
+	assert.Check(t, is.DeepEqual(*expected, s.spec))
+}
+
+func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
+	certfile, err := writeFile(cert)
+	assert.NilError(t, err)
+	defer os.Remove(certfile)
+
+	keyfile, err := writeFile(key)
+	assert.NilError(t, err)
+	defer os.Remove(keyfile)
+
+	s := &swarmUpdateRecorder{}
+	cli := test.NewFakeCli(&fakeClient{
+		swarmInspectFunc: swarmInspectFuncWithFullCAConfig,
+		swarmUpdateFunc:  s.swarmUpdate,
+	})
+	cmd := newCACommand(cli)
+	cmd.SetArgs([]string{
+		"--rotate",
+		"--detach",
+		"--ca-cert=" + certfile,
+		"--ca-key=" + keyfile,
+		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
+	cmd.SetOutput(cli.OutBuffer())
+	assert.NilError(t, cmd.Execute())
+
+	expected := swarmSpecWithFullCAConfig()
+	expected.CAConfig.SigningCACert = cert
+	expected.CAConfig.SigningCAKey = key
+	expected.CAConfig.ExternalCAs = []*swarm.ExternalCA{
+		{
+			Protocol: swarm.ExternalCAProtocolCFSSL,
+			URL:      "https://some.external.ca",
+			CACert:   cert,
+			Options:  make(map[string]string),
+		},
+	}
+	assert.Check(t, is.DeepEqual(*expected, s.spec))
 }

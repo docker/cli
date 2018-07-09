@@ -68,6 +68,17 @@ func runCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) error {
 		return displayTrustRoot(dockerCli.Out(), swarmInspect)
 	}
 
+	if flags.Changed(flagExternalCA) && len(opts.externalCA.Value()) > 0 && !flags.Changed(flagCACert) {
+		return fmt.Errorf(
+			"rotating to an external CA requires the `--%s` flag to specify the external CA's cert - "+
+				"to add an external CA with the current root CA certificate, use the `update` command instead", flagCACert)
+	}
+
+	if flags.Changed(flagCACert) && len(opts.externalCA.Value()) == 0 && !flags.Changed(flagCAKey) {
+		return fmt.Errorf("the --%s flag requires that a --%s flag and/or --%s flag be provided as well",
+			flagCACert, flagCAKey, flagExternalCA)
+	}
+
 	updateSwarmSpec(&swarmInspect.Spec, flags, opts)
 	if err := client.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, swarm.UpdateFlags{}); err != nil {
 		return err
@@ -80,20 +91,15 @@ func runCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) error {
 }
 
 func updateSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, opts caOptions) {
-	opts.mergeSwarmSpecCAFlags(spec, flags)
 	caCert := opts.rootCACert.Contents()
 	caKey := opts.rootCAKey.Contents()
+	opts.mergeSwarmSpecCAFlags(spec, flags, caCert)
 
-	if caCert != "" {
-		spec.CAConfig.SigningCACert = caCert
-	}
-	if caKey != "" {
-		spec.CAConfig.SigningCAKey = caKey
-	}
+	spec.CAConfig.SigningCACert = caCert
+	spec.CAConfig.SigningCAKey = caKey
+
 	if caKey == "" && caCert == "" {
 		spec.CAConfig.ForceRotate++
-		spec.CAConfig.SigningCACert = ""
-		spec.CAConfig.SigningCAKey = ""
 	}
 }
 
