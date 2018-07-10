@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
+
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"gotest.tools/assert"
@@ -82,6 +83,9 @@ func TestSwarmUpdateErrors(t *testing.T) {
 }
 
 func TestSwarmUpdate(t *testing.T) {
+	swarmInfo := Swarm()
+	swarmInfo.ClusterInfo.TLSInfo.TrustRoot = "trustroot"
+
 	testCases := []struct {
 		name                  string
 		args                  []string
@@ -105,6 +109,9 @@ func TestSwarmUpdate(t *testing.T) {
 				flagAutolock:            "true",
 				flagQuiet:               "true",
 			},
+			swarmInspectFunc: func() (swarm.Swarm, error) {
+				return *swarmInfo, nil
+			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
 					return errors.Errorf("historyLimit not correctly set")
@@ -123,7 +130,7 @@ func TestSwarmUpdate(t *testing.T) {
 				if swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
 					return errors.Errorf("certExpiry not correctly set")
 				}
-				if len(swarm.CAConfig.ExternalCAs) != 1 {
+				if len(swarm.CAConfig.ExternalCAs) != 1 || swarm.CAConfig.ExternalCAs[0].CACert != "trustroot" {
 					return errors.Errorf("externalCA not correctly set")
 				}
 				if *swarm.Raft.KeepOldSnapshots != 10 {
