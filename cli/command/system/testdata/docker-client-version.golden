@@ -1,42 +1,42 @@
 Client:
- Version:      18.99.5-ce
- API version:  1.38
- Go version:   go1.10.2
- Git commit:   deadbeef
- Built:        Wed May 30 22:21:05 2018
- OS/Arch:      linux/amd64
- Experimental: true
+ Version:           18.99.5-ce
+ API version:       1.38
+ Go version:        go1.10.2
+ Git commit:        deadbeef
+ Built:             Wed May 30 22:21:05 2018
+ OS/Arch:           linux/amd64
+ Experimental:      true
 
 Server: Docker Enterprise Edition (EE) 2.0
  Engine:
-  Version:      17.06.2-ee-15
-  API version:  1.30 (minimum version 1.12)
-  Go version:   go1.8.7
-  Git commit:   64ddfa6
-  Built:        Mon Jul  9 23:38:38 2018
-  OS/Arch:      linux/amd64
-  Experimental: false
+  Version:          17.06.2-ee-15
+  API version:      1.30 (minimum version 1.12)
+  Go version:       go1.8.7
+  Git commit:       64ddfa6
+  Built:            Mon Jul  9 23:38:38 2018
+  OS/Arch:          linux/amd64
+  Experimental:     false
  Universal Control Plane:
-  Version:       17.06.2-ee-15
-  ApiVersion:    1.30
-  Arch:          amd64
-  BuildTime:     Mon Jul  2 21:24:07 UTC 2018
-  GitCommit:     4513922
-  GoVersion:     go1.9.4
-  MinApiVersion: 1.20
-  Os:            linux
-  Version:       3.0.3-tp2
+  Version:          17.06.2-ee-15
+  ApiVersion:       1.30
+  Arch:             amd64
+  BuildTime:        Mon Jul  2 21:24:07 UTC 2018
+  GitCommit:        4513922
+  GoVersion:        go1.9.4
+  MinApiVersion:    1.20
+  Os:               linux
+  Version:          3.0.3-tp2
  Kubernetes:
-  Version:      1.8+
-  buildDate:    2018-04-26T16:51:21Z
-  compiler:     gc
-  gitCommit:    8d637aedf46b9c21dde723e29c645b9f27106fa5
-  gitTreeState: clean
-  gitVersion:   v1.8.11-docker-8d637ae
-  goVersion:    go1.8.3
-  major:        1
-  minor:        8+
-  platform:     linux/amd64
+  Version:          1.8+
+  buildDate:        2018-04-26T16:51:21Z
+  compiler:         gc
+  gitCommit:        8d637aedf46b9c21dde723e29c645b9f27106fa5
+  gitTreeState:     clean
+  gitVersion:       v1.8.11-docker-8d637ae
+  goVersion:        go1.8.3
+  major:            1
+  minor:            8+
+  platform:         linux/amd64
  Calico:
   Version:          v3.0.8
   cni:              v2.0.6
