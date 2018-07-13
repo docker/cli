@@ -78,6 +78,7 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 
 // removeSingleSigner attempts to remove a single signer and returns whether signer removal happened.
 // The signer not being removed doesn't necessarily raise an error e.g. user choosing "No" when prompted for confirmation.
+// nolint: unparam
 func removeSingleSigner(cli command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
 	ctx := context.Background()
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
