@@ -4,7 +4,7 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:17.06-git'}]
+    docker: [{image: 'docker:18.03-git'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -22,7 +22,7 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:17.06-git'}]
+    docker: [{image: 'docker:18.03-git'}]
     parallelism: 3
     steps:
       - checkout
@@ -48,7 +48,7 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:17.06-git'}]
+    docker: [{image: 'docker:18.03-git'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -76,7 +76,7 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:17.06-git'}]
+    docker: [{image: 'docker:18.03-git'}]
     steps:
       - checkout
       - setup_remote_docker:
@@ -93,7 +93,7 @@ jobs:
                 make ci-validate
   shellcheck:
     working_directory: /work
-    docker: [{image: 'docker:17.06-git'}]
+    docker: [{image: 'docker:18.03-git'}]
     steps:
       - checkout
       - setup_remote_docker
