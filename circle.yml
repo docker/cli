@@ -8,6 +8,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+            version: 18.03.1-ce
             reusable: true
             exclusive: false
       - run:
@@ -27,6 +28,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+            version: 18.03.1-ce
             reusable: true
             exclusive: false
       - run:
@@ -52,6 +54,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+            version: 18.03.1-ce
             reusable: true
             exclusive: false
       - run:
@@ -80,6 +83,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+            version: 18.03.1-ce
             reusable: true
             exclusive: false
       - run:
@@ -96,7 +100,10 @@ jobs:
     docker: [{image: 'docker:18.03-git'}]
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+            version: 18.03.1-ce
+            reusable: true
+            exclusive: false
       - run:
           name: "Run shellcheck"
           command: |
