@@ -80,7 +80,7 @@ The following example uses a template without headers and outputs the
 `ID` and `CreatedSince` entries separated by a colon for the `busybox` image:
 
 ```bash
-$ docker history --format "{{.ID}}: {{.CreatedAt}}" busybox
+$ docker history --format "{{.ID}}: {{.CreatedSince}}" busybox
 
 f6e427c148a7: 4 weeks ago
 <missing>: 4 weeks ago
