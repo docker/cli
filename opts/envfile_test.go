@@ -139,3 +139,40 @@ another invalid line`
 		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
 	}
 }
+
+// ParseEnvFile with environment variable import definitions
+func TestParseEnvVariableDefinitionsFile(t *testing.T) {
+	content := `# comment=
+UNDEFINED_VAR
+HOME
+`
+	tmpFile := tmpFileWithContent(content, t)
+	defer os.Remove(tmpFile)
+
+	variables, err := ParseEnvFile(tmpFile)
+	if nil != err {
+		t.Fatal("There must not be any error")
+	}
+
+	if "HOME="+os.Getenv("HOME") != variables[0] {
+		t.Fatal("the HOME variable is not properly imported as the first variable (but it is the only one to import)")
+	}
+
+	if 1 != len(variables) {
+		t.Fatal("exactly one variable is imported (as the other one is not set at all)")
+	}
+}
+
+// ParseEnvFile with empty variable name
+func TestParseEnvVariableWithNoNameFile(t *testing.T) {
+	content := `# comment=
+=blank variable names are an error case
+`
+	tmpFile := tmpFileWithContent(content, t)
+	defer os.Remove(tmpFile)
+
+	_, err := ParseEnvFile(tmpFile)
+	if nil == err {
+		t.Fatal("if a variable has no name parsing an environment file must fail")
+	}
+}
