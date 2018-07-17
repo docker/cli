@@ -81,7 +81,7 @@ func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes
 	case commonOrchestrator.HasKubernetes():
 		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "unable to deploy to Kubernetes")
 		}
 		return kubernetes.RunDeploy(kli, opts, config)
 	default:

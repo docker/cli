@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/kubernetes"
 	cliv1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
+	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -58,7 +60,10 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	cli.kubeNamespace = opts.Namespace
 	if opts.Namespace == "" {
 		configNamespace, _, err := clientConfig.Namespace()
-		if err != nil {
+		switch {
+		case os.IsNotExist(err), os.IsPermission(err):
+			return nil, errors.Wrap(err, "unable to load configuration file")
+		case err != nil:
 			return nil, err
 		}
 		cli.kubeNamespace = configNamespace
