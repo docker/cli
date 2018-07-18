@@ -30,7 +30,7 @@ type target struct {
 
 // TrustedPush handles content trust pushing of an image
 func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
-	responseBody, err := imagePushPrivileged(ctx, cli, authConfig, ref, requestPrivilege)
+	responseBody, err := imagePushPrivileged(ctx, cli, authConfig, ref, requestPrivilege, true)
 	if err != nil {
 		return err
 	}
@@ -83,6 +83,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		// otherwise it will act as an untrusted push.
 		if err := jsonmessage.DisplayJSONMessagesToStream(in, streams.Out(), nil); err != nil {
 			return err
+
 		}
 		fmt.Fprintln(streams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
@@ -166,7 +167,7 @@ func AddTargetToAllSignableRoles(repo client.Repository, target *client.Target) 
 }
 
 // imagePushPrivileged push the image
-func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref reference.Reference, requestPrivilege types.RequestPrivilegeFunc) (io.ReadCloser, error) {
+func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref reference.Reference, requestPrivilege types.RequestPrivilegeFunc, quiet bool) (io.ReadCloser, error) {
 	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
 	if err != nil {
 		return nil, err
@@ -175,8 +176,7 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 	}
-
-	return cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
+	return cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options, quiet)
 }
 
 // trustedPull handles content trust pulling of an image
