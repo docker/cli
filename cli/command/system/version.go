@@ -204,7 +204,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 }
 
 func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Template) error {
-	t := tabwriter.NewWriter(dockerCli.Out(), 15, 1, 1, ' ', 0)
+	t := tabwriter.NewWriter(dockerCli.Out(), 20, 1, 1, ' ', 0)
 	err := tmpl.Execute(t, vd)
 	t.Write([]byte("\n"))
 	t.Flush()
