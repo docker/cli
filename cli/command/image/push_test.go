@@ -69,3 +69,26 @@ func TestNewPushCommandSuccess(t *testing.T) {
 		assert.NilError(t, cmd.Execute())
 	}
 }
+
+func TestNewQuietPushCommandSuccess(t *testing.T) {
+	testCases := []struct {
+		name string
+		args []string
+	}{
+		{
+			name: "simple",
+			args: []string{"--quiet", "image:tag"},
+		},
+	}
+	for _, tc := range testCases {
+		cli := test.NewFakeCli(&fakeClient{
+			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
+				return ioutil.NopCloser(strings.NewReader("")), nil
+			},
+		})
+		cmd := NewPushCommand(cli)
+		cmd.SetOutput(ioutil.Discard)
+		cmd.SetArgs(tc.args)
+		assert.NilError(t, cmd.Execute())
+	}
+}
