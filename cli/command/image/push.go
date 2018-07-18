@@ -14,6 +14,7 @@ import (
 type pushOptions struct {
 	remote    string
 	untrusted bool
+	quiet     bool
 }
 
 // NewPushCommand creates a new `docker push` command
@@ -31,7 +32,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-
+	command.AddQuietFlag(flags, &opts.quiet)
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 
 	return cmd
@@ -60,11 +61,15 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 		return TrustedPush(ctx, dockerCli, repoInfo, ref, authConfig, requestPrivilege)
 	}
 
-	responseBody, err := imagePushPrivileged(ctx, dockerCli, authConfig, ref, requestPrivilege)
+	responseBody, err := imagePushPrivileged(ctx, dockerCli, authConfig, ref, requestPrivilege, opts.quiet)
 	if err != nil {
 		return err
 	}
 
 	defer responseBody.Close()
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	if opts.quiet != true {
+		return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	} else {
+		return nil
+	}
 }

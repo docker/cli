@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -15,7 +17,7 @@ import (
 // It executes the privileged function if the operation is unauthorized
 // and it tries one more time.
 // It's up to the caller to handle the io.ReadCloser and close it properly.
-func (cli *Client) ImagePush(ctx context.Context, image string, options types.ImagePushOptions) (io.ReadCloser, error) {
+func (cli *Client) ImagePush(ctx context.Context, image string, options types.ImagePushOptions, quiet bool) (io.ReadCloser, error) {
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return nil, err
@@ -46,7 +48,12 @@ func (cli *Client) ImagePush(ctx context.Context, image string, options types.Im
 	if err != nil {
 		return nil, err
 	}
-	return resp.body, nil
+	if quiet != true {
+		return resp.body, nil
+	} else {
+		sc := ioutil.NopCloser(strings.NewReader("Container push success"))
+		return sc, nil
+	}
 }
 
 func (cli *Client) tryImagePush(ctx context.Context, imageID string, query url.Values, registryAuth string) (serverResponse, error) {
