@@ -25,7 +25,7 @@ Aliases:
 
 Options:
       --bundle-file string    Path to a Distributed Application Bundle file
-  -c, --compose-file strings  Path to a Compose file
+  -c, --compose-file strings  Path to a Compose file, or "-" to read from stdin
       --help                  Print usage
       --kubeconfig string     Kubernetes config file
       --namespace string      Kubernetes namespace to use

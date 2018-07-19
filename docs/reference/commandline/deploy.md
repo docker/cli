@@ -28,7 +28,7 @@ Aliases:
 
 Options:
       --bundle-file string    Path to a Distributed Application Bundle file
-      --compose-file string   Path to a Compose file
+      --compose-file string   Path to a Compose file, or "-" to read from stdin
       --help                  Print usage
       --prune                 Prune services that are no longer referenced
       --with-registry-auth    Send registry authentication details to Swarm agents
