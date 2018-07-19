@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -88,7 +89,10 @@ func (m *MountOpt) Set(value string) error {
 		case "type":
 			mount.Type = mounttypes.Type(strings.ToLower(value))
 		case "source", "src":
-			mount.Source = value
+			mount.Source, err = filepath.Abs(value)
+			if err != nil {
+				mount.Source = value
+			}
 		case "target", "dst", "destination":
 			mount.Target = value
 		case "readonly", "ro":
