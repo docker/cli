@@ -112,7 +112,7 @@ type Request struct {
 }
 
 // NewRequest creates a new request helper object for accessing runtime.Objects on a server.
-func NewRequest(client HTTPClient, verb string, baseURL *url.URL, versionedAPIPath string, content ContentConfig, serializers Serializers, backoff BackoffManager, throttle flowcontrol.RateLimiter) *Request {
+func NewRequest(client HTTPClient, verb string, baseURL *url.URL, versionedAPIPath string, content ContentConfig, serializers Serializers, backoff BackoffManager, throttle flowcontrol.RateLimiter, timeout time.Duration) *Request {
 	if backoff == nil {
 		glog.V(2).Infof("Not implementing request backoff strategy.")
 		backoff = &NoBackoff{}
@@ -131,6 +131,7 @@ func NewRequest(client HTTPClient, verb string, baseURL *url.URL, versionedAPIPa
 		serializers: serializers,
 		backoffMgr:  backoff,
 		throttle:    throttle,
+		timeout:     timeout,
 	}
 	switch {
 	case len(content.AcceptContentTypes) > 0:
@@ -176,6 +177,24 @@ func (r *Request) Resource(resource string) *Request {
 		return r
 	}
 	r.resource = resource
+	return r
+}
+
+// BackOff sets the request's backoff manager to the one specified,
+// or defaults to the stub implementation if nil is provided
+func (r *Request) BackOff(manager BackoffManager) *Request {
+	if manager == nil {
+		r.backoffMgr = &NoBackoff{}
+		return r
+	}
+
+	r.backoffMgr = manager
+	return r
+}
+
+// Throttle receives a rate-limiter and sets or replaces an existing request limiter
+func (r *Request) Throttle(limiter flowcontrol.RateLimiter) *Request {
+	r.throttle = limiter
 	return r
 }
 
@@ -298,10 +317,14 @@ func (r *Request) Param(paramName, s string) *Request {
 // VersionedParams will not write query parameters that have omitempty set and are empty. If a
 // parameter has already been set it is appended to (Params and VersionedParams are additive).
 func (r *Request) VersionedParams(obj runtime.Object, codec runtime.ParameterCodec) *Request {
+	return r.SpecificallyVersionedParams(obj, codec, *r.content.GroupVersion)
+}
+
+func (r *Request) SpecificallyVersionedParams(obj runtime.Object, codec runtime.ParameterCodec, version schema.GroupVersion) *Request {
 	if r.err != nil {
 		return r
 	}
-	params, err := codec.EncodeParameters(obj, *r.content.GroupVersion)
+	params, err := codec.EncodeParameters(obj, version)
 	if err != nil {
 		r.err = err
 		return r
@@ -334,8 +357,8 @@ func (r *Request) SetHeader(key string, values ...string) *Request {
 	return r
 }
 
-// Timeout makes the request use the given duration as a timeout. Sets the "timeout"
-// parameter.
+// Timeout makes the request use the given duration as an overall timeout for the
+// request. Additionally, if set passes the value as "timeout" parameter in URL.
 func (r *Request) Timeout(d time.Duration) *Request {
 	if r.err != nil {
 		return r
@@ -466,6 +489,19 @@ func (r *Request) tryThrottle() {
 // Watch attempts to begin watching the requested location.
 // Returns a watch.Interface, or an error.
 func (r *Request) Watch() (watch.Interface, error) {
+	return r.WatchWithSpecificDecoders(
+		func(body io.ReadCloser) streaming.Decoder {
+			framer := r.serializers.Framer.NewFrameReader(body)
+			return streaming.NewDecoder(framer, r.serializers.StreamingSerializer)
+		},
+		r.serializers.Decoder,
+	)
+}
+
+// WatchWithSpecificDecoders attempts to begin watching the requested location with a *different* decoder.
+// Turns out that you want one "standard" decoder for the watch event and one "personal" decoder for the content
+// Returns a watch.Interface, or an error.
+func (r *Request) WatchWithSpecificDecoders(wrapperDecoderFn func(io.ReadCloser) streaming.Decoder, embeddedDecoder runtime.Decoder) (watch.Interface, error) {
 	// We specifically don't want to rate limit watches, so we
 	// don't use r.throttle here.
 	if r.err != nil {
@@ -513,9 +549,8 @@ func (r *Request) Watch() (watch.Interface, error) {
 		}
 		return nil, fmt.Errorf("for request '%+v', got status: %v", url, resp.StatusCode)
 	}
-	framer := r.serializers.Framer.NewFrameReader(resp.Body)
-	decoder := streaming.NewDecoder(framer, r.serializers.StreamingSerializer)
-	return watch.NewStreamWatcher(restclientwatch.NewDecoder(decoder, r.serializers.Decoder)), nil
+	wrapperDecoder := wrapperDecoderFn(resp.Body)
+	return watch.NewStreamWatcher(restclientwatch.NewDecoder(wrapperDecoder, embeddedDecoder)), nil
 }
 
 // updateURLMetrics is a convenience function for pushing metrics.
@@ -621,7 +656,6 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 	}
 
 	// Right now we make about ten retry attempts if we get a Retry-After response.
-	// TODO: Change to a timeout based approach.
 	maxRetries := 10
 	retries := 0
 	for {
@@ -629,6 +663,14 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 		req, err := http.NewRequest(r.verb, url, r.body)
 		if err != nil {
 			return err
+		}
+		if r.timeout > 0 {
+			if r.ctx == nil {
+				r.ctx = context.Background()
+			}
+			var cancelFn context.CancelFunc
+			r.ctx, cancelFn = context.WithTimeout(r.ctx, r.timeout)
+			defer cancelFn()
 		}
 		if r.ctx != nil {
 			req = req.WithContext(r.ctx)
@@ -823,6 +865,25 @@ func (r *Request) transformResponse(resp *http.Response, req *http.Request) Resu
 	}
 }
 
+// truncateBody decides if the body should be truncated, based on the glog Verbosity.
+func truncateBody(body string) string {
+	max := 0
+	switch {
+	case bool(glog.V(10)):
+		return body
+	case bool(glog.V(9)):
+		max = 10240
+	case bool(glog.V(8)):
+		max = 1024
+	}
+
+	if len(body) <= max {
+		return body
+	}
+
+	return body[:max] + fmt.Sprintf(" [truncated %d chars]", len(body)-max)
+}
+
 // glogBody logs a body output that could be either JSON or protobuf. It explicitly guards against
 // allocating a new string for the body output unless necessary. Uses a simple heuristic to determine
 // whether the body is printable.
@@ -831,9 +892,9 @@ func glogBody(prefix string, body []byte) {
 		if bytes.IndexFunc(body, func(r rune) bool {
 			return r < 0x0a
 		}) != -1 {
-			glog.Infof("%s:\n%s", prefix, hex.Dump(body))
+			glog.Infof("%s:\n%s", prefix, truncateBody(hex.Dump(body)))
 		} else {
-			glog.Infof("%s: %s", prefix, string(body))
+			glog.Infof("%s: %s", prefix, truncateBody(string(body)))
 		}
 	}
 }
