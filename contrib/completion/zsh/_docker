@@ -928,7 +928,7 @@ __docker_container_subcommand() {
             local state
             _arguments $(__docker_arguments) \
                 $opts_help \
-                opts_create_run_update \
+                $opts_create_run_update \
                 "($help -)*: :->values" && ret=0
             case $state in
                 (values)
