@@ -102,7 +102,8 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 
 	fmt.Fprintln(streams.Out(), "Signing and pushing trust metadata")
 
-	repo, err := trust.GetNotaryRepository(streams.In(), streams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
+	trustPinningConfig := streams.(command.Cli).ConfigFile().ParseTrustPinning()
+	repo, err := trust.GetNotaryRepository(streams.In(), streams.Out(), command.UserAgent(), repoInfo, &authConfig, trustPinningConfig, "push", "pull")
 	if err != nil {
 		return errors.Wrap(err, "error establishing connection to trust repository")
 	}
