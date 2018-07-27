@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types/filters"
 	units "github.com/docker/go-units"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -318,7 +319,7 @@ func NewFilterOpt() FilterOpt {
 }
 
 func (o *FilterOpt) String() string {
-	repr, err := filters.ToParam(o.filter)
+	repr, err := filters.ToJSON(o.filter)
 	if err != nil {
 		return "invalid filters"
 	}
@@ -327,9 +328,18 @@ func (o *FilterOpt) String() string {
 
 // Set sets the value of the opt by parsing the command line value
 func (o *FilterOpt) Set(value string) error {
-	var err error
-	o.filter, err = filters.ParseFlag(value, o.filter)
-	return err
+	if value == "" {
+		return nil
+	}
+	if !strings.Contains(value, "=") {
+		return errors.New("bad format of filter (expected name=value)")
+	}
+	f := strings.SplitN(value, "=", 2)
+	name := strings.ToLower(strings.TrimSpace(f[0]))
+	value = strings.TrimSpace(f[1])
+
+	o.filter.Add(name, value)
+	return nil
 }
 
 // Type returns the option type
