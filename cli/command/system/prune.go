@@ -68,7 +68,7 @@ func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	// TODO version this once "until" filter is supported for volumes
-	if options.pruneVolumes && options.filter.Value().Include("until") {
+	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
 	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.31") {

@@ -140,7 +140,7 @@ loop:
 }
 
 func updateNodeFilter(ctx context.Context, client client.APIClient, filter filters.Args) error {
-	if filter.Include("node") {
+	if filter.Contains("node") {
 		nodeFilters := filter.Get("node")
 		for _, nodeFilter := range nodeFilters {
 			nodeReference, err := node.Reference(ctx, client, nodeFilter)
