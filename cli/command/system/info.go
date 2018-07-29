@@ -248,6 +248,7 @@ func prettyPrintInfo(dockerCli command.Cli, info types.Info) error {
 	return nil
 }
 
+// nolint: gocyclo
 func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 	if info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive || info.Swarm.LocalNodeState == swarm.LocalNodeStateLocked {
 		return
@@ -261,7 +262,16 @@ func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 		fmt.Fprintln(dockerCli.Out(), " ClusterID:", info.Swarm.Cluster.ID)
 		fmt.Fprintln(dockerCli.Out(), " Managers:", info.Swarm.Managers)
 		fmt.Fprintln(dockerCli.Out(), " Nodes:", info.Swarm.Nodes)
+		var strAddrPool strings.Builder
+		if info.Swarm.Cluster.DefaultAddrPool != nil {
+			for _, p := range info.Swarm.Cluster.DefaultAddrPool {
+				strAddrPool.WriteString(p + "  ")
+			}
+			fmt.Fprintln(dockerCli.Out(), " Default Address Pool:", strAddrPool.String())
+			fmt.Fprintln(dockerCli.Out(), " SubnetSize:", info.Swarm.Cluster.SubnetSize)
+		}
 		fmt.Fprintln(dockerCli.Out(), " Orchestration:")
+
 		taskHistoryRetentionLimit := int64(0)
 		if info.Swarm.Cluster.Spec.Orchestration.TaskHistoryRetentionLimit != nil {
 			taskHistoryRetentionLimit = *info.Swarm.Cluster.Spec.Orchestration.TaskHistoryRetentionLimit

@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -17,10 +18,12 @@ type initOptions struct {
 	swarmOptions
 	listenAddr NodeAddrOption
 	// Not a NodeAddrOption because it has no default port.
-	advertiseAddr   string
-	dataPathAddr    string
-	forceNewCluster bool
-	availability    string
+	advertiseAddr             string
+	dataPathAddr              string
+	forceNewCluster           bool
+	availability              string
+	defaultAddrPools          []net.IPNet
+	DefaultAddrPoolMaskLength uint32
 }
 
 func newInitCommand(dockerCli command.Cli) *cobra.Command {
@@ -45,21 +48,32 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.forceNewCluster, "force-new-cluster", false, "Force create a new cluster from current state")
 	flags.BoolVar(&opts.autolock, flagAutolock, false, "Enable manager autolocking (requiring an unlock key to start a stopped manager)")
 	flags.StringVar(&opts.availability, flagAvailability, "active", `Availability of the node ("active"|"pause"|"drain")`)
+	flags.IPNetSliceVar(&opts.defaultAddrPools, flagDefaultAddrPool, []net.IPNet{}, "default address pool in CIDR format")
+	flags.SetAnnotation(flagDefaultAddrPool, "version", []string{"1.39"})
+	flags.Uint32Var(&opts.DefaultAddrPoolMaskLength, flagDefaultAddrPoolMaskLength, 24, "default address pool subnet mask length")
+	flags.SetAnnotation(flagDefaultAddrPoolMaskLength, "version", []string{"1.39"})
 	addSwarmFlags(flags, &opts.swarmOptions)
 	return cmd
 }
 
 func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
+	var defaultAddrPool []string
+
 	client := dockerCli.Client()
 	ctx := context.Background()
 
+	for _, p := range opts.defaultAddrPools {
+		defaultAddrPool = append(defaultAddrPool, p.String())
+	}
 	req := swarm.InitRequest{
 		ListenAddr:       opts.listenAddr.String(),
 		AdvertiseAddr:    opts.advertiseAddr,
 		DataPathAddr:     opts.dataPathAddr,
+		DefaultAddrPool:  defaultAddrPool,
 		ForceNewCluster:  opts.forceNewCluster,
 		Spec:             opts.swarmOptions.ToSpec(flags),
 		AutoLockManagers: opts.swarmOptions.autolock,
+		SubnetSize:       opts.DefaultAddrPoolMaskLength,
 	}
 	if flags.Changed(flagAvailability) {
 		availability := swarm.NodeAvailability(strings.ToLower(opts.availability))
