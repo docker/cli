@@ -103,6 +103,8 @@ func Verify(publicKey *[PublicKeySize]byte, message []byte, sig *[SignatureSize]
 	if !A.FromBytes(publicKey) {
 		return false
 	}
+	edwards25519.FeNeg(&A.X, &A.X)
+	edwards25519.FeNeg(&A.T, &A.T)
 
 	h := sha512.New()
 	h.Write(sig[:32])

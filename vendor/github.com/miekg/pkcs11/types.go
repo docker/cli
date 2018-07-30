@@ -74,10 +74,10 @@ func toError(e C.CK_RV) error {
 	return Error(e)
 }
 
-/* SessionHandle is a Cryptoki-assigned value that identifies a session. */
+// SessionHandle is a Cryptoki-assigned value that identifies a session.
 type SessionHandle uint
 
-/* ObjectHandle is a token-specific identifier for an object.  */
+// ObjectHandle is a token-specific identifier for an object.
 type ObjectHandle uint
 
 // Version represents any version information from the library.
@@ -105,7 +105,7 @@ type Info struct {
 	LibraryVersion     Version
 }
 
-/* SlotInfo provides information about a slot. */
+// SlotInfo provides information about a slot.
 type SlotInfo struct {
 	SlotDescription string // 64 bytes.
 	ManufacturerID  string // 32 bytes.
@@ -114,7 +114,7 @@ type SlotInfo struct {
 	FirmwareVersion Version
 }
 
-/* TokenInfo provides information about a token. */
+// TokenInfo provides information about a token.
 type TokenInfo struct {
 	Label              string
 	ManufacturerID     string
@@ -136,7 +136,7 @@ type TokenInfo struct {
 	UTCTime            string
 }
 
-/* SesionInfo provides information about a session. */
+// SessionInfo provides information about a session.
 type SessionInfo struct {
 	SlotID      uint
 	State       uint
@@ -151,7 +151,7 @@ type Attribute struct {
 }
 
 // NewAttribute allocates a Attribute and returns a pointer to it.
-// Note that this is merely a convience function, as values returned
+// Note that this is merely a convenience function, as values returned
 // from the HSM are not converted back to Go values, those are just raw
 // byte slices.
 func NewAttribute(typ uint, x interface{}) *Attribute {
@@ -223,6 +223,7 @@ type Mechanism struct {
 	Parameter []byte
 }
 
+// NewMechanism returns a pointer to an initialized Mechanism.
 func NewMechanism(mech uint, x interface{}) *Mechanism {
 	m := new(Mechanism)
 	m.Mechanism = mech
@@ -230,8 +231,12 @@ func NewMechanism(mech uint, x interface{}) *Mechanism {
 		return m
 	}
 
-	// Add any parameters passed (For now presume always bytes were passed in, is there another case?)
-	m.Parameter = x.([]byte)
+	switch x.(type) {
+	case *GCMParams:
+		m.Parameter = cGCMParams(x.(*GCMParams))
+	default:
+		m.Parameter = x.([]byte)
+	}
 
 	return m
 }
