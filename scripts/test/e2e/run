@@ -15,7 +15,10 @@ function fetch_images {
 
 function setup {
     local project=$1
-    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose up --build -d >&2
+    local file=$2
+
+    test "${DOCKERD_EXPERIMENTAL:-}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
+    COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker-compose up --build -d >&2
 
     local network="${project}_default"
     # TODO: only run if inside a container
