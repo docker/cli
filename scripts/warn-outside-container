@@ -3,7 +3,7 @@ set -eu
 
 target="${1:-}"
 
-if [[ -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]]; then
+if [[ "$target" != "help" && -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]]; then
     (
         echo
         echo
