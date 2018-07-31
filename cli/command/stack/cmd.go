@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -27,7 +28,11 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Manage Docker stacks",
 		Args:  cli.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			orchestrator, err := getOrchestrator(dockerCli.ConfigFile(), cmd, dockerCli.Err())
+			configFile := dockerCli.ConfigFile()
+			if configFile == nil {
+				configFile = cliconfig.LoadDefaultConfigFile(dockerCli.Err())
+			}
+			orchestrator, err := getOrchestrator(configFile, cmd, dockerCli.Err())
 			if err != nil {
 				return err
 			}
@@ -42,9 +47,13 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	defaultHelpFunc := cmd.HelpFunc()
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		hideOrchestrationFlags(cmd, opts.orchestrator)
-		defaultHelpFunc(cmd, args)
+	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
+		if err := cmd.PersistentPreRunE(c, args); err != nil {
+			fmt.Fprintln(dockerCli.Err(), err)
+			return
+		}
+		hideOrchestrationFlags(c, opts.orchestrator)
+		defaultHelpFunc(c, args)
 	})
 	cmd.AddCommand(
 		newDeployCommand(dockerCli, &opts),
