@@ -568,9 +568,17 @@ __docker_append_to_completions() {
 # The result is cached for the duration of one invocation of bash completion.
 __docker_fetch_info() {
 	if [ -z "$info_fetched" ] ; then
-		read -r server_experimental server_os < <(__docker_q version -f '{{.Server.Experimental}} {{.Server.Os}}')
+		read -r client_experimental server_experimental server_os < <(__docker_q version -f '{{.Client.Experimental}} {{.Server.Experimental}} {{.Server.Os}}')
 		info_fetched=true
 	fi
+}
+
+# __docker_client_is_experimental tests whether the Docker cli is configured to support
+# experimental features. If so, the function exits with 0 (true).
+# Otherwise, or if the result cannot be determined, the exit value is 1 (false).
+__docker_client_is_experimental() {
+	__docker_fetch_info
+	[ "$client_experimental" = "true" ]
 }
 
 # __docker_server_is_experimental tests whether the currently configured Docker
@@ -1136,7 +1144,7 @@ _docker_docker() {
 		*)
 			local counter=$( __docker_pos_first_nonflag "$(__docker_to_extglob "$global_options_with_args")" )
 			if [ "$cword" -eq "$counter" ]; then
-				__docker_server_is_experimental && commands+=(${experimental_commands[*]})
+				__docker_server_is_experimental && commands+=(${experimental_server_commands[*]})
 				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
 			fi
 			;;
@@ -5082,7 +5090,7 @@ _docker() {
 		wait
 	)
 
-	local experimental_commands=(
+	local experimental_server_commands=(
 		checkpoint
 		deploy
 	)
@@ -5109,7 +5117,7 @@ _docker() {
 	# variables to cache server info, populated on demand for performance reasons
 	local info_fetched server_experimental server_os
 	# variables to cache client info, populated on demand for performance reasons
-	local stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
+	local client_experimental stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
 
 	local host config
 
