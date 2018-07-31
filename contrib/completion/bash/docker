@@ -1144,6 +1144,7 @@ _docker_docker() {
 		*)
 			local counter=$( __docker_pos_first_nonflag "$(__docker_to_extglob "$global_options_with_args")" )
 			if [ "$cword" -eq "$counter" ]; then
+				__docker_client_is_experimental && commands+=(${experimental_client_commands[*]})
 				__docker_server_is_experimental && commands+=(${experimental_server_commands[*]})
 				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
 			fi
@@ -3833,6 +3834,109 @@ _docker_swarm_update() {
 	esac
 }
 
+_docker_manifest() {
+	local subcommands="
+		annotate
+		create
+		inspect
+		push
+	"
+	__docker_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_manifest_annotate() {
+	case "$prev" in
+		--arch)
+			COMPREPLY=( $( compgen -W "
+				386
+				amd64
+				arm
+				arm64
+				mips64
+				mips64le
+				ppc64le
+				s390x" -- "$cur" ) )
+			return
+			;;
+		--os)
+			COMPREPLY=( $( compgen -W "
+				darwin
+				dragonfly
+				freebsd
+				linux
+				netbsd
+				openbsd
+				plan9
+				solaris
+				windows" -- "$cur" ) )
+			return
+			;;
+		--os-features|--variant)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--arch --help --os --os-features --variant" -- "$cur" ) )
+			;;
+		*)
+			local counter=$( __docker_pos_first_nonflag "--arch|--os|--os-features|--variant" )
+			if [ "$cword" -eq "$counter" ] || [ "$cword" -eq "$((counter + 1))" ]; then
+				__docker_complete_images --force-tag --id
+			fi
+			;;
+	esac
+}
+
+_docker_manifest_create() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--amend -a --help --insecure" -- "$cur" ) )
+			;;
+		*)
+			__docker_complete_images --force-tag --id
+			;;
+	esac
+}
+
+_docker_manifest_inspect() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --insecure --verbose -v" -- "$cur" ) )
+			;;
+		*)
+			local counter=$( __docker_pos_first_nonflag )
+			if [ "$cword" -eq "$counter" ] || [ "$cword" -eq "$((counter + 1))" ]; then
+				__docker_complete_images --force-tag --id
+			fi
+			;;
+	esac
+}
+
+_docker_manifest_push() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --insecure --purge -p" -- "$cur" ) )
+			;;
+		*)
+			local counter=$( __docker_pos_first_nonflag )
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_images --force-tag --id
+			fi
+			;;
+	esac
+}
+
 _docker_node() {
 	local subcommands="
 		demote
@@ -5088,6 +5192,10 @@ _docker() {
 		unpause
 		update
 		wait
+	)
+
+	local experimental_client_commands=(
+		manifest
 	)
 
 	local experimental_server_commands=(
