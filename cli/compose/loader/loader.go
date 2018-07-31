@@ -265,11 +265,13 @@ func getServices(configDict map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{}
 }
 
-func transform(source map[string]interface{}, target interface{}) error {
+// Transform converts the source map into the target struct with compose types transformer
+// and the specified transformers if any.
+func Transform(source map[string]interface{}, target interface{}, additionalTransformers ...Transformer) error {
 	data := mapstructure.Metadata{}
 	config := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			createTransformHook(),
+			createTransformHook(additionalTransformers...),
 			mapstructure.StringToTimeDurationHookFunc()),
 		Result:   target,
 		Metadata: &data,
@@ -281,7 +283,13 @@ func transform(source map[string]interface{}, target interface{}) error {
 	return decoder.Decode(source)
 }
 
-func createTransformHook() mapstructure.DecodeHookFuncType {
+// Transformer defines a map to type transformer
+type Transformer struct {
+	TypeOf reflect.Type
+	Func   func(interface{}) (interface{}, error)
+}
+
+func createTransformHook(additionalTransformers ...Transformer) mapstructure.DecodeHookFuncType {
 	transforms := map[reflect.Type]func(interface{}) (interface{}, error){
 		reflect.TypeOf(types.External{}):                         transformExternal,
 		reflect.TypeOf(types.HealthCheckTest{}):                  transformHealthCheckTest,
@@ -301,6 +309,10 @@ func createTransformHook() mapstructure.DecodeHookFuncType {
 		reflect.TypeOf(types.HostsList{}):                        transformListOrMappingFunc(":", false),
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
 		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
+	}
+
+	for _, transformer := range additionalTransformers {
+		transforms[transformer.TypeOf] = transformer.Func
 	}
 
 	return func(_ reflect.Type, target reflect.Type, data interface{}) (interface{}, error) {
@@ -380,7 +392,7 @@ func LoadServices(servicesDict map[string]interface{}, workingDir string, lookup
 // the serviceDict is not validated if directly used. Use Load() to enable validation
 func LoadService(name string, serviceDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) (*types.ServiceConfig, error) {
 	serviceConfig := &types.ServiceConfig{}
-	if err := transform(serviceDict, serviceConfig); err != nil {
+	if err := Transform(serviceDict, serviceConfig); err != nil {
 		return nil, err
 	}
 	serviceConfig.Name = name
@@ -509,7 +521,7 @@ func transformUlimits(data interface{}) (interface{}, error) {
 // the source Dict is not validated if directly used. Use Load() to enable validation
 func LoadNetworks(source map[string]interface{}, version string) (map[string]types.NetworkConfig, error) {
 	networks := make(map[string]types.NetworkConfig)
-	err := transform(source, &networks)
+	err := Transform(source, &networks)
 	if err != nil {
 		return networks, err
 	}
@@ -546,7 +558,7 @@ func externalVolumeError(volume, key string) error {
 // the source Dict is not validated if directly used. Use Load() to enable validation
 func LoadVolumes(source map[string]interface{}, version string) (map[string]types.VolumeConfig, error) {
 	volumes := make(map[string]types.VolumeConfig)
-	if err := transform(source, &volumes); err != nil {
+	if err := Transform(source, &volumes); err != nil {
 		return volumes, err
 	}
 
@@ -583,7 +595,7 @@ func LoadVolumes(source map[string]interface{}, version string) (map[string]type
 // the source Dict is not validated if directly used. Use Load() to enable validation
 func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (map[string]types.SecretConfig, error) {
 	secrets := make(map[string]types.SecretConfig)
-	if err := transform(source, &secrets); err != nil {
+	if err := Transform(source, &secrets); err != nil {
 		return secrets, err
 	}
 	for name, secret := range secrets {
@@ -602,7 +614,7 @@ func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (ma
 // the source Dict is not validated if directly used. Use Load() to enable validation
 func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) (map[string]types.ConfigObjConfig, error) {
 	configs := make(map[string]types.ConfigObjConfig)
-	if err := transform(source, &configs); err != nil {
+	if err := Transform(source, &configs); err != nil {
 		return configs, err
 	}
 	for name, config := range configs {
