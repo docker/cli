@@ -61,3 +61,20 @@ func TestNetworkListWithFlags(t *testing.T) {
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, strings.TrimSpace(cli.OutBuffer().String()), "network-list.golden")
 }
+
+func TestNetworkListSort(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		networkListFunc: func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
+			return []types.NetworkResource{
+				*NetworkResource(NetworkResourceName("network-2-foo")),
+				*NetworkResource(NetworkResourceName("network-1-foo")),
+				*NetworkResource(NetworkResourceName("network-10-foo")),
+			}, nil
+		},
+	})
+	cmd := newListCommand(cli)
+
+	cmd.Flags().Set("format", "{{ .Name }}")
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "network-list-sort.golden")
+}
