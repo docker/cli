@@ -41,7 +41,6 @@
 	# TODO Describe the docs maintainers role.
 
 		people = [
-			"misty",
 			"thajeztah"
 		]
 
@@ -94,11 +93,6 @@
 	Name = "Justin Cormack"
 	Email = "justin.cormack@docker.com"
 	GitHub = "justincormack"
-
-	[people.misty]
-	Name = "Misty Stanley-Jones"
-	Email = "misty@docker.com"
-	GitHub = "mistyhacks"
 
 	[people.programmerq]
 	Name = "Jeff Anderson"
