@@ -172,3 +172,91 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 	_, err = SubstituteWith("ok ${NOTHERE}", defaultMapping, pattern, errIsMissing)
 	assert.Check(t, is.ErrorContains(err, "required variable"))
 }
+
+func TestExtractVariables(t *testing.T) {
+	testCases := []struct {
+		dict     map[string]interface{}
+		expected map[string]string
+	}{
+		{
+			dict:     map[string]interface{}{},
+			expected: map[string]string{},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "bar",
+			},
+			expected: map[string]string{},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "$bar",
+			},
+			expected: map[string]string{
+				"bar": "",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar}",
+			},
+			expected: map[string]string{
+				"bar": "",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar?:foo}",
+			},
+			expected: map[string]string{
+				"bar": "",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar?foo}",
+			},
+			expected: map[string]string{
+				"bar": "",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar:-foo}",
+			},
+			expected: map[string]string{
+				"bar": "foo",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar-foo}",
+			},
+			expected: map[string]string{
+				"bar": "foo",
+			},
+		},
+		{
+			dict: map[string]interface{}{
+				"foo": "${bar:-foo}",
+				"bar": map[string]interface{}{
+					"foo": "${fruit:-banana}",
+					"bar": "vegetable",
+				},
+				"baz": []interface{}{
+					"foo",
+					"$toto",
+				},
+			},
+			expected: map[string]string{
+				"bar":   "foo",
+				"fruit": "banana",
+				"toto":  "",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		actual := ExtractVariables(tc.dict)
+		assert.Check(t, is.DeepEqual(actual, tc.expected))
+	}
+}
