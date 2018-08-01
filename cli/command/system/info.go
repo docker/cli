@@ -182,6 +182,10 @@ func prettyPrintInfo(dockerCli command.Cli, info types.Info) error {
 	fprintlnNonEmpty(dockerCli.Out(), "Cluster Store:", info.ClusterStore)
 	fprintlnNonEmpty(dockerCli.Out(), "Cluster Advertise:", info.ClusterAdvertise)
 
+	if err := printOrchestratorInfos(dockerCli); err != nil {
+		return err
+	}
+
 	if info.RegistryConfig != nil && (len(info.RegistryConfig.InsecureRegistryCIDRs) > 0 || len(info.RegistryConfig.IndexConfigs) > 0) {
 		fmt.Fprintln(dockerCli.Out(), "Insecure Registries:")
 		for _, registry := range info.RegistryConfig.IndexConfigs {
@@ -327,6 +331,16 @@ func printStorageDriverWarnings(dockerCli command.Cli, info types.Info) {
 			fmt.Fprintln(dockerCli.Err(), msg)
 		}
 	}
+}
+
+func printOrchestratorInfos(dockerCli command.Cli) error {
+	orchestrator, err := command.GetStackOrchestrator("", dockerCli.ConfigFile().StackOrchestrator, dockerCli.Err())
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(dockerCli.Out(), "Orchestrator:")
+	fmt.Fprintln(dockerCli.Out(), " Stack:", orchestrator)
+	return nil
 }
 
 func getBackingFs(info types.Info) string {
