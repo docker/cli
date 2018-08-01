@@ -4435,8 +4435,9 @@ _docker_stack_deploy() {
 
 	case "$cur" in
 		-*)
-			local options="--compose-file -c --help --prune --resolve-image --with-registry-auth"
-			__docker_daemon_is_experimental && options+=" --bundle-file"
+			local options="--compose-file -c --help"
+			__docker_daemon_is_experimental && __docker_stack_orchestrator_is swarm && options+=" --bundle-file"
+			__docker_stack_orchestrator_is swarm && options+=" --prune --resolve-image --with-registry-auth"
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
