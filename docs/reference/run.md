@@ -1352,7 +1352,7 @@ The following `run` command options work with container networking:
     --expose=[]: Expose a port or a range of ports inside the container.
                  These are additional to those exposed by the `EXPOSE` instruction
     -P         : Publish all exposed ports to the host interfaces
-    -p=[]      : Publish a container᾿s port or a range of ports to the host
+    -p=[]      : Publish a container's port or a range of ports to the host
                    format: ip:hostPort:containerPort | ip::containerPort | hostPort:containerPort | containerPort
                    Both hostPort and containerPort can be specified as a
                    range of ports. When specifying ranges for both, the
