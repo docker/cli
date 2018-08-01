@@ -584,6 +584,31 @@ __docker_daemon_os_is() {
 	[ "$actual_os" = "$expected_os" ]
 }
 
+# __docker_stack_orchestrator_is tests whether the client is configured to use
+# the orchestrator that is passed in as the first argument.
+__docker_stack_orchestrator_is() {
+	case "$1" in
+		kubernetes)
+			if [ -z "$stack_orchestrator_is_kubernetes" ] ; then
+				__docker_q stack ls --help | grep -qe --namespace
+				stack_orchestrator_is_kubernetes=$?
+			fi
+			return $stack_orchestrator_is_kubernetes
+			;;
+		swarm)
+			if [ -z "$stack_orchestrator_is_swarm" ] ; then
+				__docker_q stack deploy --help | grep -qe "with-registry-auth"
+				stack_orchestrator_is_swarm=$?
+			fi
+			return $stack_orchestrator_is_swarm
+			;;
+		*)
+			return 1
+			;;
+
+	esac
+}
+
 # __docker_pos_first_nonflag finds the position of the first word that is neither
 # option nor an option's argument. If there are options that require arguments,
 # you should pass a glob describing those options, e.g. "--option1|-o|--option2"
@@ -5037,6 +5062,9 @@ _docker() {
 	"
 
 	local host config daemon_os
+
+	# variables to cache client info, populated on demand for performance reasons
+	local stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
 
 	COMPREPLY=()
 	local cur prev words cword
