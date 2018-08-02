@@ -161,15 +161,15 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 		return value, true, nil
 	}
 
-	result, err := SubstituteWith("ok ${FOO}", defaultMapping, pattern, errIsMissing)
+	result, err := SubstituteWith("ok ${FOO}", defaultMapping, defaultPattern, errIsMissing)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("ok first", result))
 
-	result, err = SubstituteWith("ok ${BAR}", defaultMapping, pattern, errIsMissing)
+	result, err = SubstituteWith("ok ${BAR}", defaultMapping, defaultPattern, errIsMissing)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("ok ", result))
 
-	_, err = SubstituteWith("ok ${NOTHERE}", defaultMapping, pattern, errIsMissing)
+	_, err = SubstituteWith("ok ${NOTHERE}", defaultMapping, defaultPattern, errIsMissing)
 	assert.Check(t, is.ErrorContains(err, "required variable"))
 }
 
@@ -245,18 +245,21 @@ func TestExtractVariables(t *testing.T) {
 				},
 				"baz": []interface{}{
 					"foo",
+					"$docker:${project:-cli}",
 					"$toto",
 				},
 			},
 			expected: map[string]string{
-				"bar":   "foo",
-				"fruit": "banana",
-				"toto":  "",
+				"bar":     "foo",
+				"fruit":   "banana",
+				"toto":    "",
+				"docker":  "",
+				"project": "cli",
 			},
 		},
 	}
 	for _, tc := range testCases {
-		actual := ExtractVariables(tc.dict)
+		actual := ExtractVariables(tc.dict, defaultPattern)
 		assert.Check(t, is.DeepEqual(actual, tc.expected))
 	}
 }
