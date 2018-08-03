@@ -5117,6 +5117,9 @@ _docker() {
 	local counter=1
 	while [ "$counter" -lt "$cword" ]; do
 		case "${words[$counter]}" in
+			docker)
+				return 0
+				;;
 			# save host so that completion can use custom daemon
 			--host|-H)
 				(( counter++ ))
