@@ -288,10 +288,9 @@ __docker_complete_networks() {
 	COMPREPLY=( $(compgen -W "$(__docker_networks "$@")" -- "$current") )
 }
 
-# shellcheck disable=SC2128,SC2178
 __docker_complete_containers_in_network() {
-	local containers=$(__docker_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1")
-	COMPREPLY=( $(compgen -W "$containers" -- "$cur") )
+	local containers=($(__docker_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1"))
+	COMPREPLY=( $(compgen -W "${containers[*]}" -- "$cur") )
 }
 
 # __docker_volumes returns a list of all volumes. Additional options to
@@ -347,8 +346,7 @@ __docker_plugins_bundled() {
 	for del in "${remove[@]}" ; do
 		plugins=(${plugins[@]/$del/})
 	done
-	# shellcheck disable=SC2145
-	echo "${plugins[@]} ${add[@]}"
+	echo "${plugins[@]}" "${add[@]}"
 }
 
 # __docker_complete_plugins_bundled applies completion of plugins based on the current
@@ -1456,8 +1454,7 @@ _docker_container_cp() {
 						local containers=( ${COMPREPLY[@]} )
 
 						COMPREPLY=( $( compgen -W "${files[*]} ${containers[*]}" -- "$cur" ) )
-						# shellcheck disable=SC2128
-						if [[ "$COMPREPLY" == *: ]]; then
+						if [[ "${COMPREPLY[*]}" = *: ]]; then
 							__docker_nospace
 						fi
 						return
@@ -1955,8 +1952,7 @@ _docker_container_run_and_create() {
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'none host private shareable container:' -- "$cur" ) )
-					# shellcheck disable=SC2128
-					if [ "$COMPREPLY" = "container:" ]; then
+					if [ "${COMPREPLY[*]}" = "container:" ]; then
 						__docker_nospace
 					fi
 					;;
@@ -2010,8 +2006,7 @@ _docker_container_run_and_create() {
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'host container:' -- "$cur" ) )
-					# shellcheck disable=SC2128
-					if [ "$COMPREPLY" = "container:" ]; then
+					if [ "${COMPREPLY[*]}" = "container:" ]; then
 						__docker_nospace
 					fi
 					;;
@@ -2074,15 +2069,14 @@ _docker_container_run_and_create() {
 
 _docker_container_start() {
 	__docker_complete_detach_keys && return
-	# shellcheck disable=SC2078
 	case "$prev" in
 		--checkpoint)
-			if [ __docker_daemon_is_experimental ] ; then
+			if __docker_daemon_is_experimental ; then
 				return
 			fi
 			;;
 		--checkpoint-dir)
-			if [ __docker_daemon_is_experimental ] ; then
+			if __docker_daemon_is_experimental ; then
 				_filedir -d
 				return
 			fi
