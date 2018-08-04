@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/pkg/signal"
@@ -335,12 +336,23 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 	for bind := range copts.volumes.GetMap() {
 		parsed, _ := loader.ParseVolume(bind)
 		if parsed.Source != "" {
-			// after creating the bind mount we want to delete it from the copts.volumes values because
-			// we do not want bind mounts being committed to image configs
-			binds = append(binds, bind)
 			// We should delete from the map (`volumes`) here, as deleting from copts.volumes will not work if
 			// there are duplicates entries.
 			delete(volumes, bind)
+
+			if parsed.Type == string(mount.TypeBind) {
+				// Resolve relative path of source volume if needed
+				resolved, err := resolveLocalPath(parsed.Source)
+				if err != nil {
+					return nil, err
+				}
+				// use the resolved file path
+				bind = resolved + ":" + parsed.Target
+			}
+
+			// after creating the bind mount we want to delete it from the copts.volumes values because
+			// we do not want bind mounts being committed to image configs
+			binds = append(binds, bind)
 		}
 	}
 
