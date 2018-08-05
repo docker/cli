@@ -348,6 +348,12 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 				}
 				// use the resolved file path
 				bind = resolved + ":" + parsed.Target
+				if parsed.ReadOnly {
+					bind += ":ro"
+				}
+				if parsed.Consistency != "" {
+					bind += ":" + parsed.Consistency
+				}
 			}
 
 			// after creating the bind mount we want to delete it from the copts.volumes values because
