@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -181,14 +180,8 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
-		enableBuildkit, err := strconv.ParseBool(buildkitEnv)
-		if err != nil {
-			return errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
-		}
-		if enableBuildkit {
-			return runBuildBuildKit(dockerCli, options)
-		}
+	if dockerCli.ServerInfo().BuildkitEnabled && dockerCli.ServerInfo().HasExperimental {
+		return runBuildBuildKit(dockerCli, options)
 	}
 
 	var (
