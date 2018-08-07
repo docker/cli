@@ -175,20 +175,24 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 
 func TestExtractVariables(t *testing.T) {
 	testCases := []struct {
+		name     string
 		dict     map[string]interface{}
 		expected map[string]string
 	}{
 		{
+			name:     "empty",
 			dict:     map[string]interface{}{},
 			expected: map[string]string{},
 		},
 		{
+			name: "no-variables",
 			dict: map[string]interface{}{
 				"foo": "bar",
 			},
 			expected: map[string]string{},
 		},
 		{
+			name: "variable-without-curly-braces",
 			dict: map[string]interface{}{
 				"foo": "$bar",
 			},
@@ -197,6 +201,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "variable",
 			dict: map[string]interface{}{
 				"foo": "${bar}",
 			},
@@ -205,6 +210,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "required-variable",
 			dict: map[string]interface{}{
 				"foo": "${bar?:foo}",
 			},
@@ -213,6 +219,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "required-variable2",
 			dict: map[string]interface{}{
 				"foo": "${bar?foo}",
 			},
@@ -221,6 +228,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "default-variable",
 			dict: map[string]interface{}{
 				"foo": "${bar:-foo}",
 			},
@@ -229,6 +237,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "default-variable2",
 			dict: map[string]interface{}{
 				"foo": "${bar-foo}",
 			},
@@ -237,6 +246,7 @@ func TestExtractVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "multiple-values",
 			dict: map[string]interface{}{
 				"foo": "${bar:-foo}",
 				"bar": map[string]interface{}{
@@ -259,7 +269,9 @@ func TestExtractVariables(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		actual := ExtractVariables(tc.dict, defaultPattern)
-		assert.Check(t, is.DeepEqual(actual, tc.expected))
+		t.Run(tc.name, func(t *testing.T) {
+			actual := ExtractVariables(tc.dict, defaultPattern)
+			assert.Check(t, is.DeepEqual(actual, tc.expected))
+		})
 	}
 }
