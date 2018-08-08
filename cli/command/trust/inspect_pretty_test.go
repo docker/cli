@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"bytes"
 	"encoding/hex"
 	"io/ioutil"
 	"testing"
@@ -439,4 +440,21 @@ func TestFormatAdminRole(t *testing.T) {
 	}
 	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
 	assert.Check(t, is.Equal("Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs)))
+}
+
+func TestPrintSignerInfoSortOrder(t *testing.T) {
+	roleToKeyIDs := map[string][]string{
+		"signer2-foo":  {"B"},
+		"signer10-foo": {"C"},
+		"signer1-foo":  {"A"},
+	}
+
+	expected := `SIGNER              KEYS
+signer1-foo         A
+signer2-foo         B
+signer10-foo        C
+`
+	buf := new(bytes.Buffer)
+	assert.NilError(t, printSignerInfo(buf, roleToKeyIDs))
+	assert.Check(t, is.Equal(expected, buf.String()))
 }
