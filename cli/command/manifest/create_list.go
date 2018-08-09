@@ -13,8 +13,9 @@ import (
 )
 
 type createOpts struct {
-	amend    bool
-	insecure bool
+	amend     bool
+	overwrite bool
+	insecure  bool
 }
 
 func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
@@ -32,6 +33,7 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.insecure, "insecure", false, "Allow communication with an insecure registry")
 	flags.BoolVarP(&opts.amend, "amend", "a", false, "Amend an existing manifest list")
+	flags.BoolVarP(&opts.amend, "overwrite", "o", false, "Remove an existing manifest list if any and start fresh")
 	return cmd
 }
 
@@ -55,7 +57,11 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 	case err != nil:
 		return err
 	case !opts.amend:
-		return errors.Errorf("refusing to amend an existing manifest list with no --amend flag")
+		if opts.overwrite {
+			manifestStore.Remove(targetRef)
+		} else {
+			return errors.Errorf("refusing to amend an existing manifest list with no --amend flag")
+		}
 	}
 
 	ctx := context.Background()

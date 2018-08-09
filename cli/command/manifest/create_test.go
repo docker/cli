@@ -92,6 +92,26 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 	assert.Error(t, err, "refusing to amend an existing manifest list with no --amend flag")
 }
 
+// Successfully overwrite a saved manifest
+func TestManifestCreateOverwrite(t *testing.T) {
+	store, cleanup := newTempManifestStore(t)
+	defer cleanup()
+
+	cli := test.NewFakeCli(nil)
+	cli.SetManifestStore(store)
+	namedRef := ref(t, "alpine:3.0")
+	imageManifest := fullImageManifest(t, namedRef)
+	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	assert.NilError(t, err)
+
+	cmd := newCreateListCommand(cli)
+	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
+	cmd.Flags().Set("overwrite", "true")
+	cmd.SetOutput(ioutil.Discard)
+	err = cmd.Execute()
+	assert.NilError(t, err)
+}
+
 // attempt to make a manifest list without valid images
 func TestManifestCreateNoManifest(t *testing.T) {
 	store, cleanup := newTempManifestStore(t)
