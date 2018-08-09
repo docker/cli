@@ -14,6 +14,7 @@ import (
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
+	"vbom.ml/util/sortorder"
 )
 
 // trustTagKey represents a unique signed tag and hex-encoded hash pair
@@ -149,7 +150,7 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagR
 		signatureRows = append(signatureRows, trustTagRow{targetKey, signers})
 	}
 	sort.Slice(signatureRows, func(i, j int) bool {
-		return signatureRows[i].SignedTag < signatureRows[j].SignedTag
+		return sortorder.NaturalLess(signatureRows[i].SignedTag, signatureRows[j].SignedTag)
 	})
 	return signatureRows
 }

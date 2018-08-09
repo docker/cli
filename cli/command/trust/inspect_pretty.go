@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/theupdateframework/notary/client"
+	"vbom.ml/util/sortorder"
 )
 
 func prettyPrintTrustInfo(cli command.Cli, remote string) error {
@@ -86,7 +87,7 @@ func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 		})
 	}
 	sort.Slice(formattedSignerInfo, func(i, j int) bool {
-		return formattedSignerInfo[i].Name < formattedSignerInfo[j].Name
+		return sortorder.NaturalLess(formattedSignerInfo[i].Name, formattedSignerInfo[j].Name)
 	})
 	return formatter.SignerInfoWrite(signerInfoCtx, formattedSignerInfo)
 }

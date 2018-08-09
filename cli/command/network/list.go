@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
+	"vbom.ml/util/sortorder"
 )
 
 type listOptions struct {
@@ -59,7 +60,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	}
 
 	sort.Slice(networkResources, func(i, j int) bool {
-		return networkResources[i].Name < networkResources[j].Name
+		return sortorder.NaturalLess(networkResources[i].Name, networkResources[j].Name)
 	})
 
 	networksCtx := formatter.Context{
