@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/theupdateframework/notary/client"
@@ -54,85 +55,92 @@ func TestTrustRevokeCommandErrors(t *testing.T) {
 	}
 }
 
-func TestTrustRevokeCommandOfflineErrors(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetOfflineNotaryRepository)
-	cmd := newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
+func TestTrustRevokeCommand(t *testing.T) {
+	testCases := []struct {
+		doc              string
+		notaryRepository func(trust.ImageRefAndAuth, []string) (client.Repository, error)
+		args             []string
+		expectedErr      string
+		expectedMessage  string
+	}{
+		{
+			doc:              "OfflineErrors_Confirm",
+			notaryRepository: notary.GetOfflineNotaryRepository,
+			args:             []string{"reg-name.io/image"},
+			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.",
+		},
+		{
+			doc:              "OfflineErrors_Offline",
+			notaryRepository: notary.GetOfflineNotaryRepository,
+			args:             []string{"reg-name.io/image", "-y"},
+			expectedErr:      "could not remove signature for reg-name.io/image: client is offline",
+		},
+		{
+			doc:              "OfflineErrors_WithTag_Offline",
+			notaryRepository: notary.GetOfflineNotaryRepository,
+			args:             []string{"reg-name.io/image:tag"},
+			expectedErr:      "could not remove signature for reg-name.io/image:tag: client is offline",
+		},
+		{
+			doc:              "UninitializedErrors_Confirm",
+			notaryRepository: notary.GetUninitializedNotaryRepository,
+			args:             []string{"reg-name.io/image"},
+			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.",
+		},
+		{
+			doc:              "UninitializedErrors_NoTrustData",
+			notaryRepository: notary.GetUninitializedNotaryRepository,
+			args:             []string{"reg-name.io/image", "-y"},
+			expectedErr:      "could not remove signature for reg-name.io/image:  does not have trust data for",
+		},
+		{
+			doc:              "UninitializedErrors_WithTag_NoTrustData",
+			notaryRepository: notary.GetUninitializedNotaryRepository,
+			args:             []string{"reg-name.io/image:tag"},
+			expectedErr:      "could not remove signature for reg-name.io/image:tag:  does not have trust data for",
+		},
+		{
+			doc:              "EmptyNotaryRepo_Confirm",
+			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
+			args:             []string{"reg-name.io/image"},
+			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action.",
+		},
+		{
+			doc:              "EmptyNotaryRepo_NoSignedTags",
+			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
+			args:             []string{"reg-name.io/image", "-y"},
+			expectedErr:      "could not remove signature for reg-name.io/image: no signed tags to remove",
+		},
+		{
+			doc:              "EmptyNotaryRepo_NoValidTrustData",
+			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
+			args:             []string{"reg-name.io/image:tag"},
+			expectedErr:      "could not remove signature for reg-name.io/image:tag: No valid trust data for tag",
+		},
+		{
+			doc:              "AllSigConfirmation",
+			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
+			args:             []string{"alpine"},
+			expectedMessage:  "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action.",
+		},
+	}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetOfflineNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image", "-y"})
-	cmd.SetOutput(ioutil.Discard)
+	for _, tc := range testCases {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			cli.SetNotaryClient(tc.notaryRepository)
+			cmd := newRevokeCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOutput(ioutil.Discard)
+			if tc.expectedErr != "" {
+				assert.ErrorContains(t, cmd.Execute(), tc.expectedErr)
+				return
+			}
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, is.Contains(cli.OutBuffer().String(), tc.expectedMessage))
+		})
+	}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetOfflineNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: client is offline")
-}
-
-func TestTrustRevokeCommandUninitializedErrors(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetUninitializedNotaryRepository)
-	cmd := newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
-
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetUninitializedNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image", "-y"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:  does not have trust data for")
-
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetUninitializedNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag:  does not have trust data for")
-}
-
-func TestTrustRevokeCommandEmptyNotaryRepo(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetEmptyTargetsNotaryRepository)
-	cmd := newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] \nAborting action."))
-
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetEmptyTargetsNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image", "-y"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image: no signed tags to remove")
-
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetEmptyTargetsNotaryRepository)
-	cmd = newRevokeCommand(cli)
-	cmd.SetArgs([]string{"reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "could not remove signature for reg-name.io/image:tag: No valid trust data for tag")
-}
-
-func TestNewRevokeTrustAllSigConfirmation(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetEmptyTargetsNotaryRepository)
-	cmd := newRevokeCommand(cli)
-	cmd.SetArgs([]string{"alpine"})
-	assert.NilError(t, cmd.Execute())
-
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Please confirm you would like to delete all signature data for alpine? [y/N] \nAborting action."))
 }
 
 func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {
