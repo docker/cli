@@ -4,8 +4,10 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
+	"github.com/theupdateframework/notary/client"
 	"gotest.tools/assert"
 	"gotest.tools/golden"
 )
@@ -41,91 +43,110 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 	}
 }
 
-func TestTrustInspectCommandOfflineErrors(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetOfflineNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
+	testCases := []struct {
+		doc              string
+		args             []string
+		notaryRepository func(trust.ImageRefAndAuth, []string) (client.Repository, error)
+		err              string
+		golden           string
+	}{
+		{
+			doc:              "OfflineErrors",
+			args:             []string{"nonexistent-reg-name.io/image"},
+			notaryRepository: notary.GetOfflineNotaryRepository,
+			err:              "No signatures or cannot access nonexistent-reg-name.io/image",
+		},
+		{
+			doc:              "OfflineErrorsWithImageTag",
+			args:             []string{"nonexistent-reg-name.io/image:tag"},
+			notaryRepository: notary.GetOfflineNotaryRepository,
+			err:              "No signatures or cannot access nonexistent-reg-name.io/image:tag",
+		},
+		{
+			doc:              "UninitializedErrors",
+			args:             []string{"reg/unsigned-img"},
+			notaryRepository: notary.GetUninitializedNotaryRepository,
+			err:              "No signatures or cannot access reg/unsigned-img",
+			golden:           "trust-inspect-uninitialized.golden",
+		},
+		{
+			doc:              "UninitializedErrorsWithImageTag",
+			args:             []string{"reg/unsigned-img:tag"},
+			notaryRepository: notary.GetUninitializedNotaryRepository,
+			err:              "No signatures or cannot access reg/unsigned-img:tag",
+			golden:           "trust-inspect-uninitialized.golden",
+		},
+	}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetOfflineNotaryRepository)
-	cmd = newInspectCommand(cli)
-	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	for _, tc := range testCases {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			cli.SetNotaryClient(tc.notaryRepository)
+			cmd := newInspectCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOutput(ioutil.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.err)
+			if tc.golden != "" {
+				golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+			}
+		})
+	}
 }
 
-func TestTrustInspectCommandUninitializedErrors(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetUninitializedNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"reg/unsigned-img"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
+func TestTrustInspectCommand(t *testing.T) {
+	testCases := []struct {
+		doc              string
+		args             []string
+		notaryRepository func(trust.ImageRefAndAuth, []string) (client.Repository, error)
+		golden           string
+	}{
+		{
+			doc:              "EmptyNotaryRepo",
+			args:             []string{"reg/img:unsigned-tag"},
+			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
+			golden:           "trust-inspect-empty-repo.golden",
+		},
+		{
+			doc:              "FullRepoWithoutSigners",
+			args:             []string{"signed-repo"},
+			notaryRepository: notary.GetLoadedWithNoSignersNotaryRepository,
+			golden:           "trust-inspect-full-repo-no-signers.golden",
+		},
+		{
+			doc:              "OneTagWithoutSigners",
+			args:             []string{"signed-repo:green"},
+			notaryRepository: notary.GetLoadedWithNoSignersNotaryRepository,
+			golden:           "trust-inspect-one-tag-no-signers.golden",
+		},
+		{
+			doc:              "FullRepoWithSigners",
+			args:             []string{"signed-repo"},
+			notaryRepository: notary.GetLoadedNotaryRepository,
+			golden:           "trust-inspect-full-repo-with-signers.golden",
+		},
+		{
+			doc:              "MultipleFullReposWithSigners",
+			args:             []string{"signed-repo", "signed-repo"},
+			notaryRepository: notary.GetLoadedNotaryRepository,
+			golden:           "trust-inspect-multiple-repos-with-signers.golden",
+		},
+		{
+			doc:              "UnsignedTagInSignedRepo",
+			args:             []string{"signed-repo:unsigned"},
+			notaryRepository: notary.GetLoadedNotaryRepository,
+			golden:           "trust-inspect-unsigned-tag-with-signers.golden",
+		},
+	}
 
-	cli = test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetUninitializedNotaryRepository)
-	cmd = newInspectCommand(cli)
-	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-uninitialized.golden")
-}
-
-func TestTrustInspectCommandEmptyNotaryRepo(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetEmptyTargetsNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
-	cmd.SetOutput(ioutil.Discard)
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-empty-repo.golden")
-}
-
-func TestTrustInspectCommandFullRepoWithoutSigners(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetLoadedWithNoSignersNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"signed-repo"})
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-no-signers.golden")
-}
-
-func TestTrustInspectCommandOneTagWithoutSigners(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetLoadedWithNoSignersNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"signed-repo:green"})
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-one-tag-no-signers.golden")
-}
-
-func TestTrustInspectCommandFullRepoWithSigners(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetLoadedNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"signed-repo"})
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-full-repo-with-signers.golden")
-}
-
-func TestTrustInspectCommandMultipleFullReposWithSigners(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetLoadedNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"signed-repo", "signed-repo"})
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-multiple-repos-with-signers.golden")
-}
-
-func TestTrustInspectCommandUnsignedTagInSignedRepo(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(notary.GetLoadedNotaryRepository)
-	cmd := newInspectCommand(cli)
-	cmd.SetArgs([]string{"signed-repo:unsigned"})
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-unsigned-tag-with-signers.golden")
+	for _, tc := range testCases {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			cli.SetNotaryClient(tc.notaryRepository)
+			cmd := newInspectCommand(cli)
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+		})
+	}
 }
