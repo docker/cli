@@ -72,6 +72,7 @@ type buildOptions struct {
 	stream         bool
 	platform       string
 	untrusted      bool
+	secrets        []string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -156,6 +157,10 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (only if BuildKit enabled) (auto, plain, tty). Use plain to show container output")
 	flags.SetAnnotation("progress", "experimental", nil)
 	flags.SetAnnotation("progress", "version", []string{"1.38"})
+
+	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
+	flags.SetAnnotation("secret", "experimental", nil)
+	flags.SetAnnotation("secret", "version", []string{"1.39"})
 	return cmd
 }
 

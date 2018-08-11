@@ -52,6 +52,7 @@ message Meta {
 	string cwd = 3;
 	string user = 4;
 	ProxyEnv proxy_env = 5;
+	repeated HostIP extraHosts = 6;
 }
 
 // Mount specifies how to mount an input Op as a filesystem.
@@ -63,6 +64,7 @@ message Mount {
 	bool readonly = 5;
 	MountType mountType = 6;
 	CacheOpt cacheOpt = 20;
+	SecretOpt secretOpt = 21;
 }
 
 // MountType defines a type of a mount from a supported set
@@ -92,6 +94,21 @@ enum CacheSharingOpt {
 	LOCKED = 2;
 }
 
+// SecretOpt defines options describing secret mounts
+message SecretOpt {
+	// ID of secret. Used for quering the value.
+	string ID = 1;
+	// UID of secret file
+	uint32 uid = 2;
+	// GID of secret file
+	uint32 gid = 3;
+	// Mode is the filesystem mode of secret file
+	uint32 mode = 4;
+	// Optional defines if secret value is required. Error is produced
+	// if value is not found and optional is false.
+	bool optional = 5;
+}
+
 // CopyOp copies files across Ops.
 message CopyOp {
 	repeated CopySource src = 1;
@@ -114,6 +131,7 @@ message SourceOp {
 }
 
 // BuildOp is used for nested build invocation.
+// BuildOp is experimental and can break without backwards compatibility
 message BuildOp {
 	int64 builder = 1 [(gogoproto.customtype) = "InputIndex", (gogoproto.nullable) = false];
 	map<string, BuildInput> inputs = 2;
@@ -136,6 +154,8 @@ message OpMetadata {
 	// index 3 reserved for WorkerConstraint in previous versions
 	// WorkerConstraint worker_constraint = 3;
 	ExportCache export_cache = 4;
+	
+	map<string, bool> caps = 5 [(gogoproto.castkey) = "github.com/moby/buildkit/util/apicaps.CapID", (gogoproto.nullable) = false];
 }
 
 message ExportCache {
@@ -161,4 +181,9 @@ message Definition {
 	// metadata contains metadata for the each of the Op messages.
 	// A key must be an LLB op digest string. Currently, empty string is not expected as a key, but it may change in the future.
 	map<string, OpMetadata> metadata = 2 [(gogoproto.castkey) = "github.com/opencontainers/go-digest.Digest", (gogoproto.nullable) = false];
+}
+
+message HostIP {
+	string Host = 1;
+	string IP = 2;
 }

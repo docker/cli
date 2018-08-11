@@ -3,6 +3,7 @@ package image
 import (
 	"bytes"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,8 +23,10 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	controlapi "github.com/moby/buildkit/api/services/control"
 	"github.com/moby/buildkit/client"
+	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/auth/authprovider"
 	"github.com/moby/buildkit/session/filesync"
+	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/pkg/errors"
@@ -128,6 +131,13 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	s.Allow(authprovider.NewDockerAuthProvider())
+	if len(options.secrets) > 0 {
+		sp, err := parseSecretSpecs(options.secrets)
+		if err != nil {
+			return errors.Wrapf(err, "could not parse secrets: %v", options.secrets)
+		}
+		s.Allow(sp)
+	}
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -204,7 +214,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 		}
 		// not using shared context to not disrupt display but let is finish reporting errors
 		eg.Go(func() error {
-			return progressui.DisplaySolveStatus(context.TODO(), c, out, displayCh)
+			return progressui.DisplaySolveStatus(context.TODO(), "", c, out, displayCh)
 		})
 	}
 
@@ -347,4 +357,54 @@ func (t *tracer) write(msg jsonmessage.JSONMessage) {
 	}
 
 	t.displayCh <- &s
+}
+
+func parseSecretSpecs(sl []string) (session.Attachable, error) {
+	fs := make([]secretsprovider.FileSource, 0, len(sl))
+	for _, v := range sl {
+		s, err := parseSecret(v)
+		if err != nil {
+			return nil, err
+		}
+		fs = append(fs, *s)
+	}
+	store, err := secretsprovider.NewFileStore(fs)
+	if err != nil {
+		return nil, err
+	}
+	return secretsprovider.NewSecretProvider(store), nil
+}
+
+func parseSecret(value string) (*secretsprovider.FileSource, error) {
+	csvReader := csv.NewReader(strings.NewReader(value))
+	fields, err := csvReader.Read()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse csv secret")
+	}
+
+	fs := secretsprovider.FileSource{}
+
+	for _, field := range fields {
+		parts := strings.SplitN(field, "=", 2)
+		key := strings.ToLower(parts[0])
+
+		if len(parts) != 2 {
+			return nil, errors.Errorf("invalid field '%s' must be a key=value pair", field)
+		}
+
+		value := parts[1]
+		switch key {
+		case "type":
+			if value != "file" {
+				return nil, errors.Errorf("unsupported secret type %q", value)
+			}
+		case "id":
+			fs.ID = value
+		case "source", "src":
+			fs.FilePath = value
+		default:
+			return nil, errors.Errorf("unexpected key '%s' in '%s'", key, field)
+		}
+	}
+	return &fs, nil
 }
