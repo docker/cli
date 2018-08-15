@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/builder"
 	"github.com/docker/cli/cli/command/checkpoint"
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
@@ -39,6 +40,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		// image
 		image.NewImageCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
+
+		// builder
+		builder.NewBuilderCommand(dockerCli),
 
 		// manifest
 		manifest.NewManifestCommand(dockerCli),

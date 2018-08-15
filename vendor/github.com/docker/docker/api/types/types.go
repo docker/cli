@@ -600,3 +600,10 @@ type BuildCache struct {
 	Parent      string
 	Description string
 }
+
+// BuildCachePruneOptions hold parameters to prune the build cache
+type BuildCachePruneOptions struct {
+	All          bool
+	KeepDuration time.Duration
+	KeepStorage  float64
+}

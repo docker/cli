@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -42,7 +43,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
-	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
+	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones, as well as all internal build cache")
 	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune volumes")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'label=<key>=<value>')")
 	// "filter" flag is available in 1.28 (docker 17.04) and up
@@ -58,8 +59,8 @@ const confirmationTemplate = `WARNING! This will remove:
 Are you sure you want to continue?`
 
 // runBuildCachePrune executes a prune command for build cache
-func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string, error) {
-	report, err := dockerCli.Client().BuildCachePrune(context.Background())
+func runBuildCachePrune(dockerCli command.Cli, all bool, _ opts.FilterOpt) (uint64, string, error) {
+	report, err := dockerCli.Client().BuildCachePrune(context.Background(), types.BuildCachePruneOptions{All: all})
 	if err != nil {
 		return 0, "", err
 	}
@@ -89,7 +90,9 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	}
 	pruneFuncs = append(pruneFuncs, imagePrune)
 	if options.pruneBuildCache {
-		pruneFuncs = append(pruneFuncs, runBuildCachePrune)
+		pruneFuncs = append(pruneFuncs, func(dockerCli command.Cli, opts opts.FilterOpt) (uint64, string, error) {
+			return runBuildCachePrune(dockerCli, options.all, opts)
+		})
 	}
 
 	var spaceReclaimed uint64

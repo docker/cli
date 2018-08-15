@@ -4,19 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/docker/docker/api/types"
 )
 
 // BuildCachePrune requests the daemon to delete unused cache data
-func (cli *Client) BuildCachePrune(ctx context.Context) (*types.BuildCachePruneReport, error) {
+func (cli *Client) BuildCachePrune(ctx context.Context, opts types.BuildCachePruneOptions) (*types.BuildCachePruneReport, error) {
 	if err := cli.NewVersionError("1.31", "build prune"); err != nil {
 		return nil, err
 	}
 
 	report := types.BuildCachePruneReport{}
 
-	serverResp, err := cli.post(ctx, "/build/prune", nil, nil, nil)
+	query := url.Values{}
+	if opts.All {
+		query.Set("all", "1")
+	}
+	query.Set("keep-duration", fmt.Sprintf("%d", opts.KeepDuration))
+	query.Set("keep-storage", fmt.Sprintf("%f", opts.KeepStorage))
+
+	serverResp, err := cli.post(ctx, "/build/prune", query, nil, nil)
 	if err != nil {
 		return nil, err
 	}
