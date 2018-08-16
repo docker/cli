@@ -18,7 +18,7 @@ type WorkerInfo struct {
 func (c *Client) ListWorkers(ctx context.Context, opts ...ListWorkersOption) ([]*WorkerInfo, error) {
 	info := &ListWorkersInfo{}
 	for _, o := range opts {
-		o(info)
+		o.SetListWorkersOption(info)
 	}
 
 	req := &controlapi.ListWorkersRequest{Filter: info.Filter}
@@ -33,35 +33,17 @@ func (c *Client) ListWorkers(ctx context.Context, opts ...ListWorkersOption) ([]
 		wi = append(wi, &WorkerInfo{
 			ID:        w.ID,
 			Labels:    w.Labels,
-			Platforms: toClientPlatforms(w.Platforms),
+			Platforms: pb.ToSpecPlatforms(w.Platforms),
 		})
 	}
 
 	return wi, nil
 }
 
-type ListWorkersOption func(*ListWorkersInfo)
+type ListWorkersOption interface {
+	SetListWorkersOption(*ListWorkersInfo)
+}
 
 type ListWorkersInfo struct {
 	Filter []string
-}
-
-func WithWorkerFilter(f []string) ListWorkersOption {
-	return func(wi *ListWorkersInfo) {
-		wi.Filter = f
-	}
-}
-
-func toClientPlatforms(p []pb.Platform) []specs.Platform {
-	out := make([]specs.Platform, 0, len(p))
-	for _, pp := range p {
-		out = append(out, specs.Platform{
-			OS:           pp.OS,
-			Architecture: pp.Architecture,
-			Variant:      pp.Variant,
-			OSVersion:    pp.OSVersion,
-			OSFeatures:   pp.OSFeatures,
-		})
-	}
-	return out
 }
