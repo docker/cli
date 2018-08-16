@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stringid"
@@ -191,11 +192,14 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	t := newTracer()
 	ssArr := []*client.SolveStatus{}
 
+	if err := opts.ValidateProgressOutput(options.progress); err != nil {
+		return err
+	}
+
 	displayStatus := func(out *os.File, displayCh chan *client.SolveStatus) {
 		var c console.Console
-		// TODO: Handle interactive output in non-interactive environment.
-		consoleOpt := options.console.Value()
-		if cons, err := console.ConsoleFromFile(out); err == nil && (consoleOpt == nil || *consoleOpt) {
+		// TODO: Handle tty output in non-tty environment.
+		if cons, err := console.ConsoleFromFile(out); err == nil && (options.progress == "auto" || options.progress == "tty") {
 			c = cons
 		}
 		// not using shared context to not disrupt display but let is finish reporting errors

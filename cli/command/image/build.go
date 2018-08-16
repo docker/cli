@@ -58,7 +58,7 @@ type buildOptions struct {
 	isolation      string
 	quiet          bool
 	noCache        bool
-	console        opts.NullableBool
+	progress       string
 	rm             bool
 	forceRm        bool
 	pull           bool
@@ -153,9 +153,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
 
-	flags.Var(&options.console, "console", "Show console output (with buildkit only) (true, false, auto)")
-	flags.SetAnnotation("console", "experimental", nil)
-	flags.SetAnnotation("console", "version", []string{"1.38"})
+	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (only if BuildKit enabled) (auto, plain, tty). Use plain to show container output")
+	flags.SetAnnotation("progress", "experimental", nil)
+	flags.SetAnnotation("progress", "version", []string{"1.38"})
 	return cmd
 }
 
