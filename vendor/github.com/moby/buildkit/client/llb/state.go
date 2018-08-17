@@ -2,9 +2,13 @@ package llb
 
 import (
 	"context"
+	"fmt"
+	"net"
 
 	"github.com/containerd/containerd/platforms"
+	"github.com/moby/buildkit/identity"
 	"github.com/moby/buildkit/solver/pb"
+	"github.com/moby/buildkit/util/apicaps"
 	"github.com/moby/buildkit/util/system"
 	digest "github.com/opencontainers/go-digest"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
@@ -78,7 +82,8 @@ func (s State) Marshal(co ...ConstraintsOpt) (*Definition, error) {
 
 	defaultPlatform := platforms.Normalize(platforms.DefaultSpec())
 	c := &Constraints{
-		Platform: &defaultPlatform,
+		Platform:      &defaultPlatform,
+		LocalUniqueID: identity.NewID(),
 	}
 	for _, o := range append(s.opts, co...) {
 		o.SetConstraintsOption(c)
@@ -98,6 +103,28 @@ func (s State) Marshal(co ...ConstraintsOpt) (*Definition, error) {
 		return def, err
 	}
 	def.Def = append(def.Def, dt)
+
+	dgst := digest.FromBytes(dt)
+	md := def.Metadata[dgst]
+	md.Caps = map[apicaps.CapID]bool{
+		pb.CapConstraints: true,
+		pb.CapPlatform:    true,
+	}
+
+	for _, m := range def.Metadata {
+		if m.IgnoreCache {
+			md.Caps[pb.CapMetaIgnoreCache] = true
+		}
+		if m.Description != nil {
+			md.Caps[pb.CapMetaDescription] = true
+		}
+		if m.ExportCache != nil {
+			md.Caps[pb.CapMetaExportCache] = true
+		}
+	}
+
+	def.Metadata[dgst] = md
+
 	return def, nil
 }
 
@@ -155,17 +182,19 @@ func (s State) Run(ro ...RunOption) ExecState {
 		o.SetRunOption(ei)
 	}
 	meta := Meta{
-		Args:     getArgs(ei.State),
-		Cwd:      getDir(ei.State),
-		Env:      getEnv(ei.State),
-		User:     getUser(ei.State),
-		ProxyEnv: ei.ProxyEnv,
+		Args:       getArgs(ei.State),
+		Cwd:        getDir(ei.State),
+		Env:        getEnv(ei.State),
+		User:       getUser(ei.State),
+		ProxyEnv:   ei.ProxyEnv,
+		ExtraHosts: getExtraHosts(ei.State),
 	}
 
 	exec := NewExecOp(s.Output(), meta, ei.ReadonlyRootFS, ei.Constraints)
 	for _, m := range ei.Mounts {
 		exec.AddMount(m.Target, m.Source, m.Opts...)
 	}
+	exec.secrets = ei.Secrets
 
 	return ExecState{
 		State: s.WithOutput(exec.Output()),
@@ -190,6 +219,10 @@ func (s State) Dirf(str string, v ...interface{}) State {
 
 func (s State) GetEnv(key string) (string, bool) {
 	return getEnv(s).Get(key)
+}
+
+func (s State) Env() []string {
+	return getEnv(s).ToArray()
 }
 
 func (s State) GetDir() string {
@@ -221,6 +254,10 @@ func (s State) With(so ...StateOption) State {
 		s = o(s)
 	}
 	return s
+}
+
+func (s State) AddExtraHost(host string, ip net.IP) State {
+	return extraHost(host, ip)(s)
 }
 
 type output struct {
@@ -308,6 +345,13 @@ func mergeMetadata(m1, m2 pb.OpMetadata) pb.OpMetadata {
 		m1.ExportCache = m2.ExportCache
 	}
 
+	for k := range m2.Caps {
+		if m1.Caps == nil {
+			m1.Caps = make(map[apicaps.CapID]bool, len(m2.Caps))
+		}
+		m1.Caps[k] = true
+	}
+
 	return m1
 }
 
@@ -317,7 +361,18 @@ var IgnoreCache = constraintsOptFunc(func(c *Constraints) {
 
 func WithDescription(m map[string]string) ConstraintsOpt {
 	return constraintsOptFunc(func(c *Constraints) {
-		c.Metadata.Description = m
+		if c.Metadata.Description == nil {
+			c.Metadata.Description = map[string]string{}
+		}
+		for k, v := range m {
+			c.Metadata.Description[k] = v
+		}
+	})
+}
+
+func WithCustomName(name string, a ...interface{}) ConstraintsOpt {
+	return WithDescription(map[string]string{
+		"llb.customname": fmt.Sprintf(name, a...),
 	})
 }
 
@@ -358,11 +413,18 @@ type Constraints struct {
 	Platform          *specs.Platform
 	WorkerConstraints []string
 	Metadata          pb.OpMetadata
+	LocalUniqueID     string
 }
 
 func Platform(p specs.Platform) ConstraintsOpt {
 	return constraintsOptFunc(func(c *Constraints) {
 		c.Platform = &p
+	})
+}
+
+func LocalUniqueID(v string) ConstraintsOpt {
+	return constraintsOptFunc(func(c *Constraints) {
+		c.LocalUniqueID = v
 	})
 }
 

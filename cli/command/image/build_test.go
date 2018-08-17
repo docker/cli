@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/google/go-cmp/cmp"
+	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"gotest.tools/assert"
 	"gotest.tools/fs"
 	"gotest.tools/skip"
@@ -171,6 +173,66 @@ RUN echo hello world
 	assert.NilError(t, runBuild(cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
+}
+
+func TestParseSecret(t *testing.T) {
+	type testcase struct {
+		value       string
+		errExpected bool
+		errMatch    string
+		filesource  *secretsprovider.FileSource
+	}
+	var testcases = []testcase{
+		{
+			value:       "",
+			errExpected: true,
+		}, {
+			value:       "foobar",
+			errExpected: true,
+			errMatch:    "must be a key=value pair",
+		}, {
+			value:       "foo,bar",
+			errExpected: true,
+			errMatch:    "must be a key=value pair",
+		}, {
+			value:       "foo=bar",
+			errExpected: true,
+			errMatch:    "unexpected key",
+		}, {
+			value:      "src=somefile",
+			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+		}, {
+			value:      "source=somefile",
+			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+		}, {
+			value:      "id=mysecret",
+			filesource: &secretsprovider.FileSource{ID: "mysecret"},
+		}, {
+			value:      "id=mysecret,src=somefile",
+			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+		}, {
+			value:      "id=mysecret,source=somefile,type=file",
+			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+		}, {
+			value:      "id=mysecret,src=somefile,src=othersecretfile",
+			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "othersecretfile"},
+		}, {
+			value:       "type=invalid",
+			errExpected: true,
+			errMatch:    "unsupported secret type",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.value, func(t *testing.T) {
+			secret, err := parseSecret(tc.value)
+			assert.Equal(t, err != nil, tc.errExpected, fmt.Sprintf("err=%v errExpected=%t", err, tc.errExpected))
+			if tc.errMatch != "" {
+				assert.ErrorContains(t, err, tc.errMatch)
+			}
+			assert.DeepEqual(t, secret, tc.filesource)
+		})
+	}
 }
 
 type fakeBuild struct {

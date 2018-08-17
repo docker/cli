@@ -2,6 +2,7 @@ package llb
 
 import (
 	_ "crypto/sha256"
+	"net"
 	"sort"
 
 	"github.com/moby/buildkit/solver/pb"
@@ -10,11 +11,12 @@ import (
 )
 
 type Meta struct {
-	Args     []string
-	Env      EnvList
-	Cwd      string
-	User     string
-	ProxyEnv *ProxyEnv
+	Args       []string
+	Env        EnvList
+	Cwd        string
+	User       string
+	ProxyEnv   *ProxyEnv
+	ExtraHosts []HostIP
 }
 
 func NewExecOp(root Output, meta Meta, readOnly bool, c Constraints) *ExecOp {
@@ -57,6 +59,7 @@ type ExecOp struct {
 	meta        Meta
 	constraints Constraints
 	isValidated bool
+	secrets     []SecretInfo
 }
 
 func (e *ExecOp) AddMount(target string, source Output, opt ...MountOption) Output {
@@ -126,13 +129,22 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 		return e.mounts[i].target < e.mounts[j].target
 	})
 
+	meta := &pb.Meta{
+		Args: e.meta.Args,
+		Env:  e.meta.Env.ToArray(),
+		Cwd:  e.meta.Cwd,
+		User: e.meta.User,
+	}
+	if len(e.meta.ExtraHosts) > 0 {
+		hosts := make([]*pb.HostIP, len(e.meta.ExtraHosts))
+		for i, h := range e.meta.ExtraHosts {
+			hosts[i] = &pb.HostIP{Host: h.Host, IP: h.IP.String()}
+		}
+		meta.ExtraHosts = hosts
+	}
+
 	peo := &pb.ExecOp{
-		Meta: &pb.Meta{
-			Args: e.meta.Args,
-			Env:  e.meta.Env.ToArray(),
-			Cwd:  e.meta.Cwd,
-			User: e.meta.User,
-		},
+		Meta: meta,
 	}
 
 	if p := e.meta.ProxyEnv; p != nil {
@@ -141,6 +153,23 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 			HttpsProxy: p.HttpsProxy,
 			FtpProxy:   p.FtpProxy,
 			NoProxy:    p.NoProxy,
+		}
+		addCap(&e.constraints, pb.CapExecMetaProxy)
+	}
+
+	addCap(&e.constraints, pb.CapExecMetaBase)
+
+	for _, m := range e.mounts {
+		if m.selector != "" {
+			addCap(&e.constraints, pb.CapExecMountSelector)
+		}
+		if m.cacheID != "" {
+			addCap(&e.constraints, pb.CapExecMountCache)
+			addCap(&e.constraints, pb.CapExecMountCacheSharing)
+		} else if m.tmpfs {
+			addCap(&e.constraints, pb.CapExecMountTmpfs)
+		} else if m.source != nil {
+			addCap(&e.constraints, pb.CapExecMountBind)
 		}
 	}
 
@@ -207,6 +236,25 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 		}
 		if m.tmpfs {
 			pm.MountType = pb.MountType_TMPFS
+		}
+		peo.Mounts = append(peo.Mounts, pm)
+	}
+
+	if len(e.secrets) > 0 {
+		addCap(&e.constraints, pb.CapMountSecret)
+	}
+
+	for _, s := range e.secrets {
+		pm := &pb.Mount{
+			Dest:      s.Target,
+			MountType: pb.MountType_SECRET,
+			SecretOpt: &pb.SecretOpt{
+				ID:       s.ID,
+				Uid:      uint32(s.UID),
+				Gid:      uint32(s.GID),
+				Optional: s.Optional,
+				Mode:     uint32(s.Mode),
+			},
 		}
 		peo.Mounts = append(peo.Mounts, pm)
 	}
@@ -349,6 +397,12 @@ func Dirf(str string, v ...interface{}) RunOption {
 	})
 }
 
+func AddExtraHost(host string, ip net.IP) RunOption {
+	return runOptionFunc(func(ei *ExecInfo) {
+		ei.State = ei.State.AddExtraHost(host, ip)
+	})
+}
+
 func Reset(s State) RunOption {
 	return runOptionFunc(func(ei *ExecInfo) {
 		ei.State = ei.State.Reset(s)
@@ -364,6 +418,53 @@ func With(so ...StateOption) RunOption {
 func AddMount(dest string, mountState State, opts ...MountOption) RunOption {
 	return runOptionFunc(func(ei *ExecInfo) {
 		ei.Mounts = append(ei.Mounts, MountInfo{dest, mountState.Output(), opts})
+	})
+}
+
+func AddSecret(dest string, opts ...SecretOption) RunOption {
+	return runOptionFunc(func(ei *ExecInfo) {
+		s := &SecretInfo{ID: dest, Target: dest, Mode: 0400}
+		for _, opt := range opts {
+			opt.SetSecretOption(s)
+		}
+		ei.Secrets = append(ei.Secrets, *s)
+	})
+}
+
+type SecretOption interface {
+	SetSecretOption(*SecretInfo)
+}
+
+type secretOptionFunc func(*SecretInfo)
+
+func (fn secretOptionFunc) SetSecretOption(si *SecretInfo) {
+	fn(si)
+}
+
+type SecretInfo struct {
+	ID       string
+	Target   string
+	Mode     int
+	UID      int
+	GID      int
+	Optional bool
+}
+
+var SecretOptional = secretOptionFunc(func(si *SecretInfo) {
+	si.Optional = true
+})
+
+func SecretID(id string) SecretOption {
+	return secretOptionFunc(func(si *SecretInfo) {
+		si.ID = id
+	})
+}
+
+func SecretFileOpt(uid, gid, mode int) SecretOption {
+	return secretOptionFunc(func(si *SecretInfo) {
+		si.UID = uid
+		si.GID = gid
+		si.Mode = mode
 	})
 }
 
@@ -385,6 +486,7 @@ type ExecInfo struct {
 	Mounts         []MountInfo
 	ReadonlyRootFS bool
 	ProxyEnv       *ProxyEnv
+	Secrets        []SecretInfo
 }
 
 type MountInfo struct {
