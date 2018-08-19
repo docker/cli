@@ -179,6 +179,15 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 	return out.output.WriteProgress(prog)
 }
 
+// RunBuildWithTagName builds an image with specified tag name and context
+func RunBuildWithTagName(dockerCli command.Cli, tag, buildContext string) error {
+	buildOpts := newBuildOptions()
+	buildOpts.tags.Set(tag)
+	buildOpts.context = buildContext
+	buildOpts.untrusted = true
+	return runBuild(dockerCli, buildOpts)
+}
+
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
 	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
