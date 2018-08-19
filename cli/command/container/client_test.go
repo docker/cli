@@ -24,6 +24,7 @@ type fakeClient struct {
 	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
 	waitFunc              func(string) (<-chan container.ContainerWaitOKBody, <-chan error)
 	containerListFunc     func(types.ContainerListOptions) ([]types.Container, error)
+	imageBuildFunc        func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 	Version               string
 }
 
@@ -123,4 +124,11 @@ func (f *fakeClient) ContainerStart(_ context.Context, container string, options
 		return f.containerStartFunc(container, options)
 	}
 	return nil
+}
+
+func (f *fakeClient) ImageBuild(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	if f.imageBuildFunc != nil {
+		return f.imageBuildFunc(ctx, context, options)
+	}
+	return types.ImageBuildResponse{}, nil
 }
