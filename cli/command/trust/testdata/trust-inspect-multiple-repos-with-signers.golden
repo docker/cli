@@ -43,7 +43,7 @@
                 ]
             }
         ],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [
@@ -106,7 +106,7 @@
                 ]
             }
         ],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [

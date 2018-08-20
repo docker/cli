@@ -31,10 +31,10 @@ type trustTagRow struct {
 
 // trustRepo represents consumable information about a trusted repository
 type trustRepo struct {
-	Name              string
-	SignedTags        []trustTagRow
-	Signers           []trustSigner
-	AdminstrativeKeys []trustSigner
+	Name               string
+	SignedTags         []trustTagRow
+	Signers            []trustSigner
+	AdministrativeKeys []trustSigner
 }
 
 // trustSigner represents a trusted signer in a trusted repository
