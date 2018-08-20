@@ -189,6 +189,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		if enableBuildkit {
 			return runBuildBuildKit(dockerCli, options)
 		}
+	} else if dockerCli.ServerInfo().BuildkitVersion == types.BuilderBuildKit {
+		return runBuildBuildKit(dockerCli, options)
 	}
 
 	var (
@@ -279,7 +281,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
-			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
+			ChownOpts:       &idtools.Identity{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err

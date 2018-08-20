@@ -208,6 +208,7 @@ func (cli *DockerCli) initializeFromClient() {
 	cli.serverInfo = ServerInfo{
 		HasExperimental: ping.Experimental,
 		OSType:          ping.OSType,
+		BuildkitVersion: ping.BuilderVersion,
 	}
 	cli.client.NegotiateAPIVersionPing(ping)
 }
@@ -241,6 +242,7 @@ func (cli *DockerCli) NewContainerizedEngineClient(sockPath string) (containeriz
 type ServerInfo struct {
 	HasExperimental bool
 	OSType          string
+	BuildkitVersion types.BuilderVersion
 }
 
 // ClientInfo stores details about the supported features of the client
