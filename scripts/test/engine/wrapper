@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Setup, run and teardown engine test suite in containers.
+set -eu -o pipefail
+
+./scripts/test/engine/run setup
+
+testexit=0
+
+test_cmd="test"
+if [[ -n "${TEST_DEBUG-}" ]]; then
+    test_cmd="shell"
+fi
+
+./scripts/test/engine/run "$test_cmd" || testexit="$?"
+
+export testexit
+./scripts/test/engine/run cleanup
+exit "$testexit"

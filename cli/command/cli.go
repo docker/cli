@@ -19,6 +19,7 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -54,6 +55,7 @@ type Cli interface {
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
+	NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error)
 }
 
 // DockerCli is an instance the docker command line client.
@@ -227,6 +229,11 @@ func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(pa
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image
 func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
+}
+
+// NewContainerizedEngineClient returns a containerized engine client
+func (cli *DockerCli) NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error) {
+	return containerizedengine.NewClient(sockPath)
 }
 
 // ServerInfo stores details about the supported features and platform of the

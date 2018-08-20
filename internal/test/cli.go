@@ -12,6 +12,7 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/containerizedengine"
 	"github.com/docker/docker/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
@@ -19,22 +20,24 @@ import (
 // NotaryClientFuncType defines a function that returns a fake notary client
 type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 type clientInfoFuncType func() command.ClientInfo
+type containerizedEngineFuncType func(string) (containerizedengine.Client, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
 	command.DockerCli
-	client           client.APIClient
-	configfile       *configfile.ConfigFile
-	out              *command.OutStream
-	outBuffer        *bytes.Buffer
-	err              *bytes.Buffer
-	in               *command.InStream
-	server           command.ServerInfo
-	clientInfoFunc   clientInfoFuncType
-	notaryClientFunc NotaryClientFuncType
-	manifestStore    manifeststore.Store
-	registryClient   registryclient.RegistryClient
-	contentTrust     bool
+	client                        client.APIClient
+	configfile                    *configfile.ConfigFile
+	out                           *command.OutStream
+	outBuffer                     *bytes.Buffer
+	err                           *bytes.Buffer
+	in                            *command.InStream
+	server                        command.ServerInfo
+	clientInfoFunc                clientInfoFuncType
+	notaryClientFunc              NotaryClientFuncType
+	manifestStore                 manifeststore.Store
+	registryClient                registryclient.RegistryClient
+	contentTrust                  bool
+	containerizedEngineClientFunc containerizedEngineFuncType
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -166,4 +169,17 @@ func (c *FakeCli) ContentTrustEnabled() bool {
 // EnableContentTrust on the fake cli
 func EnableContentTrust(c *FakeCli) {
 	c.contentTrust = true
+}
+
+// NewContainerizedEngineClient returns a containerized engine client
+func (c *FakeCli) NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error) {
+	if c.containerizedEngineClientFunc != nil {
+		return c.containerizedEngineClientFunc(sockPath)
+	}
+	return nil, fmt.Errorf("no containerized engine client available unless defined")
+}
+
+// SetContainerizedEngineClient on the fake cli
+func (c *FakeCli) SetContainerizedEngineClient(containerizedEngineClientFunc containerizedEngineFuncType) {
+	c.containerizedEngineClientFunc = containerizedEngineClientFunc
 }

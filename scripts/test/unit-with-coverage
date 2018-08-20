@@ -5,6 +5,7 @@ set -eu -o pipefail
 # reduces the runtime from 200s down to 23s
 go test -i "$@"
 
+echo "mode: atomic" > coverage.txt
 for pkg in "$@"; do
     ./scripts/test/unit \
         -cover \
@@ -13,7 +14,7 @@ for pkg in "$@"; do
         "${pkg}"
 
     if test -f profile.out; then
-        cat profile.out >> coverage.txt
+        grep -v "^mode:" < profile.out >> coverage.txt || true
         rm profile.out
     fi
 done

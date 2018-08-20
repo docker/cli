@@ -125,6 +125,11 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 		}
 
 		response, err = clnt.RegistryLogin(ctx, *authConfig)
+		if err != nil && client.IsErrConnectionFailed(err) {
+			// If the server isn't responding (yet) attempt to login purely client side
+			response, err = loginClientSide(ctx, *authConfig)
+		}
+		// If we (still) have an error, give up
 		if err != nil {
 			return err
 		}
@@ -166,4 +171,18 @@ func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authCon
 		}
 	}
 	return response, err
+}
+
+func loginClientSide(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+	svc, err := registry.NewService(registry.ServiceOptions{})
+	if err != nil {
+		return registrytypes.AuthenticateOKBody{}, err
+	}
+
+	status, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+
+	return registrytypes.AuthenticateOKBody{
+		Status:        status,
+		IdentityToken: token,
+	}, err
 }

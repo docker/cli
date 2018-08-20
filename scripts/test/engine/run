@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Run engine specific integration tests against the latest containerd-in-docker
+set -eu -o pipefail
+
+function container_ip {
+    local cid=$1
+    local network=$2
+    docker inspect \
+        -f "{{.NetworkSettings.Networks.${network}.IPAddress}}" "$cid"
+}
+
+function fetch_images {
+    ## TODO - not yet implemented
+    ./scripts/test/engine/load-image fetch-only
+}
+
+function setup {
+    ### start containerd and log to a file
+    echo "Starting containerd in the background"
+    containerd 2&> /tmp/containerd.err  &
+    echo "Waiting for containerd to be responsive"
+    # shellcheck disable=SC2034
+    for i in $(seq 1 60); do
+        if ctr namespace ls > /dev/null; then
+            break
+        fi
+        sleep 1
+    done
+    ctr namespace ls > /dev/null
+    echo "containerd is ready"
+
+    # TODO Once https://github.com/moby/moby/pull/33355 or equivalent
+    #      is merged, then this can be optimized to preload the image
+    #      saved during the build phase
+}
+
+function cleanup {
+    #### if testexit is non-zero dump the containerd logs with a banner
+    if [ "${testexit}" -ne 0 ] ; then
+        echo "FAIL: dumping containerd logs"
+        echo ""
+        cat /tmp/containerd.err
+        if [ -f /var/log/engine.log ] ; then
+            echo ""
+            echo "FAIL: dumping engine log"
+            echo ""
+        else
+            echo ""
+            echo "FAIL: engine log missing"
+            echo ""
+        fi
+        echo "FAIL: remaining namespaces"
+        ctr namespace ls || /bin/tru
+        echo "FAIL: remaining containers"
+        ctr --namespace docker container ls || /bin/tru
+        echo "FAIL: remaining tasks"
+        ctr --namespace docker task ls || /bin/tru
+        echo "FAIL: remaining snapshots"
+        ctr --namespace docker snapshots ls || /bin/tru
+        echo "FAIL: remaining images"
+        ctr --namespace docker image ls || /bin/tru
+    fi
+}
+
+function runtests {
+    # shellcheck disable=SC2086
+    env -i \
+        GOPATH="$GOPATH" \
+        PATH="$PWD/build/:${PATH}" \
+        VERSION=${VERSION} \
+        "$(which go)" test -p 1 -parallel 1 -v ./e2eengine/... ${TESTFLAGS-}
+}
+
+cmd=${1-}
+
+case "$cmd" in
+    setup)
+        setup
+        exit
+        ;;
+    cleanup)
+        cleanup
+        exit
+        ;;
+    fetch-images)
+        fetch_images
+        exit
+        ;;
+    test)
+        runtests
+        ;;
+    run|"")
+        testexit=0
+        runtests || testexit=$?
+        cleanup
+        exit $testexit
+        ;;
+    shell)
+        $SHELL
+        ;;
+    *)
+        echo "Unknown command: $cmd"
+        echo "Usage: "
+        echo "    $0 [setup | cleanup | test | run]"
+        exit 1
+        ;;
+esac
