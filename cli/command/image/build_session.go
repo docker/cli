@@ -28,6 +28,9 @@ import (
 const clientSessionRemote = "client-session"
 
 func isSessionSupported(dockerCli command.Cli) bool {
+	if versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.39") {
+		return true
+	}
 	return dockerCli.ServerInfo().HasExperimental && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
 }
 
