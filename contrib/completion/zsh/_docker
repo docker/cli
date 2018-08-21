@@ -2285,6 +2285,8 @@ __docker_swarm_subcommand() {
                 $opts_help \
                 "($help)--advertise-addr=[Advertised address]:ip\:port: " \
                 "($help)--data-path-addr=[Data path IP or interface]:ip " \
+                "($help)--default-addr-pool=[Default address pool]" \
+                "($help)--default-addr-pool-mask-length=[Default address pool subnet mask length]" \
                 "($help)--autolock[Enable manager autolocking]" \
                 "($help)--availability=[Availability of the node]:availability:(active drain pause)" \
                 "($help)--cert-expiry=[Validity period for node certificates]:duration: " \
