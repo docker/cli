@@ -155,10 +155,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
 
 	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (only if BuildKit enabled) (auto, plain, tty). Use plain to show container output")
-	flags.SetAnnotation("progress", "experimental", nil)
 
 	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
-	flags.SetAnnotation("secret", "experimental", nil)
 	flags.SetAnnotation("secret", "version", []string{"1.39"})
 	return cmd
 }
