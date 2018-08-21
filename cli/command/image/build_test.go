@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/stringid"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"gotest.tools/assert"
@@ -173,6 +174,22 @@ RUN echo hello world
 	assert.NilError(t, runBuild(cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
+}
+
+func TestRunBuildWithTagName(t *testing.T) {
+	skip.If(t, os.Getuid() != 0)
+	fakeBuild := newFakeBuild()
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
+
+	dir := fs.NewDir(t, "test-build-context",
+		fs.WithFile("Dockerfile", `
+			FROM alpine:3.6
+		`),
+	)
+	defer dir.Remove()
+
+	tmpImage := "tmp_" + stringid.GenerateRandomID()[:20]
+	assert.NilError(t, RunBuildWithTagName(cli, tmpImage, dir.Path()))
 }
 
 func TestParseSecret(t *testing.T) {

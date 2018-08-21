@@ -1,16 +1,22 @@
 package container
 
 import (
+	"archive/tar"
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"gotest.tools/fs"
 )
 
 func TestRunLabel(t *testing.T) {
@@ -72,4 +78,40 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		assert.Assert(t, err != nil)
 		assert.Assert(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
 	}
+}
+
+type fakeBuild struct {
+	context *tar.Reader
+	options types.ImageBuildOptions
+}
+
+func (f *fakeBuild) build(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	f.context = tar.NewReader(context)
+	f.options = options
+	body := new(bytes.Buffer)
+	return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+}
+
+func TestRunCommandWithBuild(t *testing.T) {
+	fakeBuild := fakeBuild{}
+	cli := test.NewFakeCli(&fakeClient{
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ string) (container.ContainerCreateCreatedBody, error) {
+			return container.ContainerCreateCreatedBody{
+				ID: "id",
+			}, nil
+		},
+		imageBuildFunc: fakeBuild.build,
+	})
+
+	dir := fs.NewDir(t, "test-build-context",
+		fs.WithFile("Dockerfile", `
+			FROM alpine:3.6
+		`),
+	)
+	defer dir.Remove()
+
+	cmd := NewRunCommand(cli)
+	cmd.Flags().Set("detach", "true")
+	cmd.SetArgs([]string{"--build", dir.Path()})
+	assert.NilError(t, cmd.Execute())
 }

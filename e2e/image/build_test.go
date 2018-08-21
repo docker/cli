@@ -17,6 +17,29 @@ import (
 	"gotest.tools/skip"
 )
 
+func TestRunBuildFromContextDirectoryWithTag(t *testing.T) {
+	dir := fs.NewDir(t, "test-build-context-dir",
+		fs.WithFile("Dockerfile", fmt.Sprintf(`
+	FROM %s
+	CMD echo data
+		`, fixtures.AlpineImage)))
+	defer dir.Remove()
+
+	result := icmd.RunCmd(
+		icmd.Command("docker", "run", "--build", "."),
+		withWorkingDir(dir))
+
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	output.Assert(t, result.Stdout(), map[int]func(string) error{
+		0: output.Prefix("Sending build context to Docker daemon"),
+		1: output.Suffix("Step 1/2 : FROM registry:5000/alpine:3.6"),
+		3: output.Suffix("Step 2/2 : CMD echo data"),
+		6: output.Prefix("Successfully built "),
+		7: output.Prefix("Successfully tagged "),
+		8: output.Equals("data"),
+	})
+}
+
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 	dir := fs.NewDir(t, "test-build-context-dir",
 		fs.WithFile("run", "echo running", fs.WithMode(0755)),

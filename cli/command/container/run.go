@@ -13,10 +13,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -26,6 +28,7 @@ import (
 
 type runOptions struct {
 	createOptions
+	build      bool
 	detach     bool
 	sigProxy   bool
 	detachKeys string
@@ -53,6 +56,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetInterspersed(false)
 
 	// These are flags not stored in Config/HostConfig
+	flags.BoolVarP(&opts.build, "build", "b", false, "Build image before running")
 	flags.BoolVarP(&opts.detach, "detach", "d", false, "Run container in background and print container ID")
 	flags.BoolVar(&opts.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
 	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
@@ -98,6 +102,14 @@ func isLocalhost(ip string) bool {
 }
 
 func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+	if ropts.build {
+		buildContext := copts.Image
+		copts.Image = "tmp_" + stringid.GenerateRandomID()[:20]
+		if err := image.RunBuildWithTagName(dockerCli, copts.Image, buildContext); err != nil {
+			return err
+		}
+	}
+
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), copts.env.GetAll())
 	newEnv := []string{}
 	for k, v := range proxyConfig {
