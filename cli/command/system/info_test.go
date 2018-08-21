@@ -207,32 +207,59 @@ func TestPrettyPrintInfo(t *testing.T) {
 	infoWithWarningsLinux.BridgeNfIptables = false
 	infoWithWarningsLinux.BridgeNfIP6tables = false
 
+	sampleInfoDaemonWarnings := sampleInfoNoSwarm
+	sampleInfoDaemonWarnings.Warnings = []string{
+		"WARNING: No memory limit support",
+		"WARNING: No swap limit support",
+		"WARNING: No kernel memory limit support",
+		"WARNING: No oom kill disable support",
+		"WARNING: No cpu cfs quota support",
+		"WARNING: No cpu cfs period support",
+		"WARNING: No cpu shares support",
+		"WARNING: No cpuset support",
+		"WARNING: IPv4 forwarding is disabled",
+		"WARNING: bridge-nf-call-iptables is disabled",
+		"WARNING: bridge-nf-call-ip6tables is disabled",
+	}
+
 	for _, tc := range []struct {
+		doc            string
 		dockerInfo     types.Info
 		expectedGolden string
 		warningsGolden string
 	}{
 		{
+			doc:            "info without swarm",
 			dockerInfo:     sampleInfoNoSwarm,
 			expectedGolden: "docker-info-no-swarm",
 		},
 		{
+			doc:            "info with swarm",
 			dockerInfo:     infoWithSwarm,
 			expectedGolden: "docker-info-with-swarm",
 		},
 		{
+			doc:            "info with legacy warnings",
 			dockerInfo:     infoWithWarningsLinux,
 			expectedGolden: "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
 		},
+		{
+			doc:            "info with daemon warnings",
+			dockerInfo:     sampleInfoDaemonWarnings,
+			expectedGolden: "docker-info-no-swarm",
+			warningsGolden: "docker-info-warnings",
+		},
 	} {
-		cli := test.NewFakeCli(&fakeClient{})
-		assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
-		golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
-		if tc.warningsGolden != "" {
-			golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
-		} else {
-			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
-		}
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
+			golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
+			if tc.warningsGolden != "" {
+				golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
+			} else {
+				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			}
+		})
 	}
 }
