@@ -3,6 +3,7 @@ package containerizedengine
 import (
 	"context"
 	"fmt"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -534,4 +535,33 @@ func TestGetEngineConfigFilePathMalformed1(t *testing.T) {
 	}
 	_, err := client.getEngineConfigFilePath(ctx, container)
 	assert.Assert(t, err == ErrMalformedConfigFileParam)
+}
+
+// getEngineConfigFilePath will extract the config file location from the engine flags
+func (c baseClient) getEngineConfigFilePath(ctx context.Context, engine containerd.Container) (string, error) {
+	spec, err := engine.Spec(ctx)
+	configFile := ""
+	if err != nil {
+		return configFile, err
+	}
+	for i := 0; i < len(spec.Process.Args); i++ {
+		arg := spec.Process.Args[i]
+		if strings.HasPrefix(arg, "--config-file") {
+			if strings.Contains(arg, "=") {
+				split := strings.SplitN(arg, "=", 2)
+				configFile = split[1]
+			} else {
+				if i+1 >= len(spec.Process.Args) {
+					return configFile, ErrMalformedConfigFileParam
+				}
+				configFile = spec.Process.Args[i+1]
+			}
+		}
+	}
+
+	if configFile == "" {
+		// TODO - any more diagnostics to offer?
+		return configFile, ErrEngineConfigLookupFailure
+	}
+	return configFile, nil
 }
