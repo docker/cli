@@ -1,7 +1,6 @@
 package multi
 
 import (
-	"os"
 	"testing"
 
 	"github.com/docker/cli/e2eengine"
@@ -17,9 +16,12 @@ func TestDockerEngineOnContainerdMultiTest(t *testing.T) {
 		}
 	}()
 
+	// Use a fixed version to prevent failures when development of the next version starts, and no image is available yet.
+	targetVersion := "18.09.0-dev"
+
 	t.Log("Attempt engine init without experimental")
 	// First init
-	result := icmd.RunCmd(icmd.Command("docker", "engine", "init"),
+	result := icmd.RunCmd(icmd.Command("docker", "engine", "init", "--version", targetVersion),
 		func(c *icmd.Cmd) {
 			c.Env = append(c.Env, "DOCKER_CLI_EXPERIMENTAL=disabled")
 		})
@@ -31,7 +33,7 @@ func TestDockerEngineOnContainerdMultiTest(t *testing.T) {
 
 	t.Log("First engine init")
 	// First init
-	result = icmd.RunCmd(icmd.Command("docker", "engine", "init"),
+	result = icmd.RunCmd(icmd.Command("docker", "engine", "init", "--version", targetVersion),
 		func(c *icmd.Cmd) {
 			c.Env = append(c.Env, "DOCKER_CLI_EXPERIMENTAL=enabled")
 		})
@@ -64,7 +66,6 @@ func TestDockerEngineOnContainerdMultiTest(t *testing.T) {
 
 	t.Log("perform update")
 	// Now update and succeed
-	targetVersion := os.Getenv("VERSION")
 	result = icmd.RunCmd(icmd.Command("docker", "engine", "update", "--version", targetVersion))
 	result.Assert(t, icmd.Expected{
 		Out:      "Success!  The docker engine is now running.",
