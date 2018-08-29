@@ -63,7 +63,7 @@ func (c *client) check(ctx context.Context, license model.IssuedLicense) (*model
 
 	key := keys[0]
 
-	if key.KeyID() != c.publicKey.KeyID() {
+	if !c.recognizedSigningKey(key) {
 		return nil, errors.New("unrecognized signing key")
 	}
 
@@ -91,6 +91,16 @@ func (c *client) check(ctx context.Context, license model.IssuedLicense) (*model
 	}
 
 	return checkRes, nil
+}
+
+// recognizedSigningKey returns true if the given key is signed with a recognized signing key, false otherwise
+func (c *client) recognizedSigningKey(key libtrust.PublicKey) bool {
+	for _, publicKey := range c.publicKeys {
+		if key.KeyID() == publicKey.KeyID() {
+			return true
+		}
+	}
+	return false
 }
 
 // getAuthorization returns the decoded license authorization

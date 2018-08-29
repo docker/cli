@@ -193,9 +193,9 @@ func (c *client) ParseLicense(license []byte) (*model.IssuedLicense, error) {
 }
 
 type client struct {
-	publicKey libtrust.PublicKey
-	hclient   *http.Client
-	baseURI   url.URL
+	publicKeys []libtrust.PublicKey
+	hclient    *http.Client
+	baseURI    url.URL
 }
 
 // Config holds licensing client configuration
@@ -203,7 +203,7 @@ type Config struct {
 	BaseURI    url.URL
 	HTTPClient *http.Client
 	// used by licensing client to validate an issued license
-	PublicKey string
+	PublicKeys []string
 }
 
 func errorSummary(body []byte) string {
@@ -221,7 +221,7 @@ func errorSummary(body []byte) string {
 
 // New creates a new licensing Client
 func New(config *Config) (Client, error) {
-	publicKey, err := unmarshalPublicKey(config.PublicKey)
+	publicKeys, err := unmarshalPublicKeys(config.PublicKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -232,10 +232,24 @@ func New(config *Config) (Client, error) {
 	}
 
 	return &client{
-		baseURI:   config.BaseURI,
-		hclient:   hclient,
-		publicKey: publicKey,
+		baseURI:    config.BaseURI,
+		hclient:    hclient,
+		publicKeys: publicKeys,
 	}, nil
+}
+
+func unmarshalPublicKeys(publicKeys []string) ([]libtrust.PublicKey, error) {
+	trustKeys := make([]libtrust.PublicKey, len(publicKeys))
+
+	for i, publicKey := range publicKeys {
+		trustKey, err := unmarshalPublicKey(publicKey)
+		if err != nil {
+			return nil, err
+		}
+
+		trustKeys[i] = trustKey
+	}
+	return trustKeys, nil
 }
 
 func unmarshalPublicKey(publicKey string) (libtrust.PublicKey, error) {
