@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	interp "github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
@@ -309,6 +310,7 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 		reflect.TypeOf(types.HostsList{}):                        transformListOrMappingFunc(":", false),
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
 		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
+		reflect.TypeOf(types.Duration(0)):                        transformStringToDuration,
 	}
 
 	for _, transformer := range additionalTransformers {
@@ -852,6 +854,19 @@ func transformSize(value interface{}) (interface{}, error) {
 		return units.RAMInBytes(value)
 	}
 	panic(errors.Errorf("invalid type for size %T", value))
+}
+
+func transformStringToDuration(value interface{}) (interface{}, error) {
+	switch value := value.(type) {
+	case string:
+		d, err := time.ParseDuration(value)
+		if err != nil {
+			return value, err
+		}
+		return types.Duration(d), nil
+	default:
+		return value, errors.Errorf("invalid type %T for duration", value)
+	}
 }
 
 func toServicePortConfigs(value string) ([]interface{}, error) {

@@ -10,7 +10,7 @@ import (
 )
 
 func TestWarnings(t *testing.T) {
-	duration := 5 * time.Second
+	duration := composetypes.Duration(5 * time.Second)
 	attempts := uint64(3)
 	config := &composetypes.Config{
 		Version: "3.4",
@@ -26,9 +26,9 @@ func TestWarnings(t *testing.T) {
 				DependsOn:      []string{"ignored"},
 				Deploy: composetypes.DeployConfig{
 					UpdateConfig: &composetypes.UpdateConfig{
-						Delay:           5 * time.Second,
+						Delay:           composetypes.Duration(5 * time.Second),
 						FailureAction:   "rollback",
-						Monitor:         10 * time.Second,
+						Monitor:         composetypes.Duration(10 * time.Second),
 						MaxFailureRatio: 0.5,
 					},
 					RestartPolicy: &composetypes.RestartPolicy{
