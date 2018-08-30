@@ -18,12 +18,15 @@ const (
 	defaultDiskUsageTableFormat          = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
 	defaultBuildCacheVerboseFormat       = `
 ID: {{.ID}}
+Parent: {{.Parent}}
+Type: {{.Type}}
 Description: {{.Description}}
-Mutable: {{.Mutable}}
 Size: {{.Size}}
 CreatedAt: {{.CreatedAt}}
 LastUsedAt: {{.LastUsedAt}}
 UsageCount: {{.UsageCount}}
+InUse: {{.InUse}}
+Shared: {{.Shared}}
 `
 
 	typeHeader        = "TYPE"
@@ -416,7 +419,7 @@ func (c *diskUsageBuilderContext) Size() string {
 func (c *diskUsageBuilderContext) Reclaimable() string {
 	var inUseBytes int64
 	for _, bc := range c.buildCache {
-		if bc.InUse {
+		if bc.InUse && !bc.Shared {
 			inUseBytes += bc.Size
 		}
 	}
