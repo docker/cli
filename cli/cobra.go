@@ -104,7 +104,7 @@ var usageTemplate = `Usage:
 {{- if not .HasSubCommands}}	{{.UseLine}}{{end}}
 {{- if .HasSubCommands}}	{{ .CommandPath}}{{- if .HasAvailableFlags}} [OPTIONS]{{end}} COMMAND{{end}}
 
-{{ .Short | trim }}
+{{if ne .Long ""}}{{ .Long | trim }}{{ else }}{{ .Short | trim }}{{end}}
 
 {{- if gt .Aliases 0}}
 
