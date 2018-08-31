@@ -52,13 +52,20 @@ func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
 		format = formatter.TableFormatKey
 	}
 
+	var bsz int64
+	for _, bc := range du.BuildCache {
+		if !bc.Shared {
+			bsz += bc.Size
+		}
+	}
+
 	duCtx := formatter.DiskUsageContext{
 		Context: formatter.Context{
 			Output: dockerCli.Out(),
 			Format: formatter.NewDiskUsageFormat(format),
 		},
 		LayersSize:  du.LayersSize,
-		BuilderSize: du.BuilderSize,
+		BuilderSize: bsz,
 		BuildCache:  du.BuildCache,
 		Images:      du.Images,
 		Containers:  du.Containers,

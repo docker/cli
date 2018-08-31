@@ -32,11 +32,11 @@ Build Cache         0                   0                   0B                  
 			DiskUsageContext{Verbose: true},
 			`Images space usage:
 
-REPOSITORY          TAG                 IMAGE ID            CREATED ago         SIZE                SHARED SIZE         UNIQUE SiZE         CONTAINERS
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE                SHARED SIZE         UNIQUE SIZE         CONTAINERS
 
 Containers space usage:
 
-CONTAINER ID        IMAGE               COMMAND             LOCAL VOLUMES       SIZE                CREATED ago         STATUS              NAMES
+CONTAINER ID        IMAGE               COMMAND             LOCAL VOLUMES       SIZE                CREATED             STATUS              NAMES
 
 Local Volumes space usage:
 
@@ -44,6 +44,7 @@ VOLUME NAME         LINKS               SIZE
 
 Build cache usage: 0B
 
+CACHE ID            TYPE                SIZE                CREATED             LAST USED           USAGE               SHARED
 `,
 		},
 		// Errors
