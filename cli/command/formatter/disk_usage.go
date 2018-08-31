@@ -12,22 +12,11 @@ import (
 )
 
 const (
-	defaultDiskUsageImageTableFormat     = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}} ago\t{{.VirtualSize}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
-	defaultDiskUsageContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}} ago\t{{.Status}}\t{{.Names}}"
-	defaultDiskUsageVolumeTableFormat    = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
-	defaultDiskUsageTableFormat          = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
-	defaultBuildCacheVerboseFormat       = `
-ID: {{.ID}}
-Parent: {{.Parent}}
-Type: {{.Type}}
-Description: {{.Description}}
-Size: {{.Size}}
-CreatedAt: {{.CreatedAt}}
-LastUsedAt: {{.LastUsedAt}}
-UsageCount: {{.UsageCount}}
-InUse: {{.InUse}}
-Shared: {{.Shared}}
-`
+	defaultDiskUsageImageTableFormat      = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.VirtualSize}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
+	defaultDiskUsageContainerTableFormat  = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}}\t{{.Status}}\t{{.Names}}"
+	defaultDiskUsageVolumeTableFormat     = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
+	defaultDiskUsageTableFormat           = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
+	defaultDiskUsageBuildCacheTableFormat = "table {{.ID}}\t{{.Type}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
 
 	typeHeader        = "TYPE"
 	totalHeader       = "TOTAL"
@@ -35,7 +24,7 @@ Shared: {{.Shared}}
 	reclaimableHeader = "RECLAIMABLE"
 	containersHeader  = "CONTAINERS"
 	sharedSizeHeader  = "SHARED SIZE"
-	uniqueSizeHeader  = "UNIQUE SiZE"
+	uniqueSizeHeader  = "UNIQUE SIZE"
 )
 
 // DiskUsageContext contains disk usage specific information required by the formatter, encapsulate a Context struct.
@@ -59,7 +48,6 @@ func (ctx *DiskUsageContext) startSubsection(format string) (*template.Template,
 	return ctx.parseFormat()
 }
 
-//
 // NewDiskUsageFormat returns a format for rendering an DiskUsageContext
 func NewDiskUsageFormat(source string) Format {
 	switch source {
@@ -132,6 +120,7 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	return err
 }
 
+// nolint: gocyclo
 func (ctx *DiskUsageContext) verboseWrite() error {
 	// First images
 	tmpl, err := ctx.startSubsection(defaultDiskUsageImageTableFormat)
@@ -199,11 +188,17 @@ func (ctx *DiskUsageContext) verboseWrite() error {
 	// And build cache
 	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
 
-	t := template.Must(template.New("buildcache").Parse(defaultBuildCacheVerboseFormat))
-
-	for _, v := range ctx.BuildCache {
-		t.Execute(ctx.Output, *v)
+	tmpl, err = ctx.startSubsection(defaultDiskUsageBuildCacheTableFormat)
+	if err != nil {
+		return err
 	}
+	buildCacheSort(ctx.BuildCache)
+	for _, v := range ctx.BuildCache {
+		if err := ctx.contextFormat(tmpl, &buildCacheContext{v: v, trunc: true}); err != nil {
+			return err
+		}
+	}
+	ctx.postFormat(tmpl, newBuildCacheContext())
 
 	return nil
 }
