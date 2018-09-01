@@ -17,6 +17,7 @@ func NewBuilderCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		NewPruneCommand(dockerCli),
+		NewDiskUsageCommand(dockerCli),
 	)
 	return cmd
 }
