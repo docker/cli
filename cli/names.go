@@ -1,19 +1,29 @@
 package cli
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
-
-	"github.com/docker/cli/cli/names"
 )
 
 var (
-	validContainerNamePattern = names.RestrictedNamePattern
+	validContainerNamePattern = regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+$")
 )
 
 // CheckContainerName check container's name is valid or not
-func CheckContainerName(name string) bool {
-	if len(name) == 0 {
-		return false
+func CheckContainerName(name string) error {
+	if !validContainerNamePattern.MatchString(strings.TrimPrefix(name, "/")) {
+		return fmt.Errorf("container name %s is invalid", name)
 	}
-	return validContainerNamePattern.MatchString(strings.TrimPrefix(name, "/"))
+	return nil
+}
+
+// CheckContainerNames check containers' name is valid or not
+func CheckContainerNames(names ...string) error {
+	for _, name := range names {
+		if err := CheckContainerName(name); err != nil {
+			return err
+		}
+	}
+	return nil
 }

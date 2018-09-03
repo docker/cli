@@ -29,10 +29,8 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove one or more containers",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			for _, name := range args {
-				if !cli.CheckContainerName(name) {
-					return fmt.Errorf("container name %s is invalid", name)
-				}
+			if err := cli.CheckContainerNames(args...); err != nil {
+				return err
 			}
 			opts.containers = args
 			return runRm(dockerCli, &opts)
