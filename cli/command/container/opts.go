@@ -62,6 +62,8 @@ type containerOptions struct {
 	storageOpt         opts.ListOpts
 	labelsFile         opts.ListOpts
 	loggingOpts        opts.ListOpts
+	maskedPaths        opts.ListOpts
+	readonlyPaths      opts.ListOpts
 	privileged         bool
 	pidMode            string
 	utsMode            string
@@ -150,7 +152,9 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		linkLocalIPs:      opts.NewListOpts(nil),
 		links:             opts.NewListOpts(opts.ValidateLink),
 		loggingOpts:       opts.NewListOpts(nil),
+		maskedPaths:       opts.NewListOpts(nil),
 		publish:           opts.NewListOpts(nil),
+		readonlyPaths:     opts.NewListOpts(nil),
 		securityOpt:       opts.NewListOpts(nil),
 		storageOpt:        opts.NewListOpts(nil),
 		sysctls:           opts.NewMapOpts(nil, opts.ValidateSysctl),
@@ -183,6 +187,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.StringVarP(&copts.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
 	flags.StringVarP(&copts.workingDir, "workdir", "w", "", "Working directory inside the container")
 	flags.BoolVar(&copts.autoRemove, "rm", false, "Automatically remove the container when it exits")
+	flags.Var(&copts.maskedPaths, "masked-paths", "Denote the paths to be masked for the container, empty implies none")
+	flags.Var(&copts.readonlyPaths, "readonly-paths", "Denote the paths to be set as readonly for the container, empty implies none")
 
 	// Security
 	flags.Var(&copts.capAdd, "cap-add", "Add Linux capabilities")
@@ -471,6 +477,16 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		return nil, err
 	}
 
+	maskedPathOpts, err := parsePaths(copts.maskedPaths.GetAll())
+	if err != nil {
+		return nil, err
+	}
+
+	readonlyPathOpts, err := parsePaths(copts.readonlyPaths.GetAll())
+	if err != nil {
+		return nil, err
+	}
+
 	// Healthcheck
 	var healthConfig *container.HealthConfig
 	haveHealthSettings := copts.healthCmd != "" ||
@@ -614,6 +630,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		Sysctls:        copts.sysctls.GetAll(),
 		Runtime:        copts.runtime,
 		Mounts:         mounts,
+		MaskedPaths:    maskedPathOpts,
+		ReadonlyPaths:  readonlyPathOpts,
 	}
 
 	if copts.autoRemove && !hostConfig.RestartPolicy.IsNone() {
@@ -775,6 +793,18 @@ func parseDevice(device string) (container.DeviceMapping, error) {
 		CgroupPermissions: permissions,
 	}
 	return deviceMapping, nil
+}
+
+func parsePaths(paths []string) ([]string, error) {
+	for _, p := range paths {
+		if p == "none" {
+			if len(paths) > 1 {
+				return nil, errors.New("Passing 'none' and other paths is not allowed")
+			}
+			return []string{}, nil
+		}
+	}
+	return paths, nil
 }
 
 // validateDeviceCgroupRule validates a device cgroup rule string format

@@ -50,6 +50,19 @@ func TestRunWithContentTrust(t *testing.T) {
 	})
 }
 
+func TestRunMaskedPaths(t *testing.T) {
+	result := icmd.RunCmd(
+		icmd.Command("docker", "run", image),
+		fixtures.WithConfig(dir.Path()),
+		fixtures.WithTrust,
+		fixtures.WithNotary,
+	)
+	result.Assert(t, icmd.Expected{
+		Err: fmt.Sprintf("Tagging %s@sha", image[:len(image)-7]),
+	})
+
+}
+
 // TODO: create this with registry API instead of engine API
 func createRemoteImage(t *testing.T) string {
 	image := "registry:5000/alpine:test-run-pulls"
