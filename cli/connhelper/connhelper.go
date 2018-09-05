@@ -82,6 +82,7 @@ func newCommandConn(ctx context.Context, cmd string, args ...string) (net.Conn, 
 // commandConn implements net.Conn
 type commandConn struct {
 	cmd           *exec.Cmd
+	cmdMutex      sync.Mutex
 	stdin         io.WriteCloser
 	stdout        io.ReadCloser
 	stderrMu      sync.Mutex
@@ -102,6 +103,7 @@ func (c *commandConn) killIfStdioClosed() error {
 		return nil
 	}
 	var err error
+	c.cmdMutex.Lock()
 	// NOTE: maybe already killed here
 	if err = c.cmd.Process.Kill(); err == nil {
 		err = c.cmd.Wait()
@@ -113,11 +115,14 @@ func (c *commandConn) killIfStdioClosed() error {
 			err = nil
 		}
 	}
+	c.cmdMutex.Unlock()
 	return err
 }
 
 func (c *commandConn) onEOF(eof error) error {
+	c.cmdMutex.Lock()
 	werr := c.cmd.Wait()
+	c.cmdMutex.Unlock()
 	if werr == nil {
 		return eof
 	}
@@ -131,6 +136,7 @@ func ignorableCloseError(err error) bool {
 	errS := err.Error()
 	ss := []string{
 		os.ErrClosed.Error(),
+		"process already finished",
 	}
 	for _, s := range ss {
 		if strings.Contains(errS, s) {
@@ -148,7 +154,10 @@ func (c *commandConn) CloseRead() error {
 	c.stdioClosedMu.Lock()
 	c.stdoutClosed = true
 	c.stdioClosedMu.Unlock()
-	return c.killIfStdioClosed()
+	if err := c.killIfStdioClosed(); err != nil && !ignorableCloseError(err) {
+		logrus.Warnf("commandConn.CloseRead: %v", err)
+	}
+	return nil
 }
 
 func (c *commandConn) Read(p []byte) (int, error) {
@@ -167,7 +176,10 @@ func (c *commandConn) CloseWrite() error {
 	c.stdioClosedMu.Lock()
 	c.stdinClosed = true
 	c.stdioClosedMu.Unlock()
-	return c.killIfStdioClosed()
+	if err := c.killIfStdioClosed(); err != nil && !ignorableCloseError(err) {
+		logrus.Warnf("commandConn.CloseWrite: %v", err)
+	}
+	return nil
 }
 
 func (c *commandConn) Write(p []byte) (int, error) {
