@@ -107,7 +107,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 		return err
 	}
 
-	// Convert Replicas sets and kubernetes services to swam services and formatter informations
+	// Convert Replicas sets and kubernetes services to swarm services and formatter information
 	services, info, err := convertToServices(replicasList, daemonsList, servicesList)
 	if err != nil {
 		return err

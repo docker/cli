@@ -85,7 +85,7 @@ func (s *stackV1Beta1) IsColliding(servicesClient corev1.ServiceInterface, st St
 	return nil
 }
 
-// verify checks wether the service is already present in kubernetes.
+// verify checks whether the service is already present in kubernetes.
 // If we find the service by name but it doesn't have our label or it has a different value
 // than the stack name for the label, we fail (i.e. it will collide)
 func verify(services corev1.ServiceInterface, stackName string, service string) error {
