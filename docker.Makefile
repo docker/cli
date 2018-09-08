@@ -79,7 +79,7 @@ shell: dev ## alias for dev
 
 .PHONY: lint
 lint: build_linter_image ## run linters
-	docker run -ti $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME)
+	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME) make lint
 
 .PHONY: vendor
 vendor: build_docker_image vendor.conf ## download dependencies (vendor/) listed in vendor.conf
