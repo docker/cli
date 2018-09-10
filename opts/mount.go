@@ -126,6 +126,15 @@ func (m *MountOpt) Set(value string) error {
 				return fmt.Errorf("invalid value for %s: %s", key, value)
 			}
 			tmpfsOptions().Mode = os.FileMode(ui64)
+		case "tmpfs-opt":
+			opt := strings.ToLower(value)
+			validOpts := map[string]bool {
+				"exec": true,
+				"noexec": true,
+			}
+			if _, ok := validOpts[opt]; ok {
+				tmpfsOptions().RawOptions = opt
+			}
 		default:
 			return fmt.Errorf("unexpected key '%s' in '%s'", key, field)
 		}

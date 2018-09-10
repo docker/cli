@@ -343,3 +343,21 @@ func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.Error(t, err, "invalid tmpfs source, source must be empty")
 }
+
+func TestConvertTmpfsToMountVolumeWithExecOption(t *testing.T) {
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "tmpfs",
+		Target: "/foo/bar",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Options: "exec",
+		},
+	}
+	expected := mount.Mount{
+		Type:         mount.TypeTmpfs,
+		Target:       "/foo/bar",
+		TmpfsOptions: &mount.TmpfsOptions{RawOptions: "exec"},
+	}
+	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
+}

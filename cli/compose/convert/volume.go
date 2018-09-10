@@ -117,6 +117,7 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	if volume.Tmpfs != nil {
 		result.TmpfsOptions = &mount.TmpfsOptions{
 			SizeBytes: volume.Tmpfs.Size,
+			RawOptions: volume.Tmpfs.Options,
 		}
 	}
 	return result, nil
