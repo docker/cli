@@ -46,7 +46,7 @@ func TestGetCurrentEngineVersionEnterpriseHappy(t *testing.T) {
 	ctx := context.Background()
 	image := &fakeImage{
 		nameFunc: func() string {
-			return "docker.io/docker/" + clitypes.EnterpriseEngineImage + ":engineversion"
+			return "docker.io/store/docker/" + clitypes.EnterpriseEngineImage + ":engineversion"
 		},
 	}
 	container := &fakeContainer{
@@ -66,7 +66,7 @@ func TestGetCurrentEngineVersionEnterpriseHappy(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, opts.EngineImage, clitypes.EnterpriseEngineImage)
 	assert.Equal(t, opts.EngineVersion, "engineversion")
-	assert.Equal(t, opts.RegistryPrefix, "docker.io/docker")
+	assert.Equal(t, opts.RegistryPrefix, "docker.io/store/docker")
 }
 
 func TestGetCurrentEngineVersionNoEngine(t *testing.T) {

@@ -35,7 +35,7 @@ file on the host and may be pre-created before running the 'init' command.
 	flags := cmd.Flags()
 	flags.StringVar(&options.EngineVersion, "version", cli.Version, "Specify engine version")
 	flags.StringVar(&options.EngineImage, "engine-image", clitypes.CommunityEngineImage, "Specify engine image")
-	flags.StringVar(&options.RegistryPrefix, "registry-prefix", "docker.io/docker", "Override the default location where engine images are pulled")
+	flags.StringVar(&options.RegistryPrefix, "registry-prefix", "docker.io/store/docker", "Override the default location where engine images are pulled")
 	flags.StringVar(&options.ConfigFile, "config-file", "/etc/docker/daemon.json", "Specify the location of the daemon configuration file on the host")
 	flags.StringVar(&options.sockPath, "containerd", "", "override default location of containerd endpoint")
 
