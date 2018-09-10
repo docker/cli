@@ -2,6 +2,8 @@ package configfile
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -412,4 +414,14 @@ func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
 			assert.NilError(t, err, test.name)
 		}
 	}
+}
+
+func TestSave(t *testing.T) {
+	configFile := New("test-save")
+	defer os.Remove("test-save")
+	err := configFile.Save()
+	assert.NilError(t, err)
+	cfg, err := ioutil.ReadFile("test-save")
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
 }
