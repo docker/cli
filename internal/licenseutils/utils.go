@@ -1,6 +1,7 @@
 package licenseutils
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -35,18 +36,22 @@ func (u HubUser) GetOrgByID(orgID string) (model.Org, error) {
 	return model.Org{}, fmt.Errorf("org %s not found", orgID)
 }
 
-// Login to the license server and return a client that can be used to look up and download license files or generate new trial licenses
-func Login(ctx context.Context, authConfig *types.AuthConfig) (HubUser, error) {
+func getClient() (licensing.Client, error) {
 	baseURI, err := url.Parse(licensingDefaultBaseURI)
 	if err != nil {
-		return HubUser{}, err
+		return nil, err
 	}
 
-	lclient, err := licensing.New(&licensing.Config{
+	return licensing.New(&licensing.Config{
 		BaseURI:    *baseURI,
 		HTTPClient: &http.Client{},
 		PublicKeys: licensingPublicKeys,
 	})
+}
+
+// Login to the license server and return a client that can be used to look up and download license files or generate new trial licenses
+func Login(ctx context.Context, authConfig *types.AuthConfig) (HubUser, error) {
+	lclient, err := getClient()
 	if err != nil {
 		return HubUser{}, err
 	}
@@ -143,20 +148,25 @@ func (u HubUser) GetIssuedLicense(ctx context.Context, ID string) (*model.Issued
 
 // LoadLocalIssuedLicense will load a local license file
 func LoadLocalIssuedLicense(ctx context.Context, filename string) (*model.IssuedLicense, error) {
-	baseURI, err := url.Parse(licensingDefaultBaseURI)
-	if err != nil {
-		return nil, err
-	}
-
-	lclient, err := licensing.New(&licensing.Config{
-		BaseURI:    *baseURI,
-		HTTPClient: &http.Client{},
-		PublicKeys: licensingPublicKeys,
-	})
+	lclient, err := getClient()
 	if err != nil {
 		return nil, err
 	}
 	return doLoadLocalIssuedLicense(ctx, filename, lclient)
+}
+
+// GetLicenseSummary summarizes the license for the user
+func GetLicenseSummary(ctx context.Context, license model.IssuedLicense) (string, error) {
+	lclient, err := getClient()
+	if err != nil {
+		return "", err
+	}
+
+	cr, err := lclient.VerifyLicense(ctx, license)
+	if err != nil {
+		return "", err
+	}
+	return lclient.SummarizeLicense(cr, license.KeyID).String(), nil
 }
 
 func doLoadLocalIssuedLicense(ctx context.Context, filename string, lclient licensing.Client) (*model.IssuedLicense, error) {
@@ -165,6 +175,9 @@ func doLoadLocalIssuedLicense(ctx context.Context, filename string, lclient lice
 	if err != nil {
 		return nil, err
 	}
+	// The file may contain a leading BOM, which will choke the
+	// json deserializer.
+	data = bytes.TrimPrefix(data, []byte("\xef\xbb\xbf"))
 
 	err = json.Unmarshal(data, &license)
 	if err != nil {
