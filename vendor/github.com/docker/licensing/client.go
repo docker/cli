@@ -1,6 +1,7 @@
 package licensing
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -34,6 +35,7 @@ type Client interface {
 	ParseLicense(license []byte) (parsedLicense *model.IssuedLicense, err error)
 	StoreLicense(ctx context.Context, dclnt WrappedDockerClient, licenses *model.IssuedLicense, localRootDir string) error
 	LoadLocalLicense(ctx context.Context, dclnt WrappedDockerClient) (*model.Subscription, error)
+	SummarizeLicense(res *model.CheckResponse, keyID string) *model.Subscription
 }
 
 func (c *client) LoginViaAuth(ctx context.Context, username, password string) (string, error) {
@@ -185,6 +187,10 @@ func (c *client) DownloadLicenseFromHub(ctx context.Context, authToken, subscrip
 
 func (c *client) ParseLicense(license []byte) (*model.IssuedLicense, error) {
 	parsedLicense := &model.IssuedLicense{}
+	// The file may contain a leading BOM, which will choke the
+	// json deserializer.
+	license = bytes.Trim(license, "\xef\xbb\xbf")
+
 	if err := json.Unmarshal(license, &parsedLicense); err != nil {
 		return nil, errors.WithMessage(err, "failed to parse license")
 	}
