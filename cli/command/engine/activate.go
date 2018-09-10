@@ -89,13 +89,18 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		if license, err = getLicenses(ctx, authConfig, cli, options); err != nil {
 			return err
 		}
-		if options.displayOnly {
-			return nil
-		}
 	} else {
 		if license, err = licenseutils.LoadLocalIssuedLicense(ctx, options.licenseFile); err != nil {
 			return err
 		}
+	}
+	summary, err := licenseutils.GetLicenseSummary(ctx, *license)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cli.Out(), "License: %s\n", summary)
+	if options.displayOnly {
+		return nil
 	}
 	if err = licenseutils.ApplyLicense(ctx, cli.Client(), license); err != nil {
 		return err
