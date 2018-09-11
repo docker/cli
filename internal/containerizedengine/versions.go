@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	registryclient "github.com/docker/cli/cli/registry/client"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
 	ver "github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
@@ -12,29 +13,29 @@ import (
 )
 
 // GetEngineVersions reports the versions of the engine that are available
-func (c baseClient) GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (AvailableVersions, error) {
+func (c *baseClient) GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (clitypes.AvailableVersions, error) {
 	imageRef, err := reference.ParseNormalizedNamed(imageName)
 	if err != nil {
-		return AvailableVersions{}, err
+		return clitypes.AvailableVersions{}, err
 	}
 
 	tags, err := registryClient.GetTags(ctx, imageRef)
 	if err != nil {
-		return AvailableVersions{}, err
+		return clitypes.AvailableVersions{}, err
 	}
 
 	return parseTags(tags, currentVersion)
 }
 
-func parseTags(tags []string, currentVersion string) (AvailableVersions, error) {
-	var ret AvailableVersions
+func parseTags(tags []string, currentVersion string) (clitypes.AvailableVersions, error) {
+	var ret clitypes.AvailableVersions
 	currentVer, err := ver.NewVersion(currentVersion)
 	if err != nil {
 		return ret, errors.Wrapf(err, "failed to parse existing version %s", currentVersion)
 	}
-	downgrades := []DockerVersion{}
-	patches := []DockerVersion{}
-	upgrades := []DockerVersion{}
+	downgrades := []clitypes.DockerVersion{}
+	patches := []clitypes.DockerVersion{}
+	upgrades := []clitypes.DockerVersion{}
 	currentSegments := currentVer.Segments()
 	for _, tag := range tags {
 		tmp, err := ver.NewVersion(tag)
@@ -42,7 +43,7 @@ func parseTags(tags []string, currentVersion string) (AvailableVersions, error) 
 			logrus.Debugf("Unable to parse %s: %s", tag, err)
 			continue
 		}
-		testVersion := DockerVersion{Version: *tmp, Tag: tag}
+		testVersion := clitypes.DockerVersion{Version: *tmp, Tag: tag}
 		if testVersion.LessThan(currentVer) {
 			downgrades = append(downgrades, testVersion)
 			continue

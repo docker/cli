@@ -19,8 +19,8 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -55,20 +55,21 @@ type Cli interface {
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
-	NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error)
+	NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error)
 }
 
 // DockerCli is an instance the docker command line client.
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
-	configFile   *configfile.ConfigFile
-	in           *InStream
-	out          *OutStream
-	err          io.Writer
-	client       client.APIClient
-	serverInfo   ServerInfo
-	clientInfo   ClientInfo
-	contentTrust bool
+	configFile            *configfile.ConfigFile
+	in                    *InStream
+	out                   *OutStream
+	err                   io.Writer
+	client                client.APIClient
+	serverInfo            ServerInfo
+	clientInfo            ClientInfo
+	contentTrust          bool
+	newContainerizeClient func(string) (clitypes.ContainerizedClient, error)
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
@@ -233,8 +234,8 @@ func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions 
 }
 
 // NewContainerizedEngineClient returns a containerized engine client
-func (cli *DockerCli) NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error) {
-	return containerizedengine.NewClient(sockPath)
+func (cli *DockerCli) NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error) {
+	return cli.newContainerizeClient(sockPath)
 }
 
 // ServerInfo stores details about the supported features and platform of the
@@ -252,8 +253,8 @@ type ClientInfo struct {
 }
 
 // NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
-func NewDockerCli(in io.ReadCloser, out, err io.Writer, isTrusted bool) *DockerCli {
-	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err, contentTrust: isTrusted}
+func NewDockerCli(in io.ReadCloser, out, err io.Writer, isTrusted bool, containerizedFn func(string) (clitypes.ContainerizedClient, error)) *DockerCli {
+	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err, contentTrust: isTrusted, newContainerizeClient: containerizedFn}
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags

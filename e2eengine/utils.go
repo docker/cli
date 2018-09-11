@@ -5,8 +5,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/containerd/containerd"
 	"github.com/docker/cli/internal/containerizedengine"
+	"github.com/docker/cli/types"
 )
+
+type containerizedclient interface {
+	types.ContainerizedClient
+	GetEngine(context.Context) (containerd.Container, error)
+}
 
 // CleanupEngine ensures the local engine has been removed between testcases
 func CleanupEngine(t *testing.T) error {
@@ -19,7 +26,7 @@ func CleanupEngine(t *testing.T) error {
 	}
 
 	// See if the engine exists first
-	engine, err := client.GetEngine(ctx)
+	_, err = client.(containerizedclient).GetEngine(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "not present") {
 			t.Log("engine was not detected, no cleanup to perform")
@@ -31,7 +38,7 @@ func CleanupEngine(t *testing.T) error {
 		return err
 	}
 	// TODO Consider nuking the docker dir too so there's no cached content between test cases
-	err = client.RemoveEngine(ctx, engine)
+	err = client.RemoveEngine(ctx)
 	if err != nil {
 		t.Logf("Failed to remove engine: %s", err)
 	}

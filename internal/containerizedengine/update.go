@@ -9,16 +9,17 @@ import (
 	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/docker/cli/internal/pkg/containerized"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 )
 
 // GetCurrentEngineVersion determines the current type of engine (image) and version
-func (c baseClient) GetCurrentEngineVersion(ctx context.Context) (EngineInitOptions, error) {
+func (c *baseClient) GetCurrentEngineVersion(ctx context.Context) (clitypes.EngineInitOptions, error) {
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-	ret := EngineInitOptions{}
-	currentEngine := CommunityEngineImage
+	ret := clitypes.EngineInitOptions{}
+	currentEngine := clitypes.CommunityEngineImage
 	engine, err := c.GetEngine(ctx)
 	if err != nil {
 		if err == ErrEngineNotPresent {
@@ -35,8 +36,8 @@ func (c baseClient) GetCurrentEngineVersion(ctx context.Context) (EngineInitOpti
 		return ret, errors.Wrapf(err, "failed to parse image name: %s", imageName)
 	}
 
-	if strings.Contains(distributionRef.Name(), EnterpriseEngineImage) {
-		currentEngine = EnterpriseEngineImage
+	if strings.Contains(distributionRef.Name(), clitypes.EnterpriseEngineImage) {
+		currentEngine = clitypes.EnterpriseEngineImage
 	}
 	taggedRef, ok := distributionRef.(reference.NamedTagged)
 	if !ok {
@@ -49,11 +50,11 @@ func (c baseClient) GetCurrentEngineVersion(ctx context.Context) (EngineInitOpti
 }
 
 // ActivateEngine will switch the image from the CE to EE image
-func (c baseClient) ActivateEngine(ctx context.Context, opts EngineInitOptions, out OutStream,
+func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
 
 	// set the proxy scope to "ee" for activate flows
-	opts.scope = "ee"
+	opts.Scope = "ee"
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 
@@ -64,7 +65,7 @@ func (c baseClient) ActivateEngine(ctx context.Context, opts EngineInitOptions, 
 			return err
 		}
 		opts.EngineVersion = currentOpts.EngineVersion
-		if currentOpts.EngineImage == EnterpriseEngineImage {
+		if currentOpts.EngineImage == clitypes.EnterpriseEngineImage {
 			// This is a "no-op" activation so the only change would be the license - don't update the engine itself
 			return nil
 		}
@@ -73,7 +74,7 @@ func (c baseClient) ActivateEngine(ctx context.Context, opts EngineInitOptions, 
 }
 
 // DoUpdate performs the underlying engine update
-func (c baseClient) DoUpdate(ctx context.Context, opts EngineInitOptions, out OutStream,
+func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
@@ -117,13 +118,13 @@ func (c baseClient) DoUpdate(ctx context.Context, opts EngineInitOptions, out Ou
 		defer cancel()
 		return c.waitForEngine(ctx, out, healthfn)
 	})
-	if err == nil && opts.scope != "" {
+	if err == nil && opts.Scope != "" {
 		var labels map[string]string
 		labels, err = engine.Labels(ctx)
 		if err != nil {
 			return err
 		}
-		labels[proxyLabel] = opts.scope
+		labels[proxyLabel] = opts.Scope
 		_, err = engine.SetLabels(ctx, labels)
 	}
 	return err

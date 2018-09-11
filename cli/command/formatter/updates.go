@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"github.com/docker/cli/internal/containerizedengine"
+	clitypes "github.com/docker/cli/types"
 )
 
 const (
@@ -31,7 +31,7 @@ func NewUpdatesFormat(source string, quiet bool) Format {
 }
 
 // UpdatesWrite writes the context
-func UpdatesWrite(ctx Context, availableUpdates []containerizedengine.Update) error {
+func UpdatesWrite(ctx Context, availableUpdates []clitypes.Update) error {
 	render := func(format func(subContext subContext) error) error {
 		for _, update := range availableUpdates {
 			updatesCtx := &updateContext{trunc: ctx.Trunc, u: update}
@@ -53,7 +53,7 @@ func UpdatesWrite(ctx Context, availableUpdates []containerizedengine.Update) er
 type updateContext struct {
 	HeaderContext
 	trunc bool
-	u     containerizedengine.Update
+	u     clitypes.Update
 }
 
 func (c *updateContext) MarshalJSON() ([]byte, error) {
