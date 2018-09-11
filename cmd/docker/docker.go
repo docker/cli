@@ -13,6 +13,7 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal/containerizedengine"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/term"
@@ -168,7 +169,7 @@ func main() {
 	stdin, stdout, stderr := term.StdStreams()
 	logrus.SetOutput(stderr)
 
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, contentTrustEnabled())
+	dockerCli := command.NewDockerCli(stdin, stdout, stderr, contentTrustEnabled(), containerizedengine.NewClient)
 	cmd := newDockerCommand(dockerCli)
 
 	if err := cmd.Execute(); err != nil {

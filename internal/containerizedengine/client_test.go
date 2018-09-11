@@ -1,7 +1,6 @@
 package containerizedengine
 
 import (
-	"bytes"
 	"context"
 	"syscall"
 
@@ -68,10 +67,6 @@ type (
 		updateFunc      func(context.Context, ...containerd.UpdateTaskOpts) error
 		loadProcessFunc func(context.Context, string, cio.Attach) (containerd.Process, error)
 		metricsFunc     func(context.Context) (*containerdtypes.Metric, error)
-	}
-
-	testOutStream struct {
-		bytes.Buffer
 	}
 )
 
@@ -338,11 +333,4 @@ func (t *fakeTask) Metrics(ctx context.Context) (*containerdtypes.Metric, error)
 		return t.metricsFunc(ctx)
 	}
 	return nil, nil
-}
-
-func (o *testOutStream) FD() uintptr {
-	return 0
-}
-func (o *testOutStream) IsTerminal() bool {
-	return false
 }

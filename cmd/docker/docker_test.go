@@ -26,7 +26,7 @@ func TestClientDebugEnabled(t *testing.T) {
 
 func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
 	discard := ioutil.Discard
-	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard, false))
+	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard, false, nil))
 	cmd.SetArgs([]string{"help", "invalid"})
 	err := cmd.Execute()
 	assert.Error(t, err, "unknown help topic: invalid")

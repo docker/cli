@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/docker/cli/internal/containerizedengine"
+	"github.com/docker/cli/types"
 	"gotest.tools/assert"
 )
 
 func TestActivateNoContainerd(t *testing.T) {
 	testCli.SetContainerizedEngineClient(
-		func(string) (containerizedengine.Client, error) {
+		func(string) (types.ContainerizedClient, error) {
 			return nil, fmt.Errorf("some error")
 		},
 	)
@@ -24,7 +24,7 @@ func TestActivateNoContainerd(t *testing.T) {
 
 func TestActivateBadLicense(t *testing.T) {
 	testCli.SetContainerizedEngineClient(
-		func(string) (containerizedengine.Client, error) {
+		func(string) (types.ContainerizedClient, error) {
 			return &fakeContainerizedEngineClient{}, nil
 		},
 	)

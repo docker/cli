@@ -1,6 +1,7 @@
 package containerizedengine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -12,6 +13,8 @@ import (
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/oci"
+	"github.com/docker/cli/cli/command"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"gotest.tools/assert"
@@ -26,11 +29,11 @@ func healthfnError(ctx context.Context) error {
 
 func TestInitGetEngineFail(t *testing.T) {
 	ctx := context.Background()
-	opts := EngineInitOptions{
+	opts := clitypes.EngineInitOptions{
 		EngineVersion:  "engineversiongoeshere",
 		RegistryPrefix: "registryprefixgoeshere",
 		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    CommunityEngineImage,
+		EngineImage:    clitypes.CommunityEngineImage,
 	}
 	container := &fakeContainer{}
 	client := baseClient{
@@ -41,17 +44,17 @@ func TestInitGetEngineFail(t *testing.T) {
 		},
 	}
 
-	err := client.InitEngine(ctx, opts, &testOutStream{}, &types.AuthConfig{}, healthfnHappy)
+	err := client.InitEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.Assert(t, err == ErrEngineAlreadyPresent)
 }
 
 func TestInitCheckImageFail(t *testing.T) {
 	ctx := context.Background()
-	opts := EngineInitOptions{
+	opts := clitypes.EngineInitOptions{
 		EngineVersion:  "engineversiongoeshere",
 		RegistryPrefix: "registryprefixgoeshere",
 		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    CommunityEngineImage,
+		EngineImage:    clitypes.CommunityEngineImage,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -65,18 +68,18 @@ func TestInitCheckImageFail(t *testing.T) {
 		},
 	}
 
-	err := client.InitEngine(ctx, opts, &testOutStream{}, &types.AuthConfig{}, healthfnHappy)
+	err := client.InitEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "unable to check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
 
 func TestInitPullFail(t *testing.T) {
 	ctx := context.Background()
-	opts := EngineInitOptions{
+	opts := clitypes.EngineInitOptions{
 		EngineVersion:  "engineversiongoeshere",
 		RegistryPrefix: "registryprefixgoeshere",
 		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    CommunityEngineImage,
+		EngineImage:    clitypes.CommunityEngineImage,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -93,18 +96,18 @@ func TestInitPullFail(t *testing.T) {
 		},
 	}
 
-	err := client.InitEngine(ctx, opts, &testOutStream{}, &types.AuthConfig{}, healthfnHappy)
+	err := client.InitEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "unable to pull image")
 	assert.ErrorContains(t, err, "pull failure")
 }
 
 func TestInitStartFail(t *testing.T) {
 	ctx := context.Background()
-	opts := EngineInitOptions{
+	opts := clitypes.EngineInitOptions{
 		EngineVersion:  "engineversiongoeshere",
 		RegistryPrefix: "registryprefixgoeshere",
 		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    CommunityEngineImage,
+		EngineImage:    clitypes.CommunityEngineImage,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -121,7 +124,7 @@ func TestInitStartFail(t *testing.T) {
 		},
 	}
 
-	err := client.InitEngine(ctx, opts, &testOutStream{}, &types.AuthConfig{}, healthfnHappy)
+	err := client.InitEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "failed to create docker daemon")
 }
 
@@ -211,7 +214,7 @@ func TestWaitForEngineNeverShowsUp(t *testing.T) {
 		},
 	}
 
-	err := client.waitForEngine(ctx, &testOutStream{}, healthfnError)
+	err := client.waitForEngine(ctx, command.NewOutStream(&bytes.Buffer{}), healthfnError)
 	assert.ErrorContains(t, err, "timeout waiting")
 }
 
@@ -228,7 +231,7 @@ func TestWaitForEnginePingFail(t *testing.T) {
 		},
 	}
 
-	err := client.waitForEngine(ctx, &testOutStream{}, healthfnError)
+	err := client.waitForEngine(ctx, command.NewOutStream(&bytes.Buffer{}), healthfnError)
 	assert.ErrorContains(t, err, "ping fail")
 }
 
@@ -245,7 +248,7 @@ func TestWaitForEngineHealthy(t *testing.T) {
 		},
 	}
 
-	err := client.waitForEngine(ctx, &testOutStream{}, healthfnHappy)
+	err := client.waitForEngine(ctx, command.NewOutStream(&bytes.Buffer{}), healthfnHappy)
 	assert.NilError(t, err)
 }
 
@@ -261,7 +264,7 @@ func TestRemoveEngineBadTaskBadDelete(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.ErrorContains(t, err, "failed to remove existing engine")
 	assert.ErrorContains(t, err, "delete failure")
 }
@@ -280,7 +283,7 @@ func TestRemoveEngineTaskNoStatus(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.ErrorContains(t, err, "task status failure")
 }
 
@@ -301,7 +304,7 @@ func TestRemoveEngineTaskNotRunningDeleteFail(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.ErrorContains(t, err, "task delete failure")
 }
 
@@ -322,7 +325,7 @@ func TestRemoveEngineTaskRunningKillFail(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.ErrorContains(t, err, "task kill failure")
 }
 
@@ -343,7 +346,7 @@ func TestRemoveEngineTaskRunningWaitFail(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.ErrorContains(t, err, "task wait failure")
 }
 
@@ -366,7 +369,7 @@ func TestRemoveEngineTaskRunningHappyPath(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.NilError(t, err)
 }
 
@@ -390,7 +393,7 @@ func TestRemoveEngineTaskKillTimeout(t *testing.T) {
 		},
 	}
 
-	err := client.RemoveEngine(ctx, container)
+	err := client.removeEngine(ctx, container)
 	assert.Assert(t, err == ErrEngineShutdownTimeout)
 }
 
