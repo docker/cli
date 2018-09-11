@@ -141,7 +141,7 @@ func Service(
 				Dir:             service.WorkingDir,
 				User:            service.User,
 				Mounts:          mounts,
-				StopGracePeriod: service.StopGracePeriod,
+				StopGracePeriod: composetypes.ConvertDurationPtr(service.StopGracePeriod),
 				StopSignal:      service.StopSignal,
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
@@ -414,13 +414,13 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 
 	}
 	if healthcheck.Timeout != nil {
-		timeout = *healthcheck.Timeout
+		timeout = time.Duration(*healthcheck.Timeout)
 	}
 	if healthcheck.Interval != nil {
-		interval = *healthcheck.Interval
+		interval = time.Duration(*healthcheck.Interval)
 	}
 	if healthcheck.StartPeriod != nil {
-		startPeriod = *healthcheck.StartPeriod
+		startPeriod = time.Duration(*healthcheck.StartPeriod)
 	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
@@ -458,11 +458,12 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 			return nil, errors.Errorf("unknown restart policy: %s", restart)
 		}
 	}
+
 	return &swarm.RestartPolicy{
 		Condition:   swarm.RestartPolicyCondition(source.Condition),
-		Delay:       source.Delay,
+		Delay:       composetypes.ConvertDurationPtr(source.Delay),
 		MaxAttempts: source.MaxAttempts,
-		Window:      source.Window,
+		Window:      composetypes.ConvertDurationPtr(source.Window),
 	}, nil
 }
 
@@ -476,9 +477,9 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 	}
 	return &swarm.UpdateConfig{
 		Parallelism:     parallel,
-		Delay:           source.Delay,
+		Delay:           time.Duration(source.Delay),
 		FailureAction:   source.FailureAction,
-		Monitor:         source.Monitor,
+		Monitor:         time.Duration(source.Monitor),
 		MaxFailureRatio: source.MaxFailureRatio,
 		Order:           source.Order,
 	}

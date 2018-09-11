@@ -806,15 +806,16 @@ volumes:
   external_volume:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "volume.external.name and volume.name conflict; only use volume.name")
 	assert.ErrorContains(t, err, "external_volume")
 }
 
-func durationPtr(value time.Duration) *time.Duration {
-	return &value
+func durationPtr(value time.Duration) *types.Duration {
+	result := types.Duration(value)
+	return &result
 }
 
 func uint64Ptr(value uint64) *uint64 {
@@ -1281,7 +1282,7 @@ secrets:
   external_secret:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "secret.external.name and secret.name conflict; only use secret.name")
@@ -1368,7 +1369,7 @@ networks:
   foo:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "network.external.name and network.name conflict; only use network.name")

@@ -222,7 +222,7 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig) v1beta2.ServiceConfi
 		ReadOnly:        s.ReadOnly,
 		Secrets:         fromComposeServiceSecrets(s.Secrets),
 		StdinOpen:       s.StdinOpen,
-		StopGracePeriod: s.StopGracePeriod,
+		StopGracePeriod: composetypes.ConvertDurationPtr(s.StopGracePeriod),
 		Tmpfs:           s.Tmpfs,
 		Tty:             s.Tty,
 		User:            userID,
@@ -285,8 +285,8 @@ func fromComposeHealthcheck(h *composeTypes.HealthCheckConfig) *v1beta2.HealthCh
 	}
 	return &v1beta2.HealthCheckConfig{
 		Test:     h.Test,
-		Timeout:  h.Timeout,
-		Interval: h.Interval,
+		Timeout:  composetypes.ConvertDurationPtr(h.Timeout),
+		Interval: composetypes.ConvertDurationPtr(h.Interval),
 		Retries:  h.Retries,
 	}
 }
