@@ -13,7 +13,7 @@ import (
 
 func getRegistryAuth(cli command.Cli, registryPrefix string) (*types.AuthConfig, error) {
 	if registryPrefix == "" {
-		registryPrefix = "docker.io/docker"
+		registryPrefix = "docker.io/store/docker"
 	}
 	distributionRef, err := reference.ParseNormalizedNamed(registryPrefix)
 	if err != nil {
