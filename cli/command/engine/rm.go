@@ -45,10 +45,5 @@ func runRm(dockerCli command.Cli, options rmOptions) error {
 	}
 	defer client.Close()
 
-	engine, err := client.GetEngine(ctx)
-	if err != nil {
-		return err
-	}
-
-	return client.RemoveEngine(ctx, engine)
+	return client.RemoveEngine(ctx)
 }

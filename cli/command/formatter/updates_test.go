@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/containerizedengine"
+	clitypes "github.com/docker/cli/types"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -84,7 +84,7 @@ version2
 	}
 
 	for _, testcase := range cases {
-		updates := []containerizedengine.Update{
+		updates := []clitypes.Update{
 			{Type: "updateType1", Version: "version1", Notes: "description 1"},
 			{Type: "updateType2", Version: "version2", Notes: "description 2"},
 		}
@@ -100,7 +100,7 @@ version2
 }
 
 func TestUpdateContextWriteJSON(t *testing.T) {
-	updates := []containerizedengine.Update{
+	updates := []clitypes.Update{
 		{Type: "updateType1", Version: "version1", Notes: "note1"},
 		{Type: "updateType2", Version: "version2", Notes: "note2"},
 	}
@@ -124,7 +124,7 @@ func TestUpdateContextWriteJSON(t *testing.T) {
 }
 
 func TestUpdateContextWriteJSONField(t *testing.T) {
-	updates := []containerizedengine.Update{
+	updates := []clitypes.Update{
 		{Type: "updateType1", Version: "version1"},
 		{Type: "updateType2", Version: "version2"},
 	}

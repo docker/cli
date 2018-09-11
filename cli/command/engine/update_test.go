@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/docker/cli/internal/containerizedengine"
+	clitypes "github.com/docker/cli/types"
 	"gotest.tools/assert"
 )
 
 func TestUpdateNoContainerd(t *testing.T) {
 	testCli.SetContainerizedEngineClient(
-		func(string) (containerizedengine.Client, error) {
+		func(string) (clitypes.ContainerizedClient, error) {
 			return nil, fmt.Errorf("some error")
 		},
 	)
@@ -23,7 +23,7 @@ func TestUpdateNoContainerd(t *testing.T) {
 
 func TestUpdateHappy(t *testing.T) {
 	testCli.SetContainerizedEngineClient(
-		func(string) (containerizedengine.Client, error) {
+		func(string) (clitypes.ContainerizedClient, error) {
 			return &fakeContainerizedEngineClient{}, nil
 		},
 	)

@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/containerizedengine"
 	"github.com/docker/cli/internal/licenseutils"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/licensing/model"
 	"github.com/pkg/errors"
@@ -57,7 +57,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 	flags.StringVar(&options.licenseFile, "license", "", "License File")
 	flags.StringVar(&options.version, "version", "", "Specify engine version (default is to use currently running version)")
 	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/docker", "Override the default location where engine images are pulled")
-	flags.StringVar(&options.image, "engine-image", containerizedengine.EnterpriseEngineImage, "Specify engine image")
+	flags.StringVar(&options.image, "engine-image", clitypes.EnterpriseEngineImage, "Specify engine image")
 	flags.StringVar(&options.format, "format", "", "Pretty-print licenses using a Go template")
 	flags.BoolVar(&options.displayOnly, "display-only", false, "only display the available licenses and exit")
 	flags.BoolVar(&options.quiet, "quiet", false, "Only display available licenses by ID")
@@ -98,7 +98,7 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		return err
 	}
 
-	opts := containerizedengine.EngineInitOptions{
+	opts := clitypes.EngineInitOptions{
 		RegistryPrefix: options.registryPrefix,
 		EngineImage:    options.image,
 		EngineVersion:  options.version,
