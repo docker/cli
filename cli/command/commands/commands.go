@@ -2,6 +2,7 @@ package commands
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/builder"
@@ -85,9 +86,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		// volume
 		volume.NewVolumeCommand(dockerCli),
 
-		// engine
-		engine.NewEngineCommand(dockerCli),
-
 		// legacy commands may be hidden
 		hide(system.NewEventsCommand(dockerCli)),
 		hide(system.NewInfoCommand(dockerCli)),
@@ -124,7 +122,10 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(image.NewSaveCommand(dockerCli)),
 		hide(image.NewTagCommand(dockerCli)),
 	)
-
+	if runtime.GOOS == "linux" {
+		// engine
+		cmd.AddCommand(engine.NewEngineCommand(dockerCli))
+	}
 }
 
 func hide(cmd *cobra.Command) *cobra.Command {
