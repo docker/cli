@@ -46,7 +46,7 @@ func deployFullStack(t *testing.T, orchestrator, stackname string) {
 }
 
 func cleanupFullStack(t *testing.T, orchestrator, stackname string) {
-	// FIXME(vdemeester) we shouldn't have to do that. it is hidding a race on docker stack rm
+	// FIXME(vdemeester) we shouldn't have to do that. it is hiding a race on docker stack rm
 	poll.WaitOn(t, stackRm(orchestrator, stackname), pollSettings)
 	poll.WaitOn(t, taskCount(orchestrator, stackname, 0), pollSettings)
 }
