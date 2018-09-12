@@ -13,12 +13,15 @@ import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/runtime/restart"
 	"github.com/docker/cli/internal/pkg/containerized"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 )
 
+var _ clitypes.ContainerizedClient = &baseClient{}
+
 // InitEngine is the main entrypoint for `docker engine init`
-func (c baseClient) InitEngine(ctx context.Context, opts EngineInitOptions, out OutStream,
+func (c *baseClient) InitEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
@@ -67,7 +70,7 @@ func (c baseClient) InitEngine(ctx context.Context, opts EngineInitOptions, out 
 }
 
 // GetEngine will return the containerd container running the engine (or error)
-func (c baseClient) GetEngine(ctx context.Context) (containerd.Container, error) {
+func (c *baseClient) GetEngine(ctx context.Context) (containerd.Container, error) {
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 	containers, err := c.cclient.Containers(ctx, "id=="+engineContainerName)
 	if err != nil {
@@ -80,7 +83,7 @@ func (c baseClient) GetEngine(ctx context.Context) (containerd.Container, error)
 }
 
 // getEngineImage will return the current image used by the engine
-func (c baseClient) getEngineImage(engine containerd.Container) (string, error) {
+func (c *baseClient) getEngineImage(engine containerd.Container) (string, error) {
 	ctx := namespaces.WithNamespace(context.Background(), engineNamespace)
 	image, err := engine.Image(ctx)
 	if err != nil {
@@ -124,7 +127,7 @@ var (
 )
 
 // waitForEngine will wait for the engine to start
-func (c baseClient) waitForEngine(ctx context.Context, out io.Writer, healthfn func(context.Context) error) error {
+func (c *baseClient) waitForEngine(ctx context.Context, out io.Writer, healthfn func(context.Context) error) error {
 	ticker := time.NewTicker(engineWaitInterval)
 	defer ticker.Stop()
 	defer func() {
@@ -150,7 +153,7 @@ func (c baseClient) waitForEngine(ctx context.Context, out io.Writer, healthfn f
 	}
 }
 
-func (c baseClient) waitForEngineContainer(ctx context.Context, ticker *time.Ticker) error {
+func (c *baseClient) waitForEngineContainer(ctx context.Context, ticker *time.Ticker) error {
 	var ret error
 	for {
 		select {
@@ -167,7 +170,15 @@ func (c baseClient) waitForEngineContainer(ctx context.Context, ticker *time.Tic
 }
 
 // RemoveEngine gracefully unwinds the current engine
-func (c baseClient) RemoveEngine(ctx context.Context, engine containerd.Container) error {
+func (c *baseClient) RemoveEngine(ctx context.Context) error {
+	engine, err := c.GetEngine(ctx)
+	if err != nil {
+		return err
+	}
+	return c.removeEngine(ctx, engine)
+}
+
+func (c *baseClient) removeEngine(ctx context.Context, engine containerd.Container) error {
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 
 	// Make sure the container isn't being restarted while we unwind it
@@ -220,7 +231,7 @@ func (c baseClient) RemoveEngine(ctx context.Context, engine containerd.Containe
 }
 
 // startEngineOnContainerd creates a new docker engine running on containerd
-func (c baseClient) startEngineOnContainerd(ctx context.Context, imageName, configFile string) error {
+func (c *baseClient) startEngineOnContainerd(ctx context.Context, imageName, configFile string) error {
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 	image, err := c.cclient.GetImage(ctx, imageName)
 	if err != nil {

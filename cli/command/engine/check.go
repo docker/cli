@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/containerizedengine"
+	clitypes "github.com/docker/cli/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -72,7 +72,7 @@ func runCheck(dockerCli command.Cli, options checkOptions) error {
 		return err
 	}
 
-	availUpdates := []containerizedengine.Update{
+	availUpdates := []clitypes.Update{
 		{Type: "current", Version: currentVersion},
 	}
 	if len(versions.Patches) > 0 {
@@ -115,14 +115,14 @@ func runCheck(dockerCli command.Cli, options checkOptions) error {
 
 func processVersions(currentVersion, verType string,
 	includePrerelease bool,
-	versions []containerizedengine.DockerVersion) []containerizedengine.Update {
-	availUpdates := []containerizedengine.Update{}
+	versions []clitypes.DockerVersion) []clitypes.Update {
+	availUpdates := []clitypes.Update{}
 	for _, ver := range versions {
 		if !includePrerelease && ver.Prerelease() != "" {
 			continue
 		}
 		if ver.Tag != currentVersion {
-			availUpdates = append(availUpdates, containerizedengine.Update{
+			availUpdates = append(availUpdates, clitypes.Update{
 				Type:    verType,
 				Version: ver.Tag,
 				Notes:   fmt.Sprintf("%s/%s", releaseNotePrefix, ver.Tag),

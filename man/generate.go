@@ -25,7 +25,7 @@ func generateManPages(opts *options) error {
 	}
 
 	stdin, stdout, stderr := term.StdStreams()
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, false)
+	dockerCli := command.NewDockerCli(stdin, stdout, stderr, false, nil)
 	cmd := &cobra.Command{Use: "docker"}
 	commands.AddCommands(cmd, dockerCli)
 	source := filepath.Join(opts.source, descriptionSourcePath)

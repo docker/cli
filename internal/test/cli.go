@@ -12,7 +12,7 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/cli/internal/containerizedengine"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
@@ -20,7 +20,7 @@ import (
 // NotaryClientFuncType defines a function that returns a fake notary client
 type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 type clientInfoFuncType func() command.ClientInfo
-type containerizedEngineFuncType func(string) (containerizedengine.Client, error)
+type containerizedEngineFuncType func(string) (clitypes.ContainerizedClient, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
@@ -172,7 +172,7 @@ func EnableContentTrust(c *FakeCli) {
 }
 
 // NewContainerizedEngineClient returns a containerized engine client
-func (c *FakeCli) NewContainerizedEngineClient(sockPath string) (containerizedengine.Client, error) {
+func (c *FakeCli) NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error) {
 	if c.containerizedEngineClientFunc != nil {
 		return c.containerizedEngineClientFunc(sockPath)
 	}
