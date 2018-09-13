@@ -3,73 +3,20 @@ package containerizedengine
 import (
 	"context"
 	"fmt"
-	"path"
-	"strings"
 
+	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/namespaces"
-	"github.com/docker/cli/internal/pkg/containerized"
 	clitypes "github.com/docker/cli/types"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 )
-
-// GetCurrentEngineVersion determines the current type of engine (image) and version
-func (c *baseClient) GetCurrentEngineVersion(ctx context.Context) (clitypes.EngineInitOptions, error) {
-	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-	ret := clitypes.EngineInitOptions{}
-	currentEngine := clitypes.CommunityEngineImage
-	engine, err := c.GetEngine(ctx)
-	if err != nil {
-		if err == ErrEngineNotPresent {
-			return ret, errors.Wrap(err, "failed to find existing engine")
-		}
-		return ret, err
-	}
-	imageName, err := c.getEngineImage(engine)
-	if err != nil {
-		return ret, err
-	}
-	distributionRef, err := reference.ParseNormalizedNamed(imageName)
-	if err != nil {
-		return ret, errors.Wrapf(err, "failed to parse image name: %s", imageName)
-	}
-
-	if strings.Contains(distributionRef.Name(), clitypes.EnterpriseEngineImage) {
-		currentEngine = clitypes.EnterpriseEngineImage
-	}
-	taggedRef, ok := distributionRef.(reference.NamedTagged)
-	if !ok {
-		return ret, ErrEngineImageMissingTag
-	}
-	ret.EngineImage = currentEngine
-	ret.EngineVersion = taggedRef.Tag()
-	ret.RegistryPrefix = reference.Domain(taggedRef) + "/" + path.Dir(reference.Path(taggedRef))
-	return ret, nil
-}
 
 // ActivateEngine will switch the image from the CE to EE image
 func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
 
-	// set the proxy scope to "ee" for activate flows
-	opts.Scope = "ee"
-
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-
-	// If version is unspecified, use the existing engine version
-	if opts.EngineVersion == "" {
-		currentOpts, err := c.GetCurrentEngineVersion(ctx)
-		if err != nil {
-			return err
-		}
-		opts.EngineVersion = currentOpts.EngineVersion
-		if currentOpts.EngineImage == clitypes.EnterpriseEngineImage {
-			// This is a "no-op" activation so the only change would be the license - don't update the engine itself
-			return nil
-		}
-	}
 	return c.DoUpdate(ctx, opts, out, authConfig, healthfn)
 }
 
@@ -101,31 +48,5 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 			return errors.Wrapf(err, "unable to check for image %s", imageName)
 		}
 	}
-
-	// Gather information about the existing engine so we can recreate it
-	engine, err := c.GetEngine(ctx)
-	if err != nil {
-		if err == ErrEngineNotPresent {
-			return errors.Wrap(err, "unable to find existing engine - please use init")
-		}
-		return err
-	}
-
-	// TODO verify the image has changed and don't update if nothing has changed
-
-	err = containerized.AtomicImageUpdate(ctx, engine, image, func() error {
-		ctx, cancel := context.WithTimeout(ctx, engineWaitTimeout)
-		defer cancel()
-		return c.waitForEngine(ctx, out, healthfn)
-	})
-	if err == nil && opts.Scope != "" {
-		var labels map[string]string
-		labels, err = engine.Labels(ctx)
-		if err != nil {
-			return err
-		}
-		labels[proxyLabel] = opts.Scope
-		_, err = engine.SetLabels(ctx, labels)
-	}
-	return err
+	return c.cclient.Install(ctx, image, containerd.WithInstallReplace, containerd.WithInstallPath("/usr"))
 }
