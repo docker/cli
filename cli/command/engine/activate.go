@@ -56,7 +56,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 
 	flags.StringVar(&options.licenseFile, "license", "", "License File")
 	flags.StringVar(&options.version, "version", "", "Specify engine version (default is to use currently running version)")
-	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/docker", "Override the default location where engine images are pulled")
+	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/store/docker", "Override the default location where engine images are pulled")
 	flags.StringVar(&options.image, "engine-image", clitypes.EnterpriseEngineImage, "Specify engine image")
 	flags.StringVar(&options.format, "format", "", "Pretty-print licenses using a Go template")
 	flags.BoolVar(&options.displayOnly, "display-only", false, "only display the available licenses and exit")
