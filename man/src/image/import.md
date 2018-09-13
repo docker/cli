@@ -38,5 +38,13 @@ This example sets the docker image ENV variable DEBUG to true by default.
 
     # tar -c . | docker image import -c="ENV DEBUG true" - exampleimagedir
 
+## When the daemon supports multiple operating systems
+If the daemon supports multiple operating systems, and the image being imported
+does not match the default operating system, it may be necessary to add
+`--platform`. This would be necessary when importing a Linux image into a Windows
+daemon.
+
+    # docker image import --platform=linux .\linuximage.tar
+
 # See also
 **docker-export(1)** to export the contents of a filesystem as a tar archive to STDOUT.
