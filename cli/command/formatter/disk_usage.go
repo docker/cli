@@ -15,8 +15,8 @@ const (
 	defaultDiskUsageImageTableFormat      = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.VirtualSize}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
 	defaultDiskUsageContainerTableFormat  = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}}\t{{.Status}}\t{{.Names}}"
 	defaultDiskUsageVolumeTableFormat     = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
+	defaultDiskUsageBuildCacheTableFormat = "table {{.ID}}\t{{.CacheType}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
 	defaultDiskUsageTableFormat           = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
-	defaultDiskUsageBuildCacheTableFormat = "table {{.ID}}\t{{.Type}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
 
 	typeHeader        = "TYPE"
 	totalHeader       = "TOTAL"
@@ -49,12 +49,25 @@ func (ctx *DiskUsageContext) startSubsection(format string) (*template.Template,
 }
 
 // NewDiskUsageFormat returns a format for rendering an DiskUsageContext
-func NewDiskUsageFormat(source string) Format {
-	switch source {
-	case TableFormatKey:
-		format := defaultDiskUsageTableFormat
-		return Format(format)
-	case RawFormatKey:
+func NewDiskUsageFormat(source string, verbose bool) Format {
+	switch {
+	case verbose && source == RawFormatKey:
+		format := `{{range .Images}}type: Image
+` + NewImageFormat(source, false, true) + `
+{{end -}}
+{{range .Containers}}type: Container
+` + NewContainerFormat(source, false, true) + `
+{{end -}}
+{{range .Volumes}}type: Volume
+` + NewVolumeFormat(source, false) + `
+{{end -}}
+{{range .BuildCache}}type: Build Cache
+` + NewBuildCacheFormat(source, false) + `
+{{end -}}`
+		return format
+	case !verbose && source == TableFormatKey:
+		return Format(defaultDiskUsageTableFormat)
+	case !verbose && source == RawFormatKey:
 		format := `type: {{.Type}}
 total: {{.TotalCount}}
 active: {{.Active}}
@@ -62,8 +75,9 @@ size: {{.Size}}
 reclaimable: {{.Reclaimable}}
 `
 		return Format(format)
+	default:
+		return Format(source)
 	}
-	return Format(source)
 }
 
 func (ctx *DiskUsageContext) Write() (err error) {
@@ -120,15 +134,23 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	return err
 }
 
-// nolint: gocyclo
-func (ctx *DiskUsageContext) verboseWrite() error {
-	// First images
-	tmpl, err := ctx.startSubsection(defaultDiskUsageImageTableFormat)
-	if err != nil {
-		return err
-	}
+type diskUsageContext struct {
+	Images     []*imageContext
+	Containers []*containerContext
+	Volumes    []*volumeContext
+	BuildCache []*buildCacheContext
+}
 
-	ctx.Output.Write([]byte("Images space usage:\n\n"))
+func (ctx *DiskUsageContext) verboseWrite() error {
+	duc := &diskUsageContext{
+		Images:     make([]*imageContext, 0, len(ctx.Images)),
+		Containers: make([]*containerContext, 0, len(ctx.Containers)),
+		Volumes:    make([]*volumeContext, 0, len(ctx.Volumes)),
+		BuildCache: make([]*buildCacheContext, 0, len(ctx.BuildCache)),
+	}
+	trunc := ctx.Format.IsTable()
+
+	// First images
 	for _, i := range ctx.Images {
 		repo := "<none>"
 		tag := "<none>"
@@ -144,57 +166,88 @@ func (ctx *DiskUsageContext) verboseWrite() error {
 			}
 		}
 
-		err := ctx.contextFormat(tmpl, &imageContext{
+		duc.Images = append(duc.Images, &imageContext{
 			repo:  repo,
 			tag:   tag,
-			trunc: true,
+			trunc: trunc,
 			i:     *i,
 		})
-		if err != nil {
+	}
+
+	// Now containers
+	for _, c := range ctx.Containers {
+		// Don't display the virtual size
+		c.SizeRootFs = 0
+		duc.Containers = append(duc.Containers, &containerContext{trunc: trunc, c: *c})
+	}
+
+	// And volumes
+	for _, v := range ctx.Volumes {
+		duc.Volumes = append(duc.Volumes, &volumeContext{v: *v})
+	}
+
+	// And build cache
+	buildCacheSort(ctx.BuildCache)
+	for _, v := range ctx.BuildCache {
+		duc.BuildCache = append(duc.BuildCache, &buildCacheContext{v: v, trunc: trunc})
+	}
+
+	if ctx.Format == TableFormatKey {
+		return ctx.verboseWriteTable(duc)
+	}
+
+	ctx.preFormat()
+	tmpl, err := ctx.parseFormat()
+	if err != nil {
+		return err
+	}
+	return tmpl.Execute(ctx.Output, duc)
+}
+
+func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
+	tmpl, err := ctx.startSubsection(defaultDiskUsageImageTableFormat)
+	if err != nil {
+		return err
+	}
+	ctx.Output.Write([]byte("Images space usage:\n\n"))
+	for _, img := range duc.Images {
+		if err := ctx.contextFormat(tmpl, img); err != nil {
 			return err
 		}
 	}
 	ctx.postFormat(tmpl, newImageContext())
 
-	// Now containers
-	ctx.Output.Write([]byte("\nContainers space usage:\n\n"))
 	tmpl, err = ctx.startSubsection(defaultDiskUsageContainerTableFormat)
 	if err != nil {
 		return err
 	}
-	for _, c := range ctx.Containers {
-		// Don't display the virtual size
-		c.SizeRootFs = 0
-		err := ctx.contextFormat(tmpl, &containerContext{trunc: true, c: *c})
-		if err != nil {
+	ctx.Output.Write([]byte("\nContainers space usage:\n\n"))
+	for _, c := range duc.Containers {
+		if err := ctx.contextFormat(tmpl, c); err != nil {
 			return err
 		}
 	}
 	ctx.postFormat(tmpl, newContainerContext())
 
-	// And volumes
-	ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
 	tmpl, err = ctx.startSubsection(defaultDiskUsageVolumeTableFormat)
 	if err != nil {
 		return err
 	}
-	for _, v := range ctx.Volumes {
-		if err := ctx.contextFormat(tmpl, &volumeContext{v: *v}); err != nil {
+	ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
+	for _, v := range duc.Volumes {
+		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err
 		}
 	}
 	ctx.postFormat(tmpl, newVolumeContext())
 
-	// And build cache
-	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
-
 	tmpl, err = ctx.startSubsection(defaultDiskUsageBuildCacheTableFormat)
 	if err != nil {
 		return err
 	}
-	buildCacheSort(ctx.BuildCache)
-	for _, v := range ctx.BuildCache {
-		if err := ctx.contextFormat(tmpl, &buildCacheContext{v: v, trunc: true}); err != nil {
+	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
+	for _, v := range duc.BuildCache {
+		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err
 		}
 	}
