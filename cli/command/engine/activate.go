@@ -12,6 +12,7 @@ import (
 	"github.com/docker/licensing/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/sys/unix"
 )
 
 type activateOptions struct {
@@ -67,6 +68,9 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 }
 
 func runActivate(cli command.Cli, options activateOptions) error {
+	if unix.Geteuid() != 0 {
+		return errors.New("must be privileged to activate engine")
+	}
 	ctx := context.Background()
 	client, err := cli.NewContainerizedEngineClient(options.sockPath)
 	if err != nil {

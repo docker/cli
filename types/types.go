@@ -37,8 +37,6 @@ type ContainerizedClient interface {
 		authConfig *types.AuthConfig,
 		healthfn func(context.Context) error) error
 	GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (AvailableVersions, error)
-	GetCurrentEngineVersion(ctx context.Context) (EngineInitOptions, error)
-	RemoveEngine(ctx context.Context) error
 }
 
 // EngineInitOptions contains the configuration settings
@@ -48,7 +46,6 @@ type EngineInitOptions struct {
 	EngineImage    string
 	EngineVersion  string
 	ConfigFile     string
-	Scope          string
 }
 
 // AvailableVersions groups the available versions which were discovered

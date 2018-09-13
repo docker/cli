@@ -1,15 +1,14 @@
 package engine
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
 	clitypes "github.com/docker/cli/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -50,67 +49,63 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCheck(dockerCli command.Cli, options checkOptions) error {
-	ctx := context.Background()
-	client, err := dockerCli.NewContainerizedEngineClient(options.sockPath)
-	if err != nil {
-		return errors.Wrap(err, "unable to access local containerd")
-	}
-	defer client.Close()
-	currentOpts, err := client.GetCurrentEngineVersion(ctx)
-	if err != nil {
-		return err
+	if unix.Geteuid() != 0 {
+		return errors.New("must be privileged to activate engine")
 	}
 
-	// override with user provided prefix if specified
-	if options.registryPrefix != "" {
-		currentOpts.RegistryPrefix = options.registryPrefix
-	}
-	imageName := currentOpts.RegistryPrefix + "/" + currentOpts.EngineImage
-	currentVersion := currentOpts.EngineVersion
-	versions, err := client.GetEngineVersions(ctx, dockerCli.RegistryClient(false), currentVersion, imageName)
-	if err != nil {
-		return err
-	}
+	/*
+		ctx := context.Background()
+		client, err := dockerCli.NewContainerizedEngineClient(options.sockPath)
+		if err != nil {
+			return errors.Wrap(err, "unable to access local containerd")
+		}
+		defer client.Close()
+			versions, err := client.GetEngineVersions(ctx, dockerCli.RegistryClient(false), currentVersion, imageName)
+			if err != nil {
+				return err
+			}
 
-	availUpdates := []clitypes.Update{
-		{Type: "current", Version: currentVersion},
-	}
-	if len(versions.Patches) > 0 {
-		availUpdates = append(availUpdates,
-			processVersions(
-				currentVersion,
-				"patch",
-				options.preReleases,
-				versions.Patches)...)
-	}
-	if options.upgrades {
-		availUpdates = append(availUpdates,
-			processVersions(
-				currentVersion,
-				"upgrade",
-				options.preReleases,
-				versions.Upgrades)...)
-	}
-	if options.downgrades {
-		availUpdates = append(availUpdates,
-			processVersions(
-				currentVersion,
-				"downgrade",
-				options.preReleases,
-				versions.Downgrades)...)
-	}
+			availUpdates := []clitypes.Update{
+				{Type: "current", Version: currentVersion},
+			}
+			if len(versions.Patches) > 0 {
+				availUpdates = append(availUpdates,
+					processVersions(
+						currentVersion,
+						"patch",
+						options.preReleases,
+						versions.Patches)...)
+			}
+			if options.upgrades {
+				availUpdates = append(availUpdates,
+					processVersions(
+						currentVersion,
+						"upgrade",
+						options.preReleases,
+						versions.Upgrades)...)
+			}
+			if options.downgrades {
+				availUpdates = append(availUpdates,
+					processVersions(
+						currentVersion,
+						"downgrade",
+						options.preReleases,
+						versions.Downgrades)...)
+			}
 
-	format := options.format
-	if len(format) == 0 {
-		format = formatter.TableFormatKey
-	}
+			format := options.format
+			if len(format) == 0 {
+				format = formatter.TableFormatKey
+			}
 
-	updatesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: formatter.NewUpdatesFormat(format, options.quiet),
-		Trunc:  false,
-	}
-	return formatter.UpdatesWrite(updatesCtx, availUpdates)
+			updatesCtx := formatter.Context{
+				Output: dockerCli.Out(),
+				Format: formatter.NewUpdatesFormat(format, options.quiet),
+				Trunc:  false,
+			}
+			return formatter.UpdatesWrite(updatesCtx, availUpdates)
+	*/
+	return nil
 }
 
 func processVersions(currentVersion, verType string,

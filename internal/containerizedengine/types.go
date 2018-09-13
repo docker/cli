@@ -13,10 +13,7 @@ import (
 const (
 	containerdSockPath  = "/run/containerd/containerd.sock"
 	engineContainerName = "dockerd"
-	engineNamespace     = "docker"
-
-	// Used to signal the containerd-proxy if it should manage
-	proxyLabel = "com.docker/containerd-proxy.scope"
+	engineNamespace     = "com.docker"
 )
 
 var (
@@ -82,4 +79,5 @@ type containerdClient interface {
 	Close() error
 	ContentStore() content.Store
 	ContainerService() containers.Store
+	Install(context.Context, containerd.Image, ...containerd.InstallOpts) error
 }
