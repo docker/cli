@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"errors"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -38,10 +37,6 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
-	if opts.verbose && len(opts.format) != 0 {
-		return errors.New("the verbose and the format options conflict")
-	}
-
 	du, err := dockerCli.Client().DiskUsage(context.Background())
 	if err != nil {
 		return err
@@ -62,7 +57,7 @@ func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
 	duCtx := formatter.DiskUsageContext{
 		Context: formatter.Context{
 			Output: dockerCli.Out(),
-			Format: formatter.NewDiskUsageFormat(format),
+			Format: formatter.NewDiskUsageFormat(format, opts.verbose),
 		},
 		LayersSize:  du.LayersSize,
 		BuilderSize: bsz,
