@@ -15,6 +15,7 @@ const (
 	defaultBuildCacheTableFormat = "table {{.ID}}\t{{.Type}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}\t{{.Description}}"
 
 	cacheIDHeader       = "CACHE ID"
+	cacheTypeHeader     = "CACHE TYPE"
 	parentHeader        = "PARENT"
 	lastUsedSinceHeader = "LAST USED"
 	usageCountHeader    = "USAGE"
@@ -36,10 +37,12 @@ func NewBuildCacheFormat(source string, quiet bool) Format {
 		}
 		format := `build_cache_id: {{.ID}}
 parent_id: {{.Parent}}
-type: {{.Type}}
+build_cache_type: {{.CacheType}}
 description: {{.Description}}
-created_at: {{.CreatedSince}}
-last_used_at: {{.LastUsedSince}}
+created_at: {{.CreatedAt}}
+created_since: {{.CreatedSince}}
+last_used_at: {{.LastUsedAt}}
+last_used_since: {{.LastUsedSince}}
 usage_count: {{.UsageCount}}
 in_use: {{.InUse}}
 shared: {{.Shared}}
@@ -95,7 +98,7 @@ func newBuildCacheContext() *buildCacheContext {
 	buildCacheCtx.header = buildCacheHeaderContext{
 		"ID":            cacheIDHeader,
 		"Parent":        parentHeader,
-		"Type":          typeHeader,
+		"CacheType":     cacheTypeHeader,
 		"Size":          sizeHeader,
 		"CreatedSince":  createdSinceHeader,
 		"LastUsedSince": lastUsedSinceHeader,
@@ -129,7 +132,7 @@ func (c *buildCacheContext) Parent() string {
 	return c.v.Parent
 }
 
-func (c *buildCacheContext) Type() string {
+func (c *buildCacheContext) CacheType() string {
 	return c.v.Type
 }
 
@@ -141,8 +144,19 @@ func (c *buildCacheContext) Size() string {
 	return units.HumanSizeWithPrecision(float64(c.v.Size), 3)
 }
 
+func (c *buildCacheContext) CreatedAt() string {
+	return c.v.CreatedAt.String()
+}
+
 func (c *buildCacheContext) CreatedSince() string {
 	return units.HumanDuration(time.Now().UTC().Sub(c.v.CreatedAt)) + " ago"
+}
+
+func (c *buildCacheContext) LastUsedAt() string {
+	if c.v.LastUsedAt == nil {
+		return ""
+	}
+	return c.v.LastUsedAt.String()
 }
 
 func (c *buildCacheContext) LastUsedSince() string {
