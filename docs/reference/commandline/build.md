@@ -48,8 +48,11 @@ Options:
                                 '<network-name>|<network-id>': connect to a user-defined network
       --no-cache                Do not use cache when building the image
       --pull                    Always attempt to pull a newer version of the image
+      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty). 
+                                Use plain to show container output
   -q, --quiet                   Suppress the build output and print image ID on success
       --rm                      Remove intermediate containers after a successful build (default true)
+      --secret                  Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret"
       --security-opt value      Security Options (default [])
       --shm-size bytes          Size of /dev/shm
                                 The format is `<number><unit>`. `number` must be greater than `0`.
