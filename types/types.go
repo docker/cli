@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/docker/api/types"
 	ver "github.com/hashicorp/go-version"
 )
@@ -36,7 +35,6 @@ type ContainerizedClient interface {
 		out OutStream,
 		authConfig *types.AuthConfig,
 		healthfn func(context.Context) error) error
-	GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (AvailableVersions, error)
 }
 
 // EngineInitOptions contains the configuration settings

@@ -38,9 +38,13 @@ func CleanupEngine(t *testing.T) error {
 		return err
 	}
 	// TODO Consider nuking the docker dir too so there's no cached content between test cases
-	err = client.RemoveEngine(ctx)
-	if err != nil {
-		t.Logf("Failed to remove engine: %s", err)
-	}
+
+	// TODO - this needs refactoring still to actually work properly
+	/*
+		err = client.RemoveEngine(ctx)
+		if err != nil {
+			t.Logf("Failed to remove engine: %s", err)
+		}
+	*/
 	return err
 }

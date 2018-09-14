@@ -12,7 +12,6 @@ import (
 	"github.com/docker/licensing/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/sys/unix"
 )
 
 type activateOptions struct {
@@ -68,7 +67,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 }
 
 func runActivate(cli command.Cli, options activateOptions) error {
-	if unix.Geteuid() != 0 {
+	if !isRoot() {
 		return errors.New("must be privileged to activate engine")
 	}
 	ctx := context.Background()
@@ -108,12 +107,17 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		EngineVersion:  options.version,
 	}
 
-	return client.ActivateEngine(ctx, opts, cli.Out(), authConfig,
+	err = client.ActivateEngine(ctx, opts, cli.Out(), authConfig,
 		func(ctx context.Context) error {
 			client := cli.Client()
 			_, err := client.Ping(ctx)
 			return err
 		})
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(cli.Out(), "To complete the activation, please restart docker with 'systemctl restart docker'")
+	return nil
 }
 
 func getLicenses(ctx context.Context, authConfig *types.AuthConfig, cli command.Cli, options activateOptions) (*model.IssuedLicense, error) {
