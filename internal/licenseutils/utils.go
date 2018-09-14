@@ -45,7 +45,7 @@ func Login(ctx context.Context, authConfig *types.AuthConfig) (HubUser, error) {
 	lclient, err := licensing.New(&licensing.Config{
 		BaseURI:    *baseURI,
 		HTTPClient: &http.Client{},
-		PublicKey:  licensingPublicKey,
+		PublicKeys: licensingPublicKeys,
 	})
 	if err != nil {
 		return HubUser{}, err
@@ -151,7 +151,7 @@ func LoadLocalIssuedLicense(ctx context.Context, filename string) (*model.Issued
 	lclient, err := licensing.New(&licensing.Config{
 		BaseURI:    *baseURI,
 		HTTPClient: &http.Client{},
-		PublicKey:  licensingPublicKey,
+		PublicKeys: licensingPublicKeys,
 	})
 	if err != nil {
 		return nil, err
