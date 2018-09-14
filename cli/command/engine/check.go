@@ -1,14 +1,16 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/internal/versions"
 	clitypes "github.com/docker/cli/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/sys/unix"
 )
 
 const (
@@ -37,7 +39,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&options.registryPrefix, "registry-prefix", "", "Override the existing location where engine images are pulled")
+	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/store/docker", "Override the existing location where engine images are pulled")
 	flags.BoolVar(&options.downgrades, "downgrades", false, "Report downgrades (default omits older versions)")
 	flags.BoolVar(&options.preReleases, "pre-releases", false, "Include pre-release versions")
 	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available upgrades")
@@ -49,70 +51,67 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCheck(dockerCli command.Cli, options checkOptions) error {
-	if unix.Geteuid() != 0 {
+	if !isRoot() {
 		return errors.New("must be privileged to activate engine")
 	}
+	ctx := context.Background()
+	client := dockerCli.Client()
+	serverVersion, err := client.ServerVersion(ctx)
+	if err != nil {
+		return err
+	}
 
-	/*
-		ctx := context.Background()
-		client, err := dockerCli.NewContainerizedEngineClient(options.sockPath)
-		if err != nil {
-			return errors.Wrap(err, "unable to access local containerd")
-		}
-		defer client.Close()
-			versions, err := client.GetEngineVersions(ctx, dockerCli.RegistryClient(false), currentVersion, imageName)
-			if err != nil {
-				return err
-			}
+	availVersions, err := versions.GetEngineVersions(ctx, dockerCli.RegistryClient(false), options.registryPrefix, serverVersion)
+	if err != nil {
+		return err
+	}
 
-			availUpdates := []clitypes.Update{
-				{Type: "current", Version: currentVersion},
-			}
-			if len(versions.Patches) > 0 {
-				availUpdates = append(availUpdates,
-					processVersions(
-						currentVersion,
-						"patch",
-						options.preReleases,
-						versions.Patches)...)
-			}
-			if options.upgrades {
-				availUpdates = append(availUpdates,
-					processVersions(
-						currentVersion,
-						"upgrade",
-						options.preReleases,
-						versions.Upgrades)...)
-			}
-			if options.downgrades {
-				availUpdates = append(availUpdates,
-					processVersions(
-						currentVersion,
-						"downgrade",
-						options.preReleases,
-						versions.Downgrades)...)
-			}
+	availUpdates := []clitypes.Update{
+		{Type: "current", Version: serverVersion.Version},
+	}
+	if len(availVersions.Patches) > 0 {
+		availUpdates = append(availUpdates,
+			processVersions(
+				serverVersion.Version,
+				"patch",
+				options.preReleases,
+				availVersions.Patches)...)
+	}
+	if options.upgrades {
+		availUpdates = append(availUpdates,
+			processVersions(
+				serverVersion.Version,
+				"upgrade",
+				options.preReleases,
+				availVersions.Upgrades)...)
+	}
+	if options.downgrades {
+		availUpdates = append(availUpdates,
+			processVersions(
+				serverVersion.Version,
+				"downgrade",
+				options.preReleases,
+				availVersions.Downgrades)...)
+	}
 
-			format := options.format
-			if len(format) == 0 {
-				format = formatter.TableFormatKey
-			}
+	format := options.format
+	if len(format) == 0 {
+		format = formatter.TableFormatKey
+	}
 
-			updatesCtx := formatter.Context{
-				Output: dockerCli.Out(),
-				Format: formatter.NewUpdatesFormat(format, options.quiet),
-				Trunc:  false,
-			}
-			return formatter.UpdatesWrite(updatesCtx, availUpdates)
-	*/
-	return nil
+	updatesCtx := formatter.Context{
+		Output: dockerCli.Out(),
+		Format: formatter.NewUpdatesFormat(format, options.quiet),
+		Trunc:  false,
+	}
+	return formatter.UpdatesWrite(updatesCtx, availUpdates)
 }
 
 func processVersions(currentVersion, verType string,
 	includePrerelease bool,
-	versions []clitypes.DockerVersion) []clitypes.Update {
+	availVersions []clitypes.DockerVersion) []clitypes.Update {
 	availUpdates := []clitypes.Update{}
-	for _, ver := range versions {
+	for _, ver := range availVersions {
 		if !includePrerelease && ver.Prerelease() != "" {
 			continue
 		}

@@ -1,19 +1,19 @@
-package containerizedengine
+package versions
 
 import (
 	"context"
 	"testing"
 
+	"github.com/docker/docker/api/types"
 	"gotest.tools/assert"
 )
 
 func TestGetEngineVersionsBadImage(t *testing.T) {
 	ctx := context.Background()
-	client := baseClient{}
 
-	currentVersion := "currentversiongoeshere"
-	imageName := "this is an illegal image $%^&"
-	_, err := client.GetEngineVersions(ctx, nil, currentVersion, imageName)
+	registryPrefix := "this is an illegal image $%^&"
+	currentVersion := types.Version{Version: "currentversiongoeshere"}
+	_, err := GetEngineVersions(ctx, nil, registryPrefix, currentVersion)
 	assert.ErrorContains(t, err, "invalid reference format")
 }
 

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	registryclient "github.com/docker/cli/cli/registry/client"
+	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	clitypes "github.com/docker/cli/types"
+	"github.com/docker/distribution"
+	"github.com/docker/distribution/reference"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	ver "github.com/hashicorp/go-version"
+	"github.com/opencontainers/go-digest"
 	"gotest.tools/assert"
 	"gotest.tools/golden"
 )
@@ -18,126 +20,87 @@ var (
 	testCli = test.NewFakeCli(&client.Client{})
 )
 
-func TestCheckForUpdatesNoContainerd(t *testing.T) {
-	testCli.SetContainerizedEngineClient(
-		func(string) (clitypes.ContainerizedClient, error) {
-			return nil, fmt.Errorf("some error")
-		},
-	)
-	cmd := newCheckForUpdatesCommand(testCli)
-	cmd.SilenceUsage = true
-	cmd.SilenceErrors = true
-	err := cmd.Execute()
-	assert.ErrorContains(t, err, "unable to access local containerd")
+type verClient struct {
+	client.Client
+	ver    types.Version
+	verErr error
+}
+
+func (c *verClient) ServerVersion(ctx context.Context) (types.Version, error) {
+	return c.ver, c.verErr
+}
+
+type testRegistryClient struct {
+	tags []string
+}
+
+func (c testRegistryClient) GetManifest(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
+	return manifesttypes.ImageManifest{}, nil
+}
+func (c testRegistryClient) GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
+	return nil, nil
+}
+func (c testRegistryClient) MountBlob(ctx context.Context, source reference.Canonical, target reference.Named) error {
+	return nil
+}
+
+func (c testRegistryClient) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error) {
+	return "", nil
+}
+func (c testRegistryClient) GetTags(ctx context.Context, ref reference.Named) ([]string, error) {
+	return c.tags, nil
 }
 
 func TestCheckForUpdatesNoCurrentVersion(t *testing.T) {
-	retErr := fmt.Errorf("some failure")
-	getCurrentEngineVersionFunc := func(ctx context.Context) (clitypes.EngineInitOptions, error) {
-		return clitypes.EngineInitOptions{}, retErr
-	}
-	testCli.SetContainerizedEngineClient(
-		func(string) (clitypes.ContainerizedClient, error) {
-			return &fakeContainerizedEngineClient{
-				getCurrentEngineVersionFunc: getCurrentEngineVersionFunc,
-			}, nil
-		},
-	)
-	cmd := newCheckForUpdatesCommand(testCli)
+	isRoot = func() bool { return true }
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil})
+	c.SetRegistryClient(testRegistryClient{})
+	cmd := newCheckForUpdatesCommand(c)
 	cmd.SilenceUsage = true
 	cmd.SilenceErrors = true
 	err := cmd.Execute()
-	assert.Assert(t, err == retErr)
-}
-
-func TestCheckForUpdatesGetEngineVersionsFail(t *testing.T) {
-	retErr := fmt.Errorf("some failure")
-	getEngineVersionsFunc := func(ctx context.Context,
-		registryClient registryclient.RegistryClient,
-		currentVersion, imageName string) (clitypes.AvailableVersions, error) {
-		return clitypes.AvailableVersions{}, retErr
-	}
-	testCli.SetContainerizedEngineClient(
-		func(string) (clitypes.ContainerizedClient, error) {
-			return &fakeContainerizedEngineClient{
-				getEngineVersionsFunc: getEngineVersionsFunc,
-			}, nil
-		},
-	)
-	cmd := newCheckForUpdatesCommand(testCli)
-	cmd.SilenceUsage = true
-	cmd.SilenceErrors = true
-	err := cmd.Execute()
-	assert.Assert(t, err == retErr)
+	assert.ErrorContains(t, err, "alformed version")
 }
 
 func TestCheckForUpdatesGetEngineVersionsHappy(t *testing.T) {
-	getCurrentEngineVersionFunc := func(ctx context.Context) (clitypes.EngineInitOptions, error) {
-		return clitypes.EngineInitOptions{
-			EngineImage:   "current engine",
-			EngineVersion: "1.1.0",
-		}, nil
-	}
-	getEngineVersionsFunc := func(ctx context.Context,
-		registryClient registryclient.RegistryClient,
-		currentVersion, imageName string) (clitypes.AvailableVersions, error) {
-		return clitypes.AvailableVersions{
-			Downgrades: parseVersions(t, "1.0.1", "1.0.2", "1.0.3-beta1"),
-			Patches:    parseVersions(t, "1.1.1", "1.1.2", "1.1.3-beta1"),
-			Upgrades:   parseVersions(t, "1.2.0", "2.0.0", "2.1.0-beta1"),
-		}, nil
-	}
-	testCli.SetContainerizedEngineClient(
-		func(string) (clitypes.ContainerizedClient, error) {
-			return &fakeContainerizedEngineClient{
-				getEngineVersionsFunc:       getEngineVersionsFunc,
-				getCurrentEngineVersionFunc: getCurrentEngineVersionFunc,
-			}, nil
-		},
-	)
-	cmd := newCheckForUpdatesCommand(testCli)
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{Version: "1.1.0"}, nil})
+	c.SetRegistryClient(testRegistryClient{[]string{
+		"1.0.1", "1.0.2", "1.0.3-beta1",
+		"1.1.1", "1.1.2", "1.1.3-beta1",
+		"1.2.0", "2.0.0", "2.1.0-beta1",
+	}})
+	isRoot = func() bool { return true }
+	cmd := newCheckForUpdatesCommand(c)
 	cmd.Flags().Set("pre-releases", "true")
 	cmd.Flags().Set("downgrades", "true")
+	cmd.SilenceUsage = true
+	cmd.SilenceErrors = true
 	err := cmd.Execute()
 	assert.NilError(t, err)
-	golden.Assert(t, testCli.OutBuffer().String(), "check-all.golden")
+	golden.Assert(t, c.OutBuffer().String(), "check-all.golden")
 
-	testCli.OutBuffer().Reset()
+	c.OutBuffer().Reset()
 	cmd.Flags().Set("pre-releases", "false")
 	cmd.Flags().Set("downgrades", "true")
 	err = cmd.Execute()
 	assert.NilError(t, err)
-	fmt.Println(testCli.OutBuffer().String())
-	golden.Assert(t, testCli.OutBuffer().String(), "check-no-prerelease.golden")
+	fmt.Println(c.OutBuffer().String())
+	golden.Assert(t, c.OutBuffer().String(), "check-no-prerelease.golden")
 
-	testCli.OutBuffer().Reset()
+	c.OutBuffer().Reset()
 	cmd.Flags().Set("pre-releases", "false")
 	cmd.Flags().Set("downgrades", "false")
 	err = cmd.Execute()
 	assert.NilError(t, err)
-	fmt.Println(testCli.OutBuffer().String())
-	golden.Assert(t, testCli.OutBuffer().String(), "check-no-downgrades.golden")
+	fmt.Println(c.OutBuffer().String())
+	golden.Assert(t, c.OutBuffer().String(), "check-no-downgrades.golden")
 
-	testCli.OutBuffer().Reset()
+	c.OutBuffer().Reset()
 	cmd.Flags().Set("pre-releases", "false")
 	cmd.Flags().Set("downgrades", "false")
 	cmd.Flags().Set("upgrades", "false")
 	err = cmd.Execute()
 	assert.NilError(t, err)
-	fmt.Println(testCli.OutBuffer().String())
-	golden.Assert(t, testCli.OutBuffer().String(), "check-patches-only.golden")
-}
-
-func makeVersion(t *testing.T, tag string) clitypes.DockerVersion {
-	v, err := ver.NewVersion(tag)
-	assert.NilError(t, err)
-	return clitypes.DockerVersion{Version: *v, Tag: tag}
-}
-
-func parseVersions(t *testing.T, tags ...string) []clitypes.DockerVersion {
-	ret := make([]clitypes.DockerVersion, len(tags))
-	for i, tag := range tags {
-		ret[i] = makeVersion(t, tag)
-	}
-	return ret
+	fmt.Println(c.OutBuffer().String())
+	golden.Assert(t, c.OutBuffer().String(), "check-patches-only.golden")
 }

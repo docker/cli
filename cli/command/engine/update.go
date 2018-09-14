@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/sys/unix"
 )
 
 func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
@@ -33,7 +32,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
-	if unix.Geteuid() != 0 {
+	if !isRoot() {
 		return errors.New("must be privileged to activate engine")
 	}
 	ctx := context.Background()
@@ -43,11 +42,8 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 	}
 	defer client.Close()
 	if options.EngineImage == "" || options.RegistryPrefix == "" {
-		if options.EngineImage == "" {
-			options.EngineImage = "docker/engine-community"
-		}
 		if options.RegistryPrefix == "" {
-			options.RegistryPrefix = "docker.io"
+			options.RegistryPrefix = "docker.io/store/docker"
 		}
 	}
 	authConfig, err := getRegistryAuth(dockerCli, options.RegistryPrefix)
@@ -63,6 +59,6 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 		}); err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), "Success!  The docker engine is now running.")
+	fmt.Fprintln(dockerCli.Out(), "To complete the update, please restart docker with 'systemctl restart docker'")
 	return nil
 }
