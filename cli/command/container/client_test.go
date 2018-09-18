@@ -24,6 +24,7 @@ type fakeClient struct {
 	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
 	waitFunc              func(string) (<-chan container.ContainerWaitOKBody, <-chan error)
 	containerListFunc     func(types.ContainerListOptions) ([]types.Container, error)
+	containerExportFunc   func(string) (io.ReadCloser, error)
 	Version               string
 }
 
@@ -123,4 +124,11 @@ func (f *fakeClient) ContainerStart(_ context.Context, container string, options
 		return f.containerStartFunc(container, options)
 	}
 	return nil
+}
+
+func (f *fakeClient) ContainerExport(_ context.Context, container string) (io.ReadCloser, error) {
+	if f.containerExportFunc != nil {
+		return f.containerExportFunc(container)
+	}
+	return nil, nil
 }
