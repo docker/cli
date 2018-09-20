@@ -14,6 +14,10 @@ const (
 	containerdSockPath  = "/run/containerd/containerd.sock"
 	engineContainerName = "dockerd"
 	engineNamespace     = "com.docker"
+
+	// runtimeMetadataName is the name of the runtime metadata file
+	// When stored as a label on the container it is prefixed by "com.docker."
+	runtimeMetadataName = "distribution_based_engine"
 )
 
 var (
@@ -31,9 +35,6 @@ var (
 
 	// ErrEngineShutdownTimeout returned if the engine failed to shutdown in time
 	ErrEngineShutdownTimeout = errors.New("timeout waiting for engine to exit")
-
-	// ErrEngineImageMissingTag returned if the engine image is missing the version tag
-	ErrEngineImageMissingTag = errors.New("malformed engine image missing tag")
 
 	engineSpec = specs.Spec{
 		Root: &specs.Root{
@@ -64,12 +65,6 @@ var (
 			NoNewPrivileges: false,
 		},
 	}
-
-	// RuntimeMetadataName is the name of the runtime metadata file
-	RuntimeMetadataName = "distribution_based_engine"
-
-	// ReleaseNotePrefix is where to point users to for release notes
-	ReleaseNotePrefix = "https://docs.docker.com/releasenotes"
 )
 
 type baseClient struct {

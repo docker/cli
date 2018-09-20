@@ -56,7 +56,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 
 	flags.StringVar(&options.licenseFile, "license", "", "License File")
 	flags.StringVar(&options.version, "version", "", "Specify engine version (default is to use currently running version)")
-	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/store/docker", "Override the default location where engine images are pulled")
+	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the default location where engine images are pulled")
 	flags.StringVar(&options.image, "engine-image", clitypes.EnterpriseEngineImage, "Specify engine image")
 	flags.StringVar(&options.format, "format", "", "Pretty-print licenses using a Go template")
 	flags.BoolVar(&options.displayOnly, "display-only", false, "only display the available licenses and exit")
@@ -68,7 +68,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 
 func runActivate(cli command.Cli, options activateOptions) error {
 	if !isRoot() {
-		return errors.New("must be privileged to activate engine")
+		return errors.New("this command must be run as a privileged user")
 	}
 	ctx := context.Background()
 	client, err := cli.NewContainerizedEngineClient(options.sockPath)
@@ -107,16 +107,16 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		EngineVersion:  options.version,
 	}
 
-	err = client.ActivateEngine(ctx, opts, cli.Out(), authConfig,
+	if err := client.ActivateEngine(ctx, opts, cli.Out(), authConfig,
 		func(ctx context.Context) error {
 			client := cli.Client()
 			_, err := client.Ping(ctx)
 			return err
-		})
-	if err != nil {
+		}); err != nil {
 		return err
 	}
-	fmt.Fprintln(cli.Out(), "To complete the activation, please restart docker with 'systemctl restart docker'")
+	fmt.Fprintln(cli.Out(), `Succesfully activated engine.
+Restart docker with 'systemctl restart docker' to complete the activation.`)
 	return nil
 }
 

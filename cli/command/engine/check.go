@@ -13,10 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	releaseNotePrefix = "https://docs.docker.com/releasenotes"
-)
-
 type checkOptions struct {
 	registryPrefix string
 	preReleases    bool
@@ -39,7 +35,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&options.registryPrefix, "registry-prefix", "docker.io/store/docker", "Override the existing location where engine images are pulled")
+	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the existing location where engine images are pulled")
 	flags.BoolVar(&options.downgrades, "downgrades", false, "Report downgrades (default omits older versions)")
 	flags.BoolVar(&options.preReleases, "pre-releases", false, "Include pre-release versions")
 	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available upgrades")
@@ -52,7 +48,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 
 func runCheck(dockerCli command.Cli, options checkOptions) error {
 	if !isRoot() {
-		return errors.New("must be privileged to activate engine")
+		return errors.New("this command must be run as a privileged user")
 	}
 	ctx := context.Background()
 	client := dockerCli.Client()
@@ -119,7 +115,7 @@ func processVersions(currentVersion, verType string,
 			availUpdates = append(availUpdates, clitypes.Update{
 				Type:    verType,
 				Version: ver.Tag,
-				Notes:   fmt.Sprintf("%s/%s", releaseNotePrefix, ver.Tag),
+				Notes:   fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, ver.Tag),
 			})
 		}
 	}

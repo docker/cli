@@ -40,21 +40,21 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 		// current engine version and automatically apply it so users
 		// could stay in sync by simply having a scheduled
 		// `docker engine update`
-		return fmt.Errorf("please pick the version you want to update to")
+		return fmt.Errorf("pick the version you want to update to with --version")
 	}
 
 	localMetadata, err := c.GetCurrentRuntimeMetadata(ctx, "")
 	if err == nil {
 		if opts.EngineImage == "" {
-			if strings.Contains(strings.ToLower(localMetadata.Platform), "enterprise") {
-				opts.EngineImage = "engine-enterprise"
+			if strings.Contains(strings.ToLower(localMetadata.Platform), "community") {
+				opts.EngineImage = clitypes.CommunityEngineImage
 			} else {
-				opts.EngineImage = "engine-community"
+				opts.EngineImage = clitypes.EnterpriseEngineImage
 			}
 		}
 	}
 	if opts.EngineImage == "" {
-		return fmt.Errorf("please pick the engine image to update with (engine-community or engine-enterprise)")
+		return fmt.Errorf("unable to determine the installed engine version. Specify which engine image to update with --engine-image set to 'engine-community' or 'engine-enterprise'")
 	}
 
 	imageName := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
@@ -80,16 +80,15 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 	// Grab current metadata for comparison purposes
 	if localMetadata != nil {
 		if localMetadata.Platform != newMetadata.Platform {
-			fmt.Fprintf(out, "\nNotice: you have switched to \"%s\".  Please refer to %s for update instructions.\n\n", newMetadata.Platform, c.GetReleaseNotesURL(imageName))
+			fmt.Fprintf(out, "\nNotice: you have switched to \"%s\".  Refer to %s for update instructions.\n\n", newMetadata.Platform, getReleaseNotesURL(imageName))
 		}
 	}
 
-	err = c.cclient.Install(ctx, image, containerd.WithInstallReplace, containerd.WithInstallPath("/usr"))
-	if err != nil {
+	if err := c.cclient.Install(ctx, image, containerd.WithInstallReplace, containerd.WithInstallPath("/usr")); err != nil {
 		return err
 	}
 
-	return c.WriteRuntimeMetadata(ctx, "", newMetadata)
+	return c.WriteRuntimeMetadata("", newMetadata)
 }
 
 var defaultDockerRoot = "/var/lib/docker"
@@ -99,7 +98,7 @@ func (c *baseClient) GetCurrentRuntimeMetadata(_ context.Context, dockerRoot str
 	if dockerRoot == "" {
 		dockerRoot = defaultDockerRoot
 	}
-	filename := filepath.Join(dockerRoot, RuntimeMetadataName+".json")
+	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -113,11 +112,12 @@ func (c *baseClient) GetCurrentRuntimeMetadata(_ context.Context, dockerRoot str
 	return &res, nil
 }
 
-func (c *baseClient) WriteRuntimeMetadata(_ context.Context, dockerRoot string, metadata *RuntimeMetadata) error {
+// WriteRuntimeMetadata stores the metadata on the local system
+func (c *baseClient) WriteRuntimeMetadata(dockerRoot string, metadata *RuntimeMetadata) error {
 	if dockerRoot == "" {
 		dockerRoot = defaultDockerRoot
 	}
-	filename := filepath.Join(dockerRoot, RuntimeMetadataName+".json")
+	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
 
 	data, err := json.Marshal(metadata)
 	if err != nil {
@@ -154,9 +154,9 @@ func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image)
 		return nil, fmt.Errorf("unknown image %s config media type %s", image.Name(), ic.MediaType)
 	}
 
-	metadataString, ok := config.Labels[RuntimeMetadataName]
+	metadataString, ok := config.Labels["com.docker."+runtimeMetadataName]
 	if !ok {
-		return nil, fmt.Errorf("image %s does not contain runtime metadata label %s", image.Name(), RuntimeMetadataName)
+		return nil, fmt.Errorf("image %s does not contain runtime metadata label %s", image.Name(), runtimeMetadataName)
 	}
 	err = json.Unmarshal([]byte(metadataString), &metadata)
 	if err != nil {
@@ -165,7 +165,7 @@ func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image)
 
 	// Current CLI only supports host install runtime
 	if metadata.Runtime != "host_install" {
-		return nil, fmt.Errorf("unsupported runtime: %s\nPlease consult the release notes at %s for upgrade instructions", metadata.Runtime, c.GetReleaseNotesURL(image.Name()))
+		return nil, fmt.Errorf("unsupported daemon image: %s\nConsult the release notes at %s for upgrade instructions", metadata.Runtime, getReleaseNotesURL(image.Name()))
 	}
 
 	// Verify local containerd is new enough
@@ -183,8 +183,8 @@ func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image)
 			return nil, err
 		}
 		if lv.LessThan(mv) {
-			return nil, fmt.Errorf("local containerd is too old: %s - this engine version requires %s or newer.\nPlease consult the release notes at %s for upgrade instructions",
-				localVersion.Version, metadata.ContainerdMinVersion, c.GetReleaseNotesURL(image.Name()))
+			return nil, fmt.Errorf("local containerd is too old: %s - this engine version requires %s or newer.\nConsult the release notes at %s for upgrade instructions",
+				localVersion.Version, metadata.ContainerdMinVersion, getReleaseNotesURL(image.Name()))
 		}
 	} // If omitted on metadata, no hard dependency on containerd version beyond 18.09 baseline
 
@@ -192,9 +192,9 @@ func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image)
 	return &metadata, nil
 }
 
-// GetReleaseNotesURL returns a release notes url
+// getReleaseNotesURL returns a release notes url
 // If the image name does not contain a version tag, the base release notes URL is returned
-func (c *baseClient) GetReleaseNotesURL(imageName string) string {
+func getReleaseNotesURL(imageName string) string {
 	versionTag := ""
 	distributionRef, err := reference.ParseNormalizedNamed(imageName)
 	if err == nil {
@@ -203,5 +203,5 @@ func (c *baseClient) GetReleaseNotesURL(imageName string) string {
 			versionTag = taggedRef.Tag()
 		}
 	}
-	return fmt.Sprintf("%s/%s", ReleaseNotePrefix, versionTag)
+	return fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, versionTag)
 }

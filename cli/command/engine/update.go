@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	clitypes "github.com/docker/cli/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVar(&options.EngineVersion, "version", "", "Specify engine version")
 	flags.StringVar(&options.EngineImage, "engine-image", "", "Specify engine image")
-	flags.StringVar(&options.RegistryPrefix, "registry-prefix", "", "Override the current location where engine images are pulled")
+	flags.StringVar(&options.RegistryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the current location where engine images are pulled")
 	flags.StringVar(&options.sockPath, "containerd", "", "override default location of containerd endpoint")
 
 	return cmd
@@ -33,7 +34,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 
 func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 	if !isRoot() {
-		return errors.New("must be privileged to activate engine")
+		return errors.New("this command must be run as a privileged user")
 	}
 	ctx := context.Background()
 	client, err := dockerCli.NewContainerizedEngineClient(options.sockPath)
@@ -41,11 +42,6 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 		return errors.Wrap(err, "unable to access local containerd")
 	}
 	defer client.Close()
-	if options.EngineImage == "" || options.RegistryPrefix == "" {
-		if options.RegistryPrefix == "" {
-			options.RegistryPrefix = "docker.io/store/docker"
-		}
-	}
 	authConfig, err := getRegistryAuth(dockerCli, options.RegistryPrefix)
 	if err != nil {
 		return err
@@ -59,6 +55,7 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 		}); err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), "To complete the update, please restart docker with 'systemctl restart docker'")
+	fmt.Fprintln(dockerCli.Out(), `Succesfully updated engine.
+Restart docker with 'systemctl restart docker' to complete the update.`)
 	return nil
 }

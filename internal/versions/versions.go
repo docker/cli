@@ -32,19 +32,21 @@ func GetEngineVersions(ctx context.Context, registryClient registryclient.Regist
 }
 
 func getEngineImage(registryPrefix string, serverVersion types.Version) string {
-	communityImage := "engine-community"
-	enterpriseImage := "engine-enterprise"
 	platform := strings.ToLower(serverVersion.Platform.Name)
 	if platform != "" {
 		if strings.Contains(platform, "enterprise") {
-			return path.Join(registryPrefix, enterpriseImage)
+			return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
 		}
-		return path.Join(registryPrefix, communityImage)
+		return path.Join(registryPrefix, clitypes.CommunityEngineImage)
 	}
+
+	// TODO This check is only applicable for early 18.09 builds that had some packaging bugs
+	// and can be removed once we're no longer testing with them
 	if strings.Contains(serverVersion.Version, "ee") {
-		return path.Join(registryPrefix, enterpriseImage)
+		return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
 	}
-	return path.Join(registryPrefix, communityImage)
+
+	return path.Join(registryPrefix, clitypes.CommunityEngineImage)
 }
 
 func parseTags(tags []string, currentVersion string) (clitypes.AvailableVersions, error) {
