@@ -15,28 +15,6 @@ RUN apt-get update && apt-get install -y \
     iptables \
     && rm -rf /var/lib/apt/lists/*
 
-# TODO - consider replacing with an official image and a multi-stage build to pluck the binaries out
-#ARG CONTAINERD_VERSION=v1.1.2
-#ARG CONTAINERD_VERSION=47a128d
-#ARG CONTAINERD_VERSION=6c3e782f
-ARG CONTAINERD_VERSION=65839a47a88b0a1c5dc34981f1741eccefc9f2b0
-RUN git clone https://github.com/containerd/containerd.git /go/src/github.com/containerd/containerd && \
-    cd /go/src/github.com/containerd/containerd && \
-    git checkout ${CONTAINERD_VERSION} && \
-    make && \
-    make install
-COPY e2eengine/config.toml /etc/containerd/config.toml
-COPY --from=containerd-shim-process /bin/containerd-shim-process-v1 /bin/
-
-
-# TODO - consider replacing with an official image and a multi-stage build to pluck the binaries out
-ARG RUNC_VERSION=v1.0.0-rc5
-RUN git clone https://github.com/opencontainers/runc.git /go/src/github.com/opencontainers/runc && \
-    cd /go/src/github.com/opencontainers/runc && \
-    git checkout ${RUNC_VERSION} && \
-    make && \
-    make install
-
 ARG COMPOSE_VERSION=1.21.2
 RUN curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose

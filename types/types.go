@@ -14,6 +14,12 @@ const (
 
 	// EnterpriseEngineImage is the repo name for the enterprise engine
 	EnterpriseEngineImage = "engine-enterprise"
+
+	// RegistryPrefix is the default prefix used to pull engine images
+	RegistryPrefix = "docker.io/store/docker"
+
+	// ReleaseNotePrefix is where to point users to for release notes
+	ReleaseNotePrefix = "https://docs.docker.com/releasenotes"
 )
 
 // ContainerizedClient can be used to manage the lifecycle of
@@ -21,11 +27,6 @@ const (
 type ContainerizedClient interface {
 	Close() error
 	ActivateEngine(ctx context.Context,
-		opts EngineInitOptions,
-		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
-	InitEngine(ctx context.Context,
 		opts EngineInitOptions,
 		out OutStream,
 		authConfig *types.AuthConfig,
