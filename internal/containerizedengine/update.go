@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -124,6 +125,7 @@ func (c *baseClient) WriteRuntimeMetadata(dockerRoot string, metadata *RuntimeMe
 		return err
 	}
 
+	os.Remove(filename)
 	return ioutil.WriteFile(filename, data, 0644)
 }
 
