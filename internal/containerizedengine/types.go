@@ -7,16 +7,15 @@ import (
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/containers"
 	"github.com/containerd/containerd/content"
-	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
 const (
-	containerdSockPath  = "/run/containerd/containerd.sock"
-	engineContainerName = "dockerd"
-	engineNamespace     = "docker"
+	containerdSockPath = "/run/containerd/containerd.sock"
+	engineNamespace    = "com.docker"
 
-	// Used to signal the containerd-proxy if it should manage
-	proxyLabel = "com.docker/containerd-proxy.scope"
+	// runtimeMetadataName is the name of the runtime metadata file
+	// When stored as a label on the container it is prefixed by "com.docker."
+	runtimeMetadataName = "distribution_based_engine"
 )
 
 var (
@@ -34,39 +33,6 @@ var (
 
 	// ErrEngineShutdownTimeout returned if the engine failed to shutdown in time
 	ErrEngineShutdownTimeout = errors.New("timeout waiting for engine to exit")
-
-	// ErrEngineImageMissingTag returned if the engine image is missing the version tag
-	ErrEngineImageMissingTag = errors.New("malformed engine image missing tag")
-
-	engineSpec = specs.Spec{
-		Root: &specs.Root{
-			Path: "rootfs",
-		},
-		Process: &specs.Process{
-			Cwd: "/",
-			Args: []string{
-				// In general, configuration should be driven by the config file, not these flags
-				// TODO - consider moving more of these to the config file, and make sure the defaults are set if not present.
-				"/sbin/dockerd",
-				"-s",
-				"overlay2",
-				"--containerd",
-				"/run/containerd/containerd.sock",
-				"--default-runtime",
-				"containerd",
-				"--add-runtime",
-				"containerd=runc",
-			},
-			User: specs.User{
-				UID: 0,
-				GID: 0,
-			},
-			Env: []string{
-				"PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin",
-			},
-			NoNewPrivileges: false,
-		},
-	}
 )
 
 type baseClient struct {
@@ -82,4 +48,13 @@ type containerdClient interface {
 	Close() error
 	ContentStore() content.Store
 	ContainerService() containers.Store
+	Install(context.Context, containerd.Image, ...containerd.InstallOpts) error
+	Version(ctx context.Context) (containerd.Version, error)
+}
+
+// RuntimeMetadata holds platform information about the daemon
+type RuntimeMetadata struct {
+	Platform             string `json:"platform"`
+	ContainerdMinVersion string `json:"containerd_min_version"`
+	Runtime              string `json:"runtime"`
 }

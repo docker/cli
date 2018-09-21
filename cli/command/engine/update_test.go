@@ -28,7 +28,7 @@ func TestUpdateHappy(t *testing.T) {
 		},
 	)
 	cmd := newUpdateCommand(testCli)
-	cmd.Flags().Set("registry-prefix", "docker.io/store/docker")
+	cmd.Flags().Set("registry-prefix", clitypes.RegistryPrefix)
 	cmd.Flags().Set("version", "someversion")
 	err := cmd.Execute()
 	assert.NilError(t, err)

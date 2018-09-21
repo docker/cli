@@ -7,13 +7,10 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/internal/versions"
 	clitypes "github.com/docker/cli/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-)
-
-const (
-	releaseNotePrefix = "https://docs.docker.com/releasenotes"
 )
 
 type checkOptions struct {
@@ -38,7 +35,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&options.registryPrefix, "registry-prefix", "", "Override the existing location where engine images are pulled")
+	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the existing location where engine images are pulled")
 	flags.BoolVar(&options.downgrades, "downgrades", false, "Report downgrades (default omits older versions)")
 	flags.BoolVar(&options.preReleases, "pre-releases", false, "Include pre-release versions")
 	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available upgrades")
@@ -50,54 +47,47 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCheck(dockerCli command.Cli, options checkOptions) error {
-	ctx := context.Background()
-	client, err := dockerCli.NewContainerizedEngineClient(options.sockPath)
-	if err != nil {
-		return errors.Wrap(err, "unable to access local containerd")
+	if !isRoot() {
+		return errors.New("this command must be run as a privileged user")
 	}
-	defer client.Close()
-	currentOpts, err := client.GetCurrentEngineVersion(ctx)
+	ctx := context.Background()
+	client := dockerCli.Client()
+	serverVersion, err := client.ServerVersion(ctx)
 	if err != nil {
 		return err
 	}
 
-	// override with user provided prefix if specified
-	if options.registryPrefix != "" {
-		currentOpts.RegistryPrefix = options.registryPrefix
-	}
-	imageName := currentOpts.RegistryPrefix + "/" + currentOpts.EngineImage
-	currentVersion := currentOpts.EngineVersion
-	versions, err := client.GetEngineVersions(ctx, dockerCli.RegistryClient(false), currentVersion, imageName)
+	availVersions, err := versions.GetEngineVersions(ctx, dockerCli.RegistryClient(false), options.registryPrefix, serverVersion)
 	if err != nil {
 		return err
 	}
 
 	availUpdates := []clitypes.Update{
-		{Type: "current", Version: currentVersion},
+		{Type: "current", Version: serverVersion.Version},
 	}
-	if len(versions.Patches) > 0 {
+	if len(availVersions.Patches) > 0 {
 		availUpdates = append(availUpdates,
 			processVersions(
-				currentVersion,
+				serverVersion.Version,
 				"patch",
 				options.preReleases,
-				versions.Patches)...)
+				availVersions.Patches)...)
 	}
 	if options.upgrades {
 		availUpdates = append(availUpdates,
 			processVersions(
-				currentVersion,
+				serverVersion.Version,
 				"upgrade",
 				options.preReleases,
-				versions.Upgrades)...)
+				availVersions.Upgrades)...)
 	}
 	if options.downgrades {
 		availUpdates = append(availUpdates,
 			processVersions(
-				currentVersion,
+				serverVersion.Version,
 				"downgrade",
 				options.preReleases,
-				versions.Downgrades)...)
+				availVersions.Downgrades)...)
 	}
 
 	format := options.format
@@ -115,9 +105,9 @@ func runCheck(dockerCli command.Cli, options checkOptions) error {
 
 func processVersions(currentVersion, verType string,
 	includePrerelease bool,
-	versions []clitypes.DockerVersion) []clitypes.Update {
+	availVersions []clitypes.DockerVersion) []clitypes.Update {
 	availUpdates := []clitypes.Update{}
-	for _, ver := range versions {
+	for _, ver := range availVersions {
 		if !includePrerelease && ver.Prerelease() != "" {
 			continue
 		}
@@ -125,7 +115,7 @@ func processVersions(currentVersion, verType string,
 			availUpdates = append(availUpdates, clitypes.Update{
 				Type:    verType,
 				Version: ver.Tag,
-				Notes:   fmt.Sprintf("%s/%s", releaseNotePrefix, ver.Tag),
+				Notes:   fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, ver.Tag),
 			})
 		}
 	}

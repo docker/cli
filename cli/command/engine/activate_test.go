@@ -14,6 +14,7 @@ func TestActivateNoContainerd(t *testing.T) {
 			return nil, fmt.Errorf("some error")
 		},
 	)
+	isRoot = func() bool { return true }
 	cmd := newActivateCommand(testCli)
 	cmd.Flags().Set("license", "invalidpath")
 	cmd.SilenceUsage = true
@@ -28,6 +29,7 @@ func TestActivateBadLicense(t *testing.T) {
 			return &fakeContainerizedEngineClient{}, nil
 		},
 	)
+	isRoot = func() bool { return true }
 	cmd := newActivateCommand(testCli)
 	cmd.SilenceUsage = true
 	cmd.SilenceErrors = true

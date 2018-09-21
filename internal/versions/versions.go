@@ -1,19 +1,23 @@
-package containerizedengine
+package versions
 
 import (
 	"context"
+	"path"
 	"sort"
+	"strings"
 
 	registryclient "github.com/docker/cli/cli/registry/client"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
+	"github.com/docker/docker/api/types"
 	ver "github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // GetEngineVersions reports the versions of the engine that are available
-func (c *baseClient) GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (clitypes.AvailableVersions, error) {
+func GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, registryPrefix string, serverVersion types.Version) (clitypes.AvailableVersions, error) {
+	imageName := getEngineImage(registryPrefix, serverVersion)
 	imageRef, err := reference.ParseNormalizedNamed(imageName)
 	if err != nil {
 		return clitypes.AvailableVersions{}, err
@@ -24,7 +28,25 @@ func (c *baseClient) GetEngineVersions(ctx context.Context, registryClient regis
 		return clitypes.AvailableVersions{}, err
 	}
 
-	return parseTags(tags, currentVersion)
+	return parseTags(tags, serverVersion.Version)
+}
+
+func getEngineImage(registryPrefix string, serverVersion types.Version) string {
+	platform := strings.ToLower(serverVersion.Platform.Name)
+	if platform != "" {
+		if strings.Contains(platform, "enterprise") {
+			return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
+		}
+		return path.Join(registryPrefix, clitypes.CommunityEngineImage)
+	}
+
+	// TODO This check is only applicable for early 18.09 builds that had some packaging bugs
+	// and can be removed once we're no longer testing with them
+	if strings.Contains(serverVersion.Version, "ee") {
+		return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
+	}
+
+	return path.Join(registryPrefix, clitypes.CommunityEngineImage)
 }
 
 func parseTags(tags []string, currentVersion string) (clitypes.AvailableVersions, error) {

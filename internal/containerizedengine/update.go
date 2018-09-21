@@ -2,74 +2,31 @@ package containerizedengine
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"path"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/errdefs"
+	"github.com/containerd/containerd/images"
 	"github.com/containerd/containerd/namespaces"
-	"github.com/docker/cli/internal/pkg/containerized"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
+	ver "github.com/hashicorp/go-version"
+	"github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 )
-
-// GetCurrentEngineVersion determines the current type of engine (image) and version
-func (c *baseClient) GetCurrentEngineVersion(ctx context.Context) (clitypes.EngineInitOptions, error) {
-	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-	ret := clitypes.EngineInitOptions{}
-	currentEngine := clitypes.CommunityEngineImage
-	engine, err := c.GetEngine(ctx)
-	if err != nil {
-		if err == ErrEngineNotPresent {
-			return ret, errors.Wrap(err, "failed to find existing engine")
-		}
-		return ret, err
-	}
-	imageName, err := c.getEngineImage(engine)
-	if err != nil {
-		return ret, err
-	}
-	distributionRef, err := reference.ParseNormalizedNamed(imageName)
-	if err != nil {
-		return ret, errors.Wrapf(err, "failed to parse image name: %s", imageName)
-	}
-
-	if strings.Contains(distributionRef.Name(), clitypes.EnterpriseEngineImage) {
-		currentEngine = clitypes.EnterpriseEngineImage
-	}
-	taggedRef, ok := distributionRef.(reference.NamedTagged)
-	if !ok {
-		return ret, ErrEngineImageMissingTag
-	}
-	ret.EngineImage = currentEngine
-	ret.EngineVersion = taggedRef.Tag()
-	ret.RegistryPrefix = reference.Domain(taggedRef) + "/" + path.Dir(reference.Path(taggedRef))
-	return ret, nil
-}
 
 // ActivateEngine will switch the image from the CE to EE image
 func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
 
-	// set the proxy scope to "ee" for activate flows
-	opts.Scope = "ee"
-
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-
-	// If version is unspecified, use the existing engine version
-	if opts.EngineVersion == "" {
-		currentOpts, err := c.GetCurrentEngineVersion(ctx)
-		if err != nil {
-			return err
-		}
-		opts.EngineVersion = currentOpts.EngineVersion
-		if currentOpts.EngineImage == clitypes.EnterpriseEngineImage {
-			// This is a "no-op" activation so the only change would be the license - don't update the engine itself
-			return nil
-		}
-	}
 	return c.DoUpdate(ctx, opts, out, authConfig, healthfn)
 }
 
@@ -84,7 +41,21 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 		// current engine version and automatically apply it so users
 		// could stay in sync by simply having a scheduled
 		// `docker engine update`
-		return fmt.Errorf("please pick the version you want to update to")
+		return fmt.Errorf("pick the version you want to update to with --version")
+	}
+
+	localMetadata, err := c.GetCurrentRuntimeMetadata(ctx, "")
+	if err == nil {
+		if opts.EngineImage == "" {
+			if strings.Contains(strings.ToLower(localMetadata.Platform), "community") {
+				opts.EngineImage = clitypes.CommunityEngineImage
+			} else {
+				opts.EngineImage = clitypes.EnterpriseEngineImage
+			}
+		}
+	}
+	if opts.EngineImage == "" {
+		return fmt.Errorf("unable to determine the installed engine version. Specify which engine image to update with --engine-image set to 'engine-community' or 'engine-enterprise'")
 	}
 
 	imageName := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
@@ -102,30 +73,137 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 		}
 	}
 
-	// Gather information about the existing engine so we can recreate it
-	engine, err := c.GetEngine(ctx)
+	// Make sure we're safe to proceed
+	newMetadata, err := c.PreflightCheck(ctx, image)
 	if err != nil {
-		if err == ErrEngineNotPresent {
-			return errors.Wrap(err, "unable to find existing engine - please use init")
+		return err
+	}
+	// Grab current metadata for comparison purposes
+	if localMetadata != nil {
+		if localMetadata.Platform != newMetadata.Platform {
+			fmt.Fprintf(out, "\nNotice: you have switched to \"%s\".  Refer to %s for update instructions.\n\n", newMetadata.Platform, getReleaseNotesURL(imageName))
 		}
+	}
+
+	if err := c.cclient.Install(ctx, image, containerd.WithInstallReplace, containerd.WithInstallPath("/usr")); err != nil {
 		return err
 	}
 
-	// TODO verify the image has changed and don't update if nothing has changed
+	return c.WriteRuntimeMetadata("", newMetadata)
+}
 
-	err = containerized.AtomicImageUpdate(ctx, engine, image, func() error {
-		ctx, cancel := context.WithTimeout(ctx, engineWaitTimeout)
-		defer cancel()
-		return c.waitForEngine(ctx, out, healthfn)
-	})
-	if err == nil && opts.Scope != "" {
-		var labels map[string]string
-		labels, err = engine.Labels(ctx)
-		if err != nil {
-			return err
-		}
-		labels[proxyLabel] = opts.Scope
-		_, err = engine.SetLabels(ctx, labels)
+var defaultDockerRoot = "/var/lib/docker"
+
+// GetCurrentRuntimeMetadata loads the current daemon runtime metadata information from the local host
+func (c *baseClient) GetCurrentRuntimeMetadata(_ context.Context, dockerRoot string) (*RuntimeMetadata, error) {
+	if dockerRoot == "" {
+		dockerRoot = defaultDockerRoot
 	}
-	return err
+	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	var res RuntimeMetadata
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return nil, errors.Wrapf(err, "malformed runtime metadata file %s", filename)
+	}
+	return &res, nil
+}
+
+// WriteRuntimeMetadata stores the metadata on the local system
+func (c *baseClient) WriteRuntimeMetadata(dockerRoot string, metadata *RuntimeMetadata) error {
+	if dockerRoot == "" {
+		dockerRoot = defaultDockerRoot
+	}
+	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
+
+	data, err := json.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+
+	os.Remove(filename)
+	return ioutil.WriteFile(filename, data, 0644)
+}
+
+// PreflightCheck verifies the specified image is compatible with the local system before proceeding to update/activate
+// If things look good, the RuntimeMetadata for the new image is returned and can be written out to the host
+func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image) (*RuntimeMetadata, error) {
+	var metadata RuntimeMetadata
+	ic, err := image.Config(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		ociimage v1.Image
+		config   v1.ImageConfig
+	)
+	switch ic.MediaType {
+	case v1.MediaTypeImageConfig, images.MediaTypeDockerSchema2Config:
+		p, err := content.ReadBlob(ctx, image.ContentStore(), ic)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := json.Unmarshal(p, &ociimage); err != nil {
+			return nil, err
+		}
+		config = ociimage.Config
+	default:
+		return nil, fmt.Errorf("unknown image %s config media type %s", image.Name(), ic.MediaType)
+	}
+
+	metadataString, ok := config.Labels["com.docker."+runtimeMetadataName]
+	if !ok {
+		return nil, fmt.Errorf("image %s does not contain runtime metadata label %s", image.Name(), runtimeMetadataName)
+	}
+	err = json.Unmarshal([]byte(metadataString), &metadata)
+	if err != nil {
+		return nil, errors.Wrapf(err, "malformed runtime metadata file in %s", image.Name())
+	}
+
+	// Current CLI only supports host install runtime
+	if metadata.Runtime != "host_install" {
+		return nil, fmt.Errorf("unsupported daemon image: %s\nConsult the release notes at %s for upgrade instructions", metadata.Runtime, getReleaseNotesURL(image.Name()))
+	}
+
+	// Verify local containerd is new enough
+	localVersion, err := c.cclient.Version(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if metadata.ContainerdMinVersion != "" {
+		lv, err := ver.NewVersion(localVersion.Version)
+		if err != nil {
+			return nil, err
+		}
+		mv, err := ver.NewVersion(metadata.ContainerdMinVersion)
+		if err != nil {
+			return nil, err
+		}
+		if lv.LessThan(mv) {
+			return nil, fmt.Errorf("local containerd is too old: %s - this engine version requires %s or newer.\nConsult the release notes at %s for upgrade instructions",
+				localVersion.Version, metadata.ContainerdMinVersion, getReleaseNotesURL(image.Name()))
+		}
+	} // If omitted on metadata, no hard dependency on containerd version beyond 18.09 baseline
+
+	// All checks look OK, proceed with update
+	return &metadata, nil
+}
+
+// getReleaseNotesURL returns a release notes url
+// If the image name does not contain a version tag, the base release notes URL is returned
+func getReleaseNotesURL(imageName string) string {
+	versionTag := ""
+	distributionRef, err := reference.ParseNormalizedNamed(imageName)
+	if err == nil {
+		taggedRef, ok := distributionRef.(reference.NamedTagged)
+		if ok {
+			versionTag = taggedRef.Tag()
+		}
+	}
+	return fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, versionTag)
 }
