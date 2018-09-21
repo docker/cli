@@ -115,7 +115,7 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		}); err != nil {
 		return err
 	}
-	fmt.Fprintln(cli.Out(), `Succesfully activated engine.
+	fmt.Fprintln(cli.Out(), `Successfully activated engine.
 Restart docker with 'systemctl restart docker' to complete the activation.`)
 	return nil
 }
