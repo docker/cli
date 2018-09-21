@@ -2,10 +2,8 @@ package containerizedengine
 
 import (
 	"context"
-	"syscall"
 
 	"github.com/containerd/containerd"
-	containerdtypes "github.com/containerd/containerd/api/types"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
 	"github.com/containerd/containerd/content"
@@ -13,7 +11,6 @@ import (
 	prototypes "github.com/gogo/protobuf/types"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/opencontainers/runtime-spec/specs-go"
 )
 
 type (
@@ -49,26 +46,6 @@ type (
 		configFunc       func(ctx context.Context) (ocispec.Descriptor, error)
 		isUnpackedFunc   func(context.Context, string) (bool, error)
 		contentStoreFunc func() content.Store
-	}
-	fakeTask struct {
-		idFunc          func() string
-		pidFunc         func() uint32
-		startFunc       func(context.Context) error
-		deleteFunc      func(context.Context, ...containerd.ProcessDeleteOpts) (*containerd.ExitStatus, error)
-		killFunc        func(context.Context, syscall.Signal, ...containerd.KillOpts) error
-		waitFunc        func(context.Context) (<-chan containerd.ExitStatus, error)
-		closeIOFunc     func(context.Context, ...containerd.IOCloserOpts) error
-		resizeFunc      func(ctx context.Context, w, h uint32) error
-		ioFunc          func() cio.IO
-		statusFunc      func(context.Context) (containerd.Status, error)
-		pauseFunc       func(context.Context) error
-		resumeFunc      func(context.Context) error
-		execFunc        func(context.Context, string, *specs.Process, cio.Creator) (containerd.Process, error)
-		pidsFunc        func(context.Context) ([]containerd.ProcessInfo, error)
-		checkpointFunc  func(context.Context, ...containerd.CheckpointTaskOpts) (containerd.Image, error)
-		updateFunc      func(context.Context, ...containerd.UpdateTaskOpts) error
-		loadProcessFunc func(context.Context, string, cio.Attach) (containerd.Process, error)
-		metricsFunc     func(context.Context) (*containerdtypes.Metric, error)
 	}
 )
 
@@ -238,113 +215,4 @@ func (i *fakeImage) ContentStore() content.Store {
 		return i.contentStoreFunc()
 	}
 	return nil
-}
-
-func (t *fakeTask) ID() string {
-	if t.idFunc != nil {
-		return t.idFunc()
-	}
-	return ""
-}
-func (t *fakeTask) Pid() uint32 {
-	if t.pidFunc != nil {
-		return t.pidFunc()
-	}
-	return 0
-}
-func (t *fakeTask) Start(ctx context.Context) error {
-	if t.startFunc != nil {
-		return t.startFunc(ctx)
-	}
-	return nil
-}
-func (t *fakeTask) Delete(ctx context.Context, opts ...containerd.ProcessDeleteOpts) (*containerd.ExitStatus, error) {
-	if t.deleteFunc != nil {
-		return t.deleteFunc(ctx, opts...)
-	}
-	return nil, nil
-}
-func (t *fakeTask) Kill(ctx context.Context, signal syscall.Signal, opts ...containerd.KillOpts) error {
-	if t.killFunc != nil {
-		return t.killFunc(ctx, signal, opts...)
-	}
-	return nil
-}
-func (t *fakeTask) Wait(ctx context.Context) (<-chan containerd.ExitStatus, error) {
-	if t.waitFunc != nil {
-		return t.waitFunc(ctx)
-	}
-	return nil, nil
-}
-func (t *fakeTask) CloseIO(ctx context.Context, opts ...containerd.IOCloserOpts) error {
-	if t.closeIOFunc != nil {
-		return t.closeIOFunc(ctx, opts...)
-	}
-	return nil
-}
-func (t *fakeTask) Resize(ctx context.Context, w, h uint32) error {
-	if t.resizeFunc != nil {
-		return t.resizeFunc(ctx, w, h)
-	}
-	return nil
-}
-func (t *fakeTask) IO() cio.IO {
-	if t.ioFunc != nil {
-		return t.ioFunc()
-	}
-	return nil
-}
-func (t *fakeTask) Status(ctx context.Context) (containerd.Status, error) {
-	if t.statusFunc != nil {
-		return t.statusFunc(ctx)
-	}
-	return containerd.Status{}, nil
-}
-func (t *fakeTask) Pause(ctx context.Context) error {
-	if t.pauseFunc != nil {
-		return t.pauseFunc(ctx)
-	}
-	return nil
-}
-func (t *fakeTask) Resume(ctx context.Context) error {
-	if t.resumeFunc != nil {
-		return t.resumeFunc(ctx)
-	}
-	return nil
-}
-func (t *fakeTask) Exec(ctx context.Context, cmd string, proc *specs.Process, ioc cio.Creator) (containerd.Process, error) {
-	if t.execFunc != nil {
-		return t.execFunc(ctx, cmd, proc, ioc)
-	}
-	return nil, nil
-}
-func (t *fakeTask) Pids(ctx context.Context) ([]containerd.ProcessInfo, error) {
-	if t.pidsFunc != nil {
-		return t.pidsFunc(ctx)
-	}
-	return nil, nil
-}
-func (t *fakeTask) Checkpoint(ctx context.Context, opts ...containerd.CheckpointTaskOpts) (containerd.Image, error) {
-	if t.checkpointFunc != nil {
-		return t.checkpointFunc(ctx, opts...)
-	}
-	return nil, nil
-}
-func (t *fakeTask) Update(ctx context.Context, opts ...containerd.UpdateTaskOpts) error {
-	if t.updateFunc != nil {
-		return t.updateFunc(ctx, opts...)
-	}
-	return nil
-}
-func (t *fakeTask) LoadProcess(ctx context.Context, name string, attach cio.Attach) (containerd.Process, error) {
-	if t.loadProcessFunc != nil {
-		return t.loadProcessFunc(ctx, name, attach)
-	}
-	return nil, nil
-}
-func (t *fakeTask) Metrics(ctx context.Context) (*containerdtypes.Metric, error) {
-	if t.metricsFunc != nil {
-		return t.metricsFunc(ctx)
-	}
-	return nil, nil
 }

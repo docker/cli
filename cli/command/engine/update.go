@@ -55,7 +55,7 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 		}); err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), `Succesfully updated engine.
+	fmt.Fprintln(dockerCli.Out(), `Successfully updated engine.
 Restart docker with 'systemctl restart docker' to complete the update.`)
 	return nil
 }

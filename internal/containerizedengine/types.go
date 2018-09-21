@@ -7,13 +7,11 @@ import (
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/containers"
 	"github.com/containerd/containerd/content"
-	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
 const (
-	containerdSockPath  = "/run/containerd/containerd.sock"
-	engineContainerName = "dockerd"
-	engineNamespace     = "com.docker"
+	containerdSockPath = "/run/containerd/containerd.sock"
+	engineNamespace    = "com.docker"
 
 	// runtimeMetadataName is the name of the runtime metadata file
 	// When stored as a label on the container it is prefixed by "com.docker."
@@ -35,36 +33,6 @@ var (
 
 	// ErrEngineShutdownTimeout returned if the engine failed to shutdown in time
 	ErrEngineShutdownTimeout = errors.New("timeout waiting for engine to exit")
-
-	engineSpec = specs.Spec{
-		Root: &specs.Root{
-			Path: "rootfs",
-		},
-		Process: &specs.Process{
-			Cwd: "/",
-			Args: []string{
-				// In general, configuration should be driven by the config file, not these flags
-				// TODO - consider moving more of these to the config file, and make sure the defaults are set if not present.
-				"/sbin/dockerd",
-				"-s",
-				"overlay2",
-				"--containerd",
-				"/run/containerd/containerd.sock",
-				"--default-runtime",
-				"containerd",
-				"--add-runtime",
-				"containerd=runc",
-			},
-			User: specs.User{
-				UID: 0,
-				GID: 0,
-			},
-			Env: []string{
-				"PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin",
-			},
-			NoNewPrivileges: false,
-		},
-	}
 )
 
 type baseClient struct {
