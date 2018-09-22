@@ -18,7 +18,7 @@ func TestDiskUsageContextFormatWrite(t *testing.T) {
 		{
 			DiskUsageContext{
 				Context: Context{
-					Format: NewDiskUsageFormat("table"),
+					Format: NewDiskUsageFormat("table", false),
 				},
 				Verbose: false},
 			`TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
@@ -29,7 +29,7 @@ Build Cache         0                   0                   0B                  
 `,
 		},
 		{
-			DiskUsageContext{Verbose: true},
+			DiskUsageContext{Verbose: true, Context: Context{Format: NewDiskUsageFormat("table", true)}},
 			`Images space usage:
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE                SHARED SIZE         UNIQUE SIZE         CONTAINERS
@@ -44,8 +44,16 @@ VOLUME NAME         LINKS               SIZE
 
 Build cache usage: 0B
 
-CACHE ID            TYPE                SIZE                CREATED             LAST USED           USAGE               SHARED
+CACHE ID            CACHE TYPE          SIZE                CREATED             LAST USED           USAGE               SHARED
 `,
+		},
+		{
+			DiskUsageContext{Verbose: true, Context: Context{Format: NewDiskUsageFormat("raw", true)}},
+			``,
+		},
+		{
+			DiskUsageContext{Verbose: true, Context: Context{Format: NewDiskUsageFormat("{{json .}}", true)}},
+			`{"Images":[],"Containers":[],"Volumes":[],"BuildCache":[]}`,
 		},
 		// Errors
 		{
@@ -70,7 +78,7 @@ CACHE ID            TYPE                SIZE                CREATED             
 		{
 			DiskUsageContext{
 				Context: Context{
-					Format: NewDiskUsageFormat("table"),
+					Format: NewDiskUsageFormat("table", false),
 				},
 			},
 			`TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
@@ -83,7 +91,7 @@ Build Cache         0                   0                   0B                  
 		{
 			DiskUsageContext{
 				Context: Context{
-					Format: NewDiskUsageFormat("table {{.Type}}\t{{.Active}}"),
+					Format: NewDiskUsageFormat("table {{.Type}}\t{{.Active}}", false),
 				},
 			},
 			string(golden.Get(t, "disk-usage-context-write-custom.golden")),
@@ -92,7 +100,7 @@ Build Cache         0                   0                   0B                  
 		{
 			DiskUsageContext{
 				Context: Context{
-					Format: NewDiskUsageFormat("raw"),
+					Format: NewDiskUsageFormat("raw", false),
 				},
 			},
 			string(golden.Get(t, "disk-usage-raw-format.golden")),
