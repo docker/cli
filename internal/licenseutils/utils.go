@@ -97,7 +97,7 @@ func (u HubUser) GetAvailableLicenses(ctx context.Context) ([]LicenseDisplay, er
 	// Filter out expired licenses
 	i := 0
 	for _, s := range subs {
-		if s.State != "expired" && s.Expires != nil {
+		if s.State == "active" && s.Expires != nil {
 			owner := ""
 			if s.DockerID == u.User.ID {
 				owner = u.User.Username
