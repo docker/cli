@@ -78,6 +78,12 @@ func TestEmptyValueWithSoftDefault(t *testing.T) {
 	assert.Check(t, is.Equal("ok def", result))
 }
 
+func TestValueWithSoftDefault(t *testing.T) {
+	result, err := Substitute("ok ${FOO:-def}", defaultMapping)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok first", result))
+}
+
 func TestEmptyValueWithHardDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR-def}", defaultMapping)
 	assert.NilError(t, err)
