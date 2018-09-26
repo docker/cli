@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
+	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -13,7 +14,7 @@ import (
 
 func getRegistryAuth(cli command.Cli, registryPrefix string) (*types.AuthConfig, error) {
 	if registryPrefix == "" {
-		registryPrefix = "docker.io/docker"
+		registryPrefix = clitypes.RegistryPrefix
 	}
 	distributionRef, err := reference.ParseNormalizedNamed(registryPrefix)
 	if err != nil {

@@ -15,11 +15,9 @@ func NewEngineCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
 	cmd.AddCommand(
-		newInitCommand(dockerCli),
 		newActivateCommand(dockerCli),
 		newCheckForUpdatesCommand(dockerCli),
 		newUpdateCommand(dockerCli),
-		newRmCommand(dockerCli),
 	)
 	return cmd
 }
