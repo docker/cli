@@ -67,7 +67,7 @@ func (s State) Value(k interface{}) interface{} {
 	return s.ctx.Value(k)
 }
 
-func (s State) SetMarhalDefaults(co ...ConstraintsOpt) State {
+func (s State) SetMarshalDefaults(co ...ConstraintsOpt) State {
 	s.opts = co
 	return s
 }
@@ -196,6 +196,7 @@ func (s State) Run(ro ...RunOption) ExecState {
 		exec.AddMount(m.Target, m.Source, m.Opts...)
 	}
 	exec.secrets = ei.Secrets
+	exec.ssh = ei.SSH
 
 	return ExecState{
 		State: s.WithOutput(exec.Output()),
