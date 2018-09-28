@@ -11,7 +11,7 @@ import (
 func NewBuilderCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "builder",
-		Short: "Manage builds",
+		Short: "Manage builds/管理构建",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}

@@ -31,7 +31,7 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "search [OPTIONS] TERM",
-		Short: "Search the Docker Hub for images",
+		Short: "Search the Docker Hub for images/在Docker Hub中搜索镜像",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.term = args[0]

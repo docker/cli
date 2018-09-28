@@ -10,6 +10,7 @@ import (
 )
 
 // IDResolver provides ID to Name resolution.
+// IDResolver 提供ID标识到名称的解析
 type IDResolver struct {
 	client    client.APIClient
 	noResolve bool

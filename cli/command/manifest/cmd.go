@@ -14,7 +14,7 @@ func NewManifestCommand(dockerCli command.Cli) *cobra.Command {
 	// use dockerCli as command.Cli
 	cmd := &cobra.Command{
 		Use:   "manifest COMMAND",
-		Short: "Manage Docker image manifests and manifest lists",
+		Short: "Manage Docker image manifests and manifest lists/管理Docker镜像清单和清单列表",
 		Long:  manifestDescription,
 		Args:  cli.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
