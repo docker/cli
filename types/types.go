@@ -20,6 +20,10 @@ const (
 
 	// ReleaseNotePrefix is where to point users to for release notes
 	ReleaseNotePrefix = "https://docs.docker.com/releasenotes"
+
+	// RuntimeMetadataName is the name of the runtime metadata file
+	// When stored as a label on the container it is prefixed by "com.docker."
+	RuntimeMetadataName = "distribution_based_engine"
 )
 
 // ContainerizedClient can be used to manage the lifecycle of
@@ -41,10 +45,11 @@ type ContainerizedClient interface {
 // EngineInitOptions contains the configuration settings
 // use during initialization of a containerized docker engine
 type EngineInitOptions struct {
-	RegistryPrefix string
-	EngineImage    string
-	EngineVersion  string
-	ConfigFile     string
+	RegistryPrefix     string
+	EngineImage        string
+	EngineVersion      string
+	ConfigFile         string
+	RuntimeMetadataDir string
 }
 
 // AvailableVersions groups the available versions which were discovered
@@ -74,4 +79,12 @@ type OutStream interface {
 	io.Writer
 	FD() uintptr
 	IsTerminal() bool
+}
+
+// RuntimeMetadata holds platform information about the daemon
+type RuntimeMetadata struct {
+	Platform             string `json:"platform"`
+	ContainerdMinVersion string `json:"containerd_min_version"`
+	Runtime              string `json:"runtime"`
+	EngineImage          string `json:"engine_image"`
 }

@@ -22,12 +22,18 @@ var (
 
 type verClient struct {
 	client.Client
-	ver    types.Version
-	verErr error
+	ver     types.Version
+	verErr  error
+	info    types.Info
+	infoErr error
 }
 
 func (c *verClient) ServerVersion(ctx context.Context) (types.Version, error) {
 	return c.ver, c.verErr
+}
+
+func (c *verClient) Info(ctx context.Context) (types.Info, error) {
+	return c.info, c.infoErr
 }
 
 type testRegistryClient struct {
@@ -53,26 +59,28 @@ func (c testRegistryClient) GetTags(ctx context.Context, ref reference.Named) ([
 
 func TestCheckForUpdatesNoCurrentVersion(t *testing.T) {
 	isRoot = func() bool { return true }
-	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil})
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil, types.Info{}, nil})
 	c.SetRegistryClient(testRegistryClient{})
 	cmd := newCheckForUpdatesCommand(c)
 	cmd.SilenceUsage = true
 	cmd.SilenceErrors = true
 	err := cmd.Execute()
-	assert.ErrorContains(t, err, "alformed version")
+	assert.ErrorContains(t, err, "no such file or directory")
 }
 
 func TestCheckForUpdatesGetEngineVersionsHappy(t *testing.T) {
-	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{Version: "1.1.0"}, nil})
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{Version: "1.1.0"}, nil, types.Info{ServerVersion: "1.1.0"}, nil})
 	c.SetRegistryClient(testRegistryClient{[]string{
 		"1.0.1", "1.0.2", "1.0.3-beta1",
 		"1.1.1", "1.1.2", "1.1.3-beta1",
 		"1.2.0", "2.0.0", "2.1.0-beta1",
 	}})
+
 	isRoot = func() bool { return true }
 	cmd := newCheckForUpdatesCommand(c)
 	cmd.Flags().Set("pre-releases", "true")
 	cmd.Flags().Set("downgrades", "true")
+	cmd.Flags().Set("engine-image", "engine-community")
 	cmd.SilenceUsage = true
 	cmd.SilenceErrors = true
 	err := cmd.Execute()

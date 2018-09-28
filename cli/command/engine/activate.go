@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -57,7 +58,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 	flags.StringVar(&options.licenseFile, "license", "", "License File")
 	flags.StringVar(&options.version, "version", "", "Specify engine version (default is to use currently running version)")
 	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the default location where engine images are pulled")
-	flags.StringVar(&options.image, "engine-image", clitypes.EnterpriseEngineImage, "Specify engine image")
+	flags.StringVar(&options.image, "engine-image", "", "Specify engine image")
 	flags.StringVar(&options.format, "format", "", "Pretty-print licenses using a Go template")
 	flags.BoolVar(&options.displayOnly, "display-only", false, "only display the available licenses and exit")
 	flags.BoolVar(&options.quiet, "quiet", false, "Only display available licenses by ID")
@@ -102,8 +103,22 @@ func runActivate(cli command.Cli, options activateOptions) error {
 	if options.displayOnly {
 		return nil
 	}
-	if err = licenseutils.ApplyLicense(ctx, cli.Client(), license); err != nil {
+	dclient := cli.Client()
+	if err = licenseutils.ApplyLicense(ctx, dclient, license); err != nil {
 		return err
+	}
+
+	// Short circuit if the user didn't specify a version and we're already running enterprise
+	if options.version == "" {
+		serverVersion, err := dclient.ServerVersion(ctx)
+		if err != nil {
+			return err
+		}
+		if strings.Contains(strings.ToLower(serverVersion.Platform.Name), "enterprise") {
+			fmt.Fprintln(cli.Out(), "Successfully activated engine license on existing enterprise engine.")
+			return nil
+		}
+		options.version = serverVersion.Version
 	}
 
 	opts := clitypes.EngineInitOptions{

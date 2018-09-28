@@ -12,10 +12,6 @@ import (
 const (
 	containerdSockPath = "/run/containerd/containerd.sock"
 	engineNamespace    = "com.docker"
-
-	// runtimeMetadataName is the name of the runtime metadata file
-	// When stored as a label on the container it is prefixed by "com.docker."
-	runtimeMetadataName = "distribution_based_engine"
 )
 
 var (
@@ -50,11 +46,4 @@ type containerdClient interface {
 	ContainerService() containers.Store
 	Install(context.Context, containerd.Image, ...containerd.InstallOpts) error
 	Version(ctx context.Context) (containerd.Version, error)
-}
-
-// RuntimeMetadata holds platform information about the daemon
-type RuntimeMetadata struct {
-	Platform             string `json:"platform"`
-	ContainerdMinVersion string `json:"containerd_min_version"`
-	Runtime              string `json:"runtime"`
 }

@@ -16,6 +16,7 @@ import (
 type checkOptions struct {
 	registryPrefix string
 	preReleases    bool
+	engineImage    string
 	downgrades     bool
 	upgrades       bool
 	format         string
@@ -38,6 +39,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the existing location where engine images are pulled")
 	flags.BoolVar(&options.downgrades, "downgrades", false, "Report downgrades (default omits older versions)")
 	flags.BoolVar(&options.preReleases, "pre-releases", false, "Include pre-release versions")
+	flags.StringVar(&options.engineImage, "engine-image", "", "Specify engine image (default uses the same image as currently running)")
 	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available upgrades")
 	flags.StringVar(&options.format, "format", "", "Pretty-print updates using a Go template")
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display available versions")
@@ -57,7 +59,7 @@ func runCheck(dockerCli command.Cli, options checkOptions) error {
 		return err
 	}
 
-	availVersions, err := versions.GetEngineVersions(ctx, dockerCli.RegistryClient(false), options.registryPrefix, serverVersion)
+	availVersions, err := versions.GetEngineVersions(ctx, dockerCli.RegistryClient(false), options.registryPrefix, options.engineImage, serverVersion.Version)
 	if err != nil {
 		return err
 	}
