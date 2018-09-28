@@ -20,6 +20,7 @@ type (
 		parseLicenseFunc                 func(license []byte) (parsedLicense *model.IssuedLicense, err error)
 		storeLicenseFunc                 func(ctx context.Context, dclnt licensing.WrappedDockerClient, licenses *model.IssuedLicense, localRootDir string) error
 		loadLocalLicenseFunc             func(ctx context.Context, dclnt licensing.WrappedDockerClient) (*model.Subscription, error)
+		summarizeLicenseFunc             func(*model.CheckResponse, string) *model.Subscription
 	}
 )
 
@@ -101,4 +102,11 @@ func (c *fakeLicensingClient) LoadLocalLicense(ctx context.Context, dclnt licens
 
 	}
 	return nil, nil
+}
+
+func (c *fakeLicensingClient) SummarizeLicense(cr *model.CheckResponse, keyid string) *model.Subscription {
+	if c.summarizeLicenseFunc != nil {
+		return c.summarizeLicenseFunc(cr, keyid)
+	}
+	return nil
 }

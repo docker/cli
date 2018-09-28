@@ -34,7 +34,7 @@ type Subscription struct {
 }
 
 func (s *Subscription) String() string {
-	storeURL := "https://store.docker.com"
+	storeURL := "https://docker.com/licensing"
 
 	var nameMsg, expirationMsg, statusMsg string
 	switch s.State {

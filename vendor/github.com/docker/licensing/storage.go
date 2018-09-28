@@ -87,18 +87,23 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 		licenseData, err = readLicenseFromHost(ctx, info.DockerRootDir)
 	} else {
 		// Load the latest license index
-		latestVersion, err := getLatestNamedConfig(clnt, licenseNamePrefix)
+		var latestVersion int
+		latestVersion, err = getLatestNamedConfig(clnt, licenseNamePrefix)
 		if err != nil {
 			if strings.Contains(err.Error(), "not a swarm manager.") {
 				return nil, ErrWorkerNode
 			}
 			return nil, fmt.Errorf("unable to get latest license version: %s", err)
 		}
-		cfg, _, err := clnt.ConfigInspectWithRaw(ctx, fmt.Sprintf("%s-%d", licenseNamePrefix, latestVersion))
-		if err != nil {
-			return nil, fmt.Errorf("unable to load license from swarm config: %s", err)
+		if latestVersion >= 0 {
+			cfg, _, err := clnt.ConfigInspectWithRaw(ctx, fmt.Sprintf("%s-%d", licenseNamePrefix, latestVersion))
+			if err != nil {
+				return nil, fmt.Errorf("unable to load license from swarm config: %s", err)
+			}
+			licenseData = cfg.Spec.Data
+		} else {
+			licenseData, err = readLicenseFromHost(ctx, info.DockerRootDir)
 		}
-		licenseData = cfg.Spec.Data
 	}
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -115,6 +120,10 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 	if err != nil {
 		return nil, err
 	}
+	return checkResponseToSubscription(checkResponse, parsedLicense.KeyID), nil
+}
+
+func checkResponseToSubscription(checkResponse *model.CheckResponse, keyID string) *model.Subscription {
 
 	// TODO - this translation still needs some work
 	// Primary missing piece is how to distinguish from basic, vs std/advanced
@@ -144,7 +153,7 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 	// Translate the legacy structure into the new Subscription fields
 	return &model.Subscription{
 		// Name
-		ID: parsedLicense.KeyID, // This is not actually the same, but is unique
+		ID: keyID, // This is not actually the same, but is unique
 		// DockerID
 		ProductID:       productID,
 		ProductRatePlan: ratePlan,
@@ -159,7 +168,11 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 				Value: checkResponse.MaxEngines,
 			},
 		},
-	}, nil
+	}
+}
+
+func (c *client) SummarizeLicense(checkResponse *model.CheckResponse, keyID string) *model.Subscription {
+	return checkResponseToSubscription(checkResponse, keyID)
 }
 
 // getLatestNamedConfig looks for versioned instances of configs with the
