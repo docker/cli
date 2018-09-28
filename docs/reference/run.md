@@ -1085,7 +1085,7 @@ per second from `/dev/sda`:
 
     $ docker run -it --device-read-bps /dev/sda:1mb ubuntu
 
-The `--device-write-bps` flag limits the write rate (bytes per second)to a device.
+The `--device-write-bps` flag limits the write rate (bytes per second) to a device.
 For example, this command creates a container and limits the write rate to `1mb`
 per second for `/dev/sda`:
 
