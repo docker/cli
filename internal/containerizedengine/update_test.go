@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/versions"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -21,6 +21,51 @@ import (
 
 func healthfnHappy(ctx context.Context) error {
 	return nil
+}
+
+func TestActivateImagePermutations(t *testing.T) {
+	ctx := context.Background()
+	lookedup := "not called yet"
+	expectedError := fmt.Errorf("expected error")
+	client := baseClient{
+		cclient: &fakeContainerdClient{
+			getImageFunc: func(ctx context.Context, ref string) (containerd.Image, error) {
+				lookedup = ref
+				return nil, expectedError
+			},
+		},
+	}
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+
+	opts := clitypes.EngineInitOptions{
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		RuntimeMetadataDir: tmpdir,
+	}
+
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
+
+	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
+
+	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage + "-dm"}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage+"-dm", opts.EngineVersion))
 }
 
 func TestActivateConfigFailure(t *testing.T) {
@@ -55,14 +100,21 @@ func TestActivateConfigFailure(t *testing.T) {
 			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "engindir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	err := client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "config lookup failure")
 }
 
@@ -90,38 +142,60 @@ func TestActivateDoUpdateFail(t *testing.T) {
 			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	err := client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
 
 func TestDoUpdateNoVersion(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	ctx := context.Background()
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
+
 	client := baseClient{}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "pick the version you")
 }
 
 func TestDoUpdateImageMiscError(t *testing.T) {
 	ctx := context.Background()
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    "testnamegoeshere",
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        "testnamegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -131,18 +205,26 @@ func TestDoUpdateImageMiscError(t *testing.T) {
 			},
 		},
 	}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
 
 func TestDoUpdatePullFail(t *testing.T) {
 	ctx := context.Background()
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    "testnamegoeshere",
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        "testnamegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -155,7 +237,8 @@ func TestDoUpdatePullFail(t *testing.T) {
 			},
 		},
 	}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "unable to pull")
 	assert.ErrorContains(t, err, "pull failure")
 }
@@ -186,78 +269,26 @@ func TestActivateDoUpdateVerifyImageName(t *testing.T) {
 			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		EngineImage:        "testnamegoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	tmpdir, err := ioutil.TempDir("", "docker-root")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpdir)
-	tmpDockerRoot := defaultDockerRoot
-	defaultDockerRoot = tmpdir
-	defer func() {
-		defaultDockerRoot = tmpDockerRoot
-	}()
-	metadata := RuntimeMetadata{Platform: "platformgoeshere"}
-	err = client.WriteRuntimeMetadata(tmpdir, &metadata)
-	assert.NilError(t, err)
-
 	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
-	expectedImage := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, "engine-enterprise", opts.EngineVersion)
+	expectedImage := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
 	assert.Assert(t, requestedImage == expectedImage, "%s != %s", requestedImage, expectedImage)
-
-	// Redo with enterprise set
-	metadata = RuntimeMetadata{Platform: "Docker Engine - Enterprise"}
-	err = client.WriteRuntimeMetadata(tmpdir, &metadata)
-	assert.NilError(t, err)
-
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
-	assert.ErrorContains(t, err, "check for image")
-	assert.ErrorContains(t, err, "something went wrong")
-	expectedImage = fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, "engine-enterprise", opts.EngineVersion)
-	assert.Assert(t, requestedImage == expectedImage, "%s != %s", requestedImage, expectedImage)
-}
-
-func TestGetCurrentRuntimeMetadataNotPresent(t *testing.T) {
-	ctx := context.Background()
-	tmpdir, err := ioutil.TempDir("", "docker-root")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpdir)
-	client := baseClient{}
-	_, err = client.GetCurrentRuntimeMetadata(ctx, tmpdir)
-	assert.ErrorType(t, err, os.IsNotExist)
-}
-
-func TestGetCurrentRuntimeMetadataBadJson(t *testing.T) {
-	ctx := context.Background()
-	tmpdir, err := ioutil.TempDir("", "docker-root")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpdir)
-	filename := filepath.Join(tmpdir, runtimeMetadataName+".json")
-	err = ioutil.WriteFile(filename, []byte("not json"), 0644)
-	assert.NilError(t, err)
-	client := baseClient{}
-	_, err = client.GetCurrentRuntimeMetadata(ctx, tmpdir)
-	assert.ErrorContains(t, err, "malformed runtime metadata file")
-}
-
-func TestGetCurrentRuntimeMetadataHappyPath(t *testing.T) {
-	ctx := context.Background()
-	tmpdir, err := ioutil.TempDir("", "docker-root")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpdir)
-	client := baseClient{}
-	metadata := RuntimeMetadata{Platform: "platformgoeshere"}
-	err = client.WriteRuntimeMetadata(tmpdir, &metadata)
-	assert.NilError(t, err)
-
-	res, err := client.GetCurrentRuntimeMetadata(ctx, tmpdir)
-	assert.NilError(t, err)
-	assert.Equal(t, res.Platform, "platformgoeshere")
 }
 
 func TestGetReleaseNotesURL(t *testing.T) {
