@@ -41,6 +41,7 @@ type Streams interface {
 }
 
 // Cli represents the docker command line client.
+// Cli 表示 docker 命令行客户端
 type Cli interface {
 	Client() client.APIClient
 	Out() *OutStream

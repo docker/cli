@@ -25,7 +25,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	var opts commonOptions
 	cmd := &cobra.Command{
 		Use:   "stack [OPTIONS]",
-		Short: "Manage Docker stacks",
+		Short: "Manage Docker stacks/管理Docker堆栈",
 		Args:  cli.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			configFile := dockerCli.ConfigFile()

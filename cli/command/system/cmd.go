@@ -10,7 +10,7 @@ import (
 func NewSystemCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "system",
-		Short: "Manage Docker",
+		Short: "Manage Docker/管理Docker系统",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}

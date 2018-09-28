@@ -10,7 +10,7 @@ import (
 func NewPluginCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "plugin",
-		Short:       "Manage plugins",
+		Short:       "Manage plugins/管理插件",
 		Args:        cli.NoArgs,
 		RunE:        command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{"version": "1.25"},

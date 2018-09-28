@@ -11,7 +11,7 @@ import (
 func NewImageCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "image",
-		Short: "Manage images",
+		Short: "Manage images/管理镜像",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}

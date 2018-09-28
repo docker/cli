@@ -11,7 +11,7 @@ import (
 func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "secret",
-		Short: "Manage Docker secrets",
+		Short: "Manage Docker secrets/管理Docker秘钥",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{

@@ -10,7 +10,7 @@ import (
 func NewCheckpointCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkpoint",
-		Short: "Manage checkpoints",
+		Short: "Manage checkpoints/管理容器的检查点",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{

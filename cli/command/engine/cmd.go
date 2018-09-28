@@ -10,7 +10,7 @@ import (
 func NewEngineCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "engine COMMAND",
-		Short: "Manage the docker engine",
+		Short: "Manage the docker engine/管理本地docker引擎",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}

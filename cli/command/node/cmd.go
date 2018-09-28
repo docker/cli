@@ -15,7 +15,7 @@ import (
 func NewNodeCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "node",
-		Short: "Manage Swarm nodes",
+		Short: "Manage Swarm nodes/管理Swarm节点",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{
