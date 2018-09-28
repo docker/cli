@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/go-connections/nat"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +53,6 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 			port = parts[0]
 			proto = parts[1]
 		}
-		natPort := port + "/" + proto
 		newP, err := nat.NewPort(proto, port)
 		if err != nil {
 			return err
@@ -65,7 +63,20 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 			}
 			return nil
 		}
-		return errors.Errorf("Error: No public port '%s' published for %s", natPort, opts.container)
+		portStart, portEnd, _ := nat.ParsePortRange(port)
+		if portEnd > portStart {
+			for nport := portStart; nport <= portEnd; nport++ {
+				nowP, _ := nat.NewPort(proto, fmt.Sprint(nport))
+				if frontends, exists := c.NetworkSettings.Ports[nowP]; exists && frontends != nil {
+					for _, frontend := range frontends {
+						fmt.Fprintf(dockerCli.Out(), "%s -> %s:%s\n", nowP, frontend.HostIP, frontend.HostPort)
+					}
+				} else {
+					fmt.Fprintf(dockerCli.Out(), "Error: No public port '%s' published for %s\n", nowP, opts.container)
+				}
+			}
+		}
+		return nil
 	}
 
 	for from, frontends := range c.NetworkSettings.Ports {
