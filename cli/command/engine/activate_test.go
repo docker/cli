@@ -2,9 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -12,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"gotest.tools/assert"
+	"gotest.tools/fs"
 	"gotest.tools/golden"
 )
 
@@ -51,12 +49,9 @@ func TestActivateBadLicense(t *testing.T) {
 }
 
 func TestActivateExpiredLicenseDryRun(t *testing.T) {
-	tmpdir, err := ioutil.TempDir("", "license")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpdir)
-	filename := filepath.Join(tmpdir, "docker.lic")
-	err = ioutil.WriteFile(filename, []byte(expiredLicense), 0644)
-	assert.NilError(t, err)
+	dir := fs.NewDir(t, "license", fs.WithFile("docker.lic", expiredLicense, fs.WithMode(0644)))
+	defer dir.Remove()
+	filename := dir.Join("docker.lic")
 	isRoot = func() bool { return true }
 	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil})
 	c.SetContainerizedEngineClient(
@@ -70,7 +65,7 @@ func TestActivateExpiredLicenseDryRun(t *testing.T) {
 	cmd.Flags().Set("license", filename)
 	cmd.Flags().Set("display-only", "true")
 	c.OutBuffer().Reset()
-	err = cmd.Execute()
+	err := cmd.Execute()
 	assert.NilError(t, err)
 	golden.Assert(t, c.OutBuffer().String(), "expired-license-display-only.golden")
 }
