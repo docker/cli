@@ -28,8 +28,8 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 	var options checkOptions
 
 	cmd := &cobra.Command{
-		Use:   "check [OPTIONS]",
-		Short: "Check for available engine updates",
+		Use:   "check-for-upgrades [OPTIONS]",
+		Short: "Check for available engine upgrades",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCheck(dockerCli, options)
@@ -40,7 +40,7 @@ func newCheckForUpdatesCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.downgrades, "downgrades", false, "Report downgrades (default omits older versions)")
 	flags.BoolVar(&options.preReleases, "pre-releases", false, "Include pre-release versions")
 	flags.StringVar(&options.engineImage, "engine-image", "", "Specify engine image (default uses the same image as currently running)")
-	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available upgrades")
+	flags.BoolVar(&options.upgrades, "upgrades", true, "Report available minor or major upgrades")
 	flags.StringVar(&options.format, "format", "", "Pretty-print updates using a Go template")
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display available versions")
 	flags.StringVar(&options.sockPath, "containerd", "", "override default location of containerd endpoint")
