@@ -2,23 +2,38 @@ package versions
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"os"
 	"path"
+	"path/filepath"
 	"sort"
-	"strings"
 
 	registryclient "github.com/docker/cli/cli/registry/client"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/api/types"
 	ver "github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	// defaultRuntimeMetadataDir is the location where the metadata file is stored
+	defaultRuntimeMetadataDir = "/var/lib/docker-engine"
+)
+
 // GetEngineVersions reports the versions of the engine that are available
-func GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, registryPrefix string, serverVersion types.Version) (clitypes.AvailableVersions, error) {
-	imageName := getEngineImage(registryPrefix, serverVersion)
-	imageRef, err := reference.ParseNormalizedNamed(imageName)
+func GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, registryPrefix, imageName, versionString string) (clitypes.AvailableVersions, error) {
+
+	if imageName == "" {
+		var err error
+		localMetadata, err := GetCurrentRuntimeMetadata("")
+		if err != nil {
+			return clitypes.AvailableVersions{}, err
+		}
+		imageName = localMetadata.EngineImage
+	}
+	imageRef, err := reference.ParseNormalizedNamed(path.Join(registryPrefix, imageName))
 	if err != nil {
 		return clitypes.AvailableVersions{}, err
 	}
@@ -28,25 +43,7 @@ func GetEngineVersions(ctx context.Context, registryClient registryclient.Regist
 		return clitypes.AvailableVersions{}, err
 	}
 
-	return parseTags(tags, serverVersion.Version)
-}
-
-func getEngineImage(registryPrefix string, serverVersion types.Version) string {
-	platform := strings.ToLower(serverVersion.Platform.Name)
-	if platform != "" {
-		if strings.Contains(platform, "enterprise") {
-			return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
-		}
-		return path.Join(registryPrefix, clitypes.CommunityEngineImage)
-	}
-
-	// TODO This check is only applicable for early 18.09 builds that had some packaging bugs
-	// and can be removed once we're no longer testing with them
-	if strings.Contains(serverVersion.Version, "ee") {
-		return path.Join(registryPrefix, clitypes.EnterpriseEngineImage)
-	}
-
-	return path.Join(registryPrefix, clitypes.CommunityEngineImage)
+	return parseTags(tags, versionString)
 }
 
 func parseTags(tags []string, currentVersion string) (clitypes.AvailableVersions, error) {
@@ -92,4 +89,39 @@ func parseTags(tags []string, currentVersion string) (clitypes.AvailableVersions
 	ret.Patches = patches
 	ret.Upgrades = upgrades
 	return ret, nil
+}
+
+// GetCurrentRuntimeMetadata loads the current daemon runtime metadata information from the local host
+func GetCurrentRuntimeMetadata(metadataDir string) (*clitypes.RuntimeMetadata, error) {
+	if metadataDir == "" {
+		metadataDir = defaultRuntimeMetadataDir
+	}
+	filename := filepath.Join(metadataDir, clitypes.RuntimeMetadataName+".json")
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	var res clitypes.RuntimeMetadata
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return nil, errors.Wrapf(err, "malformed runtime metadata file %s", filename)
+	}
+	return &res, nil
+}
+
+// WriteRuntimeMetadata stores the metadata on the local system
+func WriteRuntimeMetadata(metadataDir string, metadata *clitypes.RuntimeMetadata) error {
+	if metadataDir == "" {
+		metadataDir = defaultRuntimeMetadataDir
+	}
+	filename := filepath.Join(metadataDir, clitypes.RuntimeMetadataName+".json")
+
+	data, err := json.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+
+	os.Remove(filename)
+	return ioutil.WriteFile(filename, data, 0644)
 }

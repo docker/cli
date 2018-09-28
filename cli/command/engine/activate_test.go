@@ -53,7 +53,7 @@ func TestActivateExpiredLicenseDryRun(t *testing.T) {
 	defer dir.Remove()
 	filename := dir.Join("docker.lic")
 	isRoot = func() bool { return true }
-	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil})
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil, types.Info{}, nil})
 	c.SetContainerizedEngineClient(
 		func(string) (clitypes.ContainerizedClient, error) {
 			return &fakeContainerizedEngineClient{}, nil

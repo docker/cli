@@ -1,21 +1,14 @@
 package versions
 
 import (
-	"context"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/docker/docker/api/types"
+	clitypes "github.com/docker/cli/types"
 	"gotest.tools/assert"
 )
-
-func TestGetEngineVersionsBadImage(t *testing.T) {
-	ctx := context.Background()
-
-	registryPrefix := "this is an illegal image $%^&"
-	currentVersion := types.Version{Version: "currentversiongoeshere"}
-	_, err := GetEngineVersions(ctx, nil, registryPrefix, currentVersion)
-	assert.ErrorContains(t, err, "invalid reference format")
-}
 
 func TestParseTagsSimple(t *testing.T) {
 	tags := []string{"1.0.0", "1.1.2", "1.1.1", "1.2.2"}
@@ -77,4 +70,36 @@ func TestParseBadCurrent2(t *testing.T) {
 	currentVersion := ""
 	_, err := parseTags(tags, currentVersion)
 	assert.ErrorContains(t, err, "failed to parse existing")
+}
+
+func TestGetCurrentRuntimeMetadataNotPresent(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "docker-root")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	_, err = GetCurrentRuntimeMetadata(tmpdir)
+	assert.ErrorType(t, err, os.IsNotExist)
+}
+
+func TestGetCurrentRuntimeMetadataBadJson(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "docker-root")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	filename := filepath.Join(tmpdir, clitypes.RuntimeMetadataName+".json")
+	err = ioutil.WriteFile(filename, []byte("not json"), 0644)
+	assert.NilError(t, err)
+	_, err = GetCurrentRuntimeMetadata(tmpdir)
+	assert.ErrorContains(t, err, "malformed runtime metadata file")
+}
+
+func TestGetCurrentRuntimeMetadataHappyPath(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "docker-root")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{Platform: "platformgoeshere"}
+	err = WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+
+	res, err := GetCurrentRuntimeMetadata(tmpdir)
+	assert.NilError(t, err)
+	assert.Equal(t, res.Platform, "platformgoeshere")
 }
