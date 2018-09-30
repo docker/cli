@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 services:
   foo:
@@ -82,6 +82,7 @@ services:
         window: 120s
       placement:
         constraints: [node=foo]
+        max_replicas_per_node: 5
         preferences:
           - spread: node.labels.az
       endpoint_mode: dnsrr

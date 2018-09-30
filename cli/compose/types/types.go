@@ -346,6 +346,7 @@ type RestartPolicy struct {
 type Placement struct {
 	Constraints []string               `yaml:",omitempty" json:"constraints,omitempty"`
 	Preferences []PlacementPreferences `yaml:",omitempty" json:"preferences,omitempty"`
+	MaxReplicas uint64                 `mapstructure:"max_replicas_per_node" yaml:"max_replicas_per_node,omitempty" json:"max_replicas_per_node,omitempty"`
 }
 
 // PlacementPreferences is the preferences for a service placement

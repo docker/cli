@@ -424,7 +424,8 @@
                 },
                 "additionalProperties": false
               }
-            }
+            },
+            "max_replicas_per_node": {"type": "integer"}
           },
           "additionalProperties": false
         }
