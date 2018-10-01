@@ -418,7 +418,7 @@ $ docker run -l my-label --label com.example.foo=bar ubuntu bash
 ```
 
 The `my-label` key doesn't specify a value so the label defaults to an empty
-string(`""`). To add multiple labels, repeat the label flag (`-l` or `--label`).
+string (`""`). To add multiple labels, repeat the label flag (`-l` or `--label`).
 
 The `key=value` must be unique to avoid overwriting the label value. If you
 specify labels with identical keys but different values, each subsequent value
