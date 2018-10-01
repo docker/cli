@@ -22,7 +22,7 @@ import (
 
 // ActivateEngine will switch the image from the CE to EE image
 func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
-	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
+	authConfig *types.AuthConfig) error {
 
 	// If the user didn't specify an image, determine the correct enterprise image to use
 	if opts.EngineImage == "" {
@@ -44,12 +44,12 @@ func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineIni
 	}
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
-	return c.DoUpdate(ctx, opts, out, authConfig, healthfn)
+	return c.DoUpdate(ctx, opts, out, authConfig)
 }
 
 // DoUpdate performs the underlying engine update
 func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
-	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
+	authConfig *types.AuthConfig) error {
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 	if opts.EngineVersion == "" {
