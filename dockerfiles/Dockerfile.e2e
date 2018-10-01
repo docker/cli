@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libapparmor-dev \
     libseccomp-dev \
     iptables \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 ARG COMPOSE_VERSION=1.21.2

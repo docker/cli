@@ -1,15 +1,13 @@
 package environment
 
 import (
-	"context"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
+	"gotest.tools/icmd"
 	"gotest.tools/poll"
 	"gotest.tools/skip"
 )
@@ -79,21 +77,14 @@ func boolFromString(val string) bool {
 	}
 }
 
-func dockerClient(t *testing.T) client.APIClient {
-	t.Helper()
-	c, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion("1.37"))
-	assert.NilError(t, err)
-	return c
-}
-
 // DefaultPollSettings used with gotestyourself/poll
 var DefaultPollSettings = poll.WithDelay(100 * time.Millisecond)
 
 // SkipIfNotExperimentalDaemon returns whether the test docker daemon is in experimental mode
 func SkipIfNotExperimentalDaemon(t *testing.T) {
 	t.Helper()
-	c := dockerClient(t)
-	info, err := c.Info(context.Background())
-	assert.NilError(t, err)
-	skip.If(t, !info.ExperimentalBuild, "running against a non-experimental daemon")
+	result := icmd.RunCmd(icmd.Command("docker", "info", "--format", "{{.ExperimentalBuild}}"))
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	experimentalBuild := strings.TrimSpace(result.Stdout()) == "true"
+	skip.If(t, !experimentalBuild, "running against a non-experimental daemon")
 }
