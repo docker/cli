@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/containerd/containerd"
@@ -14,6 +11,7 @@ import (
 	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/images"
 	"github.com/containerd/containerd/namespaces"
+	"github.com/docker/cli/internal/versions"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -25,6 +23,25 @@ import (
 // ActivateEngine will switch the image from the CE to EE image
 func (c *baseClient) ActivateEngine(ctx context.Context, opts clitypes.EngineInitOptions, out clitypes.OutStream,
 	authConfig *types.AuthConfig, healthfn func(context.Context) error) error {
+
+	// If the user didn't specify an image, determine the correct enterprise image to use
+	if opts.EngineImage == "" {
+		localMetadata, err := versions.GetCurrentRuntimeMetadata(opts.RuntimeMetadataDir)
+		if err != nil {
+			return errors.Wrap(err, "unable to determine the installed engine version. Specify which engine image to update with --engine-image")
+		}
+
+		engineImage := localMetadata.EngineImage
+		if engineImage == clitypes.EnterpriseEngineImage || engineImage == clitypes.CommunityEngineImage {
+			opts.EngineImage = clitypes.EnterpriseEngineImage
+		} else {
+			// Chop off the standard prefix and retain any trailing OS specific image details
+			// e.g., engine-community-dm -> engine-enterprise-dm
+			engineImage = strings.TrimPrefix(engineImage, clitypes.EnterpriseEngineImage)
+			engineImage = strings.TrimPrefix(engineImage, clitypes.CommunityEngineImage)
+			opts.EngineImage = clitypes.EnterpriseEngineImage + engineImage
+		}
+	}
 
 	ctx = namespaces.WithNamespace(ctx, engineNamespace)
 	return c.DoUpdate(ctx, opts, out, authConfig, healthfn)
@@ -43,19 +60,14 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 		// `docker engine update`
 		return fmt.Errorf("pick the version you want to update to with --version")
 	}
-
-	localMetadata, err := c.GetCurrentRuntimeMetadata(ctx, "")
-	if err == nil {
-		if opts.EngineImage == "" {
-			if strings.Contains(strings.ToLower(localMetadata.Platform), "community") {
-				opts.EngineImage = clitypes.CommunityEngineImage
-			} else {
-				opts.EngineImage = clitypes.EnterpriseEngineImage
-			}
-		}
-	}
+	var localMetadata *clitypes.RuntimeMetadata
 	if opts.EngineImage == "" {
-		return fmt.Errorf("unable to determine the installed engine version. Specify which engine image to update with --engine-image set to 'engine-community' or 'engine-enterprise'")
+		var err error
+		localMetadata, err = versions.GetCurrentRuntimeMetadata(opts.RuntimeMetadataDir)
+		if err != nil {
+			return errors.Wrap(err, "unable to determine the installed engine version. Specify which engine image to update with --engine-image set to 'engine-community' or 'engine-enterprise'")
+		}
+		opts.EngineImage = localMetadata.EngineImage
 	}
 
 	imageName := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
@@ -78,7 +90,6 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 	if err != nil {
 		return err
 	}
-	// Grab current metadata for comparison purposes
 	if localMetadata != nil {
 		if localMetadata.Platform != newMetadata.Platform {
 			fmt.Fprintf(out, "\nNotice: you have switched to \"%s\".  Refer to %s for update instructions.\n\n", newMetadata.Platform, getReleaseNotesURL(imageName))
@@ -89,50 +100,13 @@ func (c *baseClient) DoUpdate(ctx context.Context, opts clitypes.EngineInitOptio
 		return err
 	}
 
-	return c.WriteRuntimeMetadata("", newMetadata)
-}
-
-var defaultDockerRoot = "/var/lib/docker"
-
-// GetCurrentRuntimeMetadata loads the current daemon runtime metadata information from the local host
-func (c *baseClient) GetCurrentRuntimeMetadata(_ context.Context, dockerRoot string) (*RuntimeMetadata, error) {
-	if dockerRoot == "" {
-		dockerRoot = defaultDockerRoot
-	}
-	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
-
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	var res RuntimeMetadata
-	err = json.Unmarshal(data, &res)
-	if err != nil {
-		return nil, errors.Wrapf(err, "malformed runtime metadata file %s", filename)
-	}
-	return &res, nil
-}
-
-// WriteRuntimeMetadata stores the metadata on the local system
-func (c *baseClient) WriteRuntimeMetadata(dockerRoot string, metadata *RuntimeMetadata) error {
-	if dockerRoot == "" {
-		dockerRoot = defaultDockerRoot
-	}
-	filename := filepath.Join(dockerRoot, runtimeMetadataName+".json")
-
-	data, err := json.Marshal(metadata)
-	if err != nil {
-		return err
-	}
-
-	os.Remove(filename)
-	return ioutil.WriteFile(filename, data, 0644)
+	return versions.WriteRuntimeMetadata(opts.RuntimeMetadataDir, newMetadata)
 }
 
 // PreflightCheck verifies the specified image is compatible with the local system before proceeding to update/activate
 // If things look good, the RuntimeMetadata for the new image is returned and can be written out to the host
-func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image) (*RuntimeMetadata, error) {
-	var metadata RuntimeMetadata
+func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image) (*clitypes.RuntimeMetadata, error) {
+	var metadata clitypes.RuntimeMetadata
 	ic, err := image.Config(ctx)
 	if err != nil {
 		return nil, err
@@ -156,9 +130,9 @@ func (c *baseClient) PreflightCheck(ctx context.Context, image containerd.Image)
 		return nil, fmt.Errorf("unknown image %s config media type %s", image.Name(), ic.MediaType)
 	}
 
-	metadataString, ok := config.Labels["com.docker."+runtimeMetadataName]
+	metadataString, ok := config.Labels["com.docker."+clitypes.RuntimeMetadataName]
 	if !ok {
-		return nil, fmt.Errorf("image %s does not contain runtime metadata label %s", image.Name(), runtimeMetadataName)
+		return nil, fmt.Errorf("image %s does not contain runtime metadata label %s", image.Name(), clitypes.RuntimeMetadataName)
 	}
 	err = json.Unmarshal([]byte(metadataString), &metadata)
 	if err != nil {

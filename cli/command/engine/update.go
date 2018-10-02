@@ -25,7 +25,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVar(&options.EngineVersion, "version", "", "Specify engine version")
-	flags.StringVar(&options.EngineImage, "engine-image", "", "Specify engine image")
+	flags.StringVar(&options.EngineImage, "engine-image", "", "Specify engine image (default uses the same image as currently running)")
 	flags.StringVar(&options.RegistryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the current location where engine images are pulled")
 	flags.StringVar(&options.sockPath, "containerd", "", "override default location of containerd endpoint")
 
@@ -46,7 +46,6 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 	if err != nil {
 		return err
 	}
-
 	if err := client.DoUpdate(ctx, options.EngineInitOptions, dockerCli.Out(), authConfig,
 		func(ctx context.Context) error {
 			client := dockerCli.Client()
