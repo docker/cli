@@ -38,9 +38,9 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 			return []string{}, fmt.Errorf("env file %s contains invalid utf8 bytes at line %d: %v", filename, currentLine+1, scannedBytes)
 		}
 		// We trim UTF8 BOM
-		if currentLine == 0 {
-			scannedBytes = bytes.TrimPrefix(scannedBytes, utf8bom)
-		}
+		// For combined file, each line may contain utf8bom,
+		// not just the first line
+		scannedBytes = bytes.TrimPrefix(scannedBytes, utf8bom)
 		// trim the line from all leading whitespace first
 		line := strings.TrimLeftFunc(string(scannedBytes), unicode.IsSpace)
 		currentLine++
