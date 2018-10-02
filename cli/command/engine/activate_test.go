@@ -1,13 +1,18 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/docker/cli/internal/licenseutils"
 	"github.com/docker/cli/internal/test"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/docker/licensing"
+	"github.com/docker/licensing/model"
 	"gotest.tools/assert"
 	"gotest.tools/fs"
 	"gotest.tools/golden"
@@ -68,4 +73,74 @@ func TestActivateExpiredLicenseDryRun(t *testing.T) {
 	err := cmd.Execute()
 	assert.NilError(t, err)
 	golden.Assert(t, c.OutBuffer().String(), "expired-license-display-only.golden")
+}
+
+type mockLicenseClient struct{}
+
+func (c mockLicenseClient) LoginViaAuth(ctx context.Context, username, password string) (authToken string, err error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func (c mockLicenseClient) GetHubUserOrgs(ctx context.Context, authToken string) (orgs []model.Org, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) GetHubUserByName(ctx context.Context, username string) (user *model.User, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) VerifyLicense(ctx context.Context, license model.IssuedLicense) (res *model.CheckResponse, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
+	return "", fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) ListSubscriptions(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error) {
+	expires := time.Date(2010, time.January, 1, 0, 0, 0, 0, time.UTC)
+	return []*model.Subscription{
+		{
+			State:   "active",
+			Expires: &expires,
+		},
+	}, nil
+}
+func (c mockLicenseClient) ListSubscriptionsDetails(ctx context.Context, authToken, dockerID string) (response []*model.SubscriptionDetail, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) DownloadLicenseFromHub(ctx context.Context, authToken, subscriptionID string) (license *model.IssuedLicense, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) ParseLicense(license []byte) (parsedLicense *model.IssuedLicense, err error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) StoreLicense(ctx context.Context, dclnt licensing.WrappedDockerClient, licenses *model.IssuedLicense, localRootDir string) error {
+	return fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) LoadLocalLicense(ctx context.Context, dclnt licensing.WrappedDockerClient) (*model.Subscription, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+func (c mockLicenseClient) SummarizeLicense(res *model.CheckResponse, keyID string) *model.Subscription {
+	return nil
+}
+func TestActivateDisplayOnlyHub(t *testing.T) {
+	isRoot = func() bool { return true }
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil, types.Info{}, nil})
+	c.SetContainerizedEngineClient(
+		func(string) (clitypes.ContainerizedClient, error) {
+			return &fakeContainerizedEngineClient{}, nil
+		},
+	)
+
+	hubUser := licenseutils.HubUser{
+		Client: mockLicenseClient{},
+	}
+	options := activateOptions{
+		licenseLoginFunc: func(ctx context.Context, authConfig *types.AuthConfig) (licenseutils.HubUser, error) {
+			return hubUser, nil
+		},
+		displayOnly: true,
+	}
+	c.OutBuffer().Reset()
+	err := runActivate(c, options)
+
+	assert.NilError(t, err)
+	golden.Assert(t, c.OutBuffer().String(), "expired-hub-license-display-only.golden")
 }

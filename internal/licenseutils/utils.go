@@ -20,7 +20,7 @@ import (
 // HubUser wraps a licensing client and holds key information
 // for a user to avoid multiple lookups
 type HubUser struct {
-	client licensing.Client
+	Client licensing.Client
 	token  string
 	User   model.User
 	Orgs   []model.Org
@@ -73,7 +73,7 @@ func Login(ctx context.Context, authConfig *types.AuthConfig) (HubUser, error) {
 		return HubUser{}, err
 	}
 	return HubUser{
-		client: lclient,
+		Client: lclient,
 		token:  token,
 		User:   *user,
 		Orgs:   orgs,
@@ -83,12 +83,12 @@ func Login(ctx context.Context, authConfig *types.AuthConfig) (HubUser, error) {
 
 // GetAvailableLicenses finds all available licenses for a given account and their orgs
 func (u HubUser) GetAvailableLicenses(ctx context.Context) ([]LicenseDisplay, error) {
-	subs, err := u.client.ListSubscriptions(ctx, u.token, u.User.ID)
+	subs, err := u.Client.ListSubscriptions(ctx, u.token, u.User.ID)
 	if err != nil {
 		return nil, err
 	}
 	for _, org := range u.Orgs {
-		orgSub, err := u.client.ListSubscriptions(ctx, u.token, org.ID)
+		orgSub, err := u.Client.ListSubscriptions(ctx, u.token, org.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -134,16 +134,16 @@ func (u HubUser) GetAvailableLicenses(ctx context.Context) ([]LicenseDisplay, er
 
 // GenerateTrialLicense will generate a new trial license for the specified user or org
 func (u HubUser) GenerateTrialLicense(ctx context.Context, targetID string) (*model.IssuedLicense, error) {
-	subID, err := u.client.GenerateNewTrialSubscription(ctx, u.token, targetID, u.User.Email)
+	subID, err := u.Client.GenerateNewTrialSubscription(ctx, u.token, targetID, u.User.Email)
 	if err != nil {
 		return nil, err
 	}
-	return u.client.DownloadLicenseFromHub(ctx, u.token, subID)
+	return u.Client.DownloadLicenseFromHub(ctx, u.token, subID)
 }
 
 // GetIssuedLicense will download a license by ID
 func (u HubUser) GetIssuedLicense(ctx context.Context, ID string) (*model.IssuedLicense, error) {
-	return u.client.DownloadLicenseFromHub(ctx, u.token, ID)
+	return u.Client.DownloadLicenseFromHub(ctx, u.token, ID)
 }
 
 // LoadLocalIssuedLicense will load a local license file
