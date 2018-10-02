@@ -19,10 +19,6 @@ import (
 	"gotest.tools/assert"
 )
 
-func healthfnHappy(ctx context.Context) error {
-	return nil
-}
-
 func TestActivateImagePermutations(t *testing.T) {
 	ctx := context.Background()
 	lookedup := "not called yet"
@@ -49,21 +45,21 @@ func TestActivateImagePermutations(t *testing.T) {
 		RuntimeMetadataDir: tmpdir,
 	}
 
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, expectedError.Error())
 	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
 
 	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
 	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
 	assert.NilError(t, err)
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, expectedError.Error())
 	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
 
 	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage + "-dm"}
 	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
 	assert.NilError(t, err)
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, expectedError.Error())
 	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage+"-dm", opts.EngineVersion))
 }
@@ -114,7 +110,7 @@ func TestActivateConfigFailure(t *testing.T) {
 		RuntimeMetadataDir: tmpdir,
 	}
 
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "config lookup failure")
 }
 
@@ -156,7 +152,7 @@ func TestActivateDoUpdateFail(t *testing.T) {
 		RuntimeMetadataDir: tmpdir,
 	}
 
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
@@ -178,7 +174,7 @@ func TestDoUpdateNoVersion(t *testing.T) {
 	}
 
 	client := baseClient{}
-	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "pick the version you")
 }
 
@@ -206,7 +202,7 @@ func TestDoUpdateImageMiscError(t *testing.T) {
 		},
 	}
 
-	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
@@ -238,7 +234,7 @@ func TestDoUpdatePullFail(t *testing.T) {
 		},
 	}
 
-	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "unable to pull")
 	assert.ErrorContains(t, err, "pull failure")
 }
@@ -284,7 +280,7 @@ func TestActivateDoUpdateVerifyImageName(t *testing.T) {
 		RuntimeMetadataDir: tmpdir,
 	}
 
-	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 	expectedImage := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
