@@ -16,19 +16,21 @@ import (
 )
 
 type activateOptions struct {
-	licenseFile    string
-	version        string
-	registryPrefix string
-	format         string
-	image          string
-	quiet          bool
-	displayOnly    bool
-	sockPath       string
+	licenseFile      string
+	version          string
+	registryPrefix   string
+	format           string
+	image            string
+	quiet            bool
+	displayOnly      bool
+	sockPath         string
+	licenseLoginFunc func(ctx context.Context, authConfig *types.AuthConfig) (licenseutils.HubUser, error)
 }
 
 // newActivateCommand creates a new `docker engine activate` command
 func newActivateCommand(dockerCli command.Cli) *cobra.Command {
 	var options activateOptions
+	options.licenseLoginFunc = licenseutils.Login
 
 	cmd := &cobra.Command{
 		Use:   "activate [OPTIONS]",
@@ -60,7 +62,7 @@ https://hub.docker.com/ then specify the file with the '--license' flag.
 	flags.StringVar(&options.registryPrefix, "registry-prefix", clitypes.RegistryPrefix, "Override the default location where engine images are pulled")
 	flags.StringVar(&options.image, "engine-image", "", "Specify engine image")
 	flags.StringVar(&options.format, "format", "", "Pretty-print licenses using a Go template")
-	flags.BoolVar(&options.displayOnly, "display-only", false, "only display the available licenses and exit")
+	flags.BoolVar(&options.displayOnly, "display-only", false, "only display license information and exit")
 	flags.BoolVar(&options.quiet, "quiet", false, "Only display available licenses by ID")
 	flags.StringVar(&options.sockPath, "containerd", "", "override default location of containerd endpoint")
 
@@ -89,6 +91,9 @@ func runActivate(cli command.Cli, options activateOptions) error {
 	if options.licenseFile == "" {
 		if license, err = getLicenses(ctx, authConfig, cli, options); err != nil {
 			return err
+		}
+		if options.displayOnly {
+			return nil
 		}
 	} else {
 		if license, err = licenseutils.LoadLocalIssuedLicense(ctx, options.licenseFile); err != nil {
@@ -136,7 +141,7 @@ Restart docker with 'systemctl restart docker' to complete the activation.`)
 }
 
 func getLicenses(ctx context.Context, authConfig *types.AuthConfig, cli command.Cli, options activateOptions) (*model.IssuedLicense, error) {
-	user, err := licenseutils.Login(ctx, authConfig)
+	user, err := options.licenseLoginFunc(ctx, authConfig)
 	if err != nil {
 		return nil, err
 	}
