@@ -16,19 +16,21 @@ import (
 )
 
 type activateOptions struct {
-	licenseFile    string
-	version        string
-	registryPrefix string
-	format         string
-	image          string
-	quiet          bool
-	displayOnly    bool
-	sockPath       string
+	licenseFile      string
+	version          string
+	registryPrefix   string
+	format           string
+	image            string
+	quiet            bool
+	displayOnly      bool
+	sockPath         string
+	licenseLoginFunc func(ctx context.Context, authConfig *types.AuthConfig) (licenseutils.HubUser, error)
 }
 
 // newActivateCommand creates a new `docker engine activate` command
 func newActivateCommand(dockerCli command.Cli) *cobra.Command {
 	var options activateOptions
+	options.licenseLoginFunc = licenseutils.Login
 
 	cmd := &cobra.Command{
 		Use:   "activate [OPTIONS]",
@@ -139,7 +141,7 @@ Restart docker with 'systemctl restart docker' to complete the activation.`)
 }
 
 func getLicenses(ctx context.Context, authConfig *types.AuthConfig, cli command.Cli, options activateOptions) (*model.IssuedLicense, error) {
-	user, err := licenseutils.Login(ctx, authConfig)
+	user, err := options.licenseLoginFunc(ctx, authConfig)
 	if err != nil {
 		return nil, err
 	}
