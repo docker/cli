@@ -30,3 +30,7 @@ Options:
 ```bash
 $ docker logout localhost:8080
 ```
+
+## Related commands
+
+* [login](login.md)
