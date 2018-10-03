@@ -127,12 +127,7 @@ func runActivate(cli command.Cli, options activateOptions) error {
 		EngineVersion:  options.version,
 	}
 
-	if err := client.ActivateEngine(ctx, opts, cli.Out(), authConfig,
-		func(ctx context.Context) error {
-			client := cli.Client()
-			_, err := client.Ping(ctx)
-			return err
-		}); err != nil {
+	if err := client.ActivateEngine(ctx, opts, cli.Out(), authConfig); err != nil {
 		return err
 	}
 	fmt.Fprintln(cli.Out(), `Successfully activated engine.

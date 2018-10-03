@@ -33,13 +33,11 @@ type ContainerizedClient interface {
 	ActivateEngine(ctx context.Context,
 		opts EngineInitOptions,
 		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
+		authConfig *types.AuthConfig) error
 	DoUpdate(ctx context.Context,
 		opts EngineInitOptions,
 		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
+		authConfig *types.AuthConfig) error
 }
 
 // EngineInitOptions contains the configuration settings

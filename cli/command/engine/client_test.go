@@ -15,8 +15,7 @@ type (
 		activateEngineFunc func(ctx context.Context,
 			opts clitypes.EngineInitOptions,
 			out clitypes.OutStream,
-			authConfig *types.AuthConfig,
-			healthfn func(context.Context) error) error
+			authConfig *types.AuthConfig) error
 		initEngineFunc func(ctx context.Context,
 			opts clitypes.EngineInitOptions,
 			out clitypes.OutStream,
@@ -25,8 +24,7 @@ type (
 		doUpdateFunc func(ctx context.Context,
 			opts clitypes.EngineInitOptions,
 			out clitypes.OutStream,
-			authConfig *types.AuthConfig,
-			healthfn func(context.Context) error) error
+			authConfig *types.AuthConfig) error
 		getEngineVersionsFunc func(ctx context.Context,
 			registryClient registryclient.RegistryClient,
 			currentVersion,
@@ -48,10 +46,9 @@ func (w *fakeContainerizedEngineClient) Close() error {
 func (w *fakeContainerizedEngineClient) ActivateEngine(ctx context.Context,
 	opts clitypes.EngineInitOptions,
 	out clitypes.OutStream,
-	authConfig *types.AuthConfig,
-	healthfn func(context.Context) error) error {
+	authConfig *types.AuthConfig) error {
 	if w.activateEngineFunc != nil {
-		return w.activateEngineFunc(ctx, opts, out, authConfig, healthfn)
+		return w.activateEngineFunc(ctx, opts, out, authConfig)
 	}
 	return nil
 }
@@ -68,10 +65,9 @@ func (w *fakeContainerizedEngineClient) InitEngine(ctx context.Context,
 func (w *fakeContainerizedEngineClient) DoUpdate(ctx context.Context,
 	opts clitypes.EngineInitOptions,
 	out clitypes.OutStream,
-	authConfig *types.AuthConfig,
-	healthfn func(context.Context) error) error {
+	authConfig *types.AuthConfig) error {
 	if w.doUpdateFunc != nil {
-		return w.doUpdateFunc(ctx, opts, out, authConfig, healthfn)
+		return w.doUpdateFunc(ctx, opts, out, authConfig)
 	}
 	return nil
 }

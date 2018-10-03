@@ -46,12 +46,7 @@ func runUpdate(dockerCli command.Cli, options extendedEngineInitOptions) error {
 	if err != nil {
 		return err
 	}
-	if err := client.DoUpdate(ctx, options.EngineInitOptions, dockerCli.Out(), authConfig,
-		func(ctx context.Context) error {
-			client := dockerCli.Client()
-			_, err := client.Ping(ctx)
-			return err
-		}); err != nil {
+	if err := client.DoUpdate(ctx, options.EngineInitOptions, dockerCli.Out(), authConfig); err != nil {
 		return err
 	}
 	fmt.Fprintln(dockerCli.Out(), `Successfully updated engine.
