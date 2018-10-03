@@ -266,9 +266,9 @@ func getServices(configDict map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{}
 }
 
-// Transform converts the source map into the target struct with compose types transformer
+// Transform converts the source into the target struct with compose types transformer
 // and the specified transformers if any.
-func Transform(source map[string]interface{}, target interface{}, additionalTransformers ...Transformer) error {
+func Transform(source interface{}, target interface{}, additionalTransformers ...Transformer) error {
 	data := mapstructure.Metadata{}
 	config := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(

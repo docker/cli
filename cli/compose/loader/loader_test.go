@@ -115,6 +115,67 @@ var sampleDict = map[string]interface{}{
 	},
 }
 
+var samplePortsConfig = []types.ServicePortConfig{
+	{
+		Mode:      "ingress",
+		Target:    8080,
+		Published: 80,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8081,
+		Published: 81,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8082,
+		Published: 82,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8090,
+		Published: 90,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8091,
+		Published: 91,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8092,
+		Published: 92,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8500,
+		Published: 85,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8600,
+		Published: 0,
+		Protocol:  "tcp",
+	},
+	{
+		Target:    53,
+		Published: 10053,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "host",
+		Target:    22,
+		Published: 10022,
+	},
+}
+
 func strPtr(val string) *string {
 	return &val
 }
@@ -1038,69 +1099,8 @@ services:
 `)
 	assert.NilError(t, err)
 
-	expected := []types.ServicePortConfig{
-		{
-			Mode:      "ingress",
-			Target:    8080,
-			Published: 80,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8081,
-			Published: 81,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8082,
-			Published: 82,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8090,
-			Published: 90,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8091,
-			Published: 91,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8092,
-			Published: 92,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8500,
-			Published: 85,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8600,
-			Published: 0,
-			Protocol:  "tcp",
-		},
-		{
-			Target:    53,
-			Published: 10053,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "host",
-			Target:    22,
-			Published: 10022,
-		},
-	}
-
 	assert.Check(t, is.Len(config.Services, 1))
-	assert.Check(t, is.DeepEqual(expected, config.Services[0].Ports))
+	assert.Check(t, is.DeepEqual(samplePortsConfig, config.Services[0].Ports))
 }
 
 func TestLoadExpandedMountFormat(t *testing.T) {
@@ -1459,4 +1459,28 @@ services:
 			assert.Check(t, is.DeepEqual(config.Services[0].Init, testcase.init))
 		})
 	}
+}
+
+func TestTransform(t *testing.T) {
+	var source = []interface{}{
+		"80-82:8080-8082",
+		"90-92:8090-8092/udp",
+		"85:8500",
+		8600,
+		map[string]interface{}{
+			"protocol":  "udp",
+			"target":    53,
+			"published": 10053,
+		},
+		map[string]interface{}{
+			"mode":      "host",
+			"target":    22,
+			"published": 10022,
+		},
+	}
+	var ports []types.ServicePortConfig
+	err := Transform(source, &ports)
+	assert.NilError(t, err)
+
+	assert.Check(t, is.DeepEqual(samplePortsConfig, ports))
 }
