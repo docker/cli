@@ -48,7 +48,7 @@ repository with "version1.0.test":
 
 ## Tagging an image for a private repository
 
-To push an image to a private registry and not the central Docker
+Before pushing an image to a private registry and not the central Docker
 registry you must tag it with the registry hostname and port (if needed).
 
     docker image tag 0e5574283393 myregistryhost:5000/fedora/httpd:version1.0
