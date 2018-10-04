@@ -10,8 +10,10 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/docker/cli/cli/connhelper/ssh"
@@ -82,6 +84,8 @@ func newCommandConn(ctx context.Context, cmd string, args ...string) (net.Conn, 
 // commandConn implements net.Conn
 type commandConn struct {
 	cmd           *exec.Cmd
+	cmdExited     bool
+	cmdWaitErr    error
 	cmdMutex      sync.Mutex
 	stdin         io.WriteCloser
 	stdout        io.ReadCloser
@@ -102,26 +106,74 @@ func (c *commandConn) killIfStdioClosed() error {
 	if !stdioClosed {
 		return nil
 	}
-	var err error
-	c.cmdMutex.Lock()
-	// NOTE: maybe already killed here
-	if err = c.cmd.Process.Kill(); err == nil {
-		err = c.cmd.Wait()
-	}
-	if err != nil {
-		// err is typically "os: process already finished".
-		// we check ProcessState here instead of `strings.Contains(err, "os: process already finished")`
-		if c.cmd.ProcessState.Exited() {
-			err = nil
+	return c.kill()
+}
+
+// killAndWait tries sending SIGTERM to the process before sending SIGKILL.
+func killAndWait(cmd *exec.Cmd) error {
+	var werr error
+	if runtime.GOOS != "windows" {
+		werrCh := make(chan error)
+		go func() { werrCh <- cmd.Wait() }()
+		cmd.Process.Signal(syscall.SIGTERM)
+		select {
+		case werr = <-werrCh:
+		case <-time.After(3 * time.Second):
+			cmd.Process.Kill()
+			werr = <-werrCh
 		}
+	} else {
+		cmd.Process.Kill()
+		werr = cmd.Wait()
+	}
+	return werr
+}
+
+// kill returns nil if the command terminated, regardless to the exit status.
+func (c *commandConn) kill() error {
+	var werr error
+	c.cmdMutex.Lock()
+	if c.cmdExited {
+		werr = c.cmdWaitErr
+	} else {
+		werr = killAndWait(c.cmd)
+		c.cmdWaitErr = werr
+		c.cmdExited = true
 	}
 	c.cmdMutex.Unlock()
-	return err
+	if werr == nil {
+		return nil
+	}
+	wExitErr, ok := werr.(*exec.ExitError)
+	if ok {
+		if wExitErr.ProcessState.Exited() {
+			return nil
+		}
+	}
+	return errors.Wrapf(werr, "connhelper: failed to wait")
 }
 
 func (c *commandConn) onEOF(eof error) error {
+	// when we got EOF, the command is going to be terminated
+	var werr error
 	c.cmdMutex.Lock()
-	werr := c.cmd.Wait()
+	if c.cmdExited {
+		werr = c.cmdWaitErr
+	} else {
+		werrCh := make(chan error)
+		go func() { werrCh <- c.cmd.Wait() }()
+		select {
+		case werr = <-werrCh:
+			c.cmdWaitErr = werr
+			c.cmdExited = true
+		case <-time.After(10 * time.Second):
+			c.cmdMutex.Unlock()
+			c.stderrMu.Lock()
+			stderr := c.stderr.String()
+			c.stderrMu.Unlock()
+			return errors.Errorf("command %v did not exit after %v: stderr=%q", c.cmd.Args, eof, stderr)
+		}
+	}
 	c.cmdMutex.Unlock()
 	if werr == nil {
 		return eof
@@ -136,7 +188,6 @@ func ignorableCloseError(err error) bool {
 	errS := err.Error()
 	ss := []string{
 		os.ErrClosed.Error(),
-		"process already finished",
 	}
 	for _, s := range ss {
 		if strings.Contains(errS, s) {
@@ -154,7 +205,7 @@ func (c *commandConn) CloseRead() error {
 	c.stdioClosedMu.Lock()
 	c.stdoutClosed = true
 	c.stdioClosedMu.Unlock()
-	if err := c.killIfStdioClosed(); err != nil && !ignorableCloseError(err) {
+	if err := c.killIfStdioClosed(); err != nil {
 		logrus.Warnf("commandConn.CloseRead: %v", err)
 	}
 	return nil
@@ -176,7 +227,7 @@ func (c *commandConn) CloseWrite() error {
 	c.stdioClosedMu.Lock()
 	c.stdinClosed = true
 	c.stdioClosedMu.Unlock()
-	if err := c.killIfStdioClosed(); err != nil && !ignorableCloseError(err) {
+	if err := c.killIfStdioClosed(); err != nil {
 		logrus.Warnf("commandConn.CloseWrite: %v", err)
 	}
 	return nil
