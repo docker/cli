@@ -530,6 +530,25 @@ func TestParseEnvfileVariables(t *testing.T) {
 	}
 }
 
+func TestParseEnvfileVariablesWithoutEqualSign(t *testing.T) {
+	// env without equal sign
+	config, _, _, err := parseRun([]string{"--env-file=testdata/noequalsign.env", "img", "cmd"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Env) != 2 || config.Env[0] != "bar=" || config.Env[1] != "demo=true" {
+		t.Fatalf("Expected a config with [bar= demo=true], got %v", config.Env)
+	}
+	os.Setenv("foo", "bar")
+	config, _, _, err = parseRun([]string{"--env-file=testdata/noequalsign.env", "img", "cmd"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Env) != 3 || config.Env[0] != "foo=bar" || config.Env[1] != "bar=" || config.Env[2] != "demo=true" {
+		t.Fatalf("Expected a config with [foo=bar bar= demo=true], got %v", config.Env)
+	}
+}
+
 func TestParseEnvfileVariablesWithBOMUnicode(t *testing.T) {
 	// UTF8 with BOM
 	config, _, _, err := parseRun([]string{"--env-file=testdata/utf8.env", "img", "cmd"})
@@ -580,6 +599,24 @@ func TestParseLabelfileVariables(t *testing.T) {
 	}
 	if len(config.Labels) != 2 || config.Labels["LABEL1"] != "value1" || config.Labels["LABEL2"] != "value2" {
 		t.Fatalf("Expected a config with [LABEL1:value1 LABEL2:value2], got %v", config.Labels)
+	}
+}
+
+func TestParseLabelfileVariablesWithoutEqualSign(t *testing.T) {
+	// label without equal sign
+	config, _, _, err := parseRun([]string{"--label-file=testdata/noequalsign.label", "img", "cmd"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Labels) != 3 || config.Labels["demo"] != "true" || config.Labels["foo"] != "" || config.Labels["bar"] != "" {
+		t.Fatalf("Expected a config with [foo: bar: demo=true], got %v", config.Labels)
+	}
+	config, _, _, err = parseRun([]string{"--label-file=testdata/noequalsign.label", "--label=foo=bar", "img", "cmd"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Labels) != 3 || config.Labels["demo"] != "true" || config.Labels["foo"] != "bar" || config.Labels["bar"] != "" {
+		t.Fatalf("Expected a config with [foo=bar bar: demo=true], got %v", config.Labels)
 	}
 }
 
