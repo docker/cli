@@ -59,6 +59,7 @@ Options:
                                 Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
                                 or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --squash                  Squash newly built layers into a single new layer (**Experimental Only**)
+      --ssh                     SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])
   -t, --tag value               Name and optionally a tag in the 'name:tag' format (default [])
       --target string           Set the target build stage to build.
       --ulimit value            Ulimit options (default [])
