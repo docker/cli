@@ -30,7 +30,7 @@ import (
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/pkg/errors"
-	"github.com/tonistiigi/fsutil"
+	fsutiltypes "github.com/tonistiigi/fsutil/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -291,7 +291,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	return err
 }
 
-func resetUIDAndGID(s *fsutil.Stat) bool {
+func resetUIDAndGID(s *fsutiltypes.Stat) bool {
 	s.Uid = 0
 	s.Gid = 0
 	return true
