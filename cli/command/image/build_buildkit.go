@@ -27,6 +27,7 @@ import (
 	"github.com/moby/buildkit/session/auth/authprovider"
 	"github.com/moby/buildkit/session/filesync"
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
+	"github.com/moby/buildkit/session/sshforward/sshprovider"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/pkg/errors"
@@ -137,6 +138,13 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			return errors.Wrapf(err, "could not parse secrets: %v", options.secrets)
 		}
 		s.Allow(sp)
+	}
+	if len(options.ssh) > 0 {
+		sshp, err := parseSSHSpecs(options.ssh)
+		if err != nil {
+			return errors.Wrapf(err, "could not parse ssh: %v", options.ssh)
+		}
+		s.Allow(sshp)
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -407,4 +415,27 @@ func parseSecret(value string) (*secretsprovider.FileSource, error) {
 		}
 	}
 	return &fs, nil
+}
+
+func parseSSHSpecs(sl []string) (session.Attachable, error) {
+	configs := make([]sshprovider.AgentConfig, 0, len(sl))
+	for _, v := range sl {
+		c, err := parseSSH(v)
+		if err != nil {
+			return nil, err
+		}
+		configs = append(configs, *c)
+	}
+	return sshprovider.NewSSHAgentProvider(configs)
+}
+
+func parseSSH(value string) (*sshprovider.AgentConfig, error) {
+	parts := strings.SplitN(value, "=", 2)
+	cfg := sshprovider.AgentConfig{
+		ID: parts[0],
+	}
+	if len(parts) > 1 {
+		cfg.Paths = strings.Split(parts[1], ",")
+	}
+	return &cfg, nil
 }
