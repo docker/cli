@@ -117,7 +117,7 @@ func processVersions(currentVersion, verType string,
 			availUpdates = append(availUpdates, clitypes.Update{
 				Type:    verType,
 				Version: ver.Tag,
-				Notes:   fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, ver.Tag),
+				Notes:   fmt.Sprintf("%s?%s", clitypes.ReleaseNotePrefix, ver.Tag),
 			})
 		}
 	}

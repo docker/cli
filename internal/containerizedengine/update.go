@@ -179,5 +179,5 @@ func getReleaseNotesURL(imageName string) string {
 			versionTag = taggedRef.Tag()
 		}
 	}
-	return fmt.Sprintf("%s/%s", clitypes.ReleaseNotePrefix, versionTag)
+	return fmt.Sprintf("%s?%s", clitypes.ReleaseNotePrefix, versionTag)
 }
