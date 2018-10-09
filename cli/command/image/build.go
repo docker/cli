@@ -73,6 +73,7 @@ type buildOptions struct {
 	platform       string
 	untrusted      bool
 	secrets        []string
+	ssh            []string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -158,6 +159,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
 	flags.SetAnnotation("secret", "version", []string{"1.39"})
+
+	flags.StringArrayVar(&options.ssh, "ssh", []string{}, "SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])")
+	flags.SetAnnotation("ssh", "version", []string{"1.39"})
 	return cmd
 }
 
