@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -195,8 +197,24 @@ func isEnabled(value string) (bool, error) {
 }
 
 func (cli *DockerCli) initializeFromClient() {
-	ping, err := cli.client.Ping(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+	defer func() {
+		signal.Stop(sigint)
+		cancel()
+	}()
+	go func() {
+		select {
+		case <-sigint:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+	ping, err := cli.client.Ping(ctx)
+
 	if err != nil {
+		logrus.Warn(err)
 		// Default to true if we fail to connect to daemon
 		cli.serverInfo = ServerInfo{HasExperimental: true}
 
