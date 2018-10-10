@@ -1555,7 +1555,7 @@ The example below mounts an empty tmpfs into the container with the `rw`,
     If neither 'rw' or 'ro' is specified then the volume is mounted in
     read-write mode.
 
-    The `nocopy` modes is used to disable automatic copying requested volume
+    The `nocopy` mode is used to disable automatically copying the requested volume
     path in the container to the volume storage location.
     For named volumes, `copy` is the default mode. Copy modes are not supported
     for bind-mounted volumes.
