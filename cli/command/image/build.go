@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -137,6 +136,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.pull, "pull", false, "Always attempt to pull a newer version of the image")
 	flags.StringSliceVar(&options.cacheFrom, "cache-from", []string{}, "Images to consider as cache sources")
 	flags.BoolVar(&options.compress, "compress", false, "Compress the build context using gzip")
+	flags.SetAnnotation("compress", "no-buildkit", nil)
+
 	flags.StringSliceVar(&options.securityOpt, "security-opt", []string{}, "Security options")
 	flags.StringVar(&options.networkMode, "network", "default", "Set the networking mode for the RUN instructions during build")
 	flags.SetAnnotation("network", "version", []string{"1.25"})
@@ -154,14 +155,18 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
+	flags.SetAnnotation("stream", "no-buildkit", nil)
 
-	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (only if BuildKit enabled) (auto, plain, tty). Use plain to show container output")
+	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (auto, plain, tty). Use plain to show container output")
+	flags.SetAnnotation("progress", "buildkit", nil)
 
 	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
 	flags.SetAnnotation("secret", "version", []string{"1.39"})
+	flags.SetAnnotation("secret", "buildkit", nil)
 
 	flags.StringArrayVar(&options.ssh, "ssh", []string{}, "SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])")
 	flags.SetAnnotation("ssh", "version", []string{"1.39"})
+	flags.SetAnnotation("ssh", "buildkit", nil)
 	return cmd
 }
 
@@ -183,22 +188,17 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
-		enableBuildkit, err := strconv.ParseBool(buildkitEnv)
-		if err != nil {
-			return errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
-		}
-		if enableBuildkit {
-			return runBuildBuildKit(dockerCli, options)
-		}
-	} else if dockerCli.ServerInfo().BuildkitVersion == types.BuilderBuildKit {
+	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
+	if err != nil {
+		return err
+	}
+	if buildkitEnabled {
 		return runBuildBuildKit(dockerCli, options)
 	}
 
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
-		err           error
 		contextDir    string
 		tempDir       string
 		relDockerfile string
