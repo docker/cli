@@ -79,6 +79,10 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		return err
 	}
 
+	if err = validateAPIVersion(service, dockerCli.Client().ClientVersion()); err != nil {
+		return err
+	}
+
 	specifiedSecrets := opts.secrets.Value()
 	if len(specifiedSecrets) > 0 {
 		// parse and validate secrets

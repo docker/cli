@@ -66,6 +66,10 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions,
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
+	if err = validateAPIVersion(containerConfig, dockerCli.Client().ClientVersion()); err != nil {
+		reportError(dockerCli.Err(), "create", err.Error(), true)
+		return cli.StatusError{StatusCode: 125}
+	}
 	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts)
 	if err != nil {
 		return err

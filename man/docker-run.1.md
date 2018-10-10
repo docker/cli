@@ -453,12 +453,18 @@ according to RFC4862.
 
    * `src`, `source`: mount source spec for `bind` and `volume`. Mandatory for `bind`.
    * `dst`, `destination`, `target`: mount destination spec.
-   * `ro`, `read-only`: `true` or `false` (default).
+   * `ro`, `readonly`: `true` or `false` (default).
+
+   **Note**: setting `readonly` for a bind mount does not make its submounts
+   read-only on the current Linux implementation. See also `bind-nonrecursive`.
 
    Options specific to `bind`:
 
    * `bind-propagation`: `shared`, `slave`, `private`, `rshared`, `rslave`, or `rprivate`(default). See also `mount(2)`.
    * `consistency`: `consistent`(default), `cached`, or `delegated`. Currently, only effective for Docker for Mac.
+   * `bind-nonrecursive`: `true` or `false` (default). If set to `true`,
+   submounts are not recursively bind-mounted. This option is useful for
+   `readonly` bind mount.
 
    Options specific to `volume`:
 
