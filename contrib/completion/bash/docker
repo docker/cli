@@ -3440,6 +3440,7 @@ _docker_service_update_and_create() {
 		--help
 		--init
 		--no-healthcheck
+		--no-resolve-image
 		--read-only
 		--tty -t
 		--with-registry-auth
