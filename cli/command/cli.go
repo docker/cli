@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/docker/cli/cli"
@@ -265,7 +266,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	}
 	var clientOpts []func(*client.Client) error
 	helper, err := connhelper.GetConnectionHelper(unparsedHost)
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), "parse ") {
 		return &client.Client{}, err
 	}
 	if helper == nil {
