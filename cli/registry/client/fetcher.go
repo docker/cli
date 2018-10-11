@@ -231,7 +231,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		repoEndpoint := repositoryEndpoint{endpoint: endpoint, info: repoInfo}
 		repo, err := c.getRepositoryForReference(ctx, namedRef, repoEndpoint)
 		if err != nil {
-			logrus.Debugf("error with repo endpoint %s: %s", repoEndpoint, err)
+			logrus.Debugf("error %s with repo endpoint %+v", err, repoEndpoint)
 			if _, ok := err.(ErrHTTPProto); ok {
 				continue
 			}

@@ -71,14 +71,14 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	}{
 		// Image not changed
 		{
-			image: "foobar:1.2.3",
+			image:                 "foobar:1.2.3",
 			expectedQueryRegistry: false,
 			expectedImage:         "foobar:1.2.3@sha256:deadbeef",
 			expectedForceUpdate:   123,
 		},
 		// Image changed
 		{
-			image: "foobar:1.2.4",
+			image:                 "foobar:1.2.4",
 			expectedQueryRegistry: true,
 			expectedImage:         "foobar:1.2.4",
 			expectedForceUpdate:   123,
