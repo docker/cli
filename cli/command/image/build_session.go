@@ -19,6 +19,7 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/pkg/progress"
+	"github.com/docker/docker/pkg/system"
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/filesync"
 	"github.com/pkg/errors"
@@ -140,7 +141,7 @@ func tryNodeIdentifier() string {
 	out := cliconfig.Dir() // return config dir as default on permission error
 	if err := os.MkdirAll(cliconfig.Dir(), 0700); err == nil {
 		sessionFile := filepath.Join(cliconfig.Dir(), ".buildNodeID")
-		if _, err := os.Lstat(sessionFile); err != nil {
+		if _, err := system.GetFileInfo(sessionFile); err != nil {
 			if os.IsNotExist(err) { // create a new file with stored randomness
 				b := make([]byte, 32)
 				if _, err := rand.Read(b); err != nil {
