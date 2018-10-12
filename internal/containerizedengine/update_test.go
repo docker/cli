@@ -4,169 +4,75 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/versions"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/assert"
 )
 
-func TestGetCurrentEngineVersionHappy(t *testing.T) {
+func TestActivateImagePermutations(t *testing.T) {
 	ctx := context.Background()
-	image := &fakeImage{
-		nameFunc: func() string {
-			return "acme.com/dockermirror/" + clitypes.CommunityEngineImage + ":engineversion"
-		},
-	}
-	container := &fakeContainer{
-		imageFunc: func(context.Context) (containerd.Image, error) {
-			return image, nil
-		},
-	}
+	lookedup := "not called yet"
+	expectedError := fmt.Errorf("expected error")
 	client := baseClient{
 		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{container}, nil
-			},
-		},
-	}
-
-	opts, err := client.GetCurrentEngineVersion(ctx)
-	assert.NilError(t, err)
-	assert.Equal(t, opts.EngineImage, clitypes.CommunityEngineImage)
-	assert.Equal(t, opts.RegistryPrefix, "acme.com/dockermirror")
-	assert.Equal(t, opts.EngineVersion, "engineversion")
-}
-
-func TestGetCurrentEngineVersionEnterpriseHappy(t *testing.T) {
-	ctx := context.Background()
-	image := &fakeImage{
-		nameFunc: func() string {
-			return "docker.io/docker/" + clitypes.EnterpriseEngineImage + ":engineversion"
-		},
-	}
-	container := &fakeContainer{
-		imageFunc: func(context.Context) (containerd.Image, error) {
-			return image, nil
-		},
-	}
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{container}, nil
-			},
-		},
-	}
-
-	opts, err := client.GetCurrentEngineVersion(ctx)
-	assert.NilError(t, err)
-	assert.Equal(t, opts.EngineImage, clitypes.EnterpriseEngineImage)
-	assert.Equal(t, opts.EngineVersion, "engineversion")
-	assert.Equal(t, opts.RegistryPrefix, "docker.io/docker")
-}
-
-func TestGetCurrentEngineVersionNoEngine(t *testing.T) {
-	ctx := context.Background()
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{}, nil
-			},
-		},
-	}
-
-	_, err := client.GetCurrentEngineVersion(ctx)
-	assert.ErrorContains(t, err, "failed to find existing engine")
-}
-
-func TestGetCurrentEngineVersionMiscEngineError(t *testing.T) {
-	ctx := context.Background()
-	expectedError := fmt.Errorf("some container lookup error")
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
+			getImageFunc: func(ctx context.Context, ref string) (containerd.Image, error) {
+				lookedup = ref
 				return nil, expectedError
 			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 
-	_, err := client.GetCurrentEngineVersion(ctx)
-	assert.Assert(t, err == expectedError)
-}
-
-func TestGetCurrentEngineVersionImageFailure(t *testing.T) {
-	ctx := context.Background()
-	container := &fakeContainer{
-		imageFunc: func(context.Context) (containerd.Image, error) {
-			return nil, fmt.Errorf("container image failure")
-		},
-	}
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{container}, nil
-			},
-		},
-	}
-
-	_, err := client.GetCurrentEngineVersion(ctx)
-	assert.ErrorContains(t, err, "container image failure")
-}
-
-func TestGetCurrentEngineVersionMalformed(t *testing.T) {
-	ctx := context.Background()
-	image := &fakeImage{
-		nameFunc: func() string {
-			return "imagename"
-		},
-	}
-	container := &fakeContainer{
-		imageFunc: func(context.Context) (containerd.Image, error) {
-			return image, nil
-		},
-	}
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{container}, nil
-			},
-		},
-	}
-
-	_, err := client.GetCurrentEngineVersion(ctx)
-	assert.Assert(t, err == ErrEngineImageMissingTag)
-}
-
-func TestActivateNoEngine(t *testing.T) {
-	ctx := context.Background()
-	client := baseClient{
-		cclient: &fakeContainerdClient{
-			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{}, nil
-			},
-		},
-	}
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	err := client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
-	assert.ErrorContains(t, err, "unable to find")
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
+
+	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage, opts.EngineVersion))
+
+	metadata = clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage + "-dm"}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, expectedError.Error())
+	assert.Equal(t, lookedup, fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, clitypes.EnterpriseEngineImage+"-dm", opts.EngineVersion))
 }
 
-func TestActivateNoChange(t *testing.T) {
+func TestActivateConfigFailure(t *testing.T) {
 	ctx := context.Background()
 	registryPrefix := "registryprefixgoeshere"
 	image := &fakeImage{
 		nameFunc: func() string {
 			return registryPrefix + "/" + clitypes.EnterpriseEngineImage + ":engineversion"
+		},
+		configFunc: func(ctx context.Context) (ocispec.Descriptor, error) {
+			return ocispec.Descriptor{}, fmt.Errorf("config lookup failure")
 		},
 	}
 	container := &fakeContainer{
@@ -185,17 +91,27 @@ func TestActivateNoChange(t *testing.T) {
 			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
 				return []containerd.Container{container}, nil
 			},
+			getImageFunc: func(ctx context.Context, ref string) (containerd.Image, error) {
+				return image, nil
+			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "engindir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	err := client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
-	assert.NilError(t, err)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, "config lookup failure")
 }
 
 func TestActivateDoUpdateFail(t *testing.T) {
@@ -222,38 +138,60 @@ func TestActivateDoUpdateFail(t *testing.T) {
 			},
 		},
 	}
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.CommunityEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
 
-	err := client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
 
 func TestDoUpdateNoVersion(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	ctx := context.Background()
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    clitypes.EnterpriseEngineImage,
+		EngineVersion:      "",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        clitypes.EnterpriseEngineImage,
+		RuntimeMetadataDir: tmpdir,
 	}
+
 	client := baseClient{}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
-	assert.ErrorContains(t, err, "please pick the version you")
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, "pick the version you")
 }
 
 func TestDoUpdateImageMiscError(t *testing.T) {
 	ctx := context.Background()
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    "testnamegoeshere",
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        "testnamegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -263,18 +201,26 @@ func TestDoUpdateImageMiscError(t *testing.T) {
 			},
 		},
 	}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "check for image")
 	assert.ErrorContains(t, err, "something went wrong")
 }
 
 func TestDoUpdatePullFail(t *testing.T) {
 	ctx := context.Background()
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
 	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    "testnamegoeshere",
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		EngineImage:        "testnamegoeshere",
+		RuntimeMetadataDir: tmpdir,
 	}
 	client := baseClient{
 		cclient: &fakeContainerdClient{
@@ -287,35 +233,68 @@ func TestDoUpdatePullFail(t *testing.T) {
 			},
 		},
 	}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
+
+	err = client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "unable to pull")
 	assert.ErrorContains(t, err, "pull failure")
 }
 
-func TestDoUpdateEngineMissing(t *testing.T) {
+func TestActivateDoUpdateVerifyImageName(t *testing.T) {
 	ctx := context.Background()
-	opts := clitypes.EngineInitOptions{
-		EngineVersion:  "engineversiongoeshere",
-		RegistryPrefix: "registryprefixgoeshere",
-		ConfigFile:     "/tmp/configfilegoeshere",
-		EngineImage:    "testnamegoeshere",
-	}
+	registryPrefix := "registryprefixgoeshere"
 	image := &fakeImage{
 		nameFunc: func() string {
-			return "imagenamehere"
+			return registryPrefix + "/ce-engine:engineversion"
 		},
 	}
+	container := &fakeContainer{
+		imageFunc: func(context.Context) (containerd.Image, error) {
+			return image, nil
+		},
+	}
+	requestedImage := "unset"
 	client := baseClient{
 		cclient: &fakeContainerdClient{
-			getImageFunc: func(ctx context.Context, ref string) (containerd.Image, error) {
-				return image, nil
-
-			},
 			containersFunc: func(ctx context.Context, filters ...string) ([]containerd.Container, error) {
-				return []containerd.Container{}, nil
+				return []containerd.Container{container}, nil
+			},
+			getImageFunc: func(ctx context.Context, ref string) (containerd.Image, error) {
+				requestedImage = ref
+				return nil, fmt.Errorf("something went wrong")
+
 			},
 		},
 	}
-	err := client.DoUpdate(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{}, healthfnHappy)
-	assert.ErrorContains(t, err, "unable to find existing engine")
+	tmpdir, err := ioutil.TempDir("", "enginedir")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpdir)
+	metadata := clitypes.RuntimeMetadata{EngineImage: clitypes.EnterpriseEngineImage}
+	err = versions.WriteRuntimeMetadata(tmpdir, &metadata)
+	assert.NilError(t, err)
+
+	opts := clitypes.EngineInitOptions{
+		EngineVersion:      "engineversiongoeshere",
+		RegistryPrefix:     "registryprefixgoeshere",
+		EngineImage:        "testnamegoeshere",
+		ConfigFile:         "/tmp/configfilegoeshere",
+		RuntimeMetadataDir: tmpdir,
+	}
+
+	err = client.ActivateEngine(ctx, opts, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	assert.ErrorContains(t, err, "check for image")
+	assert.ErrorContains(t, err, "something went wrong")
+	expectedImage := fmt.Sprintf("%s/%s:%s", opts.RegistryPrefix, opts.EngineImage, opts.EngineVersion)
+	assert.Assert(t, requestedImage == expectedImage, "%s != %s", requestedImage, expectedImage)
+}
+
+func TestGetReleaseNotesURL(t *testing.T) {
+	imageName := "bogus image name #$%&@!"
+	url := getReleaseNotesURL(imageName)
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/")
+	imageName = "foo.bar/valid/repowithouttag"
+	url = getReleaseNotesURL(imageName)
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/")
+	imageName = "foo.bar/valid/repowithouttag:tag123"
+	url = getReleaseNotesURL(imageName)
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/tag123")
 }

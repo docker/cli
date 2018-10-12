@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/docker/api/types"
 	ver "github.com/hashicorp/go-version"
 )
@@ -15,6 +14,16 @@ const (
 
 	// EnterpriseEngineImage is the repo name for the enterprise engine
 	EnterpriseEngineImage = "engine-enterprise"
+
+	// RegistryPrefix is the default prefix used to pull engine images
+	RegistryPrefix = "docker.io/store/docker"
+
+	// ReleaseNotePrefix is where to point users to for release notes
+	ReleaseNotePrefix = "https://docs.docker.com/releasenotes"
+
+	// RuntimeMetadataName is the name of the runtime metadata file
+	// When stored as a label on the container it is prefixed by "com.docker."
+	RuntimeMetadataName = "distribution_based_engine"
 )
 
 // ContainerizedClient can be used to manage the lifecycle of
@@ -24,31 +33,21 @@ type ContainerizedClient interface {
 	ActivateEngine(ctx context.Context,
 		opts EngineInitOptions,
 		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
-	InitEngine(ctx context.Context,
-		opts EngineInitOptions,
-		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
+		authConfig *types.AuthConfig) error
 	DoUpdate(ctx context.Context,
 		opts EngineInitOptions,
 		out OutStream,
-		authConfig *types.AuthConfig,
-		healthfn func(context.Context) error) error
-	GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, currentVersion, imageName string) (AvailableVersions, error)
-	GetCurrentEngineVersion(ctx context.Context) (EngineInitOptions, error)
-	RemoveEngine(ctx context.Context) error
+		authConfig *types.AuthConfig) error
 }
 
 // EngineInitOptions contains the configuration settings
 // use during initialization of a containerized docker engine
 type EngineInitOptions struct {
-	RegistryPrefix string
-	EngineImage    string
-	EngineVersion  string
-	ConfigFile     string
-	Scope          string
+	RegistryPrefix     string
+	EngineImage        string
+	EngineVersion      string
+	ConfigFile         string
+	RuntimeMetadataDir string
 }
 
 // AvailableVersions groups the available versions which were discovered
@@ -78,4 +77,12 @@ type OutStream interface {
 	io.Writer
 	FD() uintptr
 	IsTerminal() bool
+}
+
+// RuntimeMetadata holds platform information about the daemon
+type RuntimeMetadata struct {
+	Platform             string `json:"platform"`
+	ContainerdMinVersion string `json:"containerd_min_version"`
+	Runtime              string `json:"runtime"`
+	EngineImage          string `json:"engine_image"`
 }

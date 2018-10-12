@@ -9,7 +9,6 @@ import (
 	"github.com/moby/buildkit/identity"
 	"github.com/moby/buildkit/solver/pb"
 	"github.com/moby/buildkit/util/apicaps"
-	"github.com/moby/buildkit/util/system"
 	digest "github.com/opencontainers/go-digest"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -34,7 +33,6 @@ func NewState(o Output) State {
 		ctx: context.Background(),
 	}
 	s = dir("/")(s)
-	s = addEnv("PATH", system.DefaultPathEnv)(s)
 	s = s.ensurePlatform()
 	return s
 }
@@ -67,7 +65,7 @@ func (s State) Value(k interface{}) interface{} {
 	return s.ctx.Value(k)
 }
 
-func (s State) SetMarhalDefaults(co ...ConstraintsOpt) State {
+func (s State) SetMarshalDefaults(co ...ConstraintsOpt) State {
 	s.opts = co
 	return s
 }
@@ -196,6 +194,7 @@ func (s State) Run(ro ...RunOption) ExecState {
 		exec.AddMount(m.Target, m.Source, m.Opts...)
 	}
 	exec.secrets = ei.Secrets
+	exec.ssh = ei.SSH
 
 	return ExecState{
 		State: s.WithOutput(exec.Output()),
@@ -410,6 +409,13 @@ func WithoutDefaultExportCache() ConstraintsOpt {
 	})
 }
 
+// WithCaps exposes supported LLB caps to the marshaler
+func WithCaps(caps apicaps.CapSet) ConstraintsOpt {
+	return constraintsOptFunc(func(c *Constraints) {
+		c.Caps = &caps
+	})
+}
+
 type constraintsWrapper struct {
 	Constraints
 }
@@ -423,6 +429,7 @@ type Constraints struct {
 	WorkerConstraints []string
 	Metadata          pb.OpMetadata
 	LocalUniqueID     string
+	Caps              *apicaps.CapSet
 }
 
 func Platform(p specs.Platform) ConstraintsOpt {

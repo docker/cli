@@ -2,10 +2,12 @@ package llb
 
 import (
 	_ "crypto/sha256"
+	"fmt"
 	"net"
 	"sort"
 
 	"github.com/moby/buildkit/solver/pb"
+	"github.com/moby/buildkit/util/system"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
@@ -61,6 +63,7 @@ type ExecOp struct {
 	constraints Constraints
 	isValidated bool
 	secrets     []SecretInfo
+	ssh         []SSHInfo
 }
 
 func (e *ExecOp) AddMount(target string, source Output, opt ...MountOption) Output {
@@ -130,6 +133,24 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 		return e.mounts[i].target < e.mounts[j].target
 	})
 
+	if len(e.ssh) > 0 {
+		for i, s := range e.ssh {
+			if s.Target == "" {
+				e.ssh[i].Target = fmt.Sprintf("/run/buildkit/ssh_agent.%d", i)
+			}
+		}
+		if _, ok := e.meta.Env.Get("SSH_AUTH_SOCK"); !ok {
+			e.meta.Env = e.meta.Env.AddOrReplace("SSH_AUTH_SOCK", e.ssh[0].Target)
+		}
+	}
+	if c.Caps != nil {
+		if err := c.Caps.Supports(pb.CapExecMetaSetsDefaultPath); err != nil {
+			e.meta.Env = e.meta.Env.SetDefault("PATH", system.DefaultPathEnv)
+		} else {
+			addCap(&e.constraints, pb.CapExecMetaSetsDefaultPath)
+		}
+	}
+
 	meta := &pb.Meta{
 		Args: e.meta.Args,
 		Env:  e.meta.Env.ToArray(),
@@ -176,6 +197,14 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 		} else if m.source != nil {
 			addCap(&e.constraints, pb.CapExecMountBind)
 		}
+	}
+
+	if len(e.secrets) > 0 {
+		addCap(&e.constraints, pb.CapExecMountSecret)
+	}
+
+	if len(e.ssh) > 0 {
+		addCap(&e.constraints, pb.CapExecMountSSH)
 	}
 
 	pop, md := MarshalConstraints(c, &e.constraints)
@@ -245,10 +274,6 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 		peo.Mounts = append(peo.Mounts, pm)
 	}
 
-	if len(e.secrets) > 0 {
-		addCap(&e.constraints, pb.CapMountSecret)
-	}
-
 	for _, s := range e.secrets {
 		pm := &pb.Mount{
 			Dest:      s.Target,
@@ -259,6 +284,21 @@ func (e *ExecOp) Marshal(c *Constraints) (digest.Digest, []byte, *pb.OpMetadata,
 				Gid:      uint32(s.GID),
 				Optional: s.Optional,
 				Mode:     uint32(s.Mode),
+			},
+		}
+		peo.Mounts = append(peo.Mounts, pm)
+	}
+
+	for _, s := range e.ssh {
+		pm := &pb.Mount{
+			Dest:      s.Target,
+			MountType: pb.MountType_SSH,
+			SSHOpt: &pb.SSHOpt{
+				ID:       s.ID,
+				Uid:      uint32(s.UID),
+				Gid:      uint32(s.GID),
+				Mode:     uint32(s.Mode),
+				Optional: s.Optional,
 			},
 		}
 		peo.Mounts = append(peo.Mounts, pm)
@@ -432,6 +472,62 @@ func AddMount(dest string, mountState State, opts ...MountOption) RunOption {
 	})
 }
 
+func AddSSHSocket(opts ...SSHOption) RunOption {
+	return runOptionFunc(func(ei *ExecInfo) {
+		s := &SSHInfo{
+			Mode: 0600,
+		}
+		for _, opt := range opts {
+			opt.SetSSHOption(s)
+		}
+		ei.SSH = append(ei.SSH, *s)
+	})
+}
+
+type SSHOption interface {
+	SetSSHOption(*SSHInfo)
+}
+
+type sshOptionFunc func(*SSHInfo)
+
+func (fn sshOptionFunc) SetSSHOption(si *SSHInfo) {
+	fn(si)
+}
+
+func SSHID(id string) SSHOption {
+	return sshOptionFunc(func(si *SSHInfo) {
+		si.ID = id
+	})
+}
+
+func SSHSocketTarget(target string) SSHOption {
+	return sshOptionFunc(func(si *SSHInfo) {
+		si.Target = target
+	})
+}
+
+func SSHSocketOpt(target string, uid, gid, mode int) SSHOption {
+	return sshOptionFunc(func(si *SSHInfo) {
+		si.Target = target
+		si.UID = uid
+		si.GID = gid
+		si.Mode = mode
+	})
+}
+
+var SSHOptional = sshOptionFunc(func(si *SSHInfo) {
+	si.Optional = true
+})
+
+type SSHInfo struct {
+	ID       string
+	Target   string
+	Mode     int
+	UID      int
+	GID      int
+	Optional bool
+}
+
 func AddSecret(dest string, opts ...SecretOption) RunOption {
 	return runOptionFunc(func(ei *ExecInfo) {
 		s := &SecretInfo{ID: dest, Target: dest, Mode: 0400}
@@ -498,6 +594,7 @@ type ExecInfo struct {
 	ReadonlyRootFS bool
 	ProxyEnv       *ProxyEnv
 	Secrets        []SecretInfo
+	SSH            []SSHInfo
 }
 
 type MountInfo struct {
