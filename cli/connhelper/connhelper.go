@@ -181,7 +181,7 @@ func (c *commandConn) onEOF(eof error) error {
 	c.stderrMu.Lock()
 	stderr := c.stderr.String()
 	c.stderrMu.Unlock()
-	return errors.Errorf("command %v has exited with %v, please make sure the URL is valid, and Docker 18.09 or later is installed on the remote host: stderr=%q", c.cmd.Args, werr, stderr)
+	return errors.Errorf("command %v has exited with %v, please make sure the URL is valid, and Docker 18.09 or later is installed on the remote host: stderr=%s", c.cmd.Args, werr, stderr)
 }
 
 func ignorableCloseError(err error) bool {
