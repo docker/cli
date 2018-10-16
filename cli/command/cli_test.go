@@ -43,6 +43,26 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
 }
 
+func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
+	host := ":2375"
+	opts := &flags.CommonOptions{Hosts: []string{host}}
+	configFile := &configfile.ConfigFile{
+		HTTPHeaders: map[string]string{
+			"My-Header": "Custom-Value",
+		},
+	}
+	apiclient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("tcp://localhost"+host, apiclient.DaemonHost()))
+
+	expectedHeaders := map[string]string{
+		"My-Header":  "Custom-Value",
+		"User-Agent": UserAgent(),
+	}
+	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
+	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
+}
+
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	customVersion := "v3.3.3"
 	defer env.Patch(t, "DOCKER_API_VERSION", customVersion)()
