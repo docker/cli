@@ -290,11 +290,11 @@ func TestActivateDoUpdateVerifyImageName(t *testing.T) {
 func TestGetReleaseNotesURL(t *testing.T) {
 	imageName := "bogus image name #$%&@!"
 	url := getReleaseNotesURL(imageName)
-	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/")
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"?")
 	imageName = "foo.bar/valid/repowithouttag"
 	url = getReleaseNotesURL(imageName)
-	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/")
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"?")
 	imageName = "foo.bar/valid/repowithouttag:tag123"
 	url = getReleaseNotesURL(imageName)
-	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"/tag123")
+	assert.Equal(t, url, clitypes.ReleaseNotePrefix+"?tag123")
 }
