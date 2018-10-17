@@ -45,7 +45,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images, not just dangling ones")
-	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'max-age=24h')")
+	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'unused-for=24h')")
 	flags.Var(&options.keepStorage, "keep-storage", "Amount of disk space to keep for cache")
 
 	return cmd
