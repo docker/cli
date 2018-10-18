@@ -21,10 +21,6 @@ type User struct {
 	Company     string `json:"company,omitempty"`
 	ProfileURL  string `json:"profile_url,omitempty"`
 	GravatarURL string `json:"gravatar_url,omitempty"`
-
-	Email    string `json:"email"`
-	Primary  bool   `json:"primary"`
-	Verified bool   `json:"verified"`
 }
 
 // Org details a Docker organization

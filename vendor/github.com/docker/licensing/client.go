@@ -28,7 +28,7 @@ type Client interface {
 	GetHubUserOrgs(ctx context.Context, authToken string) (orgs []model.Org, err error)
 	GetHubUserByName(ctx context.Context, username string) (user *model.User, err error)
 	VerifyLicense(ctx context.Context, license model.IssuedLicense) (res *model.CheckResponse, err error)
-	GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error)
+	GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error)
 	ListSubscriptions(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error)
 	ListSubscriptionsDetails(ctx context.Context, authToken, dockerID string) (response []*model.SubscriptionDetail, err error)
 	DownloadLicenseFromHub(ctx context.Context, authToken, subscriptionID string) (license *model.IssuedLicense, err error)
@@ -80,30 +80,8 @@ func (c *client) VerifyLicense(ctx context.Context, license model.IssuedLicense)
 	return res, nil
 }
 
-func (c *client) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID, email string) (string, error) {
+func (c *client) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID string) (string, error) {
 	ctx = jwt.NewContext(ctx, authToken)
-
-	if _, err := c.getAccount(ctx, dockerID); err != nil {
-		code, ok := errors.HTTPStatus(err)
-		// create billing account if one is not found
-		if ok && code == http.StatusNotFound {
-			_, err = c.createAccount(ctx, dockerID, &model.AccountCreationRequest{
-				Profile: model.Profile{
-					Email: email,
-				},
-			})
-			if err != nil {
-				return "", errors.Wrap(err, errors.Fields{
-					"dockerID": dockerID,
-					"email":    email,
-				})
-			}
-		} else {
-			return "", errors.Wrap(err, errors.Fields{
-				"dockerID": dockerID,
-			})
-		}
-	}
 
 	sub, err := c.createSubscription(ctx, &model.SubscriptionCreationRequest{
 		Name:            "Docker Enterprise Free Trial",
@@ -116,8 +94,7 @@ func (c *client) GenerateNewTrialSubscription(ctx context.Context, authToken, do
 	})
 	if err != nil {
 		return "", errors.Wrap(err, errors.Fields{
-			"dockerID": dockerID,
-			"email":    email,
+			"docker_id": dockerID,
 		})
 	}
 
@@ -131,7 +108,7 @@ func (c *client) ListSubscriptions(ctx context.Context, authToken, dockerID stri
 	subs, err := c.listSubscriptions(ctx, map[string]string{"docker_id": dockerID})
 	if err != nil {
 		return nil, errors.Wrap(err, errors.Fields{
-			"dockerID": dockerID,
+			"docker_id": dockerID,
 		})
 	}
 
@@ -155,7 +132,7 @@ func (c *client) ListSubscriptionsDetails(ctx context.Context, authToken, docker
 	subs, err := c.listSubscriptionsDetails(ctx, map[string]string{"docker_id": dockerID})
 	if err != nil {
 		return nil, errors.Wrap(err, errors.Fields{
-			"dockerID": dockerID,
+			"docker_id": dockerID,
 		})
 	}
 
