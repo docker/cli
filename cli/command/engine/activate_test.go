@@ -90,7 +90,7 @@ func (c mockLicenseClient) GetHubUserByName(ctx context.Context, username string
 func (c mockLicenseClient) VerifyLicense(ctx context.Context, license model.IssuedLicense) (res *model.CheckResponse, err error) {
 	return nil, fmt.Errorf("not implemented")
 }
-func (c mockLicenseClient) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
+func (c mockLicenseClient) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error) {
 	return "", fmt.Errorf("not implemented")
 }
 func (c mockLicenseClient) ListSubscriptions(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error) {
