@@ -18,6 +18,7 @@ type annotateOptions struct {
 	os         string
 	arch       string
 	osFeatures []string
+	osVersion  string
 }
 
 // NewAnnotateCommand creates a new `docker manifest annotate` command
@@ -39,6 +40,7 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVar(&opts.os, "os", "", "Set operating system")
 	flags.StringVar(&opts.arch, "arch", "", "Set architecture")
+	flags.StringVar(&opts.osVersion, "os-version", "", "Set operating system version")
 	flags.StringSliceVar(&opts.osFeatures, "os-features", []string{}, "Set operating system feature")
 	flags.StringVar(&opts.variant, "variant", "", "Set architecture variant")
 
@@ -79,6 +81,9 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 	}
 	if opts.variant != "" {
 		imageManifest.Descriptor.Platform.Variant = opts.variant
+	}
+	if opts.osVersion != "" {
+		imageManifest.Descriptor.Platform.OSVersion = opts.osVersion
 	}
 
 	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {

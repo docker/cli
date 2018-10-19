@@ -77,6 +77,7 @@ Options:
       --arch string               Set architecture
       --help                      Print usage
       --os string                 Set operating system
+      --os-version string         Set operating system version
       --os-features stringSlice   Set operating system feature
       --variant string            Set architecture variant
 
