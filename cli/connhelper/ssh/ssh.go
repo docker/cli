@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dockerSSHOptions = os.Getenv("DOCKER_SSH_OPTIONS")
+	dockerSSHOptions = os.Getenv("DOCKER_HOST_SSH_OPTIONS")
 )
 
 // New returns cmd and its args
@@ -73,7 +73,7 @@ func (sp *sshSpec) Args() []string {
 		args = append(args, "-p", sp.port)
 	}
 	if sp.options != "" {
-		args = append(args, sp.options)
+		args = append(args, strings.Split(sp.options," ")...)
 	}
 	args = append(args, sp.host)
 	return args
