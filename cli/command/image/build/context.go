@@ -86,6 +86,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 // of input. If an archive is detected, isArchive is set to true, and to false
 // otherwise, in which case it is safe to assume input represents the contents
 // of a Dockerfile.
+// For check is archive or not, we need to handle archive with paxHeader or not.
 func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool, err error) {
 	buf := bufio.NewReader(input)
 
@@ -93,8 +94,15 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool,
 	if err != nil && err != io.EOF {
 		return nil, false, errors.Errorf("failed to peek context header from STDIN: %v", err)
 	}
+	checkArchive := IsArchive(magic)
+	if !checkArchive {
+		magic, err = buf.Peek(2 * archiveHeaderSize)
+		if err == nil {
+			checkArchive = IsArchive(magic)
+		}
+	}
 
-	return ioutils.NewReadCloserWrapper(buf, func() error { return input.Close() }), IsArchive(magic), nil
+	return ioutils.NewReadCloserWrapper(buf, func() error { return input.Close() }), checkArchive, nil
 }
 
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
