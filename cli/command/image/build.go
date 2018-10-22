@@ -350,7 +350,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildCtx = dockerfileCtx
 	}
 
-	s, err := trySession(dockerCli, contextDir)
+	s, err := trySession(dockerCli, contextDir, true)
 	if err != nil {
 		return err
 	}
