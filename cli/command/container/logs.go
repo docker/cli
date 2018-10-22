@@ -50,6 +50,11 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	ctx := context.Background()
 
+	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
+	if err != nil {
+		return err
+	}
+
 	options := types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
@@ -60,16 +65,11 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		Tail:       opts.tail,
 		Details:    opts.details,
 	}
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, opts.container, options)
+	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, options)
 	if err != nil {
 		return err
 	}
 	defer responseBody.Close()
-
-	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
-	if err != nil {
-		return err
-	}
 
 	if c.Config.Tty {
 		_, err = io.Copy(dockerCli.Out(), responseBody)
