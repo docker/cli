@@ -43,7 +43,7 @@ var errDockerfileConflict = errors.New("ambiguous Dockerfile source: both stdin 
 func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	ctx := appcontext.Context()
 
-	s, err := trySession(dockerCli, options.context)
+	s, err := trySession(dockerCli, options.context, false)
 	if err != nil {
 		return err
 	}
