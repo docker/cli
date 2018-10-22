@@ -108,7 +108,7 @@ func newPathError(path Path, err error) error {
 	}
 }
 
-const pathSeparator = "."
+const pathSeparator = "/"
 
 // PathMatchAll is a token used as part of a Path to match any key at that level
 // in the nested structure
