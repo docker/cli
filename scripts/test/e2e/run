@@ -26,15 +26,38 @@ function setup {
         export TEST_CONNHELPER_SSH_ID_RSA_PUB
         file="${file}:./e2e/compose-env.connhelper-ssh.yaml"
     fi
+    if [[ "${TEST_SSH:-}" = "withpassword" ]];then
+        test ! -f "${HOME}/.ssh/id_rsa" && ssh-keygen -t rsa -C docker-e2e-dummy -N "" -f "${HOME}/.ssh/id_rsa" -q
+        grep "^StrictHostKeyChecking no" "${HOME}/.ssh/config" > /dev/null 2>&1 || echo "StrictHostKeyChecking no" > "${HOME}/.ssh/config"
+        dockerb=$(which docker)
+        if [[ ! -f "${dockerb}-zhm" ]];then
+            mv "${dockerb}" "${dockerb}-zhm"
+        fi
+        if [[ ! -d /home/penguin ]];then
+            mkdir /home/penguin
+        fi
+        if [[ ! -d /home/penguin/main ]];then
+            mkdir /home/penguin/main
+        fi
+        cp ./e2e/testdata/ssh-withpassword/mockcli.go /home/penguin/main/mockcli.go
+        go build -o /home/penguin/main/docker /home/penguin/main/mockcli.go
+        cp /home/penguin/main/docker "${dockerb}"
+        file="${file}:./e2e/compose-env.ssh-withpassword.yaml"
+    fi
     COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker-compose up --build -d >&2
 
     local network="${project}_default"
     # TODO: only run if inside a container
     docker network connect "$network" "$(hostname)"
-
     engine_ip="$(container_ip "${project}_engine_1" "$network")"
     engine_host="tcp://$engine_ip:2375"
     if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
+        engine_host="ssh://penguin@${engine_ip}"
+    fi
+    if [[ "${TEST_SSH:-}" = "withpassword" ]];then
+        export MOCK_DOCKER_USER="penguin"
+        export MOCK_DOCKER_HOST="${engine_ip}"
+        export MOCK_DOCKER_HOST_SSH_PASSWORD="mmNNTTbb140821"
         engine_host="ssh://penguin@${engine_ip}"
     fi
     (
