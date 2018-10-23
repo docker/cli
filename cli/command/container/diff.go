@@ -41,7 +41,7 @@ func runDiff(dockerCli command.Cli, opts *diffOptions) error {
 	}
 	diffCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewDiffFormat("{{.Type}} {{.Path}}"),
+		Format: NewDiffFormat("{{.Type}} {{.Path}}"),
 	}
-	return formatter.DiffWrite(diffCtx, changes)
+	return DiffFormatWrite(diffCtx, changes)
 }

@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/pkg/errors"

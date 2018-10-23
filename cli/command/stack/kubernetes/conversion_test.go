@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/kubernetes/labels"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/assert"
@@ -28,7 +28,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 		replicas         *appsv1beta2.ReplicaSetList
 		services         *apiv1.ServiceList
 		expectedServices []swarm.Service
-		expectedListInfo map[string]formatter.ServiceListInfo
+		expectedListInfo map[string]service.ListInfo
 	}{
 		// Match replicas with headless stack services
 		{
@@ -49,7 +49,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 				makeSwarmService("stack_service1", "uid1", nil),
 				makeSwarmService("stack_service2", "uid2", nil),
 			},
-			map[string]formatter.ServiceListInfo{
+			map[string]service.ListInfo{
 				"uid1": {Mode: "replicated", Replicas: "2/5"},
 				"uid2": {Mode: "replicated", Replicas: "3/3"},
 			},
@@ -83,7 +83,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 					},
 				}),
 			},
-			map[string]formatter.ServiceListInfo{
+			map[string]service.ListInfo{
 				"uid1": {Mode: "replicated", Replicas: "1/1"},
 			},
 		},
@@ -117,7 +117,7 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 					},
 				}),
 			},
-			map[string]formatter.ServiceListInfo{
+			map[string]service.ListInfo{
 				"uid1": {Mode: "replicated", Replicas: "1/1"},
 			},
 		},

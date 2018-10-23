@@ -36,7 +36,7 @@ func NewImageFormat(source string, quiet bool, digest bool) Format {
 	case TableFormatKey:
 		switch {
 		case quiet:
-			return defaultQuietFormat
+			return DefaultQuietFormat
 		case digest:
 			return defaultImageTableFormatWithDigest
 		default:
@@ -73,7 +73,7 @@ virtual_size: {{.Size}}
 
 // ImageWrite writes the formatter images using the ImageContext
 func ImageWrite(ctx ImageContext, images []types.ImageSummary) error {
-	render := func(format func(subContext subContext) error) error {
+	render := func(format func(subContext SubContext) error) error {
 		return imageFormat(ctx, images, format)
 	}
 	return ctx.Write(newImageContext(), render)
@@ -84,7 +84,7 @@ func needDigest(ctx ImageContext) bool {
 	return ctx.Digest || ctx.Format.Contains("{{.Digest}}")
 }
 
-func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subContext subContext) error) error {
+func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subContext SubContext) error) error {
 	for _, image := range images {
 		formatted := []*imageContext{}
 		if isDangling(image) {
@@ -194,16 +194,16 @@ type imageContext struct {
 
 func newImageContext() *imageContext {
 	imageCtx := imageContext{}
-	imageCtx.header = map[string]string{
+	imageCtx.Header = SubHeaderContext{
 		"ID":           imageIDHeader,
 		"Repository":   repositoryHeader,
 		"Tag":          tagHeader,
 		"Digest":       digestHeader,
-		"CreatedSince": createdSinceHeader,
-		"CreatedAt":    createdAtHeader,
-		"Size":         sizeHeader,
+		"CreatedSince": CreatedSinceHeader,
+		"CreatedAt":    CreatedAtHeader,
+		"Size":         SizeHeader,
 		"Containers":   containersHeader,
-		"VirtualSize":  sizeHeader,
+		"VirtualSize":  SizeHeader,
 		"SharedSize":   sharedSizeHeader,
 		"UniqueSize":   uniqueSizeHeader,
 	}
@@ -211,7 +211,7 @@ func newImageContext() *imageContext {
 }
 
 func (c *imageContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *imageContext) ID() string {

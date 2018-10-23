@@ -57,7 +57,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	sort.Slice(services, func(i, j int) bool {
 		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
 	})
-	info := map[string]formatter.ServiceListInfo{}
+	info := map[string]ListInfo{}
 	if len(services) > 0 && !options.quiet {
 		// only non-empty services and not quiet, should we call TaskList and NodeList api
 		taskFilter := filters.NewArgs()
@@ -89,13 +89,13 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, options.quiet),
+		Format: NewListFormat(format, options.quiet),
 	}
-	return formatter.ServiceListWrite(servicesCtx, services, info)
+	return ListFormatWrite(servicesCtx, services, info)
 }
 
 // GetServicesStatus returns a map of mode and replicas
-func GetServicesStatus(services []swarm.Service, nodes []swarm.Node, tasks []swarm.Task) map[string]formatter.ServiceListInfo {
+func GetServicesStatus(services []swarm.Service, nodes []swarm.Node, tasks []swarm.Task) map[string]ListInfo {
 	running := map[string]int{}
 	tasksNoShutdown := map[string]int{}
 
@@ -116,16 +116,16 @@ func GetServicesStatus(services []swarm.Service, nodes []swarm.Node, tasks []swa
 		}
 	}
 
-	info := map[string]formatter.ServiceListInfo{}
+	info := map[string]ListInfo{}
 	for _, service := range services {
-		info[service.ID] = formatter.ServiceListInfo{}
+		info[service.ID] = ListInfo{}
 		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
-			info[service.ID] = formatter.ServiceListInfo{
+			info[service.ID] = ListInfo{
 				Mode:     "replicated",
 				Replicas: fmt.Sprintf("%d/%d", running[service.ID], *service.Spec.Mode.Replicated.Replicas),
 			}
 		} else if service.Spec.Mode.Global != nil {
-			info[service.ID] = formatter.ServiceListInfo{
+			info[service.ID] = ListInfo{
 				Mode:     "global",
 				Replicas: fmt.Sprintf("%d/%d", running[service.ID], tasksNoShutdown[service.ID]),
 			}

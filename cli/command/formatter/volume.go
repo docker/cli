@@ -37,7 +37,7 @@ func NewVolumeFormat(source string, quiet bool) Format {
 
 // VolumeWrite writes formatted volumes using the Context
 func VolumeWrite(ctx Context, volumes []*types.Volume) error {
-	render := func(format func(subContext subContext) error) error {
+	render := func(format func(subContext SubContext) error) error {
 		for _, volume := range volumes {
 			if err := format(&volumeContext{v: *volume}); err != nil {
 				return err
@@ -48,16 +48,6 @@ func VolumeWrite(ctx Context, volumes []*types.Volume) error {
 	return ctx.Write(newVolumeContext(), render)
 }
 
-type volumeHeaderContext map[string]string
-
-func (c volumeHeaderContext) Label(name string) string {
-	n := strings.Split(name, ".")
-	r := strings.NewReplacer("-", " ", "_", " ")
-	h := r.Replace(n[len(n)-1])
-
-	return h
-}
-
 type volumeContext struct {
 	HeaderContext
 	v types.Volume
@@ -65,20 +55,20 @@ type volumeContext struct {
 
 func newVolumeContext() *volumeContext {
 	volumeCtx := volumeContext{}
-	volumeCtx.header = volumeHeaderContext{
+	volumeCtx.Header = SubHeaderContext{
 		"Name":       volumeNameHeader,
-		"Driver":     driverHeader,
-		"Scope":      scopeHeader,
+		"Driver":     DriverHeader,
+		"Scope":      ScopeHeader,
 		"Mountpoint": mountpointHeader,
-		"Labels":     labelsHeader,
+		"Labels":     LabelsHeader,
 		"Links":      linksHeader,
-		"Size":       sizeHeader,
+		"Size":       SizeHeader,
 	}
 	return &volumeCtx
 }
 
 func (c *volumeContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *volumeContext) Name() string {

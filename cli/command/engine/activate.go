@@ -156,10 +156,10 @@ func getLicenses(ctx context.Context, authConfig *types.AuthConfig, cli command.
 
 	updatesCtx := formatter.Context{
 		Output: cli.Out(),
-		Format: formatter.NewSubscriptionsFormat(format, options.quiet),
+		Format: NewSubscriptionsFormat(format, options.quiet),
 		Trunc:  false,
 	}
-	if err := formatter.SubscriptionsWrite(updatesCtx, subs); err != nil {
+	if err := SubscriptionsWrite(updatesCtx, subs); err != nil {
 		return nil, err
 	}
 	if options.displayOnly {

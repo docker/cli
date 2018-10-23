@@ -63,7 +63,7 @@ func runSecretList(dockerCli command.Cli, options listOptions) error {
 
 	secretCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewSecretFormat(format, options.quiet),
+		Format: NewFormat(format, options.quiet),
 	}
-	return formatter.SecretWrite(secretCtx, secrets)
+	return FormatWrite(secretCtx, secrets)
 }

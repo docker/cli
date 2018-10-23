@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/docker/api/types/swarm"
@@ -83,11 +83,11 @@ func printTasks(dockerCli command.Cli, options options.PS, namespace string, cli
 
 	tasksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewTaskFormat(format, options.Quiet),
+		Format: task.NewTaskFormat(format, options.Quiet),
 		Trunc:  !options.NoTrunc,
 	}
 
-	return formatter.TaskWrite(tasksCtx, tasks, names, nodes)
+	return task.FormatWrite(tasksCtx, tasks, names, nodes)
 }
 
 func resolveNode(name string, nodes *apiv1.NodeList, noResolve bool) (string, error) {

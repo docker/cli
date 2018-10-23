@@ -8,7 +8,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func marshalJSON(x interface{}) ([]byte, error) {
+// MarshalJSON marshals x into json
+// It differs a bit from encoding/json MarshalJSON function for formatter
+func MarshalJSON(x interface{}) ([]byte, error) {
 	m, err := marshalMap(x)
 	if err != nil {
 		return nil, err
