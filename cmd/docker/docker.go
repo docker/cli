@@ -33,6 +33,9 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceErrors:    true,
 		TraverseChildren: true,
 		Args:             noArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return command.ShowHelp(dockerCli.Err())(cmd, args)
+		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// flags must be the top-level command flags, not cmd.Flags()
 			opts.Common.SetDefaultOptions(flags)
