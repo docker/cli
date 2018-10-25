@@ -204,6 +204,9 @@ func prettyPrintInfo(dockerCli command.Cli, info types.Info) error {
 	}
 
 	fmt.Fprintln(dockerCli.Out(), "Live Restore Enabled:", info.LiveRestoreEnabled)
+	if info.ProductLicense != "" {
+		fmt.Fprintln(dockerCli.Out(), "Product License:", info.ProductLicense)
+	}
 	fmt.Fprint(dockerCli.Out(), "\n")
 
 	printWarnings(dockerCli, info)
