@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/service"
+	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/kubernetes/labels"
 	"github.com/docker/docker/api/types/filters"
@@ -115,7 +116,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	services = filterServicesByName(services, filters.Get("name"), stackName)
 
 	if opts.Quiet {
-		info = map[string]formatter.ServiceListInfo{}
+		info = map[string]service.ListInfo{}
 	}
 
 	format := opts.Format
@@ -129,9 +130,9 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, opts.Quiet),
+		Format: service.NewListFormat(format, opts.Quiet),
 	}
-	return formatter.ServiceListWrite(servicesCtx, services, info)
+	return service.ListFormatWrite(servicesCtx, services, info)
 }
 
 func filterServicesByName(services []swarm.Service, names []string, stackName string) []swarm.Service {

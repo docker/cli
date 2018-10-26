@@ -99,10 +99,10 @@ func runCheck(dockerCli command.Cli, options checkOptions) error {
 
 	updatesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewUpdatesFormat(format, options.quiet),
+		Format: NewUpdatesFormat(format, options.quiet),
 		Trunc:  false,
 	}
-	return formatter.UpdatesWrite(updatesCtx, availUpdates)
+	return UpdatesWrite(updatesCtx, availUpdates)
 }
 
 func processVersions(currentVersion, verType string,

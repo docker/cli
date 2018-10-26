@@ -64,7 +64,7 @@ func runConfigList(dockerCli command.Cli, options listOptions) error {
 
 	configCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewConfigFormat(format, options.quiet),
+		Format: NewFormat(format, options.quiet),
 	}
-	return formatter.ConfigWrite(configCtx, configs)
+	return FormatWrite(configCtx, configs)
 }

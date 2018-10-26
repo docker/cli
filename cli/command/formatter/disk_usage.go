@@ -122,11 +122,11 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	}
 
 	diskUsageContainersCtx := diskUsageContainersContext{containers: []*types.Container{}}
-	diskUsageContainersCtx.header = map[string]string{
+	diskUsageContainersCtx.Header = SubHeaderContext{
 		"Type":        typeHeader,
 		"TotalCount":  totalHeader,
 		"Active":      activeHeader,
-		"Size":        sizeHeader,
+		"Size":        SizeHeader,
 		"Reclaimable": reclaimableHeader,
 	}
 	ctx.postFormat(tmpl, &diskUsageContainersCtx)
@@ -263,7 +263,7 @@ type diskUsageImagesContext struct {
 }
 
 func (c *diskUsageImagesContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *diskUsageImagesContext) Type() string {
@@ -315,7 +315,7 @@ type diskUsageContainersContext struct {
 }
 
 func (c *diskUsageContainersContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *diskUsageContainersContext) Type() string {
@@ -377,7 +377,7 @@ type diskUsageVolumesContext struct {
 }
 
 func (c *diskUsageVolumesContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *diskUsageVolumesContext) Type() string {
@@ -439,7 +439,7 @@ type diskUsageBuilderContext struct {
 }
 
 func (c *diskUsageBuilderContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *diskUsageBuilderContext) Type() string {

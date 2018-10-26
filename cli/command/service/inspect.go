@@ -83,10 +83,10 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 
 	serviceCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceFormat(f),
+		Format: NewFormat(f),
 	}
 
-	if err := formatter.ServiceInspectWrite(serviceCtx, opts.refs, getRef, getNetwork); err != nil {
+	if err := InspectFormatWrite(serviceCtx, opts.refs, getRef, getNetwork); err != nil {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil

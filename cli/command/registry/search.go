@@ -90,8 +90,8 @@ func runSearch(dockerCli command.Cli, options searchOptions) error {
 	})
 	searchCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewSearchFormat(options.format),
+		Format: NewSearchFormat(options.format),
 		Trunc:  !options.noTrunc,
 	}
-	return formatter.SearchWrite(searchCtx, results, options.automated, int(options.stars))
+	return SearchWrite(searchCtx, results, options.automated, int(options.stars))
 }

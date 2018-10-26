@@ -65,8 +65,8 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 	networksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewNetworkFormat(format, options.quiet),
+		Format: NewFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return formatter.NetworkWrite(networksCtx, networkResources)
+	return FormatWrite(networksCtx, networkResources)
 }

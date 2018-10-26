@@ -16,15 +16,12 @@ import (
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
-	containerIDHeader = "CONTAINER ID"
-	namesHeader       = "NAMES"
-	commandHeader     = "COMMAND"
-	runningForHeader  = "CREATED"
-	statusHeader      = "STATUS"
-	portsHeader       = "PORTS"
-	mountsHeader      = "MOUNTS"
-	localVolumes      = "LOCAL VOLUMES"
-	networksHeader    = "NETWORKS"
+	namesHeader      = "NAMES"
+	commandHeader    = "COMMAND"
+	runningForHeader = "CREATED"
+	mountsHeader     = "MOUNTS"
+	localVolumes     = "LOCAL VOLUMES"
+	networksHeader   = "NETWORKS"
 )
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -32,7 +29,7 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 	switch source {
 	case TableFormatKey:
 		if quiet {
-			return defaultQuietFormat
+			return DefaultQuietFormat
 		}
 		format := defaultContainerTableFormat
 		if size {
@@ -62,7 +59,7 @@ ports: {{- pad .Ports 1 0}}
 
 // ContainerWrite renders the context for a list of containers
 func ContainerWrite(ctx Context, containers []types.Container) error {
-	render := func(format func(subContext subContext) error) error {
+	render := func(format func(subContext SubContext) error) error {
 		for _, container := range containers {
 			err := format(&containerContext{trunc: ctx.Trunc, c: container})
 			if err != nil {
@@ -74,16 +71,6 @@ func ContainerWrite(ctx Context, containers []types.Container) error {
 	return ctx.Write(newContainerContext(), render)
 }
 
-type containerHeaderContext map[string]string
-
-func (c containerHeaderContext) Label(name string) string {
-	n := strings.Split(name, ".")
-	r := strings.NewReplacer("-", " ", "_", " ")
-	h := r.Replace(n[len(n)-1])
-
-	return h
-}
-
 type containerContext struct {
 	HeaderContext
 	trunc bool
@@ -92,17 +79,17 @@ type containerContext struct {
 
 func newContainerContext() *containerContext {
 	containerCtx := containerContext{}
-	containerCtx.header = containerHeaderContext{
-		"ID":           containerIDHeader,
+	containerCtx.Header = SubHeaderContext{
+		"ID":           ContainerIDHeader,
 		"Names":        namesHeader,
-		"Image":        imageHeader,
+		"Image":        ImageHeader,
 		"Command":      commandHeader,
-		"CreatedAt":    createdAtHeader,
+		"CreatedAt":    CreatedAtHeader,
 		"RunningFor":   runningForHeader,
-		"Ports":        portsHeader,
-		"Status":       statusHeader,
-		"Size":         sizeHeader,
-		"Labels":       labelsHeader,
+		"Ports":        PortsHeader,
+		"Status":       StatusHeader,
+		"Size":         SizeHeader,
+		"Labels":       LabelsHeader,
 		"Mounts":       mountsHeader,
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
@@ -111,7 +98,7 @@ func newContainerContext() *containerContext {
 }
 
 func (c *containerContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *containerContext) ID() string {

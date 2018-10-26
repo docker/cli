@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/kubernetes/labels"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
@@ -154,16 +154,16 @@ const (
 	publishedOnRandomPortSuffix = "-random-ports"
 )
 
-func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta2.DaemonSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]formatter.ServiceListInfo, error) {
+func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta2.DaemonSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]service.ListInfo, error) {
 	result := make([]swarm.Service, len(replicas.Items))
-	infos := make(map[string]formatter.ServiceListInfo, len(replicas.Items)+len(daemons.Items))
+	infos := make(map[string]service.ListInfo, len(replicas.Items)+len(daemons.Items))
 	for i, r := range replicas.Items {
 		s, err := convertToService(r.Labels[labels.ForServiceName], services, r.Spec.Template.Spec.Containers)
 		if err != nil {
 			return nil, nil, err
 		}
 		result[i] = *s
-		infos[s.ID] = formatter.ServiceListInfo{
+		infos[s.ID] = service.ListInfo{
 			Mode:     "replicated",
 			Replicas: fmt.Sprintf("%d/%d", r.Status.AvailableReplicas, r.Status.Replicas),
 		}
@@ -174,7 +174,7 @@ func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta
 			return nil, nil, err
 		}
 		result = append(result, *s)
-		infos[s.ID] = formatter.ServiceListInfo{
+		infos[s.ID] = service.ListInfo{
 			Mode:     "global",
 			Replicas: fmt.Sprintf("%d/%d", d.Status.NumberReady, d.Status.DesiredNumberScheduled),
 		}

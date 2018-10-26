@@ -28,7 +28,7 @@ func NewBuildCacheFormat(source string, quiet bool) Format {
 	switch source {
 	case TableFormatKey:
 		if quiet {
-			return defaultQuietFormat
+			return DefaultQuietFormat
 		}
 		return Format(defaultBuildCacheTableFormat)
 	case RawFormatKey:
@@ -72,7 +72,7 @@ func buildCacheSort(buildCache []*types.BuildCache) {
 
 // BuildCacheWrite renders the context for a list of containers
 func BuildCacheWrite(ctx Context, buildCaches []*types.BuildCache) error {
-	render := func(format func(subContext subContext) error) error {
+	render := func(format func(subContext SubContext) error) error {
 		buildCacheSort(buildCaches)
 		for _, bc := range buildCaches {
 			err := format(&buildCacheContext{trunc: ctx.Trunc, v: bc})
@@ -85,8 +85,6 @@ func BuildCacheWrite(ctx Context, buildCaches []*types.BuildCache) error {
 	return ctx.Write(newBuildCacheContext(), render)
 }
 
-type buildCacheHeaderContext map[string]string
-
 type buildCacheContext struct {
 	HeaderContext
 	trunc bool
@@ -95,23 +93,23 @@ type buildCacheContext struct {
 
 func newBuildCacheContext() *buildCacheContext {
 	buildCacheCtx := buildCacheContext{}
-	buildCacheCtx.header = buildCacheHeaderContext{
+	buildCacheCtx.Header = SubHeaderContext{
 		"ID":            cacheIDHeader,
 		"Parent":        parentHeader,
 		"CacheType":     cacheTypeHeader,
-		"Size":          sizeHeader,
-		"CreatedSince":  createdSinceHeader,
+		"Size":          SizeHeader,
+		"CreatedSince":  CreatedSinceHeader,
 		"LastUsedSince": lastUsedSinceHeader,
 		"UsageCount":    usageCountHeader,
 		"InUse":         inUseHeader,
 		"Shared":        sharedHeader,
-		"Description":   descriptionHeader,
+		"Description":   DescriptionHeader,
 	}
 	return &buildCacheCtx
 }
 
 func (c *buildCacheContext) MarshalJSON() ([]byte, error) {
-	return marshalJSON(c)
+	return MarshalJSON(c)
 }
 
 func (c *buildCacheContext) ID() string {
