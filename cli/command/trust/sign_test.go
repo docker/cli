@@ -148,7 +148,7 @@ func TestAddStageSigners(t *testing.T) {
 	assert.NilError(t, err)
 	changeList := cl.List()
 	assert.Check(t, is.Len(changeList, 4))
-	// ordering is determinstic:
+	// ordering is deterministic:
 
 	// first change is for targets/user key creation
 	newSignerKeyChange := changeList[0]

@@ -85,6 +85,8 @@ you can download them from:
 - Microsoft Windows Credential Manager: https://github.com/docker/docker-credential-helpers/releases
 - [pass](https://www.passwordstore.org/): https://github.com/docker/docker-credential-helpers/releases
 
+#### Configure the credentials store
+
 You need to specify the credentials store in `$HOME/.docker/config.json`
 to tell the docker engine to use it. The value of the config property should be
 the suffix of the program to use (i.e. everything after `docker-credential-`).
@@ -99,7 +101,7 @@ For example, to use `docker-credential-osxkeychain`:
 If you are currently logged in, run `docker logout` to remove
 the credentials from the file and run `docker login` again.
 
-### Default behavior
+#### Default behavior
 
 By default, Docker looks for the native binary on each of the platforms, i.e.
 "osxkeychain" on macOS, "wincred" on windows, and "pass" on Linux. A special
@@ -108,7 +110,7 @@ it cannot find the "pass" binary. If none of these binaries are present, it
 stores the credentials (i.e. password) in base64 encoding in the config files
 described above.
 
-### Credential helper protocol
+#### Credential helper protocol
 
 Credential helpers can be any program or script that follows a very simple protocol.
 This protocol is heavily inspired by Git, but it differs in the information shared.
@@ -162,7 +164,7 @@ designated programs to handle credentials for *specific registries*. The default
 credential store (`credsStore` or the config file itself) will not be used for
 operations concerning credentials of the specified registries.
 
-### Logging out
+#### Configure credential helpers
 
 If you are currently logged in, run `docker logout` to remove
 the credentials from the default store.
@@ -182,3 +184,7 @@ For example:
   }
 }
 ```
+
+## Related commands
+
+* [logout](logout.md)

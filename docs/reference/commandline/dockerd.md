@@ -191,7 +191,10 @@ $ docker -H ssh://example.com ps
 ```
 
 To use SSH connection, you need to set up `ssh` so that it can reach the
-remote host with public key authentication.
+remote host with public key authentication. Password authentication is not
+supported. If your key is protected with passphrase, you need to set up
+`ssh-agent`.
+
 Also, you need to have `docker` binary 18.09 or later on the daemon host.
 
 #### Bind Docker to another host/port or a Unix socket
@@ -1327,7 +1330,13 @@ This is a full example of the allowed configuration options on Linux:
 	"userns-remap": "",
 	"group": "",
 	"cgroup-parent": "",
-	"default-ulimits": {},
+	"default-ulimits": {
+		"nofile": {
+			"Name": "nofile",
+			"Hard": 64000,
+			"Soft": 64000
+		}
+	},
 	"init": false,
 	"init-path": "/usr/libexec/docker-init",
 	"ipv6": false,
@@ -1423,6 +1432,16 @@ This is a full example of the allowed configuration options on Windows:
     "insecure-registries": []
 }
 ```
+
+#### Feature options
+The optional field `features` in `daemon.json` allows users to enable or disable specific 
+daemon features. For example, `{"features":{"buildkit": true}}` enables `buildkit` as the 
+default docker image builder.
+
+The list of currently supported feature options:
+- `buildkit`: It enables `buildkit` as default builder when set to `true` or disables it by
+`false`. Note that if this option is not explicitly set in the daemon config file, then it
+is up to the cli to determine which builder to invoke.
 
 #### Configuration reload behavior
 
