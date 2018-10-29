@@ -60,14 +60,22 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	info := map[string]formatter.ServiceListInfo{}
 	if len(services) > 0 && !options.quiet {
 		// only non-empty services and not quiet, should we call TaskList and NodeList api
-		taskFilter := filters.NewArgs()
+		// we should get tasks individually, one-by-one. This takes longer (a
+		// new request every time) but works around an issue where attempting
+		// to list all tasks causes a gRPC message that's too big in the engine.
+		//
+		// NOTE(dperny): this can be reverted once a proper engine fix goes in,
+		// but for now this band-aid should be fine.
+		allTasks := []swarm.Task{}
 		for _, service := range services {
+			taskFilter := filters.NewArgs()
 			taskFilter.Add("service", service.ID)
-		}
 
-		tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
-		if err != nil {
-			return err
+			tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
+			if err != nil {
+				return err
+			}
+			allTasks = append(allTasks, tasks...)
 		}
 
 		nodes, err := client.NodeList(ctx, types.NodeListOptions{})
@@ -75,7 +83,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 			return err
 		}
 
-		info = GetServicesStatus(services, nodes, tasks)
+		info = GetServicesStatus(services, nodes, allTasks)
 	}
 
 	format := options.format
