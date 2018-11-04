@@ -22,27 +22,29 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 		doc         string
 		options     copyOptions
 		expectedErr string
+		direction	copyDirection
 	}{
 		{
 			doc: "copy between container",
 			options: copyOptions{
-				source:      "first:/path",
-				destination: "second:/path",
+				source:      splitCpArg("first:/path"),
+				destination: splitCpArg("second:/path"),
 			},
 			expectedErr: "copying between containers is not supported",
+			direction: acrossContainers,
 		},
 		{
 			doc: "copy without a container",
 			options: copyOptions{
-				source:      "./source",
-				destination: "./dest",
+				source:      splitCpArg("./source"),
+				destination: splitCpArg("./dest"),
 			},
 			expectedErr: "must specify at least one container source",
 		},
 	}
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			err := runCopy(test.NewFakeCli(nil), testcase.options)
+			err := runCopy(test.NewFakeCli(nil), testcase.options, testcase.direction)
 			assert.Error(t, err, testcase.expectedErr)
 		})
 	}
@@ -57,9 +59,9 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 			return ioutil.NopCloser(strings.NewReader(tarContent)), types.ContainerPathStat{}, nil
 		},
 	}
-	options := copyOptions{source: "container:/path", destination: "-"}
+	options := copyOptions{source: splitCpArg("container:/path"), destination: splitCpArg("-")}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(cli, options, fromContainer)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(tarContent, cli.OutBuffer().String()))
 	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
@@ -77,9 +79,9 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 			return readCloser, types.ContainerPathStat{}, err
 		},
 	}
-	options := copyOptions{source: "container:/path", destination: destDir.Path()}
+	options := copyOptions{source: splitCpArg("container:/path"), destination: splitCpArg(destDir.Path())}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(cli, options, fromContainer)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("", cli.OutBuffer().String()))
 	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
@@ -103,11 +105,11 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 	}
 
 	options := copyOptions{
-		source:      "container:/path",
-		destination: destDir.Join("missing", "foo"),
+		source:      splitCpArg("container:/path"),
+		destination: splitCpArg(destDir.Join("missing", "foo")),
 	}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(cli, options, fromContainer)
 	assert.ErrorContains(t, err, destDir.Join("missing"))
 }
 
@@ -116,11 +118,11 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 	defer srcFile.Remove()
 
 	options := copyOptions{
-		source:      srcFile.Path() + string(os.PathSeparator),
-		destination: "container:/path",
+		source:      splitCpArg(srcFile.Path() + string(os.PathSeparator)),
+		destination: splitCpArg("container:/path"),
 	}
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(cli, options)
+	err := runCopy(cli, options, toContainer)
 
 	expectedError := "not a directory"
 	if runtime.GOOS == "windows" {
@@ -131,11 +133,11 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 
 func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 	options := copyOptions{
-		source:      "/does/not/exist",
-		destination: "container:/path",
+		source:      splitCpArg("/does/not/exist"),
+		destination: splitCpArg("container:/path"),
 	}
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(cli, options)
+	err := runCopy(cli, options, toContainer)
 	expected := "no such file or directory"
 	if runtime.GOOS == "windows" {
 		expected = "cannot find the file specified"
@@ -184,9 +186,9 @@ func TestSplitCpArg(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			skip.If(t, testcase.os != "" && testcase.os != runtime.GOOS)
 
-			container, path := splitCpArg(testcase.path)
-			assert.Check(t, is.Equal(testcase.expectedContainer, container))
-			assert.Check(t, is.Equal(testcase.expectedPath, path))
+			containerWithPath := splitCpArg(testcase.path)
+			assert.Check(t, is.Equal(testcase.expectedContainer, containerWithPath.container))
+			assert.Check(t, is.Equal(testcase.expectedPath, containerWithPath.path))
 		})
 	}
 }
