@@ -17,8 +17,8 @@ import (
 )
 
 type copyOptions struct {
-	source      string
-	destination string
+	source      containerWithPath
+	destination containerWithPath
 	followLink  bool
 	copyUIDGID  bool
 }
@@ -39,13 +39,19 @@ type cpConfig struct {
 	container  string
 }
 
+type containerWithPath struct {
+	container   string
+	path        string
+	isContainer bool
+}
+
 // NewCopyCommand creates a new `docker cp` command
 func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	var opts copyOptions
 
 	cmd := &cobra.Command{
-		Use: `cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
-	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH`,
+		Use: `cp [OPTIONS] CONTAINER:SRC_PATH ... DEST_PATH|-
+	docker cp [OPTIONS] SRC_PATH|- ... CONTAINER:DEST_PATH`,
 		Short: "Copy files/folders between a container and the local filesystem",
 		Long: strings.Join([]string{
 			"Copy files/folders between a container and the local filesystem\n",
@@ -54,7 +60,7 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 			"Use '-' as the destination to stream a tar archive of a\n",
 			"container source to stdout.",
 		}, ""),
-		Args: cli.ExactArgs(2),
+		Args: cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if args[0] == "" {
 				return errors.New("source can not be empty")
@@ -62,9 +68,7 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 			if args[1] == "" {
 				return errors.New("destination can not be empty")
 			}
-			opts.source = args[0]
-			opts.destination = args[1]
-			return runCopy(dockerCli, opts)
+			return separateCopyCommands(dockerCli, opts, args)
 		},
 	}
 
@@ -74,33 +78,66 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCopy(dockerCli command.Cli, opts copyOptions) error {
-	srcContainer, srcPath := splitCpArg(opts.source)
-	destContainer, destPath := splitCpArg(opts.destination)
+// In order to support copying multiple files to one destination as ie. SCP supports,
+// we need to separate each copy command, and as we know, that sources can be one and more,
+// but destination can be only one, solution is separating each copy source, joining with
+// destination and calling each combination in loop as it has been before without this functionality.
+func separateCopyCommands(dockerCli command.Cli, opts copyOptions, args []string) error {
+	for i := 0; i < len(args)-1; i++ {
+		source := splitCpArg(args[i])
+		destination := splitCpArg(args[len(args)-1])
+		direction := getCpDirection(source, destination)
+		switch direction {
+		case fromContainer:
+			break
+		case toContainer:
+			break
+		case acrossContainers:
+			return errors.New("copying between containers is not supported")
+		default:
+			return errors.New("Invalid use of cp command\n See 'docker cp --help'.")
+		}
+	}
 
+	for i := 0; i < len(args)-1; i++ {
+		opts.source = splitCpArg(args[i])
+		opts.destination = splitCpArg(args[len(args)-1])
+		direction := getCpDirection(opts.source, opts.destination)
+		copyError := runCopy(dockerCli, opts, direction)
+		if copyError != nil {
+			return copyError
+		}
+	}
+	return nil
+}
+
+func getCpDirection(source containerWithPath, destination containerWithPath) copyDirection {
+	var direction copyDirection
+	if source.container != "" {
+		direction |= fromContainer
+	}
+	if destination.container != "" {
+		direction |= toContainer
+	}
+	return direction
+}
+
+func runCopy(dockerCli command.Cli, opts copyOptions, direction copyDirection) error {
 	copyConfig := cpConfig{
 		followLink: opts.followLink,
 		copyUIDGID: opts.copyUIDGID,
-		sourcePath: srcPath,
-		destPath:   destPath,
-	}
-
-	var direction copyDirection
-	if srcContainer != "" {
-		direction |= fromContainer
-		copyConfig.container = srcContainer
-	}
-	if destContainer != "" {
-		direction |= toContainer
-		copyConfig.container = destContainer
+		sourcePath: opts.source.path,
+		destPath:   opts.destination.path,
 	}
 
 	ctx := context.Background()
 
 	switch direction {
 	case fromContainer:
+		copyConfig.container = opts.source.container
 		return copyFromContainer(ctx, dockerCli, copyConfig)
 	case toContainer:
+		copyConfig.container = opts.destination.container
 		return copyToContainer(ctx, dockerCli, copyConfig)
 	case acrossContainers:
 		return errors.New("copying between containers is not supported")
@@ -286,10 +323,10 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 // so we have to check for a `/` or `.` prefix. Also, in the case of a Windows
 // client, a `:` could be part of an absolute Windows path, in which case it
 // is immediately proceeded by a backslash.
-func splitCpArg(arg string) (container, path string) {
+func splitCpArg(arg string) containerWithPath {
 	if system.IsAbs(arg) {
 		// Explicit local absolute path, e.g., `C:\foo` or `/foo`.
-		return "", arg
+		return containerWithPath{"", arg, false}
 	}
 
 	parts := strings.SplitN(arg, ":", 2)
@@ -297,8 +334,8 @@ func splitCpArg(arg string) (container, path string) {
 	if len(parts) == 1 || strings.HasPrefix(parts[0], ".") {
 		// Either there's no `:` in the arg
 		// OR it's an explicit local relative path like `./file:name.txt`.
-		return "", arg
+		return containerWithPath{"", arg, false}
 	}
 
-	return parts[0], parts[1]
+	return containerWithPath{parts[0], parts[1], true}
 }
