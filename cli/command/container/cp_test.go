@@ -22,7 +22,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 		doc         string
 		options     copyOptions
 		expectedErr string
-		direction	copyDirection
+		direction   copyDirection
 	}{
 		{
 			doc: "copy between container",
@@ -31,7 +31,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 				destination: splitCpArg("second:/path"),
 			},
 			expectedErr: "copying between containers is not supported",
-			direction: acrossContainers,
+			direction:   acrossContainers,
 		},
 		{
 			doc: "copy without a container",
