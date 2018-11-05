@@ -22,10 +22,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Pull constants
+const (
+	PullImageAlways  = "always"
+	PullImageMissing = "missing" // Default (matches previous bahevior)
+	PullImageNever   = "never"
+)
+
 type createOptions struct {
 	name      string
 	platform  string
 	untrusted bool
+	pull      string // alway, missing, never
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -50,6 +58,8 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetInterspersed(false)
 
 	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&opts.pull, "pull", PullImageMissing,
+		`Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -175,6 +185,7 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
+// nolint: gocyclo
 func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
@@ -213,31 +224,59 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	}
 
 	//create the container
-	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+	var response container.ContainerCreateCreatedBody
+	if opts.pull == PullImageMissing { // Pull image only if it does not exist locally. Default.
+		response, err = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
 
-	//if image not found try to pull it
-	if err != nil {
-		if apiclient.IsErrNotFound(err) && namedRef != nil {
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+		//if image not found try to pull it
+		if err != nil {
+			if apiclient.IsErrNotFound(err) && namedRef != nil {
+				fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 
-			// we don't want to write to stdout anything apart from container.ID
-			if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
-				return nil, err
-			}
-			if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-				if err := image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef); err != nil {
+				// we don't want to write to stdout anything apart from container.ID
+				if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
 					return nil, err
 				}
+				if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
+					if err := image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef); err != nil {
+						return nil, err
+					}
+				}
+				// Retry
+				var retryErr error
+				response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+				if retryErr != nil {
+					return nil, retryErr
+				}
+			} else {
+				return nil, err
 			}
-			// Retry
-			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
-			if retryErr != nil {
-				return nil, retryErr
-			}
-		} else {
+		}
+
+	} else if opts.pull == PullImageAlways { // Always try and pull the image.
+		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
 			return nil, err
 		}
+		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
+			if err := image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef); err != nil {
+				return nil, err
+			}
+		}
+		response, err = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+		if err != nil {
+			return nil, err
+		}
+
+	} else if opts.pull == PullImageNever { // Never try and pull the image
+		response, err = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+
+		if err != nil {
+			if apiclient.IsErrNotFound(err) && namedRef != nil {
+				fmt.Fprintf(stderr, "Unable to find image '%s' locally\nWill not pull due to '%s'", reference.FamiliarString(namedRef), opts.pull)
+			}
+		}
+	} else { // We got something weird
+		return nil, errors.Errorf("Unknown pull option : %s", opts.pull)
 	}
 
 	for _, warning := range response.Warnings {

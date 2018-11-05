@@ -116,9 +116,56 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 		name:      "name",
 		platform:  runtime.GOOS,
 		untrusted: true,
+		pull:      PullImageMissing,
 	})
 	assert.NilError(t, err)
 	expected := container.ContainerCreateCreatedBody{ID: containerID}
+	assert.Check(t, is.DeepEqual(expected, *body))
+	stderr := cli.ErrBuffer().String()
+	assert.Check(t, is.Contains(stderr, "Unable to find image 'does-not-exist-locally:latest' locally"))
+}
+
+func TestCreateContainerNeverPullsImage(t *testing.T) {
+	imageName := "does-not-exist-locally"
+	responseCounter := 0
+
+	client := &fakeClient{
+		createContainerFunc: func(
+			config *container.Config,
+			hostConfig *container.HostConfig,
+			networkingConfig *network.NetworkingConfig,
+			containerName string,
+		) (container.ContainerCreateCreatedBody, error) {
+			defer func() { responseCounter++ }()
+			switch responseCounter {
+			case 0:
+				return container.ContainerCreateCreatedBody{}, fakeNotFound{}
+			default:
+				return container.ContainerCreateCreatedBody{}, errors.New("unexpected")
+			}
+		},
+		imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader("")), nil
+		},
+		infoFunc: func() (types.Info, error) {
+			return types.Info{IndexServerAddress: "http://indexserver"}, nil
+		},
+	}
+	cli := test.NewFakeCli(client)
+	config := &containerConfig{
+		Config: &container.Config{
+			Image: imageName,
+		},
+		HostConfig: &container.HostConfig{},
+	}
+	body, err := createContainer(context.Background(), cli, config, &createOptions{
+		name:      "name",
+		platform:  runtime.GOOS,
+		untrusted: true,
+		pull:      PullImageNever,
+	})
+	assert.NilError(t, err)
+	expected := container.ContainerCreateCreatedBody{}
 	assert.Check(t, is.DeepEqual(expected, *body))
 	stderr := cli.ErrBuffer().String()
 	assert.Check(t, is.Contains(stderr, "Unable to find image 'does-not-exist-locally:latest' locally"))
