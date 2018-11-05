@@ -95,7 +95,7 @@ func separateCopyCommands(dockerCli command.Cli, opts copyOptions, args []string
 		case acrossContainers:
 			return errors.New("copying between containers is not supported")
 		default:
-			return errors.New("Invalid use of cp command\n See 'docker cp --help'.")
+			return errors.New("invalid use of cp command\n see 'docker cp --help'")
 		}
 	}
 
