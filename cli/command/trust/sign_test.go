@@ -304,6 +304,6 @@ func TestSignCommandLocalFlag(t *testing.T) {
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "error during connect: Get /images/reg-name.io/image:red/json: unsupported protocol scheme")
+	assert.ErrorContains(t, cmd.Execute(), "error contacting notary server: dial tcp: lookup reg-name.io")
 
 }
