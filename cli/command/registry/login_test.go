@@ -28,6 +28,10 @@ type fakeClient struct {
 	client.Client
 }
 
+func (c fakeClient) Info(ctx context.Context) (types.Info, error) {
+	return types.Info{}, nil
+}
+
 func (c fakeClient) RegistryLogin(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	if auth.Password == expiredPassword {
 		return registrytypes.AuthenticateOKBody{}, fmt.Errorf("Invalid Username or Password")

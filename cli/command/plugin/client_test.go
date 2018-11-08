@@ -70,3 +70,7 @@ func (c *fakeClient) PluginInspectWithRaw(ctx context.Context, name string) (*ty
 
 	return nil, nil, nil
 }
+
+func (c *fakeClient) Info(ctx context.Context) (types.Info, error) {
+	return types.Info{}, nil
+}

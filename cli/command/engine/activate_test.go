@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -34,18 +35,19 @@ func TestActivateNoContainerd(t *testing.T) {
 }
 
 func TestActivateBadLicense(t *testing.T) {
-	testCli.SetContainerizedEngineClient(
+	isRoot = func() bool { return true }
+	c := test.NewFakeCli(&verClient{client.Client{}, types.Version{}, nil, types.Info{}, nil})
+	c.SetContainerizedEngineClient(
 		func(string) (clitypes.ContainerizedClient, error) {
 			return &fakeContainerizedEngineClient{}, nil
 		},
 	)
-	isRoot = func() bool { return true }
-	cmd := newActivateCommand(testCli)
+	cmd := newActivateCommand(c)
 	cmd.SilenceUsage = true
 	cmd.SilenceErrors = true
 	cmd.Flags().Set("license", "invalidpath")
 	err := cmd.Execute()
-	assert.Error(t, err, "open invalidpath: no such file or directory")
+	assert.Assert(t, os.IsNotExist(err))
 }
 
 func TestActivateExpiredLicenseDryRun(t *testing.T) {

@@ -179,6 +179,17 @@ func (cli *fakeClient) ConfigRemove(ctx context.Context, configID string) error 
 	return nil
 }
 
+func (cli *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+	return swarm.Service{
+		ID: serviceID,
+		Spec: swarm.ServiceSpec{
+			Annotations: swarm.Annotations{
+				Name: serviceID,
+			},
+		},
+	}, []byte{}, nil
+}
+
 func serviceFromName(name string) swarm.Service {
 	return swarm.Service{
 		ID: "ID-" + name,
