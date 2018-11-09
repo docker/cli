@@ -20,10 +20,7 @@ import (
 
 // EndpointMeta is a typed wrapper around a context-store generic endpoint describing
 // a Docker Engine endpoint, without its tls config
-type EndpointMeta struct {
-	context.EndpointMetaBase
-	APIVersion string `json:"api_version,omitempty"`
-}
+type EndpointMeta = context.EndpointMetaBase
 
 // Endpoint is a typed wrapper around a context-store generic endpoint describing
 // a Docker Engine endpoint, with its tls data
@@ -34,13 +31,13 @@ type Endpoint struct {
 }
 
 // WithTLSData loads TLS materials for the endpoint
-func (c *EndpointMeta) WithTLSData(s store.Store, contextName string) (Endpoint, error) {
+func WithTLSData(s store.Store, contextName string, m EndpointMeta) (Endpoint, error) {
 	tlsData, err := context.LoadTLSData(s, contextName, DockerEndpoint)
 	if err != nil {
 		return Endpoint{}, err
 	}
 	return Endpoint{
-		EndpointMeta: *c,
+		EndpointMeta: m,
 		TLSData:      tlsData,
 	}, nil
 }
@@ -128,9 +125,6 @@ func (c *Endpoint) ClientOpts() ([]func(*client.Client) error, error) {
 	}
 
 	version := os.Getenv("DOCKER_API_VERSION")
-	if version == "" {
-		version = c.APIVersion
-	}
 	if version != "" {
 		result = append(result, client.WithVersion(version))
 	}

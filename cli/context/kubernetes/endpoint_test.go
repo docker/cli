@@ -12,7 +12,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-func testEndpoint(server, defaultNamespace string, ca, cert, key []byte, skipTLSVerify bool) *Endpoint {
+func testEndpoint(server, defaultNamespace string, ca, cert, key []byte, skipTLSVerify bool) Endpoint {
 	var tlsData *context.TLSData
 	if ca != nil || cert != nil || key != nil {
 		tlsData = &context.TLSData{
@@ -21,7 +21,7 @@ func testEndpoint(server, defaultNamespace string, ca, cert, key []byte, skipTLS
 			Key:  key,
 		}
 	}
-	return &Endpoint{
+	return Endpoint{
 		EndpointMeta: EndpointMeta{
 			EndpointMetaBase: context.EndpointMetaBase{
 				Host:          server,
@@ -45,9 +45,9 @@ func TestSaveLoadContexts(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(storeDir)
 	store := store.New(storeDir, testStoreCfg)
-	assert.NilError(t, testEndpoint("https://test", "test", nil, nil, nil, false).Save(store, "raw-notls"))
-	assert.NilError(t, testEndpoint("https://test", "test", nil, nil, nil, true).Save(store, "raw-notls-skip"))
-	assert.NilError(t, testEndpoint("https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true).Save(store, "raw-tls"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, false), "raw-notls"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, true), "raw-notls-skip"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true), "raw-tls"))
 
 	kcFile, err := ioutil.TempFile(os.TempDir(), "test-load-save-k8-context")
 	assert.NilError(t, err)
@@ -82,8 +82,8 @@ func TestSaveLoadContexts(t *testing.T) {
 	assert.NilError(t, err)
 	epContext2, err := FromKubeConfig(kcFile.Name(), "context2", "namespace-override")
 	assert.NilError(t, err)
-	assert.NilError(t, epDefault.Save(store, "embed-default-context"))
-	assert.NilError(t, epContext2.Save(store, "embed-context2"))
+	assert.NilError(t, save(store, epDefault, "embed-default-context"))
+	assert.NilError(t, save(store, epContext2, "embed-context2"))
 
 	rawNoTLSMeta, err := store.GetContextMetadata("raw-notls")
 	assert.NilError(t, err)
@@ -132,6 +132,19 @@ func checkClientConfig(t *testing.T, s store.Store, ep Endpoint, server, namespa
 	assert.Equal(t, skipTLSVerify, cfg.Insecure)
 }
 
+func save(s store.Store, ep Endpoint, name string) error {
+	meta := store.ContextMetadata{
+		Endpoints: map[string]interface{}{
+			KubernetesEndpoint: ep.EndpointMeta,
+		},
+		Name: name,
+	}
+	if err := s.CreateOrUpdateContext(meta); err != nil {
+		return err
+	}
+	return s.ResetContextEndpointTLSMaterial(name, KubernetesEndpoint, ep.TLSData.ToStoreTLSData())
+}
+
 func TestSaveLoadGKEConfig(t *testing.T) {
 	storeDir, err := ioutil.TempDir("", t.Name())
 	assert.NilError(t, err)
@@ -144,7 +157,7 @@ func TestSaveLoadGKEConfig(t *testing.T) {
 	assert.NilError(t, err)
 	ep, err := FromKubeConfig("testdata/gke-kubeconfig", "", "")
 	assert.NilError(t, err)
-	assert.NilError(t, ep.Save(store, "gke-context"))
+	assert.NilError(t, save(store, ep, "gke-context"))
 	persistedMetadata, err := store.GetContextMetadata("gke-context")
 	assert.NilError(t, err)
 	persistedEPMeta := EndpointFromContext(persistedMetadata)
@@ -169,7 +182,7 @@ func TestSaveLoadEKSConfig(t *testing.T) {
 	assert.NilError(t, err)
 	ep, err := FromKubeConfig("testdata/eks-kubeconfig", "", "")
 	assert.NilError(t, err)
-	assert.NilError(t, ep.Save(store, "eks-context"))
+	assert.NilError(t, save(store, ep, "eks-context"))
 	persistedMetadata, err := store.GetContextMetadata("eks-context")
 	assert.NilError(t, err)
 	persistedEPMeta := EndpointFromContext(persistedMetadata)

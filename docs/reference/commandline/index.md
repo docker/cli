@@ -182,3 +182,15 @@ read the [`dockerd`](dockerd.md) reference page.
 | [plugin push](plugin_push.md) | Push a plugin to a registry                  |
 | [plugin rm](plugin_rm.md) | Remove a plugin                                  |
 | [plugin set](plugin_set.md)  | Change settings for a plugin                  |
+
+### Context commands
+| Command | Description                                                        |
+|:--------|:-------------------------------------------------------------------|
+| [context create](context_create.md) | Create a context |
+| [context export](context_export.md) | Export a context |
+| [context import](context_import.md) | Import a context |
+| [context ls](context_ls.md) | List contexts |
+| [context rm](context_rm.md) | Remove one or more contexts |
+| [context update](context_update.md) | Update a context |
+| [context use](context_use.md) | Set the current docker context |
+

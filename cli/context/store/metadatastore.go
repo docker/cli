@@ -7,6 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
+
+	"vbom.ml/util/sortorder"
 )
 
 const (
@@ -19,12 +22,12 @@ type metadataStore struct {
 	config Config
 }
 
-func (s *metadataStore) contextDir(name string) string {
-	return filepath.Join(s.root, name)
+func (s *metadataStore) contextDir(id contextdir) string {
+	return filepath.Join(s.root, string(id))
 }
 
-func (s *metadataStore) createOrUpdate(name string, meta ContextMetadata) error {
-	contextDir := s.contextDir(name)
+func (s *metadataStore) createOrUpdate(meta ContextMetadata) error {
+	contextDir := s.contextDir(contextdirOf(meta.Name))
 	if err := os.MkdirAll(contextDir, 0755); err != nil {
 		return err
 	}
@@ -53,11 +56,11 @@ func parseTypedOrMap(payload []byte, getter TypeGetter) (interface{}, error) {
 	return reflect.ValueOf(typed).Elem().Interface(), nil
 }
 
-func (s *metadataStore) get(name string) (ContextMetadata, error) {
-	contextDir := s.contextDir(name)
+func (s *metadataStore) get(id contextdir) (ContextMetadata, error) {
+	contextDir := s.contextDir(id)
 	bytes, err := ioutil.ReadFile(filepath.Join(contextDir, metaFile))
 	if err != nil {
-		return ContextMetadata{}, convertContextDoesNotExist(name, err)
+		return ContextMetadata{}, convertContextDoesNotExist(err)
 	}
 	var untyped untypedContextMetadata
 	r := ContextMetadata{
@@ -66,6 +69,7 @@ func (s *metadataStore) get(name string) (ContextMetadata, error) {
 	if err := json.Unmarshal(bytes, &untyped); err != nil {
 		return ContextMetadata{}, err
 	}
+	r.Name = untyped.Name
 	if r.Metadata, err = parseTypedOrMap(untyped.Metadata, s.config.contextType); err != nil {
 		return ContextMetadata{}, err
 	}
@@ -77,28 +81,30 @@ func (s *metadataStore) get(name string) (ContextMetadata, error) {
 	return r, err
 }
 
-func (s *metadataStore) remove(name string) error {
-	contextDir := s.contextDir(name)
+func (s *metadataStore) remove(id contextdir) error {
+	contextDir := s.contextDir(id)
 	return os.RemoveAll(contextDir)
 }
 
-func (s *metadataStore) list() (map[string]ContextMetadata, error) {
-	ctxNames, err := listRecursivelyMetadataDirs(s.root)
+func (s *metadataStore) list() ([]ContextMetadata, error) {
+	ctxDirs, err := listRecursivelyMetadataDirs(s.root)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// store is empty, meta dir does not exist yet
-			// this should not be considered an error
-			return map[string]ContextMetadata{}, nil
+			return nil, nil
 		}
 		return nil, err
 	}
-	res := make(map[string]ContextMetadata)
-	for _, name := range ctxNames {
-		res[name], err = s.get(name)
+	var res []ContextMetadata
+	for _, dir := range ctxDirs {
+		c, err := s.get(contextdir(dir))
 		if err != nil {
 			return nil, err
 		}
+		res = append(res, c)
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return sortorder.NaturalLess(res[i].Name, res[j].Name)
+	})
 	return res, nil
 }
 
@@ -133,9 +139,9 @@ func listRecursivelyMetadataDirs(root string) ([]string, error) {
 	return result, nil
 }
 
-func convertContextDoesNotExist(name string, err error) error {
+func convertContextDoesNotExist(err error) error {
 	if os.IsNotExist(err) {
-		return &contextDoesNotExistError{name: name}
+		return &contextDoesNotExistError{}
 	}
 	return err
 }
@@ -143,4 +149,5 @@ func convertContextDoesNotExist(name string, err error) error {
 type untypedContextMetadata struct {
 	Metadata  json.RawMessage            `json:"metadata,omitempty"`
 	Endpoints map[string]json.RawMessage `json:"endpoints,omitempty"`
+	Name      string                     `json:"name,omitempty"`
 }

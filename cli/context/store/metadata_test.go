@@ -10,11 +10,14 @@ import (
 	"gotest.tools/assert/cmp"
 )
 
-var testMetadata = ContextMetadata{
-	Endpoints: map[string]interface{}{
-		"ep1": endpoint{Foo: "bar"},
-	},
-	Metadata: context{Bar: "baz"},
+func testMetadata(name string) ContextMetadata {
+	return ContextMetadata{
+		Endpoints: map[string]interface{}{
+			"ep1": endpoint{Foo: "bar"},
+		},
+		Metadata: context{Bar: "baz"},
+		Name:     name,
+	}
 }
 
 func TestMetadataGetNotExisting(t *testing.T) {
@@ -37,26 +40,28 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 			"ep2": endpoint{Foo: "bee"},
 		},
 		Metadata: context{Bar: "foo"},
+		Name:     "test-context",
 	}
-	err = testee.createOrUpdate("test-context", testMetadata)
+	testMeta := testMetadata("test-context")
+	err = testee.createOrUpdate(testMeta)
 	assert.NilError(t, err)
 	// create a new instance to check it does not depend on some sort of state
 	testee = metadataStore{root: testDir, config: testCfg}
-	meta, err := testee.get("test-context")
+	meta, err := testee.get(contextdirOf("test-context"))
 	assert.NilError(t, err)
-	assert.DeepEqual(t, meta, testMetadata)
+	assert.DeepEqual(t, meta, testMeta)
 
 	// update
 
-	err = testee.createOrUpdate("test-context", expected2)
+	err = testee.createOrUpdate(expected2)
 	assert.NilError(t, err)
-	meta, err = testee.get("test-context")
+	meta, err = testee.get(contextdirOf("test-context"))
 	assert.NilError(t, err)
 	assert.DeepEqual(t, meta, expected2)
 
-	assert.NilError(t, testee.remove("test-context"))
-	assert.NilError(t, testee.remove("test-context")) // support duplicate remove
-	_, err = testee.get("test-context")
+	assert.NilError(t, testee.remove(contextdirOf("test-context")))
+	assert.NilError(t, testee.remove(contextdirOf("test-context"))) // support duplicate remove
+	_, err = testee.get(contextdirOf("test-context"))
 	assert.Assert(t, IsErrContextDoesNotExist(err))
 }
 
@@ -65,8 +70,8 @@ func TestMetadataRespectJsonAnnotation(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir, config: testCfg}
-	assert.NilError(t, testee.createOrUpdate("test", testMetadata))
-	bytes, err := ioutil.ReadFile(filepath.Join(testDir, "test", "meta.json"))
+	assert.NilError(t, testee.createOrUpdate(testMetadata("test")))
+	bytes, err := ioutil.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
 	assert.NilError(t, err)
 	assert.Assert(t, cmp.Contains(string(bytes), "a_very_recognizable_field_name"))
 	assert.Assert(t, cmp.Contains(string(bytes), "another_very_recognizable_field_name"))
@@ -77,16 +82,14 @@ func TestMetadataList(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir, config: testCfg}
-	wholeData := map[string]ContextMetadata{
-		"simple":                    testMetadata,
-		"simple2":                   testMetadata,
-		"nested/context":            testMetadata,
-		"nestedwith-parent/context": testMetadata,
-		"nestedwith-parent":         testMetadata,
+	wholeData := []ContextMetadata{
+		testMetadata("context1"),
+		testMetadata("context2"),
+		testMetadata("context3"),
 	}
 
-	for k, s := range wholeData {
-		err = testee.createOrUpdate(k, s)
+	for _, s := range wholeData {
+		err = testee.createOrUpdate(s)
 		assert.NilError(t, err)
 	}
 
@@ -100,16 +103,14 @@ func TestEmptyConfig(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir}
-	wholeData := map[string]ContextMetadata{
-		"simple":                    testMetadata,
-		"simple2":                   testMetadata,
-		"nested/context":            testMetadata,
-		"nestedwith-parent/context": testMetadata,
-		"nestedwith-parent":         testMetadata,
+	wholeData := []ContextMetadata{
+		testMetadata("context1"),
+		testMetadata("context2"),
+		testMetadata("context3"),
 	}
 
-	for k, s := range wholeData {
-		err = testee.createOrUpdate(k, s)
+	for _, s := range wholeData {
+		err = testee.createOrUpdate(s)
 		assert.NilError(t, err)
 	}
 
@@ -135,8 +136,8 @@ func TestWithEmbedding(t *testing.T) {
 			Val: "Hello",
 		},
 	}
-	assert.NilError(t, testee.createOrUpdate("test", ContextMetadata{Metadata: testCtxMeta}))
-	res, err := testee.get("test")
+	assert.NilError(t, testee.createOrUpdate(ContextMetadata{Metadata: testCtxMeta, Name: "test"}))
+	res, err := testee.get(contextdirOf("test"))
 	assert.NilError(t, err)
 	assert.Equal(t, testCtxMeta, res.Metadata)
 }

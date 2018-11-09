@@ -16,7 +16,7 @@ const (
 	OrchestratorSwarm = Orchestrator("swarm")
 	// OrchestratorAll orchestrator
 	OrchestratorAll   = Orchestrator("all")
-	orchestratorUnset = Orchestrator("unset")
+	orchestratorUnset = Orchestrator("")
 
 	defaultOrchestrator           = OrchestratorSwarm
 	envVarDockerStackOrchestrator = "DOCKER_STACK_ORCHESTRATOR"
@@ -44,7 +44,7 @@ func normalize(value string) (Orchestrator, error) {
 		return OrchestratorKubernetes, nil
 	case "swarm":
 		return OrchestratorSwarm, nil
-	case "", "unset":
+	case "", "unset": // unset is the old value for orchestratorUnset. Keep accepting this for backward compat
 		return orchestratorUnset, nil
 	case "all":
 		return OrchestratorAll, nil

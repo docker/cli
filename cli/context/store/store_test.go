@@ -26,12 +26,13 @@ func TestExportImport(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	s := New(testDir, testCfg)
-	err = s.CreateOrUpdateContext("source",
+	err = s.CreateOrUpdateContext(
 		ContextMetadata{
 			Endpoints: map[string]interface{}{
 				"ep1": endpoint{Foo: "bar"},
 			},
 			Metadata: context{Bar: "baz"},
+			Name:     "source",
 		})
 	assert.NilError(t, err)
 	err = s.ResetContextEndpointTLSMaterial("source", "ep1", &EndpointTLSData{
@@ -48,7 +49,8 @@ func TestExportImport(t *testing.T) {
 	assert.NilError(t, err)
 	destMeta, err := s.GetContextMetadata("dest")
 	assert.NilError(t, err)
-	assert.DeepEqual(t, destMeta, srcMeta)
+	assert.DeepEqual(t, destMeta.Metadata, srcMeta.Metadata)
+	assert.DeepEqual(t, destMeta.Endpoints, srcMeta.Endpoints)
 	srcFileList, err := s.ListContextTLSFiles("source")
 	assert.NilError(t, err)
 	destFileList, err := s.ListContextTLSFiles("dest")
@@ -67,12 +69,13 @@ func TestRemove(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	s := New(testDir, testCfg)
-	err = s.CreateOrUpdateContext("source",
+	err = s.CreateOrUpdateContext(
 		ContextMetadata{
 			Endpoints: map[string]interface{}{
 				"ep1": endpoint{Foo: "bar"},
 			},
 			Metadata: context{Bar: "baz"},
+			Name:     "source",
 		})
 	assert.NilError(t, err)
 	assert.NilError(t, s.ResetContextEndpointTLSMaterial("source", "ep1", &EndpointTLSData{
@@ -95,6 +98,15 @@ func TestListEmptyStore(t *testing.T) {
 	store := New(testDir, testCfg)
 	result, err := store.ListContexts()
 	assert.NilError(t, err)
-	assert.Check(t, result != nil)
 	assert.Check(t, len(result) == 0)
+}
+
+func TestErrHasCorrectContext(t *testing.T) {
+	testDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(testDir)
+	store := New(testDir, testCfg)
+	_, err = store.GetContextMetadata("no-exists")
+	assert.ErrorContains(t, err, "no-exists")
+	assert.Check(t, IsErrContextDoesNotExist(err))
 }

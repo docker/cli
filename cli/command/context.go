@@ -8,8 +8,8 @@ import (
 
 // DockerContext is a typed representation of what we put in Context metadata
 type DockerContext struct {
-	Description       string       `json:"description,omitempty"`
-	StackOrchestrator Orchestrator `json:"stack_orchestrator,omitempty"`
+	Description       string       `json:",omitempty"`
+	StackOrchestrator Orchestrator `json:",omitempty"`
 }
 
 // GetDockerContext extracts metadata from stored context metadata

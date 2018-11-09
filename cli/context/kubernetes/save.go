@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 
 	"github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/store"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -59,21 +58,4 @@ func readFileOrDefault(path string, defaultValue []byte) ([]byte, error) {
 		return ioutil.ReadFile(path)
 	}
 	return defaultValue, nil
-}
-
-// Save the endpoint metadata and TLS bundle in the context store
-func (ep *Endpoint) Save(s store.Store, contextName string) error {
-	tlsData := ep.TLSData.ToStoreTLSData()
-	existingContext, err := s.GetContextMetadata(contextName)
-	if err != nil && !store.IsErrContextDoesNotExist(err) {
-		return err
-	}
-	if existingContext.Endpoints == nil {
-		existingContext.Endpoints = make(map[string]interface{})
-	}
-	existingContext.Endpoints[KubernetesEndpoint] = ep.EndpointMeta
-	if err := s.CreateOrUpdateContext(contextName, existingContext); err != nil {
-		return err
-	}
-	return s.ResetContextEndpointTLSMaterial(contextName, KubernetesEndpoint, tlsData)
 }

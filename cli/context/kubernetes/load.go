@@ -12,9 +12,9 @@ import (
 // a Kubernetes endpoint, without TLS data
 type EndpointMeta struct {
 	context.EndpointMetaBase
-	DefaultNamespace string                           `json:"default_namespace,omitempty"`
-	AuthProvider     *clientcmdapi.AuthProviderConfig `json:"auth_provider,omitempty"`
-	Exec             *clientcmdapi.ExecConfig         `json:"exec,omitempty"`
+	DefaultNamespace string                           `json:",omitempty"`
+	AuthProvider     *clientcmdapi.AuthProviderConfig `json:",omitempty"`
+	Exec             *clientcmdapi.ExecConfig         `json:",omitempty"`
 }
 
 // Endpoint is a typed wrapper around a context-store generic endpoint describing

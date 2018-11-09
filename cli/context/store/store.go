@@ -2,6 +2,7 @@ package store
 
 import (
 	"archive/tar"
+	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,24 +11,34 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/opencontainers/go-digest"
 )
 
 // Store provides a context store for easily remembering endpoints configuration
 type Store interface {
-	ListContexts() (map[string]ContextMetadata, error)
-	CreateOrUpdateContext(name string, meta ContextMetadata) error
+	ListContexts() ([]ContextMetadata, error)
+	CreateOrUpdateContext(meta ContextMetadata) error
 	RemoveContext(name string) error
 	GetContextMetadata(name string) (ContextMetadata, error)
 	ResetContextTLSMaterial(name string, data *ContextTLSData) error
 	ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error
 	ListContextTLSFiles(name string) (map[string]EndpointFiles, error)
 	GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error)
+	GetContextStorageInfo(contextName string) ContextStorageInfo
 }
 
 // ContextMetadata contains metadata about a context and its endpoints
 type ContextMetadata struct {
-	Metadata  interface{}            `json:"metadata,omitempty"`
-	Endpoints map[string]interface{} `json:"endpoints,omitempty"`
+	Name      string                 `json:",omitempty"`
+	Metadata  interface{}            `json:",omitempty"`
+	Endpoints map[string]interface{} `json:",omitempty"`
+}
+
+// ContextStorageInfo contains data about where a given context is stored
+type ContextStorageInfo struct {
+	MetadataPath string
+	TLSPath      string
 }
 
 // EndpointTLSData represents tls data for a given endpoint
@@ -62,36 +73,40 @@ type store struct {
 	tls  *tlsStore
 }
 
-func (s *store) ListContexts() (map[string]ContextMetadata, error) {
+func (s *store) ListContexts() ([]ContextMetadata, error) {
 	return s.meta.list()
 }
 
-func (s *store) CreateOrUpdateContext(name string, meta ContextMetadata) error {
-	return s.meta.createOrUpdate(name, meta)
+func (s *store) CreateOrUpdateContext(meta ContextMetadata) error {
+	return s.meta.createOrUpdate(meta)
 }
 
 func (s *store) RemoveContext(name string) error {
-	if err := s.meta.remove(name); err != nil {
-		return err
+	id := contextdirOf(name)
+	if err := s.meta.remove(id); err != nil {
+		return patchErrContextName(err, name)
 	}
-	return s.tls.removeAllContextData(name)
+	return patchErrContextName(s.tls.removeAllContextData(id), name)
 }
 
 func (s *store) GetContextMetadata(name string) (ContextMetadata, error) {
-	return s.meta.get(name)
+	res, err := s.meta.get(contextdirOf(name))
+	patchErrContextName(err, name)
+	return res, err
 }
 
 func (s *store) ResetContextTLSMaterial(name string, data *ContextTLSData) error {
-	if err := s.tls.removeAllContextData(name); err != nil {
-		return err
+	id := contextdirOf(name)
+	if err := s.tls.removeAllContextData(id); err != nil {
+		return patchErrContextName(err, name)
 	}
 	if data == nil {
 		return nil
 	}
 	for ep, files := range data.Endpoints {
 		for fileName, data := range files.Files {
-			if err := s.tls.createOrUpdate(name, ep, fileName, data); err != nil {
-				return err
+			if err := s.tls.createOrUpdate(id, ep, fileName, data); err != nil {
+				return patchErrContextName(err, name)
 			}
 		}
 	}
@@ -99,26 +114,37 @@ func (s *store) ResetContextTLSMaterial(name string, data *ContextTLSData) error
 }
 
 func (s *store) ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
-	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
-		return err
+	id := contextdirOf(contextName)
+	if err := s.tls.removeAllEndpointData(id, endpointName); err != nil {
+		return patchErrContextName(err, contextName)
 	}
 	if data == nil {
 		return nil
 	}
 	for fileName, data := range data.Files {
-		if err := s.tls.createOrUpdate(contextName, endpointName, fileName, data); err != nil {
-			return err
+		if err := s.tls.createOrUpdate(id, endpointName, fileName, data); err != nil {
+			return patchErrContextName(err, contextName)
 		}
 	}
 	return nil
 }
 
 func (s *store) ListContextTLSFiles(name string) (map[string]EndpointFiles, error) {
-	return s.tls.listContextData(name)
+	res, err := s.tls.listContextData(contextdirOf(name))
+	return res, patchErrContextName(err, name)
 }
 
 func (s *store) GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error) {
-	return s.tls.getData(contextName, endpointName, fileName)
+	res, err := s.tls.getData(contextdirOf(contextName), endpointName, fileName)
+	return res, patchErrContextName(err, contextName)
+}
+
+func (s *store) GetContextStorageInfo(contextName string) ContextStorageInfo {
+	dir := contextdirOf(contextName)
+	return ContextStorageInfo{
+		MetadataPath: s.meta.contextDir(dir),
+		TLSPath:      s.tls.contextDir(dir),
+	}
 }
 
 // Export exports an existing namespace into an opaque data stream
@@ -227,7 +253,8 @@ func Import(name string, s Store, reader io.Reader) error {
 			if err := json.Unmarshal(data, &meta); err != nil {
 				return err
 			}
-			if err := s.CreateOrUpdateContext(name, meta); err != nil {
+			meta.Name = name
+			if err := s.CreateOrUpdateContext(meta); err != nil {
 				return err
 			}
 		} else if strings.HasPrefix(hdr.Name, "tls/") {
@@ -253,6 +280,10 @@ func Import(name string, s Store, reader io.Reader) error {
 	return s.ResetContextTLSMaterial(name, &tlsData)
 }
 
+type setContextName interface {
+	setContext(name string)
+}
+
 type contextDoesNotExistError struct {
 	name string
 }
@@ -261,6 +292,13 @@ func (e *contextDoesNotExistError) Error() string {
 	return fmt.Sprintf("context %q does not exist", e.name)
 }
 
+func (e *contextDoesNotExistError) setContext(name string) {
+	e.name = name
+}
+
+// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
+func (e *contextDoesNotExistError) NotFound() {}
+
 type tlsDataDoesNotExistError struct {
 	context, endpoint, file string
 }
@@ -268,6 +306,13 @@ type tlsDataDoesNotExistError struct {
 func (e *tlsDataDoesNotExistError) Error() string {
 	return fmt.Sprintf("tls data for %s/%s/%s does not exist", e.context, e.endpoint, e.file)
 }
+
+func (e *tlsDataDoesNotExistError) setContext(name string) {
+	e.context = name
+}
+
+// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
+func (e *tlsDataDoesNotExistError) NotFound() {}
 
 // IsErrContextDoesNotExist checks if the given error is a "context does not exist" condition
 func IsErrContextDoesNotExist(err error) bool {
@@ -279,4 +324,17 @@ func IsErrContextDoesNotExist(err error) bool {
 func IsErrTLSDataDoesNotExist(err error) bool {
 	_, ok := err.(*tlsDataDoesNotExistError)
 	return ok
+}
+
+type contextdir string
+
+func contextdirOf(name string) contextdir {
+	return contextdir(digest.FromString(name).Encoded())
+}
+
+func patchErrContextName(err error, name string) error {
+	if typed, ok := err.(setContextName); ok {
+		typed.setContext(name)
+	}
+	return err
 }

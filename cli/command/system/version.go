@@ -241,7 +241,7 @@ func getKubernetesVersion(dockerCli command.Cli, kubeConfig string) *kubernetesV
 		clientConfig clientcmd.ClientConfig
 		err          error
 	)
-	if dockerCli.CurrentContext() == command.ContextDockerHost {
+	if dockerCli.CurrentContext() == "" {
 		clientConfig = kubernetes.NewKubernetesConfig(kubeConfig)
 	} else {
 		clientConfig, err = kubecontext.ConfigFromContext(dockerCli.CurrentContext(), dockerCli.ContextStore())

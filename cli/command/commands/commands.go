@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/checkpoint"
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
+	"github.com/docker/cli/cli/command/context"
 	"github.com/docker/cli/cli/command/engine"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/manifest"
@@ -85,6 +86,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 
 		// volume
 		volume.NewVolumeCommand(dockerCli),
+
+		// context
+		context.NewContextCommand(dockerCli),
 
 		// legacy commands may be hidden
 		hide(system.NewEventsCommand(dockerCli)),
