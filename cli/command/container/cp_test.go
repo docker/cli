@@ -17,6 +17,75 @@ import (
 	"gotest.tools/skip"
 )
 
+func TestSeparateCopyCommands(t *testing.T) {
+	var testcases = []struct {
+		doc         string
+		options     copyOptions
+		expectedErr string
+		direction   copyDirection
+		args        []string
+	}{
+		{
+			doc: "copy between container",
+			expectedErr: "copying between containers is not supported",
+			direction:   acrossContainers,
+			args: []string {"first:/path", "first:/path"},
+		},
+		{
+			doc: "copy without container",
+			expectedErr: "invalid use of cp command\n see 'docker cp --help'",
+			direction:   0,
+			args: []string {"/path", "/path"},
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			err := separateCopyCommands(test.NewFakeCli(nil), testcase.options, testcase.args)
+			assert.Error(t, err, testcase.expectedErr)
+		})
+	}
+}
+
+func TestGetCpDirection(t *testing.T) {
+	var testcases = []struct {
+		doc            string
+		source         containerWithPath
+		destination    containerWithPath
+		expectedResult copyDirection
+	}{
+		{
+			doc: "container to container",
+			source:      splitCpArg("first:/path"),
+			destination: splitCpArg("second:/path"),
+			expectedResult: acrossContainers,
+		},
+		{
+			doc: "source to container",
+			source:      splitCpArg("/path"),
+			destination: splitCpArg("second:/path"),
+			expectedResult: acrossContainers,
+		},
+		{
+			doc: "container to source",
+			source:      splitCpArg("first:/path"),
+			destination: splitCpArg("/path"),
+			expectedResult: acrossContainers,
+		},
+		{
+			doc: "source to source",
+			source:      splitCpArg("/path"),
+			destination: splitCpArg("/path"),
+			expectedResult: acrossContainers,
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			direction := getCpDirection(testcase.source, testcase.destination)
+			assert.Equal(t, direction, testcase.expectedResult)
+		})
+	}
+}
+
 func TestRunCopyWithInvalidArguments(t *testing.T) {
 	var testcases = []struct {
 		doc         string
@@ -25,7 +94,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 		direction   copyDirection
 	}{
 		{
-			doc: "copy between container",
+			doc: "copy between containers",
 			options: copyOptions{
 				source:      splitCpArg("first:/path"),
 				destination: splitCpArg("second:/path"),
