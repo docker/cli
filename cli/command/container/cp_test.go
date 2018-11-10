@@ -26,16 +26,16 @@ func TestSeparateCopyCommands(t *testing.T) {
 		args        []string
 	}{
 		{
-			doc: "copy between container",
+			doc:         "copy between container",
 			expectedErr: "copying between containers is not supported",
 			direction:   acrossContainers,
-			args: []string {"first:/path", "first:/path"},
+			args:        []string{"first:/path", "first:/path"},
 		},
 		{
-			doc: "copy without container",
+			doc:         "copy without container",
 			expectedErr: "invalid use of cp command\n see 'docker cp --help'",
 			direction:   0,
-			args: []string {"/path", "/path"},
+			args:        []string{"/path", "/path"},
 		},
 	}
 	for _, testcase := range testcases {
@@ -54,28 +54,28 @@ func TestGetCpDirection(t *testing.T) {
 		expectedResult copyDirection
 	}{
 		{
-			doc: "container to container",
-			source:      splitCpArg("first:/path"),
-			destination: splitCpArg("second:/path"),
+			doc:            "container to container",
+			source:         splitCpArg("first:/path"),
+			destination:    splitCpArg("second:/path"),
 			expectedResult: acrossContainers,
 		},
 		{
-			doc: "source to container",
-			source:      splitCpArg("/path"),
-			destination: splitCpArg("second:/path"),
-			expectedResult: acrossContainers,
+			doc:            "source to container",
+			source:         splitCpArg("/path"),
+			destination:    splitCpArg("second:/path"),
+			expectedResult: toContainer,
 		},
 		{
-			doc: "container to source",
-			source:      splitCpArg("first:/path"),
-			destination: splitCpArg("/path"),
-			expectedResult: acrossContainers,
+			doc:            "container to source",
+			source:         splitCpArg("first:/path"),
+			destination:    splitCpArg("/path"),
+			expectedResult: fromContainer,
 		},
 		{
-			doc: "source to source",
-			source:      splitCpArg("/path"),
-			destination: splitCpArg("/path"),
-			expectedResult: acrossContainers,
+			doc:            "source to source",
+			source:         splitCpArg("/path"),
+			destination:    splitCpArg("/path"),
+			expectedResult: 0,
 		},
 	}
 	for _, testcase := range testcases {
