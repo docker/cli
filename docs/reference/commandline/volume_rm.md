@@ -32,6 +32,10 @@ Options:
 
 Remove one or more volumes. You cannot remove a volume that is in use by a container.
 
+> **Note**: Force-remove option `-f` does NOT allow you to remove a volume
+> that is in use by a container. Applying it will ignore errors in case
+> a volume was already removed by a volume driver plugin.
+
 ## Examples
 
 ```bash
