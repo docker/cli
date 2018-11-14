@@ -127,6 +127,15 @@ func MatchAnyFileContent(path Path) error {
 	return nil
 }
 
+// MatchContentIgnoreCarriageReturn is a PathOp that ignores cariage return
+// discrepancies.
+func MatchContentIgnoreCarriageReturn(path Path) error {
+	if m, ok := path.(*filePath); ok {
+		m.file.ignoreCariageReturn = true
+	}
+	return nil
+}
+
 const anyFile = "*"
 
 // MatchExtraFiles is a PathOp that updates a Manifest to allow a directory
