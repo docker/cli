@@ -43,7 +43,7 @@ func TestGetOrgByID(t *testing.T) {
 func TestGetAvailableLicensesListFail(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
-		client: &fakeLicensingClient{
+		Client: &fakeLicensingClient{
 			listSubscriptionsFunc: func(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error) {
 				return nil, fmt.Errorf("list subscriptions error")
 			},
@@ -59,7 +59,7 @@ func TestGetAvailableLicensesOrgFail(t *testing.T) {
 		Orgs: []model.Org{
 			{ID: "orgid"},
 		},
-		client: &fakeLicensingClient{
+		Client: &fakeLicensingClient{
 			listSubscriptionsFunc: func(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error) {
 				if dockerID == "orgid" {
 					return nil, fmt.Errorf("list subscriptions org error")
@@ -86,7 +86,7 @@ func TestGetAvailableLicensesHappy(t *testing.T) {
 				Orgname: "orgname",
 			},
 		},
-		client: &fakeLicensingClient{
+		Client: &fakeLicensingClient{
 			listSubscriptionsFunc: func(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error) {
 				if dockerID == "orgid" {
 					return []*model.Subscription{
@@ -146,7 +146,7 @@ func TestGetAvailableLicensesHappy(t *testing.T) {
 func TestGenerateTrialFail(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
-		client: &fakeLicensingClient{
+		Client: &fakeLicensingClient{
 			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
 				return "", fmt.Errorf("generate trial failure")
 			},
@@ -160,7 +160,7 @@ func TestGenerateTrialFail(t *testing.T) {
 func TestGenerateTrialHappy(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
-		client: &fakeLicensingClient{
+		Client: &fakeLicensingClient{
 			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
 				return "subid", nil
 			},
@@ -174,7 +174,7 @@ func TestGenerateTrialHappy(t *testing.T) {
 func TestGetIssuedLicense(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
-		client: &fakeLicensingClient{},
+		Client: &fakeLicensingClient{},
 	}
 	id := "idgoeshere"
 	_, err := user.GetIssuedLicense(ctx, id)
