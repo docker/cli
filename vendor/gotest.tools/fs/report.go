@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -67,6 +68,11 @@ func eqResource(x, y resource) []problem {
 	return p
 }
 
+func removeCarriageReturn(in []byte) []byte {
+	return bytes.Replace(in, []byte("\r\n"), []byte("\n"), -1)
+}
+
+// nolint: gocyclo
 func eqFile(x, y *file) []problem {
 	p := eqResource(x.resource, y.resource)
 
@@ -94,6 +100,10 @@ func eqFile(x, y *file) []problem {
 	}
 	if xErr != nil || yErr != nil {
 		return p
+	}
+	if x.ignoreCariageReturn || y.ignoreCariageReturn {
+		xContent = removeCarriageReturn(xContent)
+		yContent = removeCarriageReturn(yContent)
 	}
 
 	if !bytes.Equal(xContent, yContent) {
@@ -126,7 +136,13 @@ func indent(s, prefix string) string {
 
 func eqSymlink(x, y *symlink) []problem {
 	p := eqResource(x.resource, y.resource)
-	if x.target != y.target {
+	xTarget := x.target
+	yTarget := y.target
+	if runtime.GOOS == "windows" {
+		xTarget = strings.ToLower(xTarget)
+		yTarget = strings.ToLower(yTarget)
+	}
+	if xTarget != yTarget {
 		p = append(p, notEqual("target", x.target, y.target))
 	}
 	return p

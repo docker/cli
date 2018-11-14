@@ -24,7 +24,8 @@ type resource struct {
 
 type file struct {
 	resource
-	content io.ReadCloser
+	content             io.ReadCloser
+	ignoreCariageReturn bool
 }
 
 func (f *file) Type() string {
@@ -113,6 +114,9 @@ func getTypedResource(path string, info os.FileInfo) (dirEntry, error) {
 
 func newSymlink(path string, info os.FileInfo) (*symlink, error) {
 	target, err := os.Readlink(path)
+	if err != nil {
+		return nil, err
+	}
 	return &symlink{
 		resource: newResourceFromInfo(info),
 		target:   target,
@@ -122,6 +126,9 @@ func newSymlink(path string, info os.FileInfo) (*symlink, error) {
 func newFile(path string, info os.FileInfo) (*file, error) {
 	// TODO: defer file opening to reduce number of open FDs?
 	readCloser, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
 	return &file{
 		resource: newResourceFromInfo(info),
 		content:  readCloser,
