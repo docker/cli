@@ -98,7 +98,7 @@ func String(actual string, filename string) cmp.Comparison {
 // AssertBytes compares the actual result to the expected result in the golden
 // file. If the `-test.update-golden` flag is set then the actual content is
 // written to the golden file.
-// Returns whether the assertion was successful (true) or not (false)
+// Returns whether the assertion was successful (true) or not (false).
 // This is equivalent to assert.Check(t, Bytes(actual, filename))
 func AssertBytes(
 	t assert.TestingT,
