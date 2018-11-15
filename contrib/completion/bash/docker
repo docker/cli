@@ -3395,7 +3395,6 @@ _docker_service_update_and_create() {
 	local options_with_args="
 		--endpoint-mode
 		--entrypoint
-		--force
 		--health-cmd
 		--health-interval
 		--health-retries
@@ -3519,6 +3518,10 @@ _docker_service_update_and_create() {
 			--rollback
 			--secret-add
 			--secret-rm
+		"
+
+		boolean_options="$boolean_options
+			--force
 		"
 
 		case "$prev" in
