@@ -3,6 +3,7 @@ package system
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"text/template"
 
 	"github.com/docker/cli/cli"
@@ -13,10 +14,10 @@ import (
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
+	"vbom.ml/util/sortorder"
 )
 
 type pruneOptions struct {
@@ -54,9 +55,15 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 const confirmationTemplate = `WARNING! This will remove:
-{{- range $_, $warning := . }}
-        - {{ $warning }}
+{{- range $_, $warning := .warnings }}
+  - {{ $warning }}
 {{- end }}
+{{if .filters}}
+  Items to be pruned will be filtered with:
+{{- range $_, $filters := .filters }}
+  - {{ $filters }}
+{{- end }}
+{{end}}
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
@@ -119,17 +126,23 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 			warnings = append(warnings, "all dangling build cache")
 		}
 	}
+
+	var filters []string
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 	if pruneFilters.Len() > 0 {
-		f, err := filters.ToJSON(pruneFilters)
-		if err != nil {
-			f = "invalid filters"
+		// TODO remove fixed list of filters, and print all filters instead,
+		// because the list of filters that is supported by the engine may evolve over time.
+		for _, name := range []string{"label", "label!", "until"} {
+			for _, v := range pruneFilters.Get(name) {
+				filters = append(filters, name+"="+v)
+			}
 		}
-		warnings = append(warnings, "Elements to be pruned will be filtered with:")
-		warnings = append(warnings, "filter="+f)
+		sort.Slice(filters, func(i, j int) bool {
+			return sortorder.NaturalLess(filters[i], filters[j])
+		})
 	}
 
 	var buffer bytes.Buffer
-	t.Execute(&buffer, &warnings)
+	t.Execute(&buffer, map[string][]string{"warnings": warnings, "filters": filters})
 	return buffer.String()
 }

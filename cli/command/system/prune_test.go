@@ -15,15 +15,16 @@ func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
 	cmd.SetArgs([]string{})
 	assert.NilError(t, cmd.Execute())
 	expected := `WARNING! This will remove:
-        - all stopped containers
-        - all networks not used by at least one container
-        - all dangling images
+  - all stopped containers
+  - all networks not used by at least one container
+  - all dangling images
+
 Are you sure you want to continue? [y/N] `
 	assert.Check(t, is.Equal(expected, cli.OutBuffer().String()))
 }
 
 func TestPrunePromptFilters(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
+	cli := test.NewFakeCli(&fakeClient{version: "1.31"})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		PruneFilters: []string{"label!=never=remove-me", "label=remove=me"},
 	})
@@ -32,11 +33,19 @@ func TestPrunePromptFilters(t *testing.T) {
 
 	assert.NilError(t, cmd.Execute())
 	expected := `WARNING! This will remove:
-        - all stopped containers
-        - all networks not used by at least one container
-        - all dangling images
-        - Elements to be pruned will be filtered with:
-        - filter={"label":{"bar=baz":true,"hello-world":true,"remove=me":true},"label!":{"foo=bar":true,"never=remove-me":true},"until":{"24h":true}}
+  - all stopped containers
+  - all networks not used by at least one container
+  - all dangling images
+  - all dangling build cache
+
+  Items to be pruned will be filtered with:
+  - label!=foo=bar
+  - label!=never=remove-me
+  - label=bar=baz
+  - label=hello-world
+  - label=remove=me
+  - until=24h
+
 Are you sure you want to continue? [y/N] `
 	assert.Check(t, is.Equal(expected, cli.OutBuffer().String()))
 }
