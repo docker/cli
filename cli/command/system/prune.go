@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -63,7 +64,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
+	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
 		return nil
 	}
 	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
@@ -96,7 +97,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 }
 
 // confirmationMessage constructs a confirmation message that depends on the cli options.
-func confirmationMessage(options pruneOptions) string {
+func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 	t := template.Must(template.New("confirmation message").Parse(confirmationTemplate))
 
 	warnings := []string{
@@ -118,9 +119,14 @@ func confirmationMessage(options pruneOptions) string {
 			warnings = append(warnings, "all dangling build cache")
 		}
 	}
-	if len(options.filter.String()) > 0 {
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+	if pruneFilters.Len() > 0 {
+		f, err := filters.ToJSON(pruneFilters)
+		if err != nil {
+			f = "invalid filters"
+		}
 		warnings = append(warnings, "Elements to be pruned will be filtered with:")
-		warnings = append(warnings, "label="+options.filter.String())
+		warnings = append(warnings, "filter="+f)
 	}
 
 	var buffer bytes.Buffer
