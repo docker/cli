@@ -159,6 +159,15 @@ func (args Args) Get(key string) []string {
 	return slice
 }
 
+// All returns the list of values associated with each key
+func (args Args) All() map[string][]string {
+	values := make(map[string][]string, len(args.fields))
+	for key, _ := range args.fields {
+		values[key] = args.Get(key)
+	}
+	return values
+}
+
 // Add a new value to the set of values
 func (args Args) Add(key, value string) {
 	if _, ok := args.fields[key]; ok {
