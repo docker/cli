@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
@@ -57,9 +58,11 @@ const (
 )
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
-	pruneFilters := options.filter.Value()
-	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+	return doPrune(dockerCli, options, pruneFilters)
+}
 
+func doPrune(dockerCli command.Cli, options pruneOptions, pruneFilters filters.Args) (spaceReclaimed uint64, output string, err error) {
 	warning := normalWarning
 	if options.all {
 		warning = allCacheWarning
@@ -90,7 +93,19 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 	return report.SpaceReclaimed, output, nil
 }
 
-// CachePrune executes a prune command for build cache
+// CachePrune executes a prune command for build cache. This function is used
+// by "docker system prune", and remaps the "until" filter to "unused-for"
 func CachePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, all: all, filter: filter})
+	pruneFilters := filters.NewArgs()
+
+	f := command.PruneFilters(dockerCli, filter.Value())
+	for k, values := range f.All() {
+		if k == "until" {
+			k = "unused-for"
+		}
+		for _, v := range values {
+			pruneFilters.Add(k, v)
+		}
+	}
+	return doPrune(dockerCli, pruneOptions{force: true, all: all}, pruneFilters)
 }
