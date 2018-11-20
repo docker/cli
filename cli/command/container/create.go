@@ -25,7 +25,7 @@ import (
 // Pull constants
 const (
 	PullImageAlways  = "always"
-	PullImageMissing = "missing" // Default (matches previous bahevior)
+	PullImageMissing = "missing" // Default (matches previous behavior)
 	PullImageNever   = "never"
 )
 
