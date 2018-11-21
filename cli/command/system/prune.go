@@ -73,11 +73,10 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if options.pruneVolumes {
 		pruneFuncs = append(pruneFuncs, volume.RunPrune)
 	}
+	pruneFuncs = append(pruneFuncs, image.RunPrune)
 	if options.pruneBuildCache {
 		pruneFuncs = append(pruneFuncs, builder.CachePrune)
 	}
-	// FIXME: modify image.RunPrune to not modify options.filter, otherwise this has to be last in the list.
-	pruneFuncs = append(pruneFuncs, image.RunPrune)
 
 	var spaceReclaimed uint64
 	for _, pruneFn := range pruneFuncs {
