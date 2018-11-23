@@ -49,3 +49,17 @@ func TestVersion(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(b.String(), "Docker version"))
 }
+
+func TestNeededArgumentFlagCmdForHideExperimentalCmds(t *testing.T) {
+	discard := ioutil.Discard
+	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard, false, nil))
+	cmd.SetArgs([]string{"-H"})
+	err := cmd.Execute()
+	assert.Check(t, is.ErrorContains(err, "flag needs an argument"))
+
+	for _, subcmd := range cmd.Commands() {
+		if _, ok := subcmd.Annotations["experimentalCLI"]; ok {
+			assert.Check(t, is.Equal(subcmd.Hidden, true))
+		}
+	}
+}
