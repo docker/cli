@@ -235,6 +235,9 @@ func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 			fmt.Fprintln(dockerCli.Out(), " Default Address Pool:", strAddrPool.String())
 			fmt.Fprintln(dockerCli.Out(), " SubnetSize:", info.Swarm.Cluster.SubnetSize)
 		}
+		if info.Swarm.Cluster.DataPathPort > 0 {
+			fmt.Fprintln(dockerCli.Out(), " Data Path Port:", info.Swarm.Cluster.DataPathPort)
+		}
 		fmt.Fprintln(dockerCli.Out(), " Orchestration:")
 
 		taskHistoryRetentionLimit := int64(0)
