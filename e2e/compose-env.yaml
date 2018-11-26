@@ -16,3 +16,11 @@ services:
       ports:
         - 4443:4443
       command: ['notary-server', '-config=/fixtures/notary-config.json']
+  evil-notary-server:
+      build:
+        context: ./testdata
+        dockerfile: Dockerfile.evil-notary-server
+      ports:
+        - 4444:4443
+      command: ['notary-server', '-config=/fixtures/notary-config.json']
+
