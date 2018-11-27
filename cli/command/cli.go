@@ -274,21 +274,17 @@ func NewDockerCli(in io.ReadCloser, out, err io.Writer, isTrusted bool, containe
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
-	unparsedHost, err := getUnparsedServerHost(opts.Hosts)
+	host, err := getServerHost(opts.Hosts, opts.TLSOptions)
 	if err != nil {
 		return &client.Client{}, err
 	}
 	var clientOpts []func(*client.Client) error
-	helper, err := connhelper.GetConnectionHelper(unparsedHost)
+	helper, err := connhelper.GetConnectionHelper(host)
 	if err != nil {
 		return &client.Client{}, err
 	}
 	if helper == nil {
 		clientOpts = append(clientOpts, withHTTPClient(opts.TLSOptions))
-		host, err := dopts.ParseHost(opts.TLSOptions != nil, unparsedHost)
-		if err != nil {
-			return &client.Client{}, err
-		}
 		clientOpts = append(clientOpts, client.WithHost(host))
 	} else {
 		clientOpts = append(clientOpts, func(c *client.Client) error {
@@ -321,7 +317,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	return client.NewClientWithOpts(clientOpts...)
 }
 
-func getUnparsedServerHost(hosts []string) (string, error) {
+func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error) {
 	var host string
 	switch len(hosts) {
 	case 0:
@@ -331,7 +327,8 @@ func getUnparsedServerHost(hosts []string) (string, error) {
 	default:
 		return "", errors.New("Please specify only one -H")
 	}
-	return host, nil
+
+	return dopts.ParseHost(tlsOptions != nil, host)
 }
 
 func withHTTPClient(tlsOpts *tlsconfig.Options) func(*client.Client) error {
