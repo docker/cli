@@ -81,6 +81,10 @@ message Node {
 	// endpoint on the node to be used for load balancing. Each overlay
 	// network, including ingress network, will have an NetworkAttachment.
 	repeated NetworkAttachment attachments = 10;
+
+	// VXLANUDPPort specifies the UDP port for VXLAN traffic.
+	// This information is passed from cluster object to individual nodes.
+	uint32 VXLANUDPPort = 11;
 }
 
 message Service {
@@ -122,6 +126,16 @@ message Service {
 	// UpdateStatus contains the status of an update, if one is in
 	// progress.
 	UpdateStatus update_status = 5;
+
+	// PendingDelete indicates that this service's deletion has been requested.
+	// Services, as well as all service-level resources, can only be deleted
+	// after all of the service's containers have properly shut down.
+	// When a user requests a deletion, we just flip this flag
+	// the deallocator will take it from there - it will start monitoring
+	// this service's tasks, and proceed to delete the service itself (and
+	// potentially its associated resources also marked for deletion) when
+	// all of its tasks are gone
+	bool pending_delete = 7;
 }
 
 // Endpoint specified all the network parameters required to
@@ -292,6 +306,20 @@ message Network {
 	// Runtime state of IPAM options. This may not reflect the
 	// ipam options from NetworkSpec.
 	IPAMOptions ipam = 5 [(gogoproto.customname) = "IPAM"];
+
+	// PendingDelete indicates that this network's deletion has been requested.
+	// Services, as well as all service-level resources, can only be deleted
+	// after all the service's containers have properly shut down
+	// when a user requests a deletion, we just flip this flag
+	// the deallocator will take it from there
+	// PendingDelete indicates that this network's deletion has been requested.
+	// Services, as well as all service-level resources, can only be deleted
+	// after all of the service's containers have properly shut down.
+	// When a user requests a deletion of this network, we just flip this flag
+	// the deallocator will take it from there - it will start monitoring
+	// the services that still use this service, and proceed to delete
+	// this network when all of these services are gone
+	bool pending_delete = 6;
 }
 
 // Cluster provides global cluster settings.
@@ -351,6 +379,9 @@ message Cluster {
 	// This flag specifies the default subnet size of global scope networks by giving
 	// the length of the subnet masks for every such network
 	uint32 subnetSize = 12;
+
+	// VXLANUDPPort specifies the UDP port for VXLAN traffic.
+	uint32 VXLANUDPPort = 13;
 }
 
 // Secret represents a secret that should be passed to a container or a node,

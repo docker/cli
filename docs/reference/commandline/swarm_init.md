@@ -26,6 +26,7 @@ Options:
       --availability string             Availability of the node ("active"|"pause"|"drain") (default "active")
       --cert-expiry duration            Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
       --data-path-addr string           Address or interface to use for data path traffic (format: <ip|interface>)
+      --data-path-port uint32           Port number to use for data path traffic (1024 - 49151). If no value is set or is set to 0, the default port (4789) is used.
       --default-addr-pool IPnet         List of default address pool (format: <cidr>)
       --default-addr-pool-mask-length   Subnet mask length for default address pool (default 24)
       --dispatcher-heartbeat duration   Dispatcher heartbeat period (ns|us|ms|s|m|h) (default 5s)
@@ -129,6 +130,32 @@ Using this parameter it is then possible to separate the container's data traffi
 management traffic of the cluster.
 If unspecified, Docker will use the same IP address or interface that is used for the
 advertise address.
+
+### `--data-path-port`
+
+This flag allows you to configure the UDP port number to use for data path
+traffic. The provided port number must be within the 1024 - 49151 range. If
+this flag is not set or is set to 0, the default port number 4789 is used.
+The data path port can only be configured when initializing the swarm, and
+applies to all nodes that join the swarm.
+The following example initializes a new Swarm, and configures the data path
+port to UDP port 7777;
+
+```bash
+docker swarm init --data-path-port=7777
+```
+After the swarm is initialized, use the `docker info` command to verify that
+the port is configured:
+
+```bash
+docker info
+	...
+	ClusterID: 9vs5ygs0gguyyec4iqf2314c0
+	Managers: 1
+	Nodes: 1
+	Data Path Port: 7777
+	...
+```
 
 ### `--default-addr-pool`
 This flag specifies default subnet pools for global scope networks.

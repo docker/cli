@@ -22,6 +22,7 @@ const (
 	flagListenAddr                = "listen-addr"
 	flagAdvertiseAddr             = "advertise-addr"
 	flagDataPathAddr              = "data-path-addr"
+	flagDataPathPort              = "data-path-port"
 	flagDefaultAddrPool           = "default-addr-pool"
 	flagDefaultAddrPoolMaskLength = "default-addr-pool-mask-length"
 	flagQuiet                     = "quiet"
