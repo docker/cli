@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
@@ -22,6 +24,17 @@ func generateManPages(opts *options) error {
 		Title:   "DOCKER",
 		Section: "1",
 		Source:  "Docker Community",
+	}
+
+	// If SOURCE_DATE_EPOCH is set, in order to allow reproducible package
+	// builds, we explicitly set the build time to SOURCE_DATE_EPOCH.
+	if epoch := os.Getenv("SOURCE_DATE_EPOCH"); epoch != "" {
+		unixEpoch, err := strconv.ParseInt(epoch, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid SOURCE_DATE_EPOCH: %v", err)
+		}
+		now := time.Unix(unixEpoch, 0)
+		header.Date = &now
 	}
 
 	stdin, stdout, stderr := term.StdStreams()
