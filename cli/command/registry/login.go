@@ -71,7 +71,9 @@ type isFileStore interface {
 }
 
 func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
-	if opts.password != "" {
+	// Warn user that TTY devices should use --password-stdin but skip that
+	// for non TTY devices because interactive login is not possible on non TTY devices
+	if opts.password != "" && dockerCli.In().IsTerminal() {
 		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 		if opts.passwordStdin {
 			return errors.New("--password and --password-stdin are mutually exclusive")
