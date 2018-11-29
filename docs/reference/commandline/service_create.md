@@ -219,7 +219,7 @@ tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
 ### Set environment variables (-e, --env)
 
-This sets an environmental variable for all tasks in a service. For example:
+This sets an environment variable for all tasks in a service. For example:
 
 ```bash
 $ docker service create \
