@@ -16,9 +16,7 @@ jobs:
       - run:
           name: "Lint"
           command: |
-            dockerfile=dockerfiles/Dockerfile.lint
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-linter:$CIRCLE_BUILD_NUM .
+            docker build -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
             docker run --rm cli-linter:$CIRCLE_BUILD_NUM
 
   cross:
@@ -34,9 +32,7 @@ jobs:
       - run:
           name: "Cross"
           command: |
-            dockerfile=dockerfiles/Dockerfile.cross
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
+            docker build -f dockerfiles/Dockerfile.cross --tag cli-builder:$CIRCLE_BUILD_NUM .
             name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
             docker run \
                 -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
@@ -60,9 +56,7 @@ jobs:
       - run:
           name: "Unit Test with Coverage"
           command: |
-            dockerfile=dockerfiles/Dockerfile.dev
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-builder:$CIRCLE_BUILD_NUM .
+            docker build -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
             docker run --name \
                 test-$CIRCLE_BUILD_NUM cli-builder:$CIRCLE_BUILD_NUM \
                 make test-coverage
@@ -89,10 +83,8 @@ jobs:
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
-            dockerfile=dockerfiles/Dockerfile.dev
-            echo "COPY . ." >> $dockerfile
             rm -f .dockerignore # include .git
-            docker build -f $dockerfile --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
+            docker build -f dockerfiles/Dockerfile.dev --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
                 make ci-validate
   shellcheck:
@@ -107,9 +99,7 @@ jobs:
       - run:
           name: "Run shellcheck"
           command: |
-            dockerfile=dockerfiles/Dockerfile.shellcheck
-            echo "COPY . ." >> $dockerfile
-            docker build -f $dockerfile --tag cli-validator:$CIRCLE_BUILD_NUM .
+            docker build -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
             docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
                 make shellcheck
 workflows:
