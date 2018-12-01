@@ -2681,14 +2681,16 @@ _docker_image_images() {
 
 _docker_image_import() {
 	case "$prev" in
-		--change|-c|--message|-m)
+		--change|-c|--message|-m|--platform)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--change -c --help --message -m" -- "$cur" ) )
+			local options="--change -c --help --message -m"
+			__docker_server_is_experimental && options+=" --platform"
+			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag '--change|-c|--message|-m')
