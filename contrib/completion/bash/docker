@@ -881,6 +881,7 @@ __docker_complete_log_drivers() {
 		gelf
 		journald
 		json-file
+		local
 		logentries
 		none
 		splunk
@@ -904,7 +905,8 @@ __docker_complete_log_options() {
 	local gcplogs_options="$common_options1 $common_options2 gcp-log-cmd gcp-meta-id gcp-meta-name gcp-meta-zone gcp-project"
 	local gelf_options="$common_options1 $common_options2 gelf-address gelf-compression-level gelf-compression-type gelf-tcp-max-reconnect gelf-tcp-reconnect-delay tag"
 	local journald_options="$common_options1 $common_options2 tag"
-	local json_file_options="$common_options1 $common_options2 max-file max-size"
+	local json_file_options="$common_options1 $common_options2 compress max-file max-size"
+	local local_options="$common_options1 compress max-file max-size"
 	local logentries_options="$common_options1 $common_options2 line-only logentries-token tag"
 	local splunk_options="$common_options1 $common_options2 splunk-caname splunk-capath splunk-format splunk-gzip splunk-gzip-level splunk-index splunk-insecureskipverify splunk-source splunk-sourcetype splunk-token splunk-url splunk-verify-connection tag"
 	local syslog_options="$common_options1 $common_options2 syslog-address syslog-facility syslog-format syslog-tls-ca-cert syslog-tls-cert syslog-tls-key syslog-tls-skip-verify tag"
@@ -932,6 +934,9 @@ __docker_complete_log_options() {
 			;;
 		json-file)
 			COMPREPLY=( $( compgen -W "$json_file_options" -S = -- "$cur" ) )
+			;;
+		local)
+			COMPREPLY=( $( compgen -W "$local_options" -S = -- "$cur" ) )
 			;;
 		logentries)
 			COMPREPLY=( $( compgen -W "$logentries_options" -S = -- "$cur" ) )
@@ -962,7 +967,7 @@ __docker_complete_log_driver_options() {
 			__docker_nospace
 			return
 			;;
-		fluentd-async-connect)
+		compress|fluentd-async-connect)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
 			return
 			;;
