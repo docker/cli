@@ -106,7 +106,7 @@ tz6j82jnwrx7        voting_db.1           postgres:9.4                          
 
 #### desired-state
 
-The `desired-state` filter can take the values `running`, `shutdown`, or `accepted`.
+The `desired-state` filter can take the values `running`, `shutdown`, `ready` or `accepted`.
 
 ```bash
 $ docker stack ps -f "desired-state=running" voting
