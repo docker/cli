@@ -71,6 +71,14 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			},
 		},
 		{
+			name: "label-filter",
+			args: []string{"--force", "--filter", "label=foobar"},
+			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
+				assert.Check(t, is.Equal("foobar", pruneFilter.Get("label")[0]))
+				return types.ImagesPruneReport{}, nil
+			},
+		},
+		{
 			name: "force-untagged",
 			args: []string{"--force"},
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
