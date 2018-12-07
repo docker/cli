@@ -67,8 +67,7 @@ func cloneFilter(args filters.Args) (newArgs filters.Args, err error) {
 	if err != nil {
 		return newArgs, err
 	}
-	err = newArgs.UnmarshalJSON(b)
-	return newArgs, err
+	return filters.FromJSON(string(b))
 }
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
