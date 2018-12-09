@@ -31,7 +31,7 @@ type signerAddOptions struct {
 func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 	var options signerAddOptions
 	cmd := &cobra.Command{
-		Use:   "add OPTIONS NAME REPOSITORY [REPOSITORY...] ",
+		Use:   "add [OPTIONS] NAME REPOSITORY [REPOSITORY...] ",
 		Short: "Add a signer",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
