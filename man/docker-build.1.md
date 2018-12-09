@@ -55,12 +55,11 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
 
 # OPTIONS
 **-f**, **--file**=*PATH/Dockerfile*
-   Path to the Dockerfile to use. If the path is a relative path and you are
-   building from a local directory, then the path must be relative to that
-   directory. If you are building from a remote URL pointing to either a
-   tarball or a Git repository, then the path must be relative to the root of
-   the remote context. In all cases, the file must be within the build context.
-   The default is *Dockerfile*.
+   Path to the Dockerfile to use. If you are building from a local directory, this
+   option means the Dockerfile path is considered relative to the current directory on
+   your local filesystem. Otherwise, if you are building from a remote URL pointing to
+   either a tarball or a Git repository, then the path must be relative to the root of
+   the remote context. In all cases, the default is *Dockerfile* within the build context.
 
 **--squash**=*true*|*false*
    **Experimental Only**
