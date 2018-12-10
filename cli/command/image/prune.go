@@ -8,9 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/filters"
 	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -57,24 +55,8 @@ Are you sure you want to continue?`
 Are you sure you want to continue?`
 )
 
-// cloneFilter is a temporary workaround that uses existing public APIs from the filters package to clone a filter.
-// TODO(tiborvass): remove this once filters.Args.Clone() is added.
-func cloneFilter(args filters.Args) (newArgs filters.Args, err error) {
-	if args.Len() == 0 {
-		return filters.NewArgs(), nil
-	}
-	b, err := args.MarshalJSON()
-	if err != nil {
-		return newArgs, err
-	}
-	return filters.FromJSON(string(b))
-}
-
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
-	pruneFilters, err := cloneFilter(options.filter.Value())
-	if err != nil {
-		return 0, "", errors.Wrap(err, "could not copy filter in image prune")
-	}
+	pruneFilters := options.filter.Value().Clone()
 	pruneFilters.Add("dangling", fmt.Sprintf("%v", !options.all))
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
