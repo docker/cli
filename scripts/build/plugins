@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# Build a static binary for the host OS/ARCH
+#
+
+set -eu -o pipefail
+
+source ./scripts/build/.variables
+
+mkdir -p "build/plugins-${GOOS}-${GOARCH}"
+for p in cli-plugins/examples/* ; do
+    [ -d "$p" ] || continue
+
+    n=$(basename "$p")
+
+    TARGET="build/plugins-${GOOS}-${GOARCH}/docker-${n}"
+
+    echo "Building statically linked $TARGET"
+    export CGO_ENABLED=0
+    go build -o "${TARGET}" --ldflags "${LDFLAGS}" "github.com/docker/cli/${p}"
+done

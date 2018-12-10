@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// setupCommonRootCommand contains the setup common to
+// SetupRootCommand and SetupPluginRootCommand.
 func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
 	opts := cliflags.NewClientOptions()
 	flags := rootCmd.Flags()
@@ -42,6 +44,16 @@ func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.F
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
+	rootCmd.PersistentFlags().Lookup("help").Hidden = true
+
+	return opts, flags
+}
+
+// SetupPluginRootCommand sets default usage, help and error handling for a plugin root command.
+func SetupPluginRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
+	opts, flags := setupCommonRootCommand(rootCmd)
+
+	rootCmd.PersistentFlags().BoolP("help", "", false, "Print usage")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 
 	return opts, flags
