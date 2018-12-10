@@ -81,6 +81,10 @@ shell: dev ## alias for dev
 lint: build_linter_image ## run linters
 	docker run -ti $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME)
 
+.PHONY: fmt
+fmt:
+	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make fmt
+
 .PHONY: vendor
 vendor: build_docker_image vendor.conf ## download dependencies (vendor/) listed in vendor.conf
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
