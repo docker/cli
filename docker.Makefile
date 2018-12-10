@@ -10,7 +10,12 @@ LINTER_IMAGE_NAME = docker-cli-lint$(IMAGE_TAG)
 CROSS_IMAGE_NAME = docker-cli-cross$(IMAGE_TAG)
 VALIDATE_IMAGE_NAME = docker-cli-shell-validate$(IMAGE_TAG)
 E2E_IMAGE_NAME = docker-cli-e2e$(IMAGE_TAG)
+GO_BUILD_CACHE ?= y
 MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
+CACHE_VOLUME_NAME := docker-cli-dev-cache
+ifeq ($(GO_BUILD_CACHE),y)
+MOUNTS += -v "$(CACHE_VOLUME_NAME):/root/.cache/go-build"
+endif
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM
 
@@ -49,6 +54,7 @@ build: binary ## alias for binary
 .PHONY: clean
 clean: build_docker_image ## clean build artifacts
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make clean
+	docker volume rm -f $(CACHE_VOLUME_NAME)
 
 .PHONY: test-unit
 test-unit: build_docker_image # run unit tests (using go test)
