@@ -284,7 +284,9 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 		return &client.Client{}, err
 	}
 	if helper == nil {
-		clientOpts = append(clientOpts, withHTTPClient(opts.TLSOptions))
+		if !dopts.IsSocket(host) {
+			clientOpts = append(clientOpts, withHTTPClient(opts.TLSOptions))
+		}
 		clientOpts = append(clientOpts, client.WithHost(host))
 	} else {
 		clientOpts = append(clientOpts, func(c *client.Client) error {
