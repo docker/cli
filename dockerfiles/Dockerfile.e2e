@@ -38,6 +38,6 @@ ARG VERSION
 ARG GITCOMMIT
 ENV VERSION=${VERSION} GITCOMMIT=${GITCOMMIT}
 RUN ./scripts/build/binary
-RUN ./scripts/build/plugins
+RUN ./scripts/build/plugins e2e/cli-plugins/plugins/*
 
 CMD ./scripts/test/e2e/entry

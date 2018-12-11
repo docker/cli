@@ -8,7 +8,7 @@ set -eu -o pipefail
 source ./scripts/build/.variables
 
 mkdir -p "build/plugins-${GOOS}-${GOARCH}"
-for p in cli-plugins/examples/* ; do
+for p in cli-plugins/examples/* "$@" ; do
     [ -d "$p" ] || continue
 
     n=$(basename "$p")
