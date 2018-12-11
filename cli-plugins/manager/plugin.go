@@ -69,6 +69,12 @@ func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 
 	if rootcmd != nil {
 		for _, cmd := range rootcmd.Commands() {
+			// Ignore conflicts with commands which are
+			// just plugin stubs (i.e. from a previous
+			// call to AddPluginCommandStubs).
+			if p := cmd.Annotations[CommandAnnotationPlugin]; p == "true" {
+				continue
+			}
 			if cmd.Name() == p.Name {
 				p.Err = errors.Errorf("plugin %q duplicates builtin command", p.Name)
 				return p, nil

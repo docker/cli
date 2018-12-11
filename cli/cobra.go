@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	cliconfig "github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/pkg/term"
@@ -14,7 +15,7 @@ import (
 
 // setupCommonRootCommand contains the setup common to
 // SetupRootCommand and SetupPluginRootCommand.
-func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
+func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet, *cobra.Command) {
 	opts := cliflags.NewClientOptions()
 	flags := rootCmd.Flags()
 
@@ -26,19 +27,21 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
 	cobra.AddTemplateFunc("wrappedFlagUsages", wrappedFlagUsages)
+	cobra.AddTemplateFunc("commandVendor", commandVendor)
+	cobra.AddTemplateFunc("isFirstLevelCommand", isFirstLevelCommand) // is it an immediate sub-command of the root
 
 	rootCmd.SetUsageTemplate(usageTemplate)
 	rootCmd.SetHelpTemplate(helpTemplate)
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	rootCmd.SetHelpCommand(helpCommand)
 
-	return opts, flags
+	return opts, flags, helpCommand
 }
 
 // SetupRootCommand sets default usage, help, and error handling for the
 // root command.
-func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
-	opts, flags := setupCommonRootCommand(rootCmd)
+func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet, *cobra.Command) {
+	opts, flags, helpCmd := setupCommonRootCommand(rootCmd)
 
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
 
@@ -46,12 +49,12 @@ func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.F
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 
-	return opts, flags
+	return opts, flags, helpCmd
 }
 
 // SetupPluginRootCommand sets default usage, help and error handling for a plugin root command.
 func SetupPluginRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
-	opts, flags := setupCommonRootCommand(rootCmd)
+	opts, flags, _ := setupCommonRootCommand(rootCmd)
 
 	rootCmd.PersistentFlags().BoolP("help", "", false, "Print usage")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
@@ -138,6 +141,21 @@ func wrappedFlagUsages(cmd *cobra.Command) string {
 	return cmd.Flags().FlagUsagesWrapped(width - 1)
 }
 
+func isFirstLevelCommand(cmd *cobra.Command) bool {
+	return cmd.Parent() == cmd.Root()
+}
+
+func commandVendor(cmd *cobra.Command) string {
+	width := 13
+	if v, ok := cmd.Annotations[pluginmanager.CommandAnnotationPluginVendor]; ok {
+		if len(v) > width-2 {
+			v = v[:width-3] + "…"
+		}
+		return fmt.Sprintf("%-*s", width, "("+v+")")
+	}
+	return strings.Repeat(" ", width)
+}
+
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
@@ -178,7 +196,7 @@ Options:
 Management Commands:
 
 {{- range managementSubCommands . }}
-  {{rpad .Name .NamePadding }} {{.Short}}
+  {{rpad .Name .NamePadding }} {{ if isFirstLevelCommand .}}{{commandVendor .}} {{ end}}{{.Short}}
 {{- end}}
 
 {{- end}}
@@ -187,7 +205,7 @@ Management Commands:
 Commands:
 
 {{- range operationSubCommands . }}
-  {{rpad .Name .NamePadding }} {{.Short}}
+  {{rpad .Name .NamePadding }} {{ if isFirstLevelCommand .}}{{commandVendor .}} {{ end}}{{.Short}}
 {{- end}}
 {{- end}}
 

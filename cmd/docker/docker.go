@@ -21,8 +21,9 @@ import (
 
 func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	var (
-		opts  *cliflags.ClientOptions
-		flags *pflag.FlagSet
+		opts    *cliflags.ClientOptions
+		flags   *pflag.FlagSet
+		helpCmd *cobra.Command
 	)
 
 	cmd := &cobra.Command{
@@ -57,11 +58,12 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
 	}
-	opts, flags = cli.SetupRootCommand(cmd)
+	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
 
+	setupHelpCommand(dockerCli, cmd, helpCmd, flags, opts)
 	setHelpFunc(dockerCli, cmd, flags, opts)
 
 	cmd.SetOutput(dockerCli.Out())
@@ -88,6 +90,34 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *p
 		}
 		return flagErrorFunc(cmd, err)
 	})
+}
+
+func setupHelpCommand(dockerCli *command.DockerCli, rootCmd, helpCmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+	origRun := helpCmd.Run
+	origRunE := helpCmd.RunE
+
+	helpCmd.Run = nil
+	helpCmd.RunE = func(c *cobra.Command, args []string) error {
+		// No Persistent* hooks are called for help, so we must initialize here.
+		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
+			return err
+		}
+
+		// Add a stub entry for every plugin so they are
+		// included in the help output. If we have no args
+		// then this is being used for `docker help` and we
+		// want to include broken plugins, otherwise this is
+		// `help «foo»` and we do not.
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, rootCmd, len(args) == 0); err != nil {
+			return err
+		}
+
+		if origRunE != nil {
+			return origRunE(c, args)
+		}
+		origRun(c, args)
+		return nil
+	}
 }
 
 func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
