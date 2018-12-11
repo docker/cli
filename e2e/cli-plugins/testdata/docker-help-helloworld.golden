@@ -1,0 +1,9 @@
+
+Usage:	docker helloworld COMMAND
+
+A basic Hello World plugin for tests
+
+Commands:
+  goodbye     Say Goodbye instead of Hello
+
+Run 'docker helloworld COMMAND --help' for more information on a command.
