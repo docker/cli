@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli"
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	cliflags "github.com/docker/cli/cli/flags"
@@ -30,9 +31,20 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceUsage:     true,
 		SilenceErrors:    true,
 		TraverseChildren: true,
-		Args:             noArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return command.ShowHelp(dockerCli.Err())(cmd, args)
+			if len(args) == 0 {
+				return command.ShowHelp(dockerCli.Err())(cmd, args)
+			}
+			plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], cmd)
+			if pluginmanager.IsNotFound(err) {
+				return fmt.Errorf(
+					"docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
+			}
+			if err != nil {
+				return err
+			}
+
+			return plugincmd.Run()
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// flags must be the top-level command flags, not cmd.Flags()
@@ -134,14 +146,6 @@ func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opt
 	// flags must be the top-level command flags, not cmd.Flags()
 	opts.Common.SetDefaultOptions(flags)
 	return dockerCli.Initialize(opts)
-}
-
-func noArgs(cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		return nil
-	}
-	return fmt.Errorf(
-		"docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 }
 
 func main() {

@@ -33,6 +33,6 @@ func main() {
 		manager.Metadata{
 			SchemaVersion: "0.1.0",
 			Vendor:        "Docker Inc.",
-			Version:       "0.1.0",
+			Version:       "testing",
 		})
 }
