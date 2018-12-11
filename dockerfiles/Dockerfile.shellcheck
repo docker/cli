@@ -7,3 +7,4 @@ RUN     apt-get update && \
 WORKDIR /go/src/github.com/docker/cli
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 CMD     bash
+COPY    . .
