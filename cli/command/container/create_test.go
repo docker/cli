@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
@@ -229,6 +231,47 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreateContainerWithProxyConfig(t *testing.T) {
+	expected := []string{
+		"HTTP_PROXY=httpProxy",
+		"http_proxy=httpProxy",
+		"HTTPS_PROXY=httpsProxy",
+		"https_proxy=httpsProxy",
+		"NO_PROXY=noProxy",
+		"no_proxy=noProxy",
+		"FTP_PROXY=ftpProxy",
+		"ftp_proxy=ftpProxy",
+	}
+	sort.Strings(expected)
+
+	cli := test.NewFakeCli(&fakeClient{
+		createContainerFunc: func(config *container.Config,
+			hostConfig *container.HostConfig,
+			networkingConfig *network.NetworkingConfig,
+			containerName string,
+		) (container.ContainerCreateCreatedBody, error) {
+			sort.Strings(config.Env)
+			assert.DeepEqual(t, config.Env, expected)
+			return container.ContainerCreateCreatedBody{}, nil
+		},
+	})
+	cli.SetConfigFile(&configfile.ConfigFile{
+		Proxies: map[string]configfile.ProxyConfig{
+			"default": {
+				HTTPProxy:  "httpProxy",
+				HTTPSProxy: "httpsProxy",
+				NoProxy:    "noProxy",
+				FTPProxy:   "ftpProxy",
+			},
+		},
+	})
+	cmd := NewCreateCommand(cli)
+	cmd.SetOutput(ioutil.Discard)
+	cmd.SetArgs([]string{"image:tag"})
+	err := cmd.Execute()
+	assert.NilError(t, err)
 }
 
 type fakeNotFound struct{}
