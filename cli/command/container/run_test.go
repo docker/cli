@@ -23,8 +23,7 @@ func TestRunLabel(t *testing.T) {
 		Version: "1.36",
 	})
 	cmd := NewRunCommand(cli)
-	cmd.Flags().Set("detach", "true")
-	cmd.SetArgs([]string{"--label", "foo", "busybox"})
+	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
 	assert.NilError(t, cmd.Execute())
 }
 
