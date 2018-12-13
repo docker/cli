@@ -302,6 +302,12 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		if task.Resources == nil {
 			task.Resources = &swarm.ResourceRequirements{}
 		}
+		if task.Resources.Limits == nil {
+			task.Resources.Limits = &swarm.Resources{}
+		}
+		if task.Resources.Reservations == nil {
+			task.Resources.Reservations = &swarm.Resources{}
+		}
 		return task.Resources
 	}
 
