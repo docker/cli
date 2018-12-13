@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http/httputil"
 	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -68,35 +67,6 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
-	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
-		fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
-	}
-}
-
-// check the DNS settings passed via --dns against localhost regexp to warn if
-// they are trying to set a DNS to a localhost address
-func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
-	for _, dnsIP := range hostConfig.DNS {
-		if isLocalhost(dnsIP) {
-			fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
-			return
-		}
-	}
-}
-
-// IPLocalhost is a regex pattern for IPv4 or IPv6 loopback range.
-const ipLocalhost = `((127\.([0-9]{1,3}\.){2}[0-9]{1,3})|(::1)$)`
-
-var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
-
-// IsLocalhost returns true if ip matches the localhost IP regular expression.
-// Used for determining if nameserver settings are being passed which are
-// localhost addresses
-func isLocalhost(ip string) bool {
-	return localhostIPRegexp.MatchString(ip)
-}
-
 func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), copts.env.GetAll())
 	newEnv := []string{}
@@ -123,9 +93,6 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	hostConfig := containerConfig.HostConfig
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	client := dockerCli.Client()
-
-	warnOnOomKillDisable(*hostConfig, stderr)
-	warnOnLocalhostDNS(*hostConfig, stderr)
 
 	config.ArgsEscaped = false
 
