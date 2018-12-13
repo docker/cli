@@ -619,6 +619,38 @@ func TestUpdateLimitsReservations(t *testing.T) {
 	spec := swarm.ServiceSpec{
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+
+	// test that updating works if the service did not previously
+	// have limits set (https://github.com/moby/moby/issues/38363)
+	flags := newUpdateCommand(nil).Flags()
+	err := flags.Set(flagLimitCPU, "2")
+	assert.NilError(t, err)
+	err = flags.Set(flagLimitMemory, "200M")
+	assert.NilError(t, err)
+	err = updateService(context.Background(), nil, flags, &spec)
+	assert.NilError(t, err)
+
+	spec = swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+
+	// test that updating works if the service did not previously
+	// have reservations set (https://github.com/moby/moby/issues/38363)
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagReserveCPU, "2")
+	assert.NilError(t, err)
+	err = flags.Set(flagReserveMemory, "200M")
+	assert.NilError(t, err)
+	err = updateService(context.Background(), nil, flags, &spec)
+	assert.NilError(t, err)
+
+	spec = swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
 			Resources: &swarm.ResourceRequirements{
 				Limits: &swarm.Resources{
 					NanoCPUs:    1000000000,
@@ -632,8 +664,8 @@ func TestUpdateLimitsReservations(t *testing.T) {
 		},
 	}
 
-	flags := newUpdateCommand(nil).Flags()
-	err := flags.Set(flagLimitCPU, "2")
+	flags = newUpdateCommand(nil).Flags()
+	err = flags.Set(flagLimitCPU, "2")
 	assert.NilError(t, err)
 	err = flags.Set(flagReserveCPU, "2")
 	assert.NilError(t, err)
