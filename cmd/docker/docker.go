@@ -57,17 +57,10 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	cmd.SetOutput(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
-	disableFlagsInUseLine(cmd)
+	cli.DisableFlagsInUseLine(cmd)
 	setValidateArgs(dockerCli, cmd, flags, opts)
 
 	return cmd
-}
-
-func disableFlagsInUseLine(cmd *cobra.Command) {
-	visitAll(cmd, func(ccmd *cobra.Command) {
-		// do not add a `[flags]` to the end of the usage line.
-		ccmd.DisableFlagsInUseLine = true
-	})
 }
 
 func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
@@ -111,7 +104,7 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 	// As a result, here we replace the existing Args validation func to a wrapper,
 	// where the wrapper will check to see if the feature is supported or not.
 	// The Args validation error will only be returned if the feature is supported.
-	visitAll(cmd, func(ccmd *cobra.Command) {
+	cli.VisitAll(cmd, func(ccmd *cobra.Command) {
 		// if there is no tags for a command or any of its parent,
 		// there is no need to wrap the Args validation.
 		if !hasTags(ccmd) {
@@ -143,16 +136,6 @@ func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opt
 	// flags must be the top-level command flags, not cmd.Flags()
 	opts.Common.SetDefaultOptions(flags)
 	return dockerCli.Initialize(opts)
-}
-
-// visitAll will traverse all commands from the root.
-// This is different from the VisitAll of cobra.Command where only parents
-// are checked.
-func visitAll(root *cobra.Command, fn func(*cobra.Command)) {
-	for _, cmd := range root.Commands() {
-		visitAll(cmd, fn)
-	}
-	fn(root)
 }
 
 func noArgs(cmd *cobra.Command, args []string) error {
