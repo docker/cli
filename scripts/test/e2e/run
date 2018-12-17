@@ -17,7 +17,7 @@ function setup {
     local project=$1
     local file=$2
 
-    test "${DOCKERD_EXPERIMENTAL:-}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
+    test "${DOCKERD_EXPERIMENTAL:-0}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
 
     if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
         test ! -f "${HOME}/.ssh/id_rsa" && ssh-keygen -t rsa -C docker-e2e-dummy -N "" -f "${HOME}/.ssh/id_rsa" -q
