@@ -170,3 +170,15 @@ func TestGoodSubcommandHelp(t *testing.T) {
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld-goodbye.golden")
 	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
+
+// TestCliInitialized tests the code paths which ensure that the Cli
+// object is initialized even if the plugin uses PersistentRunE
+func TestCliInitialized(t *testing.T) {
+	run, cleanup := prepare(t)
+	defer cleanup()
+
+	res := icmd.RunCmd(run("helloworld", "apiversion"))
+	res.Assert(t, icmd.Success)
+	assert.Assert(t, res.Stdout() != "")
+	assert.Assert(t, is.Equal(res.Stderr(), ""))
+}

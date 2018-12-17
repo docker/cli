@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/manager"
@@ -42,29 +43,53 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	}
 }
 
-func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cobra.Command {
-	var (
-		opts  *cliflags.ClientOptions
-		flags *pflag.FlagSet
-	)
+// options encapsulates the ClientOptions and FlagSet constructed by
+// `newPluginCommand` such that they can be finalized by our
+// `PersistentPreRunE`. This is necessary because otherwise a plugin's
+// own use of that hook will shadow anything we add to the top-level
+// command meaning the CLI is never Initialized.
+var options struct {
+	init, prerun sync.Once
+	opts         *cliflags.ClientOptions
+	flags        *pflag.FlagSet
+	dockerCli    *command.DockerCli
+}
 
+// PersistentPreRunE must be called by any plugin command (or
+// subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
+// which do not make use of `PersistentPreRun*` do not need to call
+// this (although it remains safe to do so). Plugins are recommended
+// to use `PersistenPreRunE` to enable the error to be
+// returned. Should not be called outside of a commands
+// PersistentPreRunE hook and must not be run unless Run has been
+// called.
+func PersistentPreRunE(cmd *cobra.Command, args []string) error {
+	var err error
+	options.prerun.Do(func() {
+		if options.opts == nil || options.flags == nil || options.dockerCli == nil {
+			panic("PersistentPreRunE called without Run successfully called first")
+		}
+		// flags must be the original top-level command flags, not cmd.Flags()
+		options.opts.Common.SetDefaultOptions(options.flags)
+		err = options.dockerCli.Initialize(options.opts)
+	})
+	return err
+}
+
+func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cobra.Command {
 	name := plugin.Use
 	fullname := manager.NamePrefix + name
 
 	cmd := &cobra.Command{
-		Use:              fmt.Sprintf("docker [OPTIONS] %s [ARG...]", name),
-		Short:            fullname + " is a Docker CLI plugin",
-		SilenceUsage:     true,
-		SilenceErrors:    true,
-		TraverseChildren: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// flags must be the top-level command flags, not cmd.Flags()
-			opts.Common.SetDefaultOptions(flags)
-			return dockerCli.Initialize(opts)
-		},
+		Use:                   fmt.Sprintf("docker [OPTIONS] %s [ARG...]", name),
+		Short:                 fullname + " is a Docker CLI plugin",
+		SilenceUsage:          true,
+		SilenceErrors:         true,
+		TraverseChildren:      true,
+		PersistentPreRunE:     PersistentPreRunE,
 		DisableFlagsInUseLine: true,
 	}
-	opts, flags = cli.SetupPluginRootCommand(cmd)
+	opts, flags := cli.SetupPluginRootCommand(cmd)
 
 	cmd.SetOutput(dockerCli.Out())
 
@@ -75,6 +100,11 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 
 	cli.DisableFlagsInUseLine(cmd)
 
+	options.init.Do(func() {
+		options.opts = opts
+		options.flags = flags
+		options.dockerCli = dockerCli
+	})
 	return cmd
 }
 
