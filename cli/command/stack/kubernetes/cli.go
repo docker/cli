@@ -7,12 +7,14 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
+	kubecontext "github.com/docker/cli/cli/context/kubernetes"
 	kubernetes "github.com/docker/compose-on-kubernetes/api"
 	cliv1beta1 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta1"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // KubeCli holds kubernetes specifics (client, namespace) with the command.Cli
@@ -55,7 +57,18 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 	cli := &KubeCli{
 		Cli: dockerCli,
 	}
-	clientConfig := kubernetes.NewKubernetesConfig(opts.Config)
+	var (
+		clientConfig clientcmd.ClientConfig
+		err          error
+	)
+	if dockerCli.CurrentContext() == "" {
+		clientConfig = kubernetes.NewKubernetesConfig(opts.Config)
+	} else {
+		clientConfig, err = kubecontext.ConfigFromContext(dockerCli.CurrentContext(), dockerCli.ContextStore())
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	cli.kubeNamespace = opts.Namespace
 	if opts.Namespace == "" {
