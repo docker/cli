@@ -18,6 +18,7 @@ const (
 	ConfigFileName = "config.json"
 	configFileDir  = ".docker"
 	oldConfigfile  = ".dockercfg"
+	contextsDir    = "contexts"
 )
 
 var (
@@ -33,6 +34,11 @@ func init() {
 // Dir returns the directory the configuration file is stored in
 func Dir() string {
 	return configDir
+}
+
+// ContextStoreDir returns the directory the docker contexts are stored in
+func ContextStoreDir() string {
+	return filepath.Join(Dir(), contextsDir)
 }
 
 // SetDir sets the directory the configuration file is stored in
