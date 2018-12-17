@@ -26,8 +26,7 @@ Options:
 
 ## Description
 
-Promotes a node to manager. This command targets a docker engine that is a
-manager in the swarm.
+Promotes a node to manager. This command can only be executed on a manager node.
 
 ## Examples
 
