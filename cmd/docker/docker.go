@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	cliconfig "github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
@@ -19,8 +18,10 @@ import (
 )
 
 func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := cliflags.NewClientOptions()
-	var flags *pflag.FlagSet
+	var (
+		opts  *cliflags.ClientOptions
+		flags *pflag.FlagSet
+	)
 
 	cmd := &cobra.Command{
 		Use:              "docker [OPTIONS] COMMAND [ARG...]",
@@ -43,12 +44,8 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		Version:               fmt.Sprintf("%s, build %s", cli.Version, cli.GitCommit),
 		DisableFlagsInUseLine: true,
 	}
-	cli.SetupRootCommand(cmd)
-
-	flags = cmd.Flags()
+	opts, flags = cli.SetupRootCommand(cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
-	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
-	opts.Common.InstallFlags(flags)
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
 

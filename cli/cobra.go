@@ -4,12 +4,21 @@ import (
 	"fmt"
 	"strings"
 
+	cliconfig "github.com/docker/cli/cli/config"
+	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/pkg/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
-func setupCommonRootCommand(rootCmd *cobra.Command) {
+func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
+	opts := cliflags.NewClientOptions()
+	flags := rootCmd.Flags()
+
+	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
+	opts.Common.InstallFlags(flags)
+
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
@@ -20,18 +29,22 @@ func setupCommonRootCommand(rootCmd *cobra.Command) {
 	rootCmd.SetHelpTemplate(helpTemplate)
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	rootCmd.SetHelpCommand(helpCommand)
+
+	return opts, flags
 }
 
 // SetupRootCommand sets default usage, help, and error handling for the
 // root command.
-func SetupRootCommand(rootCmd *cobra.Command) {
-	setupCommonRootCommand(rootCmd)
+func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
+	opts, flags := setupCommonRootCommand(rootCmd)
 
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
+
+	return opts, flags
 }
 
 // FlagErrorFunc prints an error message which matches the format of the
