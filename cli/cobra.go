@@ -9,9 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SetupRootCommand sets default usage, help, and error handling for the
-// root command.
-func SetupRootCommand(rootCmd *cobra.Command) {
+func setupCommonRootCommand(rootCmd *cobra.Command) {
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
@@ -22,6 +20,13 @@ func SetupRootCommand(rootCmd *cobra.Command) {
 	rootCmd.SetHelpTemplate(helpTemplate)
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	rootCmd.SetHelpCommand(helpCommand)
+}
+
+// SetupRootCommand sets default usage, help, and error handling for the
+// root command.
+func SetupRootCommand(rootCmd *cobra.Command) {
+	setupCommonRootCommand(rootCmd)
+
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
