@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
@@ -192,6 +193,24 @@ PQQDAgNIADBFAiEAo9fTQNM5DP9bHVcTJYfl2Cay1bFu1E+lnpmN+EYJfeACIGKH
 	},
 }
 
+var samplePluginsInfo = []pluginmanager.Plugin{
+	{
+		Name: "goodplugin",
+		Path: "/path/to/docker-goodplugin",
+		Metadata: pluginmanager.Metadata{
+			SchemaVersion:    "0.1.0",
+			ShortDescription: "unit test is good",
+			Vendor:           "ACME Corp",
+			Version:          "0.1.0",
+		},
+	},
+	{
+		Name: "badplugin",
+		Path: "/path/to/docker-badplugin",
+		Err:  pluginmanager.NewPluginError("something wrong"),
+	},
+}
+
 func TestPrettyPrintInfo(t *testing.T) {
 	infoWithSwarm := sampleInfoNoSwarm
 	infoWithSwarm.Swarm = sampleSwarmInfo
@@ -228,8 +247,9 @@ func TestPrettyPrintInfo(t *testing.T) {
 	sampleInfoBadSecurity.SecurityOptions = []string{"foo="}
 
 	for _, tc := range []struct {
-		doc            string
-		dockerInfo     info
+		doc        string
+		dockerInfo info
+
 		prettyGolden   string
 		warningsGolden string
 		jsonGolden     string
@@ -245,6 +265,19 @@ func TestPrettyPrintInfo(t *testing.T) {
 			jsonGolden:   "docker-info-no-swarm",
 		},
 		{
+			doc: "info with plugins",
+			dockerInfo: info{
+				Info: &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{
+					Plugins: samplePluginsInfo,
+				},
+			},
+			prettyGolden:   "docker-info-plugins",
+			jsonGolden:     "docker-info-plugins",
+			warningsGolden: "docker-info-plugins-warnings",
+		},
+		{
+
 			doc: "info with swarm",
 			dockerInfo: info{
 				Info:       &infoWithSwarm,

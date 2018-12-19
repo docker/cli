@@ -2,11 +2,13 @@ package manager
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
 )
 
 type fakeCandidate struct {
@@ -73,6 +75,7 @@ func TestValidateCandidate(t *testing.T) {
 			assert.ErrorContains(t, err, tc.err)
 		} else if tc.invalid != "" {
 			assert.NilError(t, err)
+			assert.Assert(t, cmp.ErrorType(p.Err, reflect.TypeOf(&pluginError{})))
 			assert.ErrorContains(t, p.Err, tc.invalid)
 		} else {
 			assert.NilError(t, err)

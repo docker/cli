@@ -13,13 +13,13 @@ const (
 // Metadata provided by the plugin
 type Metadata struct {
 	// SchemaVersion describes the version of this struct. Mandatory, must be "0.1.0"
-	SchemaVersion string
+	SchemaVersion string `json:",omitempty"`
 	// Vendor is the name of the plugin vendor. Mandatory
-	Vendor string
+	Vendor string `json:",omitempty"`
 	// Version is the optional version of this plugin.
-	Version string
+	Version string `json:",omitempty"`
 	// ShortDescription should be suitable for a single line help message.
-	ShortDescription string
+	ShortDescription string `json:",omitempty"`
 	// URL is a pointer to the plugin's homepage.
-	URL string
+	URL string `json:",omitempty"`
 }
