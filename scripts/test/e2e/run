@@ -17,7 +17,15 @@ function setup {
     local project=$1
     local file=$2
 
-    test "${DOCKERD_EXPERIMENTAL:-}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
+    test "${DOCKERD_EXPERIMENTAL:-0}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
+
+    if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
+        test ! -f "${HOME}/.ssh/id_rsa" && ssh-keygen -t rsa -C docker-e2e-dummy -N "" -f "${HOME}/.ssh/id_rsa" -q
+        grep "^StrictHostKeyChecking no" "${HOME}/.ssh/config" > /dev/null 2>&1 || echo "StrictHostKeyChecking no" > "${HOME}/.ssh/config"
+        TEST_CONNHELPER_SSH_ID_RSA_PUB=$(cat "${HOME}/.ssh/id_rsa.pub")
+        export TEST_CONNHELPER_SSH_ID_RSA_PUB
+        file="${file}:./e2e/compose-env.connhelper-ssh.yaml"
+    fi
     COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker-compose up --build -d >&2
 
     local network="${project}_default"
@@ -26,6 +34,9 @@ function setup {
 
     engine_ip="$(container_ip "${project}_engine_1" "$network")"
     engine_host="tcp://$engine_ip:2375"
+    if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
+        engine_host="ssh://penguin@${engine_ip}"
+    fi
     (
         export DOCKER_HOST="$engine_host"
         timeout 200 ./scripts/test/e2e/wait-on-daemon
@@ -57,7 +68,7 @@ function runtests {
         TEST_REMOTE_DAEMON="${REMOTE_DAEMON-}" \
         TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \
-        PATH="$PWD/build/" \
+        PATH="$PWD/build/:/usr/bin" \
         "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
 }
 
