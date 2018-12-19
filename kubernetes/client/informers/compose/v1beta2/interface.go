@@ -1,25 +1,11 @@
 package v1beta2
 
-import (
-	"github.com/docker/cli/kubernetes/client/informers/internalinterfaces"
-)
+import api "github.com/docker/compose-on-kubernetes/api/client/informers/compose/v1beta2"
 
 // Interface provides access to all the informers in this group version.
-type Interface interface {
-	// Stacks returns a StackInformer.
-	Stacks() StackInformer
-}
-
-type version struct {
-	internalinterfaces.SharedInformerFactory
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/informers/compose/v1beta2.Interface instead
+type Interface = api.Interface
 
 // New returns a new Interface.
-func New(f internalinterfaces.SharedInformerFactory) Interface {
-	return &version{f}
-}
-
-// Stacks returns a StackInformer.
-func (v *version) Stacks() StackInformer {
-	return &stackInformer{factory: v.SharedInformerFactory}
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/informers/compose/v1beta2.New instead
+var New = api.New
