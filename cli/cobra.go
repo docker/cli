@@ -24,11 +24,14 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
+	cobra.AddTemplateFunc("hasInvalidPlugins", hasInvalidPlugins)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
+	cobra.AddTemplateFunc("invalidPlugins", invalidPlugins)
 	cobra.AddTemplateFunc("wrappedFlagUsages", wrappedFlagUsages)
 	cobra.AddTemplateFunc("commandVendor", commandVendor)
 	cobra.AddTemplateFunc("isFirstLevelCommand", isFirstLevelCommand) // is it an immediate sub-command of the root
+	cobra.AddTemplateFunc("invalidPluginReason", invalidPluginReason)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
 	rootCmd.SetHelpTemplate(helpTemplate)
@@ -115,6 +118,10 @@ var helpCommand = &cobra.Command{
 	},
 }
 
+func isPlugin(cmd *cobra.Command) bool {
+	return cmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true"
+}
+
 func hasSubCommands(cmd *cobra.Command) bool {
 	return len(operationSubCommands(cmd)) > 0
 }
@@ -123,9 +130,16 @@ func hasManagementSubCommands(cmd *cobra.Command) bool {
 	return len(managementSubCommands(cmd)) > 0
 }
 
+func hasInvalidPlugins(cmd *cobra.Command) bool {
+	return len(invalidPlugins(cmd)) > 0
+}
+
 func operationSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
+		if isPlugin(sub) && invalidPluginReason(sub) != "" {
+			continue
+		}
 		if sub.IsAvailableCommand() && !sub.HasSubCommands() {
 			cmds = append(cmds, sub)
 		}
@@ -159,11 +173,31 @@ func commandVendor(cmd *cobra.Command) string {
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
+		if isPlugin(sub) && invalidPluginReason(sub) != "" {
+			continue
+		}
 		if sub.IsAvailableCommand() && sub.HasSubCommands() {
 			cmds = append(cmds, sub)
 		}
 	}
 	return cmds
+}
+
+func invalidPlugins(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if !isPlugin(sub) {
+			continue
+		}
+		if invalidPluginReason(sub) != "" {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func invalidPluginReason(cmd *cobra.Command) string {
+	return cmd.Annotations[pluginmanager.CommandAnnotationPluginInvalid]
 }
 
 var usageTemplate = `Usage:
@@ -207,6 +241,16 @@ Commands:
 {{- range operationSubCommands . }}
   {{rpad .Name .NamePadding }} {{ if isFirstLevelCommand .}}{{commandVendor .}} {{ end}}{{.Short}}
 {{- end}}
+{{- end}}
+
+{{- if hasInvalidPlugins . }}
+
+Invalid Plugins:
+
+{{- range invalidPlugins . }}
+  {{rpad .Name .NamePadding }} {{invalidPluginReason .}}
+{{- end}}
+
 {{- end}}
 
 {{- if .HasSubCommands }}

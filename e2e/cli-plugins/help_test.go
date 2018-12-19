@@ -31,6 +31,7 @@ func TestGlobalHelp(t *testing.T) {
 	//  - Each of the main headings
 	//  - Some builtin commands under the main headings
 	//  - The `helloworld` plugin in the appropriate place
+	//  - The `badmeta` plugin under the "Invalid Plugins" heading.
 	//
 	// Regexps are needed because the width depends on `unix.TIOCGWINSZ` or similar.
 	for _, expected := range []*regexp.Regexp{
@@ -41,6 +42,8 @@ func TestGlobalHelp(t *testing.T) {
 		regexp.MustCompile(`^  create\s+Create a new container$`),
 		regexp.MustCompile(`^  helloworld\s+\(Docker Inc\.\)\s+A basic Hello World plugin for tests$`),
 		regexp.MustCompile(`^  ps\s+List containers$`),
+		regexp.MustCompile(`^Invalid Plugins:$`),
+		regexp.MustCompile(`^  badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string$`),
 	} {
 		var found bool
 		for scanner.Scan() {

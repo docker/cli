@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
 	"gotest.tools/assert"
+	is "gotest.tools/assert/cmp"
 )
 
 func TestVisitAll(t *testing.T) {
@@ -54,4 +56,23 @@ func TestCommandVendor(t *testing.T) {
 			assert.Equal(t, commandVendor(cmd), tc.expected)
 		})
 	}
+}
+
+func TestInvalidPlugin(t *testing.T) {
+	root := &cobra.Command{Use: "root"}
+	sub1 := &cobra.Command{Use: "sub1"}
+	sub1sub1 := &cobra.Command{Use: "sub1sub1"}
+	sub1sub2 := &cobra.Command{Use: "sub1sub2"}
+	sub2 := &cobra.Command{Use: "sub2"}
+
+	assert.Assert(t, is.Len(invalidPlugins(root), 0))
+
+	sub1.Annotations = map[string]string{
+		pluginmanager.CommandAnnotationPlugin:        "true",
+		pluginmanager.CommandAnnotationPluginInvalid: "foo",
+	}
+	root.AddCommand(sub1, sub2)
+	sub1.AddCommand(sub1sub1, sub1sub2)
+
+	assert.DeepEqual(t, invalidPlugins(root), []*cobra.Command{sub1}, cmpopts.IgnoreUnexported(cobra.Command{}))
 }
