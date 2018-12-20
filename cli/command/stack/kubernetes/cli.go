@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/kubernetes"
-	cliv1beta1 "github.com/docker/cli/kubernetes/client/clientset/typed/compose/v1beta1"
+	kubernetes "github.com/docker/compose-on-kubernetes/api"
+	cliv1beta1 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta1"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	kubeclient "k8s.io/client-go/kubernetes"
