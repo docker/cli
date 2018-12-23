@@ -27,8 +27,7 @@ Options:
 
 ## Description
 
-Inspects the specified secret. This command has to be run targeting a manager
-node.
+Inspects the specified secret.
 
 By default, this renders all results in a JSON array. If a format is specified,
 the given template will be executed for each result.
@@ -37,6 +36,10 @@ Go's [text/template](http://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 For detailed information about using secrets, refer to [manage sensitive data with Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
+
+> **Note**: This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the [Swarm mode
+> section](https://docs.docker.com/engine/swarm/) in the documentation.
 
 ## Examples
 

@@ -34,6 +34,10 @@ role. You pass the token using the `--token` flag when you run
 [swarm join](swarm_join.md). Nodes use the join token only when they join the
 swarm.
 
+> **Note**: This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the [Swarm mode
+> section](https://docs.docker.com/engine/swarm/) in the documentation.
+
 ## Examples
 
 You can view or rotate the join tokens using `swarm join-token`.

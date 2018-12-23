@@ -34,8 +34,12 @@ Options:
 
 ## Description
 
-Lists the tasks that are running as part of the specified stack. This
-command has to be run targeting a manager node.
+Lists the tasks that are running as part of the specified stack.
+
+> **Note**: This is a cluster management command. When using swarm as an orchestrator,
+> this command must be executed on a swarm manager node. To learn about managers
+> and workers, refer to the [Swarm mode section](https://docs.docker.com/engine/swarm/)
+> in the documentation.
 
 ## Examples
 
