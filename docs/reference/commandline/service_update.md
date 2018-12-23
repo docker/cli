@@ -109,15 +109,19 @@ Options:
 
 ## Description
 
-Updates a service as described by the specified parameters. This command has to be run targeting a manager node.
-The parameters are the same as [`docker service create`](service_create.md). Please look at the description there
-for further information.
+Updates a service as described by the specified parameters. The parameters are
+the same as [`docker service create`](service_create.md). Refer to the description
+there for further information.
 
 Normally, updating a service will only cause the service's tasks to be replaced with new ones if a change to the
 service requires recreating the tasks for it to take effect. For example, only changing the
 `--update-parallelism` setting will not recreate the tasks, because the individual tasks are not affected by this
 setting. However, the `--force` flag will cause the tasks to be recreated anyway. This can be used to perform a
 rolling restart without any changes to the service parameters.
+
+> **Note**: This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the [Swarm mode
+> section](https://docs.docker.com/engine/swarm/) in the documentation.
 
 ## Examples
 
