@@ -1,11 +1,7 @@
 package clone
 
+import api "github.com/docker/compose-on-kubernetes/api/compose/clone"
+
 // SliceOfString deep copy a slice of strings
-func SliceOfString(source []string) []string {
-	if source == nil {
-		return nil
-	}
-	res := make([]string, len(source))
-	copy(res, source)
-	return res
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/clone.SliceOfString instead
+var SliceOfString = api.SliceOfString

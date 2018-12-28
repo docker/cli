@@ -1,30 +1,7 @@
 package v1beta2
 
-import (
-	"github.com/docker/cli/kubernetes/compose/impersonation"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-)
+import api "github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 
 // Owner describes the user who created the stack
-type Owner struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Owner             impersonation.Config `json:"owner,omitempty"`
-}
-
-func (o *Owner) clone() *Owner {
-	if o == nil {
-		return nil
-	}
-	result := new(Owner)
-	result.TypeMeta = o.TypeMeta
-	result.ObjectMeta = o.ObjectMeta
-	result.Owner = *result.Owner.Clone()
-	return result
-}
-
-// DeepCopyObject clones the owner
-func (o *Owner) DeepCopyObject() runtime.Object {
-	return o.clone()
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Owner instead
+type Owner = api.Owner

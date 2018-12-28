@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"github.com/docker/cli/kubernetes"
+	kubernetes "github.com/docker/compose-on-kubernetes/api"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"

@@ -11,8 +11,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/kubernetes"
 	"github.com/docker/cli/templates"
+	kubernetes "github.com/docker/compose-on-kubernetes/api"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

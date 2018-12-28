@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/kubernetes/labels"
+	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"

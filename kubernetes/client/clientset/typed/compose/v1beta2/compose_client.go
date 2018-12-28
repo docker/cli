@@ -1,74 +1,24 @@
 package v1beta2
 
-import (
-	"github.com/docker/cli/kubernetes/client/clientset/scheme"
-	"github.com/docker/cli/kubernetes/compose/v1beta2"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/rest"
-)
+import api "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2"
 
 // ComposeV1beta2Interface defines the methods a compose v1beta2 client has
-type ComposeV1beta2Interface interface {
-	RESTClient() rest.Interface
-	StacksGetter
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2.StackInterface instead
+type ComposeV1beta2Interface = api.ComposeV1beta2Interface
 
 // ComposeV1beta2Client is used to interact with features provided by the compose.docker.com group.
-type ComposeV1beta2Client struct {
-	restClient rest.Interface
-}
-
-// Stacks returns a stack client
-func (c *ComposeV1beta2Client) Stacks(namespace string) StackInterface {
-	return newStacks(c, namespace)
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2.ComposeV1beta2Client instead
+type ComposeV1beta2Client = api.ComposeV1beta2Client
 
 // NewForConfig creates a new ComposeV1beta2Client for the given config.
-func NewForConfig(c *rest.Config) (*ComposeV1beta2Client, error) {
-	config := *c
-	if err := setConfigDefaults(&config); err != nil {
-		return nil, err
-	}
-	client, err := rest.RESTClientFor(&config)
-	if err != nil {
-		return nil, err
-	}
-	return &ComposeV1beta2Client{client}, nil
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2.NewForConfig instead
+var NewForConfig = api.NewForConfig
 
 // NewForConfigOrDie creates a new ComposeV1beta2Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *ComposeV1beta2Client {
-	client, err := NewForConfig(c)
-	if err != nil {
-		panic(err)
-	}
-	return client
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2.NewForConfigOrDie instead
+var NewForConfigOrDie = api.NewForConfigOrDie
 
 // New creates a new ComposeV1beta2Client for the given RESTClient.
-func New(c rest.Interface) *ComposeV1beta2Client {
-	return &ComposeV1beta2Client{c}
-}
-
-func setConfigDefaults(config *rest.Config) error {
-	gv := v1beta2.SchemeGroupVersion
-	config.GroupVersion = &gv
-	config.APIPath = "/apis"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-
-	if config.UserAgent == "" {
-		config.UserAgent = rest.DefaultKubernetesUserAgent()
-	}
-
-	return nil
-}
-
-// RESTClient returns a RESTClient that is used to communicate
-// with API server by this client implementation.
-func (c *ComposeV1beta2Client) RESTClient() rest.Interface {
-	if c == nil {
-		return nil
-	}
-	return c.restClient
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2.New instead
+var New = api.New
