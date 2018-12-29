@@ -7,7 +7,7 @@ on disk. Later, the container can be restored from the point it was frozen.
 This is accomplished using a tool called [CRIU](http://criu.org), which is an
 external dependency of this feature. A good overview of the history of
 checkpoint and restore in Docker is available in this
-[Kubernetes blog post](http://blog.kubernetes.io/2015/07/how-did-quake-demo-from-dockercon-work.html).
+[Kubernetes blog post](https://kubernetes.io/blog/2015/07/how-did-quake-demo-from-dockercon-work/).
 
 ## Installing CRIU
 
