@@ -16,7 +16,7 @@ var patternString = fmt.Sprintf(
 
 var defaultPattern = regexp.MustCompile(patternString)
 
-// DefaultSubstituteFuncs contains the default SubstitueFunc used by the docker cli
+// DefaultSubstituteFuncs contains the default SubstituteFunc used by the docker cli
 var DefaultSubstituteFuncs = []SubstituteFunc{
 	softDefault,
 	hardDefault,
