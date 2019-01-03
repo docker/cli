@@ -116,6 +116,7 @@ Valid placeholders for the Go template are listed below:
 
 Placeholder     | Description
 ----------------|------------------------------------------------------------------------------------------
+`.ID`           | Task ID
 `.Name`         | Task name
 `.Image`        | Task image
 `.Node`         | Node ID
