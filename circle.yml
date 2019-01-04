@@ -4,11 +4,11 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.06.0-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.03.1-ce
+          version: 18.06.0-ce
           reusable: true
           exclusive: false
       - run:
@@ -21,12 +21,12 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.06.0-git'}]
     parallelism: 3
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.03.1-ce
+          version: 18.06.0-ce
           reusable: true
           exclusive: false
       - run:
@@ -46,11 +46,11 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.06.0-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.03.1-ce
+          version: 18.06.0-ce
           reusable: true
           exclusive: false
       - run:
@@ -73,11 +73,11 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.06.0-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.03.1-ce
+          version: 18.06.0-ce
           reusable: true
           exclusive: false
       - run:
@@ -89,11 +89,11 @@ jobs:
                 make ci-validate
   shellcheck:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.06.0-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.03.1-ce
+          version: 18.06.0-ce
           reusable: true
           exclusive: false
       - run:
