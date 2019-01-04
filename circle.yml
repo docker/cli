@@ -8,9 +8,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.03.1-ce
+          reusable: true
+          exclusive: false
       - run:
           command: docker version
       - run:
@@ -26,9 +26,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.03.1-ce
+          reusable: true
+          exclusive: false
       - run:
           name: "Cross"
           command: |
@@ -50,9 +50,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.03.1-ce
+          reusable: true
+          exclusive: false
       - run:
           name: "Unit Test with Coverage"
           command: |
@@ -86,9 +86,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.03.1-ce
+          reusable: true
+          exclusive: false
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
@@ -103,9 +103,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.03.1-ce
+          reusable: true
+          exclusive: false
       - run:
           name: "Run shellcheck"
           command: |
