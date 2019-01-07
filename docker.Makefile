@@ -62,7 +62,7 @@ clean: build_docker_image ## clean build artifacts
 	docker volume rm -f $(CACHE_VOLUME_NAME)
 
 .PHONY: test-unit
-test-unit: build_docker_image # run unit tests (using go test)
+test-unit: build_docker_image ## run unit tests (using go test)
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make test-unit
 
 .PHONY: test ## run unit and e2e tests
@@ -93,7 +93,7 @@ lint: build_linter_image ## run linters
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME)
 
 .PHONY: fmt
-fmt:
+fmt: ## run gofmt
 	docker run --rm $(ENVVARS) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make fmt
 
 .PHONY: vendor
@@ -119,21 +119,21 @@ yamldocs: build_docker_image ## generate documentation YAML files consumed by do
 shellcheck: build_shell_validate_image ## run shellcheck validation
 	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(VALIDATE_IMAGE_NAME) make shellcheck
 
-.PHONY: test-e2e ## run e2e tests
-test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ssh
+.PHONY: test-e2e
+test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ssh ## run all e2e tests
 
 .PHONY: test-e2e-experimental
-test-e2e-experimental: build_e2e_image
+test-e2e-experimental: build_e2e_image # run experimental e2e tests
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
-test-e2e-non-experimental: build_e2e_image
+test-e2e-non-experimental: build_e2e_image # run non-experimental e2e tests
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
-test-e2e-connhelper-ssh: build_e2e_image
+test-e2e-connhelper-ssh: build_e2e_image # run experimental SSH-connection helper e2e tests
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
 
 .PHONY: help
 help: ## print this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
