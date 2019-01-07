@@ -134,7 +134,7 @@ func (u HubUser) GetAvailableLicenses(ctx context.Context) ([]LicenseDisplay, er
 
 // GenerateTrialLicense will generate a new trial license for the specified user or org
 func (u HubUser) GenerateTrialLicense(ctx context.Context, targetID string) (*model.IssuedLicense, error) {
-	subID, err := u.Client.GenerateNewTrialSubscription(ctx, u.token, targetID, u.User.Email)
+	subID, err := u.Client.GenerateNewTrialSubscription(ctx, u.token, targetID)
 	if err != nil {
 		return nil, err
 	}

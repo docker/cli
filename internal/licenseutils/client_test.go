@@ -13,7 +13,7 @@ type (
 		getHubUserOrgsFunc               func(ctx context.Context, authToken string) (orgs []model.Org, err error)
 		getHubUserByNameFunc             func(ctx context.Context, username string) (user *model.User, err error)
 		verifyLicenseFunc                func(ctx context.Context, license model.IssuedLicense) (res *model.CheckResponse, err error)
-		generateNewTrialSubscriptionFunc func(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error)
+		generateNewTrialSubscriptionFunc func(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error)
 		listSubscriptionsFunc            func(ctx context.Context, authToken, dockerID string) (response []*model.Subscription, err error)
 		listSubscriptionsDetailsFunc     func(ctx context.Context, authToken, dockerID string) (response []*model.SubscriptionDetail, err error)
 		downloadLicenseFromHubFunc       func(ctx context.Context, authToken, subscriptionID string) (license *model.IssuedLicense, err error)
@@ -52,9 +52,9 @@ func (c *fakeLicensingClient) VerifyLicense(ctx context.Context, license model.I
 	return nil, nil
 }
 
-func (c *fakeLicensingClient) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
+func (c *fakeLicensingClient) GenerateNewTrialSubscription(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error) {
 	if c.generateNewTrialSubscriptionFunc != nil {
-		return c.generateNewTrialSubscriptionFunc(ctx, authToken, dockerID, email)
+		return c.generateNewTrialSubscriptionFunc(ctx, authToken, dockerID)
 	}
 	return "", nil
 }

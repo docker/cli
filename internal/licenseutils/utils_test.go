@@ -147,7 +147,7 @@ func TestGenerateTrialFail(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
 		Client: &fakeLicensingClient{
-			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
+			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error) {
 				return "", fmt.Errorf("generate trial failure")
 			},
 		},
@@ -161,7 +161,7 @@ func TestGenerateTrialHappy(t *testing.T) {
 	ctx := context.Background()
 	user := HubUser{
 		Client: &fakeLicensingClient{
-			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID, email string) (subscriptionID string, err error) {
+			generateNewTrialSubscriptionFunc: func(ctx context.Context, authToken, dockerID string) (subscriptionID string, err error) {
 				return "subid", nil
 			},
 		},
