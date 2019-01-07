@@ -141,7 +141,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		deviceReadIOps:    opts.NewThrottledeviceOpt(opts.ValidateThrottleIOpsDevice),
 		deviceWriteBps:    opts.NewThrottledeviceOpt(opts.ValidateThrottleBpsDevice),
 		deviceWriteIOps:   opts.NewThrottledeviceOpt(opts.ValidateThrottleIOpsDevice),
-		devices:           opts.NewListOpts(validateDevice),
+		devices:           opts.NewListOpts(nil), // devices can only be validated after we know the server OS
 		env:               opts.NewListOpts(opts.ValidateEnv),
 		envFile:           opts.NewListOpts(nil),
 		expose:            opts.NewListOpts(nil),
@@ -299,7 +299,7 @@ type containerConfig struct {
 // a HostConfig and returns them with the specified command.
 // If the specified args are not valid, it will return an error.
 // nolint: gocyclo
-func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, error) {
+func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*containerConfig, error) {
 	var (
 		attachStdin  = copts.attach.Get("stdin")
 		attachStdout = copts.attach.Get("stdout")
@@ -417,10 +417,22 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		}
 	}
 
-	// parse device mappings
+	// validate and parse device mappings. Note we do late validation of the
+	// device path (as opposed to during flag parsing), as at the time we are
+	// parsing flags, we haven't yet sent a _ping to the daemon to determine
+	// what operating system it is.
 	deviceMappings := []container.DeviceMapping{}
 	for _, device := range copts.devices.GetAll() {
-		deviceMapping, err := parseDevice(device)
+		var (
+			validated     string
+			deviceMapping container.DeviceMapping
+			err           error
+		)
+		validated, err = validateDevice(device, serverOS)
+		if err != nil {
+			return nil, err
+		}
+		deviceMapping, err = parseDevice(validated, serverOS)
 		if err != nil {
 			return nil, err
 		}
@@ -747,7 +759,19 @@ func parseStorageOpts(storageOpts []string) (map[string]string, error) {
 }
 
 // parseDevice parses a device mapping string to a container.DeviceMapping struct
-func parseDevice(device string) (container.DeviceMapping, error) {
+func parseDevice(device, serverOS string) (container.DeviceMapping, error) {
+	switch serverOS {
+	case "linux":
+		return parseLinuxDevice(device)
+	case "windows":
+		return parseWindowsDevice(device)
+	}
+	return container.DeviceMapping{}, errors.Errorf("unknown server OS: %s", serverOS)
+}
+
+// parseLinuxDevice parses a device mapping string to a container.DeviceMapping struct
+// knowing that the target is a Linux daemon
+func parseLinuxDevice(device string) (container.DeviceMapping, error) {
 	src := ""
 	dst := ""
 	permissions := "rwm"
@@ -779,6 +803,12 @@ func parseDevice(device string) (container.DeviceMapping, error) {
 		CgroupPermissions: permissions,
 	}
 	return deviceMapping, nil
+}
+
+// parseWindowsDevice parses a device mapping string to a container.DeviceMapping struct
+// knowing that the target is a Windows daemon
+func parseWindowsDevice(device string) (container.DeviceMapping, error) {
+	return container.DeviceMapping{PathOnHost: device}, nil
 }
 
 // validateDeviceCgroupRule validates a device cgroup rule string format
@@ -813,14 +843,23 @@ func validDeviceMode(mode string) bool {
 }
 
 // validateDevice validates a path for devices
+func validateDevice(val string, serverOS string) (string, error) {
+	switch serverOS {
+	case "linux":
+		return validateLinuxPath(val, validDeviceMode)
+	case "windows":
+		// Windows does validation entirely server-side
+		return val, nil
+	}
+	return "", errors.Errorf("unknown server OS: %s", serverOS)
+}
+
+// validateLinuxPath is the implementation of validateDevice knowing that the
+// target server operating system is a Linux daemon.
 // It will make sure 'val' is in the form:
 //    [host-dir:]container-path[:mode]
 // It also validates the device mode.
-func validateDevice(val string) (string, error) {
-	return validatePath(val, validDeviceMode)
-}
-
-func validatePath(val string, validator func(string) bool) (string, error) {
+func validateLinuxPath(val string, validator func(string) bool) (string, error) {
 	var containerPath string
 	var mode string
 

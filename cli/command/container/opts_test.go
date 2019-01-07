@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/pflag"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"gotest.tools/skip"
 )
 
 func TestValidateAttach(t *testing.T) {
@@ -48,7 +49,7 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 		return nil, nil, nil, err
 	}
 	// TODO: fix tests to accept ContainerConfig
-	containerConfig, err := parse(flags, copts)
+	containerConfig, err := parse(flags, copts, runtime.GOOS)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -351,6 +352,7 @@ func TestParseWithExpose(t *testing.T) {
 }
 
 func TestParseDevice(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
 	valids := map[string]container.DeviceMapping{
 		"/dev/snd": {
 			PathOnHost:        "/dev/snd",
@@ -393,7 +395,7 @@ func TestParseModes(t *testing.T) {
 	flags, copts := setupRunFlags()
 	args := []string{"--pid=container:", "img", "cmd"}
 	assert.NilError(t, flags.Parse(args))
-	_, err := parse(flags, copts)
+	_, err := parse(flags, copts, runtime.GOOS)
 	assert.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
@@ -615,6 +617,7 @@ func TestParseEntryPoint(t *testing.T) {
 }
 
 func TestValidateDevice(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
 	valid := []string{
 		"/home",
 		"/home:/home",
@@ -649,13 +652,13 @@ func TestValidateDevice(t *testing.T) {
 	}
 
 	for _, path := range valid {
-		if _, err := validateDevice(path); err != nil {
+		if _, err := validateDevice(path, runtime.GOOS); err != nil {
 			t.Fatalf("ValidateDevice(`%q`) should succeed: error %q", path, err)
 		}
 	}
 
 	for path, expectedError := range invalid {
-		if _, err := validateDevice(path); err == nil {
+		if _, err := validateDevice(path, runtime.GOOS); err == nil {
 			t.Fatalf("ValidateDevice(`%q`) should have failed validation", path)
 		} else {
 			if err.Error() != expectedError {
