@@ -82,7 +82,7 @@ binary-osx: build_cross_image ## build the CLI for macOS
 
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
-	docker run -ti $(ENVVARS) $(MOUNTS) \
+	docker run -ti --rm $(ENVVARS) $(MOUNTS) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		$(DEV_DOCKER_IMAGE_NAME) ash
 
@@ -90,7 +90,7 @@ shell: dev ## alias for dev
 
 .PHONY: lint
 lint: build_linter_image ## run linters
-	docker run -ti $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME)
+	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(LINTER_IMAGE_NAME)
 
 .PHONY: fmt
 fmt:
@@ -124,7 +124,7 @@ test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ss
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build_e2e_image
-	docker run -e DOCKERD_EXPERIMENTAL=1 --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build_e2e_image
@@ -132,7 +132,7 @@ test-e2e-non-experimental: build_e2e_image
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build_e2e_image
-	docker run -e TEST_CONNHELPER=ssh -e DOCKERD_EXPERIMENTAL=1 --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
 
 .PHONY: help
 help: ## print this help
