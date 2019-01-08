@@ -20,6 +20,7 @@ import (
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 	"gotest.tools/fs"
+	"gotest.tools/golden"
 )
 
 func TestCIDFileNoOPWithNoFilename(t *testing.T) {
@@ -163,6 +164,70 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)
+	}
+}
+
+func TestNewCreateCommandWithWarnings(t *testing.T) {
+	testCases := []struct {
+		name    string
+		args    []string
+		warning bool
+	}{
+		{
+			name: "container-create-without-oom-kill-disable",
+			args: []string{"image:tag"},
+		},
+		{
+			name: "container-create-oom-kill-disable-false",
+			args: []string{"--oom-kill-disable=false", "image:tag"},
+		},
+		{
+			name:    "container-create-oom-kill-without-memory-limit",
+			args:    []string{"--oom-kill-disable", "image:tag"},
+			warning: true,
+		},
+		{
+			name:    "container-create-oom-kill-true-without-memory-limit",
+			args:    []string{"--oom-kill-disable=true", "image:tag"},
+			warning: true,
+		},
+		{
+			name: "container-create-oom-kill-true-with-memory-limit",
+			args: []string{"--oom-kill-disable=true", "--memory=100M", "image:tag"},
+		},
+		{
+			name:    "container-create-localhost-dns",
+			args:    []string{"--dns=127.0.0.11", "image:tag"},
+			warning: true,
+		},
+		{
+			name:    "container-create-localhost-dns-ipv6",
+			args:    []string{"--dns=::1", "image:tag"},
+			warning: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				createContainerFunc: func(config *container.Config,
+					hostConfig *container.HostConfig,
+					networkingConfig *network.NetworkingConfig,
+					containerName string,
+				) (container.ContainerCreateCreatedBody, error) {
+					return container.ContainerCreateCreatedBody{}, nil
+				},
+			})
+			cmd := NewCreateCommand(cli)
+			cmd.SetOutput(ioutil.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			if tc.warning {
+				golden.Assert(t, cli.ErrBuffer().String(), tc.name+".golden")
+			} else {
+				assert.Equal(t, cli.ErrBuffer().String(), "")
+			}
+		})
 	}
 }
 
