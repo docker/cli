@@ -2,6 +2,8 @@
 title: "run"
 description: "The run command description and usage"
 keywords: "run, command, container"
+redirect_from: 
+- /v1.11/engine/reference/commandline/run/
 ---
 
 <!-- This file is maintained within the docker/cli GitHub
