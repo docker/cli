@@ -8,15 +8,15 @@ BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/'
 
 PLATFORM_LDFLAGS=
 if test -n "${PLATFORM}"; then
-	PLATFORM_LDFLAGS="-X \"github.com/docker/cli/cli.PlatformName=${PLATFORM}\""
+	PLATFORM_LDFLAGS="-X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
 fi
 
 export LDFLAGS="\
     -w \
     ${PLATFORM_LDFLAGS} \
-    -X \"github.com/docker/cli/cli.GitCommit=${GITCOMMIT}\" \
-    -X \"github.com/docker/cli/cli.BuildTime=${BUILDTIME}\" \
-    -X \"github.com/docker/cli/cli.Version=${VERSION}\" \
+    -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\" \
+    -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\" \
+    -X \"github.com/docker/cli/cli/version.Version=${VERSION}\" \
     ${LDFLAGS:-} \
 "
 
