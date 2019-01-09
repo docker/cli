@@ -49,6 +49,9 @@ Placement:
 {{- if .TaskPlacementPreferences }}
  Preferences:   {{ .TaskPlacementPreferences }}
 {{- end }}
+{{- if .MaxReplicas }}
+ Max Replicas Per Node:   {{ .MaxReplicas }}
+{{- end }}
 {{- if .HasUpdateConfig }}
 UpdateConfig:
  Parallelism:	{{ .UpdateParallelism }}
@@ -282,6 +285,13 @@ func (ctx *serviceInspectContext) TaskPlacementPreferences() []string {
 		}
 	}
 	return strings
+}
+
+func (ctx *serviceInspectContext) MaxReplicas() uint64 {
+	if ctx.Service.Spec.TaskTemplate.Placement != nil {
+		return ctx.Service.Spec.TaskTemplate.Placement.MaxReplicas
+	}
+	return 0
 }
 
 func (ctx *serviceInspectContext) HasUpdateConfig() bool {

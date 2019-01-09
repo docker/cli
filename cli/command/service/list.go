@@ -120,9 +120,16 @@ func GetServicesStatus(services []swarm.Service, nodes []swarm.Node, tasks []swa
 	for _, service := range services {
 		info[service.ID] = ListInfo{}
 		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
-			info[service.ID] = ListInfo{
-				Mode:     "replicated",
-				Replicas: fmt.Sprintf("%d/%d", running[service.ID], *service.Spec.Mode.Replicated.Replicas),
+			if service.Spec.TaskTemplate.Placement != nil && service.Spec.TaskTemplate.Placement.MaxReplicas > 0 {
+				info[service.ID] = ListInfo{
+					Mode:     "replicated",
+					Replicas: fmt.Sprintf("%d/%d (max %d per node)", running[service.ID], *service.Spec.Mode.Replicated.Replicas, service.Spec.TaskTemplate.Placement.MaxReplicas),
+				}
+			} else {
+				info[service.ID] = ListInfo{
+					Mode:     "replicated",
+					Replicas: fmt.Sprintf("%d/%d", running[service.ID], *service.Spec.Mode.Replicated.Replicas),
+				}
 			}
 		} else if service.Spec.Mode.Global != nil {
 			info[service.ID] = ListInfo{

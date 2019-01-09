@@ -500,6 +500,7 @@ type serviceOptions struct {
 	restartPolicy  restartPolicyOptions
 	constraints    opts.ListOpts
 	placementPrefs placementPrefOpts
+	maxReplicas    uint64
 	update         updateOptions
 	rollback       updateOptions
 	networks       opts.NetworkOpt
@@ -539,6 +540,10 @@ func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 	case "global":
 		if options.replicas.Value() != nil {
 			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
+		}
+
+		if options.maxReplicas > 0 {
+			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated mode")
 		}
 
 		serviceMode.Global = &swarm.GlobalService{}
@@ -645,6 +650,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			Placement: &swarm.Placement{
 				Constraints: options.constraints.GetAll(),
 				Preferences: options.placementPrefs.prefs,
+				MaxReplicas: options.maxReplicas,
 			},
 			LogDriver: options.logDriver.toLogDriver(),
 		},
@@ -747,6 +753,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
+	flags.Uint64Var(&opts.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
+	flags.SetAnnotation(flagMaxReplicas, "version", []string{"1.40"})
 
 	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", flagDesc(flagRestartCondition, `Restart when condition is met ("none"|"on-failure"|"any")`))
 	flags.Var(&opts.restartPolicy.delay, flagRestartDelay, flagDesc(flagRestartDelay, "Delay between restart attempts (ns|us|ms|s|m|h)"))
@@ -853,6 +861,7 @@ const (
 	flagLabelAdd                = "label-add"
 	flagLimitCPU                = "limit-cpu"
 	flagLimitMemory             = "limit-memory"
+	flagMaxReplicas             = "replicas-max-per-node"
 	flagMode                    = "mode"
 	flagMount                   = "mount"
 	flagMountRemove             = "mount-rm"

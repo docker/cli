@@ -387,6 +387,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		return err
 	}
 
+	if anyChanged(flags, flagMaxReplicas) {
+		updateUint64(flagMaxReplicas, &task.Placement.MaxReplicas)
+	}
+
 	if anyChanged(flags, flagUpdateParallelism, flagUpdateDelay, flagUpdateMonitor, flagUpdateFailureAction, flagUpdateMaxFailureRatio, flagUpdateOrder) {
 		if spec.UpdateConfig == nil {
 			spec.UpdateConfig = updateConfigFromDefaults(defaults.Service.Update)

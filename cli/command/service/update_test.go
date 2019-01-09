@@ -808,3 +808,23 @@ func TestUpdateNetworks(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id999"}}, svc.TaskTemplate.Networks))
 }
+
+func TestUpdateMaxReplicas(t *testing.T) {
+	ctx := context.Background()
+
+	svc := swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+			Placement: &swarm.Placement{
+				MaxReplicas: 1,
+			},
+		},
+	}
+
+	flags := newUpdateCommand(nil).Flags()
+	flags.Set(flagMaxReplicas, "2")
+	err := updateService(ctx, nil, flags, &svc)
+	assert.NilError(t, err)
+
+	assert.DeepEqual(t, svc.TaskTemplate.Placement, &swarm.Placement{MaxReplicas: uint64(2)})
+}
