@@ -10,7 +10,7 @@ const (
 	MetadataSubcommandName = "docker-cli-plugin-metadata"
 )
 
-// Metadata provided by the plugin
+// Metadata provided by the plugin. See docs/extend/cli_plugins.md for canonical information.
 type Metadata struct {
 	// SchemaVersion describes the version of this struct. Mandatory, must be "0.1.0"
 	SchemaVersion string `json:",omitempty"`
