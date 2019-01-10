@@ -548,3 +548,17 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 
 	assert.Check(t, is.DeepEqual(expected, configFile))
 }
+
+func TestConfigPath(t *testing.T) {
+	oldDir := Dir()
+
+	SetDir("dummy1")
+	f1 := Path("a", "b")
+	assert.Equal(t, f1, filepath.Join("dummy1", "a", "b"))
+
+	SetDir("dummy2")
+	f2 := Path("c", "d")
+	assert.Equal(t, f2, filepath.Join("dummy2", "c", "d"))
+
+	SetDir(oldDir)
+}
