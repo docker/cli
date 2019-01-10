@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/api/defaults"
@@ -909,3 +910,12 @@ const (
 	flagConfigRemove            = "config-rm"
 	flagIsolation               = "isolation"
 )
+
+func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
+	for _, m := range c.TaskTemplate.ContainerSpec.Mounts {
+		if m.BindOptions != nil && m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
+			return errors.Errorf("bind-nonrecursive requires API v1.40 or later")
+		}
+	}
+	return nil
+}

@@ -363,16 +363,34 @@ volumes in a service:
     <td></td>
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
-      is given when mounting the bind or volume.
+      is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
+      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
       </ul></p>
     </td>
   </tr>
+</table>
+
+#### Options for Bind Mounts
+
+The following options can only be used for bind mounts (`type=bind`):
+
+
+<table>
+  <tr>
+    <th>Option</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>bind-propagation</b></td>
+    <td>
+      <p>See the <a href="#bind-propagation">bind propagation section</a>.</p>
+    </td>
+  </tr>
   <tr>
     <td><b>consistency</b></td>
-    <td></td>
     <td>
       <p>The consistency requirements for the mount; one of
          <ul>
@@ -384,9 +402,24 @@ volumes in a service:
      </p>
     </td>
   </tr>
+  <tr>
+    <td><b>bind-nonrecursive</b></td>
+    <td>
+      By default, submounts are recursively bind-mounted as well. However, this behavior can be confusing when a
+      bind mount is configured with <tt>readonly</tt> option, because submounts are not mounted as read-only.
+      Set <tt>bind-nonrecursive</tt> to disable recursive bind-mount.<br />
+      <br />
+      A value is optional:<br />
+      <br />
+      <ul>
+        <li><tt>true</tt> or <tt>1</tt>: Disables recursive bind-mount.</li>
+        <li><tt>false</tt> or <tt>0</tt>: Default if you do not provide a value. Enables recursive bind-mount.</li>
+      </ul>
+    </td>
+  </tr>
 </table>
 
-#### Bind Propagation
+##### Bind propagation
 
 Bind propagation refers to whether or not mounts created within a given
 bind mount or named volume can be propagated to replicas of that mount. Consider
@@ -423,7 +456,7 @@ volumes do not support bind propagation.
 For more information about bind propagation, see the
 [Linux kernel documentation for shared subtree](https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt).
 
-#### Options for Named Volumes
+#### Options for named volumes
 
 The following options can only be used for named volumes (`type=volume`):
 
@@ -459,9 +492,9 @@ The following options can only be used for named volumes (`type=volume`):
       the Engine copies those files and directories into the volume, allowing
       the host to access them. Set <tt>volume-nocopy</tt> to disable copying files
       from the container's filesystem to the volume and mount the empty volume.<br />
-
-      A value is optional:
-
+      <br />
+      A value is optional:<br />
+      <br />
       <ul>
         <li><tt>true</tt> or <tt>1</tt>: Default if you do not provide a value. Disables copying.</li>
         <li><tt>false</tt> or <tt>0</tt>: Enables copying.</li>
