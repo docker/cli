@@ -15,8 +15,8 @@ import (
 type Factory struct {
 	namespace     string
 	config        *restclient.Config
-	coreClientSet *corev1.CoreV1Client
-	appsClientSet *appsv1beta2.AppsV1beta2Client
+	coreClientSet corev1.CoreV1Interface
+	appsClientSet appsv1beta2.AppsV1beta2Interface
 	clientSet     *kubeclient.Clientset
 }
 

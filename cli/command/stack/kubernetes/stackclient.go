@@ -5,6 +5,8 @@ import (
 
 	composev1beta1 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta1"
 	composev1beta2 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2"
+	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
+	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -14,7 +16,7 @@ import (
 // StackClient talks to a kubernetes compose component.
 type StackClient interface {
 	StackConverter
-	CreateOrUpdate(s Stack) error
+	CreateOrUpdate(s Stack, childResources []childResource) error
 	Delete(name string) error
 	Get(name string) (Stack, error)
 	List(opts metav1.ListOptions) ([]Stack, error)
@@ -35,16 +37,33 @@ func newStackV1Beta1(config *rest.Config, namespace string) (*stackV1Beta1, erro
 	return &stackV1Beta1{stacks: client.Stacks(namespace)}, nil
 }
 
-func (s *stackV1Beta1) CreateOrUpdate(internalStack Stack) error {
+func (s *stackV1Beta1) CreateOrUpdate(internalStack Stack, childResources []childResource) error {
 	// If it already exists, update the stack
-	if stackBeta1, err := s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
-		stackBeta1.Spec.ComposeFile = internalStack.ComposeFile
-		_, err := s.stacks.Update(stackBeta1)
+	var (
+		stack *v1beta1.Stack
+		err   error
+	)
+	if stack, err = s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
+		stack.Spec.ComposeFile = internalStack.ComposeFile
+		stack, err = s.stacks.Update(stack)
+	} else {
+		// Or create it
+		stack, err = s.stacks.Create(stackToV1beta1(internalStack))
+	}
+	if err != nil {
+		deleteChildResources(childResources)
 		return err
 	}
-	// Or create it
-	_, err := s.stacks.Create(stackToV1beta1(internalStack))
-	return err
+	blockOwnerDeletion := true
+	isController := true
+	return setChildResourcesOwner(childResources, metav1.OwnerReference{
+		APIVersion:         v1beta1.SchemeGroupVersion.String(),
+		Kind:               "Stack",
+		Name:               stack.Name,
+		UID:                stack.UID,
+		BlockOwnerDeletion: &blockOwnerDeletion,
+		Controller:         &isController,
+	})
 }
 
 func (s *stackV1Beta1) Delete(name string) error {
@@ -116,16 +135,33 @@ func newStackV1Beta2(config *rest.Config, namespace string) (*stackV1Beta2, erro
 	return &stackV1Beta2{stacks: client.Stacks(namespace)}, nil
 }
 
-func (s *stackV1Beta2) CreateOrUpdate(internalStack Stack) error {
+func (s *stackV1Beta2) CreateOrUpdate(internalStack Stack, childResources []childResource) error {
 	// If it already exists, update the stack
-	if stackBeta2, err := s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
-		stackBeta2.Spec = internalStack.Spec
-		_, err := s.stacks.Update(stackBeta2)
+	var (
+		stack *v1beta2.Stack
+		err   error
+	)
+	if stack, err = s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
+		stack.Spec = internalStack.Spec
+		stack, err = s.stacks.Update(stack)
+	} else {
+		// Or create it
+		stack, err = s.stacks.Create(stackToV1beta2(internalStack))
+	}
+	if err != nil {
+		deleteChildResources(childResources)
 		return err
 	}
-	// Or create it
-	_, err := s.stacks.Create(stackToV1beta2(internalStack))
-	return err
+	blockOwnerDeletion := true
+	isController := true
+	return setChildResourcesOwner(childResources, metav1.OwnerReference{
+		APIVersion:         v1beta2.SchemeGroupVersion.String(),
+		Kind:               "Stack",
+		Name:               stack.Name,
+		UID:                stack.UID,
+		BlockOwnerDeletion: &blockOwnerDeletion,
+		Controller:         &isController,
+	})
 }
 
 func (s *stackV1Beta2) Delete(name string) error {
