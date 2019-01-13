@@ -84,6 +84,19 @@ func parseDockerDaemonHost(addr string) (string, error) {
 	}
 }
 
+// IsSocket checks if the given address is a Unix-socket (linux) or named pipe (Windows)
+func IsSocket(addr string) bool {
+	addrParts := strings.SplitN(addr, "://", 2)
+	if len(addrParts) == 1 && addrParts[0] != "" {
+		addrParts = []string{"tcp", addrParts[0]}
+	}
+	switch addrParts[0] {
+	case "unix", "npipe", "fd":
+		return true
+	}
+	return false
+}
+
 // parseSimpleProtoAddr parses and validates that the specified address is a valid
 // socket address for simple protocols like unix and npipe. It returns a formatted
 // socket address, either using the address parsed from addr, or the contents of
