@@ -96,7 +96,9 @@ func (scs simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
-func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *types.AuthConfig, actions ...string) (client.Repository, error) {
+func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo,
+	authConfig *types.AuthConfig, trustPinningConfig trustpinning.TrustPinConfig, actions ...string,
+) (client.Repository, error) {
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
@@ -180,7 +182,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 		server,
 		tr,
 		GetPassphraseRetriever(in, out),
-		trustpinning.TrustPinConfig{})
+		trustPinningConfig)
 }
 
 // GetPassphraseRetriever returns a passphrase retriever that utilizes Content Trust env vars

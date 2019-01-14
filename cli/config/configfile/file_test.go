@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/api/types"
+	"github.com/theupdateframework/notary/trustpinning"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -21,6 +22,34 @@ func TestEncodeAuth(t *testing.T) {
 	expected.Username, expected.Password, err = decodeAuth(authStr)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, newAuthConfig))
+}
+
+func TestTrustPinningConfig(t *testing.T) {
+	certs := map[string][]string{
+		"docker.io/test/*":   {"id1", "id2"},
+		"docker.io/test/abc": {"id3", "id4"},
+	}
+	ca := map[string]string{
+		"docker.io/test/*": "filename.cert",
+	}
+
+	trustConfig := TrustPinningConfig{
+		Certs:       certs,
+		CA:          ca,
+		DisableTOFU: false,
+	}
+
+	cfg := ConfigFile{
+		TrustPinning: &trustConfig,
+	}
+
+	trustPinningConfig := cfg.ParseTrustPinning()
+	expected := trustpinning.TrustPinConfig{
+		DisableTOFU: trustConfig.DisableTOFU,
+		CA:          trustConfig.CA,
+		Certs:       trustConfig.Certs,
+	}
+	assert.Check(t, is.DeepEqual(expected, trustPinningConfig))
 }
 
 func TestProxyConfig(t *testing.T) {

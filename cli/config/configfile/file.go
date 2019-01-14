@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
+	"github.com/theupdateframework/notary/trustpinning"
 )
 
 const (
@@ -48,6 +49,14 @@ type ConfigFile struct {
 	Experimental         string                      `json:"experimental,omitempty"`
 	StackOrchestrator    string                      `json:"stackOrchestrator,omitempty"`
 	Kubernetes           *KubernetesConfig           `json:"kubernetes,omitempty"`
+	TrustPinning         *TrustPinningConfig         `json:"trustPinning,omitempty"`
+}
+
+// TrustPinningConfig contains notary trust pinning settings
+type TrustPinningConfig struct {
+	Certs       map[string][]string `json:certs,omitempty`
+	CA          map[string]string   `json:ca,omitempty`
+	DisableTOFU bool                `json:disableTofu,omitempty`
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -190,6 +199,27 @@ func (configFile *ConfigFile) Save() error {
 		return err
 	}
 	return os.Rename(temp.Name(), configFile.Filename)
+}
+
+// ParseTrustPinning parses Notary trust pinning structure from configuration, and prepends CA certificate files with
+// the absolute path of the configuration directory
+func (configFile *ConfigFile) ParseTrustPinning() trustpinning.TrustPinConfig {
+	if configFile.TrustPinning == nil {
+		return trustpinning.TrustPinConfig{}
+	}
+	// Prepend CA file path with config directory path
+	configPath := filepath.Dir(configFile.GetFilename())
+	caMap := configFile.TrustPinning.CA
+	resultCaMap := make(map[string]string)
+	for gun, caFileName := range caMap {
+		resultCaMap[gun] = filepath.Join(configPath, caFileName)
+	}
+
+	return trustpinning.TrustPinConfig{
+		DisableTOFU: configFile.TrustPinning.DisableTOFU,
+		Certs:       configFile.TrustPinning.Certs,
+		CA:          resultCaMap,
+	}
 }
 
 // ParseProxyConfig computes proxy configuration by retrieving the config for the provided host and

@@ -245,7 +245,7 @@ func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(pa
 
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image
 func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), cli.configFile.ParseTrustPinning(), actions...)
 }
 
 // NewContainerizedEngineClient returns a containerized engine client
