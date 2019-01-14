@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
@@ -22,19 +23,7 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-
-			switch {
-			case common.orchestrator.HasAll():
-				return errUnsupportedAllOrchestrator
-			case common.orchestrator.HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
-				if err != nil {
-					return err
-				}
-				return kubernetes.RunPS(kli, opts)
-			default:
-				return swarm.RunPS(dockerCli, opts)
-			}
+			return RunPs(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -45,4 +34,11 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print tasks using a Go template")
 	kubernetes.AddNamespaceFlag(flags)
 	return cmd
+}
+
+// RunPs performs a stack ps against the specified orchestrator
+func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
+	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
+		func() error { return swarm.RunPS(dockerCli, opts) },
+		func(kli *kubernetes.KubeCli) error { return kubernetes.RunPS(kli, opts) })
 }

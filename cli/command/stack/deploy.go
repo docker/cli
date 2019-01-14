@@ -50,7 +50,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err != nil {
 				return err
 			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, commonOrchestrator, opts)
+			return RunDeploy(dockerCli, cmd.Flags(), config, common.Orchestrator(), opts)
 		},
 	}
 
@@ -75,16 +75,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 
 // RunDeploy performs a stack deploy against the specified orchestrator
 func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
-	switch {
-	case commonOrchestrator.HasAll():
-		return errUnsupportedAllOrchestrator
-	case commonOrchestrator.HasKubernetes():
-		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
-		if err != nil {
-			return errors.Wrap(err, "unable to deploy to Kubernetes")
-		}
-		return kubernetes.RunDeploy(kli, opts, config)
-	default:
-		return swarm.RunDeploy(dockerCli, opts, config)
-	}
+	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
+		func() error { return swarm.RunDeploy(dockerCli, opts, config) },
+		func(kli *kubernetes.KubeCli) error { return kubernetes.RunDeploy(kli, opts, config) })
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
@@ -22,19 +23,7 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-
-			switch {
-			case common.orchestrator.HasAll():
-				return errUnsupportedAllOrchestrator
-			case common.orchestrator.HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
-				if err != nil {
-					return err
-				}
-				return kubernetes.RunServices(kli, opts)
-			default:
-				return swarm.RunServices(dockerCli, opts)
-			}
+			return RunServices(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -43,4 +32,11 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
 	kubernetes.AddNamespaceFlag(flags)
 	return cmd
+}
+
+// RunServices performs a stack services against the specified orchestrator
+func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) error {
+	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
+		func() error { return swarm.RunServices(dockerCli, opts) },
+		func(kli *kubernetes.KubeCli) error { return kubernetes.RunServices(kli, opts) })
 }
