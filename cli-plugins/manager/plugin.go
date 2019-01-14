@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -46,15 +45,12 @@ func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 	if fullname == "." {
 		return Plugin{}, errors.Errorf("unable to determine basename of plugin candidate %q", path)
 	}
-	if runtime.GOOS == "windows" {
-		exe := ".exe"
-		if !strings.HasSuffix(fullname, exe) {
-			return Plugin{}, errors.Errorf("plugin candidate %q lacks required %q suffix", path, exe)
-		}
-		fullname = strings.TrimSuffix(fullname, exe)
+	var err error
+	if fullname, err = trimExeSuffix(fullname); err != nil {
+		return Plugin{}, errors.Wrapf(err, "plugin candidate %q", path)
 	}
 	if !strings.HasPrefix(fullname, NamePrefix) {
-		return Plugin{}, errors.Errorf("plugin candidate %q does not have %q prefix", path, NamePrefix)
+		return Plugin{}, errors.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
 	}
 
 	p := Plugin{

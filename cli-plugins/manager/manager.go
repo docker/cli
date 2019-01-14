@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -61,12 +60,9 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) error {
 			continue
 		}
 		name = strings.TrimPrefix(name, NamePrefix)
-		if runtime.GOOS == "windows" {
-			exe := ".exe"
-			if !strings.HasSuffix(name, exe) {
-				continue
-			}
-			name = strings.TrimSuffix(name, exe)
+		var err error
+		if name, err = trimExeSuffix(name); err != nil {
+			continue
 		}
 		res[name] = append(res[name], filepath.Join(d, dentry.Name()))
 	}
@@ -131,10 +127,7 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		// fallback to their "invalid" command path.
 		return nil, errPluginNotFound(name)
 	}
-	exename := NamePrefix + name
-	if runtime.GOOS == "windows" {
-		exename = exename + ".exe"
-	}
+	exename := addExeSuffix(NamePrefix + name)
 	for _, d := range getPluginDirs(dockerCli) {
 		path := filepath.Join(d, exename)
 
