@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultNetworkTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}"
+	defaultNetworkTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}\t{{.IsPendingDeletion}}"
 
 	networkIDHeader = "NETWORK ID"
 	ipv6Header      = "IPV6"
@@ -29,7 +29,7 @@ func NewFormat(source string, quiet bool) formatter.Format {
 		if quiet {
 			return `network_id: {{.ID}}`
 		}
-		return `network_id: {{.ID}}\nname: {{.Name}}\ndriver: {{.Driver}}\nscope: {{.Scope}}\n`
+		return `network_id: {{.ID}}\nname: {{.Name}}\ndriver: {{.Driver}}\nscope: {{.Scope}}\npending deletion: {{.IsPendingDeletion}}\n`
 	}
 	return formatter.Format(source)
 }
@@ -47,14 +47,15 @@ func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error 
 	}
 	networkCtx := networkContext{}
 	networkCtx.Header = formatter.SubHeaderContext{
-		"ID":        networkIDHeader,
-		"Name":      formatter.NameHeader,
-		"Driver":    formatter.DriverHeader,
-		"Scope":     formatter.ScopeHeader,
-		"IPv6":      ipv6Header,
-		"Internal":  internalHeader,
-		"Labels":    formatter.LabelsHeader,
-		"CreatedAt": formatter.CreatedAtHeader,
+		"ID":                networkIDHeader,
+		"Name":              formatter.NameHeader,
+		"Driver":            formatter.DriverHeader,
+		"Scope":             formatter.ScopeHeader,
+		"IPv6":              ipv6Header,
+		"Internal":          internalHeader,
+		"Labels":            formatter.LabelsHeader,
+		"CreatedAt":         formatter.CreatedAtHeader,
+		"IsPendingDeletion": formatter.PendingDeleteHeader,
 	}
 	return ctx.Write(&networkCtx, render)
 }
@@ -117,4 +118,8 @@ func (c *networkContext) Label(name string) string {
 
 func (c *networkContext) CreatedAt() string {
 	return c.n.Created.String()
+}
+
+func (c *networkContext) IsPendingDeletion() bool {
+	return c.n.PendingDelete
 }

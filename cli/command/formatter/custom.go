@@ -4,18 +4,19 @@ import "strings"
 
 // Common header constants
 const (
-	CreatedSinceHeader = "CREATED"
-	CreatedAtHeader    = "CREATED AT"
-	SizeHeader         = "SIZE"
-	LabelsHeader       = "LABELS"
-	NameHeader         = "NAME"
-	DescriptionHeader  = "DESCRIPTION"
-	DriverHeader       = "DRIVER"
-	ScopeHeader        = "SCOPE"
-	StatusHeader       = "STATUS"
-	PortsHeader        = "PORTS"
-	ImageHeader        = "IMAGE"
-	ContainerIDHeader  = "CONTAINER ID"
+	CreatedSinceHeader  = "CREATED"
+	CreatedAtHeader     = "CREATED AT"
+	SizeHeader          = "SIZE"
+	LabelsHeader        = "LABELS"
+	NameHeader          = "NAME"
+	DescriptionHeader   = "DESCRIPTION"
+	DriverHeader        = "DRIVER"
+	ScopeHeader         = "SCOPE"
+	StatusHeader        = "STATUS"
+	PortsHeader         = "PORTS"
+	ImageHeader         = "IMAGE"
+	ContainerIDHeader   = "CONTAINER ID"
+	PendingDeleteHeader = "PENDING DELETION?"
 )
 
 // SubContext defines what Context implementation should provide

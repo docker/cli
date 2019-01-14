@@ -456,7 +456,7 @@ func (ctx *serviceInspectContext) Ports() []swarm.PortConfig {
 }
 
 const (
-	defaultServiceTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}"
+	defaultServiceTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Mode}}\t{{.Replicas}}\t{{.Image}}\t{{.Ports}}\t{{.IsPendingDeletion}}"
 
 	serviceIDHeader = "ID"
 	modeHeader      = "MODE"
@@ -475,7 +475,7 @@ func NewListFormat(source string, quiet bool) formatter.Format {
 		if quiet {
 			return `id: {{.ID}}`
 		}
-		return `id: {{.ID}}\nname: {{.Name}}\nmode: {{.Mode}}\nreplicas: {{.Replicas}}\nimage: {{.Image}}\nports: {{.Ports}}\n`
+		return `id: {{.ID}}\nname: {{.Name}}\nmode: {{.Mode}}\nreplicas: {{.Replicas}}\nimage: {{.Image}}\nports: {{.Ports}}\npending deletion: {{.IsPendingDeletion}}\n`
 	}
 	return formatter.Format(source)
 }
@@ -499,12 +499,13 @@ func ListFormatWrite(ctx formatter.Context, services []swarm.Service, info map[s
 	}
 	serviceCtx := serviceContext{}
 	serviceCtx.Header = formatter.SubHeaderContext{
-		"ID":       serviceIDHeader,
-		"Name":     formatter.NameHeader,
-		"Mode":     modeHeader,
-		"Replicas": replicasHeader,
-		"Image":    formatter.ImageHeader,
-		"Ports":    formatter.PortsHeader,
+		"ID":                serviceIDHeader,
+		"Name":              formatter.NameHeader,
+		"Mode":              modeHeader,
+		"Replicas":          replicasHeader,
+		"Image":             formatter.ImageHeader,
+		"Ports":             formatter.PortsHeader,
+		"IsPendingDeletion": formatter.PendingDeleteHeader,
 	}
 	return ctx.Write(&serviceCtx, render)
 }
@@ -534,6 +535,10 @@ func (c *serviceContext) Mode() string {
 
 func (c *serviceContext) Replicas() string {
 	return c.replicas
+}
+
+func (c *serviceContext) IsPendingDeletion() bool {
+	return c.service.PendingDelete
 }
 
 func (c *serviceContext) Image() string {

@@ -90,9 +90,9 @@ func TestNetworkContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewFormat("table", false)},
-			`NETWORK ID          NAME                DRIVER              SCOPE
-networkID1          foobar_baz          foo                 local
-networkID2          foobar_bar          bar                 local
+			`NETWORK ID          NAME                DRIVER              SCOPE               PENDING DELETION?
+networkID1          foobar_baz          foo                 local               false
+networkID2          foobar_bar          bar                 local               true
 `,
 		},
 		{
@@ -122,11 +122,13 @@ foobar_bar
 name: foobar_baz
 driver: foo
 scope: local
+pending deletion: false
 
 network_id: networkID2
 name: foobar_bar
 driver: bar
 scope: local
+pending deletion: true
 
 `,
 		},
@@ -158,7 +160,7 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	for _, testcase := range cases {
 		networks := []types.NetworkResource{
 			{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
-			{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
+			{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2, PendingDelete: true},
 		}
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
@@ -173,12 +175,12 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 
 func TestNetworkContextWriteJSON(t *testing.T) {
 	networks := []types.NetworkResource{
-		{ID: "networkID1", Name: "foobar_baz"},
+		{ID: "networkID1", Name: "foobar_baz", PendingDelete: true},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
 	expectedJSONs := []map[string]interface{}{
-		{"Driver": "", "ID": "networkID1", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
-		{"Driver": "", "ID": "networkID2", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
+		{"Driver": "", "ID": "networkID1", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC", "IsPendingDeletion": true},
+		{"Driver": "", "ID": "networkID2", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC", "IsPendingDeletion": false},
 	}
 
 	out := bytes.NewBufferString("")
