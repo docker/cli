@@ -27,6 +27,7 @@ A self-sufficient runtime for containers.
 
 Options:
       --config string      Location of client config files (default "/root/.docker")
+  -c, --context string     Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with "docker context use")
   -D, --debug              Enable debug mode
       --help               Print usage
   -H, --host value         Daemon socket(s) to connect to (default [])
@@ -78,6 +79,7 @@ by the `docker` command line:
   `docker pull`) in `docker help` output, and only `Management commands` per object-type (e.g., `docker container`) are
   printed. This may become the default in a future release, at which point this environment-variable is removed.
 * `DOCKER_TMPDIR` Location for temporary Docker files.
+* `DOCKER_CONTEXT` Specify the context to use (overrides DOCKER_HOST env var and default context set with "docker context use")
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:

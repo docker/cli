@@ -2,87 +2,82 @@ package command
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
-	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/flags"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 	"gotest.tools/env"
-	"gotest.tools/fs"
 )
 
 func TestOrchestratorSwitch(t *testing.T) {
-	defaultVersion := "v0.00"
-
 	var testcases = []struct {
 		doc                  string
-		configfile           string
+		globalOrchestrator   string
 		envOrchestrator      string
 		flagOrchestrator     string
+		contextOrchestrator  string
 		expectedOrchestrator string
 		expectedKubernetes   bool
 		expectedSwarm        bool
 	}{
 		{
-			doc: "default",
-			configfile: `{
-			}`,
+			doc:                  "default",
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
 			expectedSwarm:        true,
 		},
 		{
-			doc: "kubernetesConfigFile",
-			configfile: `{
-				"stackOrchestrator": "kubernetes"
-			}`,
+			doc:                  "kubernetesConfigFile",
+			globalOrchestrator:   "kubernetes",
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
 			expectedSwarm:        false,
 		},
 		{
-			doc: "kubernetesEnv",
-			configfile: `{
-			}`,
+			doc:                  "kubernetesEnv",
 			envOrchestrator:      "kubernetes",
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
 			expectedSwarm:        false,
 		},
 		{
-			doc: "kubernetesFlag",
-			configfile: `{
-			}`,
+			doc:                  "kubernetesFlag",
 			flagOrchestrator:     "kubernetes",
 			expectedOrchestrator: "kubernetes",
 			expectedKubernetes:   true,
 			expectedSwarm:        false,
 		},
 		{
-			doc: "allOrchestratorFlag",
-			configfile: `{
-			}`,
+			doc:                  "allOrchestratorFlag",
 			flagOrchestrator:     "all",
 			expectedOrchestrator: "all",
 			expectedKubernetes:   true,
 			expectedSwarm:        true,
 		},
 		{
-			doc: "envOverridesConfigFile",
-			configfile: `{
-				"stackOrchestrator": "kubernetes"
-			}`,
+			doc:                  "kubernetesContext",
+			contextOrchestrator:  "kubernetes",
+			expectedOrchestrator: "kubernetes",
+			expectedKubernetes:   true,
+		},
+		{
+			doc:                  "contextOverridesConfigFile",
+			globalOrchestrator:   "kubernetes",
+			contextOrchestrator:  "swarm",
+			expectedOrchestrator: "swarm",
+			expectedKubernetes:   false,
+			expectedSwarm:        true,
+		},
+		{
+			doc:                  "envOverridesConfigFile",
+			globalOrchestrator:   "kubernetes",
 			envOrchestrator:      "swarm",
 			expectedOrchestrator: "swarm",
 			expectedKubernetes:   false,
 			expectedSwarm:        true,
 		},
 		{
-			doc: "flagOverridesEnv",
-			configfile: `{
-			}`,
+			doc:                  "flagOverridesEnv",
 			envOrchestrator:      "kubernetes",
 			flagOrchestrator:     "swarm",
 			expectedOrchestrator: "swarm",
@@ -93,22 +88,10 @@ func TestOrchestratorSwitch(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
-			defer dir.Remove()
-			apiclient := &fakeClient{
-				version: defaultVersion,
-			}
 			if testcase.envOrchestrator != "" {
 				defer env.Patch(t, "DOCKER_STACK_ORCHESTRATOR", testcase.envOrchestrator)()
 			}
-
-			cli := &DockerCli{client: apiclient, err: os.Stderr}
-			cliconfig.SetDir(dir.Path())
-			options := flags.NewClientOptions()
-			err := cli.Initialize(options)
-			assert.NilError(t, err)
-
-			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, cli.ConfigFile().StackOrchestrator, ioutil.Discard)
+			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, testcase.contextOrchestrator, testcase.globalOrchestrator, ioutil.Discard)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedKubernetes, orchestrator.HasKubernetes()))
 			assert.Check(t, is.Equal(testcase.expectedSwarm, orchestrator.HasSwarm()))

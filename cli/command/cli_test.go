@@ -66,6 +66,7 @@ func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	customVersion := "v3.3.3"
 	defer env.Patch(t, "DOCKER_API_VERSION", customVersion)()
+	defer env.Patch(t, "DOCKER_HOST", ":2375")()
 
 	opts := &flags.CommonOptions{}
 	configFile := &configfile.ConfigFile{}

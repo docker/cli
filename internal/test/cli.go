@@ -9,6 +9,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/context/docker"
+	"github.com/docker/cli/cli/context/store"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/trust"
@@ -38,6 +40,9 @@ type FakeCli struct {
 	registryClient                registryclient.RegistryClient
 	contentTrust                  bool
 	containerizedEngineClientFunc containerizedEngineFuncType
+	contextStore                  store.Store
+	currentContext                string
+	dockerEndpoint                docker.Endpoint
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -70,9 +75,29 @@ func (c *FakeCli) SetErr(err *bytes.Buffer) {
 	c.err = err
 }
 
+// SetOut sets the stdout stream for the cli to the specified io.Writer
+func (c *FakeCli) SetOut(out *command.OutStream) {
+	c.out = out
+}
+
 // SetConfigFile sets the "fake" config file
 func (c *FakeCli) SetConfigFile(configfile *configfile.ConfigFile) {
 	c.configfile = configfile
+}
+
+// SetContextStore sets the "fake" context store
+func (c *FakeCli) SetContextStore(store store.Store) {
+	c.contextStore = store
+}
+
+// SetCurrentContext sets the "fake" current context
+func (c *FakeCli) SetCurrentContext(name string) {
+	c.currentContext = name
+}
+
+// SetDockerEndpoint sets the "fake" docker endpoint
+func (c *FakeCli) SetDockerEndpoint(ep docker.Endpoint) {
+	c.dockerEndpoint = ep
 }
 
 // Client returns a docker API client
@@ -98,6 +123,21 @@ func (c *FakeCli) In() *command.InStream {
 // ConfigFile returns the cli configfile object (to get client configuration)
 func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 	return c.configfile
+}
+
+// ContextStore returns the cli context store
+func (c *FakeCli) ContextStore() store.Store {
+	return c.contextStore
+}
+
+// CurrentContext returns the cli context
+func (c *FakeCli) CurrentContext() string {
+	return c.currentContext
+}
+
+// DockerEndpoint returns the current DockerEndpoint
+func (c *FakeCli) DockerEndpoint() docker.Endpoint {
+	return c.dockerEndpoint
 }
 
 // ServerInfo returns API server information for the server used by this client
