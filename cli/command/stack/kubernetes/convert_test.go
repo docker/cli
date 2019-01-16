@@ -15,4 +15,6 @@ func TestNewStackConverter(t *testing.T) {
 	assert.NilError(t, err)
 	_, err = NewStackConverter("v1beta2")
 	assert.NilError(t, err)
+	_, err = NewStackConverter("v1alpha3")
+	assert.NilError(t, err)
 }

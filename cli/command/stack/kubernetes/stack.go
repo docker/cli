@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
+	latest "github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ type Stack struct {
 	Name        string
 	Namespace   string
 	ComposeFile string
-	Spec        *v1beta2.StackSpec
+	Spec        *latest.StackSpec
 }
 
 type childResource interface {

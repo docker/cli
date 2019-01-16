@@ -103,7 +103,7 @@ func WrapCli(dockerCli command.Cli, opts Options) (*KubeCli, error) {
 }
 
 func (c *KubeCli) composeClient() (*Factory, error) {
-	return NewFactory(c.kubeNamespace, c.kubeConfig, c.clientSet)
+	return NewFactory(c.kubeNamespace, c.kubeConfig, c.clientSet, c.ClientInfo().HasExperimental)
 }
 
 func (c *KubeCli) checkHostsMatch() error {
