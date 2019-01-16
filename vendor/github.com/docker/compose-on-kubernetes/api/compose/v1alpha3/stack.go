@@ -97,6 +97,7 @@ type ServiceConfig struct {
 	User            *int64                   `json:"user,omitempty"`
 	Volumes         []ServiceVolumeConfig    `json:"volumes,omitempty"`
 	WorkingDir      string                   `json:"working_dir,omitempty"`
+	PullSecret      string                   `json:"pull_secret,omitempty"`
 }
 
 // ServicePortConfig is the port configuration for a service
