@@ -193,4 +193,5 @@ read the [`dockerd`](dockerd.md) reference page.
 | [context rm](context_rm.md) | Remove one or more contexts |
 | [context update](context_update.md) | Update a context |
 | [context use](context_use.md) | Set the current docker context |
+| [context inspect](context_inspect.md) | Inspect one or more contexts |
 
