@@ -125,7 +125,7 @@ func verify(services corev1.ServiceInterface, stackName string, service string) 
 
 // stackV1Beta2 implements stackClient interface and talks to compose component v1beta2.
 type stackV1Beta2 struct {
-	stackV1Beta2OrHigherConverter
+	stackV1Beta2Converter
 	stacks composev1beta2.StackInterface
 }
 
@@ -203,7 +203,7 @@ func (s *stackV1Beta2) IsColliding(servicesClient corev1.ServiceInterface, st St
 
 // stackV1Beta2 implements stackClient interface and talks to compose component v1beta2.
 type stackV1Alpha3 struct {
-	stackV1Beta2OrHigherConverter
+	stackV1Alpha3Converter
 	stacks composev1alpha3.StackInterface
 }
 

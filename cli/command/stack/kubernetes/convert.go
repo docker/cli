@@ -19,14 +19,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	// PullSecretExtraField is an extra field on ServiceConfigs usable to reference a pull secret
+	PullSecretExtraField = "x-pull-secret"
+)
+
 // NewStackConverter returns a converter from types.Config (compose) to the specified
 // stack version or error out if the version is not supported or existent.
 func NewStackConverter(version string) (StackConverter, error) {
 	switch version {
 	case "v1beta1":
 		return stackV1Beta1Converter{}, nil
-	case "v1beta2", "v1alpha3":
-		return stackV1Beta2OrHigherConverter{}, nil
+	case "v1beta2":
+		return stackV1Beta2Converter{}, nil
+	case "v1alpha3":
+		return stackV1Alpha3Converter{}, nil
 	default:
 		return nil, errors.Errorf("stack version %s unsupported", version)
 	}
@@ -41,7 +48,7 @@ type stackV1Beta1Converter struct{}
 
 func (s stackV1Beta1Converter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
 	cfg.Version = v1beta1.MaxComposeVersion
-	st, err := fromCompose(stderr, name, cfg)
+	st, err := fromCompose(stderr, name, cfg, v1beta1Capabilities)
 	if err != nil {
 		return Stack{}, err
 	}
@@ -62,16 +69,26 @@ func (s stackV1Beta1Converter) FromCompose(stderr io.Writer, name string, cfg *c
 	return st, nil
 }
 
-type stackV1Beta2OrHigherConverter struct{}
+type stackV1Beta2Converter struct{}
 
-func (s stackV1Beta2OrHigherConverter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
-	return fromCompose(stderr, name, cfg)
+func (s stackV1Beta2Converter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+	return fromCompose(stderr, name, cfg, v1beta2Capabilities)
 }
 
-func fromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+type stackV1Alpha3Converter struct{}
+
+func (s stackV1Alpha3Converter) FromCompose(stderr io.Writer, name string, cfg *composetypes.Config) (Stack, error) {
+	return fromCompose(stderr, name, cfg, v1alpha3Capabilities)
+}
+
+func fromCompose(stderr io.Writer, name string, cfg *composetypes.Config, caps composeCapabilities) (Stack, error) {
+	spec, err := fromComposeConfig(stderr, cfg, caps)
+	if err != nil {
+		return Stack{}, err
+	}
 	return Stack{
 		Name: name,
-		Spec: fromComposeConfig(stderr, cfg),
+		Spec: spec,
 	}, nil
 }
 
@@ -95,11 +112,15 @@ func stackFromV1beta1(in *v1beta1.Stack) (Stack, error) {
 	if err != nil {
 		return Stack{}, err
 	}
+	spec, err := fromComposeConfig(ioutil.Discard, cfg, v1beta1Capabilities)
+	if err != nil {
+		return Stack{}, err
+	}
 	return Stack{
 		Name:        in.ObjectMeta.Name,
 		Namespace:   in.ObjectMeta.Namespace,
 		ComposeFile: in.Spec.ComposeFile,
-		Spec:        fromComposeConfig(ioutil.Discard, cfg),
+		Spec:        spec,
 	}, nil
 }
 
@@ -162,20 +183,24 @@ func stackToV1alpha3(s Stack) *latest.Stack {
 	}
 }
 
-func fromComposeConfig(stderr io.Writer, c *composeTypes.Config) *latest.StackSpec {
+func fromComposeConfig(stderr io.Writer, c *composeTypes.Config, caps composeCapabilities) (*latest.StackSpec, error) {
 	if c == nil {
-		return nil
+		return nil, nil
 	}
 	warnUnsupportedFeatures(stderr, c)
 	serviceConfigs := make([]latest.ServiceConfig, len(c.Services))
 	for i, s := range c.Services {
-		serviceConfigs[i] = fromComposeServiceConfig(s)
+		svc, err := fromComposeServiceConfig(s, caps)
+		if err != nil {
+			return nil, err
+		}
+		serviceConfigs[i] = svc
 	}
 	return &latest.StackSpec{
 		Services: serviceConfigs,
 		Secrets:  fromComposeSecrets(c.Secrets),
 		Configs:  fromComposeConfigs(c.Configs),
-	}
+	}, nil
 }
 
 func fromComposeSecrets(s map[string]composeTypes.SecretConfig) map[string]latest.SecretConfig {
@@ -216,13 +241,22 @@ func fromComposeConfigs(s map[string]composeTypes.ConfigObjConfig) map[string]la
 	return m
 }
 
-func fromComposeServiceConfig(s composeTypes.ServiceConfig) latest.ServiceConfig {
+func fromComposeServiceConfig(s composeTypes.ServiceConfig, caps composeCapabilities) (latest.ServiceConfig, error) {
 	var userID *int64
 	if s.User != "" {
 		numerical, err := strconv.Atoi(s.User)
 		if err == nil {
 			unixUserID := int64(numerical)
 			userID = &unixUserID
+		}
+	}
+	var pullSecret string
+	if psInterface, ok := s.Extras[PullSecretExtraField]; ok {
+		if !caps.hasPullSecrets {
+			return latest.ServiceConfig{}, errors.Errorf("stack API version %s does not support pull secrets, please use version v1alpha3", caps.apiVersion)
+		}
+		if pullSecret, ok = psInterface.(string); !ok {
+			return latest.ServiceConfig{}, errors.Errorf("pull secret %v type is %T, should be a string", psInterface, psInterface)
 		}
 	}
 	return latest.ServiceConfig{
@@ -260,7 +294,8 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig) latest.ServiceConfig
 		User:            userID,
 		Volumes:         fromComposeServiceVolumeConfig(s.Volumes),
 		WorkingDir:      s.WorkingDir,
-	}
+		PullSecret:      pullSecret,
+	}, nil
 }
 
 func fromComposePorts(ports []composeTypes.ServicePortConfig) []latest.ServicePortConfig {
@@ -420,4 +455,22 @@ func fromComposeServiceVolumeConfig(vs []composeTypes.ServiceVolumeConfig) []lat
 		})
 	}
 	return volumes
+}
+
+var (
+	v1beta1Capabilities = composeCapabilities{
+		apiVersion: "v1beta1",
+	}
+	v1beta2Capabilities = composeCapabilities{
+		apiVersion: "v1beta2",
+	}
+	v1alpha3Capabilities = composeCapabilities{
+		apiVersion:     "v1alpha3",
+		hasPullSecrets: true,
+	}
+)
+
+type composeCapabilities struct {
+	apiVersion     string
+	hasPullSecrets bool
 }
