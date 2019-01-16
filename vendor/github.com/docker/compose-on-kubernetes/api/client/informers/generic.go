@@ -3,6 +3,7 @@ package informers
 import (
 	"fmt"
 
+	"github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/cache"
@@ -37,7 +38,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	// Group=Compose, Version=V1beta1
 	case v1beta2.SchemeGroupVersion.WithResource("stacks"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Compose().V1beta2().Stacks().Informer()}, nil
-
+	case v1alpha3.SchemeGroupVersion.WithResource("stacks"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Compose().V1alpha3().Stacks().Informer()}, nil
 	}
 
 	return nil, fmt.Errorf("no informer found for %v", resource)
