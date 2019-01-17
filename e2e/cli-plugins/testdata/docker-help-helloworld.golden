@@ -1,7 +1,10 @@
 
-Usage:	docker helloworld COMMAND
+Usage:	docker helloworld [OPTIONS] COMMAND
 
 A basic Hello World plugin for tests
+
+Options:
+      --who string   Who are we addressing? (default "World")
 
 Commands:
   apiversion  Print the API version of the server

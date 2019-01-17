@@ -33,6 +33,7 @@ func main() {
 			},
 		}
 
+		var who string
 		cmd := &cobra.Command{
 			Use:   "helloworld",
 			Short: "A basic Hello World plugin for tests",
@@ -41,9 +42,11 @@ func main() {
 			// hook.
 			PersistentPreRunE: plugin.PersistentPreRunE,
 			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Fprintln(dockerCli.Out(), "Hello World!")
+				fmt.Fprintf(dockerCli.Out(), "Hello %s!\n", who)
 			},
 		}
+		flags := cmd.Flags()
+		flags.StringVar(&who, "who", "World", "Who are we addressing?")
 
 		cmd.AddCommand(goodbye, apiversion)
 		return cmd

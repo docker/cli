@@ -32,6 +32,16 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceUsage:     true,
 		SilenceErrors:    true,
 		TraverseChildren: true,
+		FParseErrWhitelist: cobra.FParseErrWhitelist{
+			// UnknownFlags ignores any unknown
+			// --arguments on the top-level docker command
+			// only. This is necessary to allow passing
+			// --arguments to plugins otherwise
+			// e.g. `docker plugin --foo` is caught here
+			// in the monolithic CLI and `foo` is reported
+			// as an unknown argument.
+			UnknownFlags: true,
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)

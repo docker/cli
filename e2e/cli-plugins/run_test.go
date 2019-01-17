@@ -144,6 +144,18 @@ func TestRunGoodSubcommand(t *testing.T) {
 	})
 }
 
+// TestRunGoodArgument ensures correct behaviour when running a valid plugin with an `--argument`.
+func TestRunGoodArgument(t *testing.T) {
+	run, cleanup := prepare(t)
+	defer cleanup()
+
+	res := icmd.RunCmd(run("helloworld", "--who", "Cleveland"))
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		Out:      "Hello Cleveland!",
+	})
+}
+
 // TestHelpGoodSubcommand ensures correct behaviour when invoking help on a
 // valid plugin subcommand. A global argument is included to ensure it does not
 // interfere.
