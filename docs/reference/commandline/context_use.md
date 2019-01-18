@@ -16,10 +16,17 @@ keywords: "context, use"
 # context use
 
 ```markdown
-Usage:  docker context use CONTEXT
+Usage:  docker context use CONTEXT [OPTIONS]
 
 Set the current docker context
+
+Options:
+      --skip-kubeconfig   Do not modify current kubeconfig file (set via
+                          KUBECONFIG environment variable, or ~/.kube/config)
 ```
 
 ## Description
 Set the default context to use, when `DOCKER_HOST`, `DOCKER_CONTEXT` environment variables and `--host`, `--context` global options are not set.
+
+For contexts with a Kubernetes endpoint, this also modifes the current `kubeconfig` file to make `kubectl` and any other tool working with `kubeconfig` files target the same cluster.
+

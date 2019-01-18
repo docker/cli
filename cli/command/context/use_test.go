@@ -10,6 +10,9 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/store"
 	"gotest.tools/assert"
+	"gotest.tools/assert/cmp"
+	"gotest.tools/env"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func TestUse(t *testing.T) {
@@ -46,4 +49,32 @@ func TestUseNoExist(t *testing.T) {
 	defer cleanup()
 	err := newUseCommand(cli).RunE(nil, []string{"test"})
 	assert.Check(t, store.IsErrContextDoesNotExist(err))
+}
+
+func TestUseWithKubeconfig(t *testing.T) {
+	configDir, err := ioutil.TempDir("", t.Name()+"config")
+	assert.NilError(t, err)
+	defer os.RemoveAll(configDir)
+	configFilePath := filepath.Join(configDir, "config.json")
+	kubeconfigFilePath := filepath.Join(configDir, "kubeconfig")
+	defer env.Patch(t, "KUBECONFIG", kubeconfigFilePath)()
+	testCfg := configfile.New(configFilePath)
+	cli, cleanup := makeFakeCli(t, withCliConfig(testCfg))
+	defer cleanup()
+	createTestContextWithKubeAndSwarm(t, cli, "kube1", "all")
+	createTestContextWithKubeAndSwarm(t, cli, "kube2", "all")
+	assert.NilError(t, runUse(cli, "kube1", useOptions{skipKubeconfig: true}))
+	_, err = os.Stat(kubeconfigFilePath)
+	assert.Check(t, os.IsNotExist(err))
+
+	assert.NilError(t, runUse(cli, "kube2", useOptions{}))
+	kubeConfig, err := clientcmd.LoadFromFile(kubeconfigFilePath)
+	assert.NilError(t, err)
+	assert.Equal(t, kubeConfig.CurrentContext, "kube2")
+
+	assert.NilError(t, runUse(cli, "kube1", useOptions{}))
+	kubeConfig, err = clientcmd.LoadFromFile(kubeconfigFilePath)
+	assert.NilError(t, err)
+	assert.Equal(t, kubeConfig.CurrentContext, "kube1")
+	assert.Check(t, cmp.Contains(kubeConfig.Contexts, "kube2")) // check use has not removed existing contexts
 }

@@ -38,6 +38,11 @@ func (c *EndpointMeta) WithTLSData(s store.Store, contextName string) (Endpoint,
 
 // KubernetesConfig creates the kubernetes client config from the endpoint
 func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
+	return c.KubernetesNamedConfig("cluster", "authInfo", "context")
+}
+
+// KubernetesNamedConfig creates the kubernetes client config from the endpoint
+func (c *Endpoint) KubernetesNamedConfig(clusterName, authInfoName, contextName string) clientcmd.ClientConfig {
 	cfg := clientcmdapi.NewConfig()
 	cluster := clientcmdapi.NewCluster()
 	cluster.Server = c.Host
@@ -50,14 +55,14 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 	}
 	authInfo.AuthProvider = c.AuthProvider
 	authInfo.Exec = c.Exec
-	cfg.Clusters["cluster"] = cluster
-	cfg.AuthInfos["authInfo"] = authInfo
+	cfg.Clusters[clusterName] = cluster
+	cfg.AuthInfos[authInfoName] = authInfo
 	ctx := clientcmdapi.NewContext()
-	ctx.AuthInfo = "authInfo"
-	ctx.Cluster = "cluster"
+	ctx.AuthInfo = authInfoName
+	ctx.Cluster = clusterName
 	ctx.Namespace = c.DefaultNamespace
-	cfg.Contexts["context"] = ctx
-	cfg.CurrentContext = "context"
+	cfg.Contexts[contextName] = ctx
+	cfg.CurrentContext = contextName
 	return clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})
 }
 
