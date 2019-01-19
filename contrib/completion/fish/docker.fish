@@ -69,7 +69,7 @@ function __fish_docker_subcommand_path_without --description 'Test if command ha
 end
 
 function __fish_print_docker_images --description 'Print a list of docker images'
-    docker images --format "{{.Repository}}:{{.Tag}}" | command grep -v '<none>'
+    docker images --format "{{.Repository}}:{{.Tag}}\tImage created {{.CreatedSince}}, {{.Size}}" | command grep -v '<none>'
 end
 
 function __fish_print_docker_repositories --description 'Print a list of docker repositories'
@@ -265,7 +265,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s v -l volume 
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l volume-driver -d 'Optional volume driver for the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l volumes-from -d 'Mount volumes from the specified container(s)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s w -l workdir -d 'Working directory inside the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from create' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from create' -a '(__fish_print_docker_images)'
 
 # diff
 complete -c docker -f -n '__fish_docker_no_subcommand' -a diff -d "Inspect changes on a container's filesystem"
@@ -306,7 +306,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Pr
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
-complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)'
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
@@ -336,7 +336,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s f -l format
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s s -l size -d 'Display total file sizes if the type is container.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l type -d 'Return JSON for specified type'
-complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_containers all)' -d "Container"
 
 # kill
@@ -396,13 +396,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l since -d 'Show o
 complete -c docker -f -n '__fish_docker_no_subcommand' -a pull -d 'Pull an image or a repository from a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -s a -l all-tags -d 'Download all tagged images in the repository'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # push
 complete -c docker -f -n '__fish_docker_no_subcommand' -a push -d 'Push an image or a repository to a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # rename
@@ -428,7 +428,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a rmi -d 'Remove one or 
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -s f -l force -d 'Force removal of the image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -l no-prune -d 'Do not delete untagged parents'
-complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_docker_images)'
 
 # run
 complete -c docker -f -n '__fish_docker_no_subcommand' -a run -d 'Run a command in a new container'
@@ -477,13 +477,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l tmpfs -d 'Mount
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s v -l volume -d 'Bind mount a volume (e.g., from the host: -v /host:/container, from Docker: -v /container)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l volumes-from -d 'Mount volumes from the specified container(s)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s w -l workdir -d 'Working directory inside the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from run' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from run' -a '(__fish_print_docker_images)'
 
 # save
 complete -c docker -f -n '__fish_docker_no_subcommand' -a save -d 'Save an image to a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -s o -l output -d 'Write to an file, instead of STDOUT'
-complete -c docker -A -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_docker_images)'
 
 # search
 complete -c docker -f -n '__fish_docker_no_subcommand' -a search -d 'Search for an image on the registry (defaults to the Docker Hub)'
