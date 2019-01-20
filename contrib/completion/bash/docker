@@ -157,6 +157,11 @@ __docker_complete_containers_running() {
 }
 
 # shellcheck disable=SC2120
+__docker_complete_containers_stoppable() {
+	__docker_complete_containers "$@" --filter status=running --filter status=paused
+}
+
+# shellcheck disable=SC2120
 __docker_complete_containers_stopped() {
 	__docker_complete_containers "$@" --filter status=exited
 }
@@ -2147,7 +2152,7 @@ _docker_container_stop() {
 			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
 			;;
 		*)
-			__docker_complete_containers_running
+			__docker_complete_containers_stoppable
 			;;
 	esac
 }
