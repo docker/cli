@@ -20,3 +20,7 @@ Usage:  docker context import [OPTIONS] CONTEXT FILE|-
 
 Import a context from a tar file
 ```
+
+## Description
+
+Imports a context previously exported with `docker context export`. To import from stdin, use a hyphen (`-`) as filename.
