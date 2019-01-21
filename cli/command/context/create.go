@@ -14,12 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type createOptions struct {
-	name                     string
-	description              string
-	defaultStackOrchestrator string
-	docker                   map[string]string
-	kubernetes               map[string]string
+// CreateOptions are the options used for creating a context
+type CreateOptions struct {
+	Name                     string
+	Description              string
+	DefaultStackOrchestrator string
+	Docker                   map[string]string
+	Kubernetes               map[string]string
 }
 
 func longCreateDescription() string {
@@ -43,52 +44,53 @@ func longCreateDescription() string {
 }
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
-	opts := &createOptions{}
+	opts := &CreateOptions{}
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] CONTEXT",
 		Short: "Create a context",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.name = args[0]
-			return runCreate(dockerCli, opts)
+			opts.Name = args[0]
+			return RunCreate(dockerCli, opts)
 		},
 		Long: longCreateDescription(),
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.description, "description", "", "Description of the context")
+	flags.StringVar(&opts.Description, "description", "", "Description of the context")
 	flags.StringVar(
-		&opts.defaultStackOrchestrator,
+		&opts.DefaultStackOrchestrator,
 		"default-stack-orchestrator", "",
 		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
-	flags.StringToStringVar(&opts.docker, "docker", nil, "set the docker endpoint")
-	flags.StringToStringVar(&opts.kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
+	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
+	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
 	return cmd
 }
 
-func runCreate(cli command.Cli, o *createOptions) error {
+// RunCreate creates a Docker context
+func RunCreate(cli command.Cli, o *CreateOptions) error {
 	s := cli.ContextStore()
-	if err := checkContextNameForCreation(s, o.name); err != nil {
+	if err := checkContextNameForCreation(s, o.Name); err != nil {
 		return err
 	}
-	stackOrchestrator, err := command.NormalizeOrchestrator(o.defaultStackOrchestrator)
+	stackOrchestrator, err := command.NormalizeOrchestrator(o.DefaultStackOrchestrator)
 	if err != nil {
 		return errors.Wrap(err, "unable to parse default-stack-orchestrator")
 	}
 	contextMetadata := store.ContextMetadata{
 		Endpoints: make(map[string]interface{}),
 		Metadata: command.DockerContext{
-			Description:       o.description,
+			Description:       o.Description,
 			StackOrchestrator: stackOrchestrator,
 		},
-		Name: o.name,
+		Name: o.Name,
 	}
-	if o.docker == nil {
+	if o.Docker == nil {
 		return errors.New("docker endpoint configuration is required")
 	}
 	contextTLSData := store.ContextTLSData{
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
-	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.docker)
+	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.Docker)
 	if err != nil {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}
@@ -96,8 +98,8 @@ func runCreate(cli command.Cli, o *createOptions) error {
 	if dockerTLS != nil {
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerTLS
 	}
-	if o.kubernetes != nil {
-		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.kubernetes)
+	if o.Kubernetes != nil {
+		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.Kubernetes)
 		if err != nil {
 			return errors.Wrap(err, "unable to create kubernetes endpoint config")
 		}
@@ -117,11 +119,11 @@ func runCreate(cli command.Cli, o *createOptions) error {
 	if err := s.CreateOrUpdateContext(contextMetadata); err != nil {
 		return err
 	}
-	if err := s.ResetContextTLSMaterial(o.name, &contextTLSData); err != nil {
+	if err := s.ResetContextTLSMaterial(o.Name, &contextTLSData); err != nil {
 		return err
 	}
-	fmt.Fprintln(cli.Out(), o.name)
-	fmt.Fprintf(cli.Err(), "Successfully created context %q\n", o.name)
+	fmt.Fprintln(cli.Out(), o.Name)
+	fmt.Fprintf(cli.Err(), "Successfully created context %q\n", o.Name)
 	return nil
 }
 

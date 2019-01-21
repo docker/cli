@@ -21,14 +21,14 @@ func TestExportImportWithFile(t *testing.T) {
 	defer cleanup()
 	createTestContextWithKube(t, cli)
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, runExport(cli, &exportOptions{
-		contextName: "test",
-		dest:        contextFile,
+	assert.NilError(t, RunExport(cli, &ExportOptions{
+		ContextName: "test",
+		Dest:        contextFile,
 	}))
 	assert.Equal(t, cli.ErrBuffer().String(), fmt.Sprintf("Written file %q\n", contextFile))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, runImport(cli, "test2", contextFile))
+	assert.NilError(t, RunImport(cli, "test2", contextFile))
 	context1, err := cli.ContextStore().GetContextMetadata("test")
 	assert.NilError(t, err)
 	context2, err := cli.ContextStore().GetContextMetadata("test2")
@@ -48,15 +48,15 @@ func TestExportImportPipe(t *testing.T) {
 	createTestContextWithKube(t, cli)
 	cli.ErrBuffer().Reset()
 	cli.OutBuffer().Reset()
-	assert.NilError(t, runExport(cli, &exportOptions{
-		contextName: "test",
-		dest:        "-",
+	assert.NilError(t, RunExport(cli, &ExportOptions{
+		ContextName: "test",
+		Dest:        "-",
 	}))
 	assert.Equal(t, cli.ErrBuffer().String(), "")
 	cli.SetIn(streams.NewIn(ioutil.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, runImport(cli, "test2", "-"))
+	assert.NilError(t, RunImport(cli, "test2", "-"))
 	context1, err := cli.ContextStore().GetContextMetadata("test")
 	assert.NilError(t, err)
 	context2, err := cli.ContextStore().GetContextMetadata("test2")
@@ -79,18 +79,18 @@ func TestExportKubeconfig(t *testing.T) {
 	defer cleanup()
 	createTestContextWithKube(t, cli)
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, runExport(cli, &exportOptions{
-		contextName: "test",
-		dest:        contextFile,
-		kubeconfig:  true,
+	assert.NilError(t, RunExport(cli, &ExportOptions{
+		ContextName: "test",
+		Dest:        contextFile,
+		Kubeconfig:  true,
 	}))
 	assert.Equal(t, cli.ErrBuffer().String(), fmt.Sprintf("Written file %q\n", contextFile))
-	assert.NilError(t, runCreate(cli, &createOptions{
-		name: "test2",
-		kubernetes: map[string]string{
+	assert.NilError(t, RunCreate(cli, &CreateOptions{
+		Name: "test2",
+		Kubernetes: map[string]string{
 			keyKubeconfig: contextFile,
 		},
-		docker: map[string]string{},
+		Docker: map[string]string{},
 	}))
 	validateTestKubeEndpoint(t, cli.ContextStore(), "test2")
 }
@@ -105,6 +105,6 @@ func TestExportExistingFile(t *testing.T) {
 	createTestContextWithKube(t, cli)
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, ioutil.WriteFile(contextFile, []byte{}, 0644))
-	err = runExport(cli, &exportOptions{contextName: "test", dest: contextFile})
+	err = RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
 }

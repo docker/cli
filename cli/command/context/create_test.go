@@ -46,68 +46,68 @@ func TestCreateInvalids(t *testing.T) {
 	defer cleanup()
 	assert.NilError(t, cli.ContextStore().CreateOrUpdateContext(store.ContextMetadata{Name: "existing-context"}))
 	tests := []struct {
-		options     createOptions
+		options     CreateOptions
 		expecterErr string
 	}{
 		{
 			expecterErr: `context name cannot be empty`,
 		},
 		{
-			options: createOptions{
-				name: " ",
+			options: CreateOptions{
+				Name: " ",
 			},
 			expecterErr: `context name " " is invalid`,
 		},
 		{
-			options: createOptions{
-				name: "existing-context",
+			options: CreateOptions{
+				Name: "existing-context",
 			},
 			expecterErr: `context "existing-context" already exists`,
 		},
 		{
-			options: createOptions{
-				name: "invalid-docker-host",
-				docker: map[string]string{
+			options: CreateOptions{
+				Name: "invalid-docker-host",
+				Docker: map[string]string{
 					keyHost: "some///invalid/host",
 				},
 			},
 			expecterErr: `unable to parse docker host`,
 		},
 		{
-			options: createOptions{
-				name:                     "invalid-orchestrator",
-				defaultStackOrchestrator: "invalid",
+			options: CreateOptions{
+				Name:                     "invalid-orchestrator",
+				DefaultStackOrchestrator: "invalid",
 			},
 			expecterErr: `specified orchestrator "invalid" is invalid, please use either kubernetes, swarm or all`,
 		},
 		{
-			options: createOptions{
-				name:                     "orchestrator-swarm-no-endpoint",
-				defaultStackOrchestrator: "swarm",
+			options: CreateOptions{
+				Name:                     "orchestrator-swarm-no-endpoint",
+				DefaultStackOrchestrator: "swarm",
 			},
 			expecterErr: `docker endpoint configuration is required`,
 		},
 		{
-			options: createOptions{
-				name:                     "orchestrator-kubernetes-no-endpoint",
-				defaultStackOrchestrator: "kubernetes",
-				docker:                   map[string]string{},
+			options: CreateOptions{
+				Name:                     "orchestrator-kubernetes-no-endpoint",
+				DefaultStackOrchestrator: "kubernetes",
+				Docker:                   map[string]string{},
 			},
 			expecterErr: `cannot specify orchestrator "kubernetes" without configuring a Kubernetes endpoint`,
 		},
 		{
-			options: createOptions{
-				name:                     "orchestrator-all-no-endpoint",
-				defaultStackOrchestrator: "all",
-				docker:                   map[string]string{},
+			options: CreateOptions{
+				Name:                     "orchestrator-all-no-endpoint",
+				DefaultStackOrchestrator: "all",
+				Docker:                   map[string]string{},
 			},
 			expecterErr: `cannot specify orchestrator "all" without configuring a Kubernetes endpoint`,
 		},
 	}
 	for _, tc := range tests {
 		tc := tc
-		t.Run(tc.options.name, func(t *testing.T) {
-			err := runCreate(cli, &tc.options)
+		t.Run(tc.options.Name, func(t *testing.T) {
+			err := RunCreate(cli, &tc.options)
 			assert.ErrorContains(t, err, tc.expecterErr)
 		})
 	}
@@ -117,10 +117,10 @@ func TestCreateOrchestratorSwarm(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
 
-	err := runCreate(cli, &createOptions{
-		name:                     "test",
-		defaultStackOrchestrator: "swarm",
-		docker:                   map[string]string{},
+	err := RunCreate(cli, &CreateOptions{
+		Name:                     "test",
+		DefaultStackOrchestrator: "swarm",
+		Docker:                   map[string]string{},
 	})
 	assert.NilError(t, err)
 	assert.Equal(t, "test\n", cli.OutBuffer().String())
@@ -131,9 +131,9 @@ func TestCreateOrchestratorEmpty(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
 
-	err := runCreate(cli, &createOptions{
-		name:   "test",
-		docker: map[string]string{},
+	err := RunCreate(cli, &CreateOptions{
+		Name:   "test",
+		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
 }
@@ -156,13 +156,13 @@ func createTestContextWithKube(t *testing.T, cli command.Cli) {
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
 
-	err := runCreate(cli, &createOptions{
-		name:                     "test",
-		defaultStackOrchestrator: "all",
-		kubernetes: map[string]string{
+	err := RunCreate(cli, &CreateOptions{
+		Name:                     "test",
+		DefaultStackOrchestrator: "all",
+		Kubernetes: map[string]string{
 			keyFromCurrent: "true",
 		},
-		docker: map[string]string{},
+		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
 }

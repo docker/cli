@@ -14,12 +14,12 @@ func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name strin
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
 
-	err := runCreate(cli, &createOptions{
-		name:                     name,
-		defaultStackOrchestrator: orchestrator,
-		description:              "description of " + name,
-		kubernetes:               map[string]string{keyFromCurrent: "true"},
-		docker:                   map[string]string{keyHost: "https://someswarmserver"},
+	err := RunCreate(cli, &CreateOptions{
+		Name:                     name,
+		DefaultStackOrchestrator: orchestrator,
+		Description:              "description of " + name,
+		Kubernetes:               map[string]string{keyFromCurrent: "true"},
+		Docker:                   map[string]string{keyHost: "https://someswarmserver"},
 	})
 	assert.NilError(t, err)
 }

@@ -14,12 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type updateOptions struct {
-	name                     string
-	description              string
-	defaultStackOrchestrator string
-	docker                   map[string]string
-	kubernetes               map[string]string
+// UpdateOptions are the options used to update a context
+type UpdateOptions struct {
+	Name                     string
+	Description              string
+	DefaultStackOrchestrator string
+	Docker                   map[string]string
+	Kubernetes               map[string]string
 }
 
 func longUpdateDescription() string {
@@ -43,34 +44,35 @@ func longUpdateDescription() string {
 }
 
 func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
-	opts := &updateOptions{}
+	opts := &UpdateOptions{}
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] CONTEXT",
 		Short: "Update a context",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.name = args[0]
-			return runUpdate(dockerCli, opts)
+			opts.Name = args[0]
+			return RunUpdate(dockerCli, opts)
 		},
 		Long: longUpdateDescription(),
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.description, "description", "", "Description of the context")
+	flags.StringVar(&opts.Description, "description", "", "Description of the context")
 	flags.StringVar(
-		&opts.defaultStackOrchestrator,
+		&opts.DefaultStackOrchestrator,
 		"default-stack-orchestrator", "",
 		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
-	flags.StringToStringVar(&opts.docker, "docker", nil, "set the docker endpoint")
-	flags.StringToStringVar(&opts.kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
+	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
+	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
 	return cmd
 }
 
-func runUpdate(cli command.Cli, o *updateOptions) error {
-	if err := validateContextName(o.name); err != nil {
+// RunUpdate updates a Docker context
+func RunUpdate(cli command.Cli, o *UpdateOptions) error {
+	if err := validateContextName(o.Name); err != nil {
 		return err
 	}
 	s := cli.ContextStore()
-	c, err := s.GetContextMetadata(o.name)
+	c, err := s.GetContextMetadata(o.Name)
 	if err != nil {
 		return err
 	}
@@ -78,31 +80,31 @@ func runUpdate(cli command.Cli, o *updateOptions) error {
 	if err != nil {
 		return err
 	}
-	if o.defaultStackOrchestrator != "" {
-		stackOrchestrator, err := command.NormalizeOrchestrator(o.defaultStackOrchestrator)
+	if o.DefaultStackOrchestrator != "" {
+		stackOrchestrator, err := command.NormalizeOrchestrator(o.DefaultStackOrchestrator)
 		if err != nil {
 			return errors.Wrap(err, "unable to parse default-stack-orchestrator")
 		}
 		dockerContext.StackOrchestrator = stackOrchestrator
 	}
-	if o.description != "" {
-		dockerContext.Description = o.description
+	if o.Description != "" {
+		dockerContext.Description = o.Description
 	}
 
 	c.Metadata = dockerContext
 
 	tlsDataToReset := make(map[string]*store.EndpointTLSData)
 
-	if o.docker != nil {
-		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.docker)
+	if o.Docker != nil {
+		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.Docker)
 		if err != nil {
 			return errors.Wrap(err, "unable to create docker endpoint config")
 		}
 		c.Endpoints[docker.DockerEndpoint] = dockerEP
 		tlsDataToReset[docker.DockerEndpoint] = dockerTLS
 	}
-	if o.kubernetes != nil {
-		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.kubernetes)
+	if o.Kubernetes != nil {
+		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.Kubernetes)
 		if err != nil {
 			return errors.Wrap(err, "unable to create kubernetes endpoint config")
 		}
@@ -120,13 +122,13 @@ func runUpdate(cli command.Cli, o *updateOptions) error {
 		return err
 	}
 	for ep, tlsData := range tlsDataToReset {
-		if err := s.ResetContextEndpointTLSMaterial(o.name, ep, tlsData); err != nil {
+		if err := s.ResetContextEndpointTLSMaterial(o.Name, ep, tlsData); err != nil {
 			return err
 		}
 	}
 
-	fmt.Fprintln(cli.Out(), o.name)
-	fmt.Fprintf(cli.Err(), "Successfully updated context %q\n", o.name)
+	fmt.Fprintln(cli.Out(), o.Name)
+	fmt.Fprintf(cli.Err(), "Successfully updated context %q\n", o.Name)
 	return nil
 }
 

@@ -25,6 +25,11 @@ type Config struct {
 	endpointTypes map[string]TypeGetter
 }
 
+// SetEndpoint set an endpoint typing information
+func (c Config) SetEndpoint(name string, getter TypeGetter) {
+	c.endpointTypes[name] = getter
+}
+
 // NewConfig creates a config object
 func NewConfig(contextType TypeGetter, endpoints ...NamedTypeGetter) Config {
 	res := Config{
