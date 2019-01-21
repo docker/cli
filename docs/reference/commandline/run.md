@@ -721,12 +721,12 @@ On Windows, `--isolation` can take one of these values:
 | Value     | Description                                                                                |
 |:----------|:-------------------------------------------------------------------------------------------|
 | `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below). |
-| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems).     |
+| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems older than Windows 10 1809).     |
 | `hyperv`  | Hyper-V hypervisor partition-based isolation.                                              |
 
-The default isolation on Windows server operating systems is `process`. The default (and only supported)
+The default isolation on Windows server operating systems is `process`. The default
 isolation on Windows client operating systems is `hyperv`. An attempt to start a container on a client
-operating system with `--isolation process` will fail.
+operating system older than Windows 10 1809 with `--isolation process` will fail.
 
 On Windows server, assuming the default configuration, these commands are equivalent
 and result in `process` isolation:
