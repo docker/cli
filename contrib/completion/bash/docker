@@ -68,7 +68,7 @@ __docker_previous_extglob_setting=$(shopt -p extglob)
 shopt -s extglob
 
 __docker_q() {
-	docker ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
+	docker ${host:+--host "$host"} ${config:+--config "$config"} ${context:+--context "$context"} 2>/dev/null "$@"
 }
 
 # __docker_configs returns a list of configs. Additional options to
@@ -1156,6 +1156,10 @@ _docker_docker() {
 	case "$prev" in
 		--config)
 			_filedir -d
+			return
+			;;
+		--context|-c)
+			__docker_complete_contexts
 			return
 			;;
 		--log-level|-l)
@@ -5419,6 +5423,7 @@ _docker() {
 	"
 	local global_options_with_args="
 		--config
+		--context -c
 		--host -H
 		--log-level -l
 		--tlscacert
@@ -5431,7 +5436,7 @@ _docker() {
 	# variables to cache client info, populated on demand for performance reasons
 	local client_experimental stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
 
-	local host config
+	local host config context
 
 	COMPREPLY=()
 	local cur prev words cword
@@ -5453,6 +5458,11 @@ _docker() {
 			--config)
 				(( counter++ ))
 				config="${words[$counter]}"
+				;;
+			# save context so that completion can use custom daemon
+			--context|-c)
+				(( counter++ ))
+				context="${words[$counter]}"
 				;;
 			$(__docker_to_extglob "$global_options_with_args") )
 				(( counter++ ))
