@@ -103,15 +103,6 @@ func setupHelpCommand(dockerCli *command.DockerCli, rootCmd, helpCmd *cobra.Comm
 			return err
 		}
 
-		// Add a stub entry for every plugin so they are
-		// included in the help output. If we have no args
-		// then this is being used for `docker help` and we
-		// want to include broken plugins, otherwise this is
-		// `help «foo»` and we do not.
-		if err := pluginmanager.AddPluginCommandStubs(dockerCli, rootCmd, len(args) == 0); err != nil {
-			return err
-		}
-
 		if origRunE != nil {
 			return origRunE(c, args)
 		}
@@ -135,6 +126,17 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 			ccmd.Println(err)
 			return
 		}
+
+		// Add a stub entry for every plugin so they are
+		// included in the help output. If we have no args
+		// then this is being used for `docker help` and we
+		// want to include broken plugins, otherwise this is
+		// `help «foo»` and we do not.
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root(), len(args) == 0); err != nil {
+			ccmd.Println(err)
+			return
+		}
+
 		defaultHelpFunc(ccmd, args)
 	})
 }

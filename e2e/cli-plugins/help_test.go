@@ -51,4 +51,12 @@ func TestGlobalHelp(t *testing.T) {
 		}
 		assert.Assert(t, found, "Did not find match for %q in `docker help` output", expected)
 	}
+
+	// Running just `docker` (without help) should produce the same thing, except on Stderr
+	res2 := icmd.RunCmd(run())
+	res2.Assert(t, icmd.Expected{
+		ExitCode: 0,
+	})
+	assert.Assert(t, is.Equal(res2.Stdout(), ""))
+	assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
 }
