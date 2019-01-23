@@ -24,6 +24,12 @@ Here is a sample output for a daemon running on Ubuntu, using the overlay2
 storage driver:
 
     $ docker -D info
+    Client
+    ------
+    Debug Mode: true
+
+    Server
+    ------
     Containers: 14
      Running: 3
      Paused: 1
@@ -78,8 +84,7 @@ storage driver:
     Name: ubuntu
     ID: H52R:7ZR6:EIIA:76JG:ORIY:BVKF:GSFU:HNPG:B5MK:APSC:SZ3Q:N326
     Docker Root Dir: /var/lib/docker
-    Debug Mode (client): true
-    Debug Mode (server): true
+    Debug Mode: true
      File Descriptors: 30
      Goroutines: 123
      System Time: 2016-11-12T17:24:37.955404361-08:00
@@ -109,6 +114,12 @@ using the devicemapper storage driver. As can be seen in the output, additional
 information about the devicemapper storage driver is shown:
 
     $ docker info
+    Client
+    ------
+    Debug Mode: false
+
+    Server
+    ------
     Containers: 14
      Running: 3
      Paused: 1
@@ -149,8 +160,7 @@ information about the devicemapper storage driver is shown:
     Name: ip-172-30-0-91.ec2.internal
     ID: I54V:OLXT:HVMM:TPKO:JPHQ:CQCD:JNLC:O3BZ:4ZVJ:43XJ:PFHZ:6N2S
     Docker Root Dir: /var/lib/docker
-    Debug mode (client): false
-    Debug mode (server): false
+    Debug Mode: false
     Username: gordontheturtle
     Registry: https://index.docker.io/v1/
     Insecure registries:

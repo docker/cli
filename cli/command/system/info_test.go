@@ -226,41 +226,69 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 	for _, tc := range []struct {
 		doc            string
-		dockerInfo     types.Info
+		dockerInfo     info
 		prettyGolden   string
 		warningsGolden string
 		jsonGolden     string
+		expectedError  string
 	}{
 		{
-			doc:          "info without swarm",
-			dockerInfo:   sampleInfoNoSwarm,
+			doc: "info without swarm",
+			dockerInfo: info{
+				Info:       &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{Debug: true},
+			},
 			prettyGolden: "docker-info-no-swarm",
 			jsonGolden:   "docker-info-no-swarm",
 		},
 		{
-			doc:          "info with swarm",
-			dockerInfo:   infoWithSwarm,
+			doc: "info with swarm",
+			dockerInfo: info{
+				Info:       &infoWithSwarm,
+				ClientInfo: &clientInfo{Debug: false},
+			},
 			prettyGolden: "docker-info-with-swarm",
 			jsonGolden:   "docker-info-with-swarm",
 		},
 		{
-			doc:            "info with legacy warnings",
-			dockerInfo:     infoWithWarningsLinux,
+			doc: "info with legacy warnings",
+			dockerInfo: info{
+				Info:       &infoWithWarningsLinux,
+				ClientInfo: &clientInfo{Debug: true},
+			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
 			jsonGolden:     "docker-info-legacy-warnings",
 		},
 		{
-			doc:            "info with daemon warnings",
-			dockerInfo:     sampleInfoDaemonWarnings,
+			doc: "info with daemon warnings",
+			dockerInfo: info{
+				Info:       &sampleInfoDaemonWarnings,
+				ClientInfo: &clientInfo{Debug: true},
+			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
 			jsonGolden:     "docker-info-daemon-warnings",
 		},
+		{
+			doc: "errors for both",
+			dockerInfo: info{
+				ServerErrors: []string{"a server error occurred"},
+				ClientErrors: []string{"a client error occurred"},
+			},
+			prettyGolden:  "docker-info-errors",
+			jsonGolden:    "docker-info-errors",
+			expectedError: "errors pretty printing info",
+		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
-			assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
+			err := prettyPrintInfo(cli, tc.dockerInfo)
+			if tc.expectedError == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.Error(t, err, tc.expectedError)
+			}
 			golden.Assert(t, cli.OutBuffer().String(), tc.prettyGolden+".golden")
 			if tc.warningsGolden != "" {
 				golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
@@ -296,7 +324,11 @@ func TestFormatInfo(t *testing.T) {
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
-			err := formatInfo(cli, sampleInfoNoSwarm, tc.template)
+			info := info{
+				Info:       &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{Debug: true},
+			}
+			err := formatInfo(cli, info, tc.template)
 			if tc.expectedOut != "" {
 				assert.NilError(t, err)
 				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)

@@ -1,3 +1,9 @@
+Client
+------
+Debug Mode: true
+
+Server
+------
 Containers: 0
  Running: 0
  Paused: 0
@@ -35,8 +41,7 @@ Total Memory: 1.953GiB
 Name: system-sample
 ID: EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX
 Docker Root Dir: /var/lib/docker
-Debug Mode (client): false
-Debug Mode (server): true
+Debug Mode: true
  File Descriptors: 33
  Goroutines: 135
  System Time: 2017-08-24T17:44:34.077811894Z
