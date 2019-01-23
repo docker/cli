@@ -21,8 +21,10 @@ func base64Decode(val string) []byte {
 	return decoded
 }
 
+const sampleID = "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX"
+
 var sampleInfoNoSwarm = types.Info{
-	ID:                "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX",
+	ID:                sampleID,
 	Containers:        0,
 	ContainersRunning: 0,
 	ContainersPaused:  0,
@@ -259,6 +261,39 @@ func TestPrettyPrintInfo(t *testing.T) {
 				golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
 			} else {
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			}
+		})
+	}
+}
+
+func TestFormatInfo(t *testing.T) {
+	for _, tc := range []struct {
+		doc           string
+		template      string
+		expectedError string
+		expectedOut   string
+	}{
+		{
+			doc:         "basic",
+			template:    "{{.ID}}",
+			expectedOut: sampleID + "\n",
+		},
+		{
+			doc:           "syntax",
+			template:      "{{}",
+			expectedError: `Status: Template parsing error: template: :1: unexpected "}" in command, Code: 64`,
+		},
+	} {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			err := formatInfo(cli, sampleInfoNoSwarm, tc.template)
+			if tc.expectedOut != "" {
+				assert.NilError(t, err)
+				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
+			} else if tc.expectedError != "" {
+				assert.Error(t, err, tc.expectedError)
+			} else {
+				t.Fatal("test expected to neither pass nor fail")
 			}
 		})
 	}
