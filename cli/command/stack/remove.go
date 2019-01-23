@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
@@ -22,22 +23,17 @@ func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err := validateStackNames(opts.Namespaces); err != nil {
 				return err
 			}
-
-			switch {
-			case common.orchestrator.HasAll():
-				return errUnsupportedAllOrchestrator
-			case common.orchestrator.HasKubernetes():
-				kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(cmd.Flags(), common.orchestrator))
-				if err != nil {
-					return err
-				}
-				return kubernetes.RunRemove(kli, opts)
-			default:
-				return swarm.RunRemove(dockerCli, opts)
-			}
+			return RunRemove(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
 		},
 	}
 	flags := cmd.Flags()
 	kubernetes.AddNamespaceFlag(flags)
 	return cmd
+}
+
+// RunRemove performs a stack remove against the specified orchestrator
+func RunRemove(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Remove) error {
+	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
+		func() error { return swarm.RunRemove(dockerCli, opts) },
+		func(kli *kubernetes.KubeCli) error { return kubernetes.RunRemove(kli, opts) })
 }

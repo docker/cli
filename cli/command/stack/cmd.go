@@ -17,6 +17,13 @@ type commonOptions struct {
 	orchestrator command.Orchestrator
 }
 
+func (o *commonOptions) Orchestrator() command.Orchestrator {
+	if o == nil {
+		return command.OrchestratorSwarm
+	}
+	return o.orchestrator
+}
+
 // NewStackCommand returns a cobra command for `stack` subcommands
 func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	var opts commonOptions

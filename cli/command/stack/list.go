@@ -22,7 +22,7 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd, dockerCli, opts, common.orchestrator)
+			return RunList(cmd, dockerCli, opts, common.orchestrator)
 		},
 	}
 
@@ -35,7 +35,8 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 	return cmd
 }
 
-func runList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator) error {
+// RunList performs a stack list against the specified orchestrator
+func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator) error {
 	stacks := []*formatter.Stack{}
 	if orchestrator.HasSwarm() {
 		ss, err := swarm.GetStacks(dockerCli)
