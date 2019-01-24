@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/morikuni/aec"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // RunDeploy is the kubernetes implementation of docker stack deploy
@@ -37,15 +38,7 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy, cfg *composetypes.Config
 		return err
 	}
 
-	if err := stack.createFileBasedConfigMaps(configMaps); err != nil {
-		return err
-	}
-
-	if err := stack.createFileBasedSecrets(secrets); err != nil {
-		return err
-	}
-
-	if err = stacks.CreateOrUpdate(stack); err != nil {
+	if err := createResources(stack, stacks, configMaps, secrets); err != nil {
 		return err
 	}
 
@@ -79,6 +72,26 @@ func RunDeploy(dockerCli *KubeCli, opts options.Deploy, cfg *composetypes.Config
 	fmt.Fprintf(cmdOut, "\nStack %s is stable and running\n\n", stack.Name)
 	return nil
 
+}
+
+func createResources(stack Stack, stacks StackClient, configMaps corev1.ConfigMapInterface, secrets corev1.SecretInterface) error {
+	var childResources []childResource
+
+	cr, err := stack.createFileBasedConfigMaps(configMaps)
+	childResources = append(childResources, cr...) // make sure we collect childresources already created in case of failure
+	if err != nil {
+		deleteChildResources(childResources)
+		return err
+	}
+
+	cr, err = stack.createFileBasedSecrets(secrets)
+	childResources = append(childResources, cr...) // make sure we collect childresources already created in case of failure
+	if err != nil {
+		deleteChildResources(childResources)
+		return err
+	}
+
+	return stacks.CreateOrUpdate(stack, childResources)
 }
 
 type statusDisplay interface {
