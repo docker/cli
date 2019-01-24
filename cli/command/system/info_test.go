@@ -224,6 +224,9 @@ func TestPrettyPrintInfo(t *testing.T) {
 		"WARNING: bridge-nf-call-ip6tables is disabled",
 	}
 
+	sampleInfoBadSecurity := sampleInfoNoSwarm
+	sampleInfoBadSecurity.SecurityOptions = []string{"foo="}
+
 	for _, tc := range []struct {
 		doc            string
 		dockerInfo     info
@@ -278,6 +281,17 @@ func TestPrettyPrintInfo(t *testing.T) {
 			},
 			prettyGolden:  "docker-info-errors",
 			jsonGolden:    "docker-info-errors",
+			expectedError: "errors pretty printing info",
+		},
+		{
+			doc: "bad security info",
+			dockerInfo: info{
+				Info:         &sampleInfoBadSecurity,
+				ServerErrors: []string{"an error happened"},
+				ClientInfo:   &clientInfo{Debug: false},
+			},
+			prettyGolden:  "docker-info-badsec",
+			jsonGolden:    "docker-info-badsec",
 			expectedError: "errors pretty printing info",
 		},
 	} {

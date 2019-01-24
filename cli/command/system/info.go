@@ -94,7 +94,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	fmt.Fprintln(dockerCli.Out(), "Server")
 	fmt.Fprintln(dockerCli.Out(), "------")
 	if info.Info != nil {
-		if err := prettyPrintServerInfo(dockerCli, *info.Info); err != nil {
+		for _, err := range prettyPrintServerInfo(dockerCli, *info.Info) {
 			info.ServerErrors = append(info.ServerErrors, err.Error())
 		}
 	}
@@ -119,7 +119,9 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
 }
 
 // nolint: gocyclo
-func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) error {
+func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
+	var errs []error
+
 	fmt.Fprintln(dockerCli.Out(), "Containers:", info.Containers)
 	fmt.Fprintln(dockerCli.Out(), " Running:", info.ContainersRunning)
 	fmt.Fprintln(dockerCli.Out(), " Paused:", info.ContainersPaused)
@@ -180,20 +182,20 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) error {
 			fmt.Fprint(dockerCli.Out(), "\n")
 		}
 		if len(info.SecurityOptions) != 0 {
-			kvs, err := types.DecodeSecurityOptions(info.SecurityOptions)
-			if err != nil {
-				return err
-			}
-			fmt.Fprintln(dockerCli.Out(), "Security Options:")
-			for _, so := range kvs {
-				fmt.Fprintln(dockerCli.Out(), " "+so.Name)
-				for _, o := range so.Options {
-					switch o.Key {
-					case "profile":
-						if o.Value != "default" {
-							fmt.Fprintln(dockerCli.Err(), "  WARNING: You're not using the default seccomp profile")
+			if kvs, err := types.DecodeSecurityOptions(info.SecurityOptions); err != nil {
+				errs = append(errs, err)
+			} else {
+				fmt.Fprintln(dockerCli.Out(), "Security Options:")
+				for _, so := range kvs {
+					fmt.Fprintln(dockerCli.Out(), " "+so.Name)
+					for _, o := range so.Options {
+						switch o.Key {
+						case "profile":
+							if o.Value != "default" {
+								fmt.Fprintln(dockerCli.Err(), "  WARNING: You're not using the default seccomp profile")
+							}
+							fmt.Fprintln(dockerCli.Out(), "  Profile:", o.Value)
 						}
-						fmt.Fprintln(dockerCli.Out(), "  Profile:", o.Value)
 					}
 				}
 			}
@@ -274,7 +276,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) error {
 	fmt.Fprint(dockerCli.Out(), "\n")
 
 	printServerWarnings(dockerCli, info)
-	return nil
+	return errs
 }
 
 // nolint: gocyclo
