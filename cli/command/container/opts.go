@@ -118,6 +118,7 @@ type containerOptions struct {
 	healthStartPeriod  time.Duration
 	healthRetries      int
 	runtime            string
+	runtimeType        string
 	autoRemove         bool
 	init               bool
 
@@ -283,6 +284,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.shmSize, "shm-size", "Size of /dev/shm")
 	flags.StringVar(&copts.utsMode, "uts", "", "UTS namespace to use")
 	flags.StringVar(&copts.runtime, "runtime", "", "Runtime to use for this container")
+	flags.StringVar(&copts.runtimeType, "runtime-type", "", "Type of runtime to use for this container")
 
 	flags.BoolVar(&copts.init, "init", false, "Run an init inside the container that forwards signals and reaps processes")
 	flags.SetAnnotation("init", "version", []string{"1.25"})
@@ -617,6 +619,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions) (*containerConfig, err
 		Tmpfs:          tmpfs,
 		Sysctls:        copts.sysctls.GetAll(),
 		Runtime:        copts.runtime,
+		RuntimeType:    copts.runtimeType,
 		Mounts:         mounts,
 	}
 
