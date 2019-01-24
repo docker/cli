@@ -227,41 +227,51 @@ func TestPrettyPrintInfo(t *testing.T) {
 	for _, tc := range []struct {
 		doc            string
 		dockerInfo     types.Info
-		expectedGolden string
+		prettyGolden   string
 		warningsGolden string
+		jsonGolden     string
 	}{
 		{
-			doc:            "info without swarm",
-			dockerInfo:     sampleInfoNoSwarm,
-			expectedGolden: "docker-info-no-swarm",
+			doc:          "info without swarm",
+			dockerInfo:   sampleInfoNoSwarm,
+			prettyGolden: "docker-info-no-swarm",
+			jsonGolden:   "docker-info-no-swarm",
 		},
 		{
-			doc:            "info with swarm",
-			dockerInfo:     infoWithSwarm,
-			expectedGolden: "docker-info-with-swarm",
+			doc:          "info with swarm",
+			dockerInfo:   infoWithSwarm,
+			prettyGolden: "docker-info-with-swarm",
+			jsonGolden:   "docker-info-with-swarm",
 		},
 		{
 			doc:            "info with legacy warnings",
 			dockerInfo:     infoWithWarningsLinux,
-			expectedGolden: "docker-info-no-swarm",
+			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
+			jsonGolden:     "docker-info-legacy-warnings",
 		},
 		{
 			doc:            "info with daemon warnings",
 			dockerInfo:     sampleInfoDaemonWarnings,
-			expectedGolden: "docker-info-no-swarm",
+			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
+			jsonGolden:     "docker-info-daemon-warnings",
 		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
-			golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
+			golden.Assert(t, cli.OutBuffer().String(), tc.prettyGolden+".golden")
 			if tc.warningsGolden != "" {
 				golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
 			} else {
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 			}
+
+			cli = test.NewFakeCli(&fakeClient{})
+			assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
+			golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
+			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 		})
 	}
 }
