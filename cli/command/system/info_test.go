@@ -21,8 +21,10 @@ func base64Decode(val string) []byte {
 	return decoded
 }
 
+const sampleID = "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX"
+
 var sampleInfoNoSwarm = types.Info{
-	ID:                "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX",
+	ID:                sampleID,
 	Containers:        0,
 	ContainersRunning: 0,
 	ContainersPaused:  0,
@@ -222,43 +224,132 @@ func TestPrettyPrintInfo(t *testing.T) {
 		"WARNING: bridge-nf-call-ip6tables is disabled",
 	}
 
+	sampleInfoBadSecurity := sampleInfoNoSwarm
+	sampleInfoBadSecurity.SecurityOptions = []string{"foo="}
+
 	for _, tc := range []struct {
 		doc            string
-		dockerInfo     types.Info
-		expectedGolden string
+		dockerInfo     info
+		prettyGolden   string
 		warningsGolden string
+		jsonGolden     string
+		expectedError  string
 	}{
 		{
-			doc:            "info without swarm",
-			dockerInfo:     sampleInfoNoSwarm,
-			expectedGolden: "docker-info-no-swarm",
+			doc: "info without swarm",
+			dockerInfo: info{
+				Info:       &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{Debug: true},
+			},
+			prettyGolden: "docker-info-no-swarm",
+			jsonGolden:   "docker-info-no-swarm",
 		},
 		{
-			doc:            "info with swarm",
-			dockerInfo:     infoWithSwarm,
-			expectedGolden: "docker-info-with-swarm",
+			doc: "info with swarm",
+			dockerInfo: info{
+				Info:       &infoWithSwarm,
+				ClientInfo: &clientInfo{Debug: false},
+			},
+			prettyGolden: "docker-info-with-swarm",
+			jsonGolden:   "docker-info-with-swarm",
 		},
 		{
-			doc:            "info with legacy warnings",
-			dockerInfo:     infoWithWarningsLinux,
-			expectedGolden: "docker-info-no-swarm",
+			doc: "info with legacy warnings",
+			dockerInfo: info{
+				Info:       &infoWithWarningsLinux,
+				ClientInfo: &clientInfo{Debug: true},
+			},
+			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
+			jsonGolden:     "docker-info-legacy-warnings",
 		},
 		{
-			doc:            "info with daemon warnings",
-			dockerInfo:     sampleInfoDaemonWarnings,
-			expectedGolden: "docker-info-no-swarm",
+			doc: "info with daemon warnings",
+			dockerInfo: info{
+				Info:       &sampleInfoDaemonWarnings,
+				ClientInfo: &clientInfo{Debug: true},
+			},
+			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
+			jsonGolden:     "docker-info-daemon-warnings",
+		},
+		{
+			doc: "errors for both",
+			dockerInfo: info{
+				ServerErrors: []string{"a server error occurred"},
+				ClientErrors: []string{"a client error occurred"},
+			},
+			prettyGolden:  "docker-info-errors",
+			jsonGolden:    "docker-info-errors",
+			expectedError: "errors pretty printing info",
+		},
+		{
+			doc: "bad security info",
+			dockerInfo: info{
+				Info:         &sampleInfoBadSecurity,
+				ServerErrors: []string{"an error happened"},
+				ClientInfo:   &clientInfo{Debug: false},
+			},
+			prettyGolden:  "docker-info-badsec",
+			jsonGolden:    "docker-info-badsec",
+			expectedError: "errors pretty printing info",
 		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
-			assert.NilError(t, prettyPrintInfo(cli, tc.dockerInfo))
-			golden.Assert(t, cli.OutBuffer().String(), tc.expectedGolden+".golden")
+			err := prettyPrintInfo(cli, tc.dockerInfo)
+			if tc.expectedError == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.Error(t, err, tc.expectedError)
+			}
+			golden.Assert(t, cli.OutBuffer().String(), tc.prettyGolden+".golden")
 			if tc.warningsGolden != "" {
 				golden.Assert(t, cli.ErrBuffer().String(), tc.warningsGolden+".golden")
 			} else {
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			}
+
+			cli = test.NewFakeCli(&fakeClient{})
+			assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
+			golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
+			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+		})
+	}
+}
+
+func TestFormatInfo(t *testing.T) {
+	for _, tc := range []struct {
+		doc           string
+		template      string
+		expectedError string
+		expectedOut   string
+	}{
+		{
+			doc:         "basic",
+			template:    "{{.ID}}",
+			expectedOut: sampleID + "\n",
+		},
+		{
+			doc:           "syntax",
+			template:      "{{}",
+			expectedError: `Status: Template parsing error: template: :1: unexpected "}" in command, Code: 64`,
+		},
+	} {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			info := info{
+				Info:       &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{Debug: true},
+			}
+			err := formatInfo(cli, info, tc.template)
+			if tc.expectedOut != "" {
+				assert.NilError(t, err)
+				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
+			} else if tc.expectedError != "" {
+				assert.Error(t, err, tc.expectedError)
+			} else {
+				t.Fatal("test expected to neither pass nor fail")
 			}
 		})
 	}

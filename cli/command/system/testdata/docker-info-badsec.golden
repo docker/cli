@@ -1,5 +1,5 @@
 Client:
- Debug Mode: true
+ Debug Mode: false
 
 Server:
  Containers: 0
@@ -26,10 +26,6 @@ Server:
  containerd version: 6e23458c129b551d5c9871e5174f6b1b7f6d1170
  runc version: 810190ceaa507aa2727d7ae6f4790c76ec150bd2
  init version: 949e6fa
- Security Options:
-  apparmor
-  seccomp
-   Profile: default
  Kernel Version: 4.4.0-87-generic
  Operating System: Ubuntu 16.04.3 LTS
  OSType: linux
@@ -52,3 +48,5 @@ Server:
   127.0.0.0/8
  Live Restore Enabled: false
 
+ERROR: an error happened
+ERROR: invalid empty security option
