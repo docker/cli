@@ -69,7 +69,7 @@ The main process inside the container referenced under the link `redis` will rec
 ### Remove all stopped containers
 
 ```bash
-$ docker rm $(docker ps -a -q)
+$ docker rm (docker ps -a -f "status=exited" -q)
 ```
 
 This command will delete all stopped containers. The command
