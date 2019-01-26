@@ -4,6 +4,7 @@ mode: global
 replicas: 2/4
 image: 
 ports: *:80->8080/tcp
+pending deletion: true
 
 id: id_bar
 name: bar
@@ -11,4 +12,5 @@ mode: replicated
 replicas: 2/4
 image: 
 ports: *:80->8080/tcp
+pending deletion: false
 

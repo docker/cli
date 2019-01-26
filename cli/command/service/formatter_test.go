@@ -33,9 +33,9 @@ func TestServiceContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewListFormat("table", false)},
-			`ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
-id_baz              baz                 global              2/4                                     *:80->8080/tcp
-id_bar              bar                 replicated          2/4                                     *:80->8080/tcp
+			`ID                  NAME                MODE                REPLICAS            IMAGE               PORTS               PENDING DELETION?
+id_baz              baz                 global              2/4                                     *:80->8080/tcp      true
+id_bar              bar                 replicated          2/4                                     *:80->8080/tcp      false
 `,
 		},
 		{
@@ -95,6 +95,7 @@ bar
 						},
 					},
 				},
+				PendingDelete: true,
 			},
 			{
 				ID: "id_bar",
@@ -167,6 +168,7 @@ func TestServiceContextWriteJSON(t *testing.T) {
 					},
 				},
 			},
+			PendingDelete: true,
 		},
 	}
 	info := map[string]ListInfo{
@@ -180,8 +182,8 @@ func TestServiceContextWriteJSON(t *testing.T) {
 		},
 	}
 	expectedJSONs := []map[string]interface{}{
-		{"ID": "id_baz", "Name": "baz", "Mode": "global", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
-		{"ID": "id_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
+		{"ID": "id_baz", "Name": "baz", "Mode": "global", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp", "IsPendingDeletion": false},
+		{"ID": "id_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp", "IsPendingDeletion": true},
 	}
 
 	out := bytes.NewBufferString("")
