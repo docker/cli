@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/cli/streams"
 	"github.com/morikuni/aec"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -117,7 +117,7 @@ func metaStateFromStatus(status serviceStatus) metaServiceState {
 }
 
 type forwardOnlyStatusDisplay struct {
-	o      *command.OutStream
+	o      *streams.Out
 	states map[string]metaServiceState
 }
 
@@ -130,7 +130,7 @@ func (d *forwardOnlyStatusDisplay) OnStatus(status serviceStatus) {
 }
 
 type interactiveStatusDisplay struct {
-	o        *command.OutStream
+	o        *streams.Out
 	statuses []serviceStatus
 }
 
@@ -163,7 +163,7 @@ func displayInteractiveServiceStatus(status serviceStatus, o io.Writer) {
 		status.podsReady, status.podsPending, totalFailed, status.podsTotal)
 }
 
-func newStatusDisplay(o *command.OutStream) statusDisplay {
+func newStatusDisplay(o *streams.Out) statusDisplay {
 	if !o.IsTerminal() {
 		return &forwardOnlyStatusDisplay{o: o, states: map[string]metaServiceState{}}
 	}

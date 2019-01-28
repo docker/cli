@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -86,7 +86,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 			volumePruneFunc: simplePruneFunc,
 		})
 
-		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
+		cli.SetIn(streams.NewIn(ioutil.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
@@ -102,7 +102,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 			volumePruneFunc: simplePruneFunc,
 		})
 
-		cli.SetIn(command.NewInStream(ioutil.NopCloser(strings.NewReader(input))))
+		cli.SetIn(streams.NewIn(ioutil.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/debug"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -101,7 +102,7 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *types.AuthConfig, isDefaultRegistry bool) error {
 	// On Windows, force the use of the regular OS stdin stream. Fixes #14336/#14210
 	if runtime.GOOS == "windows" {
-		cli.SetIn(NewInStream(os.Stdin))
+		cli.SetIn(streams.NewIn(os.Stdin))
 	}
 
 	// Some links documenting this:

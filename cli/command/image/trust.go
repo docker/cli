@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -296,7 +297,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 
 	out := cli.Out()
 	if opts.quiet {
-		out = command.NewOutStream(ioutil.Discard)
+		out = streams.NewOut(ioutil.Discard)
 	}
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
 }

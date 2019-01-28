@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/client"
@@ -29,10 +30,10 @@ type FakeCli struct {
 	command.DockerCli
 	client                        client.APIClient
 	configfile                    *configfile.ConfigFile
-	out                           *command.OutStream
+	out                           *streams.Out
 	outBuffer                     *bytes.Buffer
 	err                           *bytes.Buffer
-	in                            *command.InStream
+	in                            *streams.In
 	server                        command.ServerInfo
 	clientInfoFunc                clientInfoFuncType
 	notaryClientFunc              NotaryClientFuncType
@@ -51,10 +52,10 @@ func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 	errBuffer := new(bytes.Buffer)
 	c := &FakeCli{
 		client:    client,
-		out:       command.NewOutStream(outBuffer),
+		out:       streams.NewOut(outBuffer),
 		outBuffer: outBuffer,
 		err:       errBuffer,
-		in:        command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		in:        streams.NewIn(ioutil.NopCloser(strings.NewReader(""))),
 		// Use an empty string for filename so that tests don't create configfiles
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
 		configfile: configfile.New(""),
@@ -66,7 +67,7 @@ func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 }
 
 // SetIn sets the input of the cli to the specified ReadCloser
-func (c *FakeCli) SetIn(in *command.InStream) {
+func (c *FakeCli) SetIn(in *streams.In) {
 	c.in = in
 }
 
@@ -76,7 +77,7 @@ func (c *FakeCli) SetErr(err *bytes.Buffer) {
 }
 
 // SetOut sets the stdout stream for the cli to the specified io.Writer
-func (c *FakeCli) SetOut(out *command.OutStream) {
+func (c *FakeCli) SetOut(out *streams.Out) {
 	c.out = out
 }
 
@@ -106,7 +107,7 @@ func (c *FakeCli) Client() client.APIClient {
 }
 
 // Out returns the output stream (stdout) the cli should write on
-func (c *FakeCli) Out() *command.OutStream {
+func (c *FakeCli) Out() *streams.Out {
 	return c.out
 }
 
@@ -116,7 +117,7 @@ func (c *FakeCli) Err() io.Writer {
 }
 
 // In returns the input stream the cli will use
-func (c *FakeCli) In() *command.InStream {
+func (c *FakeCli) In() *streams.In {
 	return c.in
 }
 

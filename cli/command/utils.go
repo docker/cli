@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/system"
 	"github.com/spf13/pflag"
@@ -80,7 +81,7 @@ func PromptForConfirmation(ins io.Reader, outs io.Writer, message string) bool {
 
 	// On Windows, force the use of the regular OS stdin stream.
 	if runtime.GOOS == "windows" {
-		ins = NewInStream(os.Stdin)
+		ins = streams.NewIn(os.Stdin)
 	}
 
 	reader := bufio.NewReader(ins)

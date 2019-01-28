@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -59,7 +60,7 @@ func runUnlock(dockerCli command.Cli) error {
 	return client.SwarmUnlock(ctx, req)
 }
 
-func readKey(in *command.InStream, prompt string) (string, error) {
+func readKey(in *streams.In, prompt string) (string, error) {
 	if in.IsTerminal() {
 		fmt.Print(prompt)
 		dt, err := terminal.ReadPassword(int(in.FD()))
