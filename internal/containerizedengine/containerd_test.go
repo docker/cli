@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/containerd/containerd"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types"
 	"gotest.tools/assert"
 )
@@ -24,7 +24,7 @@ func TestPullWithAuthPullFail(t *testing.T) {
 	}
 	imageName := "testnamegoeshere"
 
-	_, err := client.pullWithAuth(ctx, imageName, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	_, err := client.pullWithAuth(ctx, imageName, streams.NewOut(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.ErrorContains(t, err, "pull failure")
 }
 
@@ -40,6 +40,6 @@ func TestPullWithAuthPullPass(t *testing.T) {
 	}
 	imageName := "testnamegoeshere"
 
-	_, err := client.pullWithAuth(ctx, imageName, command.NewOutStream(&bytes.Buffer{}), &types.AuthConfig{})
+	_, err := client.pullWithAuth(ctx, imageName, streams.NewOut(&bytes.Buffer{}), &types.AuthConfig{})
 	assert.NilError(t, err)
 }

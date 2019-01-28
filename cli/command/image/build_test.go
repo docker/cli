@@ -13,7 +13,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
@@ -39,7 +39,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 		FROM alpine:3.6
 		COPY foo /
 	`)
-	cli.SetIn(command.NewInStream(ioutil.NopCloser(dockerfile)))
+	cli.SetIn(streams.NewIn(ioutil.NopCloser(dockerfile)))
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("foo", "some content"))

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"gotest.tools/assert"
 )
 
@@ -53,7 +53,7 @@ func TestExportImportPipe(t *testing.T) {
 		dest:        "-",
 	}))
 	assert.Equal(t, cli.ErrBuffer().String(), "")
-	cli.SetIn(command.NewInStream(ioutil.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
+	cli.SetIn(streams.NewIn(ioutil.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, runImport(cli, "test2", "-"))
