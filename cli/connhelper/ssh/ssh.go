@@ -12,7 +12,7 @@ import (
 func New(daemonURL string) (string, []string, error) {
 	sp, err := parseSSHURL(daemonURL)
 	if err != nil {
-		return "", nil, err
+		return "", nil, errors.Wrap(err, "SSH host connection is not valid")
 	}
 	return "ssh", append(sp.Args(), []string{"--", "docker", "system", "dial-stdio"}...), nil
 }
@@ -23,7 +23,7 @@ func parseSSHURL(daemonURL string) (*sshSpec, error) {
 		return nil, err
 	}
 	if u.Scheme != "ssh" {
-		return nil, errors.Errorf("expected scheme ssh, got %s", u.Scheme)
+		return nil, errors.Errorf("expected scheme ssh, got %q", u.Scheme)
 	}
 
 	var sp sshSpec
@@ -31,22 +31,22 @@ func parseSSHURL(daemonURL string) (*sshSpec, error) {
 	if u.User != nil {
 		sp.user = u.User.Username()
 		if _, ok := u.User.Password(); ok {
-			return nil, errors.New("ssh helper does not accept plain-text password")
+			return nil, errors.New("plain-text password is not supported")
 		}
 	}
 	sp.host = u.Hostname()
 	if sp.host == "" {
-		return nil, errors.Errorf("host is not specified")
+		return nil, errors.Errorf("no host specified")
 	}
 	sp.port = u.Port()
 	if u.Path != "" {
-		return nil, errors.Errorf("extra path: %s", u.Path)
+		return nil, errors.Errorf("extra path after the host: %q", u.Path)
 	}
 	if u.RawQuery != "" {
-		return nil, errors.Errorf("extra query: %s", u.RawQuery)
+		return nil, errors.Errorf("extra query after the host: %q", u.RawQuery)
 	}
 	if u.Fragment != "" {
-		return nil, errors.Errorf("extra fragment: %s", u.Fragment)
+		return nil, errors.Errorf("extra fragment after the host: %q", u.Fragment)
 	}
 	return &sp, err
 }
