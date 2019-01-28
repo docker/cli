@@ -11,15 +11,15 @@ clean: ## remove build artifacts
 	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml/gen
 
 .PHONY: test-unit
-test-unit: ## run unit test
-	./scripts/test/unit $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit 
+	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: test
 test: test-unit ## run tests
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	gotestsum -- -coverprofile=coverage.txt $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: fmt
 fmt:
