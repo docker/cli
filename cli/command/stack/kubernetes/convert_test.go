@@ -1,9 +1,13 @@
 package kubernetes
 
 import (
+	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"testing"
 
+	"github.com/docker/cli/cli/compose/loader"
+	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
@@ -160,4 +164,74 @@ func TestConvertFromToV1alpha3(t *testing.T) {
 	assert.DeepEqual(t, expected, result)
 	gotBack := stackToV1alpha3(result)
 	assert.DeepEqual(t, stackv1alpha3, gotBack)
+}
+
+func loadTestStackWith(t *testing.T, with string) *composetypes.Config {
+	t.Helper()
+	filePath := fmt.Sprintf("testdata/compose-with-%s.yml", with)
+	data, err := ioutil.ReadFile(filePath)
+	assert.NilError(t, err)
+	yamlData, err := loader.ParseYAML(data)
+	assert.NilError(t, err)
+	cfg, err := loader.Load(composetypes.ConfigDetails{
+		ConfigFiles: []composetypes.ConfigFile{
+			{Config: yamlData, Filename: filePath},
+		},
+	})
+	assert.NilError(t, err)
+	return cfg
+}
+
+func TestHandlePullSecret(t *testing.T) {
+	testData := loadTestStackWith(t, "pull-secret")
+	cases := []struct {
+		version string
+		err     string
+	}{
+		{version: "v1beta1", err: `stack API version v1beta1 does not support pull secrets (field "x-pull-secret"), please use version v1alpha3 or higher`},
+		{version: "v1beta2", err: `stack API version v1beta2 does not support pull secrets (field "x-pull-secret"), please use version v1alpha3 or higher`},
+		{version: "v1alpha3"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.version, func(t *testing.T) {
+			conv, err := NewStackConverter(c.version)
+			assert.NilError(t, err)
+			s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+			if c.err != "" {
+				assert.Error(t, err, c.err)
+
+			} else {
+				assert.NilError(t, err)
+				assert.Equal(t, s.Spec.Services[0].PullSecret, "some-secret")
+			}
+		})
+	}
+}
+
+func TestHandlePullPolicy(t *testing.T) {
+	testData := loadTestStackWith(t, "pull-policy")
+	cases := []struct {
+		version string
+		err     string
+	}{
+		{version: "v1beta1", err: `stack API version v1beta1 does not support pull policies (field "x-pull-policy"), please use version v1alpha3 or higher`},
+		{version: "v1beta2", err: `stack API version v1beta2 does not support pull policies (field "x-pull-policy"), please use version v1alpha3 or higher`},
+		{version: "v1alpha3"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.version, func(t *testing.T) {
+			conv, err := NewStackConverter(c.version)
+			assert.NilError(t, err)
+			s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+			if c.err != "" {
+				assert.Error(t, err, c.err)
+
+			} else {
+				assert.NilError(t, err)
+				assert.Equal(t, s.Spec.Services[0].PullPolicy, "Never")
+			}
+		})
+	}
 }
