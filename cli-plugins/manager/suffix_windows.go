@@ -1,17 +1,24 @@
 package manager
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
+// This is made slightly more complex due to needing to be case insensitive.
 func trimExeSuffix(s string) (string, error) {
-	exe := ".exe"
-	if !strings.HasSuffix(s, exe) {
-		return "", errors.Errorf("lacks required %q suffix", exe)
+	ext := filepath.Ext(s)
+	if ext == "" {
+		return "", errors.Errorf("path %q lacks required file extension", s)
 	}
-	return strings.TrimSuffix(s, exe), nil
+
+	exe := ".exe"
+	if !strings.EqualFold(ext, exe) {
+		return "", errors.Errorf("path %q lacks required %q suffix", s, exe)
+	}
+	return strings.TrimSuffix(s, ext), nil
 }
 
 func addExeSuffix(s string) string {
