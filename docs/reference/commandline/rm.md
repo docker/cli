@@ -68,14 +68,7 @@ The main process inside the container referenced under the link `redis` will rec
 
 ### Remove all stopped containers
 
-```bash
-$ docker rm (docker ps -a -f "status=exited" -q)
-```
-
-This command will delete all stopped containers. The command
-`docker ps -a -q` will return all existing container IDs and pass them to
-the `rm` command which will delete them. Any running containers will not be
-deleted.
+To remove stopped container, please refer to [docker prune container documentation](/docs/reference/commandline/container_prune.md) 
 
 ### Remove a container and its volumes
 
