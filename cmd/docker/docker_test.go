@@ -25,27 +25,33 @@ func TestClientDebugEnabled(t *testing.T) {
 	assert.Check(t, is.Equal(logrus.DebugLevel, logrus.GetLevel()))
 }
 
+var discard = ioutil.NopCloser(bytes.NewBuffer(nil))
+
 func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
-	discard := ioutil.Discard
-	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard, false, nil))
+	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(ioutil.Discard))
+	assert.NilError(t, err)
+	cmd := newDockerCommand(cli)
 	cmd.SetArgs([]string{"help", "invalid"})
-	err := cmd.Execute()
+	err = cmd.Execute()
 	assert.Error(t, err, "unknown help topic: invalid")
 }
 
 func TestExitStatusForInvalidSubcommand(t *testing.T) {
-	discard := ioutil.Discard
-	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, discard, discard, false, nil))
+	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(ioutil.Discard))
+	assert.NilError(t, err)
+	cmd := newDockerCommand(cli)
 	cmd.SetArgs([]string{"invalid"})
-	err := cmd.Execute()
+	err = cmd.Execute()
 	assert.Check(t, is.ErrorContains(err, "docker: 'invalid' is not a docker command."))
 }
 
 func TestVersion(t *testing.T) {
 	var b bytes.Buffer
-	cmd := newDockerCommand(command.NewDockerCli(os.Stdin, &b, &b, false, nil))
+	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
+	assert.NilError(t, err)
+	cmd := newDockerCommand(cli)
 	cmd.SetArgs([]string{"--version"})
-	err := cmd.Execute()
+	err = cmd.Execute()
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(b.String(), "Docker version"))
 }

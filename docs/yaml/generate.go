@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	"github.com/docker/docker/pkg/term"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -18,8 +17,10 @@ import (
 const descriptionSourcePath = "docs/reference/commandline/"
 
 func generateCliYaml(opts *options) error {
-	stdin, stdout, stderr := term.StdStreams()
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, false, nil)
+	dockerCli, err := command.NewDockerCli()
+	if err != nil {
+		return err
+	}
 	cmd := &cobra.Command{Use: "docker"}
 	commands.AddCommands(cmd, dockerCli)
 	disableFlagsInUseLine(cmd)

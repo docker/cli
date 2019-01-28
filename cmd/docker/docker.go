@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -13,10 +12,8 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/internal/containerizedengine"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/term"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -170,17 +167,19 @@ func noArgs(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
-	// Set terminal emulation based on platform as required.
-	stdin, stdout, stderr := term.StdStreams()
-	logrus.SetOutput(stderr)
+	dockerCli, err := command.NewDockerCli()
+	if err != nil {
+		fmt.Fprintln(dockerCli.Err(), err)
+		os.Exit(1)
+	}
+	logrus.SetOutput(dockerCli.Err())
 
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, contentTrustEnabled(), containerizedengine.NewClient)
 	cmd := newDockerCommand(dockerCli)
 
 	if err := cmd.Execute(); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
-				fmt.Fprintln(stderr, sterr.Status)
+				fmt.Fprintln(dockerCli.Err(), sterr.Status)
 			}
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
@@ -189,19 +188,9 @@ func main() {
 			}
 			os.Exit(sterr.StatusCode)
 		}
-		fmt.Fprintln(stderr, err)
+		fmt.Fprintln(dockerCli.Err(), err)
 		os.Exit(1)
 	}
-}
-
-func contentTrustEnabled() bool {
-	if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
-		if t, err := strconv.ParseBool(e); t || err != nil {
-			// treat any other value as true
-			return true
-		}
-	}
-	return false
 }
 
 func dockerPreRun(opts *cliflags.ClientOptions) {

@@ -19,12 +19,15 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/term"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -35,18 +38,19 @@ import (
 
 // Streams is an interface which exposes the standard input and output streams
 type Streams interface {
-	In() *InStream
-	Out() *OutStream
+	In() *streams.In
+	Out() *streams.Out
 	Err() io.Writer
 }
 
 // Cli represents the docker command line client.
 type Cli interface {
 	Client() client.APIClient
-	Out() *OutStream
+	Out() *streams.Out
 	Err() io.Writer
-	In() *InStream
-	SetIn(in *InStream)
+	In() *streams.In
+	SetIn(in *streams.In)
+	Apply(ops ...DockerCliOption) error
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
 	ClientInfo() ClientInfo
@@ -66,8 +70,8 @@ type Cli interface {
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
 	configFile            *configfile.ConfigFile
-	in                    *InStream
-	out                   *OutStream
+	in                    *streams.In
+	out                   *streams.Out
 	err                   io.Writer
 	client                client.APIClient
 	serverInfo            ServerInfo
@@ -96,7 +100,7 @@ func (cli *DockerCli) Client() client.APIClient {
 }
 
 // Out returns the writer used for stdout
-func (cli *DockerCli) Out() *OutStream {
+func (cli *DockerCli) Out() *streams.Out {
 	return cli.out
 }
 
@@ -106,12 +110,12 @@ func (cli *DockerCli) Err() io.Writer {
 }
 
 // SetIn sets the reader used for stdin
-func (cli *DockerCli) SetIn(in *InStream) {
+func (cli *DockerCli) SetIn(in *streams.In) {
 	cli.in = in
 }
 
 // In returns the reader used for stdin
-func (cli *DockerCli) In() *InStream {
+func (cli *DockerCli) In() *streams.In {
 	return cli.in
 }
 
@@ -393,6 +397,16 @@ func (cli *DockerCli) DockerEndpoint() docker.Endpoint {
 	return cli.dockerEndpoint
 }
 
+// Apply all the operation on the cli
+func (cli *DockerCli) Apply(ops ...DockerCliOption) error {
+	for _, op := range ops {
+		if err := op(cli); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ServerInfo stores details about the supported features and platform of the
 // server
 type ServerInfo struct {
@@ -407,9 +421,32 @@ type ClientInfo struct {
 	DefaultVersion  string
 }
 
-// NewDockerCli returns a DockerCli instance with IO output and error streams set by in, out and err.
-func NewDockerCli(in io.ReadCloser, out, err io.Writer, isTrusted bool, containerizedFn func(string) (clitypes.ContainerizedClient, error)) *DockerCli {
-	return &DockerCli{in: NewInStream(in), out: NewOutStream(out), err: err, contentTrust: isTrusted, newContainerizeClient: containerizedFn}
+// NewDockerCli returns a DockerCli instance with all operators applied on it.
+// It applies by default the standard streams, the content trust from
+// environment and the default containerized client constructor operations.
+func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
+	cli := &DockerCli{}
+	defaultOps := []DockerCliOption{
+		WithContentTrustFromEnv(),
+		WithContainerizedClient(containerizedengine.NewClient),
+	}
+	ops = append(defaultOps, ops...)
+	if err := cli.Apply(ops...); err != nil {
+		return nil, err
+	}
+	if cli.out == nil || cli.in == nil || cli.err == nil {
+		stdin, stdout, stderr := term.StdStreams()
+		if cli.in == nil {
+			cli.in = streams.NewIn(stdin)
+		}
+		if cli.out == nil {
+			cli.out = streams.NewOut(stdout)
+		}
+		if cli.err == nil {
+			cli.err = stderr
+		}
+	}
+	return cli, nil
 }
 
 func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error) {
