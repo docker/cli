@@ -3,8 +3,10 @@ package kubernetes
 import (
 	"fmt"
 
+	composev1alpha3 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1alpha3"
 	composev1beta1 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta1"
 	composev1beta2 "github.com/docker/compose-on-kubernetes/api/client/clientset/typed/compose/v1beta2"
+	"github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"github.com/docker/compose-on-kubernetes/api/labels"
@@ -123,7 +125,7 @@ func verify(services corev1.ServiceInterface, stackName string, service string) 
 
 // stackV1Beta2 implements stackClient interface and talks to compose component v1beta2.
 type stackV1Beta2 struct {
-	stackV1Beta2Converter
+	stackV1Beta2OrHigherConverter
 	stacks composev1beta2.StackInterface
 }
 
@@ -136,17 +138,21 @@ func newStackV1Beta2(config *rest.Config, namespace string) (*stackV1Beta2, erro
 }
 
 func (s *stackV1Beta2) CreateOrUpdate(internalStack Stack, childResources []childResource) error {
-	// If it already exists, update the stack
 	var (
 		stack *v1beta2.Stack
 		err   error
 	)
+	resolved, err := stackToV1beta2(internalStack)
+	if err != nil {
+		deleteChildResources(childResources)
+		return err
+	}
 	if stack, err = s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
-		stack.Spec = internalStack.Spec
+		stack.Spec = resolved.Spec
 		stack, err = s.stacks.Update(stack)
 	} else {
 		// Or create it
-		stack, err = s.stacks.Create(stackToV1beta2(internalStack))
+		stack, err = s.stacks.Create(resolved)
 	}
 	if err != nil {
 		deleteChildResources(childResources)
@@ -173,7 +179,7 @@ func (s *stackV1Beta2) Get(name string) (Stack, error) {
 	if err != nil {
 		return Stack{}, err
 	}
-	return stackFromV1beta2(stackBeta2), nil
+	return stackFromV1beta2(stackBeta2)
 }
 
 func (s *stackV1Beta2) List(opts metav1.ListOptions) ([]Stack, error) {
@@ -183,12 +189,86 @@ func (s *stackV1Beta2) List(opts metav1.ListOptions) ([]Stack, error) {
 	}
 	stacks := make([]Stack, len(list.Items))
 	for i := range list.Items {
-		stacks[i] = stackFromV1beta2(&list.Items[i])
+		if stacks[i], err = stackFromV1beta2(&list.Items[i]); err != nil {
+			return nil, err
+		}
 	}
 	return stacks, nil
 }
 
 // IsColliding is handle server side with the compose api v1beta2, so nothing to do here
 func (s *stackV1Beta2) IsColliding(servicesClient corev1.ServiceInterface, st Stack) error {
+	return nil
+}
+
+// stackV1Beta2 implements stackClient interface and talks to compose component v1beta2.
+type stackV1Alpha3 struct {
+	stackV1Beta2OrHigherConverter
+	stacks composev1alpha3.StackInterface
+}
+
+func newStackV1Alpha3(config *rest.Config, namespace string) (*stackV1Alpha3, error) {
+	client, err := composev1alpha3.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return &stackV1Alpha3{stacks: client.Stacks(namespace)}, nil
+}
+
+func (s *stackV1Alpha3) CreateOrUpdate(internalStack Stack, childResources []childResource) error {
+	var (
+		stack *v1alpha3.Stack
+		err   error
+	)
+	resolved := stackToV1alpha3(internalStack)
+	if stack, err = s.stacks.Get(internalStack.Name, metav1.GetOptions{}); err == nil {
+		stack.Spec = resolved.Spec
+		stack, err = s.stacks.Update(stack)
+	} else {
+		// Or create it
+		stack, err = s.stacks.Create(resolved)
+	}
+	if err != nil {
+		deleteChildResources(childResources)
+		return err
+	}
+	blockOwnerDeletion := true
+	isController := true
+	return setChildResourcesOwner(childResources, metav1.OwnerReference{
+		APIVersion:         v1alpha3.SchemeGroupVersion.String(),
+		Kind:               "Stack",
+		Name:               stack.Name,
+		UID:                stack.UID,
+		BlockOwnerDeletion: &blockOwnerDeletion,
+		Controller:         &isController,
+	})
+}
+
+func (s *stackV1Alpha3) Delete(name string) error {
+	return s.stacks.Delete(name, &metav1.DeleteOptions{})
+}
+
+func (s *stackV1Alpha3) Get(name string) (Stack, error) {
+	stackAlpha3, err := s.stacks.Get(name, metav1.GetOptions{})
+	if err != nil {
+		return Stack{}, err
+	}
+	return stackFromV1alpha3(stackAlpha3), nil
+}
+
+func (s *stackV1Alpha3) List(opts metav1.ListOptions) ([]Stack, error) {
+	list, err := s.stacks.List(opts)
+	if err != nil {
+		return nil, err
+	}
+	stacks := make([]Stack, len(list.Items))
+	for i := range list.Items {
+		stacks[i] = stackFromV1alpha3(&list.Items[i])
+	}
+	return stacks, nil
+}
+
+// IsColliding is handle server side with the compose api v1beta2, so nothing to do here
+func (s *stackV1Alpha3) IsColliding(servicesClient corev1.ServiceInterface, st Stack) error {
 	return nil
 }

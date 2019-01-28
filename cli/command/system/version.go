@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	kubecontext "github.com/docker/cli/cli/context/kubernetes"
+	"github.com/docker/cli/kubernetes"
 	"github.com/docker/cli/templates"
-	kubernetes "github.com/docker/compose-on-kubernetes/api"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -260,13 +260,13 @@ func getKubernetesVersion(dockerCli command.Cli, kubeConfig string) *kubernetesV
 		logrus.Debugf("failed to get Kubernetes client: %s", err)
 		return &version
 	}
-	version.StackAPI = getStackVersion(kubeClient)
+	version.StackAPI = getStackVersion(kubeClient, dockerCli.ClientInfo().HasExperimental)
 	version.Kubernetes = getKubernetesServerVersion(kubeClient)
 	return &version
 }
 
-func getStackVersion(client *kubernetesClient.Clientset) string {
-	apiVersion, err := kubernetes.GetStackAPIVersion(client)
+func getStackVersion(client *kubernetesClient.Clientset, experimental bool) string {
+	apiVersion, err := kubernetes.GetStackAPIVersion(client, experimental)
 	if err != nil {
 		logrus.Debugf("failed to get Stack API version: %s", err)
 		return "Unknown"

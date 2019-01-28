@@ -1,6 +1,7 @@
 package scheme
 
 import (
+	composev1alpha3 "github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	composev1beta1 "github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	composev1beta2 "github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +40,7 @@ func init() {
 // After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
 // correctly.
 func AddToScheme(scheme *runtime.Scheme) {
+	composev1alpha3.AddToScheme(scheme)
 	composev1beta2.AddToScheme(scheme)
 	composev1beta1.AddToScheme(scheme)
 

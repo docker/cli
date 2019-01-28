@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	kubernetes "github.com/docker/compose-on-kubernetes/api"
+	"github.com/docker/cli/kubernetes"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -18,10 +18,11 @@ type Factory struct {
 	coreClientSet corev1.CoreV1Interface
 	appsClientSet appsv1beta2.AppsV1beta2Interface
 	clientSet     *kubeclient.Clientset
+	experimental  bool
 }
 
 // NewFactory creates a kubernetes client factory
-func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclient.Clientset) (*Factory, error) {
+func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclient.Clientset, experimental bool) (*Factory, error) {
 	coreClientSet, err := corev1.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -38,6 +39,7 @@ func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclie
 		coreClientSet: coreClientSet,
 		appsClientSet: appsClientSet,
 		clientSet:     clientSet,
+		experimental:  experimental,
 	}, nil
 }
 
@@ -83,7 +85,7 @@ func (s *Factory) DaemonSets() typesappsv1beta2.DaemonSetInterface {
 
 // Stacks returns a client for Docker's Stack on Kubernetes
 func (s *Factory) Stacks(allNamespaces bool) (StackClient, error) {
-	version, err := kubernetes.GetStackAPIVersion(s.clientSet)
+	version, err := kubernetes.GetStackAPIVersion(s.clientSet.Discovery(), s.experimental)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +99,9 @@ func (s *Factory) Stacks(allNamespaces bool) (StackClient, error) {
 		return newStackV1Beta1(s.config, namespace)
 	case kubernetes.StackAPIV1Beta2:
 		return newStackV1Beta2(s.config, namespace)
+	case kubernetes.StackAPIV1Alpha3:
+		return newStackV1Alpha3(s.config, namespace)
 	default:
-		return nil, errors.Errorf("no supported Stack API version")
+		return nil, errors.Errorf("unsupported stack API version: %q", version)
 	}
 }
