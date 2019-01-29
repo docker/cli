@@ -68,7 +68,7 @@ __docker_previous_extglob_setting=$(shopt -p extglob)
 shopt -s extglob
 
 __docker_q() {
-	docker ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
+	docker ${host:+--host "$host"} ${config:+--config "$config"} ${context:+--context "$context"} 2>/dev/null "$@"
 }
 
 # __docker_configs returns a list of configs. Additional options to
@@ -177,6 +177,31 @@ __docker_complete_container_ids() {
 	local containers=( $(__docker_q ps -aq) )
 	COMPREPLY=( $(compgen -W "${containers[*]}" -- "$cur") )
 }
+
+# __docker_contexts returns a list of contexts without the special "default" context.
+# Completions may be added with `--add`, e.g. `--add default`.
+__docker_contexts() {
+	local add=()
+	while true ; do
+		case "$1" in
+			--add)
+				add+=("$2")
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+	__docker_q context ls -q
+	echo "${add[@]}"
+}
+
+__docker_complete_contexts() {
+	local contexts=( $(__docker_contexts "$@") )
+	COMPREPLY=( $(compgen -W "${contexts[*]}" -- "$cur") )
+}
+
 
 # __docker_images returns a list of images. For each image, up to three representations
 # can be generated: the repository (e.g. busybox), repository:tag (e.g. busybox:latest)
@@ -1131,6 +1156,10 @@ _docker_docker() {
 	case "$prev" in
 		--config)
 			_filedir -d
+			return
+			;;
+		--context|-c)
+			__docker_complete_contexts
 			return
 			;;
 		--log-level|-l)
@@ -2229,6 +2258,172 @@ _docker_container_wait() {
 			;;
 		*)
 			__docker_complete_containers_all
+			;;
+	esac
+}
+
+
+_docker_context() {
+	local subcommands="
+		create
+		export
+		import
+		inspect
+		ls
+		rm
+		update
+		use
+	"
+	local aliases="
+		list
+		remove
+	"
+	__docker_subcommands "$subcommands $aliases" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_context_create() {
+	case "$prev" in
+		--default-stack-orchestrator)
+			COMPREPLY=( $( compgen -W "all kubernetes swarm" -- "$cur" ) )
+			return
+			;;
+		--description|--docker|--kubernetes)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_context_export() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --kubeconfig" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_contexts
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
+				_filedir
+			fi
+			;;
+	esac
+}
+
+_docker_context_import() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				:
+			elif [ "$cword" -eq "$((counter + 1))" ]; then
+				_filedir
+			fi
+			;;
+	esac
+}
+
+_docker_context_inspect() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
+			;;
+		*)
+			__docker_complete_contexts
+			;;
+	esac
+}
+
+_docker_context_list() {
+	_docker_context_ls
+}
+
+_docker_context_ls() {
+	case "$prev" in
+		--format|-f)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format -f --help --quiet -q" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_context_remove() {
+	_docker_context_rm
+}
+
+_docker_context_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
+			;;
+		*)
+			__docker_complete_contexts
+			;;
+	esac
+}
+
+_docker_context_update() {
+	case "$prev" in
+		--default-stack-orchestrator)
+			COMPREPLY=( $( compgen -W "all kubernetes swarm" -- "$cur" ) )
+			return
+			;;
+		--description|--docker|--kubernetes)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_contexts
+			fi
+			;;
+	esac
+}
+
+_docker_context_use() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			local counter=$(__docker_pos_first_nonflag)
+			if [ "$cword" -eq "$counter" ]; then
+				__docker_complete_contexts --add default
+			fi
 			;;
 	esac
 }
@@ -5147,6 +5342,7 @@ _docker() {
 	local management_commands=(
 		config
 		container
+		context
 		image
 		network
 		node
@@ -5227,6 +5423,7 @@ _docker() {
 	"
 	local global_options_with_args="
 		--config
+		--context -c
 		--host -H
 		--log-level -l
 		--tlscacert
@@ -5239,7 +5436,7 @@ _docker() {
 	# variables to cache client info, populated on demand for performance reasons
 	local client_experimental stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
 
-	local host config
+	local host config context
 
 	COMPREPLY=()
 	local cur prev words cword
@@ -5261,6 +5458,11 @@ _docker() {
 			--config)
 				(( counter++ ))
 				config="${words[$counter]}"
+				;;
+			# save context so that completion can use custom daemon
+			--context|-c)
+				(( counter++ ))
+				context="${words[$counter]}"
 				;;
 			$(__docker_to_extglob "$global_options_with_args") )
 				(( counter++ ))
