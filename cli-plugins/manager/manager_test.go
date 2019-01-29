@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"gotest.tools/assert"
@@ -91,7 +92,7 @@ func TestErrPluginNotFound(t *testing.T) {
 func TestGetPluginDirs(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 
-	expected := []string{defaultUserPluginDir}
+	expected := []string{config.Path("cli-plugins")}
 	expected = append(expected, defaultSystemPluginDirs...)
 
 	assert.Equal(t, strings.Join(expected, ":"), strings.Join(getPluginDirs(cli), ":"))

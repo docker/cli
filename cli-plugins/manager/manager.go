@@ -29,15 +29,13 @@ func IsNotFound(err error) bool {
 	return ok
 }
 
-var defaultUserPluginDir = config.Path("cli-plugins")
-
 func getPluginDirs(dockerCli command.Cli) []string {
 	var pluginDirs []string
 
 	if cfg := dockerCli.ConfigFile(); cfg != nil {
 		pluginDirs = append(pluginDirs, cfg.CLIPluginsExtraDirs...)
 	}
-	pluginDirs = append(pluginDirs, defaultUserPluginDir)
+	pluginDirs = append(pluginDirs, config.Path("cli-plugins"))
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
 	return pluginDirs
 }
