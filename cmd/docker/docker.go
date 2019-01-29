@@ -169,7 +169,7 @@ func noArgs(cmd *cobra.Command, args []string) error {
 func main() {
 	dockerCli, err := command.NewDockerCli()
 	if err != nil {
-		fmt.Fprintln(dockerCli.Err(), err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	logrus.SetOutput(dockerCli.Err())
