@@ -10,32 +10,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type removeOptions struct {
-	force bool
+// RemoveOptions are the options used to remove contexts
+type RemoveOptions struct {
+	Force bool
 }
 
 func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
-	var opts removeOptions
+	var opts RemoveOptions
 	cmd := &cobra.Command{
 		Use:     "rm CONTEXT [CONTEXT...]",
 		Aliases: []string{"remove"},
 		Short:   "Remove one or more contexts",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(dockerCli, opts, args)
+			return RunRemove(dockerCli, opts, args)
 		},
 	}
-	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "Force the removal of a context in use")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Force the removal of a context in use")
 	return cmd
 }
 
-func runRemove(dockerCli command.Cli, opts removeOptions, names []string) error {
+// RunRemove removes one or more contexts
+func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error {
 	var errs []string
 	currentCtx := dockerCli.CurrentContext()
 	for _, name := range names {
 		if name == "default" {
 			errs = append(errs, `default: context "default" cannot be removed`)
-		} else if err := doRemove(dockerCli, name, name == currentCtx, opts.force); err != nil {
+		} else if err := doRemove(dockerCli, name, name == currentCtx, opts.Force); err != nil {
 			errs = append(errs, fmt.Sprintf("%s: %s", name, err))
 		} else {
 			fmt.Fprintln(dockerCli.Out(), name)

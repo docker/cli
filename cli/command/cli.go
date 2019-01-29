@@ -81,13 +81,8 @@ type DockerCli struct {
 	contextStore          store.Store
 	currentContext        string
 	dockerEndpoint        docker.Endpoint
+	contextStoreConfig    store.Config
 }
-
-var storeConfig = store.NewConfig(
-	func() interface{} { return &DockerContext{} },
-	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-	store.EndpointTypeGetter(kubcontext.KubernetesEndpoint, func() interface{} { return &kubcontext.EndpointMeta{} }),
-)
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
 func (cli *DockerCli) DefaultVersion() string {
@@ -184,7 +179,7 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 	var err error
-	cli.contextStore = store.New(cliconfig.ContextStoreDir(), storeConfig)
+	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
 	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
 	if err != nil {
 		return err
@@ -226,7 +221,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
-	store := store.New(cliconfig.ContextStoreDir(), storeConfig)
+	store := store.New(cliconfig.ContextStoreDir(), defaultContextStoreConfig())
 	contextName, err := resolveContextName(opts, configFile, store)
 	if err != nil {
 		return nil, err
@@ -372,7 +367,7 @@ func (cli *DockerCli) StackOrchestrator(flagValue string) (Orchestrator, error) 
 	if currentContext != "" {
 		contextstore := cli.contextStore
 		if contextstore == nil {
-			contextstore = store.New(cliconfig.ContextStoreDir(), storeConfig)
+			contextstore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
 		}
 		ctxRaw, err := contextstore.GetContextMetadata(currentContext)
 		if store.IsErrContextDoesNotExist(err) {
@@ -430,6 +425,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 		WithContentTrustFromEnv(),
 		WithContainerizedClient(containerizedengine.NewClient),
 	}
+	cli.contextStoreConfig = defaultContextStoreConfig()
 	ops = append(defaultOps, ops...)
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
@@ -500,4 +496,12 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 		return config.CurrentContext, err
 	}
 	return "", nil
+}
+
+func defaultContextStoreConfig() store.Config {
+	return store.NewConfig(
+		func() interface{} { return &DockerContext{} },
+		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+		store.EndpointTypeGetter(kubcontext.KubernetesEndpoint, func() interface{} { return &kubcontext.EndpointMeta{} }),
+	)
 }

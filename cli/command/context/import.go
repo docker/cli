@@ -17,13 +17,14 @@ func newImportCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Import a context from a tar file",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runImport(dockerCli, args[0], args[1])
+			return RunImport(dockerCli, args[0], args[1])
 		},
 	}
 	return cmd
 }
 
-func runImport(dockerCli command.Cli, name string, source string) error {
+// RunImport imports a Docker context
+func RunImport(dockerCli command.Cli, name string, source string) error {
 	if err := checkContextNameForCreation(dockerCli.ContextStore(), name); err != nil {
 		return err
 	}

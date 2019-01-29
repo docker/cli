@@ -17,7 +17,7 @@ func TestRemove(t *testing.T) {
 	defer cleanup()
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
-	assert.NilError(t, runRemove(cli, removeOptions{}, []string{"other"}))
+	assert.NilError(t, RunRemove(cli, RemoveOptions{}, []string{"other"}))
 	_, err := cli.ContextStore().GetContextMetadata("current")
 	assert.NilError(t, err)
 	_, err = cli.ContextStore().GetContextMetadata("other")
@@ -29,7 +29,7 @@ func TestRemoveNotAContext(t *testing.T) {
 	defer cleanup()
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
-	err := runRemove(cli, removeOptions{}, []string{"not-a-context"})
+	err := RunRemove(cli, RemoveOptions{}, []string{"not-a-context"})
 	assert.ErrorContains(t, err, `context "not-a-context" does not exist`)
 }
 
@@ -39,7 +39,7 @@ func TestRemoveCurrent(t *testing.T) {
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
 	cli.SetCurrentContext("current")
-	err := runRemove(cli, removeOptions{}, []string{"current"})
+	err := RunRemove(cli, RemoveOptions{}, []string{"current"})
 	assert.ErrorContains(t, err, "current: context is in use, set -f flag to force remove")
 }
 
@@ -57,7 +57,7 @@ func TestRemoveCurrentForce(t *testing.T) {
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
 	cli.SetCurrentContext("current")
-	assert.NilError(t, runRemove(cli, removeOptions{force: true}, []string{"current"}))
+	assert.NilError(t, RunRemove(cli, RemoveOptions{Force: true}, []string{"current"}))
 	reloadedConfig, err := config.Load(configDir)
 	assert.NilError(t, err)
 	assert.Equal(t, "", reloadedConfig.CurrentContext)

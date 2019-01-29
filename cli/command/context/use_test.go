@@ -20,9 +20,9 @@ func TestUse(t *testing.T) {
 	testCfg := configfile.New(configFilePath)
 	cli, cleanup := makeFakeCli(t, withCliConfig(testCfg))
 	defer cleanup()
-	err = runCreate(cli, &createOptions{
-		name:   "test",
-		docker: map[string]string{},
+	err = RunCreate(cli, &CreateOptions{
+		Name:   "test",
+		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
 	assert.NilError(t, newUseCommand(cli).RunE(nil, []string{"test"}))
