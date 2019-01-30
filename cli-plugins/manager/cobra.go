@@ -23,18 +23,15 @@ const (
 	CommandAnnotationPluginInvalid = "com.docker.cli.plugin-invalid"
 )
 
-// AddPluginCommandStubs adds a stub cobra.Commands for each plugin
-// (optionally including invalid ones). The command stubs will have
-// several annotations added, see `CommandAnnotationPlugin*`.
-func AddPluginCommandStubs(dockerCli command.Cli, cmd *cobra.Command, includeInvalid bool) error {
+// AddPluginCommandStubs adds a stub cobra.Commands for each valid and invalid
+// plugin. The command stubs will have several annotations added, see
+// `CommandAnnotationPlugin*`.
+func AddPluginCommandStubs(dockerCli command.Cli, cmd *cobra.Command) error {
 	plugins, err := ListPlugins(dockerCli, cmd)
 	if err != nil {
 		return err
 	}
 	for _, p := range plugins {
-		if !includeInvalid && p.Err != nil {
-			continue
-		}
 		vendor := p.Vendor
 		if vendor == "" {
 			vendor = "unknown"

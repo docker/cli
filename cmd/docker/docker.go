@@ -135,7 +135,6 @@ func setupHelpCommand(dockerCli *command.DockerCli, rootCmd, helpCmd *cobra.Comm
 
 func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string) error {
 	root := ccmd.Root()
-	pluginmanager.AddPluginCommandStubs(dockerCli, root, false)
 
 	cmd, _, err := root.Traverse(cargs)
 	if err != nil {
@@ -155,6 +154,17 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 			ccmd.Println(err)
 			return
 		}
+
+		// Add a stub entry for every plugin so they are
+		// included in the help output and so that
+		// `tryRunPluginHelp` can find them or if we fall
+		// through they will be included in the default help
+		// output.
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root()); err != nil {
+			ccmd.Println(err)
+			return
+		}
+
 		if len(args) >= 1 {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
 			if err == nil { // Successfully ran the plugin
@@ -171,16 +181,6 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 			return
 		}
 		if err := hideUnsupportedFeatures(ccmd, dockerCli); err != nil {
-			ccmd.Println(err)
-			return
-		}
-
-		// Add a stub entry for every plugin so they are
-		// included in the help output. If we have no args
-		// then this is being used for `docker help` and we
-		// want to include broken plugins, otherwise this is
-		// `help «foo»` and we do not.
-		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root(), len(args) == 0); err != nil {
 			ccmd.Println(err)
 			return
 		}

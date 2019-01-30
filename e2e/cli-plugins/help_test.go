@@ -34,29 +34,55 @@ func TestGlobalHelp(t *testing.T) {
 	//  - The `badmeta` plugin under the "Invalid Plugins" heading.
 	//
 	// Regexps are needed because the width depends on `unix.TIOCGWINSZ` or similar.
+	helloworldre := regexp.MustCompile(`^  helloworld\s+\(Docker Inc\.\)\s+A basic Hello World plugin for tests$`)
+	badmetare := regexp.MustCompile(`^  badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string$`)
+	var helloworldcount, badmetacount int
 	for _, expected := range []*regexp.Regexp{
 		regexp.MustCompile(`^A self-sufficient runtime for containers$`),
 		regexp.MustCompile(`^Management Commands:$`),
 		regexp.MustCompile(`^  container\s+Manage containers$`),
 		regexp.MustCompile(`^Commands:$`),
 		regexp.MustCompile(`^  create\s+Create a new container$`),
-		regexp.MustCompile(`^  helloworld\s+\(Docker Inc\.\)\s+A basic Hello World plugin for tests$`),
+		helloworldre,
 		regexp.MustCompile(`^  ps\s+List containers$`),
 		regexp.MustCompile(`^Invalid Plugins:$`),
-		regexp.MustCompile(`^  badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string$`),
+		badmetare,
+		nil, // scan to end of input rather than stopping at badmetare
 	} {
 		var found bool
 		for scanner.Scan() {
-			if expected.MatchString(scanner.Text()) {
+			text := scanner.Text()
+			if helloworldre.MatchString(text) {
+				helloworldcount++
+			}
+			if badmetare.MatchString(text) {
+				badmetacount++
+			}
+
+			if expected != nil && expected.MatchString(text) {
 				found = true
 				break
 			}
 		}
-		assert.Assert(t, found, "Did not find match for %q in `docker help` output", expected)
+		assert.Assert(t, expected == nil || found, "Did not find match for %q in `docker help` output", expected)
 	}
+	// We successfully scanned all the input
+	assert.Assert(t, !scanner.Scan())
+	assert.NilError(t, scanner.Err())
+	// Plugins should only be listed once.
+	assert.Assert(t, is.Equal(helloworldcount, 1))
+	assert.Assert(t, is.Equal(badmetacount, 1))
 
-	// Running just `docker` (without help) should produce the same thing, except on Stderr
-	res2 := icmd.RunCmd(run())
+	// Running with `--help` should produce the same.
+	res2 := icmd.RunCmd(run("--help"))
+	res2.Assert(t, icmd.Expected{
+		ExitCode: 0,
+	})
+	assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
+	assert.Assert(t, is.Equal(res2.Stderr(), ""))
+
+	// Running just `docker` (without `help` nor `--help`) should produce the same thing, except on Stderr.
+	res2 = icmd.RunCmd(run())
 	res2.Assert(t, icmd.Expected{
 		ExitCode: 0,
 	})
