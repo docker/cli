@@ -383,7 +383,11 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	configFile := dockerCli.ConfigFile()
-	authConfigs, _ := configFile.GetAllCredentials()
+	creds, _ := configFile.GetAllCredentials()
+	authConfigs := make(map[string]types.AuthConfig, len(creds))
+	for k, auth := range creds {
+		authConfigs[k] = types.AuthConfig(auth)
+	}
 	buildOptions := imageBuildOptions(dockerCli, options)
 	buildOptions.Version = types.BuilderV1
 	buildOptions.Dockerfile = relDockerfile
@@ -619,7 +623,7 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		CgroupParent:   options.cgroupParent,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetAll())),
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,
 		SecurityOpt:    options.securityOpt,

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"

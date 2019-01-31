@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -79,21 +80,21 @@ func TestRunLogin(t *testing.T) {
 	const validPassword = "p1"
 	const validPassword2 = "p2"
 
-	validAuthConfig := types.AuthConfig{
+	validAuthConfig := configtypes.AuthConfig{
 		ServerAddress: storedServerAddress,
 		Username:      validUsername,
 		Password:      validPassword,
 	}
-	expiredAuthConfig := types.AuthConfig{
+	expiredAuthConfig := configtypes.AuthConfig{
 		ServerAddress: storedServerAddress,
 		Username:      validUsername,
 		Password:      expiredPassword,
 	}
 	testCases := []struct {
 		inputLoginOption  loginOptions
-		inputStoredCred   *types.AuthConfig
+		inputStoredCred   *configtypes.AuthConfig
 		expectedErr       string
-		expectedSavedCred types.AuthConfig
+		expectedSavedCred configtypes.AuthConfig
 	}{
 		{
 			inputLoginOption: loginOptions{
@@ -118,7 +119,7 @@ func TestRunLogin(t *testing.T) {
 			},
 			inputStoredCred: &validAuthConfig,
 			expectedErr:     "",
-			expectedSavedCred: types.AuthConfig{
+			expectedSavedCred: configtypes.AuthConfig{
 				ServerAddress: storedServerAddress,
 				Username:      validUsername,
 				Password:      validPassword2,

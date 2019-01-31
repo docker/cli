@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
@@ -77,7 +78,7 @@ func ResolveAuthConfig(ctx context.Context, cli Cli, index *registrytypes.IndexI
 	}
 
 	a, _ := cli.ConfigFile().GetAuthConfig(configKey)
-	return a
+	return types.AuthConfig(a)
 }
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
@@ -86,16 +87,17 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 	if !isDefaultRegistry {
 		serverAddress = registry.ConvertToHostname(serverAddress)
 	}
-	var authconfig types.AuthConfig
+	var authconfig configtypes.AuthConfig
 	var err error
 	if checkCredStore {
 		authconfig, err = cli.ConfigFile().GetAuthConfig(serverAddress)
 	} else {
-		authconfig = types.AuthConfig{}
+		authconfig = configtypes.AuthConfig{}
 	}
 	authconfig.ServerAddress = serverAddress
 	authconfig.IdentityToken = ""
-	return &authconfig, err
+	res := types.AuthConfig(authconfig)
+	return &res, err
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed
