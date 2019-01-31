@@ -175,6 +175,9 @@ func TestExperimentalCLI(t *testing.T) {
 			defer dir.Remove()
 			apiclient := &fakeClient{
 				version: defaultVersion,
+				pingFunc: func() (types.Ping, error) {
+					return types.Ping{Experimental: true, OSType: "linux", APIVersion: defaultVersion}, nil
+				},
 			}
 
 			cli := &DockerCli{client: apiclient, err: os.Stderr}
