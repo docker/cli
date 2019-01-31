@@ -1,4 +1,4 @@
-package cli
+package version
 
 // Default build-time variable.
 // These values are overridden via ldflags

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli"
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/templates"
@@ -23,6 +24,7 @@ type infoOptions struct {
 
 type clientInfo struct {
 	Debug    bool
+	Plugins  []pluginmanager.Plugin
 	Warnings []string
 }
 
@@ -47,7 +49,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display system-wide information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(dockerCli, &opts)
+			return runInfo(cmd, dockerCli, &opts)
 		},
 	}
 
@@ -58,7 +60,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInfo(dockerCli command.Cli, opts *infoOptions) error {
+func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
 	var info info
 
 	ctx := context.Background()
@@ -70,6 +72,11 @@ func runInfo(dockerCli command.Cli, opts *infoOptions) error {
 
 	info.ClientInfo = &clientInfo{
 		Debug: debug.IsEnabled(),
+	}
+	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
+		info.ClientInfo.Plugins = plugins
+	} else {
+		info.ClientErrors = append(info.ClientErrors, err.Error())
 	}
 
 	if opts.format == "" {
@@ -108,6 +115,17 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 
 func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
+
+	if len(info.Plugins) > 0 {
+		fmt.Fprintln(dockerCli.Out(), " Plugins:")
+		for _, p := range info.Plugins {
+			if p.Err == nil {
+				fmt.Fprintf(dockerCli.Out(), "  %s: (%s, %s) %s\n", p.Name, p.Version, p.Vendor, p.ShortDescription)
+			} else {
+				info.Warnings = append(info.Warnings, fmt.Sprintf("WARNING: Plugin %q is not valid: %s", p.Path, p.Err))
+			}
+		}
+	}
 
 	if len(info.Warnings) > 0 {
 		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
@@ -447,6 +465,11 @@ func getBackingFs(info types.Info) string {
 }
 
 func formatInfo(dockerCli command.Cli, info info, format string) error {
+	// Ensure slice/array fields render as `[]` not `null`
+	if info.ClientInfo != nil && info.ClientInfo.Plugins == nil {
+		info.ClientInfo.Plugins = make([]pluginmanager.Plugin, 0)
+	}
+
 	tmpl, err := templates.Parse(format)
 	if err != nil {
 		return cli.StatusError{StatusCode: 64,

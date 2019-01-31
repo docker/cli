@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
@@ -16,11 +15,13 @@ import (
 	"github.com/docker/cli/cli/context/docker"
 	kubcontext "github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
 	clitypes "github.com/docker/cli/types"
@@ -177,6 +178,16 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
+	cliflags.SetLogLevel(opts.Common.LogLevel)
+
+	if opts.ConfigDir != "" {
+		cliconfig.SetDir(opts.ConfigDir)
+	}
+
+	if opts.Common.Debug {
+		debug.Enable()
+	}
+
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 	var err error
 	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
@@ -461,7 +472,7 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
-	return "Docker-Client/" + cli.Version + " (" + runtime.GOOS + ")"
+	return "Docker-Client/" + version.Version + " (" + runtime.GOOS + ")"
 }
 
 // resolveContextName resolves the current context name with the following rules:

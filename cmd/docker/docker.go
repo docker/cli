@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli"
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
@@ -20,8 +20,11 @@ import (
 )
 
 func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
-	opts := cliflags.NewClientOptions()
-	var flags *pflag.FlagSet
+	var (
+		opts    *cliflags.ClientOptions
+		flags   *pflag.FlagSet
+		helpCmd *cobra.Command
+	)
 
 	cmd := &cobra.Command{
 		Use:              "docker [OPTIONS] COMMAND [ARG...]",
@@ -29,47 +32,57 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceUsage:     true,
 		SilenceErrors:    true,
 		TraverseChildren: true,
-		Args:             noArgs,
+		FParseErrWhitelist: cobra.FParseErrWhitelist{
+			// UnknownFlags ignores any unknown
+			// --arguments on the top-level docker command
+			// only. This is necessary to allow passing
+			// --arguments to plugins otherwise
+			// e.g. `docker plugin --foo` is caught here
+			// in the monolithic CLI and `foo` is reported
+			// as an unknown argument.
+			UnknownFlags: true,
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return command.ShowHelp(dockerCli.Err())(cmd, args)
+			if len(args) == 0 {
+				return command.ShowHelp(dockerCli.Err())(cmd, args)
+			}
+			plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], cmd)
+			if pluginmanager.IsNotFound(err) {
+				return fmt.Errorf(
+					"docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
+			}
+			if err != nil {
+				return err
+			}
+
+			return plugincmd.Run()
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// flags must be the top-level command flags, not cmd.Flags()
 			opts.Common.SetDefaultOptions(flags)
-			dockerPreRun(opts)
 			if err := dockerCli.Initialize(opts); err != nil {
 				return err
 			}
 			return isSupported(cmd, dockerCli)
 		},
-		Version:               fmt.Sprintf("%s, build %s", cli.Version, cli.GitCommit),
+		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
 	}
-	cli.SetupRootCommand(cmd)
-
-	flags = cmd.Flags()
+	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
-	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
-	opts.Common.InstallFlags(flags)
 
 	setFlagErrorFunc(dockerCli, cmd, flags, opts)
 
+	setupHelpCommand(dockerCli, cmd, helpCmd, flags, opts)
 	setHelpFunc(dockerCli, cmd, flags, opts)
 
 	cmd.SetOutput(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
-	disableFlagsInUseLine(cmd)
+	cli.DisableFlagsInUseLine(cmd)
 	setValidateArgs(dockerCli, cmd, flags, opts)
 
 	return cmd
-}
-
-func disableFlagsInUseLine(cmd *cobra.Command) {
-	visitAll(cmd, func(ccmd *cobra.Command) {
-		// do not add a `[flags]` to the end of the usage line.
-		ccmd.DisableFlagsInUseLine = true
-	})
 }
 
 func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
@@ -89,6 +102,51 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *p
 	})
 }
 
+func setupHelpCommand(dockerCli *command.DockerCli, rootCmd, helpCmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+	origRun := helpCmd.Run
+	origRunE := helpCmd.RunE
+
+	helpCmd.Run = nil
+	helpCmd.RunE = func(c *cobra.Command, args []string) error {
+		// No Persistent* hooks are called for help, so we must initialize here.
+		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
+			return err
+		}
+
+		if len(args) > 0 {
+			helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
+			if err == nil {
+				err = helpcmd.Run()
+				if err != nil {
+					return err
+				}
+			}
+			if !pluginmanager.IsNotFound(err) {
+				return err
+			}
+		}
+		if origRunE != nil {
+			return origRunE(c, args)
+		}
+		origRun(c, args)
+		return nil
+	}
+}
+
+func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string) error {
+	root := ccmd.Root()
+
+	cmd, _, err := root.Traverse(cargs)
+	if err != nil {
+		return err
+	}
+	helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, cmd.Name(), root)
+	if err != nil {
+		return err
+	}
+	return helpcmd.Run()
+}
+
 func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
@@ -96,6 +154,28 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 			ccmd.Println(err)
 			return
 		}
+
+		// Add a stub entry for every plugin so they are
+		// included in the help output and so that
+		// `tryRunPluginHelp` can find them or if we fall
+		// through they will be included in the default help
+		// output.
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root()); err != nil {
+			ccmd.Println(err)
+			return
+		}
+
+		if len(args) >= 1 {
+			err := tryRunPluginHelp(dockerCli, ccmd, args)
+			if err == nil { // Successfully ran the plugin
+				return
+			}
+			if !pluginmanager.IsNotFound(err) {
+				ccmd.Println(err)
+				return
+			}
+		}
+
 		if err := isSupported(ccmd, dockerCli); err != nil {
 			ccmd.Println(err)
 			return
@@ -104,6 +184,7 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 			ccmd.Println(err)
 			return
 		}
+
 		defaultHelpFunc(ccmd, args)
 	})
 }
@@ -113,7 +194,7 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 	// As a result, here we replace the existing Args validation func to a wrapper,
 	// where the wrapper will check to see if the feature is supported or not.
 	// The Args validation error will only be returned if the feature is supported.
-	visitAll(cmd, func(ccmd *cobra.Command) {
+	cli.VisitAll(cmd, func(ccmd *cobra.Command) {
 		// if there is no tags for a command or any of its parent,
 		// there is no need to wrap the Args validation.
 		if !hasTags(ccmd) {
@@ -144,26 +225,7 @@ func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opt
 	// when using --help, PersistentPreRun is not called, so initialization is needed.
 	// flags must be the top-level command flags, not cmd.Flags()
 	opts.Common.SetDefaultOptions(flags)
-	dockerPreRun(opts)
 	return dockerCli.Initialize(opts)
-}
-
-// visitAll will traverse all commands from the root.
-// This is different from the VisitAll of cobra.Command where only parents
-// are checked.
-func visitAll(root *cobra.Command, fn func(*cobra.Command)) {
-	for _, cmd := range root.Commands() {
-		visitAll(cmd, fn)
-	}
-	fn(root)
-}
-
-func noArgs(cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		return nil
-	}
-	return fmt.Errorf(
-		"docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 }
 
 func main() {
@@ -190,18 +252,6 @@ func main() {
 		}
 		fmt.Fprintln(dockerCli.Err(), err)
 		os.Exit(1)
-	}
-}
-
-func dockerPreRun(opts *cliflags.ClientOptions) {
-	cliflags.SetLogLevel(opts.Common.LogLevel)
-
-	if opts.ConfigDir != "" {
-		cliconfig.SetDir(opts.ConfigDir)
-	}
-
-	if opts.Common.Debug {
-		debug.Enable()
 	}
 }
 
