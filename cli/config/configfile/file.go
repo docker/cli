@@ -49,6 +49,7 @@ type ConfigFile struct {
 	Kubernetes           *KubernetesConfig           `json:"kubernetes,omitempty"`
 	CurrentContext       string                      `json:"currentContext,omitempty"`
 	CLIPluginsExtraDirs  []string                    `json:"cliPluginsExtraDirs,omitempty"`
+	Plugins              map[string]json.RawMessage  `json:"plugins,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -70,6 +71,7 @@ func New(fn string) *ConfigFile {
 		AuthConfigs: make(map[string]types.AuthConfig),
 		HTTPHeaders: make(map[string]string),
 		Filename:    fn,
+		Plugins:     make(map[string]json.RawMessage),
 	}
 }
 

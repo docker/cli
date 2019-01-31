@@ -1,6 +1,8 @@
 package configfile
 
 import (
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 )
 
 func TestEncodeAuth(t *testing.T) {
@@ -428,4 +431,65 @@ func TestSave(t *testing.T) {
 	cfg, err := ioutil.ReadFile("test-save")
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+}
+
+func TestPluginConfig(t *testing.T) {
+	configFile := New("test-plugin")
+	defer os.Remove("test-plugin")
+
+	type PluginConfig1 struct {
+		Data1 string `json:"data1"`
+		Data2 int    `json:"data2"`
+	}
+	type PluginConfig2 struct {
+		Data3 string `json:"data3"`
+	}
+	p1 := PluginConfig1{
+		Data1: "some string",
+		Data2: 42,
+	}
+	p2 := PluginConfig2{
+		Data3: "some other string",
+	}
+
+	plugin1, err := json.MarshalIndent(p1, "", "\t")
+	assert.NilError(t, err)
+	configFile.Plugins["plugin1"] = plugin1
+
+	plugin2, err := json.MarshalIndent(p2, "", "\t")
+	assert.NilError(t, err)
+	configFile.Plugins["plugin2"] = plugin2
+
+	// Save a config file with some plugin config
+	err = configFile.Save()
+	assert.NilError(t, err)
+
+	// Read it back and check it has the expected content
+	cfg, err := ioutil.ReadFile("test-plugin")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config.golden")
+
+	// Load it, resave and check again that the content is
+	// preserved through a load/save cycle.
+	configFile2 := New("test-plugin2")
+	defer os.Remove("test-plugin2")
+	assert.NilError(t, configFile2.LoadFromReader(bytes.NewReader(cfg)))
+	err = configFile2.Save()
+	assert.NilError(t, err)
+	cfg, err = ioutil.ReadFile("test-plugin2")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config.golden")
+
+	// Check that the contents was retained properly
+	var p1bis PluginConfig1
+	assert.Assert(t, is.Contains(configFile2.Plugins, "plugin1"))
+	err = json.Unmarshal(configFile2.Plugins["plugin1"], &p1bis)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, p1, p1bis)
+
+	var p2bis PluginConfig2
+	assert.Assert(t, is.Contains(configFile2.Plugins, "plugin2"))
+	err = json.Unmarshal(configFile2.Plugins["plugin2"], &p2bis)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, p2, p2bis)
 }
