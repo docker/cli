@@ -77,7 +77,7 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 }
 
 func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cobra.Command {
-	name := plugin.Use
+	name := plugin.Name()
 	fullname := manager.NamePrefix + name
 
 	cmd := &cobra.Command{
