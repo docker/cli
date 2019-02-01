@@ -56,7 +56,7 @@ jobs:
       - run:
           name: "Unit Test with Coverage"
           command: |
-            mkdir test-results
+            mkdir -p test-results/unit-tests
             docker build -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
             docker run \
                 -e GOTESTSUM_JUNITFILE=/tmp/junit.xml \
@@ -65,7 +65,7 @@ jobs:
                 make test-coverage
             docker cp \
                 test-$CIRCLE_BUILD_NUM:/tmp/junit.xml \
-                /work/test-results/unit-tests
+                ./test-results/unit-tests/junit.xml
       - run:
           name: "Upload to Codecov"
           command: |
