@@ -68,9 +68,9 @@ function runtests {
         TEST_REMOTE_DAEMON="${REMOTE_DAEMON-}" \
         TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \
-        PATH="$PWD/build/:/usr/bin" \
+        PATH="$PWD/build/:/usr/bin:/usr/local/bin:/usr/local/go/bin" \
         DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS="$PWD/build/plugins-linux-amd64" \
-        "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
+        "$(which gotestsum)" -- ./e2e/... ${TESTFLAGS-}
 }
 
 export unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"

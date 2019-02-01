@@ -16,6 +16,11 @@ RUN     go get -d github.com/mjibson/esc && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
+ARG     GOTESTSUM_VERSION=0.3.2
+RUN     curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz && \
+        tar -xf gotestsum.tar.gz gotestsum -C /usr/bin && \
+        rm gotestsum.tar.gz
+
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
         DISABLE_WARN_OUTSIDE_CONTAINER=1

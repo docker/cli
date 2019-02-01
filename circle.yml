@@ -56,11 +56,16 @@ jobs:
       - run:
           name: "Unit Test with Coverage"
           command: |
+            mkdir test-results
             docker build -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
-            docker run --name \
+            docker run \
+                -e GOTESTSUM_JUNITFILE=/tmp/junit.xml \
+                --name \
                 test-$CIRCLE_BUILD_NUM cli-builder:$CIRCLE_BUILD_NUM \
                 make test-coverage
-
+            docker cp \
+                test-$CIRCLE_BUILD_NUM:/tmp/junit.xml \
+                /work/test-results/unit-tests
       - run:
           name: "Upload to Codecov"
           command: |
@@ -70,6 +75,8 @@ jobs:
             apk add -U bash curl
             curl -s https://codecov.io/bash | bash || \
                 echo 'Codecov failed to upload'
+      - store_test_results:
+          path:  test-results
 
   validate:
     working_directory: /work
