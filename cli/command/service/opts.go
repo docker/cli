@@ -331,12 +331,14 @@ func (c *credentialSpecOpt) Set(value string) error {
 	c.source = value
 	c.value = &swarm.CredentialSpec{}
 	switch {
+	case strings.HasPrefix(value, "config://"):
+		c.value.Config = strings.TrimPrefix(value, "config://")
 	case strings.HasPrefix(value, "file://"):
 		c.value.File = strings.TrimPrefix(value, "file://")
 	case strings.HasPrefix(value, "registry://"):
 		c.value.Registry = strings.TrimPrefix(value, "registry://")
 	default:
-		return errors.New("Invalid credential spec - value must be prefixed file:// or registry:// followed by a value")
+		return errors.New(`invalid credential spec: value must be prefixed with "config://", "file://", or "registry://"`)
 	}
 
 	return nil

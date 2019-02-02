@@ -500,8 +500,7 @@ func (e External) MarshalJSON() ([]byte, error) {
 
 // CredentialSpecConfig for credential spec on Windows
 type CredentialSpecConfig struct {
-	// @TODO Config is not yet in use
-	Config   string `yaml:"-" json:"-"` // Config was added in API v1.40
+	Config   string `yaml:",omitempty" json:"config,omitempty"` // Config was added in API v1.40
 	File     string `yaml:",omitempty" json:"file,omitempty"`
 	Registry string `yaml:",omitempty" json:"registry,omitempty"`
 }

@@ -92,7 +92,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.5", expectedErr: "config"},
 		{version: "3.6", expectedErr: "config"},
 		{version: "3.7", expectedErr: "config"},
-		{version: "3.8", expectedErr: "something"},
+		{version: "3.8"},
 	}
 
 	for _, tc := range tests {
@@ -104,7 +104,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 					"foo": dict{
 						"image": "busybox",
 						"credential_spec": dict{
-							tc.expectedErr: "foobar",
+							"config": "foobar",
 						},
 					},
 				},
