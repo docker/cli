@@ -136,7 +136,7 @@ func (cli *Client) doRequest(ctx context.Context, req *http.Request) (serverResp
 		}
 
 		if cli.scheme == "https" && strings.Contains(err.Error(), "bad certificate") {
-			return serverResp, fmt.Errorf("The server probably has client authentication (--tlsverify) enabled. Please check your TLS client certification settings: %v", err)
+			return serverResp, errors.Wrap(err, "The server probably has client authentication (--tlsverify) enabled. Please check your TLS client certification settings")
 		}
 
 		// Don't decorate context sentinel errors; users may be comparing to
@@ -195,17 +195,21 @@ func (cli *Client) checkResponseErr(serverResp serverResponse) error {
 		return nil
 	}
 
-	bodyMax := 1 * 1024 * 1024 // 1 MiB
-	bodyR := &io.LimitedReader{
-		R: serverResp.body,
-		N: int64(bodyMax),
-	}
-	body, err := ioutil.ReadAll(bodyR)
-	if err != nil {
-		return err
-	}
-	if bodyR.N == 0 {
-		return fmt.Errorf("request returned %s with a message (> %d bytes) for API route and version %s, check if the server supports the requested API version", http.StatusText(serverResp.statusCode), bodyMax, serverResp.reqURL)
+	var body []byte
+	var err error
+	if serverResp.body != nil {
+		bodyMax := 1 * 1024 * 1024 // 1 MiB
+		bodyR := &io.LimitedReader{
+			R: serverResp.body,
+			N: int64(bodyMax),
+		}
+		body, err = ioutil.ReadAll(bodyR)
+		if err != nil {
+			return err
+		}
+		if bodyR.N == 0 {
+			return fmt.Errorf("request returned %s with a message (> %d bytes) for API route and version %s, check if the server supports the requested API version", http.StatusText(serverResp.statusCode), bodyMax, serverResp.reqURL)
+		}
 	}
 	if len(body) == 0 {
 		return fmt.Errorf("request returned %s for API route and version %s, check if the server supports the requested API version", http.StatusText(serverResp.statusCode), serverResp.reqURL)
@@ -220,14 +224,14 @@ func (cli *Client) checkResponseErr(serverResp serverResponse) error {
 	if (cli.version == "" || versions.GreaterThan(cli.version, "1.23")) && ct == "application/json" {
 		var errorResponse types.ErrorResponse
 		if err := json.Unmarshal(body, &errorResponse); err != nil {
-			return fmt.Errorf("Error reading JSON: %v", err)
+			return errors.Wrap(err, "Error reading JSON")
 		}
-		errorMessage = errorResponse.Message
+		errorMessage = strings.TrimSpace(errorResponse.Message)
 	} else {
-		errorMessage = string(body)
+		errorMessage = strings.TrimSpace(string(body))
 	}
 
-	return fmt.Errorf("Error response from daemon: %s", strings.TrimSpace(errorMessage))
+	return errors.Wrap(errors.New(errorMessage), "Error response from daemon")
 }
 
 func (cli *Client) addHeaders(req *http.Request, headers headers) *http.Request {
