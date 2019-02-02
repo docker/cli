@@ -314,30 +314,65 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 }
 
 func TestConvertCredentialSpec(t *testing.T) {
-	swarmSpec, err := convertCredentialSpec(composetypes.CredentialSpecConfig{})
-	assert.NilError(t, err)
-	assert.Check(t, is.Nil(swarmSpec))
+	tests := []struct {
+		name        string
+		in          composetypes.CredentialSpecConfig
+		out         *swarm.CredentialSpec
+		expectedErr string
+	}{
+		{
+			name: "empty",
+		},
+		{
+			name:        "config-and-file",
+			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json"},
+			expectedErr: `invalid credential spec: cannot specify both "Config" and "File"`,
+		},
+		{
+			name:        "config-and-registry",
+			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", Registry: "testing"},
+			expectedErr: `invalid credential spec: cannot specify both "Config" and "Registry"`,
+		},
+		{
+			name:        "file-and-registry",
+			in:          composetypes.CredentialSpecConfig{File: "somefile.json", Registry: "testing"},
+			expectedErr: `invalid credential spec: cannot specify both "File" and "Registry"`,
+		},
+		{
+			name:        "config-and-file-and-registry",
+			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json", Registry: "testing"},
+			expectedErr: `invalid credential spec: cannot specify both "Config", "File", and "Registry"`,
+		},
+		{
+			name: "config",
+			in:   composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq"},
+			out:  &swarm.CredentialSpec{Config: "0bt9dmxjvjiqermk6xrop3ekq"},
+		},
+		{
+			name: "file",
+			in:   composetypes.CredentialSpecConfig{File: "somefile.json"},
+			out:  &swarm.CredentialSpec{File: "somefile.json"},
+		},
+		{
+			name: "registry",
+			in:   composetypes.CredentialSpecConfig{Registry: "testing"},
+			out:  &swarm.CredentialSpec{Registry: "testing"},
+		},
+	}
 
-	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
-		File: "/foo",
-	})
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(swarmSpec.File, "/foo"))
-	assert.Check(t, is.Equal(swarmSpec.Registry, ""))
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			swarmSpec, err := convertCredentialSpec(tc.in)
 
-	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
-		Registry: "foo",
-	})
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(swarmSpec.File, ""))
-	assert.Check(t, is.Equal(swarmSpec.Registry, "foo"))
-
-	swarmSpec, err = convertCredentialSpec(composetypes.CredentialSpecConfig{
-		File:     "/asdf",
-		Registry: "foo",
-	})
-	assert.Check(t, is.ErrorContains(err, ""))
-	assert.Check(t, is.Nil(swarmSpec))
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
+			} else {
+				assert.NilError(t, err)
+			}
+			assert.DeepEqual(t, swarmSpec, tc.out)
+		})
+	}
 }
 
 func TestConvertUpdateConfigOrder(t *testing.T) {

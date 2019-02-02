@@ -600,11 +600,26 @@ func convertDNSConfig(DNS []string, DNSSearch []string) (*swarm.DNSConfig, error
 }
 
 func convertCredentialSpec(spec composetypes.CredentialSpecConfig) (*swarm.CredentialSpec, error) {
-	if spec.File == "" && spec.Registry == "" {
-		return nil, nil
+	var o []string
+
+	// Config was added in API v1.40
+	if spec.Config != "" {
+		o = append(o, `"Config"`)
 	}
-	if spec.File != "" && spec.Registry != "" {
-		return nil, errors.New("Invalid credential spec - must provide one of `File` or `Registry`")
+	if spec.File != "" {
+		o = append(o, `"File"`)
+	}
+	if spec.Registry != "" {
+		o = append(o, `"Registry"`)
+	}
+	l := len(o)
+	switch {
+	case l == 0:
+		return nil, nil
+	case l == 2:
+		return nil, errors.Errorf("invalid credential spec: cannot specify both %s and %s", o[0], o[1])
+	case l > 2:
+		return nil, errors.Errorf("invalid credential spec: cannot specify both %s, and %s", strings.Join(o[:l-1], ", "), o[l-1])
 	}
 	swarmCredSpec := swarm.CredentialSpec(spec)
 	return &swarmCredSpec, nil
