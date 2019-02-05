@@ -26,6 +26,7 @@ const sampleID = "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX"
 
 var sampleInfoNoSwarm = types.Info{
 	ID:                sampleID,
+	Builder:           types.BuilderV1,
 	Containers:        0,
 	ContainersRunning: 0,
 	ContainersPaused:  0,

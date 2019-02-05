@@ -143,6 +143,11 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	fmt.Fprintln(dockerCli.Out(), "  Paused:", info.ContainersPaused)
 	fmt.Fprintln(dockerCli.Out(), "  Stopped:", info.ContainersStopped)
 	fmt.Fprintln(dockerCli.Out(), " Images:", info.Images)
+	if info.Builder == types.BuilderV1 || info.Builder == "" {
+		fmt.Fprintln(dockerCli.Out(), " Default Builder:", "Legacy")
+	} else if info.Builder == types.BuilderBuildKit {
+		fmt.Fprintln(dockerCli.Out(), " Default Builder:", "Buildkit")
+	}
 	fprintlnNonEmpty(dockerCli.Out(), " Server Version:", info.ServerVersion)
 	fprintlnNonEmpty(dockerCli.Out(), " Storage Driver:", info.Driver)
 	if info.DriverStatus != nil {
