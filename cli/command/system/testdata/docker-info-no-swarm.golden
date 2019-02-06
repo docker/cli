@@ -7,6 +7,7 @@ Server:
   Paused: 0
   Stopped: 0
  Images: 0
+ Default Builder: Legacy
  Server Version: 17.06.1-ce
  Storage Driver: aufs
   Root Dir: /var/lib/docker/aufs
