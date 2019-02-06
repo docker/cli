@@ -72,7 +72,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	containerConfig, err := parse(flags, copts)
+	containerConfig, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}

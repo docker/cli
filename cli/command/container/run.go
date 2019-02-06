@@ -78,7 +78,7 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	containerConfig, err := parse(flags, copts)
+	containerConfig, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	// just in case the parse does not exit
 	if err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
