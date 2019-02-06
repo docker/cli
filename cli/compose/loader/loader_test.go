@@ -283,7 +283,7 @@ services:
   foo:
     image: busybox
     credential_spec:
-      File: "/foo"
+      file: "/foo"
     configs: [super]
 configs:
   super:
