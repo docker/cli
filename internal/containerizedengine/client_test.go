@@ -40,6 +40,7 @@ type (
 	fakeImage struct {
 		nameFunc         func() string
 		targetFunc       func() ocispec.Descriptor
+		labelFunc        func() map[string]string
 		unpackFunc       func(context.Context, string) error
 		rootFSFunc       func(ctx context.Context) ([]digest.Digest, error)
 		sizeFunc         func(ctx context.Context) (int64, error)
@@ -180,6 +181,13 @@ func (i *fakeImage) Target() ocispec.Descriptor {
 	}
 	return ocispec.Descriptor{}
 }
+func (i *fakeImage) Labels() map[string]string {
+	if i.labelFunc != nil {
+		return i.labelFunc()
+	}
+	return nil
+}
+
 func (i *fakeImage) Unpack(ctx context.Context, name string) error {
 	if i.unpackFunc != nil {
 		return i.unpackFunc(ctx, name)
