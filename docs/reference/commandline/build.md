@@ -504,13 +504,13 @@ stable.
 
 
 Squashing layers can be beneficial if your Dockerfile produces multiple layers
-modifying the same files, for example, file that are created in one step, and
+modifying the same files, for example, files that are created in one step, and
 removed in another step. For other use-cases, squashing images may actually have
 a negative impact on performance; when pulling an image consisting of multiple
 layers, layers can be pulled in parallel, and allows sharing layers between
 images (saving space).
 
-For most use cases, multi-stage are a better alternative, as they give more
+For most use cases, multi-stage builds are a better alternative, as they give more
 fine-grained control over your build, and can take advantage of future
 optimizations in the builder. Refer to the [use multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/)
 section in the userguide for more information.
@@ -531,7 +531,7 @@ The `--squash` option has a number of known limitations:
   downloading a single layer cannot be parallelized.
 - When attempting to squash an image that does not make changes to the
   filesystem (for example, the Dockerfile only contains `ENV` instructions),
-  the squash step will fail (see [issue #33823](https://github.com/moby/moby/issues/33823)
+  the squash step will fail (see [issue #33823](https://github.com/moby/moby/issues/33823)).
 
 #### Prerequisites
 
