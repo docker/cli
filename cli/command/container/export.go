@@ -41,6 +41,10 @@ func runExport(dockerCli command.Cli, opts exportOptions) error {
 		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
 	}
 
+	if err := command.ValidateOutputPath(opts.output); err != nil {
+		return errors.Wrap(err, "failed to export container")
+	}
+
 	clnt := dockerCli.Client()
 
 	responseBody, err := clnt.ContainerExport(context.Background(), opts.container)
