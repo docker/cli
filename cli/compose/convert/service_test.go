@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sort"
 	"strings"
@@ -197,6 +198,277 @@ func TestConvertEndpointSpec(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, *endpoint))
+}
+
+func TestCheckAutoRangeDeclaration(t *testing.T) {
+	testDeclaration := []string{"123456", "-1", "0", "", "abc", "123.01"}
+
+	expected := []bool{true, true, false, false, false, false}
+
+	for index, declaration := range testDeclaration {
+		result := checkAutoRangeDeclaration(declaration)
+		assert.Check(t, result == expected[index])
+	}
+}
+
+func TestConvertAndValidatePositive(t *testing.T) {
+	testRanges := []string{"1", "0", "-1", "test"}
+
+	expected := []struct {
+		result int
+		err    error
+	}{
+		{
+			result: 1,
+			err:    nil,
+		},
+		{
+			result: 0,
+			err:    nil,
+		},
+		{
+			result: -1,
+			err:    fmt.Errorf("invalid value %d for %q", -1, "cpu%"),
+		},
+		{
+			result: 0,
+			err:    fmt.Errorf("invalid value %d for %q", 0, "cpu%"),
+		},
+	}
+
+	for idx, test := range testRanges {
+		result, err := convertAndValidatePositive(test, "cpu%")
+		if result == expected[idx].result &&
+			err == nil && expected[idx].err == nil || err != nil && expected[idx].err != nil {
+			continue
+		}
+		t.Fail()
+	}
+}
+
+func TestConvertAndValidateRange(t *testing.T) {
+	testRanges := []struct {
+		value    string
+		category string
+		min      int
+		max      int
+	}{
+		{
+			value:    "1",
+			category: "cpu",
+			min:      0,
+			max:      100,
+		},
+		{
+			value:    "99",
+			category: "threshold",
+			min:      0,
+			max:      100,
+		},
+		{
+			value:    "0",
+			category: "yolo",
+			min:      0,
+			max:      1,
+		},
+	}
+
+	expected := []struct {
+		result int
+		err    error
+	}{
+		{
+			result: 1,
+			err:    nil,
+		},
+		{
+			result: 99,
+			err:    nil,
+		},
+		{
+			result: -1,
+			err:    fmt.Errorf("invalid value %d for %q", 0, "yolo"),
+		},
+	}
+
+	for idx, test := range testRanges {
+		result, err := convertAndValidateRange(test.min, test.max, test.value, test.category)
+		if result == expected[idx].result &&
+			err == nil && expected[idx].err == nil || err != nil && expected[idx].err != nil {
+			continue
+		}
+		t.Fail()
+	}
+
+}
+
+func TestIsInRange(t *testing.T) {
+	testRanges := []struct {
+		value int
+		min   int
+		max   int
+	}{
+		{
+			value: 0,
+			min:   0,
+			max:   100,
+		},
+		{
+			value: 1,
+			min:   0,
+			max:   100,
+		},
+		{
+			value: 100,
+			min:   0,
+			max:   100,
+		},
+		{
+			value: 100,
+			min:   100,
+			max:   100,
+		},
+	}
+	expected := []bool{false, true, true, false}
+
+	for idx, test := range testRanges {
+		result := isInRange(test.value, test.min, test.max)
+		t.Logf("result: %v | expected: %v\n", result, expected[idx])
+		if result != expected[idx] {
+			t.Fail()
+		}
+	}
+}
+
+func TestIsPositive(t *testing.T) {
+	testInteger := []int{0, -1, 42}
+
+	expected := []bool{true, false, true}
+
+	for idx, test := range testInteger {
+		result := isPositive(test)
+		if result != expected[idx] {
+			t.Fail()
+		}
+	}
+}
+
+func TestCheckCPUValue(t *testing.T) {
+	testAutoranges := []map[string]string{
+		{},
+		{
+			"min": "99",
+			"max": "2000",
+		},
+		{
+			"max": "-2000",
+		},
+		{
+			"peekaboo": "2000",
+		},
+	}
+
+	expected := []error{
+		nil,
+		fmt.Errorf("invalid value %d for %q", 1000, "cpu%"),
+		fmt.Errorf("invalid value %d for %q", -2000, "cpu%"),
+		fmt.Errorf("unrecognized key %q for %q", "peekaboo", "cpu%"),
+	}
+
+	for idx, test := range testAutoranges {
+		_, _, err := checkCPUValues(test)
+		if err == nil && expected[idx] == nil || err != nil && expected[idx] != nil {
+		} else {
+			t.Fail()
+		}
+	}
+}
+
+func TestCheckMemoryValue(t *testing.T) {
+	testAutoranges := []map[string]string{
+		{},
+		{
+			"min": "1234",
+			"max": "1232",
+		},
+		{
+			"max": "-2000",
+		},
+		{
+			"peekaboo": "2000",
+		},
+		{
+			"threshold": "101",
+		},
+	}
+
+	expected := []error{
+		nil,
+		nil,
+		fmt.Errorf("invalid value %d for %q", -2000, "memory"),
+		fmt.Errorf("unrecognized key %q for %q", "peekaboo", "memory"),
+		fmt.Errorf("invalid value %d for %q", 101, "threshold"),
+	}
+
+	for idx, test := range testAutoranges {
+		_, _, err := checkMemoryValues(test)
+		if err == nil && expected[idx] == nil || err != nil && expected[idx] != nil {
+		} else {
+			t.Fail()
+		}
+	}
+}
+
+func TestCheckAutoRangeValues(t *testing.T) {
+	testAutoranges := []swarm.AutoRange{
+		{
+			"memory": {},
+			"cpu%":   {},
+		},
+		{
+			"memory": {
+				"min":       "1234567",
+				"max":       "3214556",
+				"threshold": "90",
+			},
+			"cpu%": {
+				"min": "1000",
+				"max": "2000",
+			},
+		},
+		{
+			"memory": {
+				"min":       "1234567",
+				"threshold": "120",
+			},
+		},
+		{
+			"cpu%": {
+				"max": "-2000",
+			},
+		},
+		{
+			"cpu%": {
+				"peekaboo": "2000",
+			},
+		},
+	}
+	expected := []error{
+		nil,
+		fmt.Errorf("invalid value %d for %q", 1000, "cpu%"),
+		fmt.Errorf("invalid threshold %d", 120),
+		fmt.Errorf("invalid min %d or max %d values for %q", -1, -2000, "cpu%"),
+		fmt.Errorf("unrecognized key %q for %q", "peekaboo", "cpu%"),
+	}
+
+	for idx, autorange := range testAutoranges {
+		err := checkAutoRangeValues(autorange)
+		if err == nil && expected[idx] == nil || err != nil && expected[idx] != nil {
+			continue
+		} else {
+			t.Fail()
+		}
+	}
 }
 
 func TestConvertServiceNetworksOnlyDefault(t *testing.T) {

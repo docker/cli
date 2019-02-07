@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,6 +109,11 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
+	autoRange, err := convertAutoRange(service.AutoRange)
+	if err != nil {
+		return swarm.ServiceSpec{}, err
+	}
+
 	var privileges swarm.Privileges
 	privileges.CredentialSpec, err = convertCredentialSpec(service.CredentialSpec)
 	if err != nil {
@@ -127,6 +133,7 @@ func Service(
 			Name:   name,
 			Labels: AddStackLabel(namespace, service.Deploy.Labels),
 		},
+		AutoRange: autoRange,
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{
 				Image:           service.Image,
@@ -152,6 +159,7 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 			},
+			AutoRange:     autoRange,
 			LogDriver:     logDriver,
 			Resources:     resources,
 			RestartPolicy: restartPolicy,
@@ -182,6 +190,137 @@ func Service(
 		serviceSpec.TaskTemplate.Networks = networks
 	}
 	return serviceSpec, nil
+}
+
+func convertAutoRange(oldAr composetypes.AutoRange) (swarm.AutoRange, error) {
+	if len(oldAr) <= 0 {
+		return swarm.AutoRange{}, nil
+	}
+
+	ar := make(swarm.AutoRange)
+	for key := range oldAr {
+		newR := strings.ToLower(key)
+		ar[newR] = make(map[string]string)
+		for subKey, subValue := range oldAr[key] {
+			if !checkAutoRangeDeclaration(subValue) {
+				return swarm.AutoRange{}, fmt.Errorf("wrong parameter %q:%q for autoRange configuration", subKey, subValue)
+			}
+			ar[newR][subKey] = subValue
+		}
+	}
+	if err := checkAutoRangeValues(ar); err != nil {
+		return swarm.AutoRange{}, err
+	}
+	return ar, nil
+}
+
+func isInRange(value, min, max int) bool {
+	return (value > min && value <= max)
+}
+
+func isPositive(value int) bool {
+	return value >= 0
+}
+
+func checkCPUValues(values map[string]string) (min, max int, err error) {
+	category := "cpu%"
+	min, max, err = -1, -1, nil
+
+	for key, value := range values {
+		switch key {
+		case "min":
+			min, err = convertAndValidateRange(0, 100, value, category)
+		case "max":
+			max, err = convertAndValidateRange(0, 100, value, category)
+		default:
+			err = fmt.Errorf("unrecognized key %q for %q", key, category)
+		}
+		if err != nil {
+			return
+		}
+	}
+
+	return min, max, err
+}
+
+func convertAndValidatePositive(value, category string) (int, error) {
+	result, err := strconv.Atoi(value)
+	if !isPositive(result) || err != nil {
+		return -1, fmt.Errorf("invalid value %d for %q", result, category)
+	}
+	return result, err
+}
+
+func convertAndValidateRange(min, max int, value, category string) (int, error) {
+	result, err := strconv.Atoi(value)
+	if !isInRange(result, min, max) || err != nil {
+		return -1, fmt.Errorf("invalid value %d for %q", result, category)
+	}
+	return result, err
+}
+
+func checkMemoryValues(values map[string]string) (min, max int, err error) {
+	category := "memory"
+	min, max, err = -1, -1, nil
+
+	for key, value := range values {
+		switch key {
+		case "min":
+			min, err = convertAndValidatePositive(value, category)
+		case "max":
+			max, err = convertAndValidatePositive(value, category)
+		case "threshold":
+			_, err = convertAndValidateRange(0, 100, value, "threshold")
+		default:
+			err = fmt.Errorf("unrecognized key %q for %q", key, category)
+		}
+		if err != nil {
+			return
+		}
+	}
+
+	return min, max, err
+}
+
+func checkAutoRangeValues(autorange swarm.AutoRange) (err error) {
+	var min, max int
+	err = nil
+
+	for category := range autorange {
+		switch category {
+		case "cpu%":
+			min, max, err = checkCPUValues(autorange[category])
+		case "memory":
+			min, max, err = checkMemoryValues(autorange[category])
+		default:
+			err = fmt.Errorf("unrecognized category %q", category)
+		}
+		if err != nil {
+			return
+		}
+
+		// Do checks on values
+		if min > max && max != -1 || min < -1 || max < -1 {
+			err = fmt.Errorf("invalid min %d or max %d values for %q", min, max, category)
+		}
+
+		if err != nil {
+			return
+		}
+		// Reset for next checks
+		min, max = -1, -1
+	}
+
+	return err
+}
+
+func checkAutoRangeDeclaration(value string) bool {
+	if value == "0" || len(value) == 0 {
+		return false
+	} else if _, err := strconv.Atoi(value); err != nil {
+		return false
+	}
+	return true
 }
 
 func getPlacementPreference(preferences []composetypes.PlacementPreferences) []swarm.PlacementPreference {

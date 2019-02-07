@@ -81,8 +81,8 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 			var (
 				v                      *types.StatsJSON
 				memPercent, cpuPercent float64
-				blkRead, blkWrite      uint64 // Only used on Linux
 				mem, memLimit          float64
+				blkRead, blkWrite      uint64 // Only used on Linux
 				pidsStatsCurrent       uint64
 			)
 
@@ -126,8 +126,16 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 				BlockRead:        float64(blkRead),
 				BlockWrite:       float64(blkWrite),
 				PidsCurrent:      pidsStatsCurrent,
+				CurrentMemoryMin: getAutoRangeValue(v.AutoRange["memoryAR"], "nmin"),
+				CurrentMemoryMax: getAutoRangeValue(v.AutoRange["memoryAR"], "nmax"),
+				OptiMemoryMin:    getAutoRangeValue(v.AutoRange["memoryAR"], "sugmin"),
+				OptiMemoryMax:    getAutoRangeValue(v.AutoRange["memoryAR"], "sugmax"),
+				OptiCPUNumber:    getAutoRangeValue(v.AutoRange["cpuAR"], "numCPU"),
+				UsedCPUPerc:      getAutoRangeValue(v.AutoRange["cpuAR"], "percentOpti"),
+				OptiCPUTime:      getAutoRangeValue(v.AutoRange["cpuAR"], "usageOpti"),
 			})
 			u <- nil
+
 			if !streamStats {
 				return
 			}
@@ -162,6 +170,14 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 			return
 		}
 	}
+}
+
+func getAutoRangeValue(array map[string]string, value string) string {
+	v, exist := array[value]
+	if !exist {
+		v = "--"
+	}
+	return v
 }
 
 func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
