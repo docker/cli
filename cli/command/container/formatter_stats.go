@@ -13,11 +13,13 @@ const (
 	winOSType                  = "windows"
 	defaultStatsTableFormat    = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
 	winDefaultStatsTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+	autoRangeStatsTableFormat  = "table {{.ID}}  {{.MemUsage}}  {{.AutoRange}}"
 
 	containerHeader = "CONTAINER"
 	cpuPercHeader   = "CPU %"
 	netIOHeader     = "NET I/O"
 	blockIOHeader   = "BLOCK I/O"
+	autoRangeHeader = "  Cur MIN/MAX      Opti SOFT/HARD     | CPUS /  %  /  Time"
 	memPercHeader   = "MEM %"             // Used only on Linux
 	winMemUseHeader = "PRIV WORKING SET"  // Used only on Windows
 	memUseHeader    = "MEM USAGE / LIMIT" // Used only on Linux
@@ -29,6 +31,7 @@ type StatsEntry struct {
 	Container        string
 	Name             string
 	ID               string
+	AutoRange		 string
 	CPUPercentage    float64
 	Memory           float64 // On Windows this is the private working set
 	MemoryLimit      float64 // Not used on Windows
@@ -72,6 +75,7 @@ func (cs *Stats) SetErrorAndReset(err error) {
 	cs.PidsCurrent = 0
 	cs.err = err
 	cs.IsInvalid = true
+	cs.AutoRange = ""
 }
 
 // SetError sets container statistics error
@@ -106,6 +110,8 @@ func NewStatsFormat(source, osType string) formatter.Format {
 			return formatter.Format(winDefaultStatsTableFormat)
 		}
 		return formatter.Format(defaultStatsTableFormat)
+	} else if source ==  formatter.AutoRangeFormatKey {
+		return formatter.Format(autoRangeStatsTableFormat)
 	}
 	return formatter.Format(source)
 }
@@ -145,6 +151,7 @@ func statsFormatWrite(ctx formatter.Context, Stats []StatsEntry, osType string, 
 		"NetIO":     netIOHeader,
 		"BlockIO":   blockIOHeader,
 		"PIDs":      pidsHeader,
+		"AutoRange": autoRangeHeader,
 	}
 	statsCtx.os = osType
 	return ctx.Write(&statsCtx, render)
@@ -159,6 +166,10 @@ type statsContext struct {
 
 func (c *statsContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(c)
+}
+
+func (c *statsContext) AutoRange() (string, error) {
+	return c.s.AutoRange, nil
 }
 
 func (c *statsContext) Container() string {

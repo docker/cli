@@ -3,6 +3,7 @@ package container
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -79,11 +80,12 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 	go func() {
 		for {
 			var (
-				v                      *types.StatsJSON
-				memPercent, cpuPercent float64
-				blkRead, blkWrite      uint64 // Only used on Linux
-				mem, memLimit          float64
-				pidsStatsCurrent       uint64
+				v                      			*types.StatsJSON
+				memPercent, cpuPercent 			float64
+				mem, memLimit          			float64
+				blkRead, blkWrite      			uint64 // Only used on Linux
+				pidsStatsCurrent       			uint64
+				memoryAutoRange, cpuAutoRange   string
 			)
 
 			if err := dec.Decode(&v); err != nil {
@@ -107,6 +109,8 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 				memLimit = float64(v.MemoryStats.Limit)
 				memPercent = calculateMemPercentUnixNoCache(memLimit, mem)
 				pidsStatsCurrent = v.PidsStats.Current
+				memoryAutoRange = formatMemoryAutoRange(v.AutoRange["memoryAR"])
+				cpuAutoRange = formatCPUAutoRange(v.AutoRange["cpuAR"])
 			} else {
 				cpuPercent = calculateCPUPercentWindows(v)
 				blkRead = v.StorageStats.ReadSizeBytes
@@ -126,6 +130,7 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 				BlockRead:        float64(blkRead),
 				BlockWrite:       float64(blkWrite),
 				PidsCurrent:      pidsStatsCurrent,
+				AutoRange:		  memoryAutoRange + cpuAutoRange,
 			})
 			u <- nil
 			if !streamStats {
@@ -162,6 +167,65 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 			return
 		}
 	}
+}
+
+func formatCPUAutoRange(ar map[string]string) string {
+	numCPU, exist := ar["numCPU"]
+	if !exist {
+		numCPU = "--"
+	}
+
+	percentOpti, exist := ar["percentOpti"]
+	if !exist {
+		percentOpti = "--"
+	}
+
+	usageOpti, exist := ar["usageOpti"]
+	if !exist {
+		usageOpti = "--"
+	}
+
+	return fmt.Sprintf("%s / %s%% / %s", numCPU, percentOpti, usageOpti)
+}
+
+func formatMemoryAutoRange(ar map[string]string) string {
+	newMinRange, exist := ar["nmin"]
+	if !exist {
+		newMinRange = "--"
+	}
+
+	newMaxRange, exist := ar["nmax"]
+	if !exist {
+		newMaxRange = "--"
+	}
+
+	sugMin, exist := ar["sugmin"]
+	if !exist {
+		sugMin = "--"
+	}
+
+	sugMax, exist := ar["sugmax"]
+	if !exist {
+		sugMax = "--"
+	}
+
+	return fmt.Sprintf("%s/%s  %s/%s | ", addUnit(newMinRange), addUnit(newMaxRange), addUnit(sugMin), addUnit(sugMax))
+}
+
+func addUnit(value string) string {
+	lval := len(value)
+
+	if lval > 9 {
+		return value[0:lval-9] + "." + value[lval-9:lval-7] + "GiB"
+	} else if lval > 6 {
+		return value[0:lval-6] + "." + value[lval-6:lval-4] + "MiB"
+	} else if lval > 3 {
+		return value[0:lval-3] + "." + value[lval-3:lval-1] + "KiB"
+	} else if lval > 0 && value != "--" {
+		return value + "%"
+	}
+	
+	return value
 }
 
 func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {

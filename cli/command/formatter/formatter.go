@@ -13,11 +13,12 @@ import (
 
 // Format keys used to specify certain kinds of output formats
 const (
-	TableFormatKey  = "table"
-	RawFormatKey    = "raw"
-	PrettyFormatKey = "pretty"
+	TableFormatKey		= "table"
+	RawFormatKey		= "raw"
+	PrettyFormatKey		= "pretty"
+	AutoRangeFormatKey	= "autorange"
 
-	DefaultQuietFormat = "{{.ID}}"
+	DefaultQuietFormat	= "{{.ID}}"
 )
 
 // Format is the format string rendered using the Context

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,6 +109,11 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
+	autoRange, err := convertAutoRange(service.AutoRange)
+	if err != nil {
+		return swarm.ServiceSpec{}, err
+	}
+
 	var privileges swarm.Privileges
 	privileges.CredentialSpec, err = convertCredentialSpec(service.CredentialSpec)
 	if err != nil {
@@ -127,6 +133,7 @@ func Service(
 			Name:   name,
 			Labels: AddStackLabel(namespace, service.Deploy.Labels),
 		},
+		AutoRange: autoRange,
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{
 				Image:           service.Image,
@@ -152,6 +159,7 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 			},
+			AutoRange:	   autoRange,
 			LogDriver:     logDriver,
 			Resources:     resources,
 			RestartPolicy: restartPolicy,
@@ -182,6 +190,70 @@ func Service(
 		serviceSpec.TaskTemplate.Networks = networks
 	}
 	return serviceSpec, nil
+}
+
+func convertAutoRange(oldAr composetypes.AutoRange) (swarm.AutoRange, error) {
+	if len(oldAr) <= 0 {
+		return swarm.AutoRange{}, nil
+	}
+
+	ar := make(swarm.AutoRange)
+	for k := range oldAr {
+		newR := strings.ToLower(k)
+		ar[newR] = make(map[string]string)
+		for sk, sv := range oldAr[k] {
+			if !CheckAutoRangeDeclaration(sv) {
+				return swarm.AutoRange{}, fmt.Errorf("Wrong parameter %s:%s for autoRange configuration", sk, sv)
+			}
+			ar[newR][sk] = sv
+		}
+	}
+	if err := CheckAutoRangeValues(ar); err != nil {
+		return swarm.AutoRange{}, err
+	}
+	return ar, nil
+}
+
+func CheckAutoRangeValues(ar swarm.AutoRange) error {
+	var min, max int = -1, -1
+	var threshold int
+
+	for category := range ar {
+		for k, v := range ar[category] {
+			switch k {
+			case "min":
+				min, _ = strconv.Atoi(v)
+			case "max":
+				max, _ = strconv.Atoi(v)
+			case "threshold":
+				threshold, _ = strconv.Atoi(v)
+				if threshold <= 0 || threshold > 100 {
+					return fmt.Errorf("Wrong vlaue for threshold")
+				}
+			default:
+				return fmt.Errorf("Unrecognized key %s for %s", k, category)
+			}
+		}
+
+		// Do checks on values
+		if min > max && max != -1 || min < -1 || max < -1 {
+			return fmt.Errorf("Empty/Wrong values for min or max value")
+		}
+
+		// Reset for next checks
+		min, max = -1, -1
+	}
+	return nil
+}
+
+// Check if values are fo correct type (not null / not strings)
+func CheckAutoRangeDeclaration(value string) bool {
+	if value == "0" || len(value) == 0 {
+		return false
+	} else if _, err := strconv.Atoi(value); err != nil {
+		return false
+	}
+	return true
 }
 
 func getPlacementPreference(preferences []composetypes.PlacementPreferences) []swarm.PlacementPreference {
