@@ -190,3 +190,12 @@ func TestSplitCpArg(t *testing.T) {
 		})
 	}
 }
+
+func TestRunCopyFromContainerToFilesystemIrregularDestination(t *testing.T) {
+	options := copyOptions{source: "container:/dev/null", destination: "/dev/random"}
+	cli := test.NewFakeCli(nil)
+	err := runCopy(cli, options)
+	assert.Assert(t, err != nil)
+	expected := `"/dev/random" must be a directory or a regular file`
+	assert.ErrorContains(t, err, expected)
+}

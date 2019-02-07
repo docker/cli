@@ -31,3 +31,19 @@ func TestContainerExportOutputToFile(t *testing.T) {
 
 	assert.Assert(t, fs.Equal(dir.Path(), expected))
 }
+
+func TestContainerExportOutputToIrregularFile(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		containerExportFunc: func(container string) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader("foo")), nil
+		},
+	})
+	cmd := NewExportCommand(cli)
+	cmd.SetOutput(ioutil.Discard)
+	cmd.SetArgs([]string{"-o", "/dev/random", "container"})
+
+	err := cmd.Execute()
+	assert.Assert(t, err != nil)
+	expected := `"/dev/random" must be a directory or a regular file`
+	assert.ErrorContains(t, err, expected)
+}

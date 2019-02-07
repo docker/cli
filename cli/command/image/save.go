@@ -3,8 +3,6 @@ package image
 import (
 	"context"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -44,7 +42,7 @@ func RunSave(dockerCli command.Cli, opts saveOptions) error {
 		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
 	}
 
-	if err := validateOutputPath(opts.output); err != nil {
+	if err := command.ValidateOutputPath(opts.output); err != nil {
 		return errors.Wrap(err, "failed to save image")
 	}
 
@@ -60,14 +58,4 @@ func RunSave(dockerCli command.Cli, opts saveOptions) error {
 	}
 
 	return command.CopyToFile(opts.output, responseBody)
-}
-
-func validateOutputPath(path string) error {
-	dir := filepath.Dir(path)
-	if dir != "" && dir != "." {
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			return errors.Errorf("unable to validate output path: directory %q does not exist", dir)
-		}
-	}
-	return nil
 }
