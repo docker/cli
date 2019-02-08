@@ -76,7 +76,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 
 		// stack
 		stack.NewStackCommand(dockerCli),
-		stack.NewTopLevelDeployCommand(dockerCli),
 
 		// swarm
 		swarm.NewSwarmCommand(dockerCli),
@@ -91,6 +90,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		context.NewContextCommand(dockerCli),
 
 		// legacy commands may be hidden
+		hide(stack.NewTopLevelDeployCommand(dockerCli)),
 		hide(system.NewEventsCommand(dockerCli)),
 		hide(system.NewInfoCommand(dockerCli)),
 		hide(system.NewInspectCommand(dockerCli)),
