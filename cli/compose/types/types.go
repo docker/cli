@@ -153,6 +153,7 @@ func (s Services) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(data, "", "  ")
 }
 
+// AutoRange is a map containing the autorange configuration from docker-compose.yml
 type AutoRange map[string]map[string]string
 
 // ServiceConfig is the configuration of one service
@@ -210,7 +211,7 @@ type ServiceConfig struct {
 	UserNSMode      string                           `mapstructure:"userns_mode" yaml:"userns_mode,omitempty" json:"userns_mode,omitempty"`
 	Volumes         []ServiceVolumeConfig            `yaml:",omitempty" json:"volumes,omitempty"`
 	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
-	AutoRange		AutoRange						 `yaml:",omitempty" json:"autorange,omitempty"`
+	AutoRange       AutoRange                        `yaml:",omitempty" json:"autorange,omitempty"`
 
 	Extras map[string]interface{} `yaml:",inline" json:"-"`
 }
