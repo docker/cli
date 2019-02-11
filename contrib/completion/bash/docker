@@ -598,7 +598,7 @@ __docker_append_to_completions() {
 # The result is cached for the duration of one invocation of bash completion.
 __docker_fetch_info() {
 	if [ -z "$info_fetched" ] ; then
-		read -r client_experimental server_experimental server_os < <(__docker_q version -f '{{.Client.Experimental}} {{.Server.Experimental}} {{.Server.Os}}')
+		read -r client_experimental server_experimental server_os <<< "$(__docker_q version -f '{{.Client.Experimental}} {{.Server.Experimental}} {{.Server.Os}}')"
 		info_fetched=true
 	fi
 }
