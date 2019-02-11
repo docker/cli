@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/bundlefile"
@@ -87,25 +86,6 @@ func DeployBundle(ctx context.Context, dockerCli command.Cli, opts options.Deplo
 				Ports: ports,
 			},
 			Networks: nets,
-		}
-
-		if len(service.AutoRange) > 0 {
-			ar := make(swarm.AutoRange)
-			for k := range service.AutoRange {
-				newK := strings.ToLower(k)
-				ar[newK] = make(map[string]string)
-				for sk, sv := range service.AutoRange[k] {
-					if !convert.CheckAutoRangeDeclaration(sv) {
-						return fmt.Errorf("Wrong parameter %s:%s for AutoRange configuration", sk, sv)
-					}
-					ar[newK][sk] = sv
-				}
-			}
-			if err := convert.CheckAutoRangeValues(ar); err != nil {
-				return err
-			}
-			serviceSpec.AutoRange = ar
-			serviceSpec.TaskTemplate.AutoRange = ar
 		}
 
 		services[internalName] = serviceSpec

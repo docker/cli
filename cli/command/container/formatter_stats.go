@@ -2,6 +2,7 @@ package container
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -13,13 +14,21 @@ const (
 	winOSType                  = "windows"
 	defaultStatsTableFormat    = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
 	winDefaultStatsTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
-	autoRangeStatsTableFormat  = "table {{.ID}}  {{.MemUsage}}  {{.AutoRange}}"
+	autoRangeStatsTableFormat  = "table {{.ID}}\t{{.CurrentMemoryMin}}\t{{.CurrentMemoryMax}}\t{{.OptiMemoryMin}}\t{{.OptiMemoryMax}}\t{{.OptiCPUNumber}}\t{{.UsedCPUPerc}}\t{{.OptiCPUTime}}"
+
+	currentMemoryMinHeader = "CURRENT MIN"
+	currentMemoryMaxHeader = "CURRENT MAX"
+	optiMemoryMinHeader    = "OPTI MIN"
+	optiMemoryMaxHeader    = "OPTI MAX"
+	optiCPUNumberHeader    = "OPTI CPU"
+	usedCPUPercHeader      = "USED %"
+	optiCPUTimeHeader      = "OPTI TIME"
 
 	containerHeader = "CONTAINER"
 	cpuPercHeader   = "CPU %"
 	netIOHeader     = "NET I/O"
 	blockIOHeader   = "BLOCK I/O"
-	autoRangeHeader = "  Cur MIN/MAX      Opti SOFT/HARD     | CPUS /  %  /  Time"
+
 	memPercHeader   = "MEM %"             // Used only on Linux
 	winMemUseHeader = "PRIV WORKING SET"  // Used only on Windows
 	memUseHeader    = "MEM USAGE / LIMIT" // Used only on Linux
@@ -28,10 +37,18 @@ const (
 
 // StatsEntry represents represents the statistics data collected from a container
 type StatsEntry struct {
+	CurrentMemoryMin string
+	CurrentMemoryMax string
+	OptiMemoryMin    string
+	OptiMemoryMax    string
+	OptiCPUNumber    string
+	UsedCPUPerc      string
+	OptiCPUTime      string
+
 	Container        string
 	Name             string
 	ID               string
-	AutoRange		 string
+	AutoRange        string
 	CPUPercentage    float64
 	Memory           float64 // On Windows this is the private working set
 	MemoryLimit      float64 // Not used on Windows
@@ -110,7 +127,7 @@ func NewStatsFormat(source, osType string) formatter.Format {
 			return formatter.Format(winDefaultStatsTableFormat)
 		}
 		return formatter.Format(defaultStatsTableFormat)
-	} else if source ==  formatter.AutoRangeFormatKey {
+	} else if source == formatter.AutoRangeFormatKey {
 		return formatter.Format(autoRangeStatsTableFormat)
 	}
 	return formatter.Format(source)
@@ -142,16 +159,22 @@ func statsFormatWrite(ctx formatter.Context, Stats []StatsEntry, osType string, 
 	}
 	statsCtx := statsContext{}
 	statsCtx.Header = formatter.SubHeaderContext{
-		"Container": containerHeader,
-		"Name":      formatter.NameHeader,
-		"ID":        formatter.ContainerIDHeader,
-		"CPUPerc":   cpuPercHeader,
-		"MemUsage":  memUsage,
-		"MemPerc":   memPercHeader,
-		"NetIO":     netIOHeader,
-		"BlockIO":   blockIOHeader,
-		"PIDs":      pidsHeader,
-		"AutoRange": autoRangeHeader,
+		"Container":        containerHeader,
+		"Name":             formatter.NameHeader,
+		"ID":               formatter.ContainerIDHeader,
+		"CPUPerc":          cpuPercHeader,
+		"MemUsage":         memUsage,
+		"MemPerc":          memPercHeader,
+		"NetIO":            netIOHeader,
+		"BlockIO":          blockIOHeader,
+		"PIDs":             pidsHeader,
+		"CurrentMemoryMin": currentMemoryMinHeader,
+		"CurrentMemoryMax": currentMemoryMaxHeader,
+		"OptiMemoryMin":    optiMemoryMinHeader,
+		"OptiMemoryMax":    optiMemoryMaxHeader,
+		"OptiCPUNumber":    optiCPUNumberHeader,
+		"UsedCPUPerc":      usedCPUPercHeader,
+		"OptiCPUTime":      optiCPUTimeHeader,
 	}
 	statsCtx.os = osType
 	return ctx.Write(&statsCtx, render)
@@ -168,8 +191,48 @@ func (c *statsContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(c)
 }
 
-func (c *statsContext) AutoRange() (string, error) {
-	return c.s.AutoRange, nil
+func (c *statsContext) CurrentMemoryMin() string {
+	if c.s.CurrentMemoryMin == "--" {
+		return c.s.CurrentMemoryMin
+	}
+	val, _ := strconv.ParseFloat(c.s.CurrentMemoryMin, 32)
+	return units.BytesSize(val)
+}
+
+func (c *statsContext) CurrentMemoryMax() string {
+	if c.s.CurrentMemoryMax == "--" {
+		return c.s.CurrentMemoryMax
+	}
+	val, _ := strconv.ParseFloat(c.s.CurrentMemoryMax, 32)
+	return units.BytesSize(val)
+}
+
+func (c *statsContext) OptiMemoryMin() string {
+	if c.s.OptiMemoryMin == "--" {
+		return c.s.OptiMemoryMin
+	}
+	val, _ := strconv.ParseFloat(c.s.OptiMemoryMin, 32)
+	return units.BytesSize(val)
+}
+
+func (c *statsContext) OptiMemoryMax() string {
+	if c.s.OptiMemoryMax == "--" {
+		return c.s.OptiMemoryMax
+	}
+	val, _ := strconv.ParseFloat(c.s.OptiMemoryMax, 32)
+	return units.BytesSize(val)
+}
+
+func (c *statsContext) OptiCPUNumber() string {
+	return c.s.OptiCPUNumber
+}
+
+func (c *statsContext) UsedCPUPerc() string {
+	return c.s.UsedCPUPerc
+}
+
+func (c *statsContext) OptiCPUTime() string {
+	return c.s.OptiCPUTime
 }
 
 func (c *statsContext) Container() string {

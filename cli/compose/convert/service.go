@@ -159,7 +159,7 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 			},
-			AutoRange:	   autoRange,
+			AutoRange:     autoRange,
 			LogDriver:     logDriver,
 			Resources:     resources,
 			RestartPolicy: restartPolicy,
@@ -203,18 +203,18 @@ func convertAutoRange(oldAr composetypes.AutoRange) (swarm.AutoRange, error) {
 		ar[newR] = make(map[string]string)
 		for sk, sv := range oldAr[k] {
 			if !CheckAutoRangeDeclaration(sv) {
-				return swarm.AutoRange{}, fmt.Errorf("Wrong parameter %s:%s for autoRange configuration", sk, sv)
+				return swarm.AutoRange{}, fmt.Errorf("wrong parameter %q:%q for autoRange configuration", sk, sv)
 			}
 			ar[newR][sk] = sv
 		}
 	}
-	if err := CheckAutoRangeValues(ar); err != nil {
+	if err := checkAutoRangeValues(ar); err != nil {
 		return swarm.AutoRange{}, err
 	}
 	return ar, nil
 }
 
-func CheckAutoRangeValues(ar swarm.AutoRange) error {
+func checkAutoRangeValues(ar swarm.AutoRange) error {
 	var min, max int = -1, -1
 	var threshold int
 
@@ -228,16 +228,16 @@ func CheckAutoRangeValues(ar swarm.AutoRange) error {
 			case "threshold":
 				threshold, _ = strconv.Atoi(v)
 				if threshold <= 0 || threshold > 100 {
-					return fmt.Errorf("Wrong vlaue for threshold")
+					return fmt.Errorf("invalid threshold %q", v)
 				}
 			default:
-				return fmt.Errorf("Unrecognized key %s for %s", k, category)
+				return fmt.Errorf("unrecognized key %q for %q", k, category)
 			}
 		}
 
 		// Do checks on values
 		if min > max && max != -1 || min < -1 || max < -1 {
-			return fmt.Errorf("Empty/Wrong values for min or max value")
+			return fmt.Errorf("invalid min %q or max %q values", min, max)
 		}
 
 		// Reset for next checks
@@ -246,7 +246,7 @@ func CheckAutoRangeValues(ar swarm.AutoRange) error {
 	return nil
 }
 
-// Check if values are fo correct type (not null / not strings)
+// CheckAutoRangeDeclaration check if values are fo correct type (not null / not strings)
 func CheckAutoRangeDeclaration(value string) bool {
 	if value == "0" || len(value) == 0 {
 		return false
