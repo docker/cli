@@ -490,6 +490,7 @@ type serviceOptions struct {
 	dnsSearch       opts.ListOpts
 	dnsOption       opts.ListOpts
 	hosts           opts.ListOpts
+	sysctls         opts.ListOpts
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -531,6 +532,7 @@ func newServiceOptions() *serviceOptions {
 		dnsOption:       opts.NewListOpts(nil),
 		dnsSearch:       opts.NewListOpts(opts.ValidateDNSSearch),
 		hosts:           opts.NewListOpts(opts.ValidateExtraHost),
+		sysctls:         opts.NewListOpts(nil),
 	}
 }
 
@@ -643,6 +645,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				StopGracePeriod: options.ToStopGracePeriod(flags),
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
+				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -890,6 +893,9 @@ const (
 	flagRollbackOrder           = "rollback-order"
 	flagRollbackParallelism     = "rollback-parallelism"
 	flagInit                    = "init"
+	flagSysCtl                  = "sysctl"
+	flagSysCtlAdd               = "sysctl-add"
+	flagSysCtlRemove            = "sysctl-rm"
 	flagStopGracePeriod         = "stop-grace-period"
 	flagStopSignal              = "stop-signal"
 	flagTTY                     = "tty"

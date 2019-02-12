@@ -3696,6 +3696,7 @@ _docker_service_update_and_create() {
 			--placement-pref
 			--publish -p
 			--secret
+			--sysctl
 		"
 
 		case "$prev" in
@@ -3746,6 +3747,8 @@ _docker_service_update_and_create() {
 			--rollback
 			--secret-add
 			--secret-rm
+			--sysctl-add
+			--sysctl-rm
 		"
 
 		boolean_options="$boolean_options

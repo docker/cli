@@ -240,6 +240,10 @@ services:
 
     stop_signal: SIGUSR1
 
+    sysctls:
+      net.core.somaxconn: 1024
+      net.ipv4.tcp_syncookies: 0
+
     # String or list
     # tmpfs: /run
     tmpfs:

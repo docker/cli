@@ -828,3 +828,100 @@ func TestUpdateMaxReplicas(t *testing.T) {
 
 	assert.DeepEqual(t, svc.TaskTemplate.Placement, &swarm.Placement{MaxReplicas: uint64(2)})
 }
+
+func TestUpdateSysCtls(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		name     string
+		spec     map[string]string
+		add      []string
+		rm       []string
+		expected map[string]string
+	}{
+		{
+			name:     "from scratch",
+			add:      []string{"sysctl.zet=value-99", "sysctl.alpha=value-1"},
+			expected: map[string]string{"sysctl.zet": "value-99", "sysctl.alpha": "value-1"},
+		},
+		{
+			name:     "append new",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"new.sysctl=newvalue"},
+			expected: map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2", "new.sysctl": "newvalue"},
+		},
+		{
+			name:     "append duplicate is a no-op",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"sysctl.one=value-1"},
+			expected: map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+		},
+		{
+			name:     "remove and append existing is a no-op",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"sysctl.one=value-1"},
+			rm:       []string{"sysctl.one=value-1"},
+			expected: map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+		},
+		{
+			name:     "remove and append new should append",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"new.sysctl=newvalue"},
+			rm:       []string{"new.sysctl=newvalue"},
+			expected: map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2", "new.sysctl": "newvalue"},
+		},
+		{
+			name:     "update existing",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"sysctl.one=newvalue"},
+			expected: map[string]string{"sysctl.one": "newvalue", "sysctl.two": "value-2"},
+		},
+		{
+			name:     "update existing twice",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			add:      []string{"sysctl.one=newvalue", "sysctl.one=evennewervalue"},
+			expected: map[string]string{"sysctl.one": "evennewervalue", "sysctl.two": "value-2"},
+		},
+		{
+			name:     "remove all",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			rm:       []string{"sysctl.one=value-1", "sysctl.two=value-2"},
+			expected: map[string]string{},
+		},
+		{
+			name:     "remove by key",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			rm:       []string{"sysctl.one"},
+			expected: map[string]string{"sysctl.two": "value-2"},
+		},
+		{
+			name:     "remove by key and different value",
+			spec:     map[string]string{"sysctl.one": "value-1", "sysctl.two": "value-2"},
+			rm:       []string{"sysctl.one=anyvalueyoulike"},
+			expected: map[string]string{"sysctl.two": "value-2"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			svc := swarm.ServiceSpec{
+				TaskTemplate: swarm.TaskSpec{
+					ContainerSpec: &swarm.ContainerSpec{Sysctls: tc.spec},
+				},
+			}
+			flags := newUpdateCommand(nil).Flags()
+			for _, v := range tc.add {
+				assert.NilError(t, flags.Set(flagSysCtlAdd, v))
+			}
+			for _, v := range tc.rm {
+				assert.NilError(t, flags.Set(flagSysCtlRemove, v))
+			}
+			err := updateService(ctx, &fakeClient{}, flags, &svc)
+			assert.NilError(t, err)
+			if !assert.Check(t, is.DeepEqual(svc.TaskTemplate.ContainerSpec.Sysctls, tc.expected)) {
+				t.Logf("expected: %v", tc.expected)
+				t.Logf("actual: %v", svc.TaskTemplate.ContainerSpec.Sysctls)
+			}
+		})
+	}
+}

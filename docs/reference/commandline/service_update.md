@@ -93,6 +93,8 @@ Options:
       --secret-rm list                     Remove a secret
       --stop-grace-period duration         Time to wait before force killing a container (ns|us|ms|s|m|h)
       --stop-signal string                 Signal to stop the container
+      --sysctl-add list                    Add or update a Sysctl option
+      --sysctl-rm list                     Remove a Sysctl option
   -t, --tty                                Allocate a pseudo-TTY
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback")

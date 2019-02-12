@@ -96,6 +96,11 @@ ContainerSpec:
 {{- if .ContainerUser }}
  User: {{ .ContainerUser }}
 {{- end }}
+{{- if .ContainerSysCtls }}
+SysCtls:
+{{- range $k, $v := .ContainerSysCtls }}
+ {{ $k }}{{if $v }}: {{ $v }}{{ end }}
+{{- end }}{{ end }}
 {{- if .ContainerMounts }}
 Mounts:
 {{- end }}
@@ -413,6 +418,14 @@ func (ctx *serviceInspectContext) ContainerInit() bool {
 
 func (ctx *serviceInspectContext) ContainerMounts() []mounttypes.Mount {
 	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Mounts
+}
+
+func (ctx *serviceInspectContext) ContainerSysCtls() map[string]string {
+	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Sysctls
+}
+
+func (ctx *serviceInspectContext) HasContainerSysCtls() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Sysctls) > 0
 }
 
 func (ctx *serviceInspectContext) HasResources() bool {
