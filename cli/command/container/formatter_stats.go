@@ -187,40 +187,32 @@ type statsContext struct {
 	trunc bool
 }
 
+func dashOrConverted(value string) string {
+	if value == "--" {
+		return value
+	}
+	val, _ := strconv.ParseFloat(value, 32)
+	return units.BytesSize(val)
+}
+
 func (c *statsContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(c)
 }
 
 func (c *statsContext) CurrentMemoryMin() string {
-	if c.s.CurrentMemoryMin == "--" {
-		return c.s.CurrentMemoryMin
-	}
-	val, _ := strconv.ParseFloat(c.s.CurrentMemoryMin, 32)
-	return units.BytesSize(val)
+	return dashOrConverted(c.s.CurrentMemoryMin)
 }
 
 func (c *statsContext) CurrentMemoryMax() string {
-	if c.s.CurrentMemoryMax == "--" {
-		return c.s.CurrentMemoryMax
-	}
-	val, _ := strconv.ParseFloat(c.s.CurrentMemoryMax, 32)
-	return units.BytesSize(val)
+	return dashOrConverted(c.s.CurrentMemoryMax)
 }
 
 func (c *statsContext) OptiMemoryMin() string {
-	if c.s.OptiMemoryMin == "--" {
-		return c.s.OptiMemoryMin
-	}
-	val, _ := strconv.ParseFloat(c.s.OptiMemoryMin, 32)
-	return units.BytesSize(val)
+	return dashOrConverted(c.s.OptiMemoryMin)
 }
 
 func (c *statsContext) OptiMemoryMax() string {
-	if c.s.OptiMemoryMax == "--" {
-		return c.s.OptiMemoryMax
-	}
-	val, _ := strconv.ParseFloat(c.s.OptiMemoryMax, 32)
-	return units.BytesSize(val)
+	return dashOrConverted(c.s.OptiMemoryMax)
 }
 
 func (c *statsContext) OptiCPUNumber() string {

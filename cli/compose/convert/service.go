@@ -202,7 +202,7 @@ func convertAutoRange(oldAr composetypes.AutoRange) (swarm.AutoRange, error) {
 		newR := strings.ToLower(k)
 		ar[newR] = make(map[string]string)
 		for sk, sv := range oldAr[k] {
-			if !CheckAutoRangeDeclaration(sv) {
+			if !checkAutoRangeDeclaration(sv) {
 				return swarm.AutoRange{}, fmt.Errorf("wrong parameter %q:%q for autoRange configuration", sk, sv)
 			}
 			ar[newR][sk] = sv
@@ -246,8 +246,7 @@ func checkAutoRangeValues(ar swarm.AutoRange) error {
 	return nil
 }
 
-// CheckAutoRangeDeclaration check if values are fo correct type (not null / not strings)
-func CheckAutoRangeDeclaration(value string) bool {
+func checkAutoRangeDeclaration(value string) bool {
 	if value == "0" || len(value) == 0 {
 		return false
 	} else if _, err := strconv.Atoi(value); err != nil {
