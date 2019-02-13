@@ -6,8 +6,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -102,24 +100,7 @@ func (f *_escFile) Close() error {
 }
 
 func (f *_escFile) Readdir(count int) ([]os.FileInfo, error) {
-	if !f.isDir {
-		return nil, fmt.Errorf(" escFile.Readdir: '%s' is not directory", f.name)
-	}
-
-	fis, ok := _escDirs[f.local]
-	if !ok {
-		return nil, fmt.Errorf(" escFile.Readdir: '%s' is directory, but we have no info about content of this dir, local=%s", f.name, f.local)
-	}
-	limit := count
-	if count <= 0 || limit > len(fis) {
-		limit = len(fis)
-	}
-
-	if len(fis) == 0 && count > 0 {
-		return nil, io.EOF
-	}
-
-	return []os.FileInfo(fis[0:limit]), nil
+	return nil, nil
 }
 
 func (f *_escFile) Stat() (os.FileInfo, error) {
@@ -210,7 +191,6 @@ func _escFSMustString(useLocal bool, name string) string {
 var _escData = map[string]*_escFile{
 
 	"/data/config_schema_v3.0.json": {
-		name:    "config_schema_v3.0.json",
 		local:   "data/config_schema_v3.0.json",
 		size:    11063,
 		modtime: 1518458244,
@@ -246,7 +226,6 @@ xHv6XdkMqA34L74ys3aKw8XE5Pt4DNh+IZaN/DMhad9yDyAlGzbxc2F0fns2HUJ234BlbrgaD1QS+++Y
 	},
 
 	"/data/config_schema_v3.1.json": {
-		name:    "config_schema_v3.1.json",
 		local:   "data/config_schema_v3.1.json",
 		size:    12209,
 		modtime: 1518458244,
@@ -283,7 +262,6 @@ f55aMuPsI9DxPLh9jLlw/TGcbUX23yn6OwAA//8cyfJJsS8AAA==
 	},
 
 	"/data/config_schema_v3.2.json": {
-		name:    "config_schema_v3.2.json",
 		local:   "data/config_schema_v3.2.json",
 		size:    13755,
 		modtime: 1518458244,
@@ -322,7 +300,6 @@ ZbmZv+QaLHpS4rzkKyabuw8zkGHuhdMrnbUrtIOnbTqoMzZd83f41N8R/735o4f/lZziOLoU+2E3AJpH
 	},
 
 	"/data/config_schema_v3.3.json": {
-		name:    "config_schema_v3.3.json",
 		local:   "data/config_schema_v3.3.json",
 		size:    15491,
 		modtime: 1518458244,
@@ -363,7 +340,6 @@ b/Iu7P/nxf8DAAD//7pHo+CDPAAA
 	},
 
 	"/data/config_schema_v3.4.json": {
-		name:    "config_schema_v3.4.json",
 		local:   "data/config_schema_v3.4.json",
 		size:    15874,
 		modtime: 1518458244,
@@ -405,7 +381,6 @@ PS1sPmQbucDQbzovyv9fFv8LAAD//+uCPa4CPgAA
 	},
 
 	"/data/config_schema_v3.5.json": {
-		name:    "config_schema_v3.5.json",
 		local:   "data/config_schema_v3.5.json",
 		size:    16802,
 		modtime: 1518458244,
@@ -448,7 +423,6 @@ Pum2n6FuR/KZkNgb9IOAvY0qfF0fuE7P2bsPTT1Xf8bV4ab+/7z5fwAAAP//yoGbgKJBAAA=
 	},
 
 	"/data/config_schema_v3.6.json": {
-		name:    "config_schema_v3.6.json",
 		local:   "data/config_schema_v3.6.json",
 		size:    17084,
 		modtime: 1518458244,
@@ -492,7 +466,6 @@ oqbZ4ab+/7z5fwAAAP//nm8U9rxCAAA=
 	},
 
 	"/data/config_schema_v3.7.json": {
-		name:    "config_schema_v3.7.json",
 		local:   "data/config_schema_v3.7.json",
 		size:    17854,
 		modtime: 1518458244,
@@ -536,7 +509,6 @@ bnBpPlHfjORjkTRf1wyAwiYqMXd9/G6313QfoXs6/sbZ66r6e179PwAA//8ZL3SpvkUAAA==
 	},
 
 	"/data/config_schema_v3.8.json": {
-		name:    "config_schema_v3.8.json",
 		local:   "data/config_schema_v3.8.json",
 		size:    18474,
 		modtime: 1518458244,
@@ -580,24 +552,13 @@ Hza41D+HsB3oZ0RSf13TCxS2QYm57YcWxu017Q8eODr+htnrpvz3vPlfAAAA//8ze5q4KkgAAA==
 `,
 	},
 
-	"/data": {
-		name:  "data",
-		local: `data`,
+	"/": {
 		isDir: true,
+		local: "",
 	},
-}
 
-var _escDirs = map[string][]os.FileInfo{
-
-	"data": {
-		_escData["/data/config_schema_v3.0.json"],
-		_escData["/data/config_schema_v3.1.json"],
-		_escData["/data/config_schema_v3.2.json"],
-		_escData["/data/config_schema_v3.3.json"],
-		_escData["/data/config_schema_v3.4.json"],
-		_escData["/data/config_schema_v3.5.json"],
-		_escData["/data/config_schema_v3.6.json"],
-		_escData["/data/config_schema_v3.7.json"],
-		_escData["/data/config_schema_v3.8.json"],
+	"/data": {
+		isDir: true,
+		local: "data",
 	},
 }
