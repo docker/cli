@@ -93,7 +93,7 @@ func newBuildOptions() buildOptions {
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
 		ulimits:    opts.NewUlimitOpt(&ulimits),
-		labels:     opts.NewListOpts(opts.ValidateEnv),
+		labels:     opts.NewListOpts(opts.ValidateLabel),
 		extraHosts: opts.NewListOpts(opts.ValidateExtraHost),
 	}
 }

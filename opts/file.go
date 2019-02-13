@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-var whiteSpaces = " \t"
+const whiteSpaces = " \t"
 
 // ErrBadKey typed error for bad environment variable
 type ErrBadKey struct {

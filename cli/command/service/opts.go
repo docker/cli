@@ -520,9 +520,9 @@ type serviceOptions struct {
 
 func newServiceOptions() *serviceOptions {
 	return &serviceOptions{
-		labels:          opts.NewListOpts(opts.ValidateEnv),
+		labels:          opts.NewListOpts(opts.ValidateLabel),
 		constraints:     opts.NewListOpts(nil),
-		containerLabels: opts.NewListOpts(opts.ValidateEnv),
+		containerLabels: opts.NewListOpts(opts.ValidateLabel),
 		env:             opts.NewListOpts(opts.ValidateEnv),
 		envFile:         opts.NewListOpts(nil),
 		groups:          opts.NewListOpts(nil),
