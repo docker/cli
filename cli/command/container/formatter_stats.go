@@ -188,10 +188,10 @@ type statsContext struct {
 }
 
 func dashOrConverted(value string) string {
-	if value == "--" {
-		return value
+	val, err := strconv.ParseFloat(value, 32)
+	if err != nil {
+		return "--"
 	}
-	val, _ := strconv.ParseFloat(value, 32)
 	return units.BytesSize(val)
 }
 
