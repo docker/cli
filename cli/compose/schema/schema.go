@@ -30,10 +30,17 @@ func (checker durationFormatChecker) IsFormat(input string) bool {
 	return err == nil
 }
 
+type autoRangeFormatChecker struct{}
+
+func (checker autoRangeFormatChecker) IsFormat(input string) bool {
+	return true
+}
+
 func init() {
 	gojsonschema.FormatCheckers.Add("expose", portsFormatChecker{})
 	gojsonschema.FormatCheckers.Add("ports", portsFormatChecker{})
 	gojsonschema.FormatCheckers.Add("duration", durationFormatChecker{})
+	gojsonschema.FormatCheckers.Add("autorange", autoRangeFormatChecker{})
 }
 
 // Version returns the version of the config, defaulting to version 1.0

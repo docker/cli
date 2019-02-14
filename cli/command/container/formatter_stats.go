@@ -2,6 +2,7 @@ package container
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -13,11 +14,21 @@ const (
 	winOSType                  = "windows"
 	defaultStatsTableFormat    = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
 	winDefaultStatsTableFormat = "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
+	autoRangeStatsTableFormat  = "table {{.ID}}\t{{.CurrentMemoryMin}}\t{{.CurrentMemoryMax}}\t{{.OptiMemoryMin}}\t{{.OptiMemoryMax}}\t{{.OptiCPUNumber}}\t{{.UsedCPUPerc}}\t{{.OptiCPUTime}}"
+
+	currentMemoryMinHeader = "CURRENT MIN"
+	currentMemoryMaxHeader = "CURRENT MAX"
+	optiMemoryMinHeader    = "OPTI MIN"
+	optiMemoryMaxHeader    = "OPTI MAX"
+	optiCPUNumberHeader    = "OPTI CPU"
+	usedCPUPercHeader      = "USED %"
+	optiCPUTimeHeader      = "OPTI TIME"
 
 	containerHeader = "CONTAINER"
 	cpuPercHeader   = "CPU %"
 	netIOHeader     = "NET I/O"
 	blockIOHeader   = "BLOCK I/O"
+
 	memPercHeader   = "MEM %"             // Used only on Linux
 	winMemUseHeader = "PRIV WORKING SET"  // Used only on Windows
 	memUseHeader    = "MEM USAGE / LIMIT" // Used only on Linux
@@ -26,6 +37,14 @@ const (
 
 // StatsEntry represents represents the statistics data collected from a container
 type StatsEntry struct {
+	CurrentMemoryMin string
+	CurrentMemoryMax string
+	OptiMemoryMin    string
+	OptiMemoryMax    string
+	OptiCPUNumber    string
+	UsedCPUPerc      string
+	OptiCPUTime      string
+
 	Container        string
 	Name             string
 	ID               string
@@ -72,6 +91,14 @@ func (cs *Stats) SetErrorAndReset(err error) {
 	cs.PidsCurrent = 0
 	cs.err = err
 	cs.IsInvalid = true
+	cs.CurrentMemoryMin = ""
+	cs.CurrentMemoryMax = ""
+	cs.OptiMemoryMin = ""
+	cs.OptiMemoryMax = ""
+	cs.OptiCPUNumber = ""
+	cs.UsedCPUPerc = ""
+	cs.OptiCPUTime = ""
+
 }
 
 // SetError sets container statistics error
@@ -106,6 +133,8 @@ func NewStatsFormat(source, osType string) formatter.Format {
 			return formatter.Format(winDefaultStatsTableFormat)
 		}
 		return formatter.Format(defaultStatsTableFormat)
+	} else if source == formatter.AutoRangeFormatKey {
+		return formatter.Format(autoRangeStatsTableFormat)
 	}
 	return formatter.Format(source)
 }
@@ -136,15 +165,22 @@ func statsFormatWrite(ctx formatter.Context, Stats []StatsEntry, osType string, 
 	}
 	statsCtx := statsContext{}
 	statsCtx.Header = formatter.SubHeaderContext{
-		"Container": containerHeader,
-		"Name":      formatter.NameHeader,
-		"ID":        formatter.ContainerIDHeader,
-		"CPUPerc":   cpuPercHeader,
-		"MemUsage":  memUsage,
-		"MemPerc":   memPercHeader,
-		"NetIO":     netIOHeader,
-		"BlockIO":   blockIOHeader,
-		"PIDs":      pidsHeader,
+		"Container":        containerHeader,
+		"Name":             formatter.NameHeader,
+		"ID":               formatter.ContainerIDHeader,
+		"CPUPerc":          cpuPercHeader,
+		"MemUsage":         memUsage,
+		"MemPerc":          memPercHeader,
+		"NetIO":            netIOHeader,
+		"BlockIO":          blockIOHeader,
+		"PIDs":             pidsHeader,
+		"CurrentMemoryMin": currentMemoryMinHeader,
+		"CurrentMemoryMax": currentMemoryMaxHeader,
+		"OptiMemoryMin":    optiMemoryMinHeader,
+		"OptiMemoryMax":    optiMemoryMaxHeader,
+		"OptiCPUNumber":    optiCPUNumberHeader,
+		"UsedCPUPerc":      usedCPUPercHeader,
+		"OptiCPUTime":      optiCPUTimeHeader,
 	}
 	statsCtx.os = osType
 	return ctx.Write(&statsCtx, render)
@@ -157,8 +193,53 @@ type statsContext struct {
 	trunc bool
 }
 
+func dashOrConverted(value string, isInvalid bool) string {
+	val, err := strconv.ParseFloat(value, 32)
+	if err != nil || isInvalid {
+		return "--"
+	}
+	return units.BytesSize(val)
+}
+
 func (c *statsContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(c)
+}
+
+func (c *statsContext) CurrentMemoryMin() string {
+	return dashOrConverted(c.s.CurrentMemoryMin, c.s.IsInvalid)
+}
+
+func (c *statsContext) CurrentMemoryMax() string {
+	return dashOrConverted(c.s.CurrentMemoryMax, c.s.IsInvalid)
+}
+
+func (c *statsContext) OptiMemoryMin() string {
+	return dashOrConverted(c.s.OptiMemoryMin, c.s.IsInvalid)
+}
+
+func (c *statsContext) OptiMemoryMax() string {
+	return dashOrConverted(c.s.OptiMemoryMax, c.s.IsInvalid)
+}
+
+func (c *statsContext) OptiCPUNumber() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
+	return c.s.OptiCPUNumber
+}
+
+func (c *statsContext) UsedCPUPerc() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
+	return c.s.UsedCPUPerc
+}
+
+func (c *statsContext) OptiCPUTime() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
+	return c.s.OptiCPUTime
 }
 
 func (c *statsContext) Container() string {

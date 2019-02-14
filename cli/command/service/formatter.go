@@ -25,6 +25,11 @@ Labels:
 {{- range $k, $v := .Labels }}
  {{ $k }}{{if $v }}={{ $v }}{{ end }}
 {{- end }}{{ end }}
+{{- if .AutoRange}}
+AutoRange:
+{{- range $k, $v := .AutoRange}}
+	{{ $k }}{{if $v }}={{ $v }}{{ end }}
+{{- end }}{{- end }}
 Service Mode:
 {{- if .IsModeGlobal }}	Global
 {{- else if .IsModeReplicated }}	Replicated
@@ -202,6 +207,10 @@ type serviceInspectContext struct {
 
 func (ctx *serviceInspectContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(ctx)
+}
+
+func (ctx *serviceInspectContext) AutoRange() swarm.AutoRange {
+	return ctx.Service.Spec.AutoRange
 }
 
 func (ctx *serviceInspectContext) ID() string {
