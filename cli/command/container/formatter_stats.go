@@ -48,7 +48,6 @@ type StatsEntry struct {
 	Container        string
 	Name             string
 	ID               string
-	AutoRange        string
 	CPUPercentage    float64
 	Memory           float64 // On Windows this is the private working set
 	MemoryLimit      float64 // Not used on Windows
@@ -92,7 +91,14 @@ func (cs *Stats) SetErrorAndReset(err error) {
 	cs.PidsCurrent = 0
 	cs.err = err
 	cs.IsInvalid = true
-	cs.AutoRange = ""
+	cs.CurrentMemoryMin = ""
+	cs.CurrentMemoryMax = ""
+	cs.OptiMemoryMin = ""
+	cs.OptiMemoryMax = ""
+	cs.OptiCPUNumber = ""
+	cs.UsedCPUPerc = ""
+	cs.OptiCPUTime = ""
+
 }
 
 // SetError sets container statistics error
@@ -187,9 +193,9 @@ type statsContext struct {
 	trunc bool
 }
 
-func dashOrConverted(value string) string {
+func dashOrConverted(value string, isInvalid bool) string {
 	val, err := strconv.ParseFloat(value, 32)
-	if err != nil {
+	if err != nil || isInvalid {
 		return "--"
 	}
 	return units.BytesSize(val)
@@ -200,30 +206,39 @@ func (c *statsContext) MarshalJSON() ([]byte, error) {
 }
 
 func (c *statsContext) CurrentMemoryMin() string {
-	return dashOrConverted(c.s.CurrentMemoryMin)
+	return dashOrConverted(c.s.CurrentMemoryMin, c.s.IsInvalid)
 }
 
 func (c *statsContext) CurrentMemoryMax() string {
-	return dashOrConverted(c.s.CurrentMemoryMax)
+	return dashOrConverted(c.s.CurrentMemoryMax, c.s.IsInvalid)
 }
 
 func (c *statsContext) OptiMemoryMin() string {
-	return dashOrConverted(c.s.OptiMemoryMin)
+	return dashOrConverted(c.s.OptiMemoryMin, c.s.IsInvalid)
 }
 
 func (c *statsContext) OptiMemoryMax() string {
-	return dashOrConverted(c.s.OptiMemoryMax)
+	return dashOrConverted(c.s.OptiMemoryMax, c.s.IsInvalid)
 }
 
 func (c *statsContext) OptiCPUNumber() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
 	return c.s.OptiCPUNumber
 }
 
 func (c *statsContext) UsedCPUPerc() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
 	return c.s.UsedCPUPerc
 }
 
 func (c *statsContext) OptiCPUTime() string {
+	if c.s.IsInvalid {
+		return fmt.Sprintf("--")
+	}
 	return c.s.OptiCPUTime
 }
 

@@ -19,6 +19,21 @@ func TestCalculateMemUsageUnixNoCache(t *testing.T) {
 	assert.Assert(t, inDelta(100.0, result, 1e-6))
 }
 
+func TestGetAutoRangeValue(t *testing.T) {
+	testMap := map[string]string{
+		"testTrue":  "true",
+		"testFalse": "false",
+	}
+	testValues := []string{"testTrue", "testFalse", "test"}
+
+	results := []string{"true", "false", "--"}
+
+	for index := range testValues {
+		v := getAutoRangeValue(testMap, testValues[index])
+		assert.Assert(t, v == results[index])
+	}
+}
+
 func TestCalculateMemPercentUnixNoCache(t *testing.T) {
 	// Given
 	someLimit := float64(100.0)

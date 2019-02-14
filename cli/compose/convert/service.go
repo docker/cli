@@ -228,7 +228,7 @@ func checkAutoRangeValues(ar swarm.AutoRange) error {
 			case "threshold":
 				threshold, _ = strconv.Atoi(v)
 				if threshold <= 0 || threshold > 100 {
-					return fmt.Errorf("invalid threshold %q", v)
+					return fmt.Errorf("invalid threshold %q", threshold)
 				}
 			default:
 				return fmt.Errorf("unrecognized key %q for %q", k, category)

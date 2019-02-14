@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sort"
 	"strings"
@@ -197,6 +198,62 @@ func TestConvertEndpointSpec(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, *endpoint))
+}
+
+func TestCheckAutoRangeDeclaration(t *testing.T) {
+	testDeclaration := []string{"123456", "-1", "0", "", "abc", "123.01"}
+
+	expected := []bool{true, true, false, false, false, false}
+
+	for index, declaration := range testDeclaration {
+		result := checkAutoRangeDeclaration(declaration)
+		assert.Check(t, result == expected[index])
+	}
+}
+
+func TestCheckAutoRangeValues(t *testing.T) {
+	testAutoranges := []swarm.AutoRange{
+		{
+			"memory": {},
+			"cpu%":   {},
+		},
+		{
+			"memory": {
+				"min":       "1234567",
+				"max":       "3214556",
+				"threshold": "90",
+			},
+			"cpu%": {
+				"min": "1000",
+				"max": "2000",
+			},
+		},
+		{
+			"memory": {
+				"min":       "1234567",
+				"threshold": "120",
+			},
+		},
+		{
+			"cpu%": {
+				"max": "-2000",
+			},
+		},
+		{
+			"cpu%": {
+				"peekaboo": "2000",
+			},
+		},
+	}
+	expected := []error{nil, nil, fmt.Errorf("invalid threshold %q", 120), fmt.Errorf("invalid min %q or max %q values", -1, -1200), fmt.Errorf("unrecognized key %q for %q", "peekaboo", "cpu%")}
+	for idx, autorange := range testAutoranges {
+		err := checkAutoRangeValues(autorange)
+		if err == nil && expected[idx] == nil || err != nil && expected[idx] != nil {
+			continue
+		} else {
+			t.Fail()
+		}
+	}
 }
 
 func TestConvertServiceNetworksOnlyDefault(t *testing.T) {

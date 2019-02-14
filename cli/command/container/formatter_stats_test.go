@@ -37,6 +37,20 @@ func TestContainerStatsContext(t *testing.T) {
 		{StatsEntry{PidsCurrent: 10}, "", "10", pidsHeader, ctx.PIDs},
 		{StatsEntry{PidsCurrent: 10, IsInvalid: true}, "", "--", pidsHeader, ctx.PIDs},
 		{StatsEntry{PidsCurrent: 10}, "windows", "--", pidsHeader, ctx.PIDs},
+		{StatsEntry{CurrentMemoryMin: "746123"}, "", "728.6KiB", currentMemoryMinHeader, ctx.CurrentMemoryMin},
+		{StatsEntry{CurrentMemoryMin: "746123", IsInvalid: true}, "", "--", currentMemoryMinHeader, ctx.CurrentMemoryMin},
+		{StatsEntry{CurrentMemoryMax: "758123"}, "", "740.4KiB", currentMemoryMaxHeader, ctx.CurrentMemoryMax},
+		{StatsEntry{CurrentMemoryMax: "758123", IsInvalid: true}, "", "--", currentMemoryMaxHeader, ctx.CurrentMemoryMax},
+		{StatsEntry{OptiMemoryMin: "600000000"}, "", "572.2MiB", optiMemoryMinHeader, ctx.OptiMemoryMin},
+		{StatsEntry{OptiMemoryMin: "600000000", IsInvalid: true}, "", "--", optiMemoryMinHeader, ctx.OptiMemoryMin},
+		{StatsEntry{OptiMemoryMax: "900000000"}, "", "858.3MiB", optiMemoryMaxHeader, ctx.OptiMemoryMax},
+		{StatsEntry{OptiMemoryMax: "900000000", IsInvalid: true}, "", "--", optiMemoryMaxHeader, ctx.OptiMemoryMax},
+		{StatsEntry{OptiCPUNumber: "4"}, "", "4", optiCPUNumberHeader, ctx.OptiCPUNumber},
+		{StatsEntry{OptiCPUNumber: "4", IsInvalid: true}, "", "--", optiCPUNumberHeader, ctx.OptiCPUNumber},
+		{StatsEntry{OptiCPUTime: "123456"}, "", "123456", optiCPUTimeHeader, ctx.OptiCPUTime},
+		{StatsEntry{OptiCPUTime: "123456", IsInvalid: true}, "", "--", optiCPUTimeHeader, ctx.OptiCPUTime},
+		{StatsEntry{UsedCPUPerc: "342%"}, "", "342%", usedCPUPercHeader, ctx.UsedCPUPerc},
+		{StatsEntry{UsedCPUPerc: "342%", IsInvalid: true}, "", "--", usedCPUPercHeader, ctx.UsedCPUPerc},
 	}
 
 	for _, te := range tt {
@@ -218,6 +232,20 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 				Output: &out,
 			},
 			"CONTAINER           CPU %\n",
+		},
+		{
+			formatter.Context{
+				Format: "table {{.CurrentMemoryMin}}\t{{.CurrentMemoryMax}}\t{{.OptiMemoryMin}}\t{{.OptiMemoryMax}}",
+				Output: &out,
+			},
+			"CURRENT MIN         CURRENT MAX         OPTI MIN            OPTI MAX\n",
+		},
+		{
+			formatter.Context{
+				Format: "table {{.OptiCPUNumber}}\t{{.UsedCPUPerc}}\t{{.OptiCPUTime}}",
+				Output: &out,
+			},
+			"OPTI CPU            USED %              OPTI TIME\n",
 		},
 	}
 
