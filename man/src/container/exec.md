@@ -23,3 +23,29 @@ the same capabilities as the container, which may be limited. Set
    --user [user | user:group | uid | uid:gid | user:gid | uid:group ]
 
    Without this argument the command will be run as root in the container.
+
+# Exit Status
+
+The exit code from `docker exec` gives information about why the container
+failed to exec or why it exited.  When `docker exec` exits with a non-zero code,
+the exit codes follow the `chroot` standard, see below:
+
+**_126_** if the **_contained command_** cannot be invoked
+
+    $ docker exec busybox /etc; echo $?
+    # exec: "/etc": permission denied
+      docker: Error response from daemon: Contained command could not be invoked
+      126
+
+**_127_** if the **_contained command_** cannot be found
+
+    $ docker exec busybox foo; echo $?
+    # exec: "foo": executable file not found in $PATH
+      docker: Error response from daemon: Contained command not found or does not exist
+      127
+
+**_Exit code_** of **_contained command_** otherwise 
+    
+    $ docker exec busybox /bin/sh -c 'exit 3' 
+    # 3
+
