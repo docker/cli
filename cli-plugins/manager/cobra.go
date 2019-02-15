@@ -16,6 +16,11 @@ const (
 	// that plugin.
 	CommandAnnotationPluginVendor = "com.docker.cli.plugin.vendor"
 
+	// CommandAnnotationPluginVersion is added to every stub command
+	// added by AddPluginCommandStubs and contains the version of
+	// that plugin.
+	CommandAnnotationPluginVersion = "com.docker.cli.plugin.version"
+
 	// CommandAnnotationPluginInvalid is added to any stub command
 	// added by AddPluginCommandStubs for an invalid command (that
 	// is, one which failed it's candidate test) and contains the
@@ -37,8 +42,9 @@ func AddPluginCommandStubs(dockerCli command.Cli, cmd *cobra.Command) error {
 			vendor = "unknown"
 		}
 		annotations := map[string]string{
-			CommandAnnotationPlugin:       "true",
-			CommandAnnotationPluginVendor: vendor,
+			CommandAnnotationPlugin:        "true",
+			CommandAnnotationPluginVendor:  vendor,
+			CommandAnnotationPluginVersion: p.Version,
 		}
 		if p.Err != nil {
 			annotations[CommandAnnotationPluginInvalid] = p.Err.Error()
