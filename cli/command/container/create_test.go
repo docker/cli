@@ -158,17 +158,58 @@ func TestCreateContainerNeverPullsImage(t *testing.T) {
 		},
 		HostConfig: &container.HostConfig{},
 	}
-	body, err := createContainer(context.Background(), cli, config, &createOptions{
+	_, err := createContainer(context.Background(), cli, config, &createOptions{
 		name:      "name",
 		platform:  runtime.GOOS,
 		untrusted: true,
 		pull:      PullImageNever,
 	})
+	assert.ErrorContains(t, err, "fake not found")
+}
+
+func TestCreateContainerAlwaysPullsImage(t *testing.T) {
+	imageName := "does-not-exist-locally"
+	responseCounter := 0
+	containerID := "abcdef"
+
+	client := &fakeClient{
+		createContainerFunc: func(
+			config *container.Config,
+			hostConfig *container.HostConfig,
+			networkingConfig *network.NetworkingConfig,
+			containerName string,
+		) (container.ContainerCreateCreatedBody, error) {
+			defer func() { responseCounter++ }()
+			switch responseCounter {
+			case 0:
+				return container.ContainerCreateCreatedBody{ID: containerID}, nil
+			default:
+				return container.ContainerCreateCreatedBody{}, errors.New("unexpected")
+			}
+		},
+		imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader("")), nil
+		},
+		infoFunc: func() (types.Info, error) {
+			return types.Info{IndexServerAddress: "http://indexserver"}, nil
+		},
+	}
+	cli := test.NewFakeCli(client)
+	config := &containerConfig{
+		Config: &container.Config{
+			Image: imageName,
+		},
+		HostConfig: &container.HostConfig{},
+	}
+	body, err := createContainer(context.Background(), cli, config, &createOptions{
+		name:      "name",
+		platform:  runtime.GOOS,
+		untrusted: true,
+		pull:      PullImageAlways,
+	})
 	assert.NilError(t, err)
-	expected := container.ContainerCreateCreatedBody{}
+	expected := container.ContainerCreateCreatedBody{ID: containerID}
 	assert.Check(t, is.DeepEqual(expected, *body))
-	stderr := cli.ErrBuffer().String()
-	assert.Check(t, is.Contains(stderr, "Unable to find image 'does-not-exist-locally:latest' locally"))
 }
 
 func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
