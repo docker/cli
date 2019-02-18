@@ -5,11 +5,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config/configfile"
+	"gotest.tools/assert"
 	"gotest.tools/fs"
 	"gotest.tools/icmd"
 )
 
-func prepare(t *testing.T) (func(args ...string) icmd.Cmd, func()) {
+func prepare(t *testing.T) (func(args ...string) icmd.Cmd, *configfile.ConfigFile, func()) {
 	cfg := fs.NewDir(t, "plugin-test",
 		fs.WithFile("config.json", fmt.Sprintf(`{"cliPluginsExtraDirs": [%q]}`, os.Getenv("DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS"))),
 	)
@@ -19,6 +22,9 @@ func prepare(t *testing.T) (func(args ...string) icmd.Cmd, func()) {
 	cleanup := func() {
 		cfg.Remove()
 	}
-	return run, cleanup
+	cfgfile, err := config.Load(cfg.Path())
+	assert.NilError(t, err)
+
+	return run, cfgfile, cleanup
 
 }

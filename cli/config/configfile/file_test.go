@@ -2,7 +2,6 @@ package configfile
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -437,31 +436,13 @@ func TestPluginConfig(t *testing.T) {
 	configFile := New("test-plugin")
 	defer os.Remove("test-plugin")
 
-	type PluginConfig1 struct {
-		Data1 string `json:"data1"`
-		Data2 int    `json:"data2"`
-	}
-	type PluginConfig2 struct {
-		Data3 string `json:"data3"`
-	}
-	p1 := PluginConfig1{
-		Data1: "some string",
-		Data2: 42,
-	}
-	p2 := PluginConfig2{
-		Data3: "some other string",
-	}
-
-	plugin1, err := json.MarshalIndent(p1, "", "\t")
-	assert.NilError(t, err)
-	configFile.Plugins["plugin1"] = plugin1
-
-	plugin2, err := json.MarshalIndent(p2, "", "\t")
-	assert.NilError(t, err)
-	configFile.Plugins["plugin2"] = plugin2
+	// Populate some initial values
+	configFile.SetPluginConfig("plugin1", "data1", "some string")
+	configFile.SetPluginConfig("plugin1", "data2", "42")
+	configFile.SetPluginConfig("plugin2", "data3", "some other string")
 
 	// Save a config file with some plugin config
-	err = configFile.Save()
+	err := configFile.Save()
 	assert.NilError(t, err)
 
 	// Read it back and check it has the expected content
@@ -471,25 +452,47 @@ func TestPluginConfig(t *testing.T) {
 
 	// Load it, resave and check again that the content is
 	// preserved through a load/save cycle.
-	configFile2 := New("test-plugin2")
+	configFile = New("test-plugin2")
 	defer os.Remove("test-plugin2")
-	assert.NilError(t, configFile2.LoadFromReader(bytes.NewReader(cfg)))
-	err = configFile2.Save()
+	assert.NilError(t, configFile.LoadFromReader(bytes.NewReader(cfg)))
+	err = configFile.Save()
 	assert.NilError(t, err)
 	cfg, err = ioutil.ReadFile("test-plugin2")
 	assert.NilError(t, err)
 	golden.Assert(t, string(cfg), "plugin-config.golden")
 
-	// Check that the contents was retained properly
-	var p1bis PluginConfig1
-	assert.Assert(t, is.Contains(configFile2.Plugins, "plugin1"))
-	err = json.Unmarshal(configFile2.Plugins["plugin1"], &p1bis)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, p1, p1bis)
+	// Check that the contents was reloaded properly
+	v, ok := configFile.PluginConfig("plugin1", "data1")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "some string")
+	v, ok = configFile.PluginConfig("plugin1", "data2")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "42")
+	v, ok = configFile.PluginConfig("plugin1", "data3")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
+	v, ok = configFile.PluginConfig("plugin2", "data3")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "some other string")
+	v, ok = configFile.PluginConfig("plugin2", "data4")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
+	v, ok = configFile.PluginConfig("plugin3", "data5")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
 
-	var p2bis PluginConfig2
-	assert.Assert(t, is.Contains(configFile2.Plugins, "plugin2"))
-	err = json.Unmarshal(configFile2.Plugins["plugin2"], &p2bis)
+	// Add, remove and modify
+	configFile.SetPluginConfig("plugin1", "data1", "some replacement string") // replacing a key
+	configFile.SetPluginConfig("plugin1", "data2", "")                        // deleting a key
+	configFile.SetPluginConfig("plugin1", "data3", "some additional string")  // new key
+	configFile.SetPluginConfig("plugin2", "data3", "")                        // delete the whole plugin, since this was the only data
+	configFile.SetPluginConfig("plugin3", "data5", "a new plugin")            // add a new plugin
+
+	err = configFile.Save()
 	assert.NilError(t, err)
-	assert.DeepEqual(t, p2, p2bis)
+
+	// Read it back and check it has the expected content again
+	cfg, err = ioutil.ReadFile("test-plugin2")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config-2.golden")
 }

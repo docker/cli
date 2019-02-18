@@ -11,7 +11,7 @@ import (
 
 // TestRunNonexisting ensures correct behaviour when running a nonexistent plugin.
 func TestRunNonexisting(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("nonexistent"))
@@ -24,7 +24,7 @@ func TestRunNonexisting(t *testing.T) {
 
 // TestHelpNonexisting ensures correct behaviour when invoking help on a nonexistent plugin.
 func TestHelpNonexisting(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("help", "nonexistent"))
@@ -38,7 +38,7 @@ func TestHelpNonexisting(t *testing.T) {
 // TestNonexistingHelp ensures correct behaviour when invoking a
 // nonexistent plugin with `--help`.
 func TestNonexistingHelp(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("nonexistent", "--help"))
@@ -53,7 +53,7 @@ func TestNonexistingHelp(t *testing.T) {
 
 // TestRunBad ensures correct behaviour when running an existent but invalid plugin
 func TestRunBad(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("badmeta"))
@@ -66,7 +66,7 @@ func TestRunBad(t *testing.T) {
 
 // TestHelpBad ensures correct behaviour when invoking help on a existent but invalid plugin.
 func TestHelpBad(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("help", "badmeta"))
@@ -80,7 +80,7 @@ func TestHelpBad(t *testing.T) {
 // TestBadHelp ensures correct behaviour when invoking an
 // existent but invalid plugin with `--help`.
 func TestBadHelp(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("badmeta", "--help"))
@@ -95,7 +95,7 @@ func TestBadHelp(t *testing.T) {
 
 // TestRunGood ensures correct behaviour when running a valid plugin
 func TestRunGood(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("helloworld"))
@@ -109,7 +109,7 @@ func TestRunGood(t *testing.T) {
 // valid plugin. A global argument is included to ensure it does not
 // interfere.
 func TestHelpGood(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "help", "helloworld"))
@@ -122,7 +122,7 @@ func TestHelpGood(t *testing.T) {
 // with `--help`. A global argument is used to ensure it does not
 // interfere.
 func TestGoodHelp(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "helloworld", "--help"))
@@ -134,7 +134,7 @@ func TestGoodHelp(t *testing.T) {
 
 // TestRunGoodSubcommand ensures correct behaviour when running a valid plugin with a subcommand
 func TestRunGoodSubcommand(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("helloworld", "goodbye"))
@@ -146,7 +146,7 @@ func TestRunGoodSubcommand(t *testing.T) {
 
 // TestRunGoodArgument ensures correct behaviour when running a valid plugin with an `--argument`.
 func TestRunGoodArgument(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("helloworld", "--who", "Cleveland"))
@@ -160,7 +160,7 @@ func TestRunGoodArgument(t *testing.T) {
 // valid plugin subcommand. A global argument is included to ensure it does not
 // interfere.
 func TestHelpGoodSubcommand(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "help", "helloworld", "goodbye"))
@@ -173,7 +173,7 @@ func TestHelpGoodSubcommand(t *testing.T) {
 // with a subcommand and `--help`. A global argument is used to ensure it does not
 // interfere.
 func TestGoodSubcommandHelp(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "helloworld", "goodbye", "--help"))
@@ -186,7 +186,7 @@ func TestGoodSubcommandHelp(t *testing.T) {
 // TestCliInitialized tests the code paths which ensure that the Cli
 // object is initialized even if the plugin uses PersistentRunE
 func TestCliInitialized(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("helloworld", "apiversion"))
