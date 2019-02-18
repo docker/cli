@@ -223,6 +223,10 @@ Users can override your custom or the default key sequence on a per-container
 basis. To do this, the user specifies the `--detach-keys` flag with the `docker
 attach`, `docker exec`, `docker run` or `docker start` command.
 
+The property `plugins` contains settings specific to CLI plugins. The
+key is the plugin name, while the value is a further map of options,
+which are specific to that plugin.
+
 Following is a sample `config.json` file:
 
 ```json
@@ -246,7 +250,16 @@ Following is a sample `config.json` file:
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
   },
-  "stackOrchestrator": "kubernetes"
+  "stackOrchestrator": "kubernetes",
+  "plugins": {
+    "plugin1": {
+      "option": "value"
+    },
+    "plugin2": {
+      "anotheroption": "anothervalue",
+      "athirdoption": "athirdvalue"
+    }
+  }
 }
 {% endraw %}
 ```
