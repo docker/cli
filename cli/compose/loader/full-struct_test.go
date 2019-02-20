@@ -10,7 +10,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.7",
+		Version:  "3.8",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -111,6 +111,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				},
 				Placement: types.Placement{
 					Constraints: []string{"node=foo"},
+					MaxReplicas: uint64(5),
 					Preferences: []types.PlacementPreferences{
 						{
 							Spread: "node.labels.az",
@@ -507,7 +508,7 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 }
 
 func fullExampleYAML(workingDir string) string {
-	return fmt.Sprintf(`version: "3.7"
+	return fmt.Sprintf(`version: "3.8"
 services:
   foo:
     build:
@@ -588,6 +589,7 @@ services:
         - node=foo
         preferences:
         - spread: node.labels.az
+        max_replicas_per_node: 5
       endpoint_mode: dnsrr
     devices:
     - /dev/ttyUSB0:/dev/ttyUSB0
@@ -1083,7 +1085,8 @@ func fullExampleJSON(workingDir string) string {
             {
               "spread": "node.labels.az"
             }
-          ]
+          ],
+          "max_replicas_per_node": 5
         },
         "endpoint_mode": "dnsrr"
       },
@@ -1383,7 +1386,7 @@ func fullExampleJSON(workingDir string) string {
       "working_dir": "/code"
     }
   },
-  "version": "3.7",
+  "version": "3.8",
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",

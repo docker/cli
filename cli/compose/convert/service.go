@@ -158,6 +158,7 @@ func Service(
 			Placement: &swarm.Placement{
 				Constraints: service.Deploy.Placement.Constraints,
 				Preferences: getPlacementPreference(service.Deploy.Placement.Preferences),
+				MaxReplicas: service.Deploy.Placement.MaxReplicas,
 			},
 		},
 		EndpointSpec:   endpoint,
