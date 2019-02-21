@@ -175,9 +175,28 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }
 
+// InitializeOpt is the type of the functional options passed to DockerCli.Initialize
+type InitializeOpt func(dockerCli *DockerCli) error
+
+// WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
+func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) InitializeOpt {
+	return func(dockerCli *DockerCli) error {
+		var err error
+		dockerCli.client, err = makeClient(dockerCli)
+		return err
+	}
+}
+
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
-func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
+func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...InitializeOpt) error {
+	var err error
+
+	for _, o := range ops {
+		if err := o(cli); err != nil {
+			return err
+		}
+	}
 	cliflags.SetLogLevel(opts.Common.LogLevel)
 
 	if opts.ConfigDir != "" {
@@ -189,29 +208,31 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions) error {
 	}
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
-	var err error
-	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
-	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
-	if err != nil {
-		return err
-	}
-	endpoint, err := resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
-	if err != nil {
-		return errors.Wrap(err, "unable to resolve docker endpoint")
-	}
-	cli.dockerEndpoint = endpoint
 
-	cli.client, err = newAPIClientFromEndpoint(endpoint, cli.configFile)
-	if tlsconfig.IsErrEncryptedKey(err) {
-		passRetriever := passphrase.PromptRetrieverWithInOut(cli.In(), cli.Out(), nil)
-		newClient := func(password string) (client.APIClient, error) {
-			endpoint.TLSPassword = password
-			return newAPIClientFromEndpoint(endpoint, cli.configFile)
+	if cli.client == nil {
+		cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+		cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
+		if err != nil {
+			return err
 		}
-		cli.client, err = getClientWithPassword(passRetriever, newClient)
-	}
-	if err != nil {
-		return err
+		endpoint, err := resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
+		if err != nil {
+			return errors.Wrap(err, "unable to resolve docker endpoint")
+		}
+		cli.dockerEndpoint = endpoint
+
+		cli.client, err = newAPIClientFromEndpoint(endpoint, cli.configFile)
+		if tlsconfig.IsErrEncryptedKey(err) {
+			passRetriever := passphrase.PromptRetrieverWithInOut(cli.In(), cli.Out(), nil)
+			newClient := func(password string) (client.APIClient, error) {
+				endpoint.TLSPassword = password
+				return newAPIClientFromEndpoint(endpoint, cli.configFile)
+			}
+			cli.client, err = getClientWithPassword(passRetriever, newClient)
+		}
+		if err != nil {
+			return err
+		}
 	}
 	var experimentalValue string
 	// Environment variable always overrides configuration

@@ -12,6 +12,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// ReexecEnvvar is the name of an ennvar which is set to the command
+// used to originally invoke the docker CLI when executing a
+// plugin. Assuming $PATH and $CWD remain unchanged this should allow
+// the plugin to re-execute the original CLI.
+const ReexecEnvvar = "DOCKER_CLI_PLUGIN_ORIGINAL_CLI_COMMAND"
+
 // errPluginNotFound is the error returned when a plugin could not be found.
 type errPluginNotFound string
 
@@ -154,6 +160,9 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, ReexecEnvvar+"="+os.Args[0])
 
 		return cmd, nil
 	}

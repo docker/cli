@@ -53,6 +53,16 @@ func GetConnectionHelper(daemonURL string) (*ConnectionHelper, error) {
 	return nil, err
 }
 
+// GetCommandConnectionHelper returns a ConnectionHelp constructed from an arbitrary command.
+func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper, error) {
+	return &ConnectionHelper{
+		Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return newCommandConn(ctx, cmd, flags...)
+		},
+		Host: "http://docker",
+	}, nil
+}
+
 func newCommandConn(ctx context.Context, cmd string, args ...string) (net.Conn, error) {
 	var (
 		c   commandConn
