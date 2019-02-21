@@ -41,10 +41,10 @@ func TestGlobalHelp(t *testing.T) {
 		regexp.MustCompile(`^A self-sufficient runtime for containers$`),
 		regexp.MustCompile(`^Management Commands:$`),
 		regexp.MustCompile(`^  container\s+Manage containers$`),
+		helloworldre,
+		regexp.MustCompile(`^  image\s+Manage images$`),
 		regexp.MustCompile(`^Commands:$`),
 		regexp.MustCompile(`^  create\s+Create a new container$`),
-		helloworldre,
-		regexp.MustCompile(`^  ps\s+List containers$`),
 		regexp.MustCompile(`^Invalid Plugins:$`),
 		badmetare,
 		nil, // scan to end of input rather than stopping at badmetare

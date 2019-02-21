@@ -139,7 +139,7 @@ func hasInvalidPlugins(cmd *cobra.Command) bool {
 func operationSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
-		if isPlugin(sub) && invalidPluginReason(sub) != "" {
+		if isPlugin(sub) {
 			continue
 		}
 		if sub.IsAvailableCommand() && !sub.HasSubCommands() {
@@ -179,7 +179,10 @@ func vendorAndVersion(cmd *cobra.Command) string {
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
-		if isPlugin(sub) && invalidPluginReason(sub) != "" {
+		if isPlugin(sub) {
+			if invalidPluginReason(sub) == "" {
+				cmds = append(cmds, sub)
+			}
 			continue
 		}
 		if sub.IsAvailableCommand() && sub.HasSubCommands() {
@@ -245,7 +248,7 @@ Management Commands:
 Commands:
 
 {{- range operationSubCommands . }}
-  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
+  {{rpad .Name .NamePadding }} {{.Short}}
 {{- end}}
 {{- end}}
 
