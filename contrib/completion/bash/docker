@@ -3632,6 +3632,7 @@ _docker_service_update_and_create() {
 		--log-driver
 		--log-opt
 		--replicas
+		--replicas-max-per-node
 		--reserve-cpu
 		--reserve-memory
 		--restart-condition
