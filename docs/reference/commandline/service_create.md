@@ -61,6 +61,7 @@ Options:
   -q, --quiet                              Suppress progress output
       --read-only                          Mount the container's root filesystem as read only
       --replicas uint                      Number of tasks
+      --replicas-max-per-node uint         Maximum number of tasks per node (default 0 = unlimited)
       --reserve-cpu decimal                Reserve CPUs
       --reserve-memory bytes               Reserve Memory
       --restart-condition string           Restart when condition is met ("none"|"on-failure"|"any") (default "any")
@@ -756,6 +757,26 @@ When updating a service with `docker service update`, `--placement-pref-add`
 appends a new placement preference after all existing placement preferences.
 `--placement-pref-rm` removes an existing placement preference that matches the
 argument.
+
+### Specify maximum replicas per node (--replicas-max-per-node)
+
+Use the `--replicas-max-per-node` flag to set the maximum number of replica tasks that can run on a node.
+The following command creates a nginx service with 2 replica tasks but only one replica task per node.
+
+One example where this can be useful is to balance tasks over a set of data centers together with `--placement-pref`
+and let `--replicas-max-per-node` setting make sure that replicas are not migrated to another datacenter during
+maintenance or datacenter failure.
+
+The example below illustrates this:
+
+```bash
+$ docker service create \
+  --name nginx \
+  --replicas 2 \
+  --replicas-max-per-node 1 \
+  --placement-pref 'spread=node.labels.datacenter' \
+  nginx
+```
 
 ### Attach a service to an existing network (--network)
 

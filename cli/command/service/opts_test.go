@@ -224,3 +224,12 @@ func TestToServiceUpdateRollback(t *testing.T) {
 	assert.Check(t, is.DeepEqual(service.UpdateConfig, expected.UpdateConfig))
 	assert.Check(t, is.DeepEqual(service.RollbackConfig, expected.RollbackConfig))
 }
+
+func TestToServiceMaxReplicasGlobalModeConflict(t *testing.T) {
+	opt := serviceOptions{
+		mode:        "global",
+		maxReplicas: 1,
+	}
+	_, err := opt.ToServiceMode()
+	assert.Error(t, err, "replicas-max-per-node can only be used with replicated mode")
+}
