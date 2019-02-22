@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/plugin"
@@ -33,6 +34,16 @@ func main() {
 			},
 		}
 
+		exitStatus2 := &cobra.Command{
+			Use:   "exitstatus2",
+			Short: "Exit with status 2",
+			RunE: func(_ *cobra.Command, _ []string) error {
+				fmt.Fprintln(dockerCli.Err(), "Exiting with error status 2")
+				os.Exit(2)
+				return nil
+			},
+		}
+
 		var who string
 		cmd := &cobra.Command{
 			Use:   "helloworld",
@@ -54,10 +65,11 @@ func main() {
 				return dockerCli.ConfigFile().Save()
 			},
 		}
+
 		flags := cmd.Flags()
 		flags.StringVar(&who, "who", "", "Who are we addressing?")
 
-		cmd.AddCommand(goodbye, apiversion)
+		cmd.AddCommand(goodbye, apiversion, exitStatus2)
 		return cmd
 	},
 		manager.Metadata{

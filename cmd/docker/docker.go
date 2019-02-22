@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
+	"syscall"
 
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
@@ -55,7 +57,21 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 				return err
 			}
 
-			return plugincmd.Run()
+			err = plugincmd.Run()
+			if err != nil {
+				statusCode := 1
+				exitErr, ok := err.(*exec.ExitError)
+				if !ok {
+					return err
+				}
+				if ws, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+					statusCode = ws.ExitStatus()
+				}
+				return cli.StatusError{
+					StatusCode: statusCode,
+				}
+			}
+			return nil
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// flags must be the top-level command flags, not cmd.Flags()
