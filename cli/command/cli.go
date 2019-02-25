@@ -209,12 +209,13 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
+	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
+	if err != nil {
+		return err
+	}
+
 	if cli.client == nil {
-		cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
-		cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
-		if err != nil {
-			return err
-		}
 		endpoint, err := resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
 		if err != nil {
 			return errors.Wrap(err, "unable to resolve docker endpoint")
