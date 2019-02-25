@@ -1,6 +1,7 @@
 package configfile
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"gotest.tools/golden"
 )
 
 func TestEncodeAuth(t *testing.T) {
@@ -428,4 +430,69 @@ func TestSave(t *testing.T) {
 	cfg, err := ioutil.ReadFile("test-save")
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+}
+
+func TestPluginConfig(t *testing.T) {
+	configFile := New("test-plugin")
+	defer os.Remove("test-plugin")
+
+	// Populate some initial values
+	configFile.SetPluginConfig("plugin1", "data1", "some string")
+	configFile.SetPluginConfig("plugin1", "data2", "42")
+	configFile.SetPluginConfig("plugin2", "data3", "some other string")
+
+	// Save a config file with some plugin config
+	err := configFile.Save()
+	assert.NilError(t, err)
+
+	// Read it back and check it has the expected content
+	cfg, err := ioutil.ReadFile("test-plugin")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config.golden")
+
+	// Load it, resave and check again that the content is
+	// preserved through a load/save cycle.
+	configFile = New("test-plugin2")
+	defer os.Remove("test-plugin2")
+	assert.NilError(t, configFile.LoadFromReader(bytes.NewReader(cfg)))
+	err = configFile.Save()
+	assert.NilError(t, err)
+	cfg, err = ioutil.ReadFile("test-plugin2")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config.golden")
+
+	// Check that the contents was reloaded properly
+	v, ok := configFile.PluginConfig("plugin1", "data1")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "some string")
+	v, ok = configFile.PluginConfig("plugin1", "data2")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "42")
+	v, ok = configFile.PluginConfig("plugin1", "data3")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
+	v, ok = configFile.PluginConfig("plugin2", "data3")
+	assert.Assert(t, ok)
+	assert.Equal(t, v, "some other string")
+	v, ok = configFile.PluginConfig("plugin2", "data4")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
+	v, ok = configFile.PluginConfig("plugin3", "data5")
+	assert.Assert(t, !ok)
+	assert.Equal(t, v, "")
+
+	// Add, remove and modify
+	configFile.SetPluginConfig("plugin1", "data1", "some replacement string") // replacing a key
+	configFile.SetPluginConfig("plugin1", "data2", "")                        // deleting a key
+	configFile.SetPluginConfig("plugin1", "data3", "some additional string")  // new key
+	configFile.SetPluginConfig("plugin2", "data3", "")                        // delete the whole plugin, since this was the only data
+	configFile.SetPluginConfig("plugin3", "data5", "a new plugin")            // add a new plugin
+
+	err = configFile.Save()
+	assert.NilError(t, err)
+
+	// Read it back and check it has the expected content again
+	cfg, err = ioutil.ReadFile("test-plugin2")
+	assert.NilError(t, err)
+	golden.Assert(t, string(cfg), "plugin-config-2.golden")
 }

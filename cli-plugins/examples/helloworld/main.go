@@ -41,12 +41,21 @@ func main() {
 			// the path where a plugin overrides this
 			// hook.
 			PersistentPreRunE: plugin.PersistentPreRunE,
-			Run: func(cmd *cobra.Command, args []string) {
+			RunE: func(cmd *cobra.Command, args []string) error {
+				if who == "" {
+					who, _ = dockerCli.ConfigFile().PluginConfig("helloworld", "who")
+				}
+				if who == "" {
+					who = "World"
+				}
+
 				fmt.Fprintf(dockerCli.Out(), "Hello %s!\n", who)
+				dockerCli.ConfigFile().SetPluginConfig("helloworld", "lastwho", who)
+				return dockerCli.ConfigFile().Save()
 			},
 		}
 		flags := cmd.Flags()
-		flags.StringVar(&who, "who", "World", "Who are we addressing?")
+		flags.StringVar(&who, "who", "", "Who are we addressing?")
 
 		cmd.AddCommand(goodbye, apiversion)
 		return cmd

@@ -13,7 +13,7 @@ import (
 
 // TestGlobalHelp ensures correct behaviour when running `docker help`
 func TestGlobalHelp(t *testing.T) {
-	run, cleanup := prepare(t)
+	run, _, cleanup := prepare(t)
 	defer cleanup()
 
 	res := icmd.RunCmd(run("help"))
