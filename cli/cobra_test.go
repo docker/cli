@@ -32,28 +32,29 @@ func TestVisitAll(t *testing.T) {
 	assert.DeepEqual(t, expected, visited)
 }
 
-func TestCommandVendor(t *testing.T) {
+func TestVendorAndVersion(t *testing.T) {
 	// Non plugin.
-	assert.Equal(t, commandVendor(&cobra.Command{Use: "test"}), "             ")
+	assert.Equal(t, vendorAndVersion(&cobra.Command{Use: "test"}), "")
 
 	// Plugins with various lengths of vendor.
 	for _, tc := range []struct {
 		vendor   string
+		version  string
 		expected string
 	}{
-		{vendor: "vendor", expected: "(vendor)     "},
-		{vendor: "vendor12345", expected: "(vendor12345)"},
-		{vendor: "vendor123456", expected: "(vendor1234…)"},
-		{vendor: "vendor1234567", expected: "(vendor1234…)"},
+		{vendor: "vendor", expected: "(vendor)"},
+		{vendor: "vendor", version: "testing", expected: "(vendor, testing)"},
 	} {
 		t.Run(tc.vendor, func(t *testing.T) {
 			cmd := &cobra.Command{
 				Use: "test",
 				Annotations: map[string]string{
-					pluginmanager.CommandAnnotationPluginVendor: tc.vendor,
+					pluginmanager.CommandAnnotationPlugin:        "true",
+					pluginmanager.CommandAnnotationPluginVendor:  tc.vendor,
+					pluginmanager.CommandAnnotationPluginVersion: tc.version,
 				},
 			}
-			assert.Equal(t, commandVendor(cmd), tc.expected)
+			assert.Equal(t, vendorAndVersion(cmd), tc.expected)
 		})
 	}
 }
@@ -75,4 +76,13 @@ func TestInvalidPlugin(t *testing.T) {
 	sub1.AddCommand(sub1sub1, sub1sub2)
 
 	assert.DeepEqual(t, invalidPlugins(root), []*cobra.Command{sub1}, cmpopts.IgnoreUnexported(cobra.Command{}))
+}
+
+func TestDecoratedName(t *testing.T) {
+	root := &cobra.Command{Use: "root"}
+	topLevelCommand := &cobra.Command{Use: "pluginTopLevelCommand"}
+	root.AddCommand(topLevelCommand)
+	assert.Equal(t, decoratedName(topLevelCommand), "pluginTopLevelCommand ")
+	topLevelCommand.Annotations = map[string]string{pluginmanager.CommandAnnotationPlugin: "true"}
+	assert.Equal(t, decoratedName(topLevelCommand), "pluginTopLevelCommand*")
 }

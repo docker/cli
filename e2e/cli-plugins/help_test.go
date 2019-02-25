@@ -34,7 +34,7 @@ func TestGlobalHelp(t *testing.T) {
 	//  - The `badmeta` plugin under the "Invalid Plugins" heading.
 	//
 	// Regexps are needed because the width depends on `unix.TIOCGWINSZ` or similar.
-	helloworldre := regexp.MustCompile(`^  helloworld\s+\(Docker Inc\.\)\s+A basic Hello World plugin for tests$`)
+	helloworldre := regexp.MustCompile(`^  helloworld\*\s+A basic Hello World plugin for tests \(Docker Inc\., testing\)$`)
 	badmetare := regexp.MustCompile(`^  badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string$`)
 	var helloworldcount, badmetacount int
 	for _, expected := range []*regexp.Regexp{
