@@ -1,7 +1,8 @@
 Client:
  Debug Mode: false
  Plugins:
-  goodplugin: (0.1.0, ACME Corp) unit test is good
+  goodplugin: unit test is good (ACME Corp, 0.1.0)
+  unversionedplugin: this plugin has no version (ACME Corp)
 
 Server:
  Containers: 0
