@@ -205,6 +205,15 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 		},
 	},
 	{
+		Name: "unversionedplugin",
+		Path: "/path/to/docker-unversionedplugin",
+		Metadata: pluginmanager.Metadata{
+			SchemaVersion:    "0.1.0",
+			ShortDescription: "this plugin has no version",
+			Vendor:           "ACME Corp",
+		},
+	},
+	{
 		Name: "badplugin",
 		Path: "/path/to/docker-badplugin",
 		Err:  pluginmanager.NewPluginError("something wrong"),
