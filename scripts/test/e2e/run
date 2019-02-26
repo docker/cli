@@ -70,7 +70,7 @@ function runtests {
         GOPATH="$GOPATH" \
         PATH="$PWD/build/:/usr/bin" \
         HOME="$HOME" \
-        "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
+        "$(command -v go)" test -v ./e2e/... ${TESTFLAGS-}
 }
 
 export unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"

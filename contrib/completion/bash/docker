@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2016,SC2119,SC2155
+# shellcheck disable=SC2016,SC2119,SC2155,SC2206,SC2207
 #
 # Shellcheck ignore list:
 #  - SC2016: Expressions don't expand in single quotes, use double quotes for that.
 #  - SC2119: Use foo "$@" if function's $1 should mean script's $1.
 #  - SC2155: Declare and assign separately to avoid masking return values.
-# 
-# You can find more details for each warning at the following page: 
+#  - SC2206: Quote to prevent word splitting, or split robustly with mapfile or read -a.
+#  - SC2207: Prefer mapfile or read -a to split command output (or quote to avoid splitting).
+#
+# You can find more details for each warning at the following page:
 #    https://github.com/koalaman/shellcheck/wiki/<SCXXXX>
 #
 # bash completion file for core docker commands
