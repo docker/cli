@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-if [[ -n "${REMOTE_DAEMON-}" ]]; then
+if [ -n "${REMOTE_DAEMON-}" ]; then
   # Run tests against a remote daemon.
   ./scripts/test/e2e/run fetch-images
   ./scripts/test/e2e/run test "${DOCKER_HOST-}"

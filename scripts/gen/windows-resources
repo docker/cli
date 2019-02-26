@@ -14,7 +14,7 @@ RESOURCES=$SCRIPTDIR/../winresources
 TEMPDIR=$(mktemp -d)
 trap 'rm -rf $TEMPDIR' EXIT
 
-if [ "$(go env GOHOSTOS)" == "windows" ]; then
+if [ "$(go env GOHOSTOS)" = "windows" ]; then
 	WINDRES=windres
 else
 	# Cross compiling
@@ -22,7 +22,7 @@ else
 fi
 
 # Generate a Windows file version of the form major,minor,patch,build (with any part optional)
-VERSION_QUAD=$(echo -n "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . ,)
+VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . ,)
 
 # Pass version and commit information into the resource compiler
 defs=
@@ -30,7 +30,7 @@ defs=
 [ ! -z "$VERSION_QUAD" ] && defs+=( "-D DOCKER_VERSION_QUAD=$VERSION_QUAD")
 [ ! -z "$GITCOMMIT" ]    && defs+=( "-D DOCKER_COMMIT=\"$GITCOMMIT\"")
 
-function makeres {
+makeres() {
 	"$WINDRES" \
 		-i "$RESOURCES/$1" \
 		-o "$3" \
