@@ -4,8 +4,15 @@ package ssh
 
 import (
 	"net/url"
+	"os"
+	"strings"
 
 	"github.com/pkg/errors"
+)
+
+// ssh options env variable
+var (
+	dockerSSHOptions = os.Getenv("DOCKER_HOST_SSH_OPTIONS")
 )
 
 // New returns cmd and its args
@@ -48,13 +55,15 @@ func parseSSHURL(daemonURL string) (*sshSpec, error) {
 	if u.Fragment != "" {
 		return nil, errors.Errorf("extra fragment after the host: %q", u.Fragment)
 	}
+	sp.options = dockerSSHOptions
 	return &sp, err
 }
 
 type sshSpec struct {
-	user string
-	host string
-	port string
+	user    string
+	host    string
+	port    string
+	options string
 }
 
 func (sp *sshSpec) Args() []string {
@@ -64,6 +73,9 @@ func (sp *sshSpec) Args() []string {
 	}
 	if sp.port != "" {
 		args = append(args, "-p", sp.port)
+	}
+	if sp.options != "" {
+		args = append(args, strings.Split(sp.options, " ")...)
 	}
 	args = append(args, sp.host)
 	return args
