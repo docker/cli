@@ -12,13 +12,13 @@ were it makes sense. It has been tested with SoftHSM.
         softhsm --init-token --slot 0 --label test --pin 1234
 
 * Then use `libsofthsm.so` as the pkcs11 module:
-
+```go
         p := pkcs11.New("/usr/lib/softhsm/libsofthsm.so")
-
+```
 ## Examples
 
 A skeleton program would look somewhat like this (yes, pkcs#11 is verbose):
-
+```go
     p := pkcs11.New("/usr/lib/softhsm/libsofthsm.so")
     err := p.Initialize()
     if err != nil {
@@ -55,7 +55,7 @@ A skeleton program would look somewhat like this (yes, pkcs#11 is verbose):
             fmt.Printf("%x", d)
     }
     fmt.Println()
-
+```
 Further examples are included in the tests.
 
 To expose PKCS#11 keys using the
