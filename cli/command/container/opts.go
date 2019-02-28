@@ -545,7 +545,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		CPUQuota:             copts.cpuQuota,
 		CPURealtimePeriod:    copts.cpuRealtimePeriod,
 		CPURealtimeRuntime:   copts.cpuRealtimeRuntime,
-		PidsLimit:            copts.pidsLimit,
+		PidsLimit:            &copts.pidsLimit,
 		BlkioWeight:          copts.blkioWeight,
 		BlkioWeightDevice:    copts.blkioWeightDevice.GetList(),
 		BlkioDeviceReadBps:   copts.deviceReadBps.GetList(),
