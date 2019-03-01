@@ -25,7 +25,7 @@ Options:
       --help   Print usage
 
 Commands:
-  build       Build an image from a Dockerfile
+  build       Build an image from a Dockerfile (same as 'docker build')
   history     Show the history of an image
   import      Import the contents from a tarball to create a filesystem image
   inspect     Display detailed information on one or more images
