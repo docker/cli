@@ -21,6 +21,6 @@ func TestDialStdio(t *testing.T) {
 	cmd := icmd.Command(helloworld, "--config=blah", "--tls", "--log-level", "debug", "helloworld", "--who=foo")
 	res := icmd.RunCmd(cmd, icmd.WithEnv(manager.ReexecEnvvar+"=/bin/true"))
 	res.Assert(t, icmd.Success)
-	assert.Assert(t, is.Contains(res.Stderr(), `msg="connhelper: starting /bin/true with [--config=blah --tls --log-level debug system dial-stdio]"`))
+	assert.Assert(t, is.Contains(res.Stderr(), `msg="commandconn: starting /bin/true with [--config=blah --tls --log-level debug system dial-stdio]"`))
 	assert.Assert(t, is.Equal(res.Stdout(), "Hello foo!\n"))
 }

@@ -1,6 +1,6 @@
 // +build !windows
 
-package connhelper
+package commandconn
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 )
 
 // For https://github.com/docker/cli/pull/1014#issuecomment-409308139
-func TestCommandConnEOFWithError(t *testing.T) {
+func TestEOFWithError(t *testing.T) {
 	ctx := context.TODO()
 	cmd := "sh"
 	args := []string{"-c", "echo hello; echo some error >&2; exit 42"}
-	c, err := newCommandConn(ctx, cmd, args...)
+	c, err := New(ctx, cmd, args...)
 	assert.NilError(t, err)
 	b := make([]byte, 32)
 	n, err := c.Read(b)
@@ -28,11 +28,11 @@ func TestCommandConnEOFWithError(t *testing.T) {
 	assert.ErrorContains(t, err, "42")
 }
 
-func TestCommandConnEOFWithoutError(t *testing.T) {
+func TestEOFWithoutError(t *testing.T) {
 	ctx := context.TODO()
 	cmd := "sh"
 	args := []string{"-c", "echo hello; echo some debug log >&2; exit 0"}
-	c, err := newCommandConn(ctx, cmd, args...)
+	c, err := New(ctx, cmd, args...)
 	assert.NilError(t, err)
 	b := make([]byte, 32)
 	n, err := c.Read(b)
