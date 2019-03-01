@@ -12,7 +12,7 @@ clean: ## remove build artifacts
 
 .PHONY: test-unit
 test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit 
-	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	gotestsum $(TESTFLAGS) -- $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: test
 test: test-unit ## run tests
