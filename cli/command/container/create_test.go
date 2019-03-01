@@ -128,6 +128,7 @@ func TestCreateContainerPullsImageIfMissing(t *testing.T) {
 func TestCreateContainerNeverPullsImage(t *testing.T) {
 	imageName := "does-not-exist-locally"
 	responseCounter := 0
+	pullCounter := 0
 
 	client := &fakeClient{
 		createContainerFunc: func(
@@ -145,7 +146,13 @@ func TestCreateContainerNeverPullsImage(t *testing.T) {
 			}
 		},
 		imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
-			return ioutil.NopCloser(strings.NewReader("")), nil
+			defer func() { pullCounter++ }()
+			switch pullCounter {
+			case 0:
+				return ioutil.NopCloser(strings.NewReader("")), nil
+			default:
+				return nil, errors.New("unexpected pull")
+			}
 		},
 		infoFunc: func() (types.Info, error) {
 			return types.Info{IndexServerAddress: "http://indexserver"}, nil
@@ -169,7 +176,9 @@ func TestCreateContainerNeverPullsImage(t *testing.T) {
 
 func TestCreateContainerAlwaysPullsImage(t *testing.T) {
 	imageName := "does-not-exist-locally"
+	pullTries := 7
 	responseCounter := 0
+	pullCounter := 0
 	containerID := "abcdef"
 
 	client := &fakeClient{
@@ -181,13 +190,12 @@ func TestCreateContainerAlwaysPullsImage(t *testing.T) {
 		) (container.ContainerCreateCreatedBody, error) {
 			defer func() { responseCounter++ }()
 			switch responseCounter {
-			case 0:
-				return container.ContainerCreateCreatedBody{ID: containerID}, nil
 			default:
-				return container.ContainerCreateCreatedBody{}, errors.New("unexpected")
+				return container.ContainerCreateCreatedBody{ID: containerID}, nil
 			}
 		},
 		imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+			defer func() { pullCounter++ }()
 			return ioutil.NopCloser(strings.NewReader("")), nil
 		},
 		infoFunc: func() (types.Info, error) {
@@ -201,15 +209,19 @@ func TestCreateContainerAlwaysPullsImage(t *testing.T) {
 		},
 		HostConfig: &container.HostConfig{},
 	}
-	body, err := createContainer(context.Background(), cli, config, &createOptions{
-		name:      "name",
-		platform:  runtime.GOOS,
-		untrusted: true,
-		pull:      PullImageAlways,
-	})
-	assert.NilError(t, err)
-	expected := container.ContainerCreateCreatedBody{ID: containerID}
-	assert.Check(t, is.DeepEqual(expected, *body))
+	for i := 0; i < pullTries; i++ {
+		body, err := createContainer(context.Background(), cli, config, &createOptions{
+			name:      "name",
+			platform:  runtime.GOOS,
+			untrusted: true,
+			pull:      PullImageAlways,
+		})
+		assert.NilError(t, err)
+		expected := container.ContainerCreateCreatedBody{ID: containerID}
+		assert.Check(t, is.DeepEqual(expected, *body))
+	}
+
+	assert.Check(t, is.Equal(responseCounter, pullCounter))
 }
 
 func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
