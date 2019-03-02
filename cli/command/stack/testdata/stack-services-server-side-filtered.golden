@@ -1,0 +1,5 @@
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+id1                 svc1_svc1                               1/1                                     
+id2                 svc2_svc2                               2/2                                     
+id3                 svc3_svc3                               3/3                                     
+id4                 svc4_svc4           global              4/4                                     

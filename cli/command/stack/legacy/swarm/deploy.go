@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/cli/cli/compose/convert"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/cli/legacy/compose/convert"
+	composetypes "github.com/docker/cli/cli/legacy/compose/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"

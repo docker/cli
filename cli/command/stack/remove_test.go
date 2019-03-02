@@ -2,11 +2,13 @@ package stack
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	stacktypes "github.com/docker/stacks/pkg/types"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -163,4 +165,44 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
 	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))
 	assert.Check(t, is.DeepEqual(allConfigIDs, cli.removedConfigs))
+}
+
+func TestStackRemoveServerSideListFailure(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return nil, fmt.Errorf("failed to list stacks")
+		},
+	})
+	cmd := newRemoveCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `failed to list stacks`)
+
+}
+
+func TestStackRemoveServerSideListSuccess(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newRemoveCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+
+	assert.NilError(t, cmd.Execute())
+
 }

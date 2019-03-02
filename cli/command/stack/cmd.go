@@ -63,8 +63,8 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newServicesCommand(dockerCli, &opts),
 	)
 	flags := cmd.PersistentFlags()
-	flags.String("kubeconfig", "", "Kubernetes config file")
-	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
+	flags.String("kubeconfig", "", "Kubernetes config file") // TODO - this should be deprecated
+	flags.SetAnnotation("kubeconfig", "kubernetes", nil)     // TODO - this should be deprecated
 	flags.String("orchestrator", "", "Orchestrator to use (swarm|kubernetes|all)")
 	return cmd
 }

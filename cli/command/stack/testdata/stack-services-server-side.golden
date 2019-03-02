@@ -1,0 +1,2 @@
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+id                  svc1_svc1                               1/1                                     

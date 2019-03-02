@@ -3,7 +3,7 @@ package swarm
 import (
 	"context"
 
-	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/cli/legacy/compose/convert"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"

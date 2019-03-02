@@ -4,12 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/cli/legacy/compose/convert"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	stacktypes "github.com/docker/stacks/pkg/types"
 )
 
 type fakeClient struct {
@@ -37,10 +38,16 @@ type fakeClient struct {
 
 	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
 
-	serviceRemoveFunc func(serviceID string) error
-	networkRemoveFunc func(networkID string) error
-	secretRemoveFunc  func(secretID string) error
-	configRemoveFunc  func(configID string) error
+	serviceRemoveFunc     func(serviceID string) error
+	networkRemoveFunc     func(networkID string) error
+	secretRemoveFunc      func(secretID string) error
+	configRemoveFunc      func(configID string) error
+	parseComposeInputFunc func(input stacktypes.ComposeInput) (*stacktypes.StackCreate, error)
+	stackCreateFunc       func(stack stacktypes.StackCreate, options stacktypes.StackCreateOptions) (stacktypes.StackCreateResponse, error)
+	stackListFunc         func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error)
+	stackTaskListFunc     func(stackID string) (stacktypes.StackTaskList, error)
+	stackDeleteFunc       func(stackID string) error
+	stackUpdateFunc       func(id string, version stacktypes.Version, spec stacktypes.StackSpec, options stacktypes.StackUpdateOptions) error
 }
 
 func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
@@ -188,6 +195,59 @@ func (cli *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID stri
 			},
 		},
 	}, []byte{}, nil
+}
+
+func (cli *fakeClient) ParseComposeInput(ctx context.Context, input stacktypes.ComposeInput) (*stacktypes.StackCreate, error) {
+	if cli.parseComposeInputFunc != nil {
+		return cli.parseComposeInputFunc(input)
+	}
+
+	return &stacktypes.StackCreate{}, nil
+}
+
+func (cli *fakeClient) StackCreate(ctx context.Context, stack stacktypes.StackCreate, options stacktypes.StackCreateOptions) (stacktypes.StackCreateResponse, error) {
+
+	if cli.stackCreateFunc != nil {
+		return cli.stackCreateFunc(stack, options)
+	}
+
+	return stacktypes.StackCreateResponse{}, nil
+}
+
+func (cli *fakeClient) StackList(ctx context.Context, options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+
+	if cli.stackListFunc != nil {
+		return cli.stackListFunc(options)
+	}
+
+	return nil, nil
+}
+
+func (cli *fakeClient) StackTaskList(ctx context.Context, id string) (stacktypes.StackTaskList, error) {
+
+	if cli.stackTaskListFunc != nil {
+		return cli.stackTaskListFunc(id)
+	}
+
+	return stacktypes.StackTaskList{}, nil
+}
+
+func (cli *fakeClient) StackDelete(ctx context.Context, id string) error {
+
+	if cli.stackDeleteFunc != nil {
+		return cli.stackDeleteFunc(id)
+	}
+
+	return nil
+}
+
+func (cli *fakeClient) StackUpdate(ctx context.Context, id string, version stacktypes.Version, spec stacktypes.StackSpec, options stacktypes.StackUpdateOptions) error {
+
+	if cli.stackUpdateFunc != nil {
+		return cli.stackUpdateFunc(id, version, spec, options)
+	}
+
+	return nil
 }
 
 func serviceFromName(name string) swarm.Service {

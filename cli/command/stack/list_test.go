@@ -1,11 +1,13 @@
 package stack
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
+	stacktypes "github.com/docker/stacks/pkg/types"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
@@ -127,4 +129,43 @@ func TestStackList(t *testing.T) {
 			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
 		})
 	}
+}
+
+func TestListServerSideListFailure(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return nil, fmt.Errorf("failed to list stacks")
+		},
+	})
+	cmd := newListCommand(cli, &orchestrator)
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `failed to list stacks`)
+
+}
+
+func TestListServerSideListSuccess(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newListCommand(cli, &orchestrator)
+
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "stack-list-server-side.golden")
+
 }

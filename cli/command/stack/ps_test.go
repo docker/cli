@@ -1,12 +1,14 @@
 package stack
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	stacktypes "github.com/docker/stacks/pkg/types"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
@@ -181,4 +183,61 @@ func TestStackPs(t *testing.T) {
 			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
 		})
 	}
+}
+
+func TestStackPsServerSideListFailure(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return nil, fmt.Errorf("failed to list stacks")
+		},
+	})
+	cmd := newPsCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+	cmd.SetOutput(ioutil.Discard)
+
+	assert.ErrorContains(t, cmd.Execute(), `failed to list stacks`)
+
+}
+
+func TestStackPsServerSideListSuccess(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+			},
+		},
+	}
+	stackTaskList := stacktypes.StackTaskList{
+		CurrentTasks: []stacktypes.StackTask{
+			stacktypes.StackTask{
+				ID:           "id",
+				Name:         "name",
+				Image:        "imagename",
+				NodeID:       "nodeid",
+				DesiredState: "desiredstate",
+				CurrentState: "currentstate",
+				Err:          "error",
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+		stackTaskListFunc: func(id string) (stacktypes.StackTaskList, error) {
+			return stackTaskList, nil
+		},
+	})
+	cmd := newPsCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-server-side.golden")
+
 }

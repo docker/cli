@@ -2,14 +2,15 @@ package stack
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
-	"github.com/docker/cli/cli/command/stack/loader"
+	"github.com/docker/cli/cli/command/stack/legacy/kubernetes"
+	legacyloader "github.com/docker/cli/cli/command/stack/legacy/loader"
+	"github.com/docker/cli/cli/command/stack/legacy/swarm"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/cli/cli/command/stack/swarm"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/stacks/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -46,11 +47,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 				return swarm.DeployBundle(context.Background(), dockerCli, opts)
 			}
 
-			config, err := loader.LoadComposefile(dockerCli, opts)
-			if err != nil {
-				return err
-			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, common.Orchestrator(), opts)
+			return RunDeploy(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
 		},
 	}
 
@@ -62,11 +59,11 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	flags.SetAnnotation("compose-file", "version", []string{"1.25"})
 	flags.BoolVar(&opts.SendRegistryAuth, "with-registry-auth", false, "Send registry authentication details to Swarm agents")
 	flags.SetAnnotation("with-registry-auth", "swarm", nil)
-	flags.BoolVar(&opts.Prune, "prune", false, "Prune services that are no longer referenced")
+	flags.BoolVar(&opts.Prune, "prune", false, "Prune services that are no longer referenced") // TODO - deprecate
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
 	flags.SetAnnotation("prune", "swarm", nil)
 	flags.StringVar(&opts.ResolveImage, "resolve-image", swarm.ResolveImageAlways,
-		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
+		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`) // TODO - deprecate
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	flags.SetAnnotation("resolve-image", "swarm", nil)
 	kubernetes.AddNamespaceFlag(flags)
@@ -74,8 +71,58 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 }
 
 // RunDeploy performs a stack deploy against the specified orchestrator
-func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
-	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
+func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
+	if hasServerSideStacks(dockerCli) {
+		ctx := context.Background()
+		stackCreate, err := LoadComposefile(ctx, dockerCli, opts)
+		if err != nil {
+			return err
+		}
+		return RunServerSideDeploy(ctx, dockerCli, stackCreate, flags, commonOrchestrator, opts)
+	}
+	config, err := legacyloader.LoadComposefile(dockerCli, opts)
+	if err != nil {
+		return err
+	}
+	return runLegacyOrchestratedCommand(dockerCli, flags, commonOrchestrator,
 		func() error { return swarm.RunDeploy(dockerCli, opts, config) },
 		func(kli *kubernetes.KubeCli) error { return kubernetes.RunDeploy(kli, opts, config) })
+}
+
+func RunServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate *types.StackCreate, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
+	dclient := dockerCli.Client()
+	name := opts.Namespace
+
+	createOpts := types.StackCreateOptions{}
+	if opts.SendRegistryAuth {
+		encodedAuth, err := getAuthHeaderForStack(ctx, dockerCli, stackCreate)
+		if err != nil {
+			return err
+		}
+		createOpts.EncodedRegistryAuth = encodedAuth
+	}
+
+	// Check for existence first and update if found
+	stack, err := getStackByName(ctx, dockerCli, string(commonOrchestrator), name)
+	if err == nil {
+		fmt.Fprintf(dockerCli.Out(), "Updating stack %s\n", name)
+		updateOpts := types.StackUpdateOptions{
+			EncodedRegistryAuth: createOpts.EncodedRegistryAuth,
+		}
+		return dclient.StackUpdate(ctx, stack.ID, stack.Version, stackCreate.Spec, updateOpts)
+	}
+
+	stackCreate.Orchestrator = types.OrchestratorChoice(commonOrchestrator)
+	stackCreate.Metadata.Name = name
+
+	resp, err := dclient.StackCreate(ctx, *stackCreate, createOpts)
+	if err != nil {
+		return err
+	}
+
+	// TODO Wait for the stack to stabilise - mimic legacy/kubernetes/deploy.go
+
+	fmt.Fprintf(dockerCli.Out(), "Deployed Stack %s\n", resp.ID)
+
+	return nil
 }

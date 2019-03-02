@@ -495,6 +495,7 @@ func (e External) MarshalJSON() ([]byte, error) {
 
 // CredentialSpecConfig for credential spec on Windows
 type CredentialSpecConfig struct {
+	Config   string `yaml:",omitempty" json:"config,omitempty"`
 	File     string `yaml:",omitempty" json:"file,omitempty"`
 	Registry string `yaml:",omitempty" json:"registry,omitempty"`
 }

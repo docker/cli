@@ -1,11 +1,14 @@
 package stack
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	composetypes "github.com/docker/stacks/pkg/compose/types"
+	stacktypes "github.com/docker/stacks/pkg/types"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
@@ -167,4 +170,231 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-without-format.golden")
+}
+
+func TestStackServicesServerSideListFailure(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return nil, fmt.Errorf("failed to list stacks")
+		},
+	})
+	cmd := newServicesCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+	cmd.SetOutput(ioutil.Discard)
+	assert.ErrorContains(t, cmd.Execute(), `failed to list stacks`)
+}
+
+func TestStackServicesServerSideMissingResources(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newServicesCommand(cli, &orchestrator)
+	cmd.SetArgs([]string{"stackname"})
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.ErrBuffer().String(), `no services found in stack`))
+}
+
+func TestStackServicesServerSideMissingStatus(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+				Services: composetypes.Services{
+					composetypes.ServiceConfig{
+						Name: "svc1",
+					},
+				},
+			},
+			StackResources: stacktypes.StackResources{
+				Services: map[string]stacktypes.StackResource{
+					"svc1": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id",
+					},
+				},
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newServicesCommand(cli, &orchestrator)
+	cmd.SetOutput(ioutil.Discard)
+	cmd.SetArgs([]string{"stackname"})
+	assert.ErrorContains(t, cmd.Execute(), `unable to find stack status for service`)
+}
+
+func TestStackServicesServerSideSuccess(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+				Services: composetypes.Services{
+					composetypes.ServiceConfig{
+						Name: "svc1",
+					},
+				},
+			},
+			StackResources: stacktypes.StackResources{
+				Services: map[string]stacktypes.StackResource{
+					"svc1": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id",
+					},
+				},
+			},
+			Status: stacktypes.StackStatus{
+				ServicesStatus: map[string]stacktypes.ServiceStatus{
+					"svc1": stacktypes.ServiceStatus{
+						DesiredTasks: 1,
+						RunningTasks: 1,
+					},
+				},
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newServicesCommand(cli, &orchestrator)
+	cmd.SetOutput(ioutil.Discard)
+	cmd.SetArgs([]string{"stackname"})
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-server-side.golden")
+}
+
+func TestStackServicesServerSideFilters(t *testing.T) {
+	stacks := []stacktypes.Stack{
+		stacktypes.Stack{
+			Metadata: stacktypes.Metadata{
+				Name: "stackname",
+			},
+			Orchestrator: "swarm",
+			Spec: stacktypes.StackSpec{
+				Collection: "collection",
+				Services: composetypes.Services{
+					composetypes.ServiceConfig{
+						Name: "svc1",
+					},
+					composetypes.ServiceConfig{
+						Name: "svc2",
+					},
+					composetypes.ServiceConfig{
+						Name: "svc3",
+						Labels: map[string]string{
+							"foo": "bar",
+						},
+					},
+					composetypes.ServiceConfig{
+						Name: "svc4",
+						Deploy: composetypes.DeployConfig{
+							Mode: "global",
+						},
+					},
+					composetypes.ServiceConfig{
+						Name: "svc5",
+					},
+				},
+			},
+			StackResources: stacktypes.StackResources{
+				Services: map[string]stacktypes.StackResource{
+					"svc1": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id1",
+					},
+					"svc2": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id2",
+					},
+					"svc3": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id3",
+					},
+					"svc4": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id4",
+					},
+					"svc5": stacktypes.StackResource{
+						Orchestrator: "swarm",
+						Kind:         "service",
+						ID:           "id5",
+					},
+				},
+			},
+			Status: stacktypes.StackStatus{
+				ServicesStatus: map[string]stacktypes.ServiceStatus{
+					"svc1": stacktypes.ServiceStatus{
+						DesiredTasks: 1,
+						RunningTasks: 1,
+					},
+					"svc2": stacktypes.ServiceStatus{
+						DesiredTasks: 2,
+						RunningTasks: 2,
+					},
+					"svc3": stacktypes.ServiceStatus{
+						DesiredTasks: 3,
+						RunningTasks: 3,
+					},
+					"svc4": stacktypes.ServiceStatus{
+						DesiredTasks: 4,
+						RunningTasks: 4,
+					},
+					"svc5": stacktypes.ServiceStatus{
+						DesiredTasks: 5,
+						RunningTasks: 5,
+					},
+				},
+			},
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{
+		version: clientSideStackVersion,
+		stackListFunc: func(options stacktypes.StackListOptions) ([]stacktypes.Stack, error) {
+			return stacks, nil
+		},
+	})
+	cmd := newServicesCommand(cli, &orchestrator)
+	cmd.SetOutput(ioutil.Discard)
+	cmd.SetArgs([]string{"stackname"})
+	cmd.Flags().Set("filter", "name=svc1")
+	cmd.Flags().Set("filter", "id=id2")
+	cmd.Flags().Set("filter", "label=foo=bar")
+	cmd.Flags().Set("filter", "mode=global")
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "stack-services-server-side-filtered.golden")
 }

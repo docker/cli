@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/cli/legacy/compose/convert"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 )

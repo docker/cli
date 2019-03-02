@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/cli/legacy/compose/convert"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
@@ -71,14 +71,14 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	}{
 		// Image not changed
 		{
-			image:                 "foobar:1.2.3",
+			image: "foobar:1.2.3",
 			expectedQueryRegistry: false,
 			expectedImage:         "foobar:1.2.3@sha256:deadbeef",
 			expectedForceUpdate:   123,
 		},
 		// Image changed
 		{
-			image:                 "foobar:1.2.4",
+			image: "foobar:1.2.4",
 			expectedQueryRegistry: true,
 			expectedImage:         "foobar:1.2.4",
 			expectedForceUpdate:   123,

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/docker/cli/cli/command/stack/options"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/cli/legacy/compose/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/morikuni/aec"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"

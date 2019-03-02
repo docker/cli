@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
@@ -19,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/go-connections/nat"
+	"github.com/docker/stacks/pkg/compose/loader"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -545,7 +545,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		CPUQuota:             copts.cpuQuota,
 		CPURealtimePeriod:    copts.cpuRealtimePeriod,
 		CPURealtimeRuntime:   copts.cpuRealtimeRuntime,
-		PidsLimit:            copts.pidsLimit,
+		PidsLimit:            &copts.pidsLimit,
 		BlkioWeight:          copts.blkioWeight,
 		BlkioWeightDevice:    copts.blkioWeightDevice.GetList(),
 		BlkioDeviceReadBps:   copts.deviceReadBps.GetList(),

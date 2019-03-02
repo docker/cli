@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/cli/legacy/compose/types"
 	"gotest.tools/golden"
 )
 

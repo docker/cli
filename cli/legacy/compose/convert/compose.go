@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/cli/legacy/compose/types"
 	"github.com/docker/docker/api/types"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"

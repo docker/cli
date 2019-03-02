@@ -6,7 +6,8 @@ import (
 	"unicode"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
+	"github.com/docker/cli/cli/command/stack/legacy/kubernetes"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/pflag"
 )
 
@@ -34,7 +35,7 @@ func quotesOrWhitespace(r rune) bool {
 	return unicode.IsSpace(r) || r == '"' || r == '\''
 }
 
-func runOrchestratedCommand(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, swarmCmd func() error, kubernetesCmd func(*kubernetes.KubeCli) error) error {
+func runLegacyOrchestratedCommand(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, swarmCmd func() error, kubernetesCmd func(*kubernetes.KubeCli) error) error {
 	switch {
 	case commonOrchestrator.HasAll():
 		return errUnsupportedAllOrchestrator
@@ -47,4 +48,12 @@ func runOrchestratedCommand(dockerCli command.Cli, flags *pflag.FlagSet, commonO
 	default:
 		return swarmCmd()
 	}
+}
+
+// XXX temporary hack...
+//const clientSideStackVersion "1.40"
+const clientSideStackVersion = "1.38"
+
+func hasServerSideStacks(dockerCli command.Cli) bool {
+	return versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), clientSideStackVersion)
 }
