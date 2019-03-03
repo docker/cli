@@ -1,6 +1,6 @@
 // +build !linux
 
-package connhelper
+package commandconn
 
 import (
 	"os/exec"

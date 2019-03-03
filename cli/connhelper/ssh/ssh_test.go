@@ -7,7 +7,7 @@ import (
 	is "gotest.tools/assert/cmp"
 )
 
-func TestParseSSHURL(t *testing.T) {
+func TestParseURL(t *testing.T) {
 	testCases := []struct {
 		url           string
 		expectedArgs  []string
@@ -53,7 +53,7 @@ func TestParseSSHURL(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		sp, err := parseSSHURL(tc.url)
+		sp, err := ParseURL(tc.url)
 		if tc.expectedError == "" {
 			assert.NilError(t, err)
 			assert.Check(t, is.DeepEqual(tc.expectedArgs, sp.Args()))
