@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 
 	"github.com/docker/cli/cli"
@@ -74,7 +75,11 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 		}
 		// flags must be the original top-level command flags, not cmd.Flags()
 		options.opts.Common.SetDefaultOptions(options.flags)
-		err = options.dockerCli.Initialize(options.opts, withPluginClientConn(options.name))
+		var initopts []command.InitializeOpt
+		if runtime.GOOS != "windows" {
+			initopts = append(initopts, withPluginClientConn(options.name))
+		}
+		err = options.dockerCli.Initialize(options.opts, initopts...)
 	})
 	return err
 }

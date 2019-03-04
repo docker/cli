@@ -1,6 +1,8 @@
 package system
 
 import (
+	"runtime"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
@@ -19,8 +21,12 @@ func NewSystemCommand(dockerCli command.Cli) *cobra.Command {
 		NewInfoCommand(dockerCli),
 		newDiskUsageCommand(dockerCli),
 		newPruneCommand(dockerCli),
-		newDialStdioCommand(dockerCli),
 	)
+	if runtime.GOOS != "windows" {
+		cmd.AddCommand(
+			newDialStdioCommand(dockerCli),
+		)
+	}
 
 	return cmd
 }
