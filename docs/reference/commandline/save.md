@@ -60,6 +60,7 @@ You can use gzip to save the image file and make the backup smaller.
 ```bash
 docker save myimage:latest | gzip > myimage_latest.tar.gz
 ```
+
 ### Cherry-pick particular tags
 
 You can even cherry-pick particular tags of an image repository.
