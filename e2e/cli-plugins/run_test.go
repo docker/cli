@@ -194,3 +194,16 @@ func TestCliInitialized(t *testing.T) {
 	assert.Assert(t, res.Stdout() != "")
 	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
+
+// TestPluginErrorCode tests when the plugin return with a given exit status.
+// We want to verify that the exit status does not get output to stdout and also that we return the exit code.
+func TestPluginErrorCode(t *testing.T) {
+	run, _, cleanup := prepare(t)
+	defer cleanup()
+	res := icmd.RunCmd(run("helloworld", "exitstatus2"))
+	res.Assert(t, icmd.Expected{
+		ExitCode: 2,
+		Err:      "Exiting with error status 2",
+	})
+	assert.Assert(t, is.Equal(res.Stdout(), ""))
+}

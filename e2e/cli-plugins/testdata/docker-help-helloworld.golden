@@ -8,6 +8,7 @@ Options:
 
 Commands:
   apiversion  Print the API version of the server
+  exitstatus2 Exit with status 2
   goodbye     Say Goodbye instead of Hello
 
 Run 'docker helloworld COMMAND --help' for more information on a command.
