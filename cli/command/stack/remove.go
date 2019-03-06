@@ -39,14 +39,14 @@ func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 // RunRemove performs a stack remove against the specified orchestrator
 func RunRemove(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Remove) error {
 	if hasServerSideStacks(dockerCli) {
-		return RunServerSideRemove(dockerCli, flags, commonOrchestrator, opts)
+		return runServerSideRemove(dockerCli, commonOrchestrator, opts)
 	}
 	return runLegacyOrchestratedCommand(dockerCli, flags, commonOrchestrator,
 		func() error { return swarm.RunRemove(dockerCli, opts) },
 		func(kli *kubernetes.KubeCli) error { return kubernetes.RunRemove(kli, opts) })
 }
 
-func RunServerSideRemove(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Remove) error {
+func runServerSideRemove(dockerCli command.Cli, commonOrchestrator command.Orchestrator, opts options.Remove) error {
 	ctx := context.Background()
 	dclient := dockerCli.Client()
 	stacks := []types.Stack{}

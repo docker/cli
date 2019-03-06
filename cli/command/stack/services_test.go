@@ -187,7 +187,7 @@ func TestStackServicesServerSideListFailure(t *testing.T) {
 
 func TestStackServicesServerSideMissingResources(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},
@@ -211,7 +211,7 @@ func TestStackServicesServerSideMissingResources(t *testing.T) {
 
 func TestStackServicesServerSideMissingStatus(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},
@@ -226,7 +226,7 @@ func TestStackServicesServerSideMissingStatus(t *testing.T) {
 			},
 			StackResources: stacktypes.StackResources{
 				Services: map[string]stacktypes.StackResource{
-					"svc1": stacktypes.StackResource{
+					"svc1": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id",
@@ -249,7 +249,7 @@ func TestStackServicesServerSideMissingStatus(t *testing.T) {
 
 func TestStackServicesServerSideSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},
@@ -264,7 +264,7 @@ func TestStackServicesServerSideSuccess(t *testing.T) {
 			},
 			StackResources: stacktypes.StackResources{
 				Services: map[string]stacktypes.StackResource{
-					"svc1": stacktypes.StackResource{
+					"svc1": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id",
@@ -273,7 +273,7 @@ func TestStackServicesServerSideSuccess(t *testing.T) {
 			},
 			Status: stacktypes.StackStatus{
 				ServicesStatus: map[string]stacktypes.ServiceStatus{
-					"svc1": stacktypes.ServiceStatus{
+					"svc1": {
 						DesiredTasks: 1,
 						RunningTasks: 1,
 					},
@@ -296,7 +296,7 @@ func TestStackServicesServerSideSuccess(t *testing.T) {
 
 func TestStackServicesServerSideFilters(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},
@@ -329,27 +329,27 @@ func TestStackServicesServerSideFilters(t *testing.T) {
 			},
 			StackResources: stacktypes.StackResources{
 				Services: map[string]stacktypes.StackResource{
-					"svc1": stacktypes.StackResource{
+					"svc1": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id1",
 					},
-					"svc2": stacktypes.StackResource{
+					"svc2": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id2",
 					},
-					"svc3": stacktypes.StackResource{
+					"svc3": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id3",
 					},
-					"svc4": stacktypes.StackResource{
+					"svc4": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id4",
 					},
-					"svc5": stacktypes.StackResource{
+					"svc5": {
 						Orchestrator: "swarm",
 						Kind:         "service",
 						ID:           "id5",
@@ -358,23 +358,23 @@ func TestStackServicesServerSideFilters(t *testing.T) {
 			},
 			Status: stacktypes.StackStatus{
 				ServicesStatus: map[string]stacktypes.ServiceStatus{
-					"svc1": stacktypes.ServiceStatus{
+					"svc1": {
 						DesiredTasks: 1,
 						RunningTasks: 1,
 					},
-					"svc2": stacktypes.ServiceStatus{
+					"svc2": {
 						DesiredTasks: 2,
 						RunningTasks: 2,
 					},
-					"svc3": stacktypes.ServiceStatus{
+					"svc3": {
 						DesiredTasks: 3,
 						RunningTasks: 3,
 					},
-					"svc4": stacktypes.ServiceStatus{
+					"svc4": {
 						DesiredTasks: 4,
 						RunningTasks: 4,
 					},
-					"svc5": stacktypes.ServiceStatus{
+					"svc5": {
 						DesiredTasks: 5,
 						RunningTasks: 5,
 					},

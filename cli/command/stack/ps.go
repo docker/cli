@@ -46,14 +46,14 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 // RunPs performs a stack ps against the specified orchestrator
 func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
 	if hasServerSideStacks(dockerCli) {
-		return RunServerSidePs(dockerCli, flags, commonOrchestrator, opts)
+		return runServerSidePs(dockerCli, commonOrchestrator, opts)
 	}
 	return runLegacyOrchestratedCommand(dockerCli, flags, commonOrchestrator,
 		func() error { return swarm.RunPS(dockerCli, opts) },
 		func(kli *kubernetes.KubeCli) error { return kubernetes.RunPS(kli, opts) })
 }
 
-func RunServerSidePs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
+func runServerSidePs(dockerCli command.Cli, commonOrchestrator command.Orchestrator, opts options.PS) error {
 	ctx := context.Background()
 	dclient := dockerCli.Client()
 	// TODO - pending https://github.com/docker/stacks/pull/38

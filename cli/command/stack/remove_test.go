@@ -184,7 +184,7 @@ func TestStackRemoveServerSideListFailure(t *testing.T) {
 
 func TestStackRemoveServerSideListSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},

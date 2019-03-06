@@ -13,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/stacks/pkg/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"vbom.ml/util/sortorder"
 )
 
@@ -43,7 +42,7 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator) error {
 	stacks := []*formatter.Stack{}
 	if hasServerSideStacks(dockerCli) {
-		ss, err := GetStacks(dockerCli, cmd.Flags(), orchestrator, opts)
+		ss, err := getStacks(dockerCli, orchestrator, opts)
 		if err != nil {
 			return err
 		}
@@ -91,7 +90,7 @@ func format(dockerCli command.Cli, opts options.List, orchestrator command.Orche
 	return formatter.StackWrite(stackCtx, stacks)
 }
 
-func GetStacks(dockerCli command.Cli, flags *pflag.FlagSet, orchestrator command.Orchestrator, opts options.List) ([]types.Stack, error) {
+func getStacks(dockerCli command.Cli, orchestrator command.Orchestrator, opts options.List) ([]types.Stack, error) {
 	ctx := context.Background()
 	dclient := dockerCli.Client()
 	filters := filters.NewArgs()

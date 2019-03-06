@@ -48,14 +48,14 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 // RunServices performs a stack services against the specified orchestrator
 func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) error {
 	if hasServerSideStacks(dockerCli) {
-		return RunServerSideServices(dockerCli, flags, commonOrchestrator, opts)
+		return runServerSideServices(dockerCli, commonOrchestrator, opts)
 	}
 	return runLegacyOrchestratedCommand(dockerCli, flags, commonOrchestrator,
 		func() error { return swarm.RunServices(dockerCli, opts) },
 		func(kli *kubernetes.KubeCli) error { return kubernetes.RunServices(kli, opts) })
 }
 
-func RunServerSideServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) error {
+func runServerSideServices(dockerCli command.Cli, commonOrchestrator command.Orchestrator, opts options.Services) error {
 	ctx := context.Background()
 
 	stack, err := getStackByName(ctx, dockerCli, string(commonOrchestrator), opts.Namespace)

@@ -78,7 +78,7 @@ func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator c
 		if err != nil {
 			return err
 		}
-		return RunServerSideDeploy(ctx, dockerCli, stackCreate, flags, commonOrchestrator, opts)
+		return runServerSideDeploy(ctx, dockerCli, stackCreate, commonOrchestrator, opts)
 	}
 	config, err := legacyloader.LoadComposefile(dockerCli, opts)
 	if err != nil {
@@ -89,17 +89,17 @@ func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator c
 		func(kli *kubernetes.KubeCli) error { return kubernetes.RunDeploy(kli, opts, config) })
 }
 
-func RunServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate *types.StackCreate, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
+func runServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate *types.StackCreate, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
 	dclient := dockerCli.Client()
 	name := opts.Namespace
 
-	createOpts := types.StackCreateOptions{}
+	var encodedAuth string
+	var err error
 	if opts.SendRegistryAuth {
-		encodedAuth, err := getAuthHeaderForStack(ctx, dockerCli, stackCreate)
+		encodedAuth, err = getAuthHeaderForStack(ctx, dockerCli, stackCreate)
 		if err != nil {
 			return err
 		}
-		createOpts.EncodedRegistryAuth = encodedAuth
 	}
 
 	// Check for existence first and update if found
@@ -107,7 +107,7 @@ func RunServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate
 	if err == nil {
 		fmt.Fprintf(dockerCli.Out(), "Updating stack %s\n", name)
 		updateOpts := types.StackUpdateOptions{
-			EncodedRegistryAuth: createOpts.EncodedRegistryAuth,
+			EncodedRegistryAuth: encodedAuth,
 		}
 		return dclient.StackUpdate(ctx, stack.ID, stack.Version, stackCreate.Spec, updateOpts)
 	}
@@ -115,6 +115,9 @@ func RunServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate
 	stackCreate.Orchestrator = types.OrchestratorChoice(commonOrchestrator)
 	stackCreate.Metadata.Name = name
 
+	createOpts := types.StackCreateOptions{
+		EncodedRegistryAuth: encodedAuth,
+	}
 	resp, err := dclient.StackCreate(ctx, *stackCreate, createOpts)
 	if err != nil {
 		return err

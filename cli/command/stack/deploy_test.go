@@ -66,7 +66,7 @@ services:
 
 func TestDeployUpdateExistingOutOfSequence(t *testing.T) {
 	stacks := []stacktypes.Stack{
-		stacktypes.Stack{
+		{
 			Metadata: stacktypes.Metadata{
 				Name: "stackname",
 			},
