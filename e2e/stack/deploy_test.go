@@ -14,7 +14,6 @@ import (
 )
 
 func TestDeployWithNamedResources(t *testing.T) {
-	t.Skip("FIXME(dhiltgen): not currently ported over during transition to server-side stacks")
 	t.Run("Swarm", func(t *testing.T) {
 		testDeployWithNamedResources(t, "swarm")
 	})

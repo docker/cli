@@ -15,7 +15,6 @@ import (
 var pollSettings = environment.DefaultPollSettings
 
 func TestRemove(t *testing.T) {
-	t.Skip("FIXME(dhiltgen): not currently ported over during transition to server-side stacks")
 	t.Run("Swarm", func(t *testing.T) {
 		testRemove(t, "swarm")
 	})

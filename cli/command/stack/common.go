@@ -50,9 +50,7 @@ func runLegacyOrchestratedCommand(dockerCli command.Cli, flags *pflag.FlagSet, c
 	}
 }
 
-// XXX temporary hack...
-//const clientSideStackVersion "1.40"
-const clientSideStackVersion = "1.38"
+const clientSideStackVersion = "1.40"
 
 func hasServerSideStacks(dockerCli command.Cli) bool {
 	return versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), clientSideStackVersion)
