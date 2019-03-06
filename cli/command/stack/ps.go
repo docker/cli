@@ -56,11 +56,15 @@ func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator comma
 func RunServerSidePs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
 	ctx := context.Background()
 	dclient := dockerCli.Client()
-	stack, err := getStackByName(ctx, dockerCli, string(commonOrchestrator), opts.Namespace)
+	// TODO - pending https://github.com/docker/stacks/pull/38
+	// stack, err := getStackByName(ctx, dockerCli, string(commonOrchestrator), opts.Namespace)
+	_, err := getStackByName(ctx, dockerCli, string(commonOrchestrator), opts.Namespace)
 	if err != nil {
 		return err
 	}
-	tasks, err := dclient.StackTaskList(ctx, stack.ID)
+	// TODO - pending https://github.com/docker/stacks/pull/38
+	//tasks, err := dclient.StackTaskList(ctx, stack.ID)
+	tasks := types.StackTaskList{}
 	if err != nil {
 		return err
 	}

@@ -200,6 +200,8 @@ func TestStackPsServerSideListFailure(t *testing.T) {
 
 }
 
+// TODO - pending https://github.com/docker/stacks/pull/38
+/*
 func TestStackPsServerSideListSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		stacktypes.Stack{
@@ -241,3 +243,4 @@ func TestStackPsServerSideListSuccess(t *testing.T) {
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-server-side.golden")
 
 }
+*/
