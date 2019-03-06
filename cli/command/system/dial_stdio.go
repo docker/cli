@@ -34,10 +34,17 @@ func runDialStdio(dockerCli command.Cli) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to open the raw stream connection")
 	}
-	connHalfCloser, ok := conn.(halfCloser)
-	if !ok {
+
+	var connHalfCloser halfCloser
+	switch t := conn.(type) {
+	case halfCloser:
+		connHalfCloser = t
+	case halfReadWriteCloser:
+		connHalfCloser = &nopCloseReader{t}
+	default:
 		return errors.New("the raw stream connection does not implement halfCloser")
 	}
+
 	stdin2conn := make(chan error)
 	conn2stdout := make(chan error)
 	go func() {
@@ -88,6 +95,19 @@ type halfWriteCloser interface {
 type halfCloser interface {
 	halfReadCloser
 	halfWriteCloser
+}
+
+type halfReadWriteCloser interface {
+	io.Reader
+	halfWriteCloser
+}
+
+type nopCloseReader struct {
+	halfReadWriteCloser
+}
+
+func (x *nopCloseReader) CloseRead() error {
+	return nil
 }
 
 type halfReadCloserWrapper struct {
