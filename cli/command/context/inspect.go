@@ -40,9 +40,6 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 
 func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	getRefFunc := func(ref string) (interface{}, []byte, error) {
-		if ref == "default" {
-			return nil, nil, errors.New(`context "default" cannot be inspected`)
-		}
 		c, err := dockerCli.ContextStore().GetContextMetadata(ref)
 		if err != nil {
 			return nil, nil, err

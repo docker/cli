@@ -48,6 +48,10 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
+		if err := cmd.Root().PersistentPreRunE(c, args); err != nil {
+			fmt.Fprintln(dockerCli.Err(), err)
+			return
+		}
 		if err := cmd.PersistentPreRunE(c, args); err != nil {
 			fmt.Fprintln(dockerCli.Err(), err)
 			return

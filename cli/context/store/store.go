@@ -12,7 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/opencontainers/go-digest"
+	"github.com/docker/docker/errdefs"
+	digest "github.com/opencontainers/go-digest"
 )
 
 // Store provides a context store for easily remembering endpoints configuration
@@ -299,6 +300,11 @@ func (e *contextDoesNotExistError) setContext(name string) {
 // NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
 func (e *contextDoesNotExistError) NotFound() {}
 
+type tlsDataDoesNotExist interface {
+	errdefs.ErrNotFound
+	IsTLSDataDoesNotExist()
+}
+
 type tlsDataDoesNotExistError struct {
 	context, endpoint, file string
 }
@@ -314,6 +320,9 @@ func (e *tlsDataDoesNotExistError) setContext(name string) {
 // NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
 func (e *tlsDataDoesNotExistError) NotFound() {}
 
+// IsTLSDataDoesNotExist satisfies tlsDataDoesNotExist
+func (e *tlsDataDoesNotExistError) IsTLSDataDoesNotExist() {}
+
 // IsErrContextDoesNotExist checks if the given error is a "context does not exist" condition
 func IsErrContextDoesNotExist(err error) bool {
 	_, ok := err.(*contextDoesNotExistError)
@@ -322,7 +331,7 @@ func IsErrContextDoesNotExist(err error) bool {
 
 // IsErrTLSDataDoesNotExist checks if the given error is a "context does not exist" condition
 func IsErrTLSDataDoesNotExist(err error) bool {
-	_, ok := err.(*tlsDataDoesNotExistError)
+	_, ok := err.(tlsDataDoesNotExist)
 	return ok
 }
 

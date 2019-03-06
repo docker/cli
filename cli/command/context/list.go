@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	kubecontext "github.com/docker/cli/cli/context/kubernetes"
-	"github.com/docker/cli/kubernetes"
 	"github.com/spf13/cobra"
 	"vbom.ml/util/sortorder"
 )
@@ -61,6 +60,9 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		if kubernetesEndpoint != nil {
 			kubEndpointText = fmt.Sprintf("%s (%s)", kubernetesEndpoint.Host, kubernetesEndpoint.DefaultNamespace)
 		}
+		if rawMeta.Name == command.DefaultContextName {
+			meta.Description = "Current DOCKER_HOST based configuration"
+		}
 		desc := formatter.ClientContext{
 			Name:               rawMeta.Name,
 			Current:            rawMeta.Name == curContext,
@@ -70,29 +72,6 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			KubernetesEndpoint: kubEndpointText,
 		}
 		contexts = append(contexts, &desc)
-	}
-	if !opts.quiet {
-		desc := &formatter.ClientContext{
-			Name:        "default",
-			Description: "Current DOCKER_HOST based configuration",
-		}
-		if dockerCli.CurrentContext() == "" {
-			orchestrator, _ := dockerCli.StackOrchestrator("")
-			kubEndpointText := ""
-			kubeconfig := kubernetes.NewKubernetesConfig("")
-			if cfg, err := kubeconfig.ClientConfig(); err == nil {
-				ns, _, _ := kubeconfig.Namespace()
-				if ns == "" {
-					ns = "default"
-				}
-				kubEndpointText = fmt.Sprintf("%s (%s)", cfg.Host, ns)
-			}
-			desc.Current = true
-			desc.StackOrchestrator = string(orchestrator)
-			desc.DockerEndpoint = dockerCli.DockerEndpoint().Host
-			desc.KubernetesEndpoint = kubEndpointText
-		}
-		contexts = append(contexts, desc)
 	}
 	sort.Slice(contexts, func(i, j int) bool {
 		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
