@@ -51,10 +51,6 @@ func main() {
 		cmd := &cobra.Command{
 			Use:   "helloworld",
 			Short: "A basic Hello World plugin for tests",
-			// This is redundant but included to exercise
-			// the path where a plugin overrides this
-			// hook.
-			PersistentPreRunE: plugin.PersistentPreRunE,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if debug {
 					fmt.Fprintf(dockerCli.Err(), "Plugin debug mode enabled")

@@ -3,8 +3,6 @@ package cliplugins
 import (
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
 	"gotest.tools/icmd"
 )
 
@@ -73,28 +71,18 @@ func TestUnknownGlobal(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	t.Run("no-val", func(t *testing.T) {
-		res := icmd.RunCmd(run("--unknown", "helloworld"))
-		res.Assert(t, icmd.Expected{
-			ExitCode: 125,
+	for name, args := range map[string][]string{
+		"no-val":       {"--unknown", "helloworld"},
+		"separate-val": {"--unknown", "foo", "helloworld"},
+		"joined-val":   {"--unknown=foo", "helloworld"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			res := icmd.RunCmd(run(args...))
+			res.Assert(t, icmd.Expected{
+				ExitCode: 125,
+				Out:      icmd.None,
+				Err:      "unknown flag: --unknown",
+			})
 		})
-		assert.Assert(t, is.Equal(res.Stdout(), ""))
-		assert.Assert(t, is.Contains(res.Stderr(), "unknown flag: --unknown"))
-	})
-	t.Run("separate-val", func(t *testing.T) {
-		res := icmd.RunCmd(run("--unknown", "foo", "helloworld"))
-		res.Assert(t, icmd.Expected{
-			ExitCode: 125,
-		})
-		assert.Assert(t, is.Equal(res.Stdout(), ""))
-		assert.Assert(t, is.Contains(res.Stderr(), "unknown flag: --unknown"))
-	})
-	t.Run("joined-val", func(t *testing.T) {
-		res := icmd.RunCmd(run("--unknown=foo", "helloworld"))
-		res.Assert(t, icmd.Expected{
-			ExitCode: 125,
-		})
-		assert.Assert(t, is.Equal(res.Stdout(), ""))
-		assert.Assert(t, is.Contains(res.Stderr(), "unknown flag: --unknown"))
-	})
+	}
 }

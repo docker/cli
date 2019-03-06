@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
 		flags   *pflag.FlagSet
@@ -34,51 +34,14 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 		SilenceUsage:     true,
 		SilenceErrors:    true,
 		TraverseChildren: true,
-		FParseErrWhitelist: cobra.FParseErrWhitelist{
-			// UnknownFlags ignores any unknown
-			// --arguments on the top-level docker command
-			// only. This is necessary to allow passing
-			// --arguments to plugins otherwise
-			// e.g. `docker plugin --foo` is caught here
-			// in the monolithic CLI and `foo` is reported
-			// as an unknown argument.
-			UnknownFlags: true,
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
-			plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], cmd)
-			if pluginmanager.IsNotFound(err) {
-				return fmt.Errorf(
-					"docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
-			}
-			if err != nil {
-				return err
-			}
+			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 
-			err = plugincmd.Run()
-			if err != nil {
-				statusCode := 1
-				exitErr, ok := err.(*exec.ExitError)
-				if !ok {
-					return err
-				}
-				if ws, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-					statusCode = ws.ExitStatus()
-				}
-				return cli.StatusError{
-					StatusCode: statusCode,
-				}
-			}
-			return nil
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// flags must be the top-level command flags, not cmd.Flags()
-			opts.Common.SetDefaultOptions(flags)
-			if err := dockerCli.Initialize(opts); err != nil {
-				return err
-			}
 			return isSupported(cmd, dockerCli)
 		},
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
@@ -87,30 +50,28 @@ func newDockerCommand(dockerCli *command.DockerCli) *cobra.Command {
 	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
 
-	setFlagErrorFunc(dockerCli, cmd, flags, opts)
+	setFlagErrorFunc(dockerCli, cmd)
 
-	setupHelpCommand(dockerCli, cmd, helpCmd, flags, opts)
-	setHelpFunc(dockerCli, cmd, flags, opts)
+	setupHelpCommand(dockerCli, cmd, helpCmd)
+	setHelpFunc(dockerCli, cmd)
 
 	cmd.SetOutput(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
 	cli.DisableFlagsInUseLine(cmd)
-	setValidateArgs(dockerCli, cmd, flags, opts)
+	setValidateArgs(dockerCli, cmd)
 
-	return cmd
+	// flags must be the top-level command flags, not cmd.Flags()
+	return cli.NewTopLevelCommand(cmd, dockerCli, opts, flags)
 }
 
-func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command) {
 	// When invoking `docker stack --nonsense`, we need to make sure FlagErrorFunc return appropriate
 	// output if the feature is not supported.
 	// As above cli.SetupRootCommand(cmd) have already setup the FlagErrorFunc, we will add a pre-check before the FlagErrorFunc
 	// is called.
 	flagErrorFunc := cmd.FlagErrorFunc()
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
-		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
-			return err
-		}
 		if err := isSupported(cmd, dockerCli); err != nil {
 			return err
 		}
@@ -118,17 +79,12 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *p
 	})
 }
 
-func setupHelpCommand(dockerCli *command.DockerCli, rootCmd, helpCmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 	origRun := helpCmd.Run
 	origRunE := helpCmd.RunE
 
 	helpCmd.Run = nil
 	helpCmd.RunE = func(c *cobra.Command, args []string) error {
-		// No Persistent* hooks are called for help, so we must initialize here.
-		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
-			return err
-		}
-
 		if len(args) > 0 {
 			helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
 			if err == nil {
@@ -163,14 +119,9 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 	return helpcmd.Run()
 }
 
-func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
-			ccmd.Println(err)
-			return
-		}
-
 		// Add a stub entry for every plugin so they are
 		// included in the help output and so that
 		// `tryRunPluginHelp` can find them or if we fall
@@ -205,7 +156,7 @@ func setHelpFunc(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.
 	})
 }
 
-func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pflag.FlagSet, opts *cliflags.ClientOptions) {
+func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command) {
 	// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
 	// As a result, here we replace the existing Args validation func to a wrapper,
 	// where the wrapper will check to see if the feature is supported or not.
@@ -223,9 +174,6 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 
 		cmdArgs := ccmd.Args
 		ccmd.Args = func(cmd *cobra.Command, args []string) error {
-			if err := initializeDockerCli(dockerCli, flags, opts); err != nil {
-				return err
-			}
 			if err := isSupported(cmd, dockerCli); err != nil {
 				return err
 			}
@@ -234,14 +182,53 @@ func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command, flags *pf
 	})
 }
 
-func initializeDockerCli(dockerCli *command.DockerCli, flags *pflag.FlagSet, opts *cliflags.ClientOptions) error {
-	if dockerCli.Client() != nil {
-		return nil
+func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) error {
+	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
+	if err != nil {
+		return err
 	}
-	// when using --help, PersistentPreRun is not called, so initialization is needed.
-	// flags must be the top-level command flags, not cmd.Flags()
-	opts.Common.SetDefaultOptions(flags)
-	return dockerCli.Initialize(opts)
+
+	if err := plugincmd.Run(); err != nil {
+		statusCode := 1
+		exitErr, ok := err.(*exec.ExitError)
+		if !ok {
+			return err
+		}
+		if ws, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+			statusCode = ws.ExitStatus()
+		}
+		return cli.StatusError{
+			StatusCode: statusCode,
+		}
+	}
+	return nil
+}
+
+func runDocker(dockerCli *command.DockerCli) error {
+	tcmd := newDockerCommand(dockerCli)
+
+	cmd, args, err := tcmd.HandleGlobalFlags()
+	if err != nil {
+		return err
+	}
+
+	if err := tcmd.Initialize(); err != nil {
+		return err
+	}
+
+	if len(args) > 0 {
+		if _, _, err := cmd.Find(args); err != nil {
+			err := tryPluginRun(dockerCli, cmd, args[0])
+			if !pluginmanager.IsNotFound(err) {
+				return err
+			}
+			// For plugin not found we fall through to
+			// cmd.Execute() which deals with reporting
+			// "command not found" in a consistent way.
+		}
+	}
+
+	return cmd.Execute()
 }
 
 func main() {
@@ -252,9 +239,7 @@ func main() {
 	}
 	logrus.SetOutput(dockerCli.Err())
 
-	cmd := newDockerCommand(dockerCli)
-
-	if err := cmd.Execute(); err != nil {
+	if err := runDocker(dockerCli); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
