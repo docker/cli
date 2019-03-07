@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -11,10 +12,11 @@ import (
 	"github.com/docker/cli/cli/command/stack/legacy/kubernetes"
 	"github.com/docker/cli/cli/command/stack/legacy/swarm"
 	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/docker/cli/cli/legacy/compose/convert"
+	legacycomposetypes "github.com/docker/cli/cli/legacy/compose/types"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/filters"
 	swarmtypes "github.com/docker/docker/api/types/swarm"
-	"github.com/docker/stacks/pkg/compose/convert"
 	composetypes "github.com/docker/stacks/pkg/compose/types"
 	"github.com/docker/stacks/pkg/types"
 	"github.com/pkg/errors"
@@ -69,7 +71,7 @@ func runServerSideServices(dockerCli command.Cli, commonOrchestrator command.Orc
 		return nil
 	}
 
-	services, info, err := convertToServices(stack, opts.Filter.Value())
+	services, info, err := convertToServices(dockerCli.Client().ClientVersion(), stack, opts.Filter.Value())
 	if err != nil {
 		return err
 	}
@@ -93,7 +95,7 @@ func runServerSideServices(dockerCli command.Cli, commonOrchestrator command.Orc
 
 // convertToServices will take a stack and map it to the swarm types so we
 // can leverage the service formatter logic
-func convertToServices(stack types.Stack, filter filters.Args) ([]swarmtypes.Service, map[string]service.ListInfo, error) {
+func convertToServices(apiVersion string, stack types.Stack, filter filters.Args) ([]swarmtypes.Service, map[string]service.ListInfo, error) {
 	result := []swarmtypes.Service{}
 	infos := make(map[string]service.ListInfo, len(stack.Spec.Services))
 
@@ -110,27 +112,13 @@ func convertToServices(stack types.Stack, filter filters.Args) ([]swarmtypes.Ser
 			continue
 		}
 
-		// Note: the convert.Service routine is more heavyweight than
-		// we likely need (and pulls in quite a bit of vendor
-		// dependencies) but makes this conversion simpler to code.  We
-		// might consider a refinement to only convert the portions
-		// needed for rendering the standard fields in the swarm
-		// service formatter
-		namespace := convert.NewNamespace(spec.Name)
-		serviceSpec, err := convert.Service(
-			namespace,
-			spec,
-			stack.Spec.Networks,
-			stack.Spec.Volumes,
-			nil, // Omitting Secrets - type mismatch
-			nil, // Omitting Configs - type mismatch
-		)
+		serviceSpec, err := convertServiceTypes(apiVersion, spec, stack.Spec)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "unable to convert service %s", spec.Name)
 		}
 		svc := swarmtypes.Service{
 			ID:   stack.StackResources.Services[spec.Name].ID,
-			Spec: serviceSpec,
+			Spec: *serviceSpec,
 		}
 		infos[svc.ID] = service.ListInfo{
 			Mode: spec.Deploy.Mode,
@@ -174,4 +162,57 @@ func skipByFilters(serviceSpec composetypes.ServiceConfig, stack types.Stack, fi
 	}
 	// No filters matched, skip the service
 	return true
+}
+
+// convertServiceTypes converts from the stack types to the swarm types so we
+// can recycle the swarm service formatter for UX.  Ultimately we may consider
+// developing a new formatter specific to stacks so we can remove the legacy
+// conversion routines.
+func convertServiceTypes(apiVersion string, serviceConfig composetypes.ServiceConfig, spec types.StackSpec) (*swarmtypes.ServiceSpec, error) {
+	namespace := convert.NewNamespace(serviceConfig.Name)
+
+	// Use the common json serialization for quick conversion
+	svcJson, err := json.Marshal(serviceConfig)
+	if err != nil {
+		return nil, err
+	}
+	var legacyServiceConfig legacycomposetypes.ServiceConfig
+	err = json.Unmarshal(svcJson, &legacyServiceConfig)
+	if err != nil {
+		return nil, err
+	}
+	legacyServiceConfig.Name = serviceConfig.Name
+
+	networkJson, err := json.Marshal(spec.Networks)
+	if err != nil {
+		return nil, err
+	}
+	var legacyNetworks map[string]legacycomposetypes.NetworkConfig
+	err = json.Unmarshal(networkJson, &legacyNetworks)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeJson, err := json.Marshal(spec.Volumes)
+	if err != nil {
+		return nil, err
+	}
+	var legacyVolumes map[string]legacycomposetypes.VolumeConfig
+	err = json.Unmarshal(volumeJson, &legacyVolumes)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO - secrets and config types are not aligned yet
+
+	svcSpec, err := convert.Service(
+		apiVersion,
+		namespace,
+		legacyServiceConfig,
+		legacyNetworks,
+		legacyVolumes,
+		nil,
+		nil,
+	)
+	return &svcSpec, err
 }
