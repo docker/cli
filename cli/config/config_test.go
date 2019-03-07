@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -552,13 +553,49 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 func TestConfigPath(t *testing.T) {
 	oldDir := Dir()
 
-	SetDir("dummy1")
-	f1 := Path("a", "b")
-	assert.Equal(t, f1, filepath.Join("dummy1", "a", "b"))
-
-	SetDir("dummy2")
-	f2 := Path("c", "d")
-	assert.Equal(t, f2, filepath.Join("dummy2", "c", "d"))
+	for _, tc := range []struct {
+		name        string
+		dir         string
+		path        []string
+		expected    string
+		expectedErr string
+	}{
+		{
+			name:     "valid_path",
+			dir:      "dummy",
+			path:     []string{"a", "b"},
+			expected: filepath.Join("dummy", "a", "b"),
+		},
+		{
+			name:     "valid_path_absolute_dir",
+			dir:      "/dummy",
+			path:     []string{"a", "b"},
+			expected: filepath.Join("/dummy", "a", "b"),
+		},
+		{
+			name:        "invalid_relative_path",
+			dir:         "dummy",
+			path:        []string{"e", "..", "..", "f"},
+			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
+		},
+		{
+			name:        "invalid_absolute_path",
+			dir:         "dummy",
+			path:        []string{"/a", "..", ".."},
+			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			SetDir(tc.dir)
+			f, err := Path(tc.path...)
+			assert.Equal(t, f, tc.expected)
+			if tc.expectedErr == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.expectedErr)
+			}
+		})
+	}
 
 	SetDir(oldDir)
 }
