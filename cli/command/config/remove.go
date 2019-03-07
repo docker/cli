@@ -11,8 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type removeOptions struct {
-	names []string
+// RemoveOptions contains options for the docker config rm command.
+type RemoveOptions struct {
+	Names []string
 }
 
 func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
@@ -22,21 +23,22 @@ func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more configs",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts := removeOptions{
-				names: args,
+			opts := RemoveOptions{
+				Names: args,
 			}
-			return runConfigRemove(dockerCli, opts)
+			return RunConfigRemove(dockerCli, opts)
 		},
 	}
 }
 
-func runConfigRemove(dockerCli command.Cli, opts removeOptions) error {
+// RunConfigRemove removes the given Swarm configs.
+func RunConfigRemove(dockerCli command.Cli, opts RemoveOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
 	var errs []string
 
-	for _, name := range opts.names {
+	for _, name := range opts.Names {
 		if err := client.ConfigRemove(ctx, name); err != nil {
 			errs = append(errs, err.Error())
 			continue
