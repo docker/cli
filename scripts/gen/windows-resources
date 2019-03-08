@@ -7,7 +7,7 @@ set -eu -o pipefail
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=/go/src/github.com/docker/cli/scripts/build/.variables
-source $SCRIPTDIR/../build/.variables
+source "$SCRIPTDIR"/../build/.variables
 
 RESOURCES=$SCRIPTDIR/../winresources
 
@@ -26,9 +26,9 @@ VERSION_QUAD=$(echo -n "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . ,)
 
 # Pass version and commit information into the resource compiler
 defs=
-[ ! -z "$VERSION" ]      && defs+=( "-D DOCKER_VERSION=\"$VERSION\"")
-[ ! -z "$VERSION_QUAD" ] && defs+=( "-D DOCKER_VERSION_QUAD=$VERSION_QUAD")
-[ ! -z "$GITCOMMIT" ]    && defs+=( "-D DOCKER_COMMIT=\"$GITCOMMIT\"")
+[ -n "$VERSION" ]      && defs+=( "-D DOCKER_VERSION=\"$VERSION\"")
+[ -n "$VERSION_QUAD" ] && defs+=( "-D DOCKER_VERSION_QUAD=$VERSION_QUAD")
+[ -n "$GITCOMMIT" ]    && defs+=( "-D DOCKER_COMMIT=\"$GITCOMMIT\"")
 
 function makeres {
 	"$WINDRES" \
