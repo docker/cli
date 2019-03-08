@@ -86,3 +86,118 @@ func TestUnknownGlobal(t *testing.T) {
 		})
 	}
 }
+
+// TestCliPluginsVersion checks that `-v` and friends DTRT
+func TestCliPluginsVersion(t *testing.T) {
+	run, _, cleanup := prepare(t)
+	defer cleanup()
+
+	for _, tc := range []struct {
+		name           string
+		args           []string
+		expCode        int
+		expOut, expErr string
+	}{
+		{
+			name:    "global-version",
+			args:    []string{"version"},
+			expCode: 0,
+			expOut:  "Client:\n Version:",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "global-version-flag",
+			args:    []string{"--version"},
+			expCode: 0,
+			expOut:  "Docker version",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "global-short-version-flag",
+			args:    []string{"-v"},
+			expCode: 0,
+			expOut:  "Docker version",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "global-with-unknown-arg",
+			args:    []string{"version", "foo"},
+			expCode: 1,
+			expOut:  icmd.None,
+			expErr:  `"docker version" accepts no arguments.`,
+		},
+		{
+			name:    "global-with-plugin-arg",
+			args:    []string{"version", "helloworld"},
+			expCode: 1,
+			expOut:  icmd.None,
+			expErr:  `"docker version" accepts no arguments.`,
+		},
+		{
+			name:    "global-version-flag-with-unknown-arg",
+			args:    []string{"--version", "foo"},
+			expCode: 0,
+			expOut:  "Docker version",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "global-short-version-flag-with-unknown-arg",
+			args:    []string{"-v", "foo"},
+			expCode: 0,
+			expOut:  "Docker version",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "global-version-flag-with-plugin",
+			args:    []string{"--version", "helloworld"},
+			expCode: 125,
+			expOut:  icmd.None,
+			expErr:  "unknown flag: --version",
+		},
+		{
+			name:    "global-short-version-flag-with-plugin",
+			args:    []string{"-v", "helloworld"},
+			expCode: 125,
+			expOut:  icmd.None,
+			expErr:  "unknown shorthand flag: 'v' in -v",
+		},
+		{
+			name:    "plugin-with-version",
+			args:    []string{"helloworld", "version"},
+			expCode: 0,
+			expOut:  "Hello World!",
+			expErr:  icmd.None,
+		},
+		{
+			name:    "plugin-with-version-flag",
+			args:    []string{"helloworld", "--version"},
+			expCode: 125,
+			expOut:  icmd.None,
+			expErr:  "unknown flag: --version",
+		},
+		{
+			name:    "plugin-with-short-version-flag",
+			args:    []string{"helloworld", "-v"},
+			expCode: 125,
+			expOut:  icmd.None,
+			expErr:  "unknown shorthand flag: 'v' in -v",
+		},
+		{
+			name:    "",
+			args:    []string{},
+			expCode: 0,
+			expOut:  "",
+			expErr:  "",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := icmd.RunCmd(run(tc.args...))
+			res.Assert(t, icmd.Expected{
+				ExitCode: tc.expCode,
+				Out:      tc.expOut,
+				Err:      tc.expErr,
+			})
+		})
+	}
+
+}
