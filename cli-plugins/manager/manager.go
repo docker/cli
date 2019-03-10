@@ -35,15 +35,20 @@ func IsNotFound(err error) bool {
 	return ok
 }
 
-func getPluginDirs(dockerCli command.Cli) []string {
+func getPluginDirs(dockerCli command.Cli) ([]string, error) {
 	var pluginDirs []string
 
 	if cfg := dockerCli.ConfigFile(); cfg != nil {
 		pluginDirs = append(pluginDirs, cfg.CLIPluginsExtraDirs...)
 	}
-	pluginDirs = append(pluginDirs, config.Path("cli-plugins"))
+	pluginDir, err := config.Path("cli-plugins")
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
-	return pluginDirs
+	return pluginDirs, nil
 }
 
 func addPluginCandidatesFromDir(res map[string][]string, d string) error {
@@ -96,7 +101,12 @@ func listPluginCandidates(dirs []string) (map[string][]string, error) {
 
 // ListPlugins produces a list of the plugins available on the system
 func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error) {
-	candidates, err := listPluginCandidates(getPluginDirs(dockerCli))
+	pluginDirs, err := getPluginDirs(dockerCli)
+	if err != nil {
+		return nil, err
+	}
+
+	candidates, err := listPluginCandidates(pluginDirs)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +142,12 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		return nil, errPluginNotFound(name)
 	}
 	exename := addExeSuffix(NamePrefix + name)
-	for _, d := range getPluginDirs(dockerCli) {
+	pluginDirs, err := getPluginDirs(dockerCli)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range pluginDirs {
 		path := filepath.Join(d, exename)
 
 		// We stat here rather than letting the exec tell us
