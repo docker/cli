@@ -1,7 +1,7 @@
 FROM docker:test-dind
 RUN apk --no-cache add shadow openssh-server && \
   groupadd -f docker && \
-  useradd -m --shell /bin/sh penguin && \
+  useradd --create-home --shell /bin/sh penguin && \
   usermod -aG docker penguin && \
   usermod -p $(head -c32 /dev/urandom | base64) penguin && \
   ssh-keygen -A
