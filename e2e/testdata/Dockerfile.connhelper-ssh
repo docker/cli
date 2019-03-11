@@ -1,9 +1,8 @@
 FROM docker:test-dind
 RUN apk --no-cache add shadow openssh-server && \
   groupadd -f docker && \
-  useradd --create-home --shell /bin/sh penguin && \
+  useradd --create-home --shell /bin/sh --password $(head -c32 /dev/urandom | base64) penguin && \
   usermod -aG docker penguin && \
-  usermod -p $(head -c32 /dev/urandom | base64) penguin && \
   ssh-keygen -A
 # workaround: ssh session excludes /usr/local/bin from $PATH
 RUN  ln -s /usr/local/bin/docker /usr/bin/docker
