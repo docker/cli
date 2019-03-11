@@ -61,6 +61,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newPsCommand(dockerCli, &opts),
 		newRemoveCommand(dockerCli, &opts),
 		newServicesCommand(dockerCli, &opts),
+		newInspectCommand(dockerCli, &opts),
 	)
 	flags := cmd.PersistentFlags()
 	flags.String("kubeconfig", "", "Kubernetes config file") // TODO - this should be deprecated

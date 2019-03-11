@@ -172,33 +172,33 @@ func convertServiceTypes(apiVersion string, serviceConfig composetypes.ServiceCo
 	namespace := convert.NewNamespace(serviceConfig.Name)
 
 	// Use the common json serialization for quick conversion
-	svcJson, err := json.Marshal(serviceConfig)
+	svcJSON, err := json.Marshal(serviceConfig)
 	if err != nil {
 		return nil, err
 	}
 	var legacyServiceConfig legacycomposetypes.ServiceConfig
-	err = json.Unmarshal(svcJson, &legacyServiceConfig)
+	err = json.Unmarshal(svcJSON, &legacyServiceConfig)
 	if err != nil {
 		return nil, err
 	}
 	legacyServiceConfig.Name = serviceConfig.Name
 
-	networkJson, err := json.Marshal(spec.Networks)
+	networkJSON, err := json.Marshal(spec.Networks)
 	if err != nil {
 		return nil, err
 	}
 	var legacyNetworks map[string]legacycomposetypes.NetworkConfig
-	err = json.Unmarshal(networkJson, &legacyNetworks)
+	err = json.Unmarshal(networkJSON, &legacyNetworks)
 	if err != nil {
 		return nil, err
 	}
 
-	volumeJson, err := json.Marshal(spec.Volumes)
+	volumeJSON, err := json.Marshal(spec.Volumes)
 	if err != nil {
 		return nil, err
 	}
 	var legacyVolumes map[string]legacycomposetypes.VolumeConfig
-	err = json.Unmarshal(volumeJson, &legacyVolumes)
+	err = json.Unmarshal(volumeJSON, &legacyVolumes)
 	if err != nil {
 		return nil, err
 	}

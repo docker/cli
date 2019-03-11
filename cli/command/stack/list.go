@@ -116,7 +116,7 @@ func stackToFormatterStack(stacks []types.Stack) []*formatter.Stack {
 	fmtStacks := []*formatter.Stack{}
 	for _, stack := range stacks {
 		fmtStacks = append(fmtStacks, &formatter.Stack{
-			Name:         stack.Metadata.Name,
+			Name:         stack.Spec.Metadata.Name,
 			Services:     len(stack.Spec.Services),
 			Orchestrator: string(stack.Orchestrator),
 			Namespace:    stack.Spec.Collection,

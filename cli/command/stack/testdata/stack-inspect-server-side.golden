@@ -1,0 +1,42 @@
+[
+    {
+        "spec": {
+            "Name": "stackname",
+            "Labels": null,
+            "services": {
+                "svc1": {
+                    "build": {},
+                    "credential_spec": {},
+                    "deploy": {
+                        "resources": {},
+                        "placement": {}
+                    }
+                }
+            },
+            "collection": "collection"
+        },
+        "stack_resources": {
+            "services": {
+                "svc1": {
+                    "orchestrator": "swarm",
+                    "kind": "service",
+                    "id": "id"
+                }
+            }
+        },
+        "orchestrator": "swarm",
+        "stack_status": {
+            "message": "",
+            "phase": "",
+            "overall_health": "",
+            "services_status": {
+                "svc1": {
+                    "desired_tasks": 1,
+                    "running_tasks": 1
+                }
+            },
+            "last_updated": ""
+        },
+        "ID": ""
+    }
+]

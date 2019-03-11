@@ -148,11 +148,11 @@ func TestListServerSideListFailure(t *testing.T) {
 func TestListServerSideListSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 			},
 		},

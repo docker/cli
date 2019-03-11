@@ -113,7 +113,7 @@ func runServerSideDeploy(ctx context.Context, dockerCli command.Cli, stackCreate
 	}
 
 	stackCreate.Orchestrator = types.OrchestratorChoice(commonOrchestrator)
-	stackCreate.Metadata.Name = name
+	stackCreate.Spec.Metadata.Name = name
 
 	createOpts := types.StackCreateOptions{
 		EncodedRegistryAuth: encodedAuth,

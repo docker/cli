@@ -188,11 +188,11 @@ func TestStackServicesServerSideListFailure(t *testing.T) {
 func TestStackServicesServerSideMissingResources(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 			},
 		},
@@ -212,11 +212,11 @@ func TestStackServicesServerSideMissingResources(t *testing.T) {
 func TestStackServicesServerSideMissingStatus(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 				Services: composetypes.Services{
 					composetypes.ServiceConfig{
@@ -250,11 +250,11 @@ func TestStackServicesServerSideMissingStatus(t *testing.T) {
 func TestStackServicesServerSideSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 				Services: composetypes.Services{
 					composetypes.ServiceConfig{
@@ -297,11 +297,11 @@ func TestStackServicesServerSideSuccess(t *testing.T) {
 func TestStackServicesServerSideFilters(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 				Services: composetypes.Services{
 					composetypes.ServiceConfig{

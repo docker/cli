@@ -58,7 +58,7 @@ func runServerSideRemove(dockerCli command.Cli, commonOrchestrator command.Orche
 		stacks = append(stacks, stack)
 	}
 	for _, stack := range stacks {
-		fmt.Fprintf(dockerCli.Out(), "Removing Stack %s\n", stack.Metadata.Name)
+		fmt.Fprintf(dockerCli.Out(), "Removing Stack %s\n", stack.Spec.Metadata.Name)
 		err := dclient.StackDelete(ctx, stack.ID)
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func getStackByName(ctx context.Context, dockerCli command.Cli, orchestrator, na
 	// TODO - temporary code to workaround broken filters on backend
 	// Ultimately we should check for a single item in the list and just return it
 	for _, stack := range stacks {
-		if stack.Metadata.Name == name {
+		if stack.Spec.Metadata.Name == name {
 			return stack, nil
 		}
 	}

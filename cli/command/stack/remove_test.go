@@ -185,11 +185,11 @@ func TestStackRemoveServerSideListFailure(t *testing.T) {
 func TestStackRemoveServerSideListSuccess(t *testing.T) {
 	stacks := []stacktypes.Stack{
 		{
-			Metadata: stacktypes.Metadata{
-				Name: "stackname",
-			},
 			Orchestrator: "swarm",
 			Spec: stacktypes.StackSpec{
+				Metadata: stacktypes.Metadata{
+					Name: "stackname",
+				},
 				Collection: "collection",
 			},
 		},
