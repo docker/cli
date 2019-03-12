@@ -34,6 +34,7 @@ func runDialStdio(dockerCli command.Cli) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to open the raw stream connection")
 	}
+	defer conn.Close()
 
 	var connHalfCloser halfCloser
 	switch t := conn.(type) {
