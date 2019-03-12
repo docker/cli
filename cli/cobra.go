@@ -124,8 +124,10 @@ func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, erro
 
 	// We manually parse the global arguments and find the
 	// subcommand in order to properly deal with plugins. We rely
-	// on the root command never having any non-flag arguments.
-	flags := cmd.Flags()
+	// on the root command never having any non-flag arguments. We
+	// create our own FlagSet so that we can configure it
+	// (e.g. `SetInterspersed` below) in an idempotent way.
+	flags := pflag.NewFlagSet(cmd.Name(), pflag.ContinueOnError)
 
 	// We need !interspersed to ensure we stop at the first
 	// potential command instead of accumulating it into
@@ -133,9 +135,9 @@ func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, erro
 	// arguments which we try and treat as globals (when they are
 	// actually arguments to the subcommand).
 	flags.SetInterspersed(false)
-	defer flags.SetInterspersed(true) // Undo, any subsequent cmd.Execute() in the caller expects this.
 
 	// We need the single parse to see both sets of flags.
+	flags.AddFlagSet(cmd.Flags())
 	flags.AddFlagSet(cmd.PersistentFlags())
 	// Now parse the global flags, up to (but not including) the
 	// first command. The result will be that all the remaining
