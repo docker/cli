@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
@@ -202,10 +201,13 @@ func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
 func calculateBlockIO(blkio types.BlkioStats) (uint64, uint64) {
 	var blkRead, blkWrite uint64
 	for _, bioEntry := range blkio.IoServiceBytesRecursive {
-		switch strings.ToLower(bioEntry.Op) {
-		case "read":
+		if len(bioEntry.Op) == 0 {
+			continue
+		}
+		switch bioEntry.Op[0] {
+		case 'r', 'R':
 			blkRead = blkRead + bioEntry.Value
-		case "write":
+		case 'w', 'W':
 			blkWrite = blkWrite + bioEntry.Value
 		}
 	}
