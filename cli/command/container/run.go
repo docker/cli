@@ -166,7 +166,11 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		defer close()
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+	// We don't need to wait if we're not attaching.
+	var statusChan <-chan int
+	if attach {
+		statusChan = waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+	}
 
 	//start the container
 	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
@@ -186,7 +190,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		return runStartContainerErr(err)
 	}
 
-	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
+	if attach && config.Tty && dockerCli.Out().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, createResponse.ID, false); err != nil {
 			fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
