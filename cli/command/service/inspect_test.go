@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types/container"
+
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
@@ -61,6 +63,14 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 								Name: "/secrettest.conf",
 							},
 						},
+					},
+
+					Healthcheck: &container.HealthConfig{
+						Test:        []string{"CMD-SHELL", "curl"},
+						Interval:    4,
+						Retries:     3,
+						StartPeriod: 2,
+						Timeout:     1,
 					},
 				},
 				Networks: []swarm.NetworkAttachmentConfig{
@@ -157,4 +167,5 @@ func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
 
 	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
 	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")
+	assert.Check(t, is.Contains(s, "Healthcheck:"), "Pretty print missing healthcheck")
 }
