@@ -177,10 +177,10 @@ func TestCliInitialized(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("helloworld", "apiversion"))
+	res := icmd.RunCmd(run("helloworld", "--pre-run", "apiversion"))
 	res.Assert(t, icmd.Success)
 	assert.Assert(t, res.Stdout() != "")
-	assert.Assert(t, is.Equal(res.Stderr(), ""))
+	assert.Assert(t, is.Equal(res.Stderr(), "Plugin PersistentPreRunE called"))
 }
 
 // TestPluginErrorCode tests when the plugin return with a given exit status.

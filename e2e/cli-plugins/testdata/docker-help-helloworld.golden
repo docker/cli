@@ -6,6 +6,7 @@ A basic Hello World plugin for tests
 Options:
   -c, --context string   Is it Christmas?
   -D, --debug            Enable debug
+      --pre-run          Log from prerun hook
       --who string       Who are we addressing?
 
 Commands:
