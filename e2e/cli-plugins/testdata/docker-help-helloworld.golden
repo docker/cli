@@ -4,7 +4,9 @@ Usage:	docker helloworld [OPTIONS] COMMAND
 A basic Hello World plugin for tests
 
 Options:
-      --who string   Who are we addressing?
+  -c, --context string   Is it Christmas?
+  -D, --debug            Enable debug
+      --who string       Who are we addressing?
 
 Commands:
   apiversion  Print the API version of the server

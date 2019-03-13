@@ -44,15 +44,26 @@ func main() {
 			},
 		}
 
-		var who string
+		var (
+			who, context string
+			debug        bool
+		)
 		cmd := &cobra.Command{
 			Use:   "helloworld",
 			Short: "A basic Hello World plugin for tests",
-			// This is redundant but included to exercise
-			// the path where a plugin overrides this
-			// hook.
-			PersistentPreRunE: plugin.PersistentPreRunE,
 			RunE: func(cmd *cobra.Command, args []string) error {
+				if debug {
+					fmt.Fprintf(dockerCli.Err(), "Plugin debug mode enabled")
+				}
+
+				switch context {
+				case "Christmas":
+					fmt.Fprintf(dockerCli.Out(), "Merry Christmas!\n")
+					return nil
+				case "":
+					// nothing
+				}
+
 				if who == "" {
 					who, _ = dockerCli.ConfigFile().PluginConfig("helloworld", "who")
 				}
@@ -68,6 +79,10 @@ func main() {
 
 		flags := cmd.Flags()
 		flags.StringVar(&who, "who", "", "Who are we addressing?")
+		// These are intended to deliberately clash with the CLIs own top
+		// level arguments.
+		flags.BoolVarP(&debug, "debug", "D", false, "Enable debug")
+		flags.StringVarP(&context, "context", "c", "", "Is it Christmas?")
 
 		cmd.AddCommand(goodbye, apiversion, exitStatus2)
 		return cmd

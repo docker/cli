@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -16,10 +17,12 @@ import (
 func TestClientDebugEnabled(t *testing.T) {
 	defer debug.Disable()
 
-	cmd := newDockerCommand(&command.DockerCli{})
-	cmd.Flags().Set("debug", "true")
-
-	err := cmd.PersistentPreRunE(cmd, []string{})
+	tcmd := newDockerCommand(&command.DockerCli{})
+	tcmd.SetFlag("debug", "true")
+	cmd, _, err := tcmd.HandleGlobalFlags()
+	assert.NilError(t, err)
+	assert.NilError(t, tcmd.Initialize())
+	err = cmd.PersistentPreRunE(cmd, []string{})
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("1", os.Getenv("DEBUG")))
 	assert.Check(t, is.Equal(logrus.DebugLevel, logrus.GetLevel()))
@@ -27,31 +30,37 @@ func TestClientDebugEnabled(t *testing.T) {
 
 var discard = ioutil.NopCloser(bytes.NewBuffer(nil))
 
-func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
-	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(ioutil.Discard))
+func runCliCommand(t *testing.T, r io.ReadCloser, w io.Writer, args ...string) error {
+	t.Helper()
+	if r == nil {
+		r = discard
+	}
+	if w == nil {
+		w = ioutil.Discard
+	}
+	cli, err := command.NewDockerCli(command.WithInputStream(r), command.WithCombinedStreams(w))
 	assert.NilError(t, err)
-	cmd := newDockerCommand(cli)
-	cmd.SetArgs([]string{"help", "invalid"})
-	err = cmd.Execute()
+	tcmd := newDockerCommand(cli)
+	tcmd.SetArgs(args)
+	cmd, _, err := tcmd.HandleGlobalFlags()
+	assert.NilError(t, err)
+	assert.NilError(t, tcmd.Initialize())
+	return cmd.Execute()
+}
+
+func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
+	err := runCliCommand(t, nil, nil, "help", "invalid")
 	assert.Error(t, err, "unknown help topic: invalid")
 }
 
 func TestExitStatusForInvalidSubcommand(t *testing.T) {
-	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(ioutil.Discard))
-	assert.NilError(t, err)
-	cmd := newDockerCommand(cli)
-	cmd.SetArgs([]string{"invalid"})
-	err = cmd.Execute()
+	err := runCliCommand(t, nil, nil, "invalid")
 	assert.Check(t, is.ErrorContains(err, "docker: 'invalid' is not a docker command."))
 }
 
 func TestVersion(t *testing.T) {
 	var b bytes.Buffer
-	cli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
-	assert.NilError(t, err)
-	cmd := newDockerCommand(cli)
-	cmd.SetArgs([]string{"--version"})
-	err = cmd.Execute()
+	err := runCliCommand(t, nil, &b, "--version")
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(b.String(), "Docker version"))
 }

@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli/command"
 	cliconfig "github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/pkg/term"
@@ -82,6 +84,79 @@ func FlagErrorFunc(cmd *cobra.Command, err error) error {
 		Status:     fmt.Sprintf("%s\nSee '%s --help'.%s", err, cmd.CommandPath(), usage),
 		StatusCode: 125,
 	}
+}
+
+// TopLevelCommand encapsulates a top-level cobra command (either
+// docker CLI or a plugin) and global flag handling logic necessary
+// for plugins.
+type TopLevelCommand struct {
+	cmd       *cobra.Command
+	dockerCli *command.DockerCli
+	opts      *cliflags.ClientOptions
+	flags     *pflag.FlagSet
+	args      []string
+}
+
+// NewTopLevelCommand returns a new TopLevelCommand object
+func NewTopLevelCommand(cmd *cobra.Command, dockerCli *command.DockerCli, opts *cliflags.ClientOptions, flags *pflag.FlagSet) *TopLevelCommand {
+	return &TopLevelCommand{cmd, dockerCli, opts, flags, os.Args[1:]}
+}
+
+// SetArgs sets the args (default os.Args[:1] used to invoke the command
+func (tcmd *TopLevelCommand) SetArgs(args []string) {
+	tcmd.args = args
+	tcmd.cmd.SetArgs(args)
+}
+
+// SetFlag sets a flag in the local flag set of the top-level command
+func (tcmd *TopLevelCommand) SetFlag(name, value string) {
+	tcmd.cmd.Flags().Set(name, value)
+}
+
+// HandleGlobalFlags takes care of parsing global flags defined on the
+// command, it returns the underlying cobra command and the args it
+// will be called with (or an error).
+//
+// On success the caller is responsible for calling Initialize()
+// before calling `Execute` on the returned command.
+func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, error) {
+	cmd := tcmd.cmd
+
+	// We manually parse the global arguments and find the
+	// subcommand in order to properly deal with plugins. We rely
+	// on the root command never having any non-flag arguments. We
+	// create our own FlagSet so that we can configure it
+	// (e.g. `SetInterspersed` below) in an idempotent way.
+	flags := pflag.NewFlagSet(cmd.Name(), pflag.ContinueOnError)
+
+	// We need !interspersed to ensure we stop at the first
+	// potential command instead of accumulating it into
+	// flags.Args() and then continuing on and finding other
+	// arguments which we try and treat as globals (when they are
+	// actually arguments to the subcommand).
+	flags.SetInterspersed(false)
+
+	// We need the single parse to see both sets of flags.
+	flags.AddFlagSet(cmd.Flags())
+	flags.AddFlagSet(cmd.PersistentFlags())
+	// Now parse the global flags, up to (but not including) the
+	// first command. The result will be that all the remaining
+	// arguments are in `flags.Args()`.
+	if err := flags.Parse(tcmd.args); err != nil {
+		// Our FlagErrorFunc uses the cli, make sure it is initialized
+		if err := tcmd.Initialize(); err != nil {
+			return nil, nil, err
+		}
+		return nil, nil, cmd.FlagErrorFunc()(cmd, err)
+	}
+
+	return cmd, flags.Args(), nil
+}
+
+// Initialize finalises global option parsing and initializes the docker client.
+func (tcmd *TopLevelCommand) Initialize(ops ...command.InitializeOpt) error {
+	tcmd.opts.Common.SetDefaultOptions(tcmd.flags)
+	return tcmd.dockerCli.Initialize(tcmd.opts, ops...)
 }
 
 // VisitAll will traverse all commands from the root.
