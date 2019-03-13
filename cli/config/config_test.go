@@ -151,9 +151,8 @@ func TestOldValidAuth(t *testing.T) {
 
 	// defaultIndexserver is https://index.docker.io/v1/
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -214,9 +213,8 @@ func TestOldJSON(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -250,9 +248,8 @@ func TestNewJSON(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -285,9 +282,8 @@ func TestNewJSONNoEmail(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -432,10 +428,8 @@ func TestJSONReaderNoFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
-
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 }
 
 func TestOldJSONReaderNoFile(t *testing.T) {
@@ -445,9 +439,8 @@ func TestOldJSONReaderNoFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 }
 
 func TestJSONWithPsFormatNoFile(t *testing.T) {
