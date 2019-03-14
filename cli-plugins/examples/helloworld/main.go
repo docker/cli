@@ -45,12 +45,21 @@ func main() {
 		}
 
 		var (
-			who, context string
-			debug        bool
+			who, context  string
+			preRun, debug bool
 		)
 		cmd := &cobra.Command{
 			Use:   "helloworld",
 			Short: "A basic Hello World plugin for tests",
+			PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+				if err := plugin.PersistentPreRunE(cmd, args); err != nil {
+					return err
+				}
+				if preRun {
+					fmt.Fprintf(dockerCli.Err(), "Plugin PersistentPreRunE called")
+				}
+				return nil
+			},
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if debug {
 					fmt.Fprintf(dockerCli.Err(), "Plugin debug mode enabled")
@@ -79,6 +88,7 @@ func main() {
 
 		flags := cmd.Flags()
 		flags.StringVar(&who, "who", "", "Who are we addressing?")
+		flags.BoolVar(&preRun, "pre-run", false, "Log from prerun hook")
 		// These are intended to deliberately clash with the CLIs own top
 		// level arguments.
 		flags.BoolVarP(&debug, "debug", "D", false, "Enable debug")

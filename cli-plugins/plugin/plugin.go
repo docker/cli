@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/manager"
@@ -13,14 +14,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// PersistentPreRunE must be called by any plugin command (or
+// subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
+// which do not make use of `PersistentPreRun*` do not need to call
+// this (although it remains safe to do so). Plugins are recommended
+// to use `PersistenPreRunE` to enable the error to be
+// returned. Should not be called outside of a command's
+// PersistentPreRunE hook and must not be run unless Run has been
+// called.
+var PersistentPreRunE func(*cobra.Command, []string) error
+
 func runPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
 	tcmd := newPluginCommand(dockerCli, plugin, meta)
 
-	// Doing this here avoids also calling it for the metadata
-	// command which needlessly initializes the client and tries
-	// to connect to the daemon.
-	plugin.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
-		return tcmd.Initialize(withPluginClientConn(plugin.Name()))
+	var persistentPreRunOnce sync.Once
+	PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+		var err error
+		persistentPreRunOnce.Do(func() {
+			err = tcmd.Initialize(withPluginClientConn(plugin.Name()))
+		})
+		return err
 	}
 
 	cmd, _, err := tcmd.HandleGlobalFlags()
@@ -98,6 +111,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 		Short:                 fullname + " is a Docker CLI plugin",
 		SilenceUsage:          true,
 		SilenceErrors:         true,
+		PersistentPreRunE:     PersistentPreRunE,
 		TraverseChildren:      true,
 		DisableFlagsInUseLine: true,
 	}
@@ -122,6 +136,10 @@ func newMetadataSubcommand(plugin *cobra.Command, meta manager.Metadata) *cobra.
 	cmd := &cobra.Command{
 		Use:    manager.MetadataSubcommandName,
 		Hidden: true,
+		// Suppress the global/parent PersistentPreRunE, which
+		// needlessly initializes the client and tries to
+		// connect to the daemon.
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetEscapeHTML(false)
