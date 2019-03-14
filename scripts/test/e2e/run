@@ -69,6 +69,7 @@ function runtests {
         TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \
         PATH="$PWD/build/:/usr/bin:/usr/local/bin:/usr/local/go/bin" \
+        HOME="$HOME" \
         DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS="$PWD/build/plugins-linux-amd64" \
         "$(command -v gotestsum)" -- ./e2e/... ${TESTFLAGS-}
 }

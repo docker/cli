@@ -106,7 +106,7 @@ func ensureBasicPluginBin() (string, error) {
 	}
 	installPath := filepath.Join(os.Getenv("GOPATH"), "bin", name)
 	cmd := exec.Command(goBin, "build", "-o", installPath, "./basic")
-	cmd.Env = append(cmd.Env, "CGO_ENABLED=0")
+	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return "", errors.Wrapf(err, "error building basic plugin bin: %s", string(out))
 	}
