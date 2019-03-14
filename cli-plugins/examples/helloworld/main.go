@@ -51,7 +51,10 @@ func main() {
 		cmd := &cobra.Command{
 			Use:   "helloworld",
 			Short: "A basic Hello World plugin for tests",
-			PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+				if err := plugin.PersistentPreRunE(cmd, args); err != nil {
+					return err
+				}
 				if preRun {
 					fmt.Fprintf(dockerCli.Err(), "Plugin PersistentPreRunE called")
 				}
