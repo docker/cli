@@ -80,6 +80,7 @@ by the `docker` command line:
   printed. This may become the default in a future release, at which point this environment-variable is removed.
 * `DOCKER_TMPDIR` Location for temporary Docker files.
 * `DOCKER_CONTEXT` Specify the context to use (overrides DOCKER_HOST env var and default context set with "docker context use")
+* `DOCKER_DEFAULT_PLATFORM` Specify the default platform for the commands that take the `--platform` flag.
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
