@@ -4,7 +4,7 @@ clone_folder: c:\gopath\src\github.com\docker\cli
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 1.11.5
+  GOVERSION: 1.11.6
   DEPVERSION: v0.4.1
 
 install:
