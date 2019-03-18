@@ -303,7 +303,7 @@ the same file can share a single page cache entry (or entries), it makes
 > **Note**: As promising as `overlay` is, the feature is still quite young and
 > should not be used in production. Most notably, using `overlay` can cause
 > excessive inode consumption (especially as the number of images grows), as
-> well as > being incompatible with the use of RPMs.
+> well as being incompatible with the use of RPMs.
 
 The `overlay2` uses the same fast union filesystem but takes advantage of
 [additional features](https://lkml.org/lkml/2015/2/11/106) added in Linux
@@ -1231,9 +1231,13 @@ The `--metrics-addr` option takes a tcp address to serve the metrics API.
 This feature is still experimental, therefore, the daemon must be running in experimental
 mode for this feature to work.
 
-To serve the metrics API on localhost:1337 you would specify `--metrics-addr 127.0.0.1:1337`
-allowing you to make requests on the API at `127.0.0.1:1337/metrics` to receive metrics in the
+To serve the metrics API on `localhost:9323` you would specify `--metrics-addr 127.0.0.1:9323`,
+allowing you to make requests on the API at `127.0.0.1:9323/metrics` to receive metrics in the
 [prometheus](https://prometheus.io/docs/instrumenting/exposition_formats/) format.
+
+Port `9323` is the [default port associated with Docker
+metrics](https://github.com/prometheus/prometheus/wiki/Default-port-allocations)
+to avoid collisions with other prometheus exporters and services.
 
 If you are running a prometheus server you can add this address to your scrape configs
 to have prometheus collect metrics on Docker.  For more information
@@ -1243,7 +1247,7 @@ on prometheus you can view the website [here](https://prometheus.io/).
 scrape_configs:
   - job_name: 'docker'
     static_configs:
-      - targets: ['127.0.0.1:1337']
+      - targets: ['127.0.0.1:9323']
 ```
 
 Please note that this feature is still marked as experimental as metrics and metric
@@ -1308,7 +1312,7 @@ This is a full example of the allowed configuration options on Linux:
 	"log-driver": "json-file",
 	"log-opts": {
 		"max-size": "10m",
-		"max-files":"5",
+		"max-file":"5",
 		"labels": "somelabel",
 		"env": "os,customer"
 	},

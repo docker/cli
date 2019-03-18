@@ -177,7 +177,7 @@ This is similar to tagging an image and pushing it to a foreign registry.
 
 After you have created your local copy of the manifest list, you may optionally
 `annotate` it. Annotations allowed are the architecture and operating system (overriding the image's current values),
-os features, and an archictecure variant. 
+os features, and an architecture variant. 
 
 Finally, you need to `push` your manifest list to the desired registry. Below are descriptions of these three commands,
 and an example putting them all together.
@@ -270,5 +270,5 @@ $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1
 $ docker manifest push --insecure myprivateregistry.mycompany.com/repo/image:tag
 ```
 
-Note that the `--insecure` flag is not required to annotate a manifest list, since annotations are to a locally-stored copy of a manifest list. You may also skip the `--insecure` flag if you are performaing a `docker manifest inspect` on a locally-stored manifest list. Be sure to keep in mind that locally-stored manifest lists are never used by the engine on a `docker pull`.
+Note that the `--insecure` flag is not required to annotate a manifest list, since annotations are to a locally-stored copy of a manifest list. You may also skip the `--insecure` flag if you are performing a `docker manifest inspect` on a locally-stored manifest list. Be sure to keep in mind that locally-stored manifest lists are never used by the engine on a `docker pull`.
 
