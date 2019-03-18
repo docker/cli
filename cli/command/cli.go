@@ -209,24 +209,23 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
-	if cli.client == nil {
-		cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
-		cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
-		if err != nil {
-			return err
-		}
-		endpoint, err := resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
-		if err != nil {
-			return errors.Wrap(err, "unable to resolve docker endpoint")
-		}
-		cli.dockerEndpoint = endpoint
+	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
+	if err != nil {
+		return err
+	}
+	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
+	if err != nil {
+		return errors.Wrap(err, "unable to resolve docker endpoint")
+	}
 
-		cli.client, err = newAPIClientFromEndpoint(endpoint, cli.configFile)
+	if cli.client == nil {
+		cli.client, err = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
 		if tlsconfig.IsErrEncryptedKey(err) {
 			passRetriever := passphrase.PromptRetrieverWithInOut(cli.In(), cli.Out(), nil)
 			newClient := func(password string) (client.APIClient, error) {
-				endpoint.TLSPassword = password
-				return newAPIClientFromEndpoint(endpoint, cli.configFile)
+				cli.dockerEndpoint.TLSPassword = password
+				return newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
 			}
 			cli.client, err = getClientWithPassword(passRetriever, newClient)
 		}
