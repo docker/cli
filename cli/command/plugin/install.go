@@ -67,7 +67,7 @@ func (s pluginRegistryService) ResolveRepository(name reference.Named) (*registr
 }
 
 func newRegistryService() (registry.Service, error) {
-	svc, err := registry.NewService(registry.ServiceOptions{V2Only: true})
+	svc, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
 		return nil, err
 	}
