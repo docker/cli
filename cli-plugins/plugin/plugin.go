@@ -31,7 +31,11 @@ func runPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 	PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
 		var err error
 		persistentPreRunOnce.Do(func() {
-			err = tcmd.Initialize(withPluginClientConn(plugin.Name()))
+			var opts []command.InitializeOpt
+			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
+				opts = append(opts, withPluginClientConn(plugin.Name()))
+			}
+			err = tcmd.Initialize(opts...)
 		})
 		return err
 	}

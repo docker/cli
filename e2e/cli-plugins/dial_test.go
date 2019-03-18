@@ -11,7 +11,11 @@ import (
 	"gotest.tools/icmd"
 )
 
-func TestDialStdio(t *testing.T) {
+func TestCLIPluginDialStdio(t *testing.T) {
+	if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") == "" {
+		t.Skip("skipping plugin dial-stdio test since DOCKER_CLI_PLUGIN_USE_DIAL_STDIO is not set")
+	}
+
 	// Run the helloworld plugin forcing /bin/true as the `system
 	// dial-stdio` target. It should be passed all arguments from
 	// before the `helloworld` arg, but not the --who=foo which
