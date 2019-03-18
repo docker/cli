@@ -717,11 +717,11 @@ $ docker run -d --isolation default busybox top
 On Windows, `--isolation` can take one of these values:
 
 
-| Value     | Description                                                                                |
-|:----------|:-------------------------------------------------------------------------------------------|
-| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below). |
-| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems older than Windows 10 1809).     |
-| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                              |
+| Value     | Description                                                                                                       |
+|:----------|:------------------------------------------------------------------------------------------------------------------|
+| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below).                        |
+| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems older than Windows 10 1809). |
+| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                     |
 
 The default isolation on Windows server operating systems is `process`. The default
 isolation on Windows client operating systems is `hyperv`. An attempt to start a container on a client
