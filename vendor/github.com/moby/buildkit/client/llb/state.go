@@ -2,8 +2,10 @@ package llb
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/containerd/containerd/platforms"
 	"github.com/moby/buildkit/identity"
@@ -169,6 +171,31 @@ func (s State) WithOutput(o Output) State {
 	}
 	s = s.ensurePlatform()
 	return s
+}
+
+func (s State) WithImageConfig(c []byte) (State, error) {
+	var img struct {
+		Config struct {
+			Env        []string `json:"Env,omitempty"`
+			WorkingDir string   `json:"WorkingDir,omitempty"`
+			User       string   `json:"User,omitempty"`
+		} `json:"config,omitempty"`
+	}
+	if err := json.Unmarshal(c, &img); err != nil {
+		return State{}, err
+	}
+	for _, env := range img.Config.Env {
+		parts := strings.SplitN(env, "=", 2)
+		if len(parts[0]) > 0 {
+			var v string
+			if len(parts) > 1 {
+				v = parts[1]
+			}
+			s = s.AddEnv(parts[0], v)
+		}
+	}
+	s = s.Dir(img.Config.WorkingDir)
+	return s, nil
 }
 
 func (s State) Run(ro ...RunOption) ExecState {
@@ -378,10 +405,14 @@ func WithDescription(m map[string]string) ConstraintsOpt {
 	})
 }
 
-func WithCustomName(name string, a ...interface{}) ConstraintsOpt {
+func WithCustomName(name string) ConstraintsOpt {
 	return WithDescription(map[string]string{
-		"llb.customname": fmt.Sprintf(name, a...),
+		"llb.customname": name,
 	})
+}
+
+func WithCustomNamef(name string, a ...interface{}) ConstraintsOpt {
+	return WithCustomName(fmt.Sprintf(name, a...))
 }
 
 // WithExportCache forces results for this vertex to be exported with the cache

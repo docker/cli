@@ -36,6 +36,7 @@ type (
 		setLabelsFunc  func(context.Context, map[string]string) (map[string]string, error)
 		extensionsFunc func(context.Context) (map[string]prototypes.Any, error)
 		updateFunc     func(context.Context, ...containerd.UpdateContainerOpts) error
+		checkpointFunc func(context.Context, string, ...containerd.CheckpointOpts) (containerd.Image, error)
 	}
 	fakeImage struct {
 		nameFunc         func() string
@@ -167,6 +168,13 @@ func (c *fakeContainer) Update(ctx context.Context, opts ...containerd.UpdateCon
 		return c.updateFunc(ctx, opts...)
 	}
 	return nil
+}
+
+func (c *fakeContainer) Checkpoint(ctx context.Context, ref string, opts ...containerd.CheckpointOpts) (containerd.Image, error) {
+	if c.checkpointFunc != nil {
+		return c.checkpointFunc(ctx, ref, opts...)
+	}
+	return nil, nil
 }
 
 func (i *fakeImage) Name() string {
