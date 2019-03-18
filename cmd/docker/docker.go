@@ -337,9 +337,6 @@ func findCommand(cmd *cobra.Command, commands []string) bool {
 }
 
 func isSupported(cmd *cobra.Command, details versionDetails) error {
-	if isNoRemote(cmd) {
-		return nil
-	}
 	if err := areSubcommandsSupported(cmd, details); err != nil {
 		return err
 	}
@@ -347,61 +344,94 @@ func isSupported(cmd *cobra.Command, details versionDetails) error {
 }
 
 func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
-	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-
-	errs := []string{}
-
-	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		if f.Changed {
-			if !isVersionSupported(f, clientVersion) {
-				errs = append(errs, fmt.Sprintf("\"--%s\" requires API version %s, but the Docker daemon API version is %s", f.Name, getFlagAnnotation(f, "version"), clientVersion))
-				return
-			}
-			if !isOSTypeSupported(f, osType) {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", f.Name, getFlagAnnotation(f, "ostype"), osType))
-				return
-			}
-			if _, ok := f.Annotations["experimental"]; ok && !hasExperimental {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker daemon with experimental features enabled", f.Name))
-			}
-			if _, ok := f.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker cli with experimental cli features enabled", f.Name))
-			}
-			// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
-		}
-	})
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
+	var checks []flagCheck
+	if !details.ClientInfo().HasExperimental {
+		checks = append(checks, flagAnnotationCheck("experimentalCLI", func(f *pflag.Flag) error {
+			return fmt.Errorf("\"--%s\" is on a Docker cli with experimental cli features enabled", f.Name)
+		}))
 	}
-	return nil
+
+	if !isLocalOnly(cmd) {
+		clientVersion := details.Client().ClientVersion()
+		osType := details.ServerInfo().OSType
+		hasExperimental := details.ServerInfo().HasExperimental
+		checks = append(checks,
+			flagAnnotationCheck("version", func(f *pflag.Flag) error {
+				if !isVersionSupported(f, clientVersion) {
+					return fmt.Errorf("\"--%s\" requires API version %s, but the Docker daemon API version is %s", f.Name, getFlagAnnotation(f, "version"), clientVersion)
+				}
+				return nil
+			}),
+			flagAnnotationCheck("ostype", func(f *pflag.Flag) error {
+				if !isOSTypeSupported(f, osType) {
+					return fmt.Errorf("\"--%s\" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", f.Name, getFlagAnnotation(f, "ostype"), osType)
+				}
+				return nil
+			}),
+		)
+		if !hasExperimental {
+			checks = append(checks, flagAnnotationCheck("experimental", func(f *pflag.Flag) error {
+				return fmt.Errorf("\"--%s\" is only supported on a Docker daemon with experimental features enabled", f.Name)
+			}))
+		}
+	}
+
+	return checkFlags(cmd, checks)
+}
+
+func flagAnnotationCheck(annotationName string, check func(*pflag.Flag) error) flagCheck {
+	return func(f *pflag.Flag) error {
+		if _, ok := f.Annotations[annotationName]; ok {
+			return check(f)
+		}
+		return nil
+	}
 }
 
 // Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
-	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-
-	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
-	for curr := cmd; curr != nil; curr = curr.Parent() {
-		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(clientVersion, cmdVersion) {
-			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, clientVersion)
-		}
-		if os, ok := curr.Annotations["ostype"]; ok && os != osType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, osType)
-		}
-		if _, ok := curr.Annotations["experimental"]; ok && !hasExperimental {
-			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
-		}
-		if _, ok := curr.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
+	var checks []commandCheck
+	if !details.ClientInfo().HasExperimental {
+		checks = append(checks, commandAnnotationCheck("experimentalCLI", func(_ string) error {
 			return fmt.Errorf("%s is only supported on a Docker cli with experimental cli features enabled", cmd.CommandPath())
+		}))
+	}
+
+	if !isLocalOnly(cmd) {
+		clientVersion := details.Client().ClientVersion()
+		osType := details.ServerInfo().OSType
+		hasExperimental := details.ServerInfo().HasExperimental
+		checks = append(checks,
+			commandAnnotationCheck("version", func(cmdVersion string) error {
+				if versions.LessThan(clientVersion, cmdVersion) {
+					return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, clientVersion)
+				}
+				return nil
+			}),
+			commandAnnotationCheck("ostype", func(os string) error {
+				if os != osType {
+					return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, osType)
+				}
+				return nil
+			}),
+		)
+		if !hasExperimental {
+			checks = append(checks, commandAnnotationCheck("experimental", func(_ string) error {
+				return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
+			}))
 		}
 	}
-	return nil
+
+	return checkCommandRecursively(cmd, checks)
+}
+
+func commandAnnotationCheck(annotationName string, check func(string) error) commandCheck {
+	return func(cmd *cobra.Command) error {
+		if value, ok := cmd.Annotations[annotationName]; ok {
+			return check(value)
+		}
+		return nil
+	}
 }
 
 func getFlagAnnotation(f *pflag.Flag, annotation string) string {
@@ -436,7 +466,7 @@ func hasTags(cmd *cobra.Command) bool {
 	return false
 }
 
-func isNoRemote(cmd *cobra.Command) bool {
+func isLocalOnly(cmd *cobra.Command) bool {
 	for cmd != nil {
 		if _, ok := cmd.Annotations["no-remote"]; ok {
 			return true
@@ -446,3 +476,36 @@ func isNoRemote(cmd *cobra.Command) bool {
 
 	return false
 }
+
+func checkCommandRecursively(cmd *cobra.Command, checks []commandCheck) error {
+	for cmd != nil {
+		for _, check := range checks {
+			if err := check(cmd); err != nil {
+				return err
+			}
+		}
+		cmd = cmd.Parent()
+	}
+	return nil
+}
+
+func checkFlags(cmd *cobra.Command, checks []flagCheck) error {
+	var errs []string
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if f.Changed {
+			for _, check := range checks {
+				if err := check(f); err != nil {
+					errs = append(errs, err.Error())
+				}
+			}
+		}
+	})
+	if len(errs) == 0 {
+		return nil
+	}
+	return errors.New(strings.Join(errs, "\n"))
+}
+
+type commandCheck func(cmd *cobra.Command) error
+
+type flagCheck func(f *pflag.Flag) error
