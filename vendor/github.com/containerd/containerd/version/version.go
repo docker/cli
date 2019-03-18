@@ -14,17 +14,16 @@
    limitations under the License.
 */
 
-package archive
+package version
 
-import (
-	"time"
+var (
+	// Package is filled at linking time
+	Package = "github.com/containerd/containerd"
 
-	"github.com/pkg/errors"
+	// Version holds the complete version number. Filled in at linking time.
+	Version = "1.2.0+unknown"
+
+	// Revision is filled with the VCS (e.g. git) revision being used to build
+	// the program at linking time.
+	Revision = ""
 )
-
-// as at MacOS 10.12 there is apparently no way to set timestamps
-// with nanosecond precision. We could fall back to utimes/lutimes
-// and lose the precision as a temporary workaround.
-func chtimes(path string, atime, mtime time.Time) error {
-	return errors.New("OSX missing UtimesNanoAt")
-}
