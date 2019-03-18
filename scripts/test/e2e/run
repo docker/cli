@@ -69,6 +69,7 @@ function runtests {
         TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \
         PATH="$PWD/build/:/usr/bin" \
+        HOME="$HOME" \
         "$(which go)" test -v ./e2e/... ${TESTFLAGS-}
 }
 
