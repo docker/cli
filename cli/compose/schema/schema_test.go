@@ -80,17 +80,6 @@ func TestValidateAllowsXFields(t *testing.T) {
 }
 
 func TestValidateCredentialSpecs(t *testing.T) {
-	config := dict{
-		"version": "99.99",
-		"services": dict{
-			"foo": dict{
-				"image": "busybox",
-				"credential_spec": dict{
-					"config": "foobar",
-				},
-			},
-		},
-	}
 	tests := []struct {
 		version     string
 		expectedErr string
@@ -103,11 +92,23 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.5", expectedErr: "config"},
 		{version: "3.6", expectedErr: "config"},
 		{version: "3.7", expectedErr: "config"},
+		{version: "3.8", expectedErr: "something"},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.version, func(t *testing.T) {
+			config := dict{
+				"version": "99.99",
+				"services": dict{
+					"foo": dict{
+						"image": "busybox",
+						"credential_spec": dict{
+							tc.expectedErr: "foobar",
+						},
+					},
+				},
+			}
 			err := Validate(config, tc.version)
 			if tc.expectedErr != "" {
 				assert.ErrorContains(t, err, fmt.Sprintf("Additional property %s is not allowed", tc.expectedErr))
