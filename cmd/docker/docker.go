@@ -337,6 +337,9 @@ func findCommand(cmd *cobra.Command, commands []string) bool {
 }
 
 func isSupported(cmd *cobra.Command, details versionDetails) error {
+	if isNoRemote(cmd) {
+		return nil
+	}
 	if err := areSubcommandsSupported(cmd, details); err != nil {
 		return err
 	}
@@ -428,6 +431,17 @@ func hasTags(cmd *cobra.Command) bool {
 		if len(curr.Annotations) > 0 {
 			return true
 		}
+	}
+
+	return false
+}
+
+func isNoRemote(cmd *cobra.Command) bool {
+	for cmd != nil {
+		if _, ok := cmd.Annotations["no-remote"]; ok {
+			return true
+		}
+		cmd = cmd.Parent()
 	}
 
 	return false

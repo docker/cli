@@ -13,10 +13,11 @@ import (
 // NewContextCommand returns the context cli subcommand
 func NewContextCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "context",
-		Short: "Manage contexts",
-		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		Use:         "context",
+		Short:       "Manage contexts",
+		Args:        cli.NoArgs,
+		RunE:        command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{"no-remote": ""},
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
 
 	"github.com/docker/cli/cli/config"
 	cliconfig "github.com/docker/cli/cli/config"
@@ -71,19 +72,20 @@ type Cli interface {
 // DockerCli is an instance the docker command line client.
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
-	configFile            *configfile.ConfigFile
-	in                    *streams.In
-	out                   *streams.Out
-	err                   io.Writer
-	client                client.APIClient
-	serverInfo            ServerInfo
-	clientInfo            ClientInfo
-	contentTrust          bool
-	newContainerizeClient func(string) (clitypes.ContainerizedClient, error)
-	contextStore          store.Store
-	currentContext        string
-	dockerEndpoint        docker.Endpoint
-	contextStoreConfig    store.Config
+	configFile               *configfile.ConfigFile
+	in                       *streams.In
+	out                      *streams.Out
+	err                      io.Writer
+	client                   client.APIClient
+	serverInfo               ServerInfo
+	clientInfo               ClientInfo
+	contentTrust             bool
+	newContainerizeClient    func(string) (clitypes.ContainerizedClient, error)
+	contextStore             store.Store
+	currentContext           string
+	dockerEndpoint           docker.Endpoint
+	contextStoreConfig       store.Config
+	initializeFromClientOnce sync.Once
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
@@ -93,6 +95,7 @@ func (cli *DockerCli) DefaultVersion() string {
 
 // Client returns the APIClient
 func (cli *DockerCli) Client() client.APIClient {
+	cli.initializeFromClientOnce.Do(cli.initializeFromClient)
 	return cli.client
 }
 
@@ -133,6 +136,7 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
+	cli.initializeFromClientOnce.Do(cli.initializeFromClient)
 	return cli.serverInfo
 }
 
@@ -253,7 +257,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		DefaultVersion:  cli.client.ClientVersion(),
 		HasExperimental: hasExperimental,
 	}
-	cli.initializeFromClient()
 	return nil
 }
 
