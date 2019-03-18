@@ -62,3 +62,12 @@ func TestRemoveCurrentForce(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, "", reloadedConfig.CurrentContext)
 }
+
+func TestRemoveDefault(t *testing.T) {
+	cli, cleanup := makeFakeCli(t)
+	defer cleanup()
+	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
+	cli.SetCurrentContext("current")
+	err := RunRemove(cli, RemoveOptions{}, []string{"default"})
+	assert.ErrorContains(t, err, `default: context "default" cannot be removed`)
+}

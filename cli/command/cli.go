@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -209,12 +210,18 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
-	cli.contextStore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	baseContextSore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	cli.contextStore = &ContextStoreWithDefault{
+		Store: baseContextSore,
+		Resolver: func() (*DefaultContext, error) {
+			return resolveDefaultContext(opts.Common, cli.ConfigFile(), cli.Err())
+		},
+	}
 	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
 	if err != nil {
 		return err
 	}
-	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext, opts.Common)
+	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
 	if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
 	}
@@ -252,12 +259,17 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
-	store := store.New(cliconfig.ContextStoreDir(), defaultContextStoreConfig())
+	store := &ContextStoreWithDefault{
+		Store: store.New(cliconfig.ContextStoreDir(), defaultContextStoreConfig()),
+		Resolver: func() (*DefaultContext, error) {
+			return resolveDefaultContext(opts, configFile, ioutil.Discard)
+		},
+	}
 	contextName, err := resolveContextName(opts, configFile, store)
 	if err != nil {
 		return nil, err
 	}
-	endpoint, err := resolveDockerEndpoint(store, contextName, opts)
+	endpoint, err := resolveDockerEndpoint(store, contextName)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
@@ -278,18 +290,20 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	return client.NewClientWithOpts(clientOpts...)
 }
 
-func resolveDockerEndpoint(s store.Store, contextName string, opts *cliflags.CommonOptions) (docker.Endpoint, error) {
-	if contextName != "" {
-		ctxMeta, err := s.GetContextMetadata(contextName)
-		if err != nil {
-			return docker.Endpoint{}, err
-		}
-		epMeta, err := docker.EndpointFromContext(ctxMeta)
-		if err != nil {
-			return docker.Endpoint{}, err
-		}
-		return docker.WithTLSData(s, contextName, epMeta)
+func resolveDockerEndpoint(s store.Store, contextName string) (docker.Endpoint, error) {
+	ctxMeta, err := s.GetContextMetadata(contextName)
+	if err != nil {
+		return docker.Endpoint{}, err
 	}
+	epMeta, err := docker.EndpointFromContext(ctxMeta)
+	if err != nil {
+		return docker.Endpoint{}, err
+	}
+	return docker.WithTLSData(s, contextName, epMeta)
+}
+
+// Resolve the Docker endpoint for the default context (based on config, env vars and CLI flags)
+func resolveDefaultDockerEndpoint(opts *cliflags.CommonOptions) (docker.Endpoint, error) {
 	host, err := getServerHost(opts.Hosts, opts.TLSOptions)
 	if err != nil {
 		return docker.Endpoint{}, err
@@ -384,38 +398,21 @@ func (cli *DockerCli) CurrentContext() string {
 
 // StackOrchestrator resolves which stack orchestrator is in use
 func (cli *DockerCli) StackOrchestrator(flagValue string) (Orchestrator, error) {
-	var ctxOrchestrator string
-
-	configFile := cli.configFile
-	if configFile == nil {
-		configFile = cliconfig.LoadDefaultConfigFile(cli.Err())
-	}
-
 	currentContext := cli.CurrentContext()
-	if currentContext == "" {
-		currentContext = configFile.CurrentContext
+	ctxRaw, err := cli.ContextStore().GetContextMetadata(currentContext)
+	if store.IsErrContextDoesNotExist(err) {
+		// case where the currentContext has been removed (CLI behavior is to fallback to using DOCKER_HOST based resolution)
+		return GetStackOrchestrator(flagValue, "", cli.ConfigFile().StackOrchestrator, cli.Err())
 	}
-	if currentContext != "" {
-		contextstore := cli.contextStore
-		if contextstore == nil {
-			contextstore = store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
-		}
-		ctxRaw, err := contextstore.GetContextMetadata(currentContext)
-		if store.IsErrContextDoesNotExist(err) {
-			// case where the currentContext has been removed (CLI behavior is to fallback to using DOCKER_HOST based resolution)
-			return GetStackOrchestrator(flagValue, "", configFile.StackOrchestrator, cli.Err())
-		}
-		if err != nil {
-			return "", err
-		}
-		ctxMeta, err := GetDockerContext(ctxRaw)
-		if err != nil {
-			return "", err
-		}
-		ctxOrchestrator = string(ctxMeta.StackOrchestrator)
+	if err != nil {
+		return "", err
 	}
-
-	return GetStackOrchestrator(flagValue, ctxOrchestrator, configFile.StackOrchestrator, cli.Err())
+	ctxMeta, err := GetDockerContext(ctxRaw)
+	if err != nil {
+		return "", err
+	}
+	ctxOrchestrator := string(ctxMeta.StackOrchestrator)
+	return GetStackOrchestrator(flagValue, ctxOrchestrator, cli.ConfigFile().StackOrchestrator, cli.Err())
 }
 
 // DockerEndpoint returns the current docker endpoint
@@ -511,10 +508,10 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 		return opts.Context, nil
 	}
 	if len(opts.Hosts) > 0 {
-		return "", nil
+		return DefaultContextName, nil
 	}
 	if _, present := os.LookupEnv("DOCKER_HOST"); present {
-		return "", nil
+		return DefaultContextName, nil
 	}
 	if ctxName, ok := os.LookupEnv("DOCKER_CONTEXT"); ok {
 		return ctxName, nil
@@ -526,7 +523,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 		}
 		return config.CurrentContext, err
 	}
-	return "", nil
+	return DefaultContextName, nil
 }
 
 func defaultContextStoreConfig() store.Config {

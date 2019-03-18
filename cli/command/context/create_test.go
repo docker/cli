@@ -23,7 +23,26 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
 		store.EndpointTypeGetter(kubernetes.KubernetesEndpoint, func() interface{} { return &kubernetes.EndpointMeta{} }),
 	)
-	store := store.New(dir, storeConfig)
+	store := &command.ContextStoreWithDefault{
+		Store: store.New(dir, storeConfig),
+		Resolver: func() (*command.DefaultContext, error) {
+			return &command.DefaultContext{
+				Meta: store.ContextMetadata{
+					Endpoints: map[string]interface{}{
+						docker.DockerEndpoint: docker.EndpointMeta{
+							Host: "unix:///var/run/docker.sock",
+						},
+					},
+					Metadata: command.DockerContext{
+						Description:       "",
+						StackOrchestrator: command.OrchestratorSwarm,
+					},
+					Name: command.DefaultContextName,
+				},
+				TLS: store.ContextTLSData{},
+			}, nil
+		},
+	}
 	cleanup := func() {
 		os.RemoveAll(dir)
 	}
@@ -51,6 +70,12 @@ func TestCreateInvalids(t *testing.T) {
 	}{
 		{
 			expecterErr: `context name cannot be empty`,
+		},
+		{
+			options: CreateOptions{
+				Name: "default",
+			},
+			expecterErr: `"default" is a reserved context name`,
 		},
 		{
 			options: CreateOptions{

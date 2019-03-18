@@ -1,6 +1,7 @@
 package store
 
 import (
+	"crypto/rand"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -35,9 +36,14 @@ func TestExportImport(t *testing.T) {
 			Name:     "source",
 		})
 	assert.NilError(t, err)
+	file1 := make([]byte, 1500)
+	rand.Read(file1)
+	file2 := make([]byte, 3700)
+	rand.Read(file2)
 	err = s.ResetContextEndpointTLSMaterial("source", "ep1", &EndpointTLSData{
 		Files: map[string][]byte{
-			"file1": []byte("test-data"),
+			"file1": file1,
+			"file2": file2,
 		},
 	})
 	assert.NilError(t, err)
@@ -55,13 +61,22 @@ func TestExportImport(t *testing.T) {
 	assert.NilError(t, err)
 	destFileList, err := s.ListContextTLSFiles("dest")
 	assert.NilError(t, err)
-	assert.DeepEqual(t, srcFileList, destFileList)
-	srcData, err := s.GetContextTLSData("source", "ep1", "file1")
+	assert.Equal(t, 1, len(destFileList))
+	assert.Equal(t, 1, len(srcFileList))
+	assert.Equal(t, 2, len(destFileList["ep1"]))
+	assert.Equal(t, 2, len(srcFileList["ep1"]))
+	srcData1, err := s.GetContextTLSData("source", "ep1", "file1")
 	assert.NilError(t, err)
-	assert.Equal(t, "test-data", string(srcData))
-	destData, err := s.GetContextTLSData("dest", "ep1", "file1")
+	assert.DeepEqual(t, file1, srcData1)
+	srcData2, err := s.GetContextTLSData("source", "ep1", "file2")
 	assert.NilError(t, err)
-	assert.Equal(t, "test-data", string(destData))
+	assert.DeepEqual(t, file2, srcData2)
+	destData1, err := s.GetContextTLSData("dest", "ep1", "file1")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, file1, destData1)
+	destData2, err := s.GetContextTLSData("dest", "ep1", "file2")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, file2, destData2)
 }
 
 func TestRemove(t *testing.T) {

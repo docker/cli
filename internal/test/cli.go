@@ -224,3 +224,24 @@ func (c *FakeCli) NewContainerizedEngineClient(sockPath string) (clitypes.Contai
 func (c *FakeCli) SetContainerizedEngineClient(containerizedEngineClientFunc containerizedEngineFuncType) {
 	c.containerizedEngineClientFunc = containerizedEngineClientFunc
 }
+
+// StackOrchestrator return the selected stack orchestrator
+func (c *FakeCli) StackOrchestrator(flagValue string) (command.Orchestrator, error) {
+	configOrchestrator := ""
+	if c.configfile != nil {
+		configOrchestrator = c.configfile.StackOrchestrator
+	}
+	ctxOrchestrator := ""
+	if c.currentContext != "" && c.contextStore != nil {
+		meta, err := c.contextStore.GetContextMetadata(c.currentContext)
+		if err != nil {
+			return "", err
+		}
+		context, err := command.GetDockerContext(meta)
+		if err != nil {
+			return "", err
+		}
+		ctxOrchestrator = string(context.StackOrchestrator)
+	}
+	return command.GetStackOrchestrator(flagValue, ctxOrchestrator, configOrchestrator, c.err)
+}

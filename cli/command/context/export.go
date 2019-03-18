@@ -77,7 +77,7 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 
 // RunExport exports a Docker context
 func RunExport(dockerCli command.Cli, opts *ExportOptions) error {
-	if err := validateContextName(opts.ContextName); err != nil {
+	if err := validateContextName(opts.ContextName); err != nil && opts.ContextName != command.DefaultContextName {
 		return err
 	}
 	ctxMeta, err := dockerCli.ContextStore().GetContextMetadata(opts.ContextName)
