@@ -146,7 +146,16 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
-	command.AddPlatformFlag(flags, &options.platform)
+
+	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
+	// Platform is not experimental when BuildKit is used
+	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
+	if err == nil && buildkitEnabled {
+		flags.SetAnnotation("platform", "version", []string{"1.38"})
+	} else {
+		flags.SetAnnotation("platform", "version", []string{"1.32"})
+		flags.SetAnnotation("platform", "experimental", nil)
+	}
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
