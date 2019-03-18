@@ -94,6 +94,7 @@ jobs:
             docker build -f dockerfiles/Dockerfile.dev --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
                 make ci-validate
+          no_output_timeout: 15m
   shellcheck:
     working_directory: /work
     docker: [{image: 'docker:18.03-git'}]
