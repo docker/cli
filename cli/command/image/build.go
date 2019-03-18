@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -73,6 +74,7 @@ type buildOptions struct {
 	untrusted      bool
 	secrets        []string
 	ssh            []string
+	outputs        []string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -176,6 +178,11 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringArrayVar(&options.ssh, "ssh", []string{}, "SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])")
 	flags.SetAnnotation("ssh", "version", []string{"1.39"})
 	flags.SetAnnotation("ssh", "buildkit", nil)
+
+	flags.StringArrayVarP(&options.outputs, "output", "o", []string{}, "Output destination (format: type=local,dest=path)")
+	flags.SetAnnotation("output", "version", []string{"1.40"})
+	flags.SetAnnotation("output", "buildkit", nil)
+
 	return cmd
 }
 
@@ -642,4 +649,50 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		Target:         options.target,
 		Platform:       options.platform,
 	}
+}
+
+func parseOutputs(inp []string) ([]types.ImageBuildOutput, error) {
+	var outs []types.ImageBuildOutput
+	if len(inp) == 0 {
+		return nil, nil
+	}
+	for _, s := range inp {
+		csvReader := csv.NewReader(strings.NewReader(s))
+		fields, err := csvReader.Read()
+		if err != nil {
+			return nil, err
+		}
+		if len(fields) == 1 && fields[0] == s {
+			outs = append(outs, types.ImageBuildOutput{
+				Type: "local",
+				Attrs: map[string]string{
+					"dest": s,
+				},
+			})
+			continue
+		}
+
+		out := types.ImageBuildOutput{
+			Attrs: map[string]string{},
+		}
+		for _, field := range fields {
+			parts := strings.SplitN(field, "=", 2)
+			if len(parts) != 2 {
+				return nil, errors.Errorf("invalid value %s", field)
+			}
+			key := strings.ToLower(parts[0])
+			value := parts[1]
+			switch key {
+			case "type":
+				out.Type = value
+			default:
+				out.Attrs[key] = value
+			}
+		}
+		if out.Type == "" {
+			return nil, errors.Errorf("type is required for output")
+		}
+		outs = append(outs, out)
+	}
+	return outs, nil
 }
