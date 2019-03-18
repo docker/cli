@@ -17,7 +17,7 @@ func NewContextCommand(dockerCli command.Cli) *cobra.Command {
 		Short:       "Manage contexts",
 		Args:        cli.NoArgs,
 		RunE:        command.ShowHelp(dockerCli.Err()),
-		Annotations: map[string]string{"no-remote": ""},
+		Annotations: map[string]string{"local-only": ""},
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),

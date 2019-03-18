@@ -468,7 +468,7 @@ func hasTags(cmd *cobra.Command) bool {
 
 func isLocalOnly(cmd *cobra.Command) bool {
 	for cmd != nil {
-		if _, ok := cmd.Annotations["no-remote"]; ok {
+		if _, ok := cmd.Annotations["local-only"]; ok {
 			return true
 		}
 		cmd = cmd.Parent()
