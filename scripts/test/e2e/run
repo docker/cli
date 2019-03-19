@@ -71,7 +71,7 @@ function runtests {
         PATH="$PWD/build/:/usr/bin:/usr/local/bin:/usr/local/go/bin" \
         HOME="$HOME" \
         DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS="$PWD/build/plugins-linux-amd64" \
-        "$(command -v gotestsum)" -- ./e2e/... ${TESTFLAGS-}
+        "$(command -v gotestsum)" -- ${TESTDIRS:-./e2e/...} ${TESTFLAGS-}
 }
 
 export unique_id="${E2E_UNIQUE_ID:-cliendtoendsuite}"

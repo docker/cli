@@ -21,7 +21,7 @@ ifeq ($(DOCKER_CLI_GO_BUILD_CACHE),y)
 DOCKER_CLI_MOUNTS += -v "$(CACHE_VOLUME_NAME):/root/.cache/go-build"
 endif
 VERSION = $(shell cat VERSION)
-ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM
+ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS
 
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
@@ -141,15 +141,15 @@ test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ss
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build_e2e_image # run experimental e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build_e2e_image # run non-experimental e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(E2E_IMAGE_NAME)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build_e2e_image # run experimental SSH-connection helper e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
 
 .PHONY: help
 help: ## print this help
