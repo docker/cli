@@ -100,7 +100,7 @@ func TestParseEnvFileBadlyFormattedFile(t *testing.T) {
 	if _, ok := err.(ErrBadKey); !ok {
 		t.Fatalf("Expected an ErrBadKey, got [%v]", err)
 	}
-	expectedMessage := "poorly formatted environment: variable 'f   ' has white spaces"
+	expectedMessage := "poorly formatted environment: variable 'f   ' contains whitespaces"
 	if err.Error() != expectedMessage {
 		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
 	}
@@ -134,7 +134,7 @@ another invalid line`
 	if _, ok := err.(ErrBadKey); !ok {
 		t.Fatalf("Expected an ErrBadKey, got [%v]", err)
 	}
-	expectedMessage := "poorly formatted environment: variable 'first line' has white spaces"
+	expectedMessage := "poorly formatted environment: variable 'first line' contains whitespaces"
 	if err.Error() != expectedMessage {
 		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
 	}
