@@ -51,7 +51,7 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 			// trim the front of a variable, but nothing else
 			variable := strings.TrimLeft(data[0], whiteSpaces)
 			if strings.ContainsAny(variable, whiteSpaces) {
-				return []string{}, ErrBadKey{fmt.Sprintf("variable '%s' has white spaces", variable)}
+				return []string{}, ErrBadKey{fmt.Sprintf("variable '%s' contains whitespaces", variable)}
 			}
 			if len(variable) == 0 {
 				return []string{}, ErrBadKey{fmt.Sprintf("no variable name on line '%s'", line)}

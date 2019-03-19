@@ -281,10 +281,10 @@ func ValidateLabel(val string) (string, error) {
 	arr := strings.SplitN(val, "=", 2)
 	key := strings.TrimLeft(arr[0], whiteSpaces)
 	if key == "" {
-		return "", fmt.Errorf("empty label name: '%s'", val)
+		return "", fmt.Errorf("invalid label '%s': empty name", val)
 	}
 	if strings.ContainsAny(key, whiteSpaces) {
-		return "", fmt.Errorf("label '%s' has white spaces", key)
+		return "", fmt.Errorf("label '%s' contains whitespaces", key)
 	}
 	return val, nil
 }

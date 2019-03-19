@@ -184,17 +184,17 @@ func TestValidateLabel(t *testing.T) {
 	}{
 		{
 			name:        "empty",
-			expectedErr: `empty label name: ''`,
+			expectedErr: `invalid label '': empty name`,
 		},
 		{
 			name:        "whitespace only ",
 			value:       " ",
-			expectedErr: `empty label name: ' '`,
+			expectedErr: `invalid label ' ': empty name`,
 		},
 		{
 			name:        "whitespace around equal-sign",
 			value:       " = ",
-			expectedErr: `empty label name: ' = '`,
+			expectedErr: `invalid label ' = ': empty name`,
 		},
 		{
 			name:  "leading whitespace",
@@ -203,12 +203,12 @@ func TestValidateLabel(t *testing.T) {
 		{
 			name:        "whitespaces in key without value",
 			value:       "this is a label without value",
-			expectedErr: `label 'this is a label without value' has white spaces`,
+			expectedErr: `label 'this is a label without value' contains whitespaces`,
 		},
 		{
 			name:        "whitespaces in key",
 			value:       "this is a label=value",
-			expectedErr: `label 'this is a label' has white spaces`,
+			expectedErr: `label 'this is a label' contains whitespaces`,
 		},
 		{
 			name:  "whitespaces in value",
@@ -229,7 +229,7 @@ func TestValidateLabel(t *testing.T) {
 		{
 			name:        "no key",
 			value:       "=label",
-			expectedErr: `empty label name: '=label'`,
+			expectedErr: `invalid label '=label': empty name`,
 		},
 		{
 			name:  "empty value",
