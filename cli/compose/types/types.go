@@ -503,11 +503,12 @@ type CredentialSpecConfig struct {
 
 // FileObjectConfig is a config type for a file used by a service
 type FileObjectConfig struct {
-	Name     string                 `yaml:",omitempty" json:"name,omitempty"`
-	File     string                 `yaml:",omitempty" json:"file,omitempty"`
-	External External               `yaml:",omitempty" json:"external,omitempty"`
-	Labels   Labels                 `yaml:",omitempty" json:"labels,omitempty"`
-	Extras   map[string]interface{} `yaml:",inline" json:"-"`
+	Name           string                 `yaml:",omitempty" json:"name,omitempty"`
+	File           string                 `yaml:",omitempty" json:"file,omitempty"`
+	External       External               `yaml:",omitempty" json:"external,omitempty"`
+	Labels         Labels                 `yaml:",omitempty" json:"labels,omitempty"`
+	Extras         map[string]interface{} `yaml:",inline" json:"-"`
+	TemplateDriver string                 `mapstructure:"template_driver" yaml:"template_driver,omitempty" json:"template_driver,omitempty"`
 }
 
 // SecretConfig for a secret
