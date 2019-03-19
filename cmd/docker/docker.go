@@ -347,7 +347,7 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 	var checks []flagCheck
 	if !details.ClientInfo().HasExperimental {
 		checks = append(checks, flagAnnotationCheck("experimentalCLI", func(f *pflag.Flag) error {
-			return fmt.Errorf("\"--%s\" is on a Docker cli with experimental cli features enabled", f.Name)
+			return fmt.Errorf("\"--%s\" is only supported on a Docker cli with experimental cli features enabled", f.Name)
 		}))
 	}
 
