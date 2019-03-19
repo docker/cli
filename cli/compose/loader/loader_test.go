@@ -1461,6 +1461,47 @@ services:
 	}
 }
 
+func TestLoadSysctls(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.8"
+services:
+  web:
+    image: busybox
+    sysctls:
+      - net.core.somaxconn=1024
+      - net.ipv4.tcp_syncookies=0
+      - testing.one.one=
+      - testing.one.two
+`)
+	assert.NilError(t, err)
+
+	expected := types.Mapping{
+		"net.core.somaxconn":      "1024",
+		"net.ipv4.tcp_syncookies": "0",
+		"testing.one.one":         "",
+		"testing.one.two":         "",
+	}
+
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Sysctls))
+
+	config, err = loadYAML(`
+version: "3.8"
+services:
+  web:
+    image: busybox
+    sysctls:
+      net.core.somaxconn: 1024
+      net.ipv4.tcp_syncookies: 0
+      testing.one.one: ""
+      testing.one.two:
+`)
+	assert.NilError(t, err)
+
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Sysctls))
+}
+
 func TestTransform(t *testing.T) {
 	var source = []interface{}{
 		"80-82:8080-8082",

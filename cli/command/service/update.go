@@ -96,6 +96,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
 	flags.BoolVar(&options.init, flagInit, false, "Use an init inside each service container to forward signals and reap processes")
 	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
+	flags.Var(&options.sysctls, flagSysCtlAdd, "Add or update a Sysctl option")
+	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
+	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
+	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -327,6 +331,8 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	if err := updateMounts(flags, &cspec.Mounts); err != nil {
 		return err
 	}
+
+	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
 
 	if anyChanged(flags, flagLimitCPU, flagLimitMemory) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
@@ -657,6 +663,25 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
 		for _, label := range toRemove {
 			delete(*field, label)
+		}
+	}
+}
+
+func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
+	if *field != nil && flags.Changed(flagSysCtlRemove) {
+		values := flags.Lookup(flagSysCtlRemove).Value.(*opts.ListOpts).GetAll()
+		for key := range opts.ConvertKVStringsToMap(values) {
+			delete(*field, key)
+		}
+	}
+	if flags.Changed(flagSysCtlAdd) {
+		if *field == nil {
+			*field = map[string]string{}
+		}
+
+		values := flags.Lookup(flagSysCtlAdd).Value.(*opts.ListOpts).GetAll()
+		for key, value := range opts.ConvertKVStringsToMap(values) {
+			(*field)[key] = value
 		}
 	}
 }

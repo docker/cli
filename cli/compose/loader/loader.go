@@ -304,6 +304,7 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 		reflect.TypeOf(types.ServiceConfigObjConfig{}):           transformStringSourceMap,
 		reflect.TypeOf(types.StringOrNumberList{}):               transformStringOrNumberList,
 		reflect.TypeOf(map[string]*types.ServiceNetworkConfig{}): transformServiceNetworkMap,
+		reflect.TypeOf(types.Mapping{}):                          transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithEquals{}):                transformMappingOrListFunc("=", true),
 		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),

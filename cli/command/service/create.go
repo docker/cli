@@ -60,6 +60,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagHost, "version", []string{"1.25"})
 	flags.BoolVar(&opts.init, flagInit, false, "Use an init inside each service container to forward signals and reap processes")
 	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
+	flags.Var(&opts.sysctls, flagSysCtl, "Sysctl options")
+	flags.SetAnnotation(flagSysCtl, "version", []string{"1.40"})
 
 	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})

@@ -77,6 +77,7 @@ Options:
       --secret secret                      Specify secrets to expose to the service
       --stop-grace-period duration         Time to wait before force killing a container (ns|us|ms|s|m|h) (default 10s)
       --stop-signal string                 Signal to stop the container
+      --sysctl list                        Sysctl options
   -t, --tty                                Allocate a pseudo-TTY
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h) (default 0s)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback") (default "pause")

@@ -233,3 +233,16 @@ func TestToServiceMaxReplicasGlobalModeConflict(t *testing.T) {
 	_, err := opt.ToServiceMode()
 	assert.Error(t, err, "replicas-max-per-node can only be used with replicated mode")
 }
+
+func TestToServiceSysCtls(t *testing.T) {
+	o := newServiceOptions()
+	o.mode = "replicated"
+	o.sysctls.Set("net.ipv4.ip_forward=1")
+	o.sysctls.Set("kernel.shmmax=123456")
+
+	expected := map[string]string{"net.ipv4.ip_forward": "1", "kernel.shmmax": "123456"}
+	flags := newCreateCommand(nil).Flags()
+	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Sysctls, expected))
+}

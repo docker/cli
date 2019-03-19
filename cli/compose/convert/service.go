@@ -151,6 +151,7 @@ func Service(
 				Privileges:      &privileges,
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
+				Sysctls:         service.Sysctls,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
