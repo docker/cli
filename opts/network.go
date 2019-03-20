@@ -15,9 +15,13 @@ const (
 
 // NetworkAttachmentOpts represents the network options for endpoint creation
 type NetworkAttachmentOpts struct {
-	Target     string
-	Aliases    []string
-	DriverOpts map[string]string
+	Target       string
+	Aliases      []string
+	DriverOpts   map[string]string
+	Links        []string // TODO add support for links in the csv notation of `--network`
+	IPv4Address  string   // TODO add support for IPv4-address in the csv notation of `--network`
+	IPv6Address  string   // TODO add support for IPv6-address in the csv notation of `--network`
+	LinkLocalIPs []string // TODO add support for LinkLocalIPs in the csv notation of `--network` ?
 }
 
 // NetworkOpt represents a network config in swarm mode.
