@@ -11,11 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/licensing/model"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/licensing/model"
 )
 
 var (
@@ -88,11 +87,14 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 	} else {
 		// Load the latest license index
 		var latestVersion int
+
+		// check if node is swarm manager
+		if !info.Swarm.ControlAvailable {
+			return nil, ErrWorkerNode
+		}
+
 		latestVersion, err = getLatestNamedConfig(clnt, licenseNamePrefix)
 		if err != nil {
-			if strings.Contains(err.Error(), "not a swarm manager.") {
-				return nil, ErrWorkerNode
-			}
 			return nil, fmt.Errorf("unable to get latest license version: %s", err)
 		}
 		if latestVersion >= 0 {
