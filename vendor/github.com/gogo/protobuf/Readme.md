@@ -1,6 +1,7 @@
 # Protocol Buffers for Go with Gadgets
 
 [![Build Status](https://travis-ci.org/gogo/protobuf.svg?branch=master)](https://travis-ci.org/gogo/protobuf)
+[![GoDoc](https://godoc.org/github.com/gogo/protobuf?status.svg)](http://godoc.org/github.com/gogo/protobuf)
 
 gogoprotobuf is a fork of <a href="https://github.com/golang/protobuf">golang/protobuf</a> with extra code generation features.
 
@@ -46,6 +47,8 @@ These projects use gogoprotobuf:
   - <a href="https://sendgrid.com/">sendgrid</a>
   - <a href="https://github.com/zero-os/0-stor">zero-os/0-stor</a>
   - <a href="https://github.com/spacemeshos/go-spacemesh">go-spacemesh</a>
+  - <a href="https://github.com/weaveworks/cortex">cortex</a> - <a href="https://github.com/weaveworks/cortex/blob/fee02a59729d3771ef888f7bf0fd050e1197c56e/pkg/ingester/client/cortex.proto">sample proto file</a>
+  - <a href="http://skywalking.apache.org/">Apache SkyWalking APM</a> - Istio telemetry receiver based on Mixer bypass protocol
 
 Please let us know if you are using gogoprotobuf by posting on our <a href="https://groups.google.com/forum/#!topic/gogoprotobuf/Brw76BxmFpQ">GoogleGroup</a>.
 
@@ -59,7 +62,8 @@ Please let us know if you are using gogoprotobuf by posting on our <a href="http
   - <a href="https://fosdem.org/2018/schedule/event/gopherjs/">Creating GopherJS Apps with gRPC-Web - Johan Brandhorst</a>
   - <a href="https://jbrandhorst.com/post/gogoproto/">So you want to use GoGo Protobuf - Johan Brandhorst</a>
   - <a href="https://jbrandhorst.com/post/grpc-errors/">Advanced gRPC Error Usage - Johan Brandhorst</a>
-
+  - <a href="https://www.udemy.com/grpc-golang/?couponCode=GITHUB10">gRPC Golang Course on Udemy - Stephane Maarek</a>
+  
 ## Getting Started
 
 There are several ways to use gogoprotobuf, but for all you need to install go and protoc.
@@ -147,5 +151,9 @@ Here is an example using gofast:
 
 See [https://github.com/gogo/grpc-example](https://github.com/gogo/grpc-example) for an example of using gRPC with gogoprotobuf and the wider grpc-ecosystem.
 
+
+## License
+This software is licensed under the 3-Clause BSD License
+("BSD License 2.0", "Revised BSD License", "New BSD License", or "Modified BSD License").
 
   
