@@ -2,24 +2,24 @@
 # Run integration tests against the latest docker-ce dind
 set -eu -o pipefail
 
-function container_ip {
+container_ip() {
     local cid=$1
     local network=$2
     docker inspect \
         -f "{{.NetworkSettings.Networks.${network}.IPAddress}}" "$cid"
 }
 
-function fetch_images {
+fetch_images() {
     ./scripts/test/e2e/load-image fetch-only
 }
 
-function setup {
+setup() {
     local project=$1
     local file=$2
 
     test "${DOCKERD_EXPERIMENTAL:-0}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
 
-    if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
+    if [ "${TEST_CONNHELPER:-}" = "ssh" ];then
         test ! -f "${HOME}/.ssh/id_rsa" && ssh-keygen -t rsa -C docker-e2e-dummy -N "" -f "${HOME}/.ssh/id_rsa" -q
         grep "^StrictHostKeyChecking no" "${HOME}/.ssh/config" > /dev/null 2>&1 || echo "StrictHostKeyChecking no" > "${HOME}/.ssh/config"
         TEST_CONNHELPER_SSH_ID_RSA_PUB=$(cat "${HOME}/.ssh/id_rsa.pub")
@@ -34,7 +34,7 @@ function setup {
 
     engine_ip="$(container_ip "${project}_engine_1" "$network")"
     engine_host="tcp://$engine_ip:2375"
-    if [[ "${TEST_CONNHELPER:-}" = "ssh" ]];then
+    if [ "${TEST_CONNHELPER:-}" = "ssh" ];then
         engine_host="ssh://penguin@${engine_ip}"
     fi
     (
@@ -46,18 +46,18 @@ function setup {
     echo "$engine_host"
 }
 
-function is_swarm_enabled {
+is_swarm_enabled() {
     docker info 2> /dev/null | grep -q 'Swarm: active'
 }
 
-function cleanup {
+cleanup() {
     local project=$1
     local network="${project}_default"
     docker network disconnect "$network" "$(hostname)"
     COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v --rmi local >&2
 }
 
-function runtests {
+runtests() {
     local engine_host=$1
 
     # shellcheck disable=SC2086
@@ -94,7 +94,7 @@ case "$cmd" in
         ;;
     test)
         engine_host=${2-}
-        if [[ -z "${engine_host}" ]]; then
+        if [ -z "${engine_host}" ]; then
             echo "missing parameter docker engine host"
             echo "Usage: $0 test ENGINE_HOST"
             exit 3

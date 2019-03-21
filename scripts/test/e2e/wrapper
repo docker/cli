@@ -6,7 +6,7 @@ engine_host=$(./scripts/test/e2e/run setup)
 testexit=0
 
 test_cmd="test"
-if [[ -n "${TEST_DEBUG-}" ]]; then
+if [ -n "${TEST_DEBUG-}" ]; then
     test_cmd="shell"
 fi
 

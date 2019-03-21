@@ -21,7 +21,7 @@ jobs=(
 # each container has access to two cores.
 group=${CROSS_GROUP-"all"}
 
-if [ "$group" == "all" ]; then
+if [ "$group" = "all" ]; then
 
     echo "Building binaries for all platforms"
     parallel ::: "${jobs[@]}"
