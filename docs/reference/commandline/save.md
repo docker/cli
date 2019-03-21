@@ -53,6 +53,14 @@ $ docker save -o fedora-all.tar fedora
 $ docker save -o fedora-latest.tar fedora:latest
 ```
 
+### Save an image to a tar.gz file using gzip
+
+You can use gzip to save the image file and make the backup smaller.
+
+```bash
+docker save myimage:latest | gzip > myimage_latest.tar.gz
+```
+
 ### Cherry-pick particular tags
 
 You can even cherry-pick particular tags of an image repository.
