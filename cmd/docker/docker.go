@@ -365,7 +365,7 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker daemon with experimental features enabled", f.Name))
 			}
 			if _, ok := f.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is on a Docker cli with experimental cli features enabled", f.Name))
+				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker cli with experimental cli features enabled", f.Name))
 			}
 			// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
 		}
