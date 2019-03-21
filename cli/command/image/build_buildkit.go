@@ -117,6 +117,23 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		defer os.RemoveAll(dockerfileDir)
 	}
 
+	outputs, err := parseOutputs(options.outputs)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse outputs")
+	}
+
+	for _, out := range outputs {
+		if out.Type == "local" {
+			// dest is handled on client side for local exporter
+			outDir, ok := out.Attrs["dest"]
+			if !ok {
+				return errors.Errorf("dest is required for local output")
+			}
+			delete(out.Attrs, "dest")
+			s.Allow(filesync.NewFSSyncTargetDir(outDir))
+		}
+	}
+
 	if dockerfileDir != "" {
 		s.Allow(filesync.NewFSSyncProvider([]filesync.SyncedDir{
 			{
@@ -182,6 +199,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		buildOptions.RemoteContext = remote
 		buildOptions.SessionID = s.ID()
 		buildOptions.BuildID = buildID
+		buildOptions.Outputs = outputs
 		return doBuild(ctx, eg, dockerCli, options, buildOptions)
 	})
 
