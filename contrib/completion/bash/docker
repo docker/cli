@@ -2266,6 +2266,7 @@ _docker_container_update() {
 		--memory -m
 		--memory-reservation
 		--memory-swap
+		--pids-limit
 		--restart
 	"
 

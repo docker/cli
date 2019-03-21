@@ -676,6 +676,7 @@ __docker_container_subcommand() {
         "($help -m --memory)"{-m=,--memory=}"[Memory limit]:Memory limit: "
         "($help)--memory-reservation=[Memory soft limit]:Memory limit: "
         "($help)--memory-swap=[Total memory limit with swap]:Memory limit: "
+        "($help)--pids-limit[Tune container pids limit (set -1 for unlimited)]"
         "($help)--restart=[Restart policy]:restart policy:(no on-failure always unless-stopped)"
     )
     opts_help=("(: -)--help[Print usage]")
