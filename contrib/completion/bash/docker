@@ -2717,6 +2717,68 @@ _docker_diff() {
 	_docker_container_diff
 }
 
+
+_docker_engine() {
+	local subcommands="
+		activate
+		check
+		update
+	"
+	__docker_subcommands "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_engine_activate() {
+	case "$prev" in
+		--containerd|--engine-image|--format|--license|--registry-prefix|--version)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--containerd --display-only --engine-image --format --help --license --quiet --registry-prefix --version" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_engine_check() {
+	case "$prev" in
+		--containerd|--engine-image|--format|--registry-prefix)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--containerd --downgrades --engine-image --format --help --pre-releases --quiet -q --registry-prefix --upgrades" -- "$cur" ) )
+			;;
+	esac
+}
+
+_docker_engine_update() {
+	case "$prev" in
+		--containerd|--engine-image|--registry-prefix|--version)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--containerd --engine-image --help --registry-prefix --version" -- "$cur" ) )
+			;;
+	esac
+}
+
+
 _docker_events() {
 	_docker_system_events
 }
@@ -5395,6 +5457,7 @@ _docker() {
 		config
 		container
 		context
+		engine
 		image
 		network
 		node
