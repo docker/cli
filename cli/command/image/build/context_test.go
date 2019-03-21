@@ -297,3 +297,36 @@ func TestIsArchive(t *testing.T) {
 		assert.Check(t, is.Equal(testcase.expected, IsArchive(testcase.header)), testcase.doc)
 	}
 }
+
+func TestDetectArchiveReader(t *testing.T) {
+	var testcases = []struct {
+		file     string
+		desc     string
+		expected bool
+	}{
+		{
+			file:     "../testdata/tar.test",
+			desc:     "tar file without pax headers",
+			expected: true,
+		},
+		{
+			file:     "../testdata/gittar.test",
+			desc:     "tar file with pax headers",
+			expected: true,
+		},
+		{
+			file:     "../testdata/Dockerfile.test",
+			desc:     "not a tar file",
+			expected: false,
+		},
+	}
+	for _, testcase := range testcases {
+		content, err := os.Open(testcase.file)
+		assert.NilError(t, err)
+		defer content.Close()
+
+		_, isArchive, err := DetectArchiveReader(content)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(testcase.expected, isArchive), testcase.file)
+	}
+}

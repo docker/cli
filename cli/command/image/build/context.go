@@ -89,7 +89,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool, err error) {
 	buf := bufio.NewReader(input)
 
-	magic, err := buf.Peek(archiveHeaderSize)
+	magic, err := buf.Peek(archiveHeaderSize * 2)
 	if err != nil && err != io.EOF {
 		return nil, false, errors.Errorf("failed to peek context header from STDIN: %v", err)
 	}
