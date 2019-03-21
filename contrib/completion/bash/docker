@@ -3333,6 +3333,10 @@ _docker_network_inspect() {
 _docker_network_ls() {
 	local key=$(__docker_map_key_of_current_option '--filter|-f')
 	case "$key" in
+		dangling)
+			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
+			return
+			;;
 		driver)
 			__docker_complete_plugins_bundled --cur "${cur##*=}" --type Network --add macvlan
 			return
@@ -3357,7 +3361,7 @@ _docker_network_ls() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -S = -W "driver id label name scope type" -- "$cur" ) )
+			COMPREPLY=( $( compgen -S = -W "dangling driver id label name scope type" -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
