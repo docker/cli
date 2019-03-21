@@ -8,6 +8,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/docker/cli/cli/command/commands/lazychecks"
+
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
@@ -271,6 +273,12 @@ func hideFeatureFlag(f *pflag.Flag, hasFeature bool, annotation string) {
 	}
 }
 
+func hideFailingFlagLazyChecks(f *pflag.Flag, clientInfo command.ClientInfo, serverInfo command.ServerInfo, clientVersion string) {
+	if lazychecks.EvaluateFlagLazyChacks(f, clientInfo, serverInfo, clientVersion) != nil {
+		f.Hidden = true
+	}
+}
+
 func hideFeatureSubCommand(subcmd *cobra.Command, hasFeature bool, annotation string) {
 	if hasFeature {
 		return
@@ -282,10 +290,12 @@ func hideFeatureSubCommand(subcmd *cobra.Command, hasFeature bool, annotation st
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-	hasBuildKit, err := command.BuildKitEnabled(details.ServerInfo())
+	serverInfo := details.ServerInfo()
+	clientInfo := details.ClientInfo()
+	osType := serverInfo.OSType
+	hasExperimental := serverInfo.HasExperimental
+	hasExperimentalCLI := clientInfo.HasExperimental
+	hasBuildKit, err := command.BuildKitEnabled(serverInfo)
 	if err != nil {
 		return err
 	}
@@ -295,6 +305,7 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 		hideFeatureFlag(f, hasExperimentalCLI, "experimentalCLI")
 		hideFeatureFlag(f, hasBuildKit, "buildkit")
 		hideFeatureFlag(f, !hasBuildKit, "no-buildkit")
+		hideFailingFlagLazyChecks(f, clientInfo, serverInfo, clientVersion)
 		// hide flags not supported by the server
 		if !isOSTypeSupported(f, osType) || !isVersionSupported(f, clientVersion) {
 			f.Hidden = true
@@ -353,8 +364,10 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 
 	if !isLocalOnly(cmd) {
 		clientVersion := details.Client().ClientVersion()
-		osType := details.ServerInfo().OSType
-		hasExperimental := details.ServerInfo().HasExperimental
+		serverInfo := details.ServerInfo()
+		clientInfo := details.ClientInfo()
+		osType := serverInfo.OSType
+		hasExperimental := serverInfo.HasExperimental
 		checks = append(checks,
 			flagAnnotationCheck("version", func(f *pflag.Flag) error {
 				if !isVersionSupported(f, clientVersion) {
@@ -368,6 +381,9 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 				}
 				return nil
 			}),
+			func(f *pflag.Flag) error {
+				return lazychecks.EvaluateFlagLazyChacks(f, clientInfo, serverInfo, clientVersion)
+			},
 		)
 		if !hasExperimental {
 			checks = append(checks, flagAnnotationCheck("experimental", func(f *pflag.Flag) error {

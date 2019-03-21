@@ -16,6 +16,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/command/commands/lazychecks"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -24,6 +26,7 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -151,13 +154,19 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
 	// Platform is not experimental when BuildKit is used
-	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
-	if err == nil && buildkitEnabled {
-		flags.SetAnnotation("platform", "version", []string{"1.38"})
-	} else {
-		flags.SetAnnotation("platform", "version", []string{"1.32"})
-		flags.SetAnnotation("platform", "experimental", nil)
-	}
+	lazychecks.AddLazyFlagCheck(flags, "platform", func(ci command.ClientInfo, si command.ServerInfo, clientVersion string) error {
+		buildkitEnabled, err := command.BuildKitEnabled(si)
+		if err == nil && buildkitEnabled {
+			if versions.LessThan(clientVersion, "1.38") {
+				return fmt.Errorf("with buildkit enabled, --platform flag requires API version 1.38 or greater (current is %s)", clientVersion)
+			}
+		} else {
+			if versions.LessThan(clientVersion, "1.32") || !si.HasExperimental {
+				return fmt.Errorf("with buildkit disabled, --platform requires a daemon with API version 1.32 or greater and experimental enabled")
+			}
+		}
+		return nil
+	})
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)

@@ -9,6 +9,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/command/commands/lazychecks"
+
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	"github.com/docker/cli/cli/debug"
@@ -120,6 +122,26 @@ func commandWithAnnotations(annotations ...kv) *cobra.Command {
 func commandWithParent(parent *cobra.Command, annotations ...kv) *cobra.Command {
 	cmd := commandWithAnnotations(annotations...)
 	parent.AddCommand(cmd)
+	return cmd
+}
+
+type lazyCheckFlag struct {
+	flag  string
+	err   error
+	isSet bool
+}
+
+func commandWithLazyCheckFlag(f lazyCheckFlag) *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "test",
+	}
+	cmd.Flags().String(f.flag, "", "")
+	lazychecks.AddLazyFlagCheck(cmd.Flags(), f.flag, func(_ command.ClientInfo, _ command.ServerInfo, _ string) error {
+		return f.err
+	})
+	if f.isSet {
+		cmd.Flags().Set(f.flag, "value")
+	}
 	return cmd
 }
 
@@ -460,6 +482,24 @@ func TestIsSupported(t *testing.T) {
 				serverExperimental: true,
 			},
 			expectedError: "",
+		},
+		{
+			name: "lazy-check-unset",
+			cmd:  commandWithLazyCheckFlag(lazyCheckFlag{flag: "flag1", isSet: false, err: errors.New("boom")}),
+			details: &testVersionDetails{
+				clientVersion:      "1.25",
+				serverExperimental: true,
+			},
+			expectedError: "",
+		},
+		{
+			name: "lazy-check-set",
+			cmd:  commandWithLazyCheckFlag(lazyCheckFlag{flag: "flag1", isSet: true, err: errors.New("boom")}),
+			details: &testVersionDetails{
+				clientVersion:      "1.25",
+				serverExperimental: true,
+			},
+			expectedError: "boom",
 		},
 	}
 	for _, c := range cases {
