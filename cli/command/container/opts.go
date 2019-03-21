@@ -46,6 +46,7 @@ type containerOptions struct {
 	labels             opts.ListOpts
 	deviceCgroupRules  opts.ListOpts
 	devices            opts.ListOpts
+	gpus               opts.GpuOpts
 	ulimits            *opts.UlimitOpt
 	sysctls            *opts.MapOpts
 	publish            opts.ListOpts
@@ -166,6 +167,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.VarP(&copts.attach, "attach", "a", "Attach to STDIN, STDOUT or STDERR")
 	flags.Var(&copts.deviceCgroupRules, "device-cgroup-rule", "Add a rule to the cgroup allowed devices list")
 	flags.Var(&copts.devices, "device", "Add a host device to the container")
+	flags.Var(&copts.gpus, "gpus", "GPU devices to add to the container ('all' to pass all GPUs)")
+	flags.SetAnnotation("gpus", "version", []string{"1.40"})
 	flags.VarP(&copts.env, "env", "e", "Set environment variables")
 	flags.Var(&copts.envFile, "env-file", "Read in a file of environment variables")
 	flags.StringVar(&copts.entrypoint, "entrypoint", "", "Overwrite the default ENTRYPOINT of the image")
@@ -557,6 +560,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Ulimits:              copts.ulimits.GetList(),
 		DeviceCgroupRules:    copts.deviceCgroupRules.GetAll(),
 		Devices:              deviceMappings,
+		DeviceRequests:       copts.gpus.Value(),
 	}
 
 	config := &container.Config{
