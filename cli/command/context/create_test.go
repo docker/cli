@@ -107,13 +107,6 @@ func TestCreateInvalids(t *testing.T) {
 		},
 		{
 			options: CreateOptions{
-				Name:                     "orchestrator-swarm-no-endpoint",
-				DefaultStackOrchestrator: "swarm",
-			},
-			expecterErr: `docker endpoint configuration is required`,
-		},
-		{
-			options: CreateOptions{
 				Name:                     "orchestrator-kubernetes-no-endpoint",
 				DefaultStackOrchestrator: "kubernetes",
 				Docker:                   map[string]string{},
@@ -185,7 +178,7 @@ func createTestContextWithKube(t *testing.T, cli command.Cli) {
 		Name:                     "test",
 		DefaultStackOrchestrator: "all",
 		Kubernetes: map[string]string{
-			keyFromCurrent: "true",
+			keyFrom: "default",
 		},
 		Docker: map[string]string{},
 	})
@@ -197,4 +190,158 @@ func TestCreateOrchestratorAllKubernetesEndpointFromCurrent(t *testing.T) {
 	defer cleanup()
 	createTestContextWithKube(t, cli)
 	validateTestKubeEndpoint(t, cli.ContextStore(), "test")
+}
+
+func TestCreateFromContext(t *testing.T) {
+	cases := []struct {
+		name                 string
+		description          string
+		orchestrator         string
+		expectedDescription  string
+		docker               map[string]string
+		kubernetes           map[string]string
+		expectedOrchestrator command.Orchestrator
+	}{
+		{
+			name:                 "no-override",
+			expectedDescription:  "original description",
+			expectedOrchestrator: command.OrchestratorSwarm,
+		},
+		{
+			name:                 "override-description",
+			description:          "new description",
+			expectedDescription:  "new description",
+			expectedOrchestrator: command.OrchestratorSwarm,
+		},
+		{
+			name:                 "override-orchestrator",
+			orchestrator:         "kubernetes",
+			expectedDescription:  "original description",
+			expectedOrchestrator: command.OrchestratorKubernetes,
+		},
+	}
+
+	cli, cleanup := makeFakeCli(t)
+	defer cleanup()
+	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
+	defer revert()
+	assert.NilError(t, RunCreate(cli, &CreateOptions{
+		Name:        "original",
+		Description: "original description",
+		Docker: map[string]string{
+			keyHost: "tcp://42.42.42.42:2375",
+		},
+		Kubernetes: map[string]string{
+			keyFrom: "default",
+		},
+		DefaultStackOrchestrator: "swarm",
+	}))
+	assert.NilError(t, RunCreate(cli, &CreateOptions{
+		Name:        "dummy",
+		Description: "dummy description",
+		Docker: map[string]string{
+			keyHost: "tcp://24.24.24.24:2375",
+		},
+		Kubernetes: map[string]string{
+			keyFrom: "default",
+		},
+		DefaultStackOrchestrator: "swarm",
+	}))
+
+	cli.SetCurrentContext("dummy")
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := RunCreate(cli, &CreateOptions{
+				From:                     "original",
+				Name:                     c.name,
+				Description:              c.description,
+				DefaultStackOrchestrator: c.orchestrator,
+				Docker:                   c.docker,
+				Kubernetes:               c.kubernetes,
+			})
+			assert.NilError(t, err)
+			newContext, err := cli.ContextStore().GetContextMetadata(c.name)
+			assert.NilError(t, err)
+			newContextTyped, err := command.GetDockerContext(newContext)
+			assert.NilError(t, err)
+			dockerEndpoint, err := docker.EndpointFromContext(newContext)
+			assert.NilError(t, err)
+			kubeEndpoint := kubernetes.EndpointFromContext(newContext)
+			assert.Check(t, kubeEndpoint != nil)
+			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
+			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
+			assert.Equal(t, kubeEndpoint.Host, "https://someserver")
+		})
+	}
+}
+
+func TestCreateFromCurrent(t *testing.T) {
+	cases := []struct {
+		name                 string
+		description          string
+		orchestrator         string
+		expectedDescription  string
+		expectedOrchestrator command.Orchestrator
+	}{
+		{
+			name:                 "no-override",
+			expectedDescription:  "original description",
+			expectedOrchestrator: command.OrchestratorSwarm,
+		},
+		{
+			name:                 "override-description",
+			description:          "new description",
+			expectedDescription:  "new description",
+			expectedOrchestrator: command.OrchestratorSwarm,
+		},
+		{
+			name:                 "override-orchestrator",
+			orchestrator:         "kubernetes",
+			expectedDescription:  "original description",
+			expectedOrchestrator: command.OrchestratorKubernetes,
+		},
+	}
+
+	cli, cleanup := makeFakeCli(t)
+	defer cleanup()
+	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
+	defer revert()
+	assert.NilError(t, RunCreate(cli, &CreateOptions{
+		Name:        "original",
+		Description: "original description",
+		Docker: map[string]string{
+			keyHost: "tcp://42.42.42.42:2375",
+		},
+		Kubernetes: map[string]string{
+			keyFrom: "default",
+		},
+		DefaultStackOrchestrator: "swarm",
+	}))
+
+	cli.SetCurrentContext("original")
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := RunCreate(cli, &CreateOptions{
+				Name:                     c.name,
+				Description:              c.description,
+				DefaultStackOrchestrator: c.orchestrator,
+			})
+			assert.NilError(t, err)
+			newContext, err := cli.ContextStore().GetContextMetadata(c.name)
+			assert.NilError(t, err)
+			newContextTyped, err := command.GetDockerContext(newContext)
+			assert.NilError(t, err)
+			dockerEndpoint, err := docker.EndpointFromContext(newContext)
+			assert.NilError(t, err)
+			kubeEndpoint := kubernetes.EndpointFromContext(newContext)
+			assert.Check(t, kubeEndpoint != nil)
+			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
+			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
+			assert.Equal(t, kubeEndpoint.Host, "https://someserver")
+		})
+	}
 }

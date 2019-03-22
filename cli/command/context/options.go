@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	keyFromCurrent   = "from-current"
+	keyFrom          = "from"
 	keyHost          = "host"
 	keyCA            = "ca"
 	keyCert          = "cert"
@@ -36,7 +36,7 @@ type configKeyDescription struct {
 
 var (
 	allowedDockerConfigKeys = map[string]struct{}{
-		keyFromCurrent:   {},
+		keyFrom:          {},
 		keyHost:          {},
 		keyCA:            {},
 		keyCert:          {},
@@ -44,15 +44,15 @@ var (
 		keySkipTLSVerify: {},
 	}
 	allowedKubernetesConfigKeys = map[string]struct{}{
-		keyFromCurrent:   {},
+		keyFrom:          {},
 		keyKubeconfig:    {},
 		keyKubecontext:   {},
 		keyKubenamespace: {},
 	}
 	dockerConfigKeysDescriptions = []configKeyDescription{
 		{
-			name:        keyFromCurrent,
-			description: "Copy current Docker endpoint configuration",
+			name:        keyFrom,
+			description: "Copy named context's Docker endpoint configuration",
 		},
 		{
 			name:        keyHost,
@@ -77,8 +77,8 @@ var (
 	}
 	kubernetesConfigKeysDescriptions = []configKeyDescription{
 		{
-			name:        keyFromCurrent,
-			description: "Copy current Kubernetes endpoint configuration",
+			name:        keyFrom,
+			description: "Copy named context's Kubernetes endpoint configuration",
 		},
 		{
 			name:        keyKubeconfig,
@@ -121,12 +121,15 @@ func getDockerEndpoint(dockerCli command.Cli, config map[string]string) (docker.
 	if err := validateConfig(config, allowedDockerConfigKeys); err != nil {
 		return docker.Endpoint{}, err
 	}
-	fromCurrent, err := parseBool(config, keyFromCurrent)
-	if err != nil {
-		return docker.Endpoint{}, err
-	}
-	if fromCurrent {
-		return dockerCli.DockerEndpoint(), nil
+	if contextName, ok := config[keyFrom]; ok {
+		metadata, err := dockerCli.ContextStore().GetContextMetadata(contextName)
+		if err != nil {
+			return docker.Endpoint{}, err
+		}
+		if ep, ok := metadata.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta); ok {
+			return docker.Endpoint{EndpointMeta: ep}, nil
+		}
+		return docker.Endpoint{}, errors.Errorf("unable to get endpoint from context %q", contextName)
 	}
 	tlsData, err := context.TLSDataFromFiles(config[keyCA], config[keyCert], config[keyKey])
 	if err != nil {
@@ -169,25 +172,20 @@ func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*ku
 	if len(config) == 0 {
 		return nil, nil
 	}
-	fromCurrent, err := parseBool(config, keyFromCurrent)
-	if err != nil {
-		return nil, err
-	}
-	if fromCurrent {
-		if dockerCli.CurrentContext() != "" {
-			ctxMeta, err := dockerCli.ContextStore().GetContextMetadata(dockerCli.CurrentContext())
+	if contextName, ok := config[keyFrom]; ok {
+		ctxMeta, err := dockerCli.ContextStore().GetContextMetadata(contextName)
+		if err != nil {
+			return nil, err
+		}
+		endpointMeta := kubernetes.EndpointFromContext(ctxMeta)
+		if endpointMeta != nil {
+			res, err := endpointMeta.WithTLSData(dockerCli.ContextStore(), dockerCli.CurrentContext())
 			if err != nil {
 				return nil, err
 			}
-			endpointMeta := kubernetes.EndpointFromContext(ctxMeta)
-			if endpointMeta != nil {
-				res, err := endpointMeta.WithTLSData(dockerCli.ContextStore(), dockerCli.CurrentContext())
-				if err != nil {
-					return nil, err
-				}
-				return &res, nil
-			}
+			return &res, nil
 		}
+
 		// fallback to env-based kubeconfig
 		kubeconfig := os.Getenv("KUBECONFIG")
 		if kubeconfig == "" {
