@@ -46,8 +46,8 @@ func runDialStdio(dockerCli command.Cli) error {
 		return errors.New("the raw stream connection does not implement halfCloser")
 	}
 
-	stdin2conn := make(chan error)
-	conn2stdout := make(chan error)
+	stdin2conn := make(chan error, 1)
+	conn2stdout := make(chan error, 1)
 	go func() {
 		stdin2conn <- copier(connHalfCloser, &halfReadCloserWrapper{os.Stdin}, "stdin to stream")
 	}()
