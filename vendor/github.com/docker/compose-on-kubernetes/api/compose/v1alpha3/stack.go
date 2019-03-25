@@ -3,6 +3,7 @@ package v1alpha3
 import (
 	"time"
 
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -72,34 +73,48 @@ type StackSpec struct {
 type ServiceConfig struct {
 	Name string `json:"name,omitempty"`
 
-	CapAdd          []string                 `json:"cap_add,omitempty"`
-	CapDrop         []string                 `json:"cap_drop,omitempty"`
-	Command         []string                 `json:"command,omitempty"`
-	Configs         []ServiceConfigObjConfig `json:"configs,omitempty"`
-	Deploy          DeployConfig             `json:"deploy,omitempty"`
-	Entrypoint      []string                 `json:"entrypoint,omitempty"`
-	Environment     map[string]*string       `json:"environment,omitempty"`
-	ExtraHosts      []string                 `json:"extra_hosts,omitempty"`
-	Hostname        string                   `json:"hostname,omitempty"`
-	HealthCheck     *HealthCheckConfig       `json:"health_check,omitempty"`
-	Image           string                   `json:"image,omitempty"`
-	Ipc             string                   `json:"ipc,omitempty"`
-	Labels          map[string]string        `json:"labels,omitempty"`
-	Pid             string                   `json:"pid,omitempty"`
-	Ports           []ServicePortConfig      `json:"ports,omitempty"`
-	Privileged      bool                     `json:"privileged,omitempty"`
-	ReadOnly        bool                     `json:"read_only,omitempty"`
-	Secrets         []ServiceSecretConfig    `json:"secrets,omitempty"`
-	StdinOpen       bool                     `json:"stdin_open,omitempty"`
-	StopGracePeriod *time.Duration           `json:"stop_grace_period,omitempty"`
-	Tmpfs           []string                 `json:"tmpfs,omitempty"`
-	Tty             bool                     `json:"tty,omitempty"`
-	User            *int64                   `json:"user,omitempty"`
-	Volumes         []ServiceVolumeConfig    `json:"volumes,omitempty"`
-	WorkingDir      string                   `json:"working_dir,omitempty"`
-	PullSecret      string                   `json:"pull_secret,omitempty"`
-	PullPolicy      string                   `json:"pull_policy,omitempty"`
+	CapAdd              []string                 `json:"cap_add,omitempty"`
+	CapDrop             []string                 `json:"cap_drop,omitempty"`
+	Command             []string                 `json:"command,omitempty"`
+	Configs             []ServiceConfigObjConfig `json:"configs,omitempty"`
+	Deploy              DeployConfig             `json:"deploy,omitempty"`
+	Entrypoint          []string                 `json:"entrypoint,omitempty"`
+	Environment         map[string]*string       `json:"environment,omitempty"`
+	ExtraHosts          []string                 `json:"extra_hosts,omitempty"`
+	Hostname            string                   `json:"hostname,omitempty"`
+	HealthCheck         *HealthCheckConfig       `json:"health_check,omitempty"`
+	Image               string                   `json:"image,omitempty"`
+	Ipc                 string                   `json:"ipc,omitempty"`
+	Labels              map[string]string        `json:"labels,omitempty"`
+	Pid                 string                   `json:"pid,omitempty"`
+	Ports               []ServicePortConfig      `json:"ports,omitempty"`
+	Privileged          bool                     `json:"privileged,omitempty"`
+	ReadOnly            bool                     `json:"read_only,omitempty"`
+	Secrets             []ServiceSecretConfig    `json:"secrets,omitempty"`
+	StdinOpen           bool                     `json:"stdin_open,omitempty"`
+	StopGracePeriod     *time.Duration           `json:"stop_grace_period,omitempty"`
+	Tmpfs               []string                 `json:"tmpfs,omitempty"`
+	Tty                 bool                     `json:"tty,omitempty"`
+	User                *int64                   `json:"user,omitempty"`
+	Volumes             []ServiceVolumeConfig    `json:"volumes,omitempty"`
+	WorkingDir          string                   `json:"working_dir,omitempty"`
+	PullSecret          string                   `json:"pull_secret,omitempty"`
+	PullPolicy          string                   `json:"pull_policy,omitempty"`
+	InternalPorts       []InternalPort           `json:"internal_ports,omitempty"`
+	InternalServiceType InternalServiceType      `json:"internal_service_type,omitempty"`
 }
+
+// InternalServiceType defines the strategy for defining the Service Type to use for inter-service networking
+type InternalServiceType string
+
+const (
+	// InternalServiceTypeAuto behavior is the same as InternalServiceTypeHeadless if InternalPorts is empty, InternalServiceTypeClusterIP otherwise
+	InternalServiceTypeAuto = InternalServiceType("")
+	// InternalServiceTypeHeadless always create a Headless service
+	InternalServiceTypeHeadless = InternalServiceType("Headless")
+	// InternalServiceTypeClusterIP always create a ClusterIP service
+	InternalServiceTypeClusterIP = InternalServiceType("ClusterIP")
+)
 
 // ServicePortConfig is the port configuration for a service
 // +k8s:deepcopy-gen=true
@@ -269,4 +284,12 @@ func (s *StackStatus) clone() *StackStatus {
 // Clone clones a Stack
 func (s *Stack) Clone() *Stack {
 	return s.clone()
+}
+
+// InternalPort describes a Port exposed internally to other services
+// in the stack
+// +k8s:deepcopy-gen=true
+type InternalPort struct {
+	Port     int32       `json:"port,omitempty"`
+	Protocol v1.Protocol `json:"protocol,omitempty"`
 }

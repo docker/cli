@@ -220,13 +220,11 @@ func newPodInformer(podsClient podListWatch, stackName string, indexers cache.In
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				options.LabelSelector = labels.SelectorForStack(stackName)
-				options.IncludeUninitialized = true
 				return podsClient.List(options)
 			},
 
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				options.LabelSelector = labels.SelectorForStack(stackName)
-				options.IncludeUninitialized = true
 				return podsClient.Watch(options)
 			},
 		},
