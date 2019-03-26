@@ -16,10 +16,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/docker/cli/cli/command/commands/lazychecks"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/commands/lazychecks"
 	"github.com/docker/cli/cli/command/image/build"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"

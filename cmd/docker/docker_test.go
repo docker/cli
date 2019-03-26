@@ -9,10 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/cli/cli/command/commands/lazychecks"
-
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
+	"github.com/docker/cli/cli/command/commands/lazychecks"
 	"github.com/docker/cli/cli/debug"
 	"github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
