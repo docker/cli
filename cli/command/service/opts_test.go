@@ -22,10 +22,9 @@ func TestCredentialSpecOpt(t *testing.T) {
 		expectedErr string
 	}{
 		{
-			name:        "empty",
-			in:          "",
-			value:       swarm.CredentialSpec{},
-			expectedErr: `invalid credential spec: value must be prefixed with "config://", "file://", or "registry://"`,
+			name:  "empty",
+			in:    "",
+			value: swarm.CredentialSpec{},
 		},
 		{
 			name:        "no-prefix",

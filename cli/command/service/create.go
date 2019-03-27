@@ -8,7 +8,9 @@ import (
 	"github.com/docker/cli/cli/command"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -95,15 +97,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		service.TaskTemplate.ContainerSpec.Secrets = secrets
 	}
 
-	specifiedConfigs := opts.configs.Value()
-	if len(specifiedConfigs) > 0 {
-		// parse and validate configs
-		configs, err := ParseConfigs(apiClient, specifiedConfigs)
-		if err != nil {
-			return err
-		}
-		service.TaskTemplate.ContainerSpec.Configs = configs
-	}
+	setConfigs(apiClient, &service, opts)
 
 	if err := resolveServiceImageDigestContentTrust(dockerCli, &service); err != nil {
 		return err
@@ -140,4 +134,43 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 	}
 
 	return waitOnService(ctx, dockerCli, response.ID, opts.quiet)
+}
+
+// setConfigs does double duty: it both sets the ConfigReferences of the
+// service, and it sets the service CredentialSpec. This is because there is an
+// interplay between the CredentialSpec and the Config it depends on.
+func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, opts *serviceOptions) error {
+	specifiedConfigs := opts.configs.Value()
+	// if the user has requested to use a Config, for the CredentialSpec add it
+	// to the specifiedConfigs as a RuntimeTarget.
+	if cs := opts.credentialSpec.Value(); cs != nil && cs.Config != "" {
+		specifiedConfigs = append(specifiedConfigs, &swarm.ConfigReference{
+			ConfigName: cs.Config,
+			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+		})
+	}
+	if len(specifiedConfigs) > 0 {
+		// parse and validate configs
+		configs, err := ParseConfigs(apiClient, specifiedConfigs)
+		if err != nil {
+			return err
+		}
+		service.TaskTemplate.ContainerSpec.Configs = configs
+		// if we have a CredentialSpec Config, find its ID and rewrite the
+		// field on the spec
+		//
+		// we check the opts instead of the service directly because there are
+		// a few layers of nullable objects in the service, which is a PITA
+		// to traverse, but the existence of the option implies that those are
+		// non-null.
+		if cs := opts.credentialSpec.Value(); cs != nil && cs.Config != "" {
+			for _, config := range configs {
+				if config.ConfigName == cs.Config {
+					service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config = config.ConfigID
+				}
+			}
+		}
+	}
+
+	return nil
 }
