@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -238,12 +239,12 @@ func newStackInformer(stacksClient stackListWatch, stackName string) cache.Share
 	return cache.NewSharedInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				options.LabelSelector = labels.SelectorForStack(stackName)
+				options.FieldSelector = fields.OneTermEqualSelector("metadata.name", stackName).String()
 				return stacksClient.List(options)
 			},
 
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				options.LabelSelector = labels.SelectorForStack(stackName)
+				options.FieldSelector = fields.OneTermEqualSelector("metadata.name", stackName).String()
 				return stacksClient.Watch(options)
 			},
 		},
