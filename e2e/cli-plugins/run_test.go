@@ -9,6 +9,8 @@ import (
 	"gotest.tools/icmd"
 )
 
+const shortHFlagDeprecated = "Flag shorthand -h has been deprecated, please use --help\n"
+
 // TestRunNonexisting ensures correct behaviour when running a nonexistent plugin.
 func TestRunNonexisting(t *testing.T) {
 	run, _, cleanup := prepare(t)
@@ -48,6 +50,15 @@ func TestNonexistingHelp(t *testing.T) {
 		// output, so spot check instead having of a golden
 		// with everything in, which will change too frequently.
 		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Err: icmd.None,
+	})
+	// Short -h should be the same, modulo the deprecation message
+	exp := shortHFlagDeprecated + res.Stdout()
+	res = icmd.RunCmd(run("nonexistent", "-h"))
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		// This should be identical to the --help case above
+		Out: exp,
 		Err: icmd.None,
 	})
 }
@@ -91,6 +102,15 @@ func TestBadHelp(t *testing.T) {
 		// output, so spot check instead of a golden with
 		// everything in which will change all the time.
 		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Err: icmd.None,
+	})
+	// Short -h should be the same, modulo the deprecation message
+	exp := shortHFlagDeprecated + res.Stdout()
+	res = icmd.RunCmd(run("badmeta", "-h"))
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		// This should be identical to the --help case above
+		Out: exp,
 		Err: icmd.None,
 	})
 }
@@ -137,6 +157,15 @@ func TestGoodHelp(t *testing.T) {
 	})
 	// This is the same golden file as `TestHelpGood`, above.
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld.golden")
+	// Short -h should be the same, modulo the deprecation message
+	exp := shortHFlagDeprecated + res.Stdout()
+	res = icmd.RunCmd(run("-D", "helloworld", "-h"))
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		// This should be identical to the --help case above
+		Out: exp,
+		Err: icmd.None,
+	})
 }
 
 // TestRunGoodSubcommand ensures correct behaviour when running a valid plugin with a subcommand
