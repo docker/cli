@@ -925,3 +925,326 @@ func TestUpdateSysCtls(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateGetUpdatedConfigs(t *testing.T) {
+	// cannedConfigs is a set of configs that we'll use over and over in the
+	// tests. it's a map of Name to Config
+	cannedConfigs := map[string]*swarm.Config{
+		"bar": {
+			ID: "barID",
+			Spec: swarm.ConfigSpec{
+				Annotations: swarm.Annotations{
+					Name: "bar",
+				},
+			},
+		},
+		"cred": {
+			ID: "credID",
+			Spec: swarm.ConfigSpec{
+				Annotations: swarm.Annotations{
+					Name: "cred",
+				},
+			},
+		},
+		"newCred": {
+			ID: "newCredID",
+			Spec: swarm.ConfigSpec{
+				Annotations: swarm.Annotations{
+					Name: "newCred",
+				},
+			},
+		},
+	}
+	// cannedConfigRefs is the same thing, but with config references instead
+	// instead of ID, however, it just maps an arbitrary string value. this is
+	// so we could have multiple config refs using the same config
+	cannedConfigRefs := map[string]*swarm.ConfigReference{
+		"fooRef": {
+			ConfigID:   "fooID",
+			ConfigName: "foo",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "foo",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		"barRef": {
+			ConfigID:   "barID",
+			ConfigName: "bar",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "bar",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		"bazRef": {
+			ConfigID:   "bazID",
+			ConfigName: "baz",
+			File: &swarm.ConfigReferenceFileTarget{
+				Name: "baz",
+				UID:  "0",
+				GID:  "0",
+				Mode: 0444,
+			},
+		},
+		"credRef": {
+			ConfigID:   "credID",
+			ConfigName: "cred",
+			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+		},
+		"newCredRef": {
+			ConfigID:   "newCredID",
+			ConfigName: "newCred",
+			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+		},
+	}
+
+	type flagVal [2]string
+	type test struct {
+		// the name of the subtest
+		name string
+		// flags are the flags we'll be setting
+		flags []flagVal
+		// oldConfigs are the configs that would already be on the service
+		// it is a slice of strings corresponding to the the key of
+		// cannedConfigRefs
+		oldConfigs []string
+		// oldCredSpec is the credentialSpec being carried over from the old
+		// object
+		oldCredSpec *swarm.CredentialSpec
+		// lookupConfigs are the configs we're expecting to be listed. it is a
+		// slice of strings corresponding to the key of cannedConfigs
+		lookupConfigs []string
+		// expected is the configs we should get as a result. it is a slice of
+		// strings corresponding to the key in cannedConfigRefs
+		expected []string
+	}
+
+	testCases := []test{
+		{
+			name:       "no configs added or removed",
+			oldConfigs: []string{"fooRef"},
+			expected:   []string{"fooRef"},
+		}, {
+			name:          "add a config",
+			flags:         []flagVal{{"config-add", "bar"}},
+			oldConfigs:    []string{"fooRef"},
+			lookupConfigs: []string{"bar"},
+			expected:      []string{"fooRef", "barRef"},
+		}, {
+			name:       "remove a config",
+			flags:      []flagVal{{"config-rm", "bar"}},
+			oldConfigs: []string{"fooRef", "barRef"},
+			expected:   []string{"fooRef"},
+		}, {
+			name:        "include an old credential spec",
+			oldConfigs:  []string{"credRef"},
+			oldCredSpec: &swarm.CredentialSpec{Config: "credID"},
+			expected:    []string{"credRef"},
+		}, {
+			name:          "add a credential spec",
+			oldConfigs:    []string{"fooRef"},
+			flags:         []flagVal{{"credential-spec", "config://cred"}},
+			lookupConfigs: []string{"cred"},
+			expected:      []string{"fooRef", "credRef"},
+		}, {
+			name:          "change a credential spec",
+			oldConfigs:    []string{"fooRef", "credRef"},
+			oldCredSpec:   &swarm.CredentialSpec{Config: "credID"},
+			flags:         []flagVal{{"credential-spec", "config://newCred"}},
+			lookupConfigs: []string{"newCred"},
+			expected:      []string{"fooRef", "newCredRef"},
+		}, {
+			name:          "credential spec no longer config",
+			oldConfigs:    []string{"fooRef", "credRef"},
+			oldCredSpec:   &swarm.CredentialSpec{Config: "credID"},
+			flags:         []flagVal{{"credential-spec", "file://someFile"}},
+			lookupConfigs: []string{},
+			expected:      []string{"fooRef"},
+		}, {
+			name:          "credential spec becomes config",
+			oldConfigs:    []string{"fooRef"},
+			oldCredSpec:   &swarm.CredentialSpec{File: "someFile"},
+			flags:         []flagVal{{"credential-spec", "config://cred"}},
+			lookupConfigs: []string{"cred"},
+			expected:      []string{"fooRef", "credRef"},
+		}, {
+			name:          "remove credential spec",
+			oldConfigs:    []string{"fooRef", "credRef"},
+			oldCredSpec:   &swarm.CredentialSpec{Config: "credID"},
+			flags:         []flagVal{{"credential-spec", ""}},
+			lookupConfigs: []string{},
+			expected:      []string{"fooRef"},
+		}, {
+			name: "just frick my stuff up",
+			// a more complicated test. add barRef, remove bazRef, keep fooRef,
+			// change credentialSpec from credRef to newCredRef
+			oldConfigs:  []string{"fooRef", "bazRef", "credRef"},
+			oldCredSpec: &swarm.CredentialSpec{Config: "cred"},
+			flags: []flagVal{
+				{"config-add", "bar"},
+				{"config-rm", "baz"},
+				{"credential-spec", "config://newCred"},
+			},
+			lookupConfigs: []string{"bar", "newCred"},
+			expected:      []string{"fooRef", "barRef", "newCredRef"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, f := range tc.flags {
+				flags.Set(f[0], f[1])
+			}
+
+			// fakeConfigAPIClientList is actually defined in create_test.go,
+			// but we'll use it here as well
+			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts types.ConfigListOptions) ([]swarm.Config, error) {
+				names := opts.Filters.Get("name")
+				assert.Equal(t, len(names), len(tc.lookupConfigs))
+
+				configs := []swarm.Config{}
+				for _, lookup := range tc.lookupConfigs {
+					assert.Assert(t, is.Contains(names, lookup))
+					cfg, ok := cannedConfigs[lookup]
+					assert.Assert(t, ok)
+					configs = append(configs, *cfg)
+				}
+				return configs, nil
+			}
+
+			// build the actual set of old configs and the container spec
+			oldConfigs := []*swarm.ConfigReference{}
+			for _, config := range tc.oldConfigs {
+				cfg, ok := cannedConfigRefs[config]
+				assert.Assert(t, ok)
+				oldConfigs = append(oldConfigs, cfg)
+			}
+
+			containerSpec := &swarm.ContainerSpec{
+				Configs: oldConfigs,
+				Privileges: &swarm.Privileges{
+					CredentialSpec: tc.oldCredSpec,
+				},
+			}
+
+			finalConfigs, err := getUpdatedConfigs(fakeClient, flags, containerSpec)
+			assert.NilError(t, err)
+
+			// ensure that the finalConfigs consists of all of the expected
+			// configs
+			assert.Equal(t, len(finalConfigs), len(tc.expected),
+				"%v final configs, %v expected",
+				len(finalConfigs), len(tc.expected),
+			)
+			for _, expected := range tc.expected {
+				assert.Assert(t, is.Contains(finalConfigs, cannedConfigRefs[expected]))
+			}
+		})
+	}
+}
+
+func TestUpdateCredSpec(t *testing.T) {
+	type testCase struct {
+		// name is the name of the subtest
+		name string
+		// flagVal is the value we're setting flagCredentialSpec to
+		flagVal string
+		// spec is the existing serviceSpec with its configs
+		spec *swarm.ContainerSpec
+		// expected is the expected value of the credential spec after the
+		// function. it may be nil
+		expected *swarm.CredentialSpec
+	}
+
+	testCases := []testCase{
+		{
+			name:     "add file credential spec",
+			flagVal:  "file://somefile",
+			spec:     &swarm.ContainerSpec{},
+			expected: &swarm.CredentialSpec{File: "somefile"},
+		}, {
+			name:    "remove a file credential spec",
+			flagVal: "",
+			spec: &swarm.ContainerSpec{
+				Privileges: &swarm.Privileges{
+					CredentialSpec: &swarm.CredentialSpec{
+						File: "someFile",
+					},
+				},
+			},
+			expected: nil,
+		}, {
+			name:     "remove when no CredentialSpec exists",
+			flagVal:  "",
+			spec:     &swarm.ContainerSpec{},
+			expected: nil,
+		}, {
+			name:    "add a config credenital spec",
+			flagVal: "config://someConfigName",
+			spec: &swarm.ContainerSpec{
+				Configs: []*swarm.ConfigReference{
+					{
+						ConfigName: "someConfigName",
+						ConfigID:   "someConfigID",
+						Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+					},
+				},
+			},
+			expected: &swarm.CredentialSpec{
+				Config: "someConfigID",
+			},
+		}, {
+			name:    "remove a config credential spec",
+			flagVal: "",
+			spec: &swarm.ContainerSpec{
+				Privileges: &swarm.Privileges{
+					CredentialSpec: &swarm.CredentialSpec{
+						Config: "someConfigID",
+					},
+				},
+			},
+			expected: nil,
+		}, {
+			name:    "update a config credential spec",
+			flagVal: "config://someConfigName",
+			spec: &swarm.ContainerSpec{
+				Configs: []*swarm.ConfigReference{
+					{
+						ConfigName: "someConfigName",
+						ConfigID:   "someConfigID",
+						Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+					},
+				},
+				Privileges: &swarm.Privileges{
+					CredentialSpec: &swarm.CredentialSpec{
+						Config: "someDifferentConfigID",
+					},
+				},
+			},
+			expected: &swarm.CredentialSpec{
+				Config: "someConfigID",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			flags.Set(flagCredentialSpec, tc.flagVal)
+
+			updateCredSpecConfig(flags, tc.spec)
+			// handle the case where tc.spec.Privileges is nil
+			if tc.expected == nil {
+				assert.Assert(t, tc.spec.Privileges == nil || tc.spec.Privileges.CredentialSpec == nil)
+				return
+			}
+
+			assert.Assert(t, tc.spec.Privileges != nil)
+			assert.DeepEqual(t, tc.spec.Privileges.CredentialSpec, tc.expected)
+		})
+	}
+}

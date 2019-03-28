@@ -97,7 +97,9 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		service.TaskTemplate.ContainerSpec.Secrets = secrets
 	}
 
-	setConfigs(apiClient, &service, opts)
+	if err := setConfigs(apiClient, &service, opts); err != nil {
+		return err
+	}
 
 	if err := resolveServiceImageDigestContentTrust(dockerCli, &service); err != nil {
 		return err

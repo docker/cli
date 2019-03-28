@@ -86,19 +86,24 @@ func ParseConfigs(client client.ConfigAPIClient, requestedConfigs []*swarmtypes.
 	ctx := context.Background()
 
 	for _, config := range requestedConfigs {
+		// copy the config, so we don't mutate the args
+		configRef := new(swarmtypes.ConfigReference)
+		*configRef = *config
+
 		if config.Runtime != nil {
 			// by assigning to a map based on ConfigName, if the same Config
 			// is required as a Runtime target for multiple purposes, we only
 			// include it once in the final set of configs.
 			runtimeRefs[config.ConfigName] = config
+			// continue, so we skip the logic below for handling file-type
+			// configs
+			continue
 		}
 
 		if _, exists := configRefs[config.File.Name]; exists {
 			return nil, errors.Errorf("duplicate config target for %s not allowed", config.ConfigName)
 		}
 
-		configRef := new(swarmtypes.ConfigReference)
-		*configRef = *config
 		configRefs[config.File.Name] = configRef
 	}
 
