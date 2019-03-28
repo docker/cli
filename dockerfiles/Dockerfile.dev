@@ -22,3 +22,4 @@ ENV     CGO_ENABLED=0 \
         DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /go/src/github.com/docker/cli
 CMD     sh
+COPY    . .

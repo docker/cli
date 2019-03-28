@@ -17,24 +17,29 @@ ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
 build_docker_image:
-	docker build ${DOCKER_BUILD_ARGS} -t $(DEV_DOCKER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.dev .
+	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
+	cat ./dockerfiles/Dockerfile.dev | docker build ${DOCKER_BUILD_ARGS} -t $(DEV_DOCKER_IMAGE_NAME) -
 
 # build docker image having the linting tools (dockerfiles/Dockerfile.lint)
 .PHONY: build_linter_image
 build_linter_image:
-	docker build ${DOCKER_BUILD_ARGS} -t $(LINTER_IMAGE_NAME) -f ./dockerfiles/Dockerfile.lint .
+	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
+	cat ./dockerfiles/Dockerfile.lint | docker build ${DOCKER_BUILD_ARGS} -t $(LINTER_IMAGE_NAME) -
 
 .PHONY: build_cross_image
 build_cross_image:
-	docker build ${DOCKER_BUILD_ARGS} -t $(CROSS_IMAGE_NAME) -f ./dockerfiles/Dockerfile.cross .
+	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
+	cat ./dockerfiles/Dockerfile.cross | docker build ${DOCKER_BUILD_ARGS} -t $(CROSS_IMAGE_NAME) -
 
 .PHONY: build_shell_validate_image
 build_shell_validate_image:
-	docker build -t $(VALIDATE_IMAGE_NAME) -f ./dockerfiles/Dockerfile.shellcheck .
+	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
+	cat ./dockerfiles/Dockerfile.shellcheck | docker build -t $(VALIDATE_IMAGE_NAME) -
 
 .PHONY: build_binary_native_image
 build_binary_native_image:
-	docker build -t $(BINARY_NATIVE_IMAGE_NAME) -f ./dockerfiles/Dockerfile.binary-native .
+	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
+	cat ./dockerfiles/Dockerfile.binary-native | docker build -t $(BINARY_NATIVE_IMAGE_NAME) -
 
 .PHONY: build_e2e_image
 build_e2e_image:
