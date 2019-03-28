@@ -634,7 +634,8 @@ func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) 
 
 func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
 	// if "external: true"
-	if obj.External.External {
+	switch {
+	case obj.External.External:
 		// handle deprecated external.name
 		if obj.External.Name != "" {
 			if obj.Name != "" {
@@ -651,7 +652,11 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 			}
 		}
 		// if not "external: true"
-	} else {
+	case obj.Driver != "":
+		if obj.File != "" {
+			return obj, errors.Errorf("%[1]s %[2]s: %[1]s.driver and %[1]s.file conflict; only use %[1]s.driver", objType, name)
+		}
+	default:
 		obj.File = absPath(details.WorkingDir, obj.File)
 	}
 
