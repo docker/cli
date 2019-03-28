@@ -40,7 +40,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.VarP(&createOpts.labels, "label", "l", "Config labels")
 	flags.StringVar(&createOpts.templateDriver, "template-driver", "", "Template driver")
-	flags.SetAnnotation("driver", "version", []string{"1.37"})
+	flags.SetAnnotation("template-driver", "version", []string{"1.37"})
 
 	return cmd
 }
