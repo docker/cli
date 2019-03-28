@@ -17,8 +17,8 @@ func TestRunNonexisting(t *testing.T) {
 	res := icmd.RunCmd(run("nonexistent"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 1,
+		Out:      icmd.None,
 	})
-	assert.Assert(t, is.Equal(res.Stdout(), ""))
 	golden.Assert(t, res.Stderr(), "docker-nonexistent-err.golden")
 }
 
@@ -30,8 +30,8 @@ func TestHelpNonexisting(t *testing.T) {
 	res := icmd.RunCmd(run("help", "nonexistent"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 1,
+		Out:      icmd.None,
 	})
-	assert.Assert(t, is.Equal(res.Stdout(), ""))
 	golden.Assert(t, res.Stderr(), "docker-help-nonexistent-err.golden")
 }
 
@@ -48,6 +48,7 @@ func TestNonexistingHelp(t *testing.T) {
 		// output, so spot check instead having of a golden
 		// with everything in, which will change too frequently.
 		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Err: icmd.None,
 	})
 }
 
@@ -59,8 +60,8 @@ func TestRunBad(t *testing.T) {
 	res := icmd.RunCmd(run("badmeta"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 1,
+		Out:      icmd.None,
 	})
-	assert.Assert(t, is.Equal(res.Stdout(), ""))
 	golden.Assert(t, res.Stderr(), "docker-badmeta-err.golden")
 }
 
@@ -72,8 +73,8 @@ func TestHelpBad(t *testing.T) {
 	res := icmd.RunCmd(run("help", "badmeta"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 1,
+		Out:      icmd.None,
 	})
-	assert.Assert(t, is.Equal(res.Stdout(), ""))
 	golden.Assert(t, res.Stderr(), "docker-help-badmeta-err.golden")
 }
 
@@ -90,6 +91,7 @@ func TestBadHelp(t *testing.T) {
 		// output, so spot check instead of a golden with
 		// everything in which will change all the time.
 		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Err: icmd.None,
 	})
 }
 
@@ -102,6 +104,7 @@ func TestRunGood(t *testing.T) {
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Out:      "Hello World!",
+		Err:      icmd.None,
 	})
 }
 
@@ -113,9 +116,11 @@ func TestHelpGood(t *testing.T) {
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "help", "helloworld"))
-	res.Assert(t, icmd.Success)
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		Err:      icmd.None,
+	})
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld.golden")
-	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
 
 // TestGoodHelp ensures correct behaviour when calling a valid plugin
@@ -126,10 +131,12 @@ func TestGoodHelp(t *testing.T) {
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "helloworld", "--help"))
-	res.Assert(t, icmd.Success)
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		Err:      icmd.None,
+	})
 	// This is the same golden file as `TestHelpGood`, above.
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld.golden")
-	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
 
 // TestRunGoodSubcommand ensures correct behaviour when running a valid plugin with a subcommand
@@ -141,6 +148,7 @@ func TestRunGoodSubcommand(t *testing.T) {
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Out:      "Goodbye World!",
+		Err:      icmd.None,
 	})
 }
 
@@ -152,9 +160,11 @@ func TestHelpGoodSubcommand(t *testing.T) {
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "help", "helloworld", "goodbye"))
-	res.Assert(t, icmd.Success)
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		Err:      icmd.None,
+	})
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld-goodbye.golden")
-	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
 
 // TestGoodSubcommandHelp ensures correct behaviour when calling a valid plugin
@@ -165,10 +175,12 @@ func TestGoodSubcommandHelp(t *testing.T) {
 	defer cleanup()
 
 	res := icmd.RunCmd(run("-D", "helloworld", "goodbye", "--help"))
-	res.Assert(t, icmd.Success)
+	res.Assert(t, icmd.Expected{
+		ExitCode: 0,
+		Err:      icmd.None,
+	})
 	// This is the same golden file as `TestHelpGoodSubcommand`, above.
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld-goodbye.golden")
-	assert.Assert(t, is.Equal(res.Stderr(), ""))
 }
 
 // TestCliInitialized tests the code paths which ensure that the Cli
@@ -191,7 +203,7 @@ func TestPluginErrorCode(t *testing.T) {
 	res := icmd.RunCmd(run("helloworld", "exitstatus2"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 2,
+		Out:      icmd.None,
 		Err:      "Exiting with error status 2",
 	})
-	assert.Assert(t, is.Equal(res.Stdout(), ""))
 }
