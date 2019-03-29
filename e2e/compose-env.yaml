@@ -1,0 +1,26 @@
+version: '2.1'
+
+services:
+  registry:
+    image: 'registry:2'
+
+  engine:
+      image: 'docker:${TEST_ENGINE_VERSION:-edge-dind}'
+      privileged: true
+      command: ['--insecure-registry=registry:5000']
+
+  notary-server:
+      build:
+        context: ./testdata
+        dockerfile: Dockerfile.notary-server
+      ports:
+        - 4443:4443
+      command: ['notary-server', '-config=/fixtures/notary-config.json']
+  evil-notary-server:
+      build:
+        context: ./testdata
+        dockerfile: Dockerfile.evil-notary-server
+      ports:
+        - 4444:4443
+      command: ['notary-server', '-config=/fixtures/notary-config.json']
+

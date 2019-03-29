@@ -1,0 +1,2 @@
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+id-foo              name-foo            replicated          0/2                 busybox:latest      *:30000->3232/tcp

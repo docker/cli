@@ -1,0 +1,2 @@
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE        ERROR               PORTS
+id-foo              service-id-foo.1    myimage:mytag       node-name-bar       Ready               Failed 2 hours ago                       

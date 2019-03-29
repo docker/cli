@@ -1,0 +1,4 @@
+ID                  HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION
+nodeID3             node-1-foo          Ready               Active                                  1.13.0
+nodeID1 *           node-2-foo          Ready               Active              Leader              .
+nodeID2             node-10-foo         Ready               Active              Reachable           18.03.0-ce

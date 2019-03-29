@@ -1,0 +1,54 @@
+[
+    {
+        "Config": {
+            "Args": {
+                "Description": "",
+                "Name": "",
+                "Settable": null,
+                "Value": null
+            },
+            "Description": "plugin foo description",
+            "DockerVersion": "17.12.1-ce",
+            "Documentation": "plugin foo documentation",
+            "Entrypoint": [
+                "/foo"
+            ],
+            "Env": null,
+            "Interface": {
+                "Socket": "pluginfoo.sock",
+                "Types": null
+            },
+            "IpcHost": false,
+            "Linux": {
+                "AllowAllDevices": false,
+                "Capabilities": [
+                    "CAP_SYS_ADMIN"
+                ],
+                "Devices": null
+            },
+            "Mounts": null,
+            "Network": {
+                "Type": ""
+            },
+            "PidHost": false,
+            "PropagatedMount": "",
+            "User": {},
+            "WorkDir": "workdir-foo",
+            "rootfs": {
+                "diff_ids": [
+                    "sha256:8603eedd4ea52cebb2f22b45405a3dc8f78ba3e31bf18f27b4547a9ff930e0bd"
+                ],
+                "type": "layers"
+            }
+        },
+        "Enabled": false,
+        "Id": "id-foo",
+        "Name": "name-foo",
+        "Settings": {
+            "Args": null,
+            "Devices": null,
+            "Env": null,
+            "Mounts": null
+        }
+    }
+]

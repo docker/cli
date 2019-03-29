@@ -1,0 +1,12 @@
+{
+	"auths": {},
+	"plugins": {
+		"plugin1": {
+			"data1": "some string",
+			"data2": "42"
+		},
+		"plugin2": {
+			"data3": "some other string"
+		}
+	}
+}

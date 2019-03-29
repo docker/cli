@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Setup, run and teardown e2e test suite in containers.
+set -eu -o pipefail
+
+engine_host=$(./scripts/test/e2e/run setup)
+testexit=0
+
+test_cmd="test"
+if [ -n "${TEST_DEBUG-}" ]; then
+    test_cmd="shell"
+fi
+
+./scripts/test/e2e/run "$test_cmd" "$engine_host" || testexit="$?"
+
+./scripts/test/e2e/run cleanup
+exit "$testexit"

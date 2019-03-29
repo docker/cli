@@ -1,0 +1,30 @@
+version: '3.5'
+services:
+  web:
+    image: registry:5000/alpine:3.6
+    command: top
+    networks: [network1, network2]
+    volumes: [volume1, volume2]
+    secrets: [secret1, secret2]
+    configs: [config1, config2]
+
+networks:
+  network1:
+    name: named-network
+  network2:
+volumes:
+  volume1:
+    name: named-volume
+  volume2:
+secrets:
+  secret1:
+    name: named-secret
+    file: ./data
+  secret2:
+    file: ./data
+configs:
+  config1:
+    name: named-config
+    file: ./data
+  config2:
+    file: ./data

@@ -1,0 +1,17 @@
+
+Usage:	docker helloworld [OPTIONS] COMMAND
+
+A basic Hello World plugin for tests
+
+Options:
+  -c, --context string   Is it Christmas?
+  -D, --debug            Enable debug
+      --pre-run          Log from prerun hook
+      --who string       Who are we addressing?
+
+Commands:
+  apiversion  Print the API version of the server
+  exitstatus2 Exit with status 2
+  goodbye     Say Goodbye instead of Hello
+
+Run 'docker helloworld COMMAND --help' for more information on a command.

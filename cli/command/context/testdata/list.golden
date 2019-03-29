@@ -1,0 +1,5 @@
+NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT            ORCHESTRATOR
+current *           description of current                    https://someswarmserver       https://someserver (default)   all
+default             Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                                  swarm
+other               description of other                      https://someswarmserver       https://someserver (default)   all
+unset               description of unset                      https://someswarmserver       https://someserver (default)   
