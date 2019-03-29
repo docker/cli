@@ -1,0 +1,10 @@
+
+Signatures for signed-repo
+
+SIGNED TAG          DIGEST                     SIGNERS
+green               677265656e2d646967657374   (Repo Admin)
+
+Administrative keys for signed-repo
+
+  Repository Key:	targetsID
+  Root Key:	rootID

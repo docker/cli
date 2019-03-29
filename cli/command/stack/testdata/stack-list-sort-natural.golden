@@ -1,0 +1,4 @@
+NAME                  SERVICES            ORCHESTRATOR
+service-name-1-foo    1                   Swarm
+service-name-2-foo    1                   Swarm
+service-name-10-foo   1                   Swarm

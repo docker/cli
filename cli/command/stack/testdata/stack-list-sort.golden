@@ -1,0 +1,3 @@
+NAME                SERVICES            ORCHESTRATOR
+service-name-bar    1                   Swarm
+service-name-foo    1                   Swarm

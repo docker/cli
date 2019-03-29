@@ -1,0 +1,18 @@
+
+Signatures for signed-repo
+
+SIGNED TAG          DIGEST                     SIGNERS
+blue                626c75652d646967657374     alice
+green               677265656e2d646967657374   (Repo Admin)
+red                 7265642d646967657374       alice, bob
+
+List of signers and their keys for signed-repo
+
+SIGNER              KEYS
+alice               A
+bob                 B
+
+Administrative keys for signed-repo
+
+  Repository Key:	targetsID
+  Root Key:	rootID

@@ -1,0 +1,5 @@
+Pull (1 of 1): registry:5000/trust-pull:latest@sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d
+sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d: Pulling from trust-pull
+Digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d
+Status: Downloaded newer image for registry:5000/trust-pull@sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d
+registry:5000/trust-pull:latest

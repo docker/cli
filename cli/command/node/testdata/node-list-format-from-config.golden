@@ -1,0 +1,3 @@
+nodeID1: nodeHostname1 Ready/Leader
+nodeID2: nodeHostname2 Ready/Reachable
+nodeID3: nodeHostname3 Ready/

@@ -1,0 +1,29 @@
+[
+    {
+        "Id": "",
+        "RepoTags": null,
+        "RepoDigests": null,
+        "Parent": "",
+        "Comment": "",
+        "Created": "",
+        "Container": "",
+        "ContainerConfig": null,
+        "DockerVersion": "",
+        "Author": "",
+        "Config": null,
+        "Architecture": "",
+        "Os": "",
+        "Size": 0,
+        "VirtualSize": 0,
+        "GraphDriver": {
+            "Data": null,
+            "Name": ""
+        },
+        "RootFS": {
+            "Type": ""
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+shellcheck contrib/completion/bash/docker
+find scripts/ -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck

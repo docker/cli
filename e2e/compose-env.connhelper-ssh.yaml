@@ -1,0 +1,9 @@
+version: '2.1'
+
+services:
+  engine:
+      build:
+        context: ./testdata
+        dockerfile: Dockerfile.connhelper-ssh
+      environment:
+        - TEST_CONNHELPER_SSH_ID_RSA_PUB

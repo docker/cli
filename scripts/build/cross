@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Build a binary for all supported platforms
+#
+
+set -eu -o pipefail
+
+BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export SHELL=bash
+
+jobs=(
+    "$BUILDDIR/windows" \
+    "$BUILDDIR/osx" \
+    "GOOS=linux GOARCH=amd64   $BUILDDIR/binary" \
+    "GOOS=linux GOARCH=arm     $BUILDDIR/binary" \
+    "GOOS=linux GOARCH=ppc64le $BUILDDIR/binary" \
+    "GOOS=linux GOARCH=s390x   $BUILDDIR/binary" \
+)
+
+# Outside of circleCI run all at once. On circleCI run two at a time because
+# each container has access to two cores.
+group=${CROSS_GROUP-"all"}
+
+if [ "$group" = "all" ]; then
+
+    echo "Building binaries for all platforms"
+    parallel ::: "${jobs[@]}"
+    exit 0
+
+fi
+
+declare -i start="$group*2"
+parallel ::: "${jobs[@]:$start:2}"

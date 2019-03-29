@@ -1,0 +1,7 @@
+# GitHub code owners
+# See https://github.com/blog/2392-introducing-code-owners
+
+cli/command/stack/**        @silvin-lubecki
+contrib/completion/bash/**  @albers
+contrib/completion/zsh/**   @sdurrheimer
+docs/**                     @thaJeztah
