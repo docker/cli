@@ -58,7 +58,7 @@ Options:
       --dns-option value              Set DNS options (default [])
       --dns-search value              Set custom DNS search domains (default [])
       --domainname string             Container NIS domain name
-      --entrypoint string             Overwrite the default ENTRYPOINT of the image
+      --entrypoint string             Overwrite default ENTRYPOINT of image eg. ["cmd","param1"]
   -e, --env value                     Set environment variables (default [])
       --env-file value                Read in a file of environment variables (default [])
       --expose value                  Expose a port or a range of ports (default [])
