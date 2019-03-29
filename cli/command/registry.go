@@ -28,16 +28,22 @@ func ElectAuthServer(ctx context.Context, cli Cli) string {
 	// used. This is essential in cross-platforms environment, where for
 	// example a Linux client might be interacting with a Windows daemon, hence
 	// the default registry URL might be Windows specific.
-	serverAddress := registry.IndexServer
-	if info, err := cli.Client().Info(ctx); err != nil && debug.IsEnabled() {
-		// Only report the warning if we're in debug mode to prevent nagging during engine initialization workflows
-		fmt.Fprintf(cli.Err(), "Warning: failed to get default registry endpoint from daemon (%v). Using system default: %s\n", err, serverAddress)
-	} else if info.IndexServerAddress == "" && debug.IsEnabled() {
-		fmt.Fprintf(cli.Err(), "Warning: Empty registry endpoint from daemon. Using system default: %s\n", serverAddress)
-	} else {
-		serverAddress = info.IndexServerAddress
+	info, err := cli.Client().Info(ctx)
+	if err != nil {
+		// Daemon is not responding so use system default.
+		if debug.IsEnabled() {
+			// Only report the warning if we're in debug mode to prevent nagging during engine initialization workflows
+			fmt.Fprintf(cli.Err(), "Warning: failed to get default registry endpoint from daemon (%v). Using system default: %s\n", err, registry.IndexServer)
+		}
+		return registry.IndexServer
 	}
-	return serverAddress
+	if info.IndexServerAddress == "" {
+		if debug.IsEnabled() {
+			fmt.Fprintf(cli.Err(), "Warning: Empty registry endpoint from daemon. Using system default: %s\n", registry.IndexServer)
+		}
+		return registry.IndexServer
+	}
+	return info.IndexServerAddress
 }
 
 // EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload
