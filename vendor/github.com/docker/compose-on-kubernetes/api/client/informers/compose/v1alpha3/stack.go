@@ -49,3 +49,26 @@ func (f *stackInformer) Informer() cache.SharedIndexInformer {
 func (f *stackInformer) Lister() v1alpha3.StackLister {
 	return v1alpha3.NewStackLister(f.Informer().GetIndexer())
 }
+
+// NewFilteredStackInformer creates a stack informer with specific list options
+func NewFilteredStackInformer(client clientset.Interface, resyncPeriod time.Duration, tweakListOptions func(*v1.ListOptions)) cache.SharedIndexInformer {
+	return cache.NewSharedIndexInformer(
+		&cache.ListWatch{
+			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
+				return client.ComposeV1alpha3().Stacks(v1.NamespaceAll).List(options)
+			},
+			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
+				return client.ComposeV1alpha3().Stacks(v1.NamespaceAll).Watch(options)
+			},
+		},
+		&compose_v1alpha3.Stack{},
+		resyncPeriod,
+		cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
+	)
+}
