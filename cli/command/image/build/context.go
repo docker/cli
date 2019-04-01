@@ -41,6 +41,12 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 	if err != nil {
 		return err
 	}
+
+	pm, err := fileutils.NewPatternMatcher(excludes)
+	if err != nil {
+		return err
+	}
+
 	return filepath.Walk(contextRoot, func(filePath string, f os.FileInfo, err error) error {
 		if err != nil {
 			if os.IsPermission(err) {
@@ -55,7 +61,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 		// skip this directory/file if it's not in the path, it won't get added to the context
 		if relFilePath, err := filepath.Rel(contextRoot, filePath); err != nil {
 			return err
-		} else if skip, err := fileutils.Matches(relFilePath, excludes); err != nil {
+		} else if skip, err := filepathMatches(pm, relFilePath); err != nil {
 			return err
 		} else if skip {
 			if f.IsDir() {
@@ -79,6 +85,15 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 		}
 		return nil
 	})
+}
+
+func filepathMatches(matcher *fileutils.PatternMatcher, file string) (bool, error) {
+	file = filepath.Clean(file)
+	if file == "." {
+		// Don't let them exclude everything, kind of silly.
+		return false, nil
+	}
+	return matcher.Matches(file)
 }
 
 // DetectArchiveReader detects whether the input stream is an archive or a
