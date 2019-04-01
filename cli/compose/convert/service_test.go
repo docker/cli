@@ -318,6 +318,7 @@ func TestConvertCredentialSpec(t *testing.T) {
 		name        string
 		in          composetypes.CredentialSpecConfig
 		out         *swarm.CredentialSpec
+		configs     []*swarm.ConfigReference
 		expectedErr string
 	}{
 		{
@@ -344,9 +345,40 @@ func TestConvertCredentialSpec(t *testing.T) {
 			expectedErr: `invalid credential spec: cannot specify both "Config", "File", and "Registry"`,
 		},
 		{
+			name:        "missing-config-reference",
+			in:          composetypes.CredentialSpecConfig{Config: "missing"},
+			expectedErr: "invalid credential spec: spec specifies config missing, but no such config can be found",
+			configs: []*swarm.ConfigReference{
+				{
+					ConfigName: "someName",
+					ConfigID:   "missing",
+				},
+			},
+		},
+		{
+			name: "namespaced-config",
+			in:   composetypes.CredentialSpecConfig{Config: "name"},
+			configs: []*swarm.ConfigReference{
+				{
+					ConfigName: "namespaced-config_name",
+					ConfigID:   "someID",
+				},
+			},
+			out: &swarm.CredentialSpec{Config: "someID"},
+		},
+		{
 			name: "config",
-			in:   composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq"},
-			out:  &swarm.CredentialSpec{Config: "0bt9dmxjvjiqermk6xrop3ekq"},
+			in:   composetypes.CredentialSpecConfig{Config: "someName"},
+			configs: []*swarm.ConfigReference{
+				{
+					ConfigName: "someOtherName",
+					ConfigID:   "someOtherID",
+				}, {
+					ConfigName: "someName",
+					ConfigID:   "someID",
+				},
+			},
+			out: &swarm.CredentialSpec{Config: "someID"},
 		},
 		{
 			name: "file",
@@ -363,7 +395,8 @@ func TestConvertCredentialSpec(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			swarmSpec, err := convertCredentialSpec(tc.in)
+			namespace := NewNamespace(tc.name)
+			swarmSpec, err := convertCredentialSpec(namespace, tc.in, tc.configs)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, err, tc.expectedErr)
@@ -502,9 +535,14 @@ func TestConvertServiceSecrets(t *testing.T) {
 
 func TestConvertServiceConfigs(t *testing.T) {
 	namespace := Namespace{name: "foo"}
-	configs := []composetypes.ServiceConfigObjConfig{
-		{Source: "foo_config"},
-		{Source: "bar_config"},
+	service := composetypes.ServiceConfig{
+		Configs: []composetypes.ServiceConfigObjConfig{
+			{Source: "foo_config"},
+			{Source: "bar_config"},
+		},
+		CredentialSpec: composetypes.CredentialSpecConfig{
+			Config: "baz_config",
+		},
 	}
 	configSpecs := map[string]composetypes.ConfigObjConfig{
 		"foo_config": {
@@ -513,18 +551,23 @@ func TestConvertServiceConfigs(t *testing.T) {
 		"bar_config": {
 			Name: "bar_config",
 		},
+		"baz_config": {
+			Name: "baz_config",
+		},
 	}
 	client := &fakeClient{
 		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
+			assert.Check(t, is.Contains(opts.Filters.Get("name"), "baz_config"))
 			return []swarm.Config{
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
+				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "baz_config"}}},
 			}, nil
 		},
 	}
-	refs, err := convertServiceConfigObjs(client, namespace, configs, configSpecs)
+	refs, err := convertServiceConfigObjs(client, namespace, service, configSpecs)
 	assert.NilError(t, err)
 	expected := []*swarm.ConfigReference{
 		{
@@ -535,6 +578,10 @@ func TestConvertServiceConfigs(t *testing.T) {
 				GID:  "0",
 				Mode: 0444,
 			},
+		},
+		{
+			ConfigName: "baz_config",
+			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
 		},
 		{
 			ConfigName: "foo_config",

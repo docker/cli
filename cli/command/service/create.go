@@ -169,6 +169,9 @@ func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, op
 			for _, config := range configs {
 				if config.ConfigName == cs.Config {
 					service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config = config.ConfigID
+					// we've found the right config, no need to keep iterating
+					// through the rest of them.
+					break
 				}
 			}
 		}
