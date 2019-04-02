@@ -103,7 +103,7 @@ type Config struct {
 	Volumes  map[string]VolumeConfig    `yaml:",omitempty" json:"volumes,omitempty"`
 	Secrets  map[string]SecretConfig    `yaml:",omitempty" json:"secrets,omitempty"`
 	Configs  map[string]ConfigObjConfig `yaml:",omitempty" json:"configs,omitempty"`
-	Extras   map[string]interface{}     `yaml:",inline", json:"-"`
+	Extras   map[string]interface{}     `yaml:",inline" json:"-"`
 }
 
 // MarshalJSON makes Config implement json.Marshaler
