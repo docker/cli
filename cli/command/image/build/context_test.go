@@ -241,6 +241,7 @@ func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
 // createTestTempDir creates a temporary directory for testing.
 // It returns the created path and a cleanup function which is meant to be used as deferred call.
 // When an error occurs, it terminates the test.
+//nolint: unparam
 func createTestTempDir(t *testing.T, prefix string) (string, func()) {
 	path, err := ioutil.TempDir("", prefix)
 	assert.NilError(t, err)
