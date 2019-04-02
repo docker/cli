@@ -393,11 +393,6 @@ func TestGetSignerRolesWithKeyIDs(t *testing.T) {
 		"bob":   {"key71", "key72"},
 	}
 
-	var roleWithSigs []client.RoleWithSignatures
-	for _, role := range roles {
-		roleWithSig := client.RoleWithSignatures{Role: role, Signatures: nil}
-		roleWithSigs = append(roleWithSigs, roleWithSig)
-	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(roles)
 	assert.Check(t, is.DeepEqual(expectedSignerRoleToKeyIDs, signerRoleToKeyIDs))
 }
