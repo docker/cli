@@ -177,7 +177,7 @@ func TestConvertEndpointSpec(t *testing.T) {
 			Published: 80,
 		},
 	}
-	endpoint, err := convertEndpointSpec("vip", source)
+	endpoint := convertEndpointSpec("vip", source)
 
 	expected := swarm.EndpointSpec{
 		Mode: swarm.ResolutionMode(strings.ToLower("vip")),
@@ -195,7 +195,6 @@ func TestConvertEndpointSpec(t *testing.T) {
 		},
 	}
 
-	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, *endpoint))
 }
 
@@ -275,9 +274,7 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 }
 
 func TestConvertDNSConfigEmpty(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nil, nil)
-
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nil, nil)
 	assert.Check(t, is.DeepEqual((*swarm.DNSConfig)(nil), dnsConfig))
 }
 
@@ -287,8 +284,7 @@ var (
 )
 
 func TestConvertDNSConfigAll(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nameservers, search)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      search,
@@ -296,8 +292,7 @@ func TestConvertDNSConfigAll(t *testing.T) {
 }
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nameservers, nil)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      nil,
@@ -305,8 +300,7 @@ func TestConvertDNSConfigNameservers(t *testing.T) {
 }
 
 func TestConvertDNSConfigSearch(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nil, search)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nil, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
