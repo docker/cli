@@ -1,18 +1,15 @@
-FROM    golang:1.12.1-alpine
+FROM    golang:1.12.1 as build
+ARG     GOLANGCI_LINTER_SHA=v1.16.0
 
-RUN     apk add -U git
-
-ARG     GOMETALINTER_SHA=v2.0.6
-RUN     go get -d github.com/alecthomas/gometalinter && \
-        cd /go/src/github.com/alecthomas/gometalinter && \
-        git checkout -q "$GOMETALINTER_SHA" && \
-        go build -v -o /usr/local/bin/gometalinter . && \ 
-        gometalinter --install && \
-        rm -rf /go/src/* /go/pkg/*
-
-WORKDIR /go/src/github.com/docker/cli
 ENV     CGO_ENABLED=0
+RUN     GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@$GOLANGCI_LINTER_SHA
+
+FROM golang:1.12.1-alpine as lint
+
+COPY --from=build /go/bin/golangci-lint /usr/local/bin
+WORKDIR /go/src/github.com/docker/cli
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
-ENTRYPOINT ["/usr/local/bin/gometalinter"]
-CMD     ["--config=gometalinter.json", "./..."]
+ENV     CGO_ENABLED=0
+ENTRYPOINT ["/usr/local/bin/golangci-lint"]
+CMD     ["run", "--config=.golangci.yml"]
 COPY    . .

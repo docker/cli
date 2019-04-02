@@ -1,0 +1,35 @@
+run:
+  deadline: 3m
+  skip-dirs:
+    - cli/command/stack/kubernetes/api/openapi
+    - cli/command/stack/kubernetes/api/client
+  skip-files:
+    - cli/compose/schema/bindata.go
+    - .*generated.*
+    - parameter .* always receives
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosimple
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - unconvert
+    - unparam
+    - unused
+    - vet
+linters-settings:
+  nakedret:
+    command: nakedret
+    pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+  gocyclo:
+    min-complexity: 16
+  lll:
+    line-length: 200
