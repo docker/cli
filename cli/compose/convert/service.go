@@ -66,11 +66,7 @@ func Service(
 	configs []*swarm.ConfigReference,
 ) (swarm.ServiceSpec, error) {
 	name := namespace.Scope(service.Name)
-
-	endpoint, err := convertEndpointSpec(service.Deploy.EndpointMode, service.Ports)
-	if err != nil {
-		return swarm.ServiceSpec{}, err
-	}
+	endpoint := convertEndpointSpec(service.Deploy.EndpointMode, service.Ports)
 
 	mode, err := convertDeployMode(service.Deploy.Mode, service.Deploy.Replicas)
 	if err != nil {
@@ -103,10 +99,7 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
-	dnsConfig, err := convertDNSConfig(service.DNS, service.DNSSearch)
-	if err != nil {
-		return swarm.ServiceSpec{}, err
-	}
+	dnsConfig := convertDNSConfig(service.DNS, service.DNSSearch)
 
 	var privileges swarm.Privileges
 	privileges.CredentialSpec, err = convertCredentialSpec(service.CredentialSpec)
@@ -535,7 +528,7 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 	return resources, nil
 }
 
-func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) (*swarm.EndpointSpec, error) {
+func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) *swarm.EndpointSpec {
 	portConfigs := []swarm.PortConfig{}
 	for _, port := range source {
 		portConfig := swarm.PortConfig{
@@ -554,7 +547,7 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 	return &swarm.EndpointSpec{
 		Mode:  swarm.ResolutionMode(strings.ToLower(endpointMode)),
 		Ports: portConfigs,
-	}, nil
+	}
 }
 
 func convertEnvironment(source map[string]*string) []string {
@@ -589,14 +582,14 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	return serviceMode, nil
 }
 
-func convertDNSConfig(DNS []string, DNSSearch []string) (*swarm.DNSConfig, error) {
+func convertDNSConfig(DNS []string, DNSSearch []string) *swarm.DNSConfig {
 	if DNS != nil || DNSSearch != nil {
 		return &swarm.DNSConfig{
 			Nameservers: DNS,
 			Search:      DNSSearch,
-		}, nil
+		}
 	}
-	return nil, nil
+	return nil
 }
 
 func convertCredentialSpec(spec composetypes.CredentialSpecConfig) (*swarm.CredentialSpec, error) {
