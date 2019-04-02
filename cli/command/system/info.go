@@ -88,9 +88,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	fmt.Fprintln(dockerCli.Out(), "Client:")
 	if info.ClientInfo != nil {
-		if err := prettyPrintClientInfo(dockerCli, *info.ClientInfo); err != nil {
-			info.ClientErrors = append(info.ClientErrors, err.Error())
-		}
+		prettyPrintClientInfo(dockerCli, *info.ClientInfo)
 	}
 	for _, err := range info.ClientErrors {
 		fmt.Fprintln(dockerCli.Out(), "ERROR:", err)
@@ -113,7 +111,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	return nil
 }
 
-func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
+func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
 
 	if len(info.Plugins) > 0 {
@@ -134,8 +132,6 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
 	if len(info.Warnings) > 0 {
 		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
 	}
-
-	return nil
 }
 
 // nolint: gocyclo
