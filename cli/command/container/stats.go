@@ -208,7 +208,9 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	}
 
 	var err error
-	for range time.Tick(500 * time.Millisecond) {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	for range ticker.C {
 		cleanScreen()
 		ccstats := []StatsEntry{}
 		cStats.mu.Lock()
