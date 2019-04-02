@@ -108,8 +108,7 @@ func generateKeyAndOutputPubPEM(keyName string, privKeyStore trustmanager.KeySto
 		return pem.Block{}, err
 	}
 
-	privKeyStore.AddKey(trustmanager.KeyInfo{Role: data.RoleName(keyName)}, privKey)
-	if err != nil {
+	if err := privKeyStore.AddKey(trustmanager.KeyInfo{Role: data.RoleName(keyName)}, privKey); err != nil {
 		return pem.Block{}, err
 	}
 
