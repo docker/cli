@@ -145,7 +145,7 @@ func TestRunLogin(t *testing.T) {
 
 			if tc.inputStoredCred != nil {
 				cred := *tc.inputStoredCred
-				configfile.GetCredentialsStore(cred.ServerAddress).Store(cred)
+				assert.NilError(t, configfile.GetCredentialsStore(cred.ServerAddress).Store(cred))
 			}
 			loginErr := runLogin(cli, tc.inputLoginOption)
 			if tc.expectedErr != "" {
