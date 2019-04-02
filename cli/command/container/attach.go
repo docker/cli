@@ -138,10 +138,6 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		return err
 	}
 
-	if errAttach != nil {
-		return errAttach
-	}
-
 	return getExitStatus(errC, resultC)
 }
 
