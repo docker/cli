@@ -270,7 +270,7 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	}
 
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(configs)))
+	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
 func TestConvertDNSConfigEmpty(t *testing.T) {
