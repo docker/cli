@@ -1,20 +1,23 @@
+# syntax=docker/dockerfile:1.1.3-experimental
+
 ARG GO_VERSION=1.12.12
+ARG GOLANGCI_LINTER_SHA="v1.21.0"
 
-FROM    golang:${GO_VERSION}-alpine
+FROM    golang:${GO_VERSION}-alpine AS build
+ENV     CGO_ENABLED=0
+RUN     apk add --no-cache git
+ARG     GOLANGCI_LINTER_SHA
+ARG     GO111MODULE=on
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+        go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINTER_SHA}
 
-RUN     apk add -U git
-
-ARG     GOMETALINTER_SHA=v2.0.6
-RUN     go get -d github.com/alecthomas/gometalinter && \
-        cd /go/src/github.com/alecthomas/gometalinter && \
-        git checkout -q "$GOMETALINTER_SHA" && \
-        go build -v -o /usr/local/bin/gometalinter . && \ 
-        gometalinter --install && \
-        rm -rf /go/src/* /go/pkg/*
-
-WORKDIR /go/src/github.com/docker/cli
+FROM    golang:${GO_VERSION}-alpine AS lint
 ENV     CGO_ENABLED=0
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
-ENTRYPOINT ["/usr/local/bin/gometalinter"]
-CMD     ["--config=gometalinter.json", "./..."]
+COPY --from=build /go/bin/golangci-lint /usr/local/bin
+WORKDIR /go/src/github.com/docker/cli
+ENV     GOGC=75
+ENTRYPOINT ["/usr/local/bin/golangci-lint"]
+CMD     ["run", "--config=.golangci.yml"]
 COPY    . .
