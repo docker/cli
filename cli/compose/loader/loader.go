@@ -753,6 +753,7 @@ func transformServiceVolumeConfig(data interface{}) (interface{}, error) {
 	}
 }
 
+// nolint: unparam
 func transformServiceNetworkMap(value interface{}) (interface{}, error) {
 	if list, ok := value.([]interface{}); ok {
 		mapValue := map[interface{}]interface{}{}
@@ -764,6 +765,7 @@ func transformServiceNetworkMap(value interface{}) (interface{}, error) {
 	return value, nil
 }
 
+// nolint: unparam
 func transformStringOrNumberList(value interface{}) (interface{}, error) {
 	list := value.([]interface{})
 	result := make([]string, len(list))
