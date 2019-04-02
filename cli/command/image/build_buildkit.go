@@ -476,16 +476,13 @@ func parseSecret(value string) (*secretsprovider.FileSource, error) {
 func parseSSHSpecs(sl []string) (session.Attachable, error) {
 	configs := make([]sshprovider.AgentConfig, 0, len(sl))
 	for _, v := range sl {
-		c, err := parseSSH(v)
-		if err != nil {
-			return nil, err
-		}
+		c := parseSSH(v)
 		configs = append(configs, *c)
 	}
 	return sshprovider.NewSSHAgentProvider(configs)
 }
 
-func parseSSH(value string) (*sshprovider.AgentConfig, error) {
+func parseSSH(value string) *sshprovider.AgentConfig {
 	parts := strings.SplitN(value, "=", 2)
 	cfg := sshprovider.AgentConfig{
 		ID: parts[0],
@@ -493,5 +490,5 @@ func parseSSH(value string) (*sshprovider.AgentConfig, error) {
 	if len(parts) > 1 {
 		cfg.Paths = strings.Split(parts[1], ",")
 	}
-	return &cfg, nil
+	return &cfg
 }
