@@ -99,6 +99,7 @@ func ExactArgs(number int) cobra.PositionalArgs {
 	}
 }
 
+//nolint: unparam
 func pluralize(word string, number int) string {
 	if number == 1 {
 		return word
