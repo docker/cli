@@ -28,7 +28,7 @@ func TestNetworkOptLegacySyntax(t *testing.T) {
 	}
 }
 
-func TestNetworkOptCompleteSyntax(t *testing.T) {
+func TestNetworkOptAdvancedSyntax(t *testing.T) {
 	testCases := []struct {
 		value    string
 		expected []NetworkAttachmentOpts
@@ -69,13 +69,15 @@ func TestNetworkOptCompleteSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		var network NetworkOpt
-		assert.NilError(t, network.Set(tc.value))
-		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
+		t.Run(tc.value, func(t *testing.T) {
+			var network NetworkOpt
+			assert.NilError(t, network.Set(tc.value))
+			assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
+		})
 	}
 }
 
-func TestNetworkOptInvalidSyntax(t *testing.T) {
+func TestNetworkOptAdvancedSyntaxInvalid(t *testing.T) {
 	testCases := []struct {
 		value         string
 		expectedError string
@@ -94,7 +96,9 @@ func TestNetworkOptInvalidSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		var network NetworkOpt
-		assert.ErrorContains(t, network.Set(tc.value), tc.expectedError)
+		t.Run(tc.value, func(t *testing.T) {
+			var network NetworkOpt
+			assert.ErrorContains(t, network.Set(tc.value), tc.expectedError)
+		})
 	}
 }

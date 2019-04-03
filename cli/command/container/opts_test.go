@@ -390,6 +390,139 @@ func TestParseDevice(t *testing.T) {
 
 }
 
+func TestParseNetworkConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		flags       []string
+		expected    map[string]*networktypes.EndpointSettings
+		expectedCfg container.HostConfig
+		expectedErr string
+	}{
+		{
+			name:        "single-network-legacy",
+			flags:       []string{"--network", "net1"},
+			expected:    map[string]*networktypes.EndpointSettings{"net1": {}},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "single-network-advanced",
+			flags:       []string{"--network", "name=net1"},
+			expected:    map[string]*networktypes.EndpointSettings{"net1": {}},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name: "single-network-legacy-with-options",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "name=net1",
+				"--network-alias", "web1",
+				"--network-alias", "web2",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links:   []string{"foo:bar", "bar:baz"},
+					Aliases: []string{"web1", "web2"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name: "multiple-network-advanced-mixed",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "name=net1,driver-opt=field1=value1",
+				"--network-alias", "web1",
+				"--network-alias", "web2",
+				"--network", "net2",
+				"--network", "name=net3,alias=web3,driver-opt=field3=value3",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					DriverOpts: map[string]string{"field1": "value1"},
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links:   []string{"foo:bar", "bar:baz"},
+					Aliases: []string{"web1", "web2"},
+				},
+				"net2": {},
+				"net3": {
+					DriverOpts: map[string]string{"field3": "value3"},
+					Aliases:    []string{"web3"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:  "single-network-advanced-with-options",
+			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2"},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					DriverOpts: map[string]string{
+						"field1": "value1",
+						"field2": "value2",
+					},
+					Aliases: []string{"web1", "web2"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "multiple-networks",
+			flags:       []string{"--network", "net1", "--network", "name=net2"},
+			expected:    map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "conflict-network",
+			flags:       []string{"--network", "duplicate", "--network", "name=duplicate"},
+			expectedErr: `network "duplicate" is specified multiple times`,
+		},
+		{
+			name:        "conflict-options",
+			flags:       []string{"--network", "name=net1,alias=web1", "--network-alias", "web1"},
+			expectedErr: `conflicting options: cannot specify both --network-alias and per-network alias`,
+		},
+		{
+			name:        "invalid-mixed-network-types",
+			flags:       []string{"--network", "name=host", "--network", "net1"},
+			expectedErr: `conflicting options: cannot attach both user-defined and non-user-defined network-modes`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, hConfig, nwConfig, err := parseRun(tc.flags)
+
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
+				return
+			}
+
+			assert.NilError(t, err)
+			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedCfg.NetworkMode)
+			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
+		})
+	}
+}
+
 func TestParseModes(t *testing.T) {
 	// pid ko
 	flags, copts := setupRunFlags()
