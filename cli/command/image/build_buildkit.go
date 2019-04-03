@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -190,8 +191,11 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 
 	eg, ctx := errgroup.WithContext(ctx)
 
+	dialSession := func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
+		return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
+	}
 	eg.Go(func() error {
-		return s.Run(context.TODO(), dockerCli.Client().DialSession)
+		return s.Run(context.TODO(), dialSession)
 	})
 
 	buildID := stringid.GenerateRandomID()
