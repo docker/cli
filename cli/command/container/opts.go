@@ -720,6 +720,12 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if len(n.Links) > 0 && copts.links.Len() > 0 {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --link and per-network links"))
 	}
+	if n.IPv4Address != "" && copts.ipv4Address != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip and per-network IPv4 address"))
+	}
+	if n.IPv6Address != "" && copts.ipv6Address != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
+	}
 	if copts.aliases.Len() > 0 {
 		n.Aliases = make([]string, copts.aliases.Len())
 		copy(n.Aliases, copts.aliases.GetAll())
@@ -728,10 +734,12 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetAll())
 	}
-
-	// TODO add IPv4/IPv6 options to the csv notation for --network, and error-out in case of conflicting options
-	n.IPv4Address = copts.ipv4Address
-	n.IPv6Address = copts.ipv6Address
+	if copts.ipv4Address != "" {
+		n.IPv4Address = copts.ipv4Address
+	}
+	if copts.ipv6Address != "" {
+		n.IPv6Address = copts.ipv6Address
+	}
 
 	// TODO should linkLocalIPs be added to the _first_ network only, or to _all_ networks? (should this be a per-network option as well?)
 	if copts.linkLocalIPs.Len() > 0 {

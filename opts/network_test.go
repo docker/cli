@@ -59,6 +59,17 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 			},
 		},
 		{
+			value: "name=docknet1,ip=172.20.88.22,ip6=2001:db8::8822",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:      "docknet1",
+					Aliases:     []string{},
+					IPv4Address: "172.20.88.22",
+					IPv6Address: "2001:db8::8822",
+				},
+			},
+		},
+		{
 			value: "name=docknet1",
 			expected: []NetworkAttachmentOpts{
 				{
