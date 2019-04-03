@@ -135,7 +135,7 @@ func TestHelpGood(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("-D", "help", "helloworld"))
+	res := icmd.RunCmd(run("-l", "info", "help", "helloworld"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Err:      icmd.None,
@@ -150,7 +150,7 @@ func TestGoodHelp(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("-D", "helloworld", "--help"))
+	res := icmd.RunCmd(run("-l", "info", "helloworld", "--help"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Err:      icmd.None,
@@ -159,7 +159,7 @@ func TestGoodHelp(t *testing.T) {
 	golden.Assert(t, res.Stdout(), "docker-help-helloworld.golden")
 	// Short -h should be the same, modulo the deprecation message
 	exp := shortHFlagDeprecated + res.Stdout()
-	res = icmd.RunCmd(run("-D", "helloworld", "-h"))
+	res = icmd.RunCmd(run("-l", "info", "helloworld", "-h"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		// This should be identical to the --help case above
@@ -188,7 +188,7 @@ func TestHelpGoodSubcommand(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("-D", "help", "helloworld", "goodbye"))
+	res := icmd.RunCmd(run("-l", "info", "help", "helloworld", "goodbye"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Err:      icmd.None,
@@ -203,7 +203,7 @@ func TestGoodSubcommandHelp(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("-D", "helloworld", "goodbye", "--help"))
+	res := icmd.RunCmd(run("-l", "info", "helloworld", "goodbye", "--help"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		Err:      icmd.None,

@@ -1,6 +1,7 @@
 package cliplugins
 
 import (
+	"os"
 	"testing"
 
 	"gotest.tools/icmd"
@@ -45,13 +46,13 @@ func TestClashWithGlobalArgs(t *testing.T) {
 			name:        "short-with-val",
 			args:        []string{"-c", "Christmas"},
 			expectedOut: "Merry Christmas!",
-			expectedErr: "",
+			expectedErr: icmd.None,
 		},
 		{
 			name:        "short-with-val",
 			args:        []string{"--context", "Christmas"},
 			expectedOut: "Merry Christmas!",
-			expectedErr: "",
+			expectedErr: icmd.None,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -59,6 +60,60 @@ func TestClashWithGlobalArgs(t *testing.T) {
 			res := icmd.RunCmd(run(args...))
 			res.Assert(t, icmd.Expected{
 				ExitCode: 0,
+				Out:      tc.expectedOut,
+				Err:      tc.expectedErr,
+			})
+		})
+	}
+}
+
+// TestGlobalArgsOnlyParsedOnce checks that global args are only parsed
+// once (cf https://github.com/docker/cli/issues/1801). These tests
+// rely on `-H` being a list type (i.e. NewNamedListOptsRef) which
+// reject multiple uses dynamically (see `getServerHost()` in
+// github.com/docker/cli/cli/command/cli.go) in order to detect this
+// scenario.
+func TestGlobalArgsOnlyParsedOnce(t *testing.T) {
+	run, _, cleanup := prepare(t)
+	defer cleanup()
+
+	// We can rely on `$DOCKER_HOST` being set due to the call to
+	// `environment.Setup` in our `TestMain`.
+	dh := os.Getenv("DOCKER_HOST")
+
+	for _, tc := range []struct {
+		name                     string
+		args                     []string
+		expectedExitCode         int
+		expectedOut, expectedErr string
+	}{
+		{
+			// This is checking the precondition wrt -H mentioned in the function comment
+			name:             "fails-if-H-used-twice",
+			args:             []string{"-H", dh, "-H", dh, "version", "-f", "{{.Client.Version}}"},
+			expectedExitCode: 1,
+			expectedOut:      icmd.None,
+			expectedErr:      "Please specify only one -H",
+		},
+		{
+			name:             "builtin",
+			args:             []string{"-H", dh, "version", "-f", "{{.Client.Version}}"},
+			expectedExitCode: 0,
+			expectedOut:      "", // Will be the client version, but the specifics aren't important so long as stderr is empty.
+			expectedErr:      icmd.None,
+		},
+		{
+			name:             "plugin",
+			args:             []string{"-H", dh, "helloworld", "apiversion"},
+			expectedExitCode: 0,
+			expectedOut:      "", // Will be the client version, but the specifics aren't important so long as stderr is empty.
+			expectedErr:      icmd.None,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := icmd.RunCmd(run(tc.args...))
+			res.Assert(t, icmd.Expected{
+				ExitCode: tc.expectedExitCode,
 				Out:      tc.expectedOut,
 				Err:      tc.expectedErr,
 			})

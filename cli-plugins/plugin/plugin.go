@@ -40,10 +40,13 @@ func runPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 		return err
 	}
 
-	cmd, _, err := tcmd.HandleGlobalFlags()
+	cmd, args, err := tcmd.HandleGlobalFlags()
 	if err != nil {
 		return err
 	}
+	// We've parsed global args already, so reset args to those
+	// which remain.
+	cmd.SetArgs(args)
 	return cmd.Execute()
 }
 

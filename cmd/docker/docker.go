@@ -228,6 +228,9 @@ func runDocker(dockerCli *command.DockerCli) error {
 		}
 	}
 
+	// We've parsed global args already, so reset args to those
+	// which remain.
+	cmd.SetArgs(args)
 	return cmd.Execute()
 }
 
