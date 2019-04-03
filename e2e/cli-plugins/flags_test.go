@@ -45,13 +45,13 @@ func TestClashWithGlobalArgs(t *testing.T) {
 			name:        "short-with-val",
 			args:        []string{"-c", "Christmas"},
 			expectedOut: "Merry Christmas!",
-			expectedErr: "",
+			expectedErr: icmd.None,
 		},
 		{
 			name:        "short-with-val",
 			args:        []string{"--context", "Christmas"},
 			expectedOut: "Merry Christmas!",
-			expectedErr: "",
+			expectedErr: icmd.None,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
