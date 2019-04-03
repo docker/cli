@@ -662,13 +662,22 @@ func parseOutputs(inp []string) ([]types.ImageBuildOutput, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(fields) == 1 && fields[0] == s {
-			outs = append(outs, types.ImageBuildOutput{
-				Type: "local",
-				Attrs: map[string]string{
-					"dest": s,
-				},
-			})
+		if len(fields) == 1 && fields[0] == s && !strings.HasPrefix(s, "type=") {
+			if s == "-" {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "tar",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			} else {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "local",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			}
 			continue
 		}
 

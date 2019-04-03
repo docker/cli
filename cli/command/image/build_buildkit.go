@@ -67,6 +67,8 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		contextDir       string
 	)
 
+	stdoutUsed := false
+
 	switch {
 	case options.contextFromStdin():
 		if options.dockerfileFromStdin() {
@@ -123,7 +125,8 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	for _, out := range outputs {
-		if out.Type == "local" {
+		switch out.Type {
+		case "local":
 			// dest is handled on client side for local exporter
 			outDir, ok := out.Attrs["dest"]
 			if !ok {
@@ -131,6 +134,27 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			}
 			delete(out.Attrs, "dest")
 			s.Allow(filesync.NewFSSyncTargetDir(outDir))
+		case "tar":
+			// dest is handled on client side for tar exporter
+			outFile, ok := out.Attrs["dest"]
+			if !ok {
+				return errors.Errorf("dest is required for tar output")
+			}
+			var w io.WriteCloser
+			if outFile == "-" {
+				if _, err := console.ConsoleFromFile(os.Stdout); err == nil {
+					return errors.Errorf("refusing to write output to console")
+				}
+				w = os.Stdout
+				stdoutUsed = true
+			} else {
+				f, err := os.Create(outFile)
+				if err != nil {
+					return errors.Wrapf(err, "failed to open %s", outFile)
+				}
+				w = f
+			}
+			s.Allow(filesync.NewFSSyncTarget(w))
 		}
 	}
 
@@ -200,14 +224,14 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		buildOptions.SessionID = s.ID()
 		buildOptions.BuildID = buildID
 		buildOptions.Outputs = outputs
-		return doBuild(ctx, eg, dockerCli, options, buildOptions)
+		return doBuild(ctx, eg, dockerCli, stdoutUsed, options, buildOptions)
 	})
 
 	return eg.Wait()
 }
 
 //nolint: gocyclo
-func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, options buildOptions, buildOptions types.ImageBuildOptions) (finalErr error) {
+func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, stdoutUsed bool, options buildOptions, buildOptions types.ImageBuildOptions) (finalErr error) {
 	response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
 	if err != nil {
 		return err
@@ -265,7 +289,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 			return nil
 		})
 	} else {
-		displayStatus(os.Stdout, t.displayCh)
+		displayStatus(os.Stderr, t.displayCh)
 	}
 	defer close(t.displayCh)
 
@@ -300,7 +324,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	//
 	// TODO: we may want to use Aux messages with ID "moby.image.id" regardless of options.quiet (i.e. don't send HTTP param q=1)
 	// instead of assuming that output is image ID if options.quiet.
-	if options.quiet {
+	if options.quiet && !stdoutUsed {
 		imageID = buf.String()
 		fmt.Fprint(dockerCli.Out(), imageID)
 	}
@@ -317,7 +341,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, opt
 	return err
 }
 
-func resetUIDAndGID(s *fsutiltypes.Stat) bool {
+func resetUIDAndGID(_ string, s *fsutiltypes.Stat) bool {
 	s.Uid = 0
 	s.Gid = 0
 	return true
