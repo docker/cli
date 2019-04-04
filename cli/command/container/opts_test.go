@@ -800,3 +800,57 @@ func TestValidateDevice(t *testing.T) {
 		}
 	}
 }
+
+func TestParseSystemPaths(t *testing.T) {
+	tests := []struct {
+		doc                       string
+		in, out, masked, readonly []string
+	}{
+		{
+			doc: "not set",
+			in:  []string{},
+			out: []string{},
+		},
+		{
+			doc: "not set, preserve other options",
+			in: []string{
+				"seccomp=unconfined",
+				"apparmor=unconfined",
+				"label=user:USER",
+				"foo=bar",
+			},
+			out: []string{
+				"seccomp=unconfined",
+				"apparmor=unconfined",
+				"label=user:USER",
+				"foo=bar",
+			},
+		},
+		{
+			doc:      "unconfined",
+			in:       []string{"systempaths=unconfined"},
+			out:      []string{},
+			masked:   []string{},
+			readonly: []string{},
+		},
+		{
+			doc:      "unconfined and other options",
+			in:       []string{"foo=bar", "bar=baz", "systempaths=unconfined"},
+			out:      []string{"foo=bar", "bar=baz"},
+			masked:   []string{},
+			readonly: []string{},
+		},
+		{
+			doc: "unknown option",
+			in:  []string{"foo=bar", "systempaths=unknown", "bar=baz"},
+			out: []string{"foo=bar", "systempaths=unknown", "bar=baz"},
+		},
+	}
+
+	for _, tc := range tests {
+		securityOpts, maskedPaths, readonlyPaths := parseSystemPaths(tc.in)
+		assert.DeepEqual(t, securityOpts, tc.out)
+		assert.DeepEqual(t, maskedPaths, tc.masked)
+		assert.DeepEqual(t, readonlyPaths, tc.readonly)
+	}
+}

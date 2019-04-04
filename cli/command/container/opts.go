@@ -485,6 +485,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
+	securityOpts, maskedPaths, readonlyPaths := parseSystemPaths(securityOpts)
+
 	storageOpts, err := parseStorageOpts(copts.storageOpt.GetAll())
 	if err != nil {
 		return nil, err
@@ -635,6 +637,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Sysctls:        copts.sysctls.GetAll(),
 		Runtime:        copts.runtime,
 		Mounts:         mounts,
+		MaskedPaths:    maskedPaths,
+		ReadonlyPaths:  readonlyPaths,
 	}
 
 	if copts.autoRemove && !hostConfig.RestartPolicy.IsNone() {
@@ -823,6 +827,25 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 	}
 
 	return securityOpts, nil
+}
+
+// parseSystemPaths checks if `systempaths=unconfined` security option is set,
+// and returns the `MaskedPaths` and `ReadonlyPaths` accordingly. An updated
+// list of security options is returned with this option removed, because the
+// `unconfined` option is handled client-side, and should not be sent to the
+// daemon.
+func parseSystemPaths(securityOpts []string) (filtered, maskedPaths, readonlyPaths []string) {
+	filtered = securityOpts[:0]
+	for _, opt := range securityOpts {
+		if opt == "systempaths=unconfined" {
+			maskedPaths = []string{}
+			readonlyPaths = []string{}
+		} else {
+			filtered = append(filtered, opt)
+		}
+	}
+
+	return filtered, maskedPaths, readonlyPaths
 }
 
 // parses storage options per container into a map
