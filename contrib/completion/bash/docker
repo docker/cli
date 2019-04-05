@@ -2863,7 +2863,6 @@ _docker_image_build() {
 	"
 
 	local boolean_options="
-		--compress
 		--disable-content-trust=false
 		--force-rm
 		--help
@@ -2872,14 +2871,33 @@ _docker_image_build() {
 		--quiet -q
 		--rm
 	"
+
 	if __docker_server_is_experimental ; then
 		options_with_args+="
 			--platform
 		"
 		boolean_options+="
 			--squash
-			--stream
 		"
+	fi
+
+	if [ "$DOCKER_BUILDKIT" = "1" ] ; then
+		options_with_args+="
+			--output -o
+			--platform
+			--progress
+			--secret
+			--ssh
+		"
+	else
+		boolean_options+="
+			--compress
+		"
+		if __docker_server_is_experimental ; then
+			boolean_options+="
+				--stream
+			"
+		fi
 	fi
 
 	local all_options="$options_with_args $boolean_options"
@@ -2924,6 +2942,10 @@ _docker_image_build() {
 					fi
 					;;
 			esac
+			return
+			;;
+		--progress)
+			COMPREPLY=( $( compgen -W "auto plain tty" -- "$cur" ) )
 			return
 			;;
 		--tag|-t)
