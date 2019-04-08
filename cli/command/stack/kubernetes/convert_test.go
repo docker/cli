@@ -13,6 +13,7 @@ import (
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -234,4 +235,110 @@ func TestHandlePullPolicy(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHandleInternalServiceType(t *testing.T) {
+	cases := []struct {
+		name     string
+		value    string
+		caps     composeCapabilities
+		err      string
+		expected v1alpha3.InternalServiceType
+	}{
+		{
+			name:  "v1beta1",
+			value: "ClusterIP",
+			caps:  v1beta1Capabilities,
+			err:   `stack API version v1beta1 does not support intra-stack load balancing (field "x-internal-service-type"), please use version v1alpha3 or higher`,
+		},
+		{
+			name:  "v1beta2",
+			value: "ClusterIP",
+			caps:  v1beta2Capabilities,
+			err:   `stack API version v1beta2 does not support intra-stack load balancing (field "x-internal-service-type"), please use version v1alpha3 or higher`,
+		},
+		{
+			name:     "v1alpha3",
+			value:    "ClusterIP",
+			caps:     v1alpha3Capabilities,
+			expected: v1alpha3.InternalServiceTypeClusterIP,
+		},
+		{
+			name:  "v1alpha3-invalid",
+			value: "invalid",
+			caps:  v1alpha3Capabilities,
+			err:   `invalid value "invalid" for field "x-internal-service-type", valid values are "ClusterIP" or "Headless"`,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			res, err := fromComposeServiceConfig(composetypes.ServiceConfig{
+				Name:  "test",
+				Image: "test",
+				Extras: map[string]interface{}{
+					internalServiceTypeExtraField: c.value,
+				},
+			}, c.caps)
+			if c.err == "" {
+				assert.NilError(t, err)
+				assert.Equal(t, res.InternalServiceType, c.expected)
+			} else {
+				assert.ErrorContains(t, err, c.err)
+			}
+		})
+	}
+}
+
+func TestIgnoreExpose(t *testing.T) {
+	testData := loadTestStackWith(t, "expose")
+	for _, version := range []string{"v1beta1", "v1beta2"} {
+		conv, err := NewStackConverter(version)
+		assert.NilError(t, err)
+		s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+		assert.NilError(t, err)
+		assert.Equal(t, len(s.Spec.Services[0].InternalPorts), 0)
+	}
+}
+
+func TestParseExpose(t *testing.T) {
+	testData := loadTestStackWith(t, "expose")
+	conv, err := NewStackConverter("v1alpha3")
+	assert.NilError(t, err)
+	s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+	assert.NilError(t, err)
+	expected := []v1alpha3.InternalPort{
+		{
+			Port:     1,
+			Protocol: v1.ProtocolTCP,
+		},
+		{
+			Port:     2,
+			Protocol: v1.ProtocolTCP,
+		},
+		{
+			Port:     3,
+			Protocol: v1.ProtocolTCP,
+		},
+		{
+			Port:     4,
+			Protocol: v1.ProtocolTCP,
+		},
+		{
+			Port:     5,
+			Protocol: v1.ProtocolUDP,
+		},
+		{
+			Port:     6,
+			Protocol: v1.ProtocolUDP,
+		},
+		{
+			Port:     7,
+			Protocol: v1.ProtocolUDP,
+		},
+		{
+			Port:     8,
+			Protocol: v1.ProtocolUDP,
+		},
+	}
+	assert.DeepEqual(t, s.Spec.Services[0].InternalPorts, expected)
 }
