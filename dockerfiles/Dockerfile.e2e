@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.12.1
+ARG GO_VERSION=1.12.2
 
 FROM docker/containerd-shim-process:a4d1531 AS containerd-shim-process
 
