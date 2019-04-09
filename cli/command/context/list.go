@@ -2,6 +2,7 @@ package context
 
 import (
 	"fmt"
+	"os"
 	"sort"
 
 	"github.com/docker/cli/cli"
@@ -76,7 +77,14 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	sort.Slice(contexts, func(i, j int) bool {
 		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
 	})
-	return format(dockerCli, opts, contexts)
+	if err := format(dockerCli, opts, contexts); err != nil {
+		return err
+	}
+	if os.Getenv("DOCKER_HOST") != "" {
+		fmt.Fprint(dockerCli.Err(), "Warning: DOCKER_HOST environment variable overrides the active context. "+
+			"To use a context, either set the global --context flag, or unset DOCKER_HOST environment variable.\n")
+	}
+	return nil
 }
 
 func format(dockerCli command.Cli, opts *listOptions, contexts []*formatter.ClientContext) error {
