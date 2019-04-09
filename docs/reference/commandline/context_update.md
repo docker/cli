@@ -23,7 +23,7 @@ Update a context
 Docker endpoint config:
 
 NAME                DESCRIPTION
-from-current        Copy current Docker endpoint configuration
+from                Copy Docker endpoint configuration from an existing context
 host                Docker endpoint on which to connect
 ca                  Trust certs signed only by this CA
 cert                Path to TLS certificate file
@@ -33,7 +33,7 @@ skip-tls-verify     Skip TLS certificate validation
 Kubernetes endpoint config:
 
 NAME                 DESCRIPTION
-from-current         Copy current Kubernetes endpoint configuration
+from                 Copy Kubernetes endpoint configuration from an existing context
 config-file          Path to a Kubernetes config file
 context-override     Overrides the context set in the kubernetes config file
 namespace-override   Overrides the namespace set in the kubernetes config file
