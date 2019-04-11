@@ -12,7 +12,7 @@ func (d *dummy) Func1() string {
 	return "Func1"
 }
 
-func (d *dummy) func2() string { // nolint: unused
+func (d *dummy) func2() string {
 	return "func2(should not be marshalled)"
 }
 
