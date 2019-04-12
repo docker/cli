@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 const defaultFileMode = 0644
@@ -142,6 +143,14 @@ func WithDir(name string, ops ...PathOp) PathOp {
 		}
 		return applyPathOps(&Dir{path: fullpath}, ops)
 	}
+}
+
+// Apply the PathOps to the File
+func Apply(t assert.TestingT, path Path, ops ...PathOp) {
+	if ht, ok := t.(helperT); ok {
+		ht.Helper()
+	}
+	assert.NilError(t, applyPathOps(path, ops))
 }
 
 func applyPathOps(path Path, ops []PathOp) error {
