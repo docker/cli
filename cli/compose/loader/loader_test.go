@@ -1586,3 +1586,67 @@ secrets:
 	}
 	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
 }
+
+func TestLoadSecretDriver(t *testing.T) {
+	config, err := loadYAML(`
+version: '3.8'
+services:
+  hello-world:
+    image: redis:alpine
+    secrets:
+      - secret
+    configs:
+      - config
+
+configs:
+  config:
+    name: config
+    external: true
+
+secrets:
+  secret:
+    name: secret
+    driver: secret-bucket
+    driver_opts:
+      OptionA: value for driver option A
+      OptionB: value for driver option B
+`)
+	assert.NilError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.8",
+		Services: types.Services{
+			{
+				Name:  "hello-world",
+				Image: "redis:alpine",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "config",
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "secret",
+					},
+				},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"config": {
+				Name:     "config",
+				External: types.External{External: true},
+			},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"secret": {
+				Name:   "secret",
+				Driver: "secret-bucket",
+				DriverOpts: map[string]string{
+					"OptionA": "value for driver option A",
+					"OptionB": "value for driver option B",
+				},
+			},
+		},
+	}
+	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
+}

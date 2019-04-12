@@ -538,6 +538,13 @@
           }
         },
         "labels": {"$ref": "#/definitions/list_or_dict"},
+        "driver": {"type": "string"},
+        "driver_opts": {
+          "type": "object",
+          "patternProperties": {
+            "^.+$": {"type": ["string", "number"]}
+          }
+        },
         "template_driver": {"type": "string"}
       },
       "patternProperties": {"^x-": {}},

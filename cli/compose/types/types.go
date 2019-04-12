@@ -513,6 +513,8 @@ type FileObjectConfig struct {
 	External       External               `yaml:",omitempty" json:"external,omitempty"`
 	Labels         Labels                 `yaml:",omitempty" json:"labels,omitempty"`
 	Extras         map[string]interface{} `yaml:",inline" json:"-"`
+	Driver         string                 `yaml:",omitempty" json:"driver,omitempty"`
+	DriverOpts     map[string]string      `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
 	TemplateDriver string                 `mapstructure:"template_driver" yaml:"template_driver,omitempty" json:"template_driver,omitempty"`
 }
 
