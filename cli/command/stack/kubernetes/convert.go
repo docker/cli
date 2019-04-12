@@ -15,6 +15,7 @@ import (
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"github.com/docker/go-connections/nat"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -22,12 +23,8 @@ import (
 )
 
 const (
-	// pullSecretExtraField is an extra field on ServiceConfigs usable to reference a pull secret
-	pullSecretExtraField = "x-pull-secret"
-	// pullPolicyExtraField is an extra field on ServiceConfigs usable to specify a pull policy
-	pullPolicyExtraField = "x-pull-policy"
-	// internalServiceTypeExtraField is an extra field on ServiceConfigs to explicitly specify the kind of service to setup for intra-stack networking
-	internalServiceTypeExtraField = "x-internal-service-type"
+	// kubernatesExtraField is an extra field on ServiceConfigs containing kubernetes-specific extensions to compose format
+	kubernatesExtraField = "x-kubernetes"
 )
 
 // NewStackConverter returns a converter from types.Config (compose) to the specified
@@ -249,10 +246,8 @@ func fromComposeConfigs(s map[string]composeTypes.ConfigObjConfig) map[string]la
 
 func fromComposeServiceConfig(s composeTypes.ServiceConfig, capabilities composeCapabilities) (latest.ServiceConfig, error) {
 	var (
-		userID     *int64
-		pullSecret string
-		pullPolicy string
-		err        error
+		userID *int64
+		err    error
 	)
 	if s.User != "" {
 		numerical, err := strconv.Atoi(s.User)
@@ -261,23 +256,18 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig, capabilities compose
 			userID = &unixUserID
 		}
 	}
-	pullSecret, err = resolveServiceExtra(s, pullSecretExtraField)
+	kubeExtra, err := resolveServiceExtra(s)
 	if err != nil {
 		return latest.ServiceConfig{}, err
 	}
-	pullPolicy, err = resolveServiceExtra(s, pullPolicyExtraField)
-	if err != nil {
-		return latest.ServiceConfig{}, err
+	if kubeExtra.PullSecret != "" && !capabilities.hasPullSecrets {
+		return latest.ServiceConfig{}, errors.Errorf(`stack API version %s does not support pull secrets (field "x-kubernetes.pull_secret"), please use version v1alpha3 or higher`, capabilities.apiVersion)
+	}
+	if kubeExtra.PullPolicy != "" && !capabilities.hasPullPolicies {
+		return latest.ServiceConfig{}, errors.Errorf(`stack API version %s does not support pull policies (field "x-kubernetes.pull_policy"), please use version v1alpha3 or higher`, capabilities.apiVersion)
 	}
 
-	if pullSecret != "" && !capabilities.hasPullSecrets {
-		return latest.ServiceConfig{}, errors.Errorf("stack API version %s does not support pull secrets (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, pullSecretExtraField)
-	}
-	if pullPolicy != "" && !capabilities.hasPullPolicies {
-		return latest.ServiceConfig{}, errors.Errorf("stack API version %s does not support pull policies (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, pullPolicyExtraField)
-	}
-
-	internalServiceType, internalPorts, err := setupIntraStackNetworking(s, capabilities)
+	internalPorts, err := setupIntraStackNetworking(s, kubeExtra, capabilities)
 	if err != nil {
 		return latest.ServiceConfig{}, err
 	}
@@ -317,48 +307,41 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig, capabilities compose
 		User:                userID,
 		Volumes:             fromComposeServiceVolumeConfig(s.Volumes),
 		WorkingDir:          s.WorkingDir,
-		PullSecret:          pullSecret,
-		PullPolicy:          pullPolicy,
-		InternalServiceType: internalServiceType,
+		PullSecret:          kubeExtra.PullSecret,
+		PullPolicy:          kubeExtra.PullPolicy,
+		InternalServiceType: kubeExtra.InternalServiceType,
 		InternalPorts:       internalPorts,
 	}, nil
 }
 
-func setupIntraStackNetworking(s composeTypes.ServiceConfig, capabilities composeCapabilities) (latest.InternalServiceType, []latest.InternalPort, error) {
-	internalServiceTypeRaw, err := resolveServiceExtra(s, internalServiceTypeExtraField)
-	if err != nil {
-		return latest.InternalServiceTypeAuto, nil, err
-	}
-	if internalServiceTypeRaw != "" && !capabilities.hasIntraStackLoadBalancing {
-		return latest.InternalServiceTypeAuto, nil,
-			errors.Errorf("stack API version %s does not support intra-stack load balancing (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, internalServiceTypeExtraField)
+func setupIntraStackNetworking(s composeTypes.ServiceConfig, kubeExtra kubernetesExtra, capabilities composeCapabilities) ([]latest.InternalPort, error) {
+	if kubeExtra.InternalServiceType != latest.InternalServiceTypeAuto && !capabilities.hasIntraStackLoadBalancing {
+		return nil,
+			errors.Errorf(`stack API version %s does not support intra-stack load balancing (field "x-kubernetes.internal_service_type"), please use version v1alpha3 or higher`,
+				capabilities.apiVersion)
 	}
 	if !capabilities.hasIntraStackLoadBalancing {
-		return latest.InternalServiceTypeAuto, nil, nil
+		return nil, nil
 	}
-	internalServiceType, err := validateInternalServiceType(internalServiceTypeRaw)
-	if err != nil {
-		return latest.InternalServiceTypeAuto, nil, err
+	if err := validateInternalServiceType(kubeExtra.InternalServiceType); err != nil {
+		return nil, err
 	}
 	internalPorts, err := toInternalPorts(s.Expose)
 	if err != nil {
-		return latest.InternalServiceTypeAuto, nil, err
+		return nil, err
 	}
-	return internalServiceType, internalPorts, nil
+	return internalPorts, nil
 }
 
-func validateInternalServiceType(raw string) (latest.InternalServiceType, error) {
-	internalServiceType := latest.InternalServiceType(raw)
+func validateInternalServiceType(internalServiceType latest.InternalServiceType) error {
 	switch internalServiceType {
 	case latest.InternalServiceTypeAuto, latest.InternalServiceTypeClusterIP, latest.InternalServiceTypeHeadless:
 	default:
-		return latest.InternalServiceTypeAuto,
-			errors.Errorf("invalid value %q for field %q, valid values are %q or %q", raw,
-				internalServiceTypeExtraField,
-				latest.InternalServiceTypeClusterIP,
-				latest.InternalServiceTypeHeadless)
+		return errors.Errorf(`invalid value %q for field "x-kubernetes.internal_service_type", valid values are %q or %q`, internalServiceType,
+			latest.InternalServiceTypeClusterIP,
+			latest.InternalServiceTypeHeadless)
 	}
-	return internalServiceType, nil
+	return nil
 }
 
 func toInternalPorts(expose []string) ([]latest.InternalPort, error) {
@@ -385,15 +368,15 @@ func toInternalPorts(expose []string) ([]latest.InternalPort, error) {
 	return internalPorts, nil
 }
 
-func resolveServiceExtra(s composeTypes.ServiceConfig, field string) (string, error) {
-	if iface, ok := s.Extras[field]; ok {
-		value, ok := iface.(string)
-		if !ok {
-			return "", errors.Errorf("field %q: value %v type is %T, should be a string", field, iface, iface)
+func resolveServiceExtra(s composeTypes.ServiceConfig) (kubernetesExtra, error) {
+	if iface, ok := s.Extras[kubernatesExtraField]; ok {
+		var result kubernetesExtra
+		if err := mapstructure.Decode(iface, &result); err != nil {
+			return kubernetesExtra{}, err
 		}
-		return value, nil
+		return result, nil
 	}
-	return "", nil
+	return kubernetesExtra{}, nil
 }
 
 func fromComposePorts(ports []composeTypes.ServicePortConfig) []latest.ServicePortConfig {
@@ -575,4 +558,10 @@ type composeCapabilities struct {
 	hasPullSecrets             bool
 	hasPullPolicies            bool
 	hasIntraStackLoadBalancing bool
+}
+
+type kubernetesExtra struct {
+	PullSecret          string                     `mapstructure:"pull_secret"`
+	PullPolicy          string                     `mapstructure:"pull_policy"`
+	InternalServiceType latest.InternalServiceType `mapstructure:"internal_service_type"`
 }
