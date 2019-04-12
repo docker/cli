@@ -194,12 +194,17 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 
 	spec.TaskTemplate.ContainerSpec.Secrets = updatedSecrets
 
-	updatedConfigs, err := getUpdatedConfigs(apiClient, flags, spec.TaskTemplate.ContainerSpec.Configs)
+	updatedConfigs, err := getUpdatedConfigs(apiClient, flags, spec.TaskTemplate.ContainerSpec)
 	if err != nil {
 		return err
 	}
 
 	spec.TaskTemplate.ContainerSpec.Configs = updatedConfigs
+
+	// set the credential spec value after get the updated configs, because we
+	// might need the updated configs to set the correct value of the
+	// CredentialSpec.
+	updateCredSpecConfig(flags, spec.TaskTemplate.ContainerSpec)
 
 	// only send auth if flag was set
 	sendAuth, err := flags.GetBool(flagRegistryAuth)
@@ -731,20 +736,56 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	return newSecrets, nil
 }
 
-func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, configs []*swarm.ConfigReference) ([]*swarm.ConfigReference, error) {
-	newConfigs := []*swarm.ConfigReference{}
+func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, spec *swarm.ContainerSpec) ([]*swarm.ConfigReference, error) {
+	var (
+		// credSpecConfigName stores the name of the config specified by the
+		// credential-spec flag. if a Runtime target Config with this name is
+		// already in the containerSpec, then this value will be set to
+		// emptystring in the removeConfigs stage. otherwise, a ConfigReference
+		// will be created to pass to ParseConfigs to get the ConfigID.
+		credSpecConfigName string
+		// credSpecConfigID stores the ID of the credential spec config if that
+		// config is being carried over from the old set of references
+		credSpecConfigID string
+	)
 
-	toRemove := buildToRemoveSet(flags, flagConfigRemove)
-	for _, config := range configs {
-		if _, exists := toRemove[config.ConfigName]; !exists {
-			newConfigs = append(newConfigs, config)
+	if flags.Changed(flagCredentialSpec) {
+		credSpec := flags.Lookup(flagCredentialSpec).Value.(*credentialSpecOpt).Value()
+		credSpecConfigName = credSpec.Config
+	} else {
+		// if the credential spec flag has not changed, then check if there
+		// already is a credentialSpec. if there is one, and it's for a Config,
+		// then it's from the old object, and its value is the config ID. we
+		// need this so we don't remove the config if the credential spec is
+		// not being updated.
+		if spec.Privileges != nil && spec.Privileges.CredentialSpec != nil {
+			if config := spec.Privileges.CredentialSpec.Config; config != "" {
+				credSpecConfigID = config
+			}
 		}
 	}
 
-	if flags.Changed(flagConfigAdd) {
-		values := flags.Lookup(flagConfigAdd).Value.(*opts.ConfigOpt).Value()
+	newConfigs := removeConfigs(flags, spec, credSpecConfigName, credSpecConfigID)
 
-		addConfigs, err := ParseConfigs(apiClient, values)
+	// resolveConfigs is a slice of any new configs that need to have the ID
+	// resolved
+	resolveConfigs := []*swarm.ConfigReference{}
+
+	if flags.Changed(flagConfigAdd) {
+		resolveConfigs = append(resolveConfigs, flags.Lookup(flagConfigAdd).Value.(*opts.ConfigOpt).Value()...)
+	}
+
+	// if credSpecConfigNameis non-empty at this point, it means its a new
+	// config, and we need to resolve its ID accordingly.
+	if credSpecConfigName != "" {
+		resolveConfigs = append(resolveConfigs, &swarm.ConfigReference{
+			ConfigName: credSpecConfigName,
+			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+		})
+	}
+
+	if len(resolveConfigs) > 0 {
+		addConfigs, err := ParseConfigs(apiClient, resolveConfigs)
 		if err != nil {
 			return nil, err
 		}
@@ -752,6 +793,42 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, c
 	}
 
 	return newConfigs, nil
+}
+
+// removeConfigs figures out which configs in the existing spec should be kept
+// after the update.
+func removeConfigs(flags *pflag.FlagSet, spec *swarm.ContainerSpec, credSpecName, credSpecID string) []*swarm.ConfigReference {
+	keepConfigs := []*swarm.ConfigReference{}
+
+	toRemove := buildToRemoveSet(flags, flagConfigRemove)
+	// all configs in spec.Configs should have both a Name and ID, because
+	// they come from an already-accepted spec.
+	for _, config := range spec.Configs {
+		// if the config is a Runtime target, make sure it's still in use right
+		// now, the only use for Runtime target is credential specs.  if, in
+		// the future, more uses are added, then this check will need to be
+		// made more intelligent.
+		if config.Runtime != nil {
+			// if we're carrying over a credential spec explicitly (because the
+			// user passed --credential-spec with the same config name) then we
+			// should match on credSpecName. if we're carrying over a
+			// credential spec implicitly (because the user did not pass any
+			// --credential-spec flag) then we should match on credSpecID. in
+			// either case, we're keeping the config that already exists.
+			if config.ConfigName == credSpecName || config.ConfigID == credSpecID {
+				keepConfigs = append(keepConfigs, config)
+			}
+			// continue the loop, to skip the part where we check if the config
+			// is in toRemove.
+			continue
+		}
+
+		if _, exists := toRemove[config.ConfigName]; !exists {
+			keepConfigs = append(keepConfigs, config)
+		}
+	}
+
+	return keepConfigs
 }
 
 func envKey(value string) string {
@@ -1219,4 +1296,49 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 
 	spec.TaskTemplate.Networks = newNetworks
 	return nil
+}
+
+// updateCredSpecConfig updates the value of the credential spec Config field
+// to the config ID if the credential spec has changed. it mutates the passed
+// spec. it does not handle the case where the credential spec specifies a
+// config that does not exist -- that case is handled as part of
+// getUpdatedConfigs
+func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
+	if flags.Changed(flagCredentialSpec) {
+		credSpecOpt := flags.Lookup(flagCredentialSpec)
+		// if the flag has changed, and the value is empty string, then we
+		// should remove any credential spec that might be present
+		if credSpecOpt.Value.String() == "" {
+			if containerSpec.Privileges != nil {
+				containerSpec.Privileges.CredentialSpec = nil
+			}
+			return
+		}
+
+		// otherwise, set the credential spec to be the parsed value
+		credSpec := credSpecOpt.Value.(*credentialSpecOpt).Value()
+
+		// if this is a Config credential spec, we we still need to replace the
+		// value of credSpec.Config with the config ID instead of Name.
+		if credSpec.Config != "" {
+			for _, config := range containerSpec.Configs {
+				// if the config name matches, then set the config ID. we do
+				// not need to worry about if this is a Runtime target or not.
+				// even if it is not a Runtime target, getUpdatedConfigs
+				// ensures that a Runtime target for this config exists, and
+				// the Name is unique so the ID is correct no matter the
+				// target.
+				if config.ConfigName == credSpec.Config {
+					credSpec.Config = config.ConfigID
+					break
+				}
+			}
+		}
+
+		if containerSpec.Privileges == nil {
+			containerSpec.Privileges = &swarm.Privileges{}
+		}
+
+		containerSpec.Privileges.CredentialSpec = credSpec
+	}
 }

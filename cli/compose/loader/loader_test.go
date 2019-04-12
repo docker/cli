@@ -295,6 +295,20 @@ configs:
 	assert.Assert(t, is.Len(actual.Configs, 1))
 }
 
+func TestLoadV38(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.8"
+services:
+  foo:
+    image: busybox
+    credential_spec:
+      config: "0bt9dmxjvjiqermk6xrop3ekq"
+`)
+	assert.NilError(t, err)
+	assert.Assert(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Equal(actual.Services[0].CredentialSpec.Config, "0bt9dmxjvjiqermk6xrop3ekq"))
+}
+
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
 	assert.NilError(t, err)

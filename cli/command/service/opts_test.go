@@ -14,6 +14,60 @@ import (
 	is "gotest.tools/assert/cmp"
 )
 
+func TestCredentialSpecOpt(t *testing.T) {
+	tests := []struct {
+		name        string
+		in          string
+		value       swarm.CredentialSpec
+		expectedErr string
+	}{
+		{
+			name:  "empty",
+			in:    "",
+			value: swarm.CredentialSpec{},
+		},
+		{
+			name:        "no-prefix",
+			in:          "noprefix",
+			value:       swarm.CredentialSpec{},
+			expectedErr: `invalid credential spec: value must be prefixed with "config://", "file://", or "registry://"`,
+		},
+		{
+			name:  "config",
+			in:    "config://0bt9dmxjvjiqermk6xrop3ekq",
+			value: swarm.CredentialSpec{Config: "0bt9dmxjvjiqermk6xrop3ekq"},
+		},
+		{
+			name:  "file",
+			in:    "file://somefile.json",
+			value: swarm.CredentialSpec{File: "somefile.json"},
+		},
+		{
+			name:  "registry",
+			in:    "registry://testing",
+			value: swarm.CredentialSpec{Registry: "testing"},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			var cs credentialSpecOpt
+
+			err := cs.Set(tc.in)
+
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
+			} else {
+				assert.NilError(t, err)
+			}
+
+			assert.Equal(t, cs.String(), tc.in)
+			assert.DeepEqual(t, cs.Value(), &tc.value)
+		})
+	}
+}
+
 func TestMemBytesString(t *testing.T) {
 	var mem opts.MemBytes = 1048576
 	assert.Check(t, is.Equal("1MiB", mem.String()))
