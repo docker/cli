@@ -14,8 +14,10 @@ import (
 	latest "github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
+	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,6 +26,8 @@ const (
 	pullSecretExtraField = "x-pull-secret"
 	// pullPolicyExtraField is an extra field on ServiceConfigs usable to specify a pull policy
 	pullPolicyExtraField = "x-pull-policy"
+	// internalServiceTypeExtraField is an extra field on ServiceConfigs to explicitly specify the kind of service to setup for intra-stack networking
+	internalServiceTypeExtraField = "x-internal-service-type"
 )
 
 // NewStackConverter returns a converter from types.Config (compose) to the specified
@@ -265,12 +269,19 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig, capabilities compose
 	if err != nil {
 		return latest.ServiceConfig{}, err
 	}
+
 	if pullSecret != "" && !capabilities.hasPullSecrets {
 		return latest.ServiceConfig{}, errors.Errorf("stack API version %s does not support pull secrets (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, pullSecretExtraField)
 	}
 	if pullPolicy != "" && !capabilities.hasPullPolicies {
 		return latest.ServiceConfig{}, errors.Errorf("stack API version %s does not support pull policies (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, pullPolicyExtraField)
 	}
+
+	internalServiceType, internalPorts, err := setupIntraStackNetworking(s, capabilities)
+	if err != nil {
+		return latest.ServiceConfig{}, err
+	}
+
 	return latest.ServiceConfig{
 		Name:    s.Name,
 		CapAdd:  s.CapAdd,
@@ -286,29 +297,92 @@ func fromComposeServiceConfig(s composeTypes.ServiceConfig, capabilities compose
 			RestartPolicy: fromComposeRestartPolicy(s.Deploy.RestartPolicy),
 			Placement:     fromComposePlacement(s.Deploy.Placement),
 		},
-		Entrypoint:      s.Entrypoint,
-		Environment:     s.Environment,
-		ExtraHosts:      s.ExtraHosts,
-		Hostname:        s.Hostname,
-		HealthCheck:     fromComposeHealthcheck(s.HealthCheck),
-		Image:           s.Image,
-		Ipc:             s.Ipc,
-		Labels:          s.Labels,
-		Pid:             s.Pid,
-		Ports:           fromComposePorts(s.Ports),
-		Privileged:      s.Privileged,
-		ReadOnly:        s.ReadOnly,
-		Secrets:         fromComposeServiceSecrets(s.Secrets),
-		StdinOpen:       s.StdinOpen,
-		StopGracePeriod: composetypes.ConvertDurationPtr(s.StopGracePeriod),
-		Tmpfs:           s.Tmpfs,
-		Tty:             s.Tty,
-		User:            userID,
-		Volumes:         fromComposeServiceVolumeConfig(s.Volumes),
-		WorkingDir:      s.WorkingDir,
-		PullSecret:      pullSecret,
-		PullPolicy:      pullPolicy,
+		Entrypoint:          s.Entrypoint,
+		Environment:         s.Environment,
+		ExtraHosts:          s.ExtraHosts,
+		Hostname:            s.Hostname,
+		HealthCheck:         fromComposeHealthcheck(s.HealthCheck),
+		Image:               s.Image,
+		Ipc:                 s.Ipc,
+		Labels:              s.Labels,
+		Pid:                 s.Pid,
+		Ports:               fromComposePorts(s.Ports),
+		Privileged:          s.Privileged,
+		ReadOnly:            s.ReadOnly,
+		Secrets:             fromComposeServiceSecrets(s.Secrets),
+		StdinOpen:           s.StdinOpen,
+		StopGracePeriod:     composetypes.ConvertDurationPtr(s.StopGracePeriod),
+		Tmpfs:               s.Tmpfs,
+		Tty:                 s.Tty,
+		User:                userID,
+		Volumes:             fromComposeServiceVolumeConfig(s.Volumes),
+		WorkingDir:          s.WorkingDir,
+		PullSecret:          pullSecret,
+		PullPolicy:          pullPolicy,
+		InternalServiceType: internalServiceType,
+		InternalPorts:       internalPorts,
 	}, nil
+}
+
+func setupIntraStackNetworking(s composeTypes.ServiceConfig, capabilities composeCapabilities) (latest.InternalServiceType, []latest.InternalPort, error) {
+	internalServiceTypeRaw, err := resolveServiceExtra(s, internalServiceTypeExtraField)
+	if err != nil {
+		return latest.InternalServiceTypeAuto, nil, err
+	}
+	if internalServiceTypeRaw != "" && !capabilities.hasIntraStackLoadBalancing {
+		return latest.InternalServiceTypeAuto, nil,
+			errors.Errorf("stack API version %s does not support intra-stack load balancing (field %q), please use version v1alpha3 or higher", capabilities.apiVersion, internalServiceTypeExtraField)
+	}
+	if !capabilities.hasIntraStackLoadBalancing {
+		return latest.InternalServiceTypeAuto, nil, nil
+	}
+	internalServiceType, err := validateInternalServiceType(internalServiceTypeRaw)
+	if err != nil {
+		return latest.InternalServiceTypeAuto, nil, err
+	}
+	internalPorts, err := toInternalPorts(s.Expose)
+	if err != nil {
+		return latest.InternalServiceTypeAuto, nil, err
+	}
+	return internalServiceType, internalPorts, nil
+}
+
+func validateInternalServiceType(raw string) (latest.InternalServiceType, error) {
+	internalServiceType := latest.InternalServiceType(raw)
+	switch internalServiceType {
+	case latest.InternalServiceTypeAuto, latest.InternalServiceTypeClusterIP, latest.InternalServiceTypeHeadless:
+	default:
+		return latest.InternalServiceTypeAuto,
+			errors.Errorf("invalid value %q for field %q, valid values are %q or %q", raw,
+				internalServiceTypeExtraField,
+				latest.InternalServiceTypeClusterIP,
+				latest.InternalServiceTypeHeadless)
+	}
+	return internalServiceType, nil
+}
+
+func toInternalPorts(expose []string) ([]latest.InternalPort, error) {
+	var internalPorts []latest.InternalPort
+	for _, sourcePort := range expose {
+		proto, port := nat.SplitProtoPort(sourcePort)
+		start, end, err := nat.ParsePortRange(port)
+		if err != nil {
+			return nil, errors.Errorf("invalid format for expose: %q, error: %s", sourcePort, err)
+		}
+		for i := start; i <= end; i++ {
+			k8sProto := v1.Protocol(strings.ToUpper(proto))
+			switch k8sProto {
+			case v1.ProtocolSCTP, v1.ProtocolTCP, v1.ProtocolUDP:
+			default:
+				return nil, errors.Errorf("invalid protocol for expose: %q, supported values are %q, %q and %q", sourcePort, v1.ProtocolSCTP, v1.ProtocolTCP, v1.ProtocolUDP)
+			}
+			internalPorts = append(internalPorts, latest.InternalPort{
+				Port:     int32(i),
+				Protocol: k8sProto,
+			})
+		}
+	}
+	return internalPorts, nil
 }
 
 func resolveServiceExtra(s composeTypes.ServiceConfig, field string) (string, error) {
@@ -489,14 +563,16 @@ var (
 		apiVersion: "v1beta2",
 	}
 	v1alpha3Capabilities = composeCapabilities{
-		apiVersion:      "v1alpha3",
-		hasPullSecrets:  true,
-		hasPullPolicies: true,
+		apiVersion:                 "v1alpha3",
+		hasPullSecrets:             true,
+		hasPullPolicies:            true,
+		hasIntraStackLoadBalancing: true,
 	}
 )
 
 type composeCapabilities struct {
-	apiVersion      string
-	hasPullSecrets  bool
-	hasPullPolicies bool
+	apiVersion                 string
+	hasPullSecrets             bool
+	hasPullPolicies            bool
+	hasIntraStackLoadBalancing bool
 }

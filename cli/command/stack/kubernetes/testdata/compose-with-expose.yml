@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+  test:
+    image: "some-image"
+    expose:
+    - "1" # default protocol, single port
+    - "2-4" # default protocol, port range
+    - "5/udp" # specific protocol, single port
+    - "6-8/udp" # specific protocol, port range
