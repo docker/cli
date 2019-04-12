@@ -91,8 +91,8 @@ func (c *Endpoint) tlsConfig() (*tls.Config, error) {
 }
 
 // ClientOpts returns a slice of Client options to configure an API client with this endpoint
-func (c *Endpoint) ClientOpts() ([]func(*client.Client) error, error) {
-	var result []func(*client.Client) error
+func (c *Endpoint) ClientOpts() ([]client.Opt, error) {
+	var result []client.Opt
 	if c.Host != "" {
 		helper, err := connhelper.GetConnectionHelper(c.Host)
 		if err != nil {
