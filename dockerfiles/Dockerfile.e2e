@@ -24,7 +24,7 @@ ARG NOTARY_VERSION=v0.6.1
 RUN curl -Ls https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary \
     && chmod +x /usr/local/bin/notary
 
-ARG GOTESTSUM_VERSION=0.3.2
+ARG GOTESTSUM_VERSION=0.3.4
 RUN curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz \
     && tar -xf gotestsum.tar.gz gotestsum \
     && mv gotestsum /usr/local/bin/gotestsum \
