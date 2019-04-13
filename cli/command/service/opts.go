@@ -16,8 +16,8 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/api/defaults"
-	shlex "github.com/flynn-archive/go-shlex"
 	gogotypes "github.com/gogo/protobuf/types"
+	"github.com/google/shlex"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
