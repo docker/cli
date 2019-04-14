@@ -143,7 +143,8 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
 
 	store, isDefault := creds.(isFileStore)
-	if isDefault {
+	// Display a warning if we're storing the users password (not a token)
+	if isDefault && authConfig.Password != "" {
 		err = displayUnencryptedWarning(dockerCli, store.GetFilename())
 		if err != nil {
 			return err
