@@ -13,7 +13,7 @@ import (
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -189,8 +189,8 @@ func TestHandlePullSecret(t *testing.T) {
 		version string
 		err     string
 	}{
-		{version: "v1beta1", err: `stack API version v1beta1 does not support pull secrets (field "x-pull-secret"), please use version v1alpha3 or higher`},
-		{version: "v1beta2", err: `stack API version v1beta2 does not support pull secrets (field "x-pull-secret"), please use version v1alpha3 or higher`},
+		{version: "v1beta1", err: `stack API version v1beta1 does not support pull secrets (field "x-kubernetes.pull_secret"), please use version v1alpha3 or higher`},
+		{version: "v1beta2", err: `stack API version v1beta2 does not support pull secrets (field "x-kubernetes.pull_secret"), please use version v1alpha3 or higher`},
 		{version: "v1alpha3"},
 	}
 
@@ -216,8 +216,8 @@ func TestHandlePullPolicy(t *testing.T) {
 		version string
 		err     string
 	}{
-		{version: "v1beta1", err: `stack API version v1beta1 does not support pull policies (field "x-pull-policy"), please use version v1alpha3 or higher`},
-		{version: "v1beta2", err: `stack API version v1beta2 does not support pull policies (field "x-pull-policy"), please use version v1alpha3 or higher`},
+		{version: "v1beta1", err: `stack API version v1beta1 does not support pull policies (field "x-kubernetes.pull_policy"), please use version v1alpha3 or higher`},
+		{version: "v1beta2", err: `stack API version v1beta2 does not support pull policies (field "x-kubernetes.pull_policy"), please use version v1alpha3 or higher`},
 		{version: "v1alpha3"},
 	}
 
@@ -249,13 +249,13 @@ func TestHandleInternalServiceType(t *testing.T) {
 			name:  "v1beta1",
 			value: "ClusterIP",
 			caps:  v1beta1Capabilities,
-			err:   `stack API version v1beta1 does not support intra-stack load balancing (field "x-internal-service-type"), please use version v1alpha3 or higher`,
+			err:   `stack API version v1beta1 does not support intra-stack load balancing (field "x-kubernetes.internal_service_type"), please use version v1alpha3 or higher`,
 		},
 		{
 			name:  "v1beta2",
 			value: "ClusterIP",
 			caps:  v1beta2Capabilities,
-			err:   `stack API version v1beta2 does not support intra-stack load balancing (field "x-internal-service-type"), please use version v1alpha3 or higher`,
+			err:   `stack API version v1beta2 does not support intra-stack load balancing (field "x-kubernetes.internal_service_type"), please use version v1alpha3 or higher`,
 		},
 		{
 			name:     "v1alpha3",
@@ -267,7 +267,7 @@ func TestHandleInternalServiceType(t *testing.T) {
 			name:  "v1alpha3-invalid",
 			value: "invalid",
 			caps:  v1alpha3Capabilities,
-			err:   `invalid value "invalid" for field "x-internal-service-type", valid values are "ClusterIP" or "Headless"`,
+			err:   `invalid value "invalid" for field "x-kubernetes.internal_service_type", valid values are "ClusterIP" or "Headless"`,
 		},
 	}
 	for _, c := range cases {
@@ -276,7 +276,9 @@ func TestHandleInternalServiceType(t *testing.T) {
 				Name:  "test",
 				Image: "test",
 				Extras: map[string]interface{}{
-					internalServiceTypeExtraField: c.value,
+					"x-kubernetes": map[string]interface{}{
+						"internal_service_type": c.value,
+					},
 				},
 			}, c.caps)
 			if c.err == "" {
