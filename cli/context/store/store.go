@@ -18,15 +18,47 @@ import (
 
 // Store provides a context store for easily remembering endpoints configuration
 type Store interface {
-	ListContexts() ([]ContextMetadata, error)
-	CreateOrUpdateContext(meta ContextMetadata) error
-	RemoveContext(name string) error
+	Reader
+	Lister
+	Writer
+	StorageInfo
+}
+
+// Reader provides read-only (without list) access to context data
+type Reader interface {
 	GetContextMetadata(name string) (ContextMetadata, error)
-	ResetContextTLSMaterial(name string, data *ContextTLSData) error
-	ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error
 	ListContextTLSFiles(name string) (map[string]EndpointFiles, error)
 	GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error)
+}
+
+// Lister provides listing of contexts
+type Lister interface {
+	ListContexts() ([]ContextMetadata, error)
+}
+
+// ReaderLister combines Reader and Lister interfaces
+type ReaderLister interface {
+	Reader
+	Lister
+}
+
+// StorageInfo provides more information about storage details of contexts
+type StorageInfo interface {
 	GetContextStorageInfo(contextName string) ContextStorageInfo
+}
+
+// Writer provides write access to context data
+type Writer interface {
+	CreateOrUpdateContext(meta ContextMetadata) error
+	RemoveContext(name string) error
+	ResetContextTLSMaterial(name string, data *ContextTLSData) error
+	ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error
+}
+
+// ReaderWriter combines Reader and Writer interfaces
+type ReaderWriter interface {
+	Reader
+	Writer
 }
 
 // ContextMetadata contains metadata about a context and its endpoints
@@ -151,7 +183,7 @@ func (s *store) GetContextStorageInfo(contextName string) ContextStorageInfo {
 // Export exports an existing namespace into an opaque data stream
 // This stream is actually a tarball containing context metadata and TLS materials, but it does
 // not map 1:1 the layout of the context store (don't try to restore it manually without calling store.Import)
-func Export(name string, s Store) io.ReadCloser {
+func Export(name string, s Reader) io.ReadCloser {
 	reader, writer := io.Pipe()
 	go func() {
 		tw := tar.NewWriter(writer)
@@ -228,7 +260,7 @@ func Export(name string, s Store) io.ReadCloser {
 }
 
 // Import imports an exported context into a store
-func Import(name string, s Store, reader io.Reader) error {
+func Import(name string, s Writer, reader io.Reader) error {
 	tr := tar.NewReader(reader)
 	tlsData := ContextTLSData{
 		Endpoints: map[string]EndpointTLSData{},
