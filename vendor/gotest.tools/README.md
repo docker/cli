@@ -29,3 +29,7 @@ A collection of packages to augment `testing` and support common patterns.
 * [gotest.tools/gotestsum](https://github.com/gotestyourself/gotestsum) - go test runner with custom output
 * [maxbrunsfeld/counterfeiter](https://github.com/maxbrunsfeld/counterfeiter) - generate fakes for interfaces
 * [jonboulle/clockwork](https://github.com/jonboulle/clockwork) - a fake clock for testing code that uses `time`
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
