@@ -164,6 +164,7 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 			return nil, err
 		}
 		if plugin.Err != nil {
+			// TODO: why are we not returning plugin.Err?
 			return nil, errPluginNotFound(name)
 		}
 		cmd := exec.Command(plugin.Path, args...)
