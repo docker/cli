@@ -18,9 +18,9 @@ func TestRemove(t *testing.T) {
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
 	assert.NilError(t, RunRemove(cli, RemoveOptions{}, []string{"other"}))
-	_, err := cli.ContextStore().GetContextMetadata("current")
+	_, err := cli.ContextStore().GetMetadata("current")
 	assert.NilError(t, err)
-	_, err = cli.ContextStore().GetContextMetadata("other")
+	_, err = cli.ContextStore().GetMetadata("other")
 	assert.Check(t, store.IsErrContextDoesNotExist(err))
 }
 

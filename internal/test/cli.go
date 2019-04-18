@@ -233,7 +233,7 @@ func (c *FakeCli) StackOrchestrator(flagValue string) (command.Orchestrator, err
 	}
 	ctxOrchestrator := ""
 	if c.currentContext != "" && c.contextStore != nil {
-		meta, err := c.contextStore.GetContextMetadata(c.currentContext)
+		meta, err := c.contextStore.GetMetadata(c.currentContext)
 		if err != nil {
 			return "", err
 		}

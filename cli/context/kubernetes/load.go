@@ -62,7 +62,7 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 }
 
 // EndpointFromContext extracts kubernetes endpoint info from current context
-func EndpointFromContext(metadata store.ContextMetadata) *EndpointMeta {
+func EndpointFromContext(metadata store.Metadata) *EndpointMeta {
 	ep, ok := metadata.Endpoints[KubernetesEndpoint]
 	if !ok {
 		return nil
@@ -78,7 +78,7 @@ func EndpointFromContext(metadata store.ContextMetadata) *EndpointMeta {
 // If kubeconfigOverride is specified, use this config file instead of the context defaults.ConfigFromContext
 // if command.ContextDockerHost is specified as the context name, fallsback to the default user's kubeconfig file
 func ConfigFromContext(name string, s store.Reader) (clientcmd.ClientConfig, error) {
-	ctxMeta, err := s.GetContextMetadata(name)
+	ctxMeta, err := s.GetMetadata(name)
 	if err != nil {
 		return nil, err
 	}

@@ -80,7 +80,7 @@ func RunExport(dockerCli command.Cli, opts *ExportOptions) error {
 	if err := validateContextName(opts.ContextName); err != nil && opts.ContextName != command.DefaultContextName {
 		return err
 	}
-	ctxMeta, err := dockerCli.ContextStore().GetContextMetadata(opts.ContextName)
+	ctxMeta, err := dockerCli.ContextStore().GetMetadata(opts.ContextName)
 	if err != nil {
 		return err
 	}

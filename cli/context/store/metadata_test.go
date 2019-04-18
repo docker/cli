@@ -10,8 +10,8 @@ import (
 	"gotest.tools/assert/cmp"
 )
 
-func testMetadata(name string) ContextMetadata {
-	return ContextMetadata{
+func testMetadata(name string) Metadata {
+	return Metadata{
 		Endpoints: map[string]interface{}{
 			"ep1": endpoint{Foo: "bar"},
 		},
@@ -34,7 +34,7 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir, config: testCfg}
-	expected2 := ContextMetadata{
+	expected2 := Metadata{
 		Endpoints: map[string]interface{}{
 			"ep1": endpoint{Foo: "baz"},
 			"ep2": endpoint{Foo: "bee"},
@@ -82,7 +82,7 @@ func TestMetadataList(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir, config: testCfg}
-	wholeData := []ContextMetadata{
+	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
 		testMetadata("context3"),
@@ -103,7 +103,7 @@ func TestEmptyConfig(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(testDir)
 	testee := metadataStore{root: testDir}
-	wholeData := []ContextMetadata{
+	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
 		testMetadata("context3"),
@@ -136,7 +136,7 @@ func TestWithEmbedding(t *testing.T) {
 			Val: "Hello",
 		},
 	}
-	assert.NilError(t, testee.createOrUpdate(ContextMetadata{Metadata: testCtxMeta, Name: "test"}))
+	assert.NilError(t, testee.createOrUpdate(Metadata{Metadata: testCtxMeta, Name: "test"}))
 	res, err := testee.get(contextdirOf("test"))
 	assert.NilError(t, err)
 	assert.Equal(t, testCtxMeta, res.Metadata)

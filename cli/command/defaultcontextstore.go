@@ -22,7 +22,7 @@ const (
 
 // DefaultContext contains the default context data for all enpoints
 type DefaultContext struct {
-	Meta store.ContextMetadata
+	Meta store.Metadata
 	TLS  store.ContextTLSData
 }
 
@@ -35,7 +35,7 @@ type ContextStoreWithDefault struct {
 	Resolver DefaultContextResolver
 }
 
-// resolveDefaultContext creates a ContextMetadata for the current CLI invocation parameters
+// resolveDefaultContext creates a Metadata for the current CLI invocation parameters
 func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, stderr io.Writer) (*DefaultContext, error) {
 	stackOrchestrator, err := GetStackOrchestrator("", "", config.StackOrchestrator, stderr)
 	if err != nil {
@@ -44,7 +44,7 @@ func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 	contextTLSData := store.ContextTLSData{
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
-	contextMetadata := store.ContextMetadata{
+	contextMetadata := store.Metadata{
 		Endpoints: make(map[string]interface{}),
 		Metadata: DockerContext{
 			Description:       "",
@@ -81,9 +81,9 @@ func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil
 }
 
-// ListContexts implements store.Store's ListContexts
-func (s *ContextStoreWithDefault) ListContexts() ([]store.ContextMetadata, error) {
-	contextList, err := s.Store.ListContexts()
+// List implements store.Store's List
+func (s *ContextStoreWithDefault) List() ([]store.Metadata, error) {
+	contextList, err := s.Store.List()
 	if err != nil {
 		return nil, err
 	}
@@ -94,52 +94,52 @@ func (s *ContextStoreWithDefault) ListContexts() ([]store.ContextMetadata, error
 	return append(contextList, defaultContext.Meta), nil
 }
 
-// CreateOrUpdateContext is not allowed for the default context and fails
-func (s *ContextStoreWithDefault) CreateOrUpdateContext(meta store.ContextMetadata) error {
+// CreateOrUpdate is not allowed for the default context and fails
+func (s *ContextStoreWithDefault) CreateOrUpdate(meta store.Metadata) error {
 	if meta.Name == DefaultContextName {
 		return errors.New("default context cannot be created nor updated")
 	}
-	return s.Store.CreateOrUpdateContext(meta)
+	return s.Store.CreateOrUpdate(meta)
 }
 
-// RemoveContext is not allowed for the default context and fails
-func (s *ContextStoreWithDefault) RemoveContext(name string) error {
+// Remove is not allowed for the default context and fails
+func (s *ContextStoreWithDefault) Remove(name string) error {
 	if name == DefaultContextName {
 		return errors.New("default context cannot be removed")
 	}
-	return s.Store.RemoveContext(name)
+	return s.Store.Remove(name)
 }
 
-// GetContextMetadata implements store.Store's GetContextMetadata
-func (s *ContextStoreWithDefault) GetContextMetadata(name string) (store.ContextMetadata, error) {
+// GetMetadata implements store.Store's GetMetadata
+func (s *ContextStoreWithDefault) GetMetadata(name string) (store.Metadata, error) {
 	if name == DefaultContextName {
 		defaultContext, err := s.Resolver()
 		if err != nil {
-			return store.ContextMetadata{}, err
+			return store.Metadata{}, err
 		}
 		return defaultContext.Meta, nil
 	}
-	return s.Store.GetContextMetadata(name)
+	return s.Store.GetMetadata(name)
 }
 
-// ResetContextTLSMaterial is not implemented for default context and fails
-func (s *ContextStoreWithDefault) ResetContextTLSMaterial(name string, data *store.ContextTLSData) error {
+// ResetTLSMaterial is not implemented for default context and fails
+func (s *ContextStoreWithDefault) ResetTLSMaterial(name string, data *store.ContextTLSData) error {
 	if name == DefaultContextName {
-		return errors.New("The default context store does not support ResetContextTLSMaterial")
+		return errors.New("The default context store does not support ResetTLSMaterial")
 	}
-	return s.Store.ResetContextTLSMaterial(name, data)
+	return s.Store.ResetTLSMaterial(name, data)
 }
 
-// ResetContextEndpointTLSMaterial is not implemented for default context and fails
-func (s *ContextStoreWithDefault) ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *store.EndpointTLSData) error {
+// ResetEndpointTLSMaterial is not implemented for default context and fails
+func (s *ContextStoreWithDefault) ResetEndpointTLSMaterial(contextName string, endpointName string, data *store.EndpointTLSData) error {
 	if contextName == DefaultContextName {
-		return errors.New("The default context store does not support ResetContextEndpointTLSMaterial")
+		return errors.New("The default context store does not support ResetEndpointTLSMaterial")
 	}
-	return s.Store.ResetContextEndpointTLSMaterial(contextName, endpointName, data)
+	return s.Store.ResetEndpointTLSMaterial(contextName, endpointName, data)
 }
 
-// ListContextTLSFiles implements store.Store's ListContextTLSFiles
-func (s *ContextStoreWithDefault) ListContextTLSFiles(name string) (map[string]store.EndpointFiles, error) {
+// ListTLSFiles implements store.Store's ListTLSFiles
+func (s *ContextStoreWithDefault) ListTLSFiles(name string) (map[string]store.EndpointFiles, error) {
 	if name == DefaultContextName {
 		defaultContext, err := s.Resolver()
 		if err != nil {
@@ -155,11 +155,11 @@ func (s *ContextStoreWithDefault) ListContextTLSFiles(name string) (map[string]s
 		}
 		return tlsfiles, nil
 	}
-	return s.Store.ListContextTLSFiles(name)
+	return s.Store.ListTLSFiles(name)
 }
 
-// GetContextTLSData implements store.Store's GetContextTLSData
-func (s *ContextStoreWithDefault) GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error) {
+// GetTLSData implements store.Store's GetTLSData
+func (s *ContextStoreWithDefault) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
 	if contextName == DefaultContextName {
 		defaultContext, err := s.Resolver()
 		if err != nil {
@@ -171,7 +171,7 @@ func (s *ContextStoreWithDefault) GetContextTLSData(contextName, endpointName, f
 		return defaultContext.TLS.Endpoints[endpointName].Files[fileName], nil
 
 	}
-	return s.Store.GetContextTLSData(contextName, endpointName, fileName)
+	return s.Store.GetTLSData(contextName, endpointName, fileName)
 }
 
 type noDefaultTLSDataError struct {
@@ -189,10 +189,10 @@ func (e *noDefaultTLSDataError) NotFound() {}
 // IsTLSDataDoesNotExist satisfies github.com/docker/cli/cli/context/store.tlsDataDoesNotExist
 func (e *noDefaultTLSDataError) IsTLSDataDoesNotExist() {}
 
-// GetContextStorageInfo implements store.Store's GetContextStorageInfo
-func (s *ContextStoreWithDefault) GetContextStorageInfo(contextName string) store.ContextStorageInfo {
+// GetStorageInfo implements store.Store's GetStorageInfo
+func (s *ContextStoreWithDefault) GetStorageInfo(contextName string) store.StorageInfo {
 	if contextName == DefaultContextName {
-		return store.ContextStorageInfo{MetadataPath: "<IN MEMORY>", TLSPath: "<IN MEMORY>"}
+		return store.StorageInfo{MetadataPath: "<IN MEMORY>", TLSPath: "<IN MEMORY>"}
 	}
-	return s.Store.GetContextStorageInfo(contextName)
+	return s.Store.GetStorageInfo(contextName)
 }

@@ -40,25 +40,25 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 
 func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	getRefFunc := func(ref string) (interface{}, []byte, error) {
-		c, err := dockerCli.ContextStore().GetContextMetadata(ref)
+		c, err := dockerCli.ContextStore().GetMetadata(ref)
 		if err != nil {
 			return nil, nil, err
 		}
-		tlsListing, err := dockerCli.ContextStore().ListContextTLSFiles(ref)
+		tlsListing, err := dockerCli.ContextStore().ListTLSFiles(ref)
 		if err != nil {
 			return nil, nil, err
 		}
 		return contextWithTLSListing{
-			ContextMetadata: c,
-			TLSMaterial:     tlsListing,
-			Storage:         dockerCli.ContextStore().GetContextStorageInfo(ref),
+			Metadata:    c,
+			TLSMaterial: tlsListing,
+			Storage:     dockerCli.ContextStore().GetStorageInfo(ref),
 		}, nil, nil
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.refs, opts.format, getRefFunc)
 }
 
 type contextWithTLSListing struct {
-	store.ContextMetadata
+	store.Metadata
 	TLSMaterial map[string]store.EndpointFiles
-	Storage     store.ContextStorageInfo
+	Storage     store.StorageInfo
 }

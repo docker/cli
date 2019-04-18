@@ -21,19 +21,19 @@ type Store interface {
 	Reader
 	Lister
 	Writer
-	StorageInfo
+	StorageInfoProvider
 }
 
 // Reader provides read-only (without list) access to context data
 type Reader interface {
-	GetContextMetadata(name string) (ContextMetadata, error)
-	ListContextTLSFiles(name string) (map[string]EndpointFiles, error)
-	GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error)
+	GetMetadata(name string) (Metadata, error)
+	ListTLSFiles(name string) (map[string]EndpointFiles, error)
+	GetTLSData(contextName, endpointName, fileName string) ([]byte, error)
 }
 
 // Lister provides listing of contexts
 type Lister interface {
-	ListContexts() ([]ContextMetadata, error)
+	List() ([]Metadata, error)
 }
 
 // ReaderLister combines Reader and Lister interfaces
@@ -42,17 +42,17 @@ type ReaderLister interface {
 	Lister
 }
 
-// StorageInfo provides more information about storage details of contexts
-type StorageInfo interface {
-	GetContextStorageInfo(contextName string) ContextStorageInfo
+// StorageInfoProvider provides more information about storage details of contexts
+type StorageInfoProvider interface {
+	GetStorageInfo(contextName string) StorageInfo
 }
 
 // Writer provides write access to context data
 type Writer interface {
-	CreateOrUpdateContext(meta ContextMetadata) error
-	RemoveContext(name string) error
-	ResetContextTLSMaterial(name string, data *ContextTLSData) error
-	ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error
+	CreateOrUpdate(meta Metadata) error
+	Remove(name string) error
+	ResetTLSMaterial(name string, data *ContextTLSData) error
+	ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error
 }
 
 // ReaderWriter combines Reader and Writer interfaces
@@ -61,15 +61,15 @@ type ReaderWriter interface {
 	Writer
 }
 
-// ContextMetadata contains metadata about a context and its endpoints
-type ContextMetadata struct {
+// Metadata contains metadata about a context and its endpoints
+type Metadata struct {
 	Name      string                 `json:",omitempty"`
 	Metadata  interface{}            `json:",omitempty"`
 	Endpoints map[string]interface{} `json:",omitempty"`
 }
 
-// ContextStorageInfo contains data about where a given context is stored
-type ContextStorageInfo struct {
+// StorageInfo contains data about where a given context is stored
+type StorageInfo struct {
 	MetadataPath string
 	TLSPath      string
 }
@@ -106,15 +106,15 @@ type store struct {
 	tls  *tlsStore
 }
 
-func (s *store) ListContexts() ([]ContextMetadata, error) {
+func (s *store) List() ([]Metadata, error) {
 	return s.meta.list()
 }
 
-func (s *store) CreateOrUpdateContext(meta ContextMetadata) error {
+func (s *store) CreateOrUpdate(meta Metadata) error {
 	return s.meta.createOrUpdate(meta)
 }
 
-func (s *store) RemoveContext(name string) error {
+func (s *store) Remove(name string) error {
 	id := contextdirOf(name)
 	if err := s.meta.remove(id); err != nil {
 		return patchErrContextName(err, name)
@@ -122,13 +122,13 @@ func (s *store) RemoveContext(name string) error {
 	return patchErrContextName(s.tls.removeAllContextData(id), name)
 }
 
-func (s *store) GetContextMetadata(name string) (ContextMetadata, error) {
+func (s *store) GetMetadata(name string) (Metadata, error) {
 	res, err := s.meta.get(contextdirOf(name))
 	patchErrContextName(err, name)
 	return res, err
 }
 
-func (s *store) ResetContextTLSMaterial(name string, data *ContextTLSData) error {
+func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	id := contextdirOf(name)
 	if err := s.tls.removeAllContextData(id); err != nil {
 		return patchErrContextName(err, name)
@@ -146,7 +146,7 @@ func (s *store) ResetContextTLSMaterial(name string, data *ContextTLSData) error
 	return nil
 }
 
-func (s *store) ResetContextEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
+func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
 	id := contextdirOf(contextName)
 	if err := s.tls.removeAllEndpointData(id, endpointName); err != nil {
 		return patchErrContextName(err, contextName)
@@ -162,19 +162,19 @@ func (s *store) ResetContextEndpointTLSMaterial(contextName string, endpointName
 	return nil
 }
 
-func (s *store) ListContextTLSFiles(name string) (map[string]EndpointFiles, error) {
+func (s *store) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
 	res, err := s.tls.listContextData(contextdirOf(name))
 	return res, patchErrContextName(err, name)
 }
 
-func (s *store) GetContextTLSData(contextName, endpointName, fileName string) ([]byte, error) {
+func (s *store) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
 	res, err := s.tls.getData(contextdirOf(contextName), endpointName, fileName)
 	return res, patchErrContextName(err, contextName)
 }
 
-func (s *store) GetContextStorageInfo(contextName string) ContextStorageInfo {
+func (s *store) GetStorageInfo(contextName string) StorageInfo {
 	dir := contextdirOf(contextName)
-	return ContextStorageInfo{
+	return StorageInfo{
 		MetadataPath: s.meta.contextDir(dir),
 		TLSPath:      s.tls.contextDir(dir),
 	}
@@ -189,7 +189,7 @@ func Export(name string, s Reader) io.ReadCloser {
 		tw := tar.NewWriter(writer)
 		defer tw.Close()
 		defer writer.Close()
-		meta, err := s.GetContextMetadata(name)
+		meta, err := s.GetMetadata(name)
 		if err != nil {
 			writer.CloseWithError(err)
 			return
@@ -211,7 +211,7 @@ func Export(name string, s Reader) io.ReadCloser {
 			writer.CloseWithError(err)
 			return
 		}
-		tlsFiles, err := s.ListContextTLSFiles(name)
+		tlsFiles, err := s.ListTLSFiles(name)
 		if err != nil {
 			writer.CloseWithError(err)
 			return
@@ -236,7 +236,7 @@ func Export(name string, s Reader) io.ReadCloser {
 				return
 			}
 			for _, fileName := range endpointFiles {
-				data, err := s.GetContextTLSData(name, endpointName, fileName)
+				data, err := s.GetTLSData(name, endpointName, fileName)
 				if err != nil {
 					writer.CloseWithError(err)
 					return
@@ -282,12 +282,12 @@ func Import(name string, s Writer, reader io.Reader) error {
 			if err != nil {
 				return err
 			}
-			var meta ContextMetadata
+			var meta Metadata
 			if err := json.Unmarshal(data, &meta); err != nil {
 				return err
 			}
 			meta.Name = name
-			if err := s.CreateOrUpdateContext(meta); err != nil {
+			if err := s.CreateOrUpdate(meta); err != nil {
 				return err
 			}
 		} else if strings.HasPrefix(hdr.Name, "tls/") {
@@ -310,7 +310,7 @@ func Import(name string, s Writer, reader io.Reader) error {
 			tlsData.Endpoints[endpointName].Files[fileName] = data
 		}
 	}
-	return s.ResetContextTLSMaterial(name, &tlsData)
+	return s.ResetTLSMaterial(name, &tlsData)
 }
 
 type setContextName interface {

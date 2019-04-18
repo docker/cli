@@ -26,7 +26,7 @@ func RunUse(dockerCli command.Cli, name string) error {
 	if err := validateContextName(name); err != nil && name != "default" {
 		return err
 	}
-	if _, err := dockerCli.ContextStore().GetContextMetadata(name); err != nil && name != "default" {
+	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil && name != "default" {
 		return err
 	}
 	configValue := name
