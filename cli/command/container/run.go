@@ -117,11 +117,6 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		config.StdinOnce = false
 	}
 
-	// Disable sigProxy when in TTY mode
-	if config.Tty {
-		opts.sigProxy = false
-	}
-
 	// Telling the Windows daemon the initial size of the tty during start makes
 	// a far better user experience rather than relying on subsequent resizes
 	// to cause things to catch up.
