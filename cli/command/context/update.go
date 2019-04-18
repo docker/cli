@@ -72,7 +72,7 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 		return err
 	}
 	s := cli.ContextStore()
-	c, err := s.GetContextMetadata(o.Name)
+	c, err := s.GetMetadata(o.Name)
 	if err != nil {
 		return err
 	}
@@ -118,11 +118,11 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 	if err := validateEndpointsAndOrchestrator(c); err != nil {
 		return err
 	}
-	if err := s.CreateOrUpdateContext(c); err != nil {
+	if err := s.CreateOrUpdate(c); err != nil {
 		return err
 	}
 	for ep, tlsData := range tlsDataToReset {
-		if err := s.ResetContextEndpointTLSMaterial(o.Name, ep, tlsData); err != nil {
+		if err := s.ResetEndpointTLSMaterial(o.Name, ep, tlsData); err != nil {
 			return err
 		}
 	}
@@ -132,7 +132,7 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 	return nil
 }
 
-func validateEndpointsAndOrchestrator(c store.ContextMetadata) error {
+func validateEndpointsAndOrchestrator(c store.Metadata) error {
 	dockerContext, err := command.GetDockerContext(c)
 	if err != nil {
 		return err

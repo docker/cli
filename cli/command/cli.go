@@ -291,7 +291,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 }
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
-	ctxMeta, err := s.GetContextMetadata(contextName)
+	ctxMeta, err := s.GetMetadata(contextName)
 	if err != nil {
 		return docker.Endpoint{}, err
 	}
@@ -399,7 +399,7 @@ func (cli *DockerCli) CurrentContext() string {
 // StackOrchestrator resolves which stack orchestrator is in use
 func (cli *DockerCli) StackOrchestrator(flagValue string) (Orchestrator, error) {
 	currentContext := cli.CurrentContext()
-	ctxRaw, err := cli.ContextStore().GetContextMetadata(currentContext)
+	ctxRaw, err := cli.ContextStore().GetMetadata(currentContext)
 	if store.IsErrContextDoesNotExist(err) {
 		// case where the currentContext has been removed (CLI behavior is to fallback to using DOCKER_HOST based resolution)
 		return GetStackOrchestrator(flagValue, "", cli.ConfigFile().StackOrchestrator, cli.Err())
@@ -517,7 +517,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 		return ctxName, nil
 	}
 	if config != nil && config.CurrentContext != "" {
-		_, err := contextstore.GetContextMetadata(config.CurrentContext)
+		_, err := contextstore.GetMetadata(config.CurrentContext)
 		if store.IsErrContextDoesNotExist(err) {
 			return "", errors.Errorf("Current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
 		}

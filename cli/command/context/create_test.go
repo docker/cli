@@ -27,7 +27,7 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 		Store: store.New(dir, storeConfig),
 		Resolver: func() (*command.DefaultContext, error) {
 			return &command.DefaultContext{
-				Meta: store.ContextMetadata{
+				Meta: store.Metadata{
 					Endpoints: map[string]interface{}{
 						docker.DockerEndpoint: docker.EndpointMeta{
 							Host: "unix:///var/run/docker.sock",
@@ -63,7 +63,7 @@ func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
 func TestCreateInvalids(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	assert.NilError(t, cli.ContextStore().CreateOrUpdateContext(store.ContextMetadata{Name: "existing-context"}))
+	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
 		options     CreateOptions
 		expecterErr string
@@ -158,7 +158,7 @@ func TestCreateOrchestratorEmpty(t *testing.T) {
 
 func validateTestKubeEndpoint(t *testing.T, s store.Reader, name string) {
 	t.Helper()
-	ctxMetadata, err := s.GetContextMetadata(name)
+	ctxMetadata, err := s.GetMetadata(name)
 	assert.NilError(t, err)
 	kubeMeta := ctxMetadata.Endpoints[kubernetes.KubernetesEndpoint].(kubernetes.EndpointMeta)
 	kubeEP, err := kubeMeta.WithTLSData(s, name)
@@ -261,7 +261,7 @@ func TestCreateFromContext(t *testing.T) {
 				Kubernetes:               c.kubernetes,
 			})
 			assert.NilError(t, err)
-			newContext, err := cli.ContextStore().GetContextMetadata(c.name)
+			newContext, err := cli.ContextStore().GetMetadata(c.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
@@ -330,7 +330,7 @@ func TestCreateFromCurrent(t *testing.T) {
 				DefaultStackOrchestrator: c.orchestrator,
 			})
 			assert.NilError(t, err)
-			newContext, err := cli.ContextStore().GetContextMetadata(c.name)
+			newContext, err := cli.ContextStore().GetMetadata(c.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)

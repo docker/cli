@@ -25,7 +25,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 		Name:        "test",
 		Description: "description",
 	}))
-	c, err := cli.ContextStore().GetContextMetadata("test")
+	c, err := cli.ContextStore().GetMetadata("test")
 	assert.NilError(t, err)
 	dc, err := command.GetDockerContext(c)
 	assert.NilError(t, err)
@@ -46,7 +46,7 @@ func TestUpdateDockerOnly(t *testing.T) {
 			keyHost: "tcp://some-host",
 		},
 	}))
-	c, err := cli.ContextStore().GetContextMetadata("test")
+	c, err := cli.ContextStore().GetMetadata("test")
 	assert.NilError(t, err)
 	dc, err := command.GetDockerContext(c)
 	assert.NilError(t, err)

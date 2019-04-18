@@ -50,7 +50,7 @@ func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error 
 }
 
 func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
-	if _, err := dockerCli.ContextStore().GetContextMetadata(name); err != nil {
+	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil {
 		return err
 	}
 	if isCurrent {
@@ -64,5 +64,5 @@ func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
 			return err
 		}
 	}
-	return dockerCli.ContextStore().RemoveContext(name)
+	return dockerCli.ContextStore().Remove(name)
 }

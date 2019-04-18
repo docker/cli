@@ -13,7 +13,7 @@ type DockerContext struct {
 }
 
 // GetDockerContext extracts metadata from stored context metadata
-func GetDockerContext(storeMetadata store.ContextMetadata) (DockerContext, error) {
+func GetDockerContext(storeMetadata store.Metadata) (DockerContext, error) {
 	if storeMetadata.Metadata == nil {
 		// can happen if we save endpoints before assigning a context metadata
 		// it is totally valid, and we should return a default initialized value

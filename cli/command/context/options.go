@@ -122,7 +122,7 @@ func getDockerEndpoint(dockerCli command.Cli, config map[string]string) (docker.
 		return docker.Endpoint{}, err
 	}
 	if contextName, ok := config[keyFrom]; ok {
-		metadata, err := dockerCli.ContextStore().GetContextMetadata(contextName)
+		metadata, err := dockerCli.ContextStore().GetMetadata(contextName)
 		if err != nil {
 			return docker.Endpoint{}, err
 		}
@@ -173,7 +173,7 @@ func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*ku
 		return nil, nil
 	}
 	if contextName, ok := config[keyFrom]; ok {
-		ctxMeta, err := dockerCli.ContextStore().GetContextMetadata(contextName)
+		ctxMeta, err := dockerCli.ContextStore().GetMetadata(contextName)
 		if err != nil {
 			return nil, err
 		}

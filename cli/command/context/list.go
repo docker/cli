@@ -42,7 +42,7 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		opts.format = formatter.TableFormatKey
 	}
 	curContext := dockerCli.CurrentContext()
-	contextMap, err := dockerCli.ContextStore().ListContexts()
+	contextMap, err := dockerCli.ContextStore().List()
 	if err != nil {
 		return err
 	}

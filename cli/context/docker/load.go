@@ -153,7 +153,7 @@ func withHTTPClient(tlsConfig *tls.Config) func(*client.Client) error {
 }
 
 // EndpointFromContext parses a context docker endpoint metadata into a typed EndpointMeta structure
-func EndpointFromContext(metadata store.ContextMetadata) (EndpointMeta, error) {
+func EndpointFromContext(metadata store.Metadata) (EndpointMeta, error) {
 	ep, ok := metadata.Endpoints[DockerEndpoint]
 	if !ok {
 		return EndpointMeta{}, errors.New("cannot find docker endpoint in context")

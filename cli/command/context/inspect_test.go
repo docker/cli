@@ -17,7 +17,7 @@ func TestInspect(t *testing.T) {
 		refs: []string{"current"},
 	}))
 	expected := string(golden.Get(t, "inspect.golden"))
-	si := cli.ContextStore().GetContextStorageInfo("current")
+	si := cli.ContextStore().GetStorageInfo("current")
 	expected = strings.Replace(expected, "<METADATA_PATH>", strings.Replace(si.MetadataPath, `\`, `\\`, -1), 1)
 	expected = strings.Replace(expected, "<TLS_PATH>", strings.Replace(si.TLSPath, `\`, `\\`, -1), 1)
 	assert.Equal(t, cli.OutBuffer().String(), expected)

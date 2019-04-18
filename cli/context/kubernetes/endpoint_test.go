@@ -85,15 +85,15 @@ func TestSaveLoadContexts(t *testing.T) {
 	assert.NilError(t, save(store, epDefault, "embed-default-context"))
 	assert.NilError(t, save(store, epContext2, "embed-context2"))
 
-	rawNoTLSMeta, err := store.GetContextMetadata("raw-notls")
+	rawNoTLSMeta, err := store.GetMetadata("raw-notls")
 	assert.NilError(t, err)
-	rawNoTLSSkipMeta, err := store.GetContextMetadata("raw-notls-skip")
+	rawNoTLSSkipMeta, err := store.GetMetadata("raw-notls-skip")
 	assert.NilError(t, err)
-	rawTLSMeta, err := store.GetContextMetadata("raw-tls")
+	rawTLSMeta, err := store.GetMetadata("raw-tls")
 	assert.NilError(t, err)
-	embededDefaultMeta, err := store.GetContextMetadata("embed-default-context")
+	embededDefaultMeta, err := store.GetMetadata("embed-default-context")
 	assert.NilError(t, err)
-	embededContext2Meta, err := store.GetContextMetadata("embed-context2")
+	embededContext2Meta, err := store.GetMetadata("embed-context2")
 	assert.NilError(t, err)
 
 	rawNoTLS := EndpointFromContext(rawNoTLSMeta)
@@ -133,16 +133,16 @@ func checkClientConfig(t *testing.T, ep Endpoint, server, namespace string, ca, 
 }
 
 func save(s store.Writer, ep Endpoint, name string) error {
-	meta := store.ContextMetadata{
+	meta := store.Metadata{
 		Endpoints: map[string]interface{}{
 			KubernetesEndpoint: ep.EndpointMeta,
 		},
 		Name: name,
 	}
-	if err := s.CreateOrUpdateContext(meta); err != nil {
+	if err := s.CreateOrUpdate(meta); err != nil {
 		return err
 	}
-	return s.ResetContextEndpointTLSMaterial(name, KubernetesEndpoint, ep.TLSData.ToStoreTLSData())
+	return s.ResetEndpointTLSMaterial(name, KubernetesEndpoint, ep.TLSData.ToStoreTLSData())
 }
 
 func TestSaveLoadGKEConfig(t *testing.T) {
@@ -158,7 +158,7 @@ func TestSaveLoadGKEConfig(t *testing.T) {
 	ep, err := FromKubeConfig("testdata/gke-kubeconfig", "", "")
 	assert.NilError(t, err)
 	assert.NilError(t, save(store, ep, "gke-context"))
-	persistedMetadata, err := store.GetContextMetadata("gke-context")
+	persistedMetadata, err := store.GetMetadata("gke-context")
 	assert.NilError(t, err)
 	persistedEPMeta := EndpointFromContext(persistedMetadata)
 	assert.Check(t, persistedEPMeta != nil)
@@ -183,7 +183,7 @@ func TestSaveLoadEKSConfig(t *testing.T) {
 	ep, err := FromKubeConfig("testdata/eks-kubeconfig", "", "")
 	assert.NilError(t, err)
 	assert.NilError(t, save(store, ep, "eks-context"))
-	persistedMetadata, err := store.GetContextMetadata("eks-context")
+	persistedMetadata, err := store.GetMetadata("eks-context")
 	assert.NilError(t, err)
 	persistedEPMeta := EndpointFromContext(persistedMetadata)
 	assert.Check(t, persistedEPMeta != nil)

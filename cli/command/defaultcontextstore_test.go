@@ -30,8 +30,8 @@ var testCfg = store.NewConfig(func() interface{} { return &testContext{} },
 	store.EndpointTypeGetter("ep2", func() interface{} { return &endpoint{} }),
 )
 
-func testDefaultMetadata() store.ContextMetadata {
-	return store.ContextMetadata{
+func testDefaultMetadata() store.Metadata {
+	return store.Metadata{
 		Endpoints: map[string]interface{}{
 			"ep1": endpoint{Foo: "bar"},
 		},
@@ -40,7 +40,7 @@ func testDefaultMetadata() store.ContextMetadata {
 	}
 }
 
-func testStore(t *testing.T, meta store.ContextMetadata, tls store.ContextTLSData) (store.Store, func()) {
+func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (store.Store, func()) {
 	//meta := testDefaultMetadata()
 	testDir, err := ioutil.TempDir("", t.Name())
 	assert.NilError(t, err)
@@ -102,33 +102,33 @@ func TestExportDefaultImport(t *testing.T) {
 	err := store.Import("dest", s, r)
 	assert.NilError(t, err)
 
-	srcMeta, err := s.GetContextMetadata("default")
+	srcMeta, err := s.GetMetadata("default")
 	assert.NilError(t, err)
-	destMeta, err := s.GetContextMetadata("dest")
+	destMeta, err := s.GetMetadata("dest")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, destMeta.Metadata, srcMeta.Metadata)
 	assert.DeepEqual(t, destMeta.Endpoints, srcMeta.Endpoints)
 
-	srcFileList, err := s.ListContextTLSFiles("default")
+	srcFileList, err := s.ListTLSFiles("default")
 	assert.NilError(t, err)
-	destFileList, err := s.ListContextTLSFiles("dest")
+	destFileList, err := s.ListTLSFiles("dest")
 	assert.NilError(t, err)
 	assert.Equal(t, 1, len(destFileList))
 	assert.Equal(t, 1, len(srcFileList))
 	assert.Equal(t, 2, len(destFileList["ep2"]))
 	assert.Equal(t, 2, len(srcFileList["ep2"]))
 
-	srcData1, err := s.GetContextTLSData("default", "ep2", "file1")
+	srcData1, err := s.GetTLSData("default", "ep2", "file1")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, file1, srcData1)
-	srcData2, err := s.GetContextTLSData("default", "ep2", "file2")
+	srcData2, err := s.GetTLSData("default", "ep2", "file2")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, file2, srcData2)
 
-	destData1, err := s.GetContextTLSData("dest", "ep2", "file1")
+	destData1, err := s.GetTLSData("dest", "ep2", "file1")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, file1, destData1)
-	destData2, err := s.GetContextTLSData("dest", "ep2", "file2")
+	destData2, err := s.GetTLSData("dest", "ep2", "file2")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, file2, destData2)
 }
@@ -137,7 +137,7 @@ func TestListDefaultContext(t *testing.T) {
 	meta := testDefaultMetadata()
 	s, cleanup := testStore(t, meta, store.ContextTLSData{})
 	defer cleanup()
-	result, err := s.ListContexts()
+	result, err := s.List()
 	assert.NilError(t, err)
 	assert.Equal(t, 1, len(result))
 	assert.DeepEqual(t, meta, result[0])
@@ -146,7 +146,7 @@ func TestListDefaultContext(t *testing.T) {
 func TestGetDefaultContextStorageInfo(t *testing.T) {
 	s, cleanup := testStore(t, testDefaultMetadata(), store.ContextTLSData{})
 	defer cleanup()
-	result := s.GetContextStorageInfo(DefaultContextName)
+	result := s.GetStorageInfo(DefaultContextName)
 	assert.Equal(t, "<IN MEMORY>", result.MetadataPath)
 	assert.Equal(t, "<IN MEMORY>", result.TLSPath)
 }
@@ -155,7 +155,7 @@ func TestGetDefaultContextMetadata(t *testing.T) {
 	meta := testDefaultMetadata()
 	s, cleanup := testStore(t, meta, store.ContextTLSData{})
 	defer cleanup()
-	result, err := s.GetContextMetadata(DefaultContextName)
+	result, err := s.GetMetadata(DefaultContextName)
 	assert.NilError(t, err)
 	assert.Equal(t, DefaultContextName, result.Name)
 	assert.DeepEqual(t, meta.Metadata, result.Metadata)
@@ -166,7 +166,7 @@ func TestErrCreateDefault(t *testing.T) {
 	meta := testDefaultMetadata()
 	s, cleanup := testStore(t, meta, store.ContextTLSData{})
 	defer cleanup()
-	err := s.CreateOrUpdateContext(store.ContextMetadata{
+	err := s.CreateOrUpdate(store.Metadata{
 		Endpoints: map[string]interface{}{
 			"ep1": endpoint{Foo: "bar"},
 		},
@@ -180,7 +180,7 @@ func TestErrRemoveDefault(t *testing.T) {
 	meta := testDefaultMetadata()
 	s, cleanup := testStore(t, meta, store.ContextTLSData{})
 	defer cleanup()
-	err := s.RemoveContext("default")
+	err := s.Remove("default")
 	assert.Error(t, err, "default context cannot be removed")
 }
 
@@ -188,6 +188,6 @@ func TestErrTLSDataError(t *testing.T) {
 	meta := testDefaultMetadata()
 	s, cleanup := testStore(t, meta, store.ContextTLSData{})
 	defer cleanup()
-	_, err := s.GetContextTLSData("default", "noop", "noop")
+	_, err := s.GetTLSData("default", "noop", "noop")
 	assert.Check(t, store.IsErrTLSDataDoesNotExist(err))
 }

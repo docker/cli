@@ -43,14 +43,14 @@ func (data *TLSData) ToStoreTLSData() *store.EndpointTLSData {
 
 // LoadTLSData loads TLS data from the store
 func LoadTLSData(s store.Reader, contextName, endpointName string) (*TLSData, error) {
-	tlsFiles, err := s.ListContextTLSFiles(contextName)
+	tlsFiles, err := s.ListTLSFiles(contextName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to retrieve context tls files for context %q", contextName)
 	}
 	if epTLSFiles, ok := tlsFiles[endpointName]; ok {
 		var tlsData TLSData
 		for _, f := range epTLSFiles {
-			data, err := s.GetContextTLSData(contextName, endpointName, f)
+			data, err := s.GetTLSData(contextName, endpointName, f)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to retrieve context tls data for file %q of context %q", f, contextName)
 			}

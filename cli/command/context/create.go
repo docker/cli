@@ -121,10 +121,10 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 	if err := validateEndpointsAndOrchestrator(contextMetadata); err != nil {
 		return err
 	}
-	if err := s.CreateOrUpdateContext(contextMetadata); err != nil {
+	if err := s.CreateOrUpdate(contextMetadata); err != nil {
 		return err
 	}
-	if err := s.ResetContextTLSMaterial(o.Name, &contextTLSData); err != nil {
+	if err := s.ResetTLSMaterial(o.Name, &contextTLSData); err != nil {
 		return err
 	}
 	fmt.Fprintln(cli.Out(), o.Name)
@@ -136,7 +136,7 @@ func checkContextNameForCreation(s store.Reader, name string) error {
 	if err := validateContextName(name); err != nil {
 		return err
 	}
-	if _, err := s.GetContextMetadata(name); !store.IsErrContextDoesNotExist(err) {
+	if _, err := s.GetMetadata(name); !store.IsErrContextDoesNotExist(err) {
 		if err != nil {
 			return errors.Wrap(err, "error while getting existing contexts")
 		}
@@ -164,8 +164,8 @@ type descriptionAndOrchestratorStoreDecorator struct {
 	orchestrator command.Orchestrator
 }
 
-func (d *descriptionAndOrchestratorStoreDecorator) GetContextMetadata(name string) (store.ContextMetadata, error) {
-	c, err := d.Reader.GetContextMetadata(name)
+func (d *descriptionAndOrchestratorStoreDecorator) GetMetadata(name string) (store.Metadata, error) {
+	c, err := d.Reader.GetMetadata(name)
 	if err != nil {
 		return c, err
 	}
@@ -183,8 +183,8 @@ func (d *descriptionAndOrchestratorStoreDecorator) GetContextMetadata(name strin
 	return c, nil
 }
 
-func newContextMetadata(stackOrchestrator command.Orchestrator, o *CreateOptions) store.ContextMetadata {
-	return store.ContextMetadata{
+func newContextMetadata(stackOrchestrator command.Orchestrator, o *CreateOptions) store.Metadata {
+	return store.Metadata{
 		Endpoints: make(map[string]interface{}),
 		Metadata: command.DockerContext{
 			Description:       o.Description,
