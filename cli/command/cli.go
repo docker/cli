@@ -290,7 +290,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	return client.NewClientWithOpts(clientOpts...)
 }
 
-func resolveDockerEndpoint(s store.Store, contextName string) (docker.Endpoint, error) {
+func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
 	ctxMeta, err := s.GetContextMetadata(contextName)
 	if err != nil {
 		return docker.Endpoint{}, err
@@ -500,7 +500,7 @@ func UserAgent() string {
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
 // - fallbacks to default HOST, uses TLS config from flags/env vars
-func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Store) (string, error) {
+func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return "", errors.New("Conflicting options: either specify --host or --context, not both")
 	}

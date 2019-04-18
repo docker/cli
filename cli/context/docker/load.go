@@ -31,7 +31,7 @@ type Endpoint struct {
 }
 
 // WithTLSData loads TLS materials for the endpoint
-func WithTLSData(s store.Store, contextName string, m EndpointMeta) (Endpoint, error) {
+func WithTLSData(s store.Reader, contextName string, m EndpointMeta) (Endpoint, error) {
 	tlsData, err := context.LoadTLSData(s, contextName, DockerEndpoint)
 	if err != nil {
 		return Endpoint{}, err

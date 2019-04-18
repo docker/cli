@@ -104,22 +104,22 @@ func TestSaveLoadContexts(t *testing.T) {
 
 	rawNoTLSEP, err := rawNoTLS.WithTLSData(store, "raw-notls")
 	assert.NilError(t, err)
-	checkClientConfig(t, store, rawNoTLSEP, "https://test", "test", nil, nil, nil, false)
+	checkClientConfig(t, rawNoTLSEP, "https://test", "test", nil, nil, nil, false)
 	rawNoTLSSkipEP, err := rawNoTLSSkip.WithTLSData(store, "raw-notls-skip")
 	assert.NilError(t, err)
-	checkClientConfig(t, store, rawNoTLSSkipEP, "https://test", "test", nil, nil, nil, true)
+	checkClientConfig(t, rawNoTLSSkipEP, "https://test", "test", nil, nil, nil, true)
 	rawTLSEP, err := rawTLS.WithTLSData(store, "raw-tls")
 	assert.NilError(t, err)
-	checkClientConfig(t, store, rawTLSEP, "https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true)
+	checkClientConfig(t, rawTLSEP, "https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true)
 	embededDefaultEP, err := embededDefault.WithTLSData(store, "embed-default-context")
 	assert.NilError(t, err)
-	checkClientConfig(t, store, embededDefaultEP, "https://server1", "namespace1", nil, []byte("cert"), []byte("key"), true)
+	checkClientConfig(t, embededDefaultEP, "https://server1", "namespace1", nil, []byte("cert"), []byte("key"), true)
 	embededContext2EP, err := embededContext2.WithTLSData(store, "embed-context2")
 	assert.NilError(t, err)
-	checkClientConfig(t, store, embededContext2EP, "https://server2", "namespace-override", []byte("ca"), []byte("cert"), []byte("key"), false)
+	checkClientConfig(t, embededContext2EP, "https://server2", "namespace-override", []byte("ca"), []byte("cert"), []byte("key"), false)
 }
 
-func checkClientConfig(t *testing.T, s store.Store, ep Endpoint, server, namespace string, ca, cert, key []byte, skipTLSVerify bool) {
+func checkClientConfig(t *testing.T, ep Endpoint, server, namespace string, ca, cert, key []byte, skipTLSVerify bool) {
 	config := ep.KubernetesConfig()
 	cfg, err := config.ClientConfig()
 	assert.NilError(t, err)
@@ -132,7 +132,7 @@ func checkClientConfig(t *testing.T, s store.Store, ep Endpoint, server, namespa
 	assert.Equal(t, skipTLSVerify, cfg.Insecure)
 }
 
-func save(s store.Store, ep Endpoint, name string) error {
+func save(s store.Writer, ep Endpoint, name string) error {
 	meta := store.ContextMetadata{
 		Endpoints: map[string]interface{}{
 			KubernetesEndpoint: ep.EndpointMeta,

@@ -87,7 +87,7 @@ func RunCreate(cli command.Cli, o *CreateOptions) error {
 	return createNewContext(o, stackOrchestrator, cli, s)
 }
 
-func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, cli command.Cli, s store.Store) error {
+func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, cli command.Cli, s store.Writer) error {
 	if o.Docker == nil {
 		return errors.New("docker endpoint configuration is required")
 	}
@@ -132,7 +132,7 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 	return nil
 }
 
-func checkContextNameForCreation(s store.Store, name string) error {
+func checkContextNameForCreation(s store.Reader, name string) error {
 	if err := validateContextName(name); err != nil {
 		return err
 	}
@@ -145,12 +145,12 @@ func checkContextNameForCreation(s store.Store, name string) error {
 	return nil
 }
 
-func createFromExistingContext(s store.Store, fromContextName string, stackOrchestrator command.Orchestrator, o *CreateOptions) error {
+func createFromExistingContext(s store.ReaderWriter, fromContextName string, stackOrchestrator command.Orchestrator, o *CreateOptions) error {
 	if len(o.Docker) != 0 || len(o.Kubernetes) != 0 {
 		return errors.New("cannot use --docker or --kubernetes flags when --from is set")
 	}
 	reader := store.Export(fromContextName, &descriptionAndOrchestratorStoreDecorator{
-		Store:        s,
+		Reader:       s,
 		description:  o.Description,
 		orchestrator: stackOrchestrator,
 	})
@@ -159,13 +159,13 @@ func createFromExistingContext(s store.Store, fromContextName string, stackOrche
 }
 
 type descriptionAndOrchestratorStoreDecorator struct {
-	store.Store
+	store.Reader
 	description  string
 	orchestrator command.Orchestrator
 }
 
 func (d *descriptionAndOrchestratorStoreDecorator) GetContextMetadata(name string) (store.ContextMetadata, error) {
-	c, err := d.Store.GetContextMetadata(name)
+	c, err := d.Reader.GetContextMetadata(name)
 	if err != nil {
 		return c, err
 	}

@@ -156,7 +156,7 @@ func TestCreateOrchestratorEmpty(t *testing.T) {
 	assert.NilError(t, err)
 }
 
-func validateTestKubeEndpoint(t *testing.T, s store.Store, name string) {
+func validateTestKubeEndpoint(t *testing.T, s store.Reader, name string) {
 	t.Helper()
 	ctxMetadata, err := s.GetContextMetadata(name)
 	assert.NilError(t, err)
