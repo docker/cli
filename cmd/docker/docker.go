@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,10 +15,15 @@ import (
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+
+var allowedAliases = map[string]struct{}{
+	"builder": {},
+}
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
@@ -204,6 +208,38 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) 
 	return nil
 }
 
+func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []string) ([]string, []string, error) {
+	aliasMap := dockerCli.ConfigFile().Aliases
+	aliases := make([][2][]string, 0, len(aliasMap))
+
+	for k, v := range aliasMap {
+		if _, ok := allowedAliases[k]; !ok {
+			return args, osArgs, errors.Errorf("Not allowed to alias %q. Allowed aliases: %#v", k, allowedAliases)
+		}
+		if _, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
+			return args, osArgs, errors.Errorf("Not allowed to alias with builtin %q as target", v)
+		}
+		aliases = append(aliases, [2][]string{{k}, {v}})
+	}
+
+	if v, ok := aliasMap["builder"]; ok {
+		aliases = append(aliases,
+			[2][]string{{"build"}, {v, "build"}},
+			[2][]string{{"image", "build"}, {v, "build"}},
+		)
+	}
+	for _, al := range aliases {
+		var didChange bool
+		args, didChange = command.StringSliceReplaceAt(args, al[0], al[1], 0)
+		if didChange {
+			osArgs, _ = command.StringSliceReplaceAt(osArgs, al[0], al[1], -1)
+			break
+		}
+	}
+
+	return args, osArgs, nil
+}
+
 func runDocker(dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
 
@@ -213,6 +249,11 @@ func runDocker(dockerCli *command.DockerCli) error {
 	}
 
 	if err := tcmd.Initialize(); err != nil {
+		return err
+	}
+
+	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
+	if err != nil {
 		return err
 	}
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/image"
 )
 
 // NewBuilderCommand returns a cobra command for `builder` subcommands
@@ -18,6 +19,7 @@ func NewBuilderCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		NewPruneCommand(dockerCli),
+		image.NewBuildCommand(dockerCli),
 	)
 	return cmd
 }
