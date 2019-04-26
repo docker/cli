@@ -92,4 +92,18 @@ func TestGlobalHelp(t *testing.T) {
 		assert.Assert(t, is.Equal(res2.Stdout(), ""))
 		assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
 	})
+
+	t.Run("badopt", func(t *testing.T) {
+		// Running `docker --badopt` should also produce the
+		// same thing, give or take the leading error message
+		// and a trailing carriage return (due to main() using
+		// Println in the error case).
+		res2 := icmd.RunCmd(run("--badopt"))
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 125,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), ""))
+		exp := "unknown flag: --badopt\nSee 'docker --help'.\n" + res.Stdout() + "\n"
+		assert.Assert(t, is.Equal(res2.Stderr(), exp))
+	})
 }
