@@ -76,6 +76,9 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command) {
 	// is called.
 	flagErrorFunc := cmd.FlagErrorFunc()
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd.Root()); err != nil {
+			return err
+		}
 		if err := isSupported(cmd, dockerCli); err != nil {
 			return err
 		}
