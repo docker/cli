@@ -2617,36 +2617,15 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "aufs btrfs overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
 			local btrfs_options="btrfs.min_space"
-			local devicemapper_options="
-				dm.basesize
-				dm.blkdiscard
-				dm.blocksize
-				dm.directlvm_device
-				dm.fs
-				dm.libdm_log_level
-				dm.loopdatasize
-				dm.loopmetadatasize
-				dm.min_free_space
-				dm.mkfsarg
-				dm.mountopt
-				dm.override_udev_sync_check
-				dm.thinpooldev
-				dm.thinp_autoextend_percent
-				dm.thinp_autoextend_threshold
-				dm.thinp_metapercent
-				dm.thinp_percent
-				dm.use_deferred_deletion
-				dm.use_deferred_removal
-			"
 			local overlay2_options="overlay2.size"
 			local zfs_options="zfs.fsname"
 
-			local all_options="$btrfs_options $devicemapper_options $overlay2_options $zfs_options"
+			local all_options="$btrfs_options $overlay2_options $zfs_options"
 
 			case $(__docker_value_of_option '--storage-driver|-s') in
 				'')
@@ -2654,9 +2633,6 @@ _docker_daemon() {
 					;;
 				btrfs)
 					COMPREPLY=( $( compgen -W "$btrfs_options" -S = -- "$cur" ) )
-					;;
-				devicemapper)
-					COMPREPLY=( $( compgen -W "$devicemapper_options" -S = -- "$cur" ) )
 					;;
 				overlay2)
 					COMPREPLY=( $( compgen -W "$overlay2_options" -S = -- "$cur" ) )
