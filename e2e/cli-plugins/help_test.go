@@ -74,18 +74,22 @@ func TestGlobalHelp(t *testing.T) {
 	assert.Assert(t, is.Equal(badmetacount, 1))
 
 	// Running with `--help` should produce the same.
-	res2 := icmd.RunCmd(run("--help"))
-	res2.Assert(t, icmd.Expected{
-		ExitCode: 0,
+	t.Run("help_flag", func(t *testing.T) {
+		res2 := icmd.RunCmd(run("--help"))
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 0,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
+		assert.Assert(t, is.Equal(res2.Stderr(), ""))
 	})
-	assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
-	assert.Assert(t, is.Equal(res2.Stderr(), ""))
 
 	// Running just `docker` (without `help` nor `--help`) should produce the same thing, except on Stderr.
-	res2 = icmd.RunCmd(run())
-	res2.Assert(t, icmd.Expected{
-		ExitCode: 0,
+	t.Run("bare", func(t *testing.T) {
+		res2 := icmd.RunCmd(run())
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 0,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), ""))
+		assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
 	})
-	assert.Assert(t, is.Equal(res2.Stdout(), ""))
-	assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
 }
