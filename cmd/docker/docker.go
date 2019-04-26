@@ -79,6 +79,9 @@ func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command) {
 		if err := isSupported(cmd, dockerCli); err != nil {
 			return err
 		}
+		if err := hideUnsupportedFeatures(cmd, dockerCli); err != nil {
+			return err
+		}
 		return flagErrorFunc(cmd, err)
 	})
 }
