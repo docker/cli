@@ -69,7 +69,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, flags)
 }
 
-func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command) {
+func setFlagErrorFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	// When invoking `docker stack --nonsense`, we need to make sure FlagErrorFunc return appropriate
 	// output if the feature is not supported.
 	// As above cli.SetupRootCommand(cmd) have already setup the FlagErrorFunc, we will add a pre-check before the FlagErrorFunc
