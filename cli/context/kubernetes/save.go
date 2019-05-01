@@ -21,7 +21,7 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 	if err != nil {
 		return Endpoint{}, err
 	}
-	var ca, key, cert []byte
+	var ca, key, cert, token []byte
 	if ca, err = readFileOrDefault(clientcfg.CAFile, clientcfg.CAData); err != nil {
 		return Endpoint{}, err
 	}
@@ -31,12 +31,21 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 	if cert, err = readFileOrDefault(clientcfg.CertFile, clientcfg.CertData); err != nil {
 		return Endpoint{}, err
 	}
-	var tlsData *context.TLSData
-	if ca != nil || cert != nil || key != nil {
-		tlsData = &context.TLSData{
-			CA:   ca,
-			Cert: cert,
-			Key:  key,
+	if token, err = readFileOrDefault(clientcfg.BearerTokenFile, []byte(clientcfg.BearerToken)); err != nil {
+		return Endpoint{}, err
+	}
+	if len(token) == 0 {
+		token = nil
+	}
+	var tlsData *TLSData
+	if ca != nil || cert != nil || key != nil || token != nil {
+		tlsData = &TLSData{
+			TLSData: context.TLSData{
+				CA:   ca,
+				Cert: cert,
+				Key:  key,
+			},
+			Token: string(token),
 		}
 	}
 	return Endpoint{

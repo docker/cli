@@ -12,13 +12,16 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-func testEndpoint(server, defaultNamespace string, ca, cert, key []byte, skipTLSVerify bool) Endpoint {
-	var tlsData *context.TLSData
-	if ca != nil || cert != nil || key != nil {
-		tlsData = &context.TLSData{
-			CA:   ca,
-			Cert: cert,
-			Key:  key,
+func testEndpoint(server, defaultNamespace string, ca, cert, key []byte, skipTLSVerify bool, token string) Endpoint {
+	var tlsData *TLSData
+	if ca != nil || cert != nil || key != nil || len(token) > 0 {
+		tlsData = &TLSData{
+			TLSData: context.TLSData{
+				CA:   ca,
+				Cert: cert,
+				Key:  key,
+			},
+			Token: token,
 		}
 	}
 	return Endpoint{
@@ -45,9 +48,10 @@ func TestSaveLoadContexts(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(storeDir)
 	store := store.New(storeDir, testStoreCfg)
-	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, false), "raw-notls"))
-	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, true), "raw-notls-skip"))
-	assert.NilError(t, save(store, testEndpoint("https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true), "raw-tls"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, false, ""), "raw-notls"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, true, ""), "raw-notls-skip"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true, ""), "raw-tls"))
+	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, false, "token"), "token"))
 
 	kcFile, err := ioutil.TempFile(os.TempDir(), "test-load-save-k8-context")
 	assert.NilError(t, err)
@@ -91,6 +95,8 @@ func TestSaveLoadContexts(t *testing.T) {
 	assert.NilError(t, err)
 	rawTLSMeta, err := store.GetMetadata("raw-tls")
 	assert.NilError(t, err)
+	tokenMeta, err := store.GetMetadata("token")
+	assert.NilError(t, err)
 	embededDefaultMeta, err := store.GetMetadata("embed-default-context")
 	assert.NilError(t, err)
 	embededContext2Meta, err := store.GetMetadata("embed-context2")
@@ -99,27 +105,31 @@ func TestSaveLoadContexts(t *testing.T) {
 	rawNoTLS := EndpointFromContext(rawNoTLSMeta)
 	rawNoTLSSkip := EndpointFromContext(rawNoTLSSkipMeta)
 	rawTLS := EndpointFromContext(rawTLSMeta)
+	token := EndpointFromContext(tokenMeta)
 	embededDefault := EndpointFromContext(embededDefaultMeta)
 	embededContext2 := EndpointFromContext(embededContext2Meta)
 
 	rawNoTLSEP, err := rawNoTLS.WithTLSData(store, "raw-notls")
 	assert.NilError(t, err)
-	checkClientConfig(t, rawNoTLSEP, "https://test", "test", nil, nil, nil, false)
+	checkClientConfig(t, rawNoTLSEP, "https://test", "test", nil, nil, nil, false, "")
 	rawNoTLSSkipEP, err := rawNoTLSSkip.WithTLSData(store, "raw-notls-skip")
 	assert.NilError(t, err)
-	checkClientConfig(t, rawNoTLSSkipEP, "https://test", "test", nil, nil, nil, true)
+	checkClientConfig(t, rawNoTLSSkipEP, "https://test", "test", nil, nil, nil, true, "")
 	rawTLSEP, err := rawTLS.WithTLSData(store, "raw-tls")
 	assert.NilError(t, err)
-	checkClientConfig(t, rawTLSEP, "https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true)
+	checkClientConfig(t, rawTLSEP, "https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true, "")
+	tokenEP, err := token.WithTLSData(store, "token")
+	assert.NilError(t, err)
+	checkClientConfig(t, tokenEP, "https://test", "test", nil, nil, nil, false, "token")
 	embededDefaultEP, err := embededDefault.WithTLSData(store, "embed-default-context")
 	assert.NilError(t, err)
-	checkClientConfig(t, embededDefaultEP, "https://server1", "namespace1", nil, []byte("cert"), []byte("key"), true)
+	checkClientConfig(t, embededDefaultEP, "https://server1", "namespace1", nil, []byte("cert"), []byte("key"), true, "")
 	embededContext2EP, err := embededContext2.WithTLSData(store, "embed-context2")
 	assert.NilError(t, err)
-	checkClientConfig(t, embededContext2EP, "https://server2", "namespace-override", []byte("ca"), []byte("cert"), []byte("key"), false)
+	checkClientConfig(t, embededContext2EP, "https://server2", "namespace-override", []byte("ca"), []byte("cert"), []byte("key"), false, "")
 }
 
-func checkClientConfig(t *testing.T, ep Endpoint, server, namespace string, ca, cert, key []byte, skipTLSVerify bool) {
+func checkClientConfig(t *testing.T, ep Endpoint, server, namespace string, ca, cert, key []byte, skipTLSVerify bool, bearerToken string) {
 	config := ep.KubernetesConfig()
 	cfg, err := config.ClientConfig()
 	assert.NilError(t, err)
@@ -130,6 +140,7 @@ func checkClientConfig(t *testing.T, ep Endpoint, server, namespace string, ca, 
 	assert.DeepEqual(t, cert, cfg.CertData)
 	assert.DeepEqual(t, key, cfg.KeyData)
 	assert.Equal(t, skipTLSVerify, cfg.Insecure)
+	assert.Equal(t, bearerToken, cfg.BearerToken)
 }
 
 func save(s store.Writer, ep Endpoint, name string) error {
@@ -193,4 +204,29 @@ func TestSaveLoadEKSConfig(t *testing.T) {
 	actualCfg, err := persistedCfg.ClientConfig()
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expectedCfg.ExecProvider, actualCfg.ExecProvider)
+}
+
+func TestSaveLoadTokenConfig(t *testing.T) {
+	storeDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(storeDir)
+	store := store.New(storeDir, testStoreCfg)
+	cfg, err := clientcmd.LoadFromFile("testdata/token-kubeconfig")
+	assert.NilError(t, err)
+	clientCfg := clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})
+	expectedCfg, err := clientCfg.ClientConfig()
+	assert.NilError(t, err)
+	ep, err := FromKubeConfig("testdata/token-kubeconfig", "", "")
+	assert.NilError(t, err)
+	assert.NilError(t, save(store, ep, "token-context"))
+	persistedMetadata, err := store.GetMetadata("token-context")
+	assert.NilError(t, err)
+	persistedEPMeta := EndpointFromContext(persistedMetadata)
+	assert.Check(t, persistedEPMeta != nil)
+	persistedEP, err := persistedEPMeta.WithTLSData(store, "token-context")
+	assert.NilError(t, err)
+	persistedCfg := persistedEP.KubernetesConfig()
+	actualCfg, err := persistedCfg.ClientConfig()
+	assert.NilError(t, err)
+	assert.DeepEqual(t, expectedCfg.BearerToken, actualCfg.BearerToken)
 }
