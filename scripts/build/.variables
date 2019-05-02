@@ -22,5 +22,18 @@ export LDFLAGS="\
 
 GOOS="${GOOS:-$(go env GOHOSTOS)}"
 GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
-export TARGET="build/docker-$GOOS-$GOARCH"
+if [ "${GOARCH}" = "arm" ]; then
+	GOARM="${GOARM:-$(go env GOHOSTARM)}"
+fi
+
+TARGET="build/docker-$GOOS-$GOARCH"
+if [ "${GOARCH}" = "arm" ] && [ -n "${GOARM}" ]; then
+	TARGET="${TARGET}-v${GOARM}"
+fi
+
+if [ "${GOOS}" = "windows" ]; then
+	TARGET="${TARGET}.exe"
+fi
+export TARGET
+
 export SOURCE="github.com/docker/cli/cmd/docker"
