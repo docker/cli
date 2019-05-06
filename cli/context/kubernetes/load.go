@@ -46,24 +46,23 @@ func (data *TLSData) ToStoreTLSData() *store.EndpointTLSData {
 
 // LoadTLSData loads TLS data from the store
 func LoadTLSData(s store.Reader, contextName string) (*TLSData, error) {
-	tlsData, err := context.LoadTLSData(s, contextName, KubernetesEndpoint)
+	var token []byte
+	tlsData, err := context.LoadTLSData(s, contextName, KubernetesEndpoint, context.ExtraTLSData(tokenKey, &token))
 	if err != nil {
 		return nil, err
 	}
 	if tlsData == nil {
 		return nil, nil
 	}
+	var strToken string
+	if token != nil {
+		strToken = string(token)
+	}
 	result := &TLSData{
 		TLSData: *tlsData,
+		Token:   strToken,
 	}
-	token, err := s.GetTLSData(contextName, KubernetesEndpoint, tokenKey)
-	if store.IsErrTLSDataDoesNotExist(err) {
-		return result, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	result.Token = string(token)
+
 	return result, nil
 }
 
