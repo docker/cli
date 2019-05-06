@@ -56,6 +56,8 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
 	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&opts.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.StringVar(&opts.createOptions.pull, "pull", PullImageMissing,
+		`Pull image before running ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
