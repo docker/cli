@@ -215,6 +215,10 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		})
 	}
 
+	if v := os.Getenv("BUILDKIT_PROGRESS"); v != "" && options.progress == "auto" {
+		options.progress = v
+	}
+
 	eg.Go(func() error {
 		defer func() { // make sure the Status ends cleanly on build errors
 			s.Close()
