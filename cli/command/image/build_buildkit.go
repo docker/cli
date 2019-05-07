@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/containerd/console"
+	"github.com/containerd/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image/build"
@@ -217,6 +218,10 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 
 	if v := os.Getenv("BUILDKIT_PROGRESS"); v != "" && options.progress == "auto" {
 		options.progress = v
+	}
+
+	if strings.EqualFold(options.platform, "local") {
+		options.platform = platforms.DefaultString()
 	}
 
 	eg.Go(func() error {
