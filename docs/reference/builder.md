@@ -86,7 +86,7 @@ to a new image if necessary, before finally outputting the ID of your
 new image. The Docker daemon will automatically clean up the context you
 sent.
 
-Note that each instruction is run independently, and causes a new image
+Note that most instruction is run independently, and causes a new image
 to be created - so `RUN cd /tmp` will not have any effect on the next
 instructions.
 
