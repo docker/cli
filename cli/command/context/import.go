@@ -1,9 +1,13 @@
 package context
 
 import (
+	"archive/tar"
+	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -39,11 +43,35 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 		defer f.Close()
 		reader = f
 	}
-
 	if err := store.Import(name, dockerCli.ContextStore(), reader); err != nil {
+		if err == tar.ErrHeader {
+			// try with ucp bundle file logic, if it fails, return the original error
+			if err := importBundleFile(dockerCli, name, source); err == nil {
+				return nil
+			}
+		}
 		return err
 	}
 	fmt.Fprintln(dockerCli.Out(), name)
 	fmt.Fprintf(dockerCli.Err(), "Successfully imported context %q\n", name)
 	return nil
+}
+
+func importBundleFile(dockerCli command.Cli, name string, source string) error {
+	zipArchive, err := zip.OpenReader(source)
+	if err != nil {
+		return err
+	}
+	defer zipArchive.Close()
+	for _, f := range zipArchive.File {
+		if strings.HasSuffix(f.Name, ".dockercontext") {
+			reader, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer reader.Close()
+			return store.Import(name, dockerCli.ContextStore(), reader)
+		}
+	}
+	return errors.New("context not found in zip file")
 }
