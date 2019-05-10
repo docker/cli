@@ -2342,11 +2342,15 @@ _docker_context_create() {
 		--description|--docker|--kubernetes)
 			return
 			;;
+		--from)
+			__docker_complete_contexts
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --from --help --kubernetes" -- "$cur" ) )
 			;;
 	esac
 }
