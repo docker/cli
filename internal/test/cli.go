@@ -169,6 +169,12 @@ func (c *FakeCli) ErrBuffer() *bytes.Buffer {
 	return c.err
 }
 
+// ResetOutputBuffers resets the .OutBuffer() and.ErrBuffer() back to empty
+func (c *FakeCli) ResetOutputBuffers() {
+	c.outBuffer.Reset()
+	c.err.Reset()
+}
+
 // SetNotaryClient sets the internal getter for retrieving a NotaryClient
 func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
 	c.notaryClientFunc = notaryClientFunc
