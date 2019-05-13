@@ -17,12 +17,12 @@ import (
 const descriptionSourcePath = "docs/reference/commandline/"
 
 func generateCliYaml(opts *options) error {
-	dockerCli, err := command.NewDockerCli()
+	dockerCLI, err := command.NewDockerCli()
 	if err != nil {
 		return err
 	}
 	cmd := &cobra.Command{Use: "docker"}
-	commands.AddCommands(cmd, dockerCli)
+	commands.AddCommands(cmd, dockerCLI)
 	disableFlagsInUseLine(cmd)
 	source := filepath.Join(opts.source, descriptionSourcePath)
 	if err := loadLongDescription(cmd, source); err != nil {
@@ -58,7 +58,9 @@ func loadLongDescription(cmd *cobra.Command, path ...string) error {
 		fullpath := filepath.Join(path[0], strings.Join(append(path[1:], cmd.Name()), "_")+".md")
 
 		if cmd.HasSubCommands() {
-			loadLongDescription(cmd, path[0], cmd.Name())
+			if err := loadLongDescription(cmd, path[0], cmd.Name()); err != nil {
+				return err
+			}
 		}
 
 		if _, err := os.Stat(fullpath); err != nil {
