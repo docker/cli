@@ -2112,8 +2112,8 @@ _docker_container_run_and_create() {
 			return
 			;;
 		--security-opt)
-			COMPREPLY=( $( compgen -W "apparmor= label= no-new-privileges seccomp=" -- "$cur") )
-			if [ "${COMPREPLY[*]}" != "no-new-privileges" ] ; then
+			COMPREPLY=( $( compgen -W "apparmor= label= no-new-privileges seccomp= systempaths=unconfined" -- "$cur") )
+			if [[ ${COMPREPLY[*]} = *= ]] ; then
 				__docker_nospace
 			fi
 			return
@@ -2342,11 +2342,15 @@ _docker_context_create() {
 		--description|--docker|--kubernetes)
 			return
 			;;
+		--from)
+			__docker_complete_contexts
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --from --help --kubernetes" -- "$cur" ) )
 			;;
 	esac
 }
@@ -2617,36 +2621,15 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs devicemapper overlay overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "aufs btrfs overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
 			local btrfs_options="btrfs.min_space"
-			local devicemapper_options="
-				dm.basesize
-				dm.blkdiscard
-				dm.blocksize
-				dm.directlvm_device
-				dm.fs
-				dm.libdm_log_level
-				dm.loopdatasize
-				dm.loopmetadatasize
-				dm.min_free_space
-				dm.mkfsarg
-				dm.mountopt
-				dm.override_udev_sync_check
-				dm.thinpooldev
-				dm.thinp_autoextend_percent
-				dm.thinp_autoextend_threshold
-				dm.thinp_metapercent
-				dm.thinp_percent
-				dm.use_deferred_deletion
-				dm.use_deferred_removal
-			"
 			local overlay2_options="overlay2.size"
 			local zfs_options="zfs.fsname"
 
-			local all_options="$btrfs_options $devicemapper_options $overlay2_options $zfs_options"
+			local all_options="$btrfs_options $overlay2_options $zfs_options"
 
 			case $(__docker_value_of_option '--storage-driver|-s') in
 				'')
@@ -2654,9 +2637,6 @@ _docker_daemon() {
 					;;
 				btrfs)
 					COMPREPLY=( $( compgen -W "$btrfs_options" -S = -- "$cur" ) )
-					;;
-				devicemapper)
-					COMPREPLY=( $( compgen -W "$devicemapper_options" -S = -- "$cur" ) )
 					;;
 				overlay2)
 					COMPREPLY=( $( compgen -W "$overlay2_options" -S = -- "$cur" ) )
@@ -5178,12 +5158,16 @@ _docker_system_events() {
 			__docker_complete_networks --cur "${cur##*=}"
 			return
 			;;
+		node)
+			__docker_complete_nodes --cur "${cur##*=}"
+			return
+			;;
 		scope)
 			COMPREPLY=( $( compgen -W "local swarm" -- "${cur##*=}" ) )
 			return
 			;;
 		type)
-			COMPREPLY=( $( compgen -W "config container daemon image network plugin secret service volume" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "config container daemon image network node plugin secret service volume" -- "${cur##*=}" ) )
 			return
 			;;
 		volume)
@@ -5194,7 +5178,7 @@ _docker_system_events() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -S = -W "container daemon event image label network scope type volume" -- "$cur" ) )
+			COMPREPLY=( $( compgen -S = -W "container daemon event image label network node scope type volume" -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
