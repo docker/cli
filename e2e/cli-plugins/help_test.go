@@ -74,18 +74,36 @@ func TestGlobalHelp(t *testing.T) {
 	assert.Assert(t, is.Equal(badmetacount, 1))
 
 	// Running with `--help` should produce the same.
-	res2 := icmd.RunCmd(run("--help"))
-	res2.Assert(t, icmd.Expected{
-		ExitCode: 0,
+	t.Run("help_flag", func(t *testing.T) {
+		res2 := icmd.RunCmd(run("--help"))
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 0,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
+		assert.Assert(t, is.Equal(res2.Stderr(), ""))
 	})
-	assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
-	assert.Assert(t, is.Equal(res2.Stderr(), ""))
 
 	// Running just `docker` (without `help` nor `--help`) should produce the same thing, except on Stderr.
-	res2 = icmd.RunCmd(run())
-	res2.Assert(t, icmd.Expected{
-		ExitCode: 0,
+	t.Run("bare", func(t *testing.T) {
+		res2 := icmd.RunCmd(run())
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 0,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), ""))
+		assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
 	})
-	assert.Assert(t, is.Equal(res2.Stdout(), ""))
-	assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
+
+	t.Run("badopt", func(t *testing.T) {
+		// Running `docker --badopt` should also produce the
+		// same thing, give or take the leading error message
+		// and a trailing carriage return (due to main() using
+		// Println in the error case).
+		res2 := icmd.RunCmd(run("--badopt"))
+		res2.Assert(t, icmd.Expected{
+			ExitCode: 125,
+		})
+		assert.Assert(t, is.Equal(res2.Stdout(), ""))
+		exp := "unknown flag: --badopt\nSee 'docker --help'.\n" + res.Stdout() + "\n"
+		assert.Assert(t, is.Equal(res2.Stderr(), exp))
+	})
 }

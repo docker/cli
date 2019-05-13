@@ -69,14 +69,20 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, flags)
 }
 
-func setFlagErrorFunc(dockerCli *command.DockerCli, cmd *cobra.Command) {
+func setFlagErrorFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	// When invoking `docker stack --nonsense`, we need to make sure FlagErrorFunc return appropriate
 	// output if the feature is not supported.
 	// As above cli.SetupRootCommand(cmd) have already setup the FlagErrorFunc, we will add a pre-check before the FlagErrorFunc
 	// is called.
 	flagErrorFunc := cmd.FlagErrorFunc()
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd.Root()); err != nil {
+			return err
+		}
 		if err := isSupported(cmd, dockerCli); err != nil {
+			return err
+		}
+		if err := hideUnsupportedFeatures(cmd, dockerCli); err != nil {
 			return err
 		}
 		return flagErrorFunc(cmd, err)

@@ -213,15 +213,24 @@ func TestGoodSubcommandHelp(t *testing.T) {
 }
 
 // TestCliInitialized tests the code paths which ensure that the Cli
-// object is initialized even if the plugin uses PersistentRunE
+// object is initialized whether the plugin uses PersistentRunE or not
 func TestCliInitialized(t *testing.T) {
 	run, _, cleanup := prepare(t)
 	defer cleanup()
 
-	res := icmd.RunCmd(run("helloworld", "--pre-run", "apiversion"))
-	res.Assert(t, icmd.Success)
-	assert.Assert(t, res.Stdout() != "")
-	assert.Assert(t, is.Equal(res.Stderr(), "Plugin PersistentPreRunE called"))
+	var apiversion string
+	t.Run("withhook", func(t *testing.T) {
+		res := icmd.RunCmd(run("helloworld", "--pre-run", "apiversion"))
+		res.Assert(t, icmd.Success)
+		assert.Assert(t, res.Stdout() != "")
+		apiversion = res.Stdout()
+		assert.Assert(t, is.Equal(res.Stderr(), "Plugin PersistentPreRunE called"))
+	})
+	t.Run("withouthook", func(t *testing.T) {
+		res := icmd.RunCmd(run("nopersistentprerun"))
+		res.Assert(t, icmd.Success)
+		assert.Assert(t, is.Equal(res.Stdout(), apiversion))
+	})
 }
 
 // TestPluginErrorCode tests when the plugin return with a given exit status.
