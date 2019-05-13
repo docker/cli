@@ -753,7 +753,7 @@ operating system older than Windows 10 1809 with `--isolation process` will fail
 On Windows server, assuming the default configuration, these commands are equivalent
 and result in `process` isolation:
 
-```PowerShell
+```powershell
 PS C:\> docker run -d microsoft/nanoserver powershell echo process
 PS C:\> docker run -d --isolation default microsoft/nanoserver powershell echo process
 PS C:\> docker run -d --isolation process microsoft/nanoserver powershell echo process
@@ -763,7 +763,7 @@ If you have set the `--exec-opt isolation=hyperv` option on the Docker `daemon`,
 are running against a Windows client-based daemon, these commands are equivalent and
 result in `hyperv` isolation:
 
-```PowerShell
+```powershell
 PS C:\> docker run -d microsoft/nanoserver powershell echo hyperv
 PS C:\> docker run -d --isolation default microsoft/nanoserver powershell echo hyperv
 PS C:\> docker run -d --isolation hyperv microsoft/nanoserver powershell echo hyperv
