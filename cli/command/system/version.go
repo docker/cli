@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/kubernetes"
 	"github.com/docker/cli/templates"
+	kubeapi "github.com/docker/compose-on-kubernetes/api"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -243,7 +244,7 @@ func getKubernetesVersion(dockerCli command.Cli, kubeConfig string) *kubernetesV
 		err          error
 	)
 	if dockerCli.CurrentContext() == "" {
-		clientConfig = kubernetes.NewKubernetesConfig(kubeConfig)
+		clientConfig = kubeapi.NewKubernetesConfig(kubeConfig)
 	} else {
 		clientConfig, err = kubecontext.ConfigFromContext(dockerCli.CurrentContext(), dockerCli.ContextStore())
 	}
