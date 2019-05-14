@@ -20,7 +20,7 @@ const (
 	DefaultContextName = "default"
 )
 
-// DefaultContext contains the default context data for all enpoints
+// DefaultContext contains the default context data for all endpoints
 type DefaultContext struct {
 	Meta store.Metadata
 	TLS  store.ContextTLSData
