@@ -2,6 +2,8 @@ package store
 
 import (
 	"archive/tar"
+	"archive/zip"
+	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
 	"errors"
@@ -82,6 +84,16 @@ type EndpointTLSData struct {
 // ContextTLSData represents tls data for a whole context
 type ContextTLSData struct {
 	Endpoints map[string]EndpointTLSData
+}
+
+// Push will add or update endpoint files record on tls data for the context
+func (tlsData *ContextTLSData) Push(endpointName string, fileName string, data []byte) {
+	if _, ok := tlsData.Endpoints[endpointName]; !ok {
+		tlsData.Endpoints[endpointName] = EndpointTLSData{
+			Files: map[string][]byte{},
+		}
+	}
+	tlsData.Endpoints[endpointName].Files[fileName] = data
 }
 
 // New creates a store from a given directory.
@@ -259,12 +271,111 @@ func Export(name string, s Reader) io.ReadCloser {
 	return reader
 }
 
+type fileData interface {
+	get() ([]byte, error)
+}
+
+type zipFileData struct {
+	fileData
+	zf *zip.File
+}
+
+func (zfd *zipFileData) get() ([]byte, error) {
+	src, err := zfd.zf.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+	data, err := ioutil.ReadAll(src)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+type tarFileData struct {
+	fileData
+	tr io.Reader
+}
+
+func (tfd *tarFileData) get() ([]byte, error) {
+	data, err := ioutil.ReadAll(tfd.tr)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func newZipFileData(zf *zip.File) fileData {
+	var zfd = new(zipFileData)
+	zfd.zf = zf
+	return zfd
+}
+
+func newTarFileData(tr io.Reader) fileData {
+	var tfd = new(tarFileData)
+	tfd.tr = tr
+	return tfd
+}
+
+// ImportType enum to represent import type
+type ImportType int
+
+const (
+	// Cli will import Docker context from current env
+	Cli ImportType = iota
+	// Tar will import Docker context from a tar file
+	Tar
+	// Zip will import Docker context from a zip file
+	Zip
+)
+
 // Import imports an exported context into a store
-func Import(name string, s Writer, reader io.Reader) error {
+func Import(name string, s Writer, reader io.Reader, importType ImportType) error {
+	switch importType {
+	case Zip:
+		return importZip(name, s, reader)
+	default: // Tar, Cli
+		return importTar(name, s, reader)
+	}
+}
+
+func importZip(name string, s Writer, reader io.Reader) error {
+	body, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		return err
+	}
+
+	tlsData := ContextTLSData{
+		Endpoints: map[string]EndpointTLSData{},
+	}
+
+	for _, zf := range zr.File {
+		if zf.FileInfo().IsDir() {
+			// skip this entry, only taking files into account
+			continue
+		}
+
+		fd := newZipFileData(zf)
+		err = doImport(fd, zf.Name, name, s, &tlsData)
+		if err != nil {
+			return err
+		}
+	}
+
+	return s.ResetTLSMaterial(name, &tlsData)
+}
+
+func importTar(name string, s Writer, reader io.Reader) error {
 	tr := tar.NewReader(reader)
 	tlsData := ContextTLSData{
 		Endpoints: map[string]EndpointTLSData{},
 	}
+
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -273,44 +384,82 @@ func Import(name string, s Writer, reader io.Reader) error {
 		if err != nil {
 			return err
 		}
+
 		if hdr.Typeflag == tar.TypeDir {
 			// skip this entry, only taking files into account
 			continue
 		}
-		if hdr.Name == metaFile {
-			data, err := ioutil.ReadAll(tr)
-			if err != nil {
-				return err
-			}
-			var meta Metadata
-			if err := json.Unmarshal(data, &meta); err != nil {
-				return err
-			}
-			meta.Name = name
-			if err := s.CreateOrUpdate(meta); err != nil {
-				return err
-			}
-		} else if strings.HasPrefix(hdr.Name, "tls/") {
-			relative := strings.TrimPrefix(hdr.Name, "tls/")
-			parts := strings.SplitN(relative, "/", 2)
-			if len(parts) != 2 {
-				return errors.New("archive format is invalid")
-			}
-			endpointName := parts[0]
-			fileName := parts[1]
-			data, err := ioutil.ReadAll(tr)
-			if err != nil {
-				return err
-			}
-			if _, ok := tlsData.Endpoints[endpointName]; !ok {
-				tlsData.Endpoints[endpointName] = EndpointTLSData{
-					Files: map[string][]byte{},
-				}
-			}
-			tlsData.Endpoints[endpointName].Files[fileName] = data
+
+		fd := newTarFileData(tr)
+		err = doImport(fd, hdr.Name, name, s, &tlsData)
+		if err != nil {
+			return err
 		}
 	}
+
 	return s.ResetTLSMaterial(name, &tlsData)
+}
+
+func doImport(fd fileData, fileName string, ctxName string, s Writer, tlsData *ContextTLSData) error {
+	if fileName == metaFile {
+		data, err := fd.get()
+		if err != nil {
+			return err
+		}
+
+		meta, err := parseMetadata(data, ctxName)
+		if err != nil {
+			return err
+		}
+
+		if err := s.CreateOrUpdate(meta); err != nil {
+			return err
+		}
+	} else if strings.HasPrefix(fileName, "tls/") {
+		data, err := fd.get()
+		if err != nil {
+			return err
+		}
+
+		tlsEnpoint, err := parseTLSEndpointFromPath(fileName)
+		if err != nil {
+			return err
+		}
+		tlsData.Push(tlsEnpoint.name, tlsEnpoint.fileName, data)
+	}
+
+	return nil
+}
+
+func parseMetadata(data []byte, name string) (Metadata, error) {
+	var meta Metadata
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return meta, err
+	}
+	meta.Name = name
+	return meta, nil
+}
+
+type tlsEndpoint struct {
+	name     string
+	fileName string
+}
+
+func parseTLSEndpointFromPath(path string) (tlsEndpoint, error) {
+	t := tlsEndpoint{}
+
+	relative := strings.TrimPrefix(path, "tls/")
+	parts := strings.SplitN(relative, "/", 2)
+	if len(parts) != 2 {
+		// TLS endpoints require archived file directory with 2 layers
+		// i.e. tls/{endpointName}/{fileName}
+		return t, errors.New("Archive format is invalid")
+	}
+
+	t.name = parts[0]
+	t.fileName = parts[1]
+
+	return t, nil
 }
 
 type setContextName interface {

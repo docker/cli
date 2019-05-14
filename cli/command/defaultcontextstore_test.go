@@ -99,7 +99,7 @@ func TestExportDefaultImport(t *testing.T) {
 	defer cleanup()
 	r := store.Export("default", s)
 	defer r.Close()
-	err := store.Import("dest", s, r)
+	err := store.Import("dest", s, r, store.Cli)
 	assert.NilError(t, err)
 
 	srcMeta, err := s.GetMetadata("default")

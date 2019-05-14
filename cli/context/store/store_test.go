@@ -49,7 +49,7 @@ func TestExportImport(t *testing.T) {
 	assert.NilError(t, err)
 	r := Export("source", s)
 	defer r.Close()
-	err = Import("dest", s, r)
+	err = Import("dest", s, r, Cli)
 	assert.NilError(t, err)
 	srcMeta, err := s.GetMetadata("source")
 	assert.NilError(t, err)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -14,7 +15,7 @@ import (
 func newImportCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import CONTEXT FILE|-",
-		Short: "Import a context from a tar file",
+		Short: "Import a context using a tar or zip file",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return RunImport(dockerCli, args[0], args[1])
@@ -28,10 +29,19 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 	if err := checkContextNameForCreation(dockerCli.ContextStore(), name); err != nil {
 		return err
 	}
+
 	var reader io.Reader
+	var importType store.ImportType
 	if source == "-" {
 		reader = dockerCli.In()
+		importType = store.Cli
 	} else {
+		if strings.HasSuffix(source, ".zip") {
+			importType = store.Zip
+		} else {
+			importType = store.Tar
+		}
+
 		f, err := os.Open(source)
 		if err != nil {
 			return err
@@ -40,7 +50,7 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 		reader = f
 	}
 
-	if err := store.Import(name, dockerCli.ContextStore(), reader); err != nil {
+	if err := store.Import(name, dockerCli.ContextStore(), reader, importType); err != nil {
 		return err
 	}
 	fmt.Fprintln(dockerCli.Out(), name)
