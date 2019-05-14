@@ -174,7 +174,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		}))
 	}
 
-	s.Allow(authprovider.NewDockerAuthProvider())
+	s.Allow(authprovider.NewDockerAuthProvider(os.Stderr))
 	if len(options.secrets) > 0 {
 		sp, err := parseSecretSpecs(options.secrets)
 		if err != nil {
