@@ -210,9 +210,9 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
-	baseContextSore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	baseContextStore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
-		Store: baseContextSore,
+		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
 			return resolveDefaultContext(opts.Common, cli.ConfigFile(), cli.Err())
 		},
