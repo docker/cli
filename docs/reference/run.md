@@ -1433,7 +1433,7 @@ today=Wednesday
 HOME=/root
 ```
 
-```PowerShell
+```powershell
 PS C:\> docker run --rm -e "foo=bar" microsoft/nanoserver cmd /s /c set
 ALLUSERSPROFILE=C:\ProgramData
 APPDATA=C:\Users\ContainerAdministrator\AppData\Roaming
