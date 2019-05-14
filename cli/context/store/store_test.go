@@ -1,9 +1,15 @@
 package store
 
 import (
+	"archive/zip"
+	"bufio"
+	"bytes"
 	"crypto/rand"
+	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"gotest.tools/assert"
@@ -124,4 +130,67 @@ func TestErrHasCorrectContext(t *testing.T) {
 	_, err = store.GetMetadata("no-exists")
 	assert.ErrorContains(t, err, "no-exists")
 	assert.Check(t, IsErrContextDoesNotExist(err))
+}
+
+func TestDetectImportContentType(t *testing.T) {
+	testDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(testDir)
+
+	buf := new(bytes.Buffer)
+	r := bufio.NewReader(buf)
+	ct, err := getImportContentType(r)
+	assert.NilError(t, err)
+	assert.Assert(t, zipType != ct)
+}
+
+func TestImportZip(t *testing.T) {
+	testDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(testDir)
+
+	zf := path.Join(testDir, "test.zip")
+
+	f, err := os.Create(zf)
+	defer f.Close()
+	assert.NilError(t, err)
+	w := zip.NewWriter(f)
+
+	meta, err := json.Marshal(Metadata{
+		Endpoints: map[string]interface{}{
+			"ep1": endpoint{Foo: "bar"},
+		},
+		Metadata: context{Bar: "baz"},
+		Name:     "source",
+	})
+	assert.NilError(t, err)
+	var files = []struct {
+		Name, Body string
+	}{
+		{"meta.json", string(meta)},
+		{path.Join("tls", "docker", "ca.pem"), string([]byte("ca.pem"))},
+	}
+
+	for _, file := range files {
+		f, err := w.Create(file.Name)
+		assert.NilError(t, err)
+		_, err = f.Write([]byte(file.Body))
+		assert.NilError(t, err)
+	}
+
+	err = w.Close()
+	assert.NilError(t, err)
+
+	source, err := os.Open(zf)
+	assert.NilError(t, err)
+	ct, err := getImportContentType(bufio.NewReader(source))
+	assert.NilError(t, err)
+	assert.Equal(t, zipType, ct)
+
+	source, _ = os.Open(zf)
+	defer source.Close()
+	var r io.Reader = source
+	s := New(testDir, testCfg)
+	err = Import("zipTest", s, r)
+	assert.NilError(t, err)
 }
