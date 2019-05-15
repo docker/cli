@@ -47,6 +47,7 @@ Options:
                                 'host': use the Docker host network stack
                                 '<network-name>|<network-id>': connect to a user-defined network
       --no-cache                Do not use cache when building the image
+  -o, --output                  Output destination (format: type=local,dest=path)
       --pull                    Always attempt to pull a newer version of the image
       --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty). 
                                 Use plain to show container output
@@ -488,6 +489,27 @@ FROM alpine AS production-env
 ```bash
 $ docker build -t mybuildimage --target build-env .
 ```
+
+### Custom build outputs
+
+By default, a local container image is created from the build result. With the `--output` flag this behavior can be overriden and a custom exporter can be used instead. For example, custom exporters allow you to export the build artifacts as files on the local filesystem instead of a Docker image, which can be useful for generating local binaries, code generation etc.
+
+The value for `--output` is a CSV-formatted string defining the exporter type and options. Currently, `local` and `tar` exporters are supported. The local exporter writes the resulting build files to a directory on the client side. The tar exporter is similar but writes the files as a single tarball.
+
+If no type is specified, the value defaults to the output directory of the local exporter. Use a hyphen (`-`) to write the output tarball to standard output.
+
+Examples:
+
+```bash
+docker build -o out .
+docker build -o - . > out.tar
+docker build --output type=local,dest=. .
+docker build --output type=tar,dest=out.tar .
+```
+
+A common pattern for exporting only specific files is to do multi-stage builds and to copy the desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
+
+This feature requires the BuildKit backend. You can either [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx) plugin which provides more output type options.
 
 ### Specifying external cache sources
 
