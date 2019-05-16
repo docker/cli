@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
-	kubecontext "github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
@@ -529,7 +528,6 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
 	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-	store.EndpointTypeGetter(kubecontext.KubernetesEndpoint, func() interface{} { return &kubecontext.EndpointMeta{} }),
 }
 
 // RegisterDefaultStoreEndpoints registers a new named endpoint
