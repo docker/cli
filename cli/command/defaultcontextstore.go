@@ -3,15 +3,11 @@ package command
 import (
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -70,30 +66,22 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerEP.TLSData.ToStoreTLSData()
 	}
 
-	// Default context uses env-based kubeconfig for Kubernetes endpoint configuration
-	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-	}
-	kubeEP, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
-	if (stackOrchestrator == OrchestratorKubernetes || stackOrchestrator == OrchestratorAll) && err != nil {
-		return nil, errors.Wrapf(err, "default orchestrator is %s but kubernetes endpoint could not be found", stackOrchestrator)
-	}
-	if err == nil {
-		contextMetadata.Endpoints[kubernetes.KubernetesEndpoint] = kubeEP.EndpointMeta
-		if kubeEP.TLSData != nil {
-			contextTLSData.Endpoints[kubernetes.KubernetesEndpoint] = *kubeEP.TLSData.ToStoreTLSData()
-		}
-	}
+	// We open code the string "kubernetes" below because we
+	// cannot import KubernetesEndpoint from the corresponding
+	// package due to import loops.
+	wantKubernetesEP := stackOrchestrator == OrchestratorKubernetes || stackOrchestrator == OrchestratorAll
 
 	if err := storeconfig.ForeachEndpointType(func(n string, get store.TypeGetter) error {
-		if n == docker.DockerEndpoint || n == kubernetes.KubernetesEndpoint { // handled above
+		if n == docker.DockerEndpoint { // handled above
 			return nil
 		}
 		ep := get()
 		if i, ok := ep.(EndpointDefaultResolver); ok {
 			meta, tls := i.ResolveDefault()
 			if meta == nil {
+				if wantKubernetesEP && n == "kubernetes" {
+					return errors.Errorf("default orchestrator is %s but unable to resolve kubernetes endpoint", stackOrchestrator)
+				}
 				return nil
 			}
 			contextMetadata.Endpoints[n] = meta
@@ -105,6 +93,10 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		return nil
 	}); err != nil {
 		return nil, err
+	}
+
+	if _, ok := contextMetadata.Endpoints["kubernetes"]; wantKubernetesEP && !ok {
+		return nil, errors.Errorf("default orchestrator is %s but kubernetes endpoint could not be found", stackOrchestrator)
 	}
 
 	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil
