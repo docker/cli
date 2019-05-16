@@ -526,10 +526,22 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	return DefaultContextName, nil
 }
 
+var defaultStoreEndpoints = []store.NamedTypeGetter{
+	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+	store.EndpointTypeGetter(kubecontext.KubernetesEndpoint, func() interface{} { return &kubecontext.EndpointMeta{} }),
+}
+
+// RegisterDefaultStoreEndpoints registers a new named endpoint
+// metadata type with the default context store config, so that
+// endpoint will be supported by stores using the config returned by
+// DefaultContextStoreConfig.
+func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
+	defaultStoreEndpoints = append(defaultStoreEndpoints, ep...)
+}
+
 func defaultContextStoreConfig() store.Config {
 	return store.NewConfig(
 		func() interface{} { return &DockerContext{} },
-		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-		store.EndpointTypeGetter(kubecontext.KubernetesEndpoint, func() interface{} { return &kubecontext.EndpointMeta{} }),
+		defaultStoreEndpoints...,
 	)
 }
