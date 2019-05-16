@@ -72,7 +72,7 @@ func TestDefaultContextInitializer(t *testing.T) {
 		TLSOptions: &tlsconfig.Options{
 			CAFile: "./testdata/ca.pem",
 		},
-	}, cli.ConfigFile(), cli.Err())
+	}, cli.ConfigFile(), defaultContextStoreConfig(), cli.Err())
 	assert.NilError(t, err)
 	assert.Equal(t, "default", ctx.Meta.Name)
 	assert.Equal(t, OrchestratorAll, ctx.Meta.Metadata.(DockerContext).StackOrchestrator)

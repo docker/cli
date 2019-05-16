@@ -35,8 +35,16 @@ type ContextStoreWithDefault struct {
 	Resolver DefaultContextResolver
 }
 
+// EndpointDefaultResolver is implemented by any EndpointMeta object
+// which wants to be able to populate the store with whatever their default is.
+type EndpointDefaultResolver interface {
+	// ResolveDefault returns values suitable for storing in store.Metadata.Endpoints
+	// and store.ContextTLSData.Endpoints. If there is no default then returns nil, nil.
+	ResolveDefault() (interface{}, *store.EndpointTLSData)
+}
+
 // resolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, stderr io.Writer) (*DefaultContext, error) {
+func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, storeconfig store.Config, stderr io.Writer) (*DefaultContext, error) {
 	stackOrchestrator, err := GetStackOrchestrator("", "", config.StackOrchestrator, stderr)
 	if err != nil {
 		return nil, err
@@ -76,6 +84,27 @@ func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		if kubeEP.TLSData != nil {
 			contextTLSData.Endpoints[kubernetes.KubernetesEndpoint] = *kubeEP.TLSData.ToStoreTLSData()
 		}
+	}
+
+	if err := storeconfig.ForeachEndpointType(func(n string, get store.TypeGetter) error {
+		if n == docker.DockerEndpoint || n == kubernetes.KubernetesEndpoint { // handled above
+			return nil
+		}
+		ep := get()
+		if i, ok := ep.(EndpointDefaultResolver); ok {
+			meta, tls := i.ResolveDefault()
+			if meta == nil {
+				return nil
+			}
+			contextMetadata.Endpoints[n] = meta
+			if tls != nil {
+				contextTLSData.Endpoints[n] = *tls
+			}
+		}
+		// Nothing to be done
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil
