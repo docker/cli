@@ -43,8 +43,8 @@ type EndpointDefaultResolver interface {
 	ResolveDefault() (interface{}, *store.EndpointTLSData)
 }
 
-// resolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, storeconfig store.Config, stderr io.Writer) (*DefaultContext, error) {
+// ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
+func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, storeconfig store.Config, stderr io.Writer) (*DefaultContext, error) {
 	stackOrchestrator, err := GetStackOrchestrator("", "", config.StackOrchestrator, stderr)
 	if err != nil {
 		return nil, err
