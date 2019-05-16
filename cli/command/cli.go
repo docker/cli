@@ -214,7 +214,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
-			return resolveDefaultContext(opts.Common, cli.ConfigFile(), cli.contextStoreConfig, cli.Err())
+			return ResolveDefaultContext(opts.Common, cli.ConfigFile(), cli.contextStoreConfig, cli.Err())
 		},
 	}
 	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
@@ -259,11 +259,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
-	storeConfig := defaultContextStoreConfig()
+	storeConfig := DefaultContextStoreConfig()
 	store := &ContextStoreWithDefault{
 		Store: store.New(cliconfig.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return resolveDefaultContext(opts, configFile, storeConfig, ioutil.Discard)
+			return ResolveDefaultContext(opts, configFile, storeConfig, ioutil.Discard)
 		},
 	}
 	contextName, err := resolveContextName(opts, configFile, store)
@@ -454,7 +454,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 		WithContentTrustFromEnv(),
 		WithContainerizedClient(containerizedengine.NewClient),
 	}
-	cli.contextStoreConfig = defaultContextStoreConfig()
+	cli.contextStoreConfig = DefaultContextStoreConfig()
 	ops = append(defaultOps, ops...)
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
@@ -540,7 +540,8 @@ func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
 	defaultStoreEndpoints = append(defaultStoreEndpoints, ep...)
 }
 
-func defaultContextStoreConfig() store.Config {
+// DefaultContextStoreConfig returns a new store.Config with the default set of endpoints configured.
+func DefaultContextStoreConfig() store.Config {
 	return store.NewConfig(
 		func() interface{} { return &DockerContext{} },
 		defaultStoreEndpoints...,
