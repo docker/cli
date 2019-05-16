@@ -1,0 +1,3 @@
+NAME                DESCRIPTION                               DOCKER ENDPOINT               KUBERNETES ENDPOINT            ORCHESTRATOR
+default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock   https://someserver (zoinx)     swarm
+remote              my remote cluster                         ssh://someserver              https://someserver (default)   kubernetes
