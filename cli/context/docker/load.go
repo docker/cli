@@ -122,7 +122,6 @@ func (c *Endpoint) ClientOpts() ([]client.Opt, error) {
 				client.WithDialContext(helper.Dialer),
 			)
 		}
-		result = append(result, client.WithTimeout(10*time.Second))
 	}
 
 	version := os.Getenv("DOCKER_API_VERSION")
