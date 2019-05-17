@@ -35,8 +35,13 @@ type ContextStoreWithDefault struct {
 // which wants to be able to populate the store with whatever their default is.
 type EndpointDefaultResolver interface {
 	// ResolveDefault returns values suitable for storing in store.Metadata.Endpoints
-	// and store.ContextTLSData.Endpoints. If there is no default then returns nil, nil.
-	ResolveDefault() (interface{}, *store.EndpointTLSData)
+	// and store.ContextTLSData.Endpoints.
+	//
+	// An error is only returned for something fatal, not simply
+	// the lack of a default (e.g. because the config file which
+	// would contain it is missing). If there is no default then
+	// returns nil, nil, nil.
+	ResolveDefault(Orchestrator) (interface{}, *store.EndpointTLSData, error)
 }
 
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
@@ -66,22 +71,17 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerEP.TLSData.ToStoreTLSData()
 	}
 
-	// We open code the string "kubernetes" below because we
-	// cannot import KubernetesEndpoint from the corresponding
-	// package due to import loops.
-	wantKubernetesEP := stackOrchestrator == OrchestratorKubernetes || stackOrchestrator == OrchestratorAll
-
 	if err := storeconfig.ForeachEndpointType(func(n string, get store.TypeGetter) error {
 		if n == docker.DockerEndpoint { // handled above
 			return nil
 		}
 		ep := get()
 		if i, ok := ep.(EndpointDefaultResolver); ok {
-			meta, tls := i.ResolveDefault()
+			meta, tls, err := i.ResolveDefault(stackOrchestrator)
+			if err != nil {
+				return err
+			}
 			if meta == nil {
-				if wantKubernetesEP && n == "kubernetes" {
-					return errors.Errorf("default orchestrator is %s but unable to resolve kubernetes endpoint", stackOrchestrator)
-				}
 				return nil
 			}
 			contextMetadata.Endpoints[n] = meta
@@ -93,10 +93,6 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		return nil
 	}); err != nil {
 		return nil, err
-	}
-
-	if _, ok := contextMetadata.Endpoints["kubernetes"]; wantKubernetesEP && !ok {
-		return nil, errors.Errorf("default orchestrator is %s but kubernetes endpoint could not be found", stackOrchestrator)
 	}
 
 	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil
