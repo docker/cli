@@ -276,7 +276,6 @@ type fileData interface {
 }
 
 type zipFileData struct {
-	fileData
 	zf *zip.File
 }
 
@@ -294,7 +293,6 @@ func (zfd *zipFileData) get() ([]byte, error) {
 }
 
 type tarFileData struct {
-	fileData
 	tr io.Reader
 }
 
@@ -316,6 +314,13 @@ func newTarFileData(tr io.Reader) fileData {
 	var tfd = new(tarFileData)
 	tfd.tr = tr
 	return tfd
+}
+
+func checkFileSize(fs int64) error {
+	if fs > 10<<20 {
+		return errors.New("file size is bigger than allowed amount of 10 MB")
+	}
+	return nil
 }
 
 // ImportType enum to represent import type
@@ -360,6 +365,10 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 
+		if err := checkFileSize(zf.FileInfo().Size()); err != nil {
+			return err
+		}
+
 		fd := newZipFileData(zf)
 		err = doImport(fd, zf.Name, name, s, &tlsData)
 		if err != nil {
@@ -388,6 +397,10 @@ func importTar(name string, s Writer, reader io.Reader) error {
 		if hdr.Typeflag == tar.TypeDir {
 			// skip this entry, only taking files into account
 			continue
+		}
+
+		if err := checkFileSize(hdr.Size); err != nil {
+			return err
 		}
 
 		fd := newTarFileData(tr)
@@ -453,7 +466,7 @@ func parseTLSEndpointFromPath(path string) (tlsEndpoint, error) {
 	if len(parts) != 2 {
 		// TLS endpoints require archived file directory with 2 layers
 		// i.e. tls/{endpointName}/{fileName}
-		return t, errors.New("Archive format is invalid")
+		return t, errors.New("archive format is invalid")
 	}
 
 	t.name = parts[0]
