@@ -14,7 +14,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
-	kubcontext "github.com/docker/cli/cli/context/kubernetes"
+	kubecontext "github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
@@ -530,6 +530,6 @@ func defaultContextStoreConfig() store.Config {
 	return store.NewConfig(
 		func() interface{} { return &DockerContext{} },
 		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-		store.EndpointTypeGetter(kubcontext.KubernetesEndpoint, func() interface{} { return &kubcontext.EndpointMeta{} }),
+		store.EndpointTypeGetter(kubecontext.KubernetesEndpoint, func() interface{} { return &kubecontext.EndpointMeta{} }),
 	)
 }
