@@ -33,7 +33,9 @@ type Plugin struct {
 // is set, and is always a `pluginError`, but the `Plugin` is still
 // returned with no error. An error is only returned due to a
 // non-recoverable error.
-func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
+//
+// nolint: gocyclo
+func newPlugin(c Candidate, rootcmd *cobra.Command, allowExperimental bool) (Plugin, error) {
 	path := c.Path()
 	if path == "" {
 		return Plugin{}, errors.New("plugin candidate path cannot be empty")
@@ -94,7 +96,10 @@ func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 		p.Err = wrapAsPluginError(err, "invalid metadata")
 		return p, nil
 	}
-
+	if p.Experimental && !allowExperimental {
+		p.Err = &pluginError{errPluginRequireExperimental(p.Name)}
+		return p, nil
+	}
 	if p.Metadata.SchemaVersion != "0.1.0" {
 		p.Err = NewPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
 		return p, nil
