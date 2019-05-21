@@ -271,6 +271,10 @@ func Export(name string, s Reader) io.ReadCloser {
 	return reader
 }
 
+const (
+	maxAllowedFileSizeToImport int64 = 10 << 20
+)
+
 type fileData interface {
 	get() ([]byte, error)
 }
@@ -285,7 +289,7 @@ func (zfd *zipFileData) get() ([]byte, error) {
 		return nil, err
 	}
 	defer src.Close()
-	data, err := ioutil.ReadAll(src)
+	data, err := LimitedReadAll(src, maxAllowedFileSizeToImport)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +301,7 @@ type tarFileData struct {
 }
 
 func (tfd *tarFileData) get() ([]byte, error) {
-	data, err := ioutil.ReadAll(tfd.tr)
+	data, err := LimitedReadAll(tfd.tr, maxAllowedFileSizeToImport)
 	if err != nil {
 		return nil, err
 	}
@@ -314,13 +318,6 @@ func newTarFileData(tr io.Reader) fileData {
 	var tfd = new(tarFileData)
 	tfd.tr = tr
 	return tfd
-}
-
-func checkFileSize(fs int64) error {
-	if fs > 10<<20 {
-		return errors.New("file size is bigger than allowed amount of 10 MB")
-	}
-	return nil
 }
 
 // ImportType enum to represent import type
@@ -365,10 +362,6 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 
-		if err := checkFileSize(zf.FileInfo().Size()); err != nil {
-			return err
-		}
-
 		fd := newZipFileData(zf)
 		err = doImport(fd, zf.Name, name, s, &tlsData)
 		if err != nil {
@@ -397,10 +390,6 @@ func importTar(name string, s Writer, reader io.Reader) error {
 		if hdr.Typeflag == tar.TypeDir {
 			// skip this entry, only taking files into account
 			continue
-		}
-
-		if err := checkFileSize(hdr.Size); err != nil {
-			return err
 		}
 
 		fd := newTarFileData(tr)
