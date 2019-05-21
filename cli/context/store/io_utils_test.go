@@ -1,7 +1,6 @@
 package store
 
 import (
-	"io"
 	"io/ioutil"
 	"reflect"
 	"strings"
@@ -11,8 +10,7 @@ import (
 )
 
 func TestLimitReaderReadAll(t *testing.T) {
-	var r io.Reader
-	r = strings.NewReader("Reader")
+	r := strings.NewReader("Reader")
 
 	_, err := ioutil.ReadAll(r)
 	assert.NilError(t, err)
