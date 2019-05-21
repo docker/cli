@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/containerd/console"
 	"github.com/containerd/containerd/platforms"
 	"github.com/docker/cli/cli"
@@ -70,6 +72,32 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	)
 
 	stdoutUsed := false
+
+	if options.squash {
+		// return error rather than print a warning, as squash is often used for hiding secrets
+		return errors.New("squash is not supported by BuildKit. Consider using a multi-stage Dockerfile instead")
+	}
+	if options.rm {
+		logrus.Warn("rm is not supported by buildkit")
+	}
+	if options.forceRm {
+		logrus.Warn("forceRm is not supported by buildkit")
+	}
+	if options.cpuSetCpus != "" || options.cpuSetMems != "" || options.cpuShares > 0 || options.cpuQuota > 0 || options.cpuPeriod > 0 {
+		logrus.Warn("cpu quota is not supported by buildkit")
+	}
+	if options.memory > 0 || options.memorySwap > 0 {
+		logrus.Warn("memory quota is not supported by buildkit")
+	}
+	if options.shmSize > 0 {
+		logrus.Warn("shm size is not supported by buildkit")
+	}
+	if len(options.ulimits.GetList()) > 0 {
+		logrus.Warn("ulimit is not supported by buildkit")
+	}
+	if len(options.securityOpt) > 0 {
+		logrus.Warn("security opt is not supported by buildkit")
+	}
 
 	switch {
 	case options.contextFromStdin():
