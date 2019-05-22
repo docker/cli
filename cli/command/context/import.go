@@ -24,16 +24,12 @@ func newImportCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// RunImport imports a Docker context
-func RunImport(dockerCli command.Cli, name string, source string) error {
-	if err := checkContextNameForCreation(dockerCli.ContextStore(), name); err != nil {
-		return err
-	}
-
+func getReaderAndImportType(dockerCli command.Cli, source string) (io.Reader, store.ImportType, error) {
 	var (
 		reader     io.Reader
 		importType store.ImportType
 	)
+
 	if source == "-" {
 		reader = dockerCli.In()
 		importType = store.Cli
@@ -46,10 +42,25 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 
 		f, err := os.Open(source)
 		if err != nil {
-			return err
+			return nil, importType, err
 		}
+
 		defer f.Close()
 		reader = f
+	}
+
+	return reader, importType, nil
+}
+
+// RunImport imports a Docker context
+func RunImport(dockerCli command.Cli, name string, source string) error {
+	if err := checkContextNameForCreation(dockerCli.ContextStore(), name); err != nil {
+		return err
+	}
+
+	reader, importType, err := getReaderAndImportType(dockerCli, source)
+	if err != nil {
+		return err
 	}
 
 	if err := store.Import(name, dockerCli.ContextStore(), reader, importType); err != nil {
