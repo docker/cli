@@ -8,14 +8,20 @@ import (
 type Candidate interface {
 	Path() string
 	Metadata() ([]byte, error)
+	Experimental() bool
 }
 
 type candidate struct {
-	path string
+	path         string
+	experimental bool
 }
 
 func (c *candidate) Path() string {
 	return c.path
+}
+
+func (c *candidate) Experimental() bool {
+	return c.experimental
 }
 
 func (c *candidate) Metadata() ([]byte, error) {

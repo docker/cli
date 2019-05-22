@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -52,33 +53,40 @@ func TestListPluginCandidates(t *testing.T) {
 
 	candidates, err := listPluginCandidates(dirs)
 	assert.NilError(t, err)
-	exp := map[string][]string{
+	exp := map[string][]candidate{
 		"plugin1": {
-			dir.Join("plugins1", "docker-plugin1"),
-			dir.Join("plugins2", "docker-plugin1"),
-			dir.Join("plugins3", "docker-plugin1"),
+			{path: dir.Join("plugins1", "docker-plugin1")},
+			{path: dir.Join("plugins2", "docker-plugin1")},
+			{path: dir.Join("plugins3", "docker-plugin1")},
 		},
 		"symlinked1": {
-			dir.Join("plugins1", "docker-symlinked1"),
+			{path: dir.Join("plugins1", "docker-symlinked1")},
 		},
 		"symlinked2": {
-			dir.Join("plugins1", "docker-symlinked2"),
+			{path: dir.Join("plugins1", "docker-symlinked2")},
 		},
 		"hardlink1": {
-			dir.Join("plugins2", "docker-hardlink1"),
+			{path: dir.Join("plugins2", "docker-hardlink1")},
 		},
 		"hardlink2": {
-			dir.Join("plugins2", "docker-hardlink2"),
+			{path: dir.Join("plugins2", "docker-hardlink2")},
 		},
 		"brokensymlink": {
-			dir.Join("plugins3", "docker-brokensymlink"),
+			{path: dir.Join("plugins3", "docker-brokensymlink")},
 		},
 		"symlinked": {
-			dir.Join("plugins3", "docker-symlinked"),
+			{path: dir.Join("plugins3", "docker-symlinked")},
 		},
 	}
 
-	assert.DeepEqual(t, candidates, exp)
+	for name, candidateList := range candidates {
+		for i, c := range candidateList {
+			t.Run(fmt.Sprintf("%s-%d", name, i), func(t *testing.T) {
+				assert.Equal(t, c.path, exp[name][i].path)
+				assert.Equal(t, c.experimental, exp[name][i].experimental)
+			})
+		}
+	}
 }
 
 func TestErrPluginNotFound(t *testing.T) {

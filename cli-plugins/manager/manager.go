@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -27,10 +28,23 @@ func (e errPluginNotFound) Error() string {
 	return "Error: No such CLI plugin: " + string(e)
 }
 
+type errPluginRequireExperimental string
+
+// Note: errPluginRequireExperimental implements notFound so that the plugin
+// is skipped when listing the plugins.
+func (e errPluginRequireExperimental) NotFound() {}
+
+func (e errPluginRequireExperimental) Error() string {
+	return fmt.Sprintf("plugin candidate %q: requires experimental CLI", string(e))
+}
+
 type notFound interface{ NotFound() }
 
 // IsNotFound is true if the given error is due to a plugin not being found.
 func IsNotFound(err error) bool {
+	if e, ok := err.(*pluginError); ok {
+		err = e.Cause()
+	}
 	_, ok := err.(notFound)
 	return ok
 }
@@ -48,10 +62,18 @@ func getPluginDirs(dockerCli command.Cli) ([]string, error) {
 
 	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
+	if dockerCli.ClientInfo().HasExperimental {
+		dirs := make([]string, 0, len(pluginDirs)*2)
+		for _, dir := range pluginDirs {
+			dirs = append(dirs, dir, dir+"-experimental")
+		}
+		pluginDirs = dirs
+	}
 	return pluginDirs, nil
 }
 
-func addPluginCandidatesFromDir(res map[string][]string, d string) error {
+func addPluginCandidatesFromDir(res map[string][]candidate, d string) error {
+	isExperimental := strings.HasSuffix(d, "-experimental")
 	dentries, err := ioutil.ReadDir(d)
 	if err != nil {
 		return err
@@ -73,14 +95,14 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) error {
 		if name, err = trimExeSuffix(name); err != nil {
 			continue
 		}
-		res[name] = append(res[name], filepath.Join(d, dentry.Name()))
+		res[name] = append(res[name], candidate{path: filepath.Join(d, dentry.Name()), experimental: isExperimental})
 	}
 	return nil
 }
 
 // listPluginCandidates returns a map from plugin name to the list of (unvalidated) Candidates. The list is in descending order of priority.
-func listPluginCandidates(dirs []string) (map[string][]string, error) {
-	result := make(map[string][]string)
+func listPluginCandidates(dirs []string) (map[string][]candidate, error) {
+	result := make(map[string][]candidate)
 	for _, d := range dirs {
 		// Silently ignore any directories which we cannot
 		// Stat (e.g. due to permissions or anything else) or
@@ -106,23 +128,27 @@ func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error
 		return nil, err
 	}
 
-	candidates, err := listPluginCandidates(pluginDirs)
+	candidateMap, err := listPluginCandidates(pluginDirs)
 	if err != nil {
 		return nil, err
 	}
 
 	var plugins []Plugin
-	for _, paths := range candidates {
-		if len(paths) == 0 {
+	for _, candidates := range candidateMap {
+		if len(candidates) == 0 {
 			continue
 		}
-		c := &candidate{paths[0]}
-		p, err := newPlugin(c, rootcmd)
+		c := &candidates[0]
+		p, err := newPlugin(c, rootcmd, dockerCli.ClientInfo().HasExperimental)
 		if err != nil {
 			return nil, err
 		}
-		p.ShadowedPaths = paths[1:]
-		plugins = append(plugins, p)
+		if !IsNotFound(p.Err) {
+			for _, c := range candidates[1:] {
+				p.ShadowedPaths = append(p.ShadowedPaths, c.path)
+			}
+			plugins = append(plugins, p)
+		}
 	}
 
 	return plugins, nil
@@ -159,12 +185,19 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		}
 
 		c := &candidate{path: path}
-		plugin, err := newPlugin(c, rootcmd)
+		plugin, err := newPlugin(c, rootcmd, dockerCli.ClientInfo().HasExperimental)
 		if err != nil {
 			return nil, err
 		}
 		if plugin.Err != nil {
 			// TODO: why are we not returning plugin.Err?
+
+			err := plugin.Err.(*pluginError).Cause()
+			// if an experimental plugin was invoked directly while experimental mode is off
+			// provide a more useful error message than "not found".
+			if err, ok := err.(errPluginRequireExperimental); ok {
+				return nil, err
+			}
 			return nil, errPluginNotFound(name)
 		}
 		cmd := exec.Command(plugin.Path, args...)

@@ -12,9 +12,14 @@ import (
 )
 
 type fakeCandidate struct {
-	path string
-	exec bool
-	meta string
+	path              string
+	exec              bool
+	meta              string
+	allowExperimental bool
+}
+
+func (c *fakeCandidate) Experimental() bool {
+	return c.allowExperimental
 }
 
 func (c *fakeCandidate) Path() string {
@@ -35,9 +40,10 @@ func TestValidateCandidate(t *testing.T) {
 		builtinName  = NamePrefix + "builtin"
 		builtinAlias = NamePrefix + "alias"
 
-		badPrefixPath  = "/usr/local/libexec/cli-plugins/wobble"
-		badNamePath    = "/usr/local/libexec/cli-plugins/docker-123456"
-		goodPluginPath = "/usr/local/libexec/cli-plugins/" + goodPluginName
+		badPrefixPath          = "/usr/local/libexec/cli-plugins/wobble"
+		badNamePath            = "/usr/local/libexec/cli-plugins/docker-123456"
+		goodPluginPath         = "/usr/local/libexec/cli-plugins/" + goodPluginName
+		experimentalPluginPath = "/usr/local/libexec/cli-plugins-experimental/" + goodPluginName
 	)
 
 	fakeroot := &cobra.Command{Use: "docker"}
@@ -67,10 +73,13 @@ func TestValidateCandidate(t *testing.T) {
 		{c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "xyzzy"}`}, invalid: `plugin SchemaVersion "xyzzy" is not valid`},
 		{c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0"}`}, invalid: "plugin metadata does not define a vendor"},
 		{c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": ""}`}, invalid: "plugin metadata does not define a vendor"},
+		{c: &fakeCandidate{path: experimentalPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`}, invalid: "requires experimental CLI"},
 		// This one should work
 		{c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`}},
+		{c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`, allowExperimental: true}},
+		{c: &fakeCandidate{path: experimentalPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`, allowExperimental: true}},
 	} {
-		p, err := newPlugin(tc.c, fakeroot)
+		p, err := newPlugin(tc.c, fakeroot, tc.c.allowExperimental)
 		if tc.err != "" {
 			assert.ErrorContains(t, err, tc.err)
 		} else if tc.invalid != "" {
