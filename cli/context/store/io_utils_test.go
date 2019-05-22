@@ -1,8 +1,8 @@
 package store
 
 import (
+	"fmt"
 	"io/ioutil"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -17,5 +17,5 @@ func TestLimitReaderReadAll(t *testing.T) {
 
 	r = strings.NewReader("Reader")
 	_, err = LimitedReadAll(r, 4)
-	assert.ErrorType(t, err, reflect.TypeOf(&ReadExceedsLimitError{limit: 4}))
+	assert.Error(t, err, fmt.Sprintf("read exceeds the defined limit of %d on the reader", 4))
 }

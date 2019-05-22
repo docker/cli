@@ -28,15 +28,6 @@ func LimitedReadAll(r io.Reader, limit int64) ([]byte, error) {
 	return ioutil.ReadAll(r)
 }
 
-// ReadExceedsLimitError thrown error type when read exceeds expected limit on reader
-type ReadExceedsLimitError struct {
-	limit int64
-}
-
-func (e *ReadExceedsLimitError) Error() string {
-	return fmt.Sprintf("read exceeds the defined limit of %d on the reader", e.limit)
-}
-
 func (lr *limitedReader) Read(p []byte) (int, error) {
 	if lr.err != nil {
 		return 0, lr.err
@@ -62,6 +53,6 @@ func (lr *limitedReader) Read(p []byte) (int, error) {
 	n = int(lr.n)
 	lr.n = 0
 
-	lr.err = &ReadExceedsLimitError{limit: lr.limit}
+	lr.err = fmt.Errorf("read exceeds the defined limit of %d on the reader", lr.limit)
 	return n, lr.err
 }

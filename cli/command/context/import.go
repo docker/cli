@@ -30,8 +30,10 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 		return err
 	}
 
-	var reader io.Reader
-	var importType store.ImportType
+	var (
+		reader     io.Reader
+		importType store.ImportType
+	)
 	if source == "-" {
 		reader = dockerCli.In()
 		importType = store.Cli
