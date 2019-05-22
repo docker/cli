@@ -24,15 +24,17 @@ func newImportCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func getReaderAndImportType(dockerCli command.Cli, source string) (io.Reader, store.ImportType, error) {
+func getReaderAndImportType(dockerCli command.Cli, source string) (io.Reader, store.ImportType, func(), error) {
 	var (
 		reader     io.Reader
 		importType store.ImportType
+		cleanup    func()
 	)
 
 	if source == "-" {
 		reader = dockerCli.In()
 		importType = store.Cli
+		cleanup = func() {}
 	} else {
 		if strings.HasSuffix(source, ".zip") {
 			importType = store.Zip
@@ -42,14 +44,16 @@ func getReaderAndImportType(dockerCli command.Cli, source string) (io.Reader, st
 
 		f, err := os.Open(source)
 		if err != nil {
-			return nil, importType, err
+			return nil, importType, nil, err
 		}
 
-		defer f.Close()
+		cleanup = func() {
+			f.Close()
+		}
 		reader = f
 	}
 
-	return reader, importType, nil
+	return reader, importType, cleanup, nil
 }
 
 // RunImport imports a Docker context
@@ -58,10 +62,11 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 		return err
 	}
 
-	reader, importType, err := getReaderAndImportType(dockerCli, source)
+	reader, importType, cleanup, err := getReaderAndImportType(dockerCli, source)
 	if err != nil {
 		return err
 	}
+	defer cleanup()
 
 	if err := store.Import(name, dockerCli.ContextStore(), reader, importType); err != nil {
 		return err

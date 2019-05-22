@@ -120,7 +120,7 @@ func TestImportReaderAndImportTypeGetter(t *testing.T) {
 		importType store.ImportType
 	)
 
-	reader, importType, err := getReaderAndImportType(cli, "-")
+	reader, importType, _, err := getReaderAndImportType(cli, "-")
 	assert.NilError(t, err)
 	assert.Equal(t, reader, cli.In())
 	assert.Equal(t, importType, store.Cli)
@@ -135,15 +135,16 @@ func TestImportReaderAndImportTypeGetter(t *testing.T) {
 		ContextName: "test",
 		Dest:        contextFile,
 	}))
-	_, importType, err = getReaderAndImportType(cli, contextFile)
+	_, importType, _, err = getReaderAndImportType(cli, contextFile)
 	assert.NilError(t, err)
 	assert.Equal(t, importType, store.Tar)
 
 	contextDir, err = ioutil.TempDir("", t.Name()+"context")
+	assert.NilError(t, err)
 	contextFile = filepath.Join(contextDir, "context.zip")
 	f, _ := os.Create(contextFile)
 	defer f.Close()
-	_, importType, err = getReaderAndImportType(cli, contextFile)
+	_, importType, _, err = getReaderAndImportType(cli, contextFile)
 	assert.NilError(t, err)
 	assert.Equal(t, importType, store.Zip)
 }
