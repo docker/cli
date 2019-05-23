@@ -401,13 +401,13 @@ func TestParseNetworkConfig(t *testing.T) {
 		{
 			name:        "single-network-legacy",
 			flags:       []string{"--network", "net1"},
-			expected:    map[string]*networktypes.EndpointSettings{"net1": {}},
+			expected:    map[string]*networktypes.EndpointSettings{},
 			expectedCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:        "single-network-advanced",
 			flags:       []string{"--network", "name=net1"},
-			expected:    map[string]*networktypes.EndpointSettings{"net1": {}},
+			expected:    map[string]*networktypes.EndpointSettings{},
 			expectedCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
