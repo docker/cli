@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -706,6 +707,15 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		}
 		if _, ok := endpoints[n.Target]; ok {
 			return nil, errdefs.InvalidParameter(errors.Errorf("network %q is specified multiple times", n.Target))
+		}
+
+		// For backward compatibility: if no custom options are provided for the network,
+		// and only a single network is specified, omit the endpoint-configuration
+		// on the client (the daemon will still create it when creating the container)
+		if i == 0 && len(copts.netMode.Value()) == 1 {
+			if ep == nil || reflect.DeepEqual(*ep, networktypes.EndpointSettings{}) {
+				continue
+			}
 		}
 		endpoints[n.Target] = ep
 	}
