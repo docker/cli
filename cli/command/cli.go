@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
-	kubecontext "github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
@@ -210,11 +209,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 
-	baseContextSore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	baseContextStore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
-		Store: baseContextSore,
+		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
-			return resolveDefaultContext(opts.Common, cli.ConfigFile(), cli.Err())
+			return ResolveDefaultContext(opts.Common, cli.ConfigFile(), cli.contextStoreConfig, cli.Err())
 		},
 	}
 	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
@@ -259,10 +258,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
+	storeConfig := DefaultContextStoreConfig()
 	store := &ContextStoreWithDefault{
-		Store: store.New(cliconfig.ContextStoreDir(), defaultContextStoreConfig()),
+		Store: store.New(cliconfig.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return resolveDefaultContext(opts, configFile, ioutil.Discard)
+			return ResolveDefaultContext(opts, configFile, storeConfig, ioutil.Discard)
 		},
 	}
 	contextName, err := resolveContextName(opts, configFile, store)
@@ -453,7 +453,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 		WithContentTrustFromEnv(),
 		WithContainerizedClient(containerizedengine.NewClient),
 	}
-	cli.contextStoreConfig = defaultContextStoreConfig()
+	cli.contextStoreConfig = DefaultContextStoreConfig()
 	ops = append(defaultOps, ops...)
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
@@ -526,10 +526,22 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	return DefaultContextName, nil
 }
 
-func defaultContextStoreConfig() store.Config {
+var defaultStoreEndpoints = []store.NamedTypeGetter{
+	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+}
+
+// RegisterDefaultStoreEndpoints registers a new named endpoint
+// metadata type with the default context store config, so that
+// endpoint will be supported by stores using the config returned by
+// DefaultContextStoreConfig.
+func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
+	defaultStoreEndpoints = append(defaultStoreEndpoints, ep...)
+}
+
+// DefaultContextStoreConfig returns a new store.Config with the default set of endpoints configured.
+func DefaultContextStoreConfig() store.Config {
 	return store.NewConfig(
 		func() interface{} { return &DockerContext{} },
-		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-		store.EndpointTypeGetter(kubecontext.KubernetesEndpoint, func() interface{} { return &kubecontext.EndpointMeta{} }),
+		defaultStoreEndpoints...,
 	)
 }
