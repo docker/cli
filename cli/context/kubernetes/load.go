@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/store"
-	"github.com/docker/cli/kubernetes"
+	api "github.com/docker/compose-on-kubernetes/api"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -91,5 +91,5 @@ func ConfigFromContext(name string, s store.Reader) (clientcmd.ClientConfig, err
 		return ep.KubernetesConfig(), nil
 	}
 	// context has no kubernetes endpoint
-	return kubernetes.NewKubernetesConfig(""), nil
+	return api.NewKubernetesConfig(""), nil
 }
