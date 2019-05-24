@@ -324,7 +324,9 @@ Successfully built 99cc1ad10469
 This example shows the use of the `.dockerignore` file to exclude the `.git`
 directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
-[creating a .dockerignore file](../builder.md#dockerignore-file)
+[creating a .dockerignore file](../builder.md#dockerignore-file).
+
+When using the BuildKit backend, `docker build` searches for a `.dockerignore` file relative to the Dockerfile name. For example, running `docker build -f myapp.Dockerfile .` will first look for an ignore file from `myapp.Dockerfile.dockerignore`. If such a file can't be found, a global `.dockerignore` file is used. Using a Dockerfile based `.dockerignore` is useful if a project contains multiple Dockerfiles that expect to ignore different sets of files.
 
 ### Tag an image (-t)
 
