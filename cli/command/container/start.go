@@ -154,7 +154,7 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 			}
 		}
 		if attachErr := <-cErr; attachErr != nil {
-			if _, ok := err.(term.EscapeError); ok {
+			if _, ok := attachErr.(term.EscapeError); ok {
 				// The user entered the detach escape sequence.
 				return nil
 			}
