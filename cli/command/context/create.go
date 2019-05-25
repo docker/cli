@@ -159,7 +159,7 @@ func createFromExistingContext(s store.ReaderWriter, fromContextName string, sta
 		orchestrator: stackOrchestrator,
 	})
 	defer reader.Close()
-	return store.Import(o.Name, s, reader, store.Cli)
+	return store.Import(o.Name, s, reader)
 }
 
 type descriptionAndOrchestratorStoreDecorator struct {

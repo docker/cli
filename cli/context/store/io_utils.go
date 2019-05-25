@@ -14,17 +14,15 @@ type limitedReader struct {
 	err   error
 }
 
-// limitReaderWithErrorHandling will result in a limited reader with defined byte limit.
+// newLimitedReader creates a limited reader with defined byte limit.
 // This basically extends io.LimitReader with proper errors as io.LimitReader only errors with EOF.
-func limitReaderWithErrorHandling(r io.Reader, l int64) io.Reader {
+func newLimitedReader(r io.Reader, l int64) io.Reader {
 	return &limitedReader{r: r, limit: l, n: l}
 }
 
-// LimitedReadAll will read all content of a limited reader.
-// Should be called with a Reader that's gathered from limitReaderWithErrorHandling
-// Safer than using regular ioutil.ReadAll() that may result in issues on very big files.
-func LimitedReadAll(r io.Reader, limit int64) ([]byte, error) {
-	r = limitReaderWithErrorHandling(r, limit)
+// limitedReadAll reads all content of a limited reader.
+func limitedReadAll(r io.Reader, limit int64) ([]byte, error) {
+	r = newLimitedReader(r, limit)
 	return ioutil.ReadAll(r)
 }
 

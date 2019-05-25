@@ -16,6 +16,6 @@ func TestLimitReaderReadAll(t *testing.T) {
 	assert.NilError(t, err)
 
 	r = strings.NewReader("Reader")
-	_, err = LimitedReadAll(r, 4)
+	_, err = limitedReadAll(r, 4)
 	assert.Error(t, err, fmt.Sprintf("read exceeds the defined limit of %d on the reader", 4))
 }

@@ -3,13 +3,11 @@ package context
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/streams"
 	"gotest.tools/assert"
 )
@@ -109,42 +107,4 @@ func TestExportExistingFile(t *testing.T) {
 	assert.NilError(t, ioutil.WriteFile(contextFile, []byte{}, 0644))
 	err = RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
-}
-
-func TestImportReaderAndImportTypeGetter(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-
-	var (
-		reader     io.Reader
-		importType store.ImportType
-	)
-
-	reader, importType, _, err := getReaderAndImportType(cli, "-")
-	assert.NilError(t, err)
-	assert.Equal(t, reader, cli.In())
-	assert.Equal(t, importType, store.Cli)
-
-	contextDir, err := ioutil.TempDir("", t.Name()+"context")
-	assert.NilError(t, err)
-	defer os.RemoveAll(contextDir)
-	contextFile := filepath.Join(contextDir, "exported")
-	createTestContextWithKube(t, cli)
-	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunExport(cli, &ExportOptions{
-		ContextName: "test",
-		Dest:        contextFile,
-	}))
-	_, importType, _, err = getReaderAndImportType(cli, contextFile)
-	assert.NilError(t, err)
-	assert.Equal(t, importType, store.Tar)
-
-	contextDir, err = ioutil.TempDir("", t.Name()+"context")
-	assert.NilError(t, err)
-	contextFile = filepath.Join(contextDir, "context.zip")
-	f, _ := os.Create(contextFile)
-	defer f.Close()
-	_, importType, _, err = getReaderAndImportType(cli, contextFile)
-	assert.NilError(t, err)
-	assert.Equal(t, importType, store.Zip)
 }
