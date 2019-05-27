@@ -3,15 +3,11 @@ package command
 import (
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +16,7 @@ const (
 	DefaultContextName = "default"
 )
 
-// DefaultContext contains the default context data for all enpoints
+// DefaultContext contains the default context data for all endpoints
 type DefaultContext struct {
 	Meta store.Metadata
 	TLS  store.ContextTLSData
@@ -35,8 +31,21 @@ type ContextStoreWithDefault struct {
 	Resolver DefaultContextResolver
 }
 
-// resolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, stderr io.Writer) (*DefaultContext, error) {
+// EndpointDefaultResolver is implemented by any EndpointMeta object
+// which wants to be able to populate the store with whatever their default is.
+type EndpointDefaultResolver interface {
+	// ResolveDefault returns values suitable for storing in store.Metadata.Endpoints
+	// and store.ContextTLSData.Endpoints.
+	//
+	// An error is only returned for something fatal, not simply
+	// the lack of a default (e.g. because the config file which
+	// would contain it is missing). If there is no default then
+	// returns nil, nil, nil.
+	ResolveDefault(Orchestrator) (interface{}, *store.EndpointTLSData, error)
+}
+
+// ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
+func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, storeconfig store.Config, stderr io.Writer) (*DefaultContext, error) {
 	stackOrchestrator, err := GetStackOrchestrator("", "", config.StackOrchestrator, stderr)
 	if err != nil {
 		return nil, err
@@ -62,20 +71,28 @@ func resolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerEP.TLSData.ToStoreTLSData()
 	}
 
-	// Default context uses env-based kubeconfig for Kubernetes endpoint configuration
-	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-	}
-	kubeEP, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
-	if (stackOrchestrator == OrchestratorKubernetes || stackOrchestrator == OrchestratorAll) && err != nil {
-		return nil, errors.Wrapf(err, "default orchestrator is %s but kubernetes endpoint could not be found", stackOrchestrator)
-	}
-	if err == nil {
-		contextMetadata.Endpoints[kubernetes.KubernetesEndpoint] = kubeEP.EndpointMeta
-		if kubeEP.TLSData != nil {
-			contextTLSData.Endpoints[kubernetes.KubernetesEndpoint] = *kubeEP.TLSData.ToStoreTLSData()
+	if err := storeconfig.ForeachEndpointType(func(n string, get store.TypeGetter) error {
+		if n == docker.DockerEndpoint { // handled above
+			return nil
 		}
+		ep := get()
+		if i, ok := ep.(EndpointDefaultResolver); ok {
+			meta, tls, err := i.ResolveDefault(stackOrchestrator)
+			if err != nil {
+				return err
+			}
+			if meta == nil {
+				return nil
+			}
+			contextMetadata.Endpoints[n] = meta
+			if tls != nil {
+				contextTLSData.Endpoints[n] = *tls
+			}
+		}
+		// Nothing to be done
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil

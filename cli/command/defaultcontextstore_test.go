@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/go-connections/tlsconfig"
@@ -63,22 +62,20 @@ func TestDefaultContextInitializer(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
 	defer env.Patch(t, "DOCKER_HOST", "ssh://someswarmserver")()
-	defer env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")()
 	cli.configFile = &configfile.ConfigFile{
-		StackOrchestrator: "all",
+		StackOrchestrator: "swarm",
 	}
-	ctx, err := resolveDefaultContext(&cliflags.CommonOptions{
+	ctx, err := ResolveDefaultContext(&cliflags.CommonOptions{
 		TLS: true,
 		TLSOptions: &tlsconfig.Options{
 			CAFile: "./testdata/ca.pem",
 		},
-	}, cli.ConfigFile(), cli.Err())
+	}, cli.ConfigFile(), DefaultContextStoreConfig(), cli.Err())
 	assert.NilError(t, err)
 	assert.Equal(t, "default", ctx.Meta.Name)
-	assert.Equal(t, OrchestratorAll, ctx.Meta.Metadata.(DockerContext).StackOrchestrator)
+	assert.Equal(t, OrchestratorSwarm, ctx.Meta.Metadata.(DockerContext).StackOrchestrator)
 	assert.DeepEqual(t, "ssh://someswarmserver", ctx.Meta.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host)
 	golden.Assert(t, string(ctx.TLS.Endpoints[docker.DockerEndpoint].Files["ca.pem"]), "ca.pem")
-	assert.DeepEqual(t, "zoinx", ctx.Meta.Endpoints[kubernetes.KubernetesEndpoint].(kubernetes.EndpointMeta).DefaultNamespace)
 }
 
 func TestExportDefaultImport(t *testing.T) {
