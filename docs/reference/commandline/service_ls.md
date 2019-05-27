@@ -113,12 +113,16 @@ w7y0v2yrn620        top                 global              1/1                 
 
 #### name
 
-The `name` filter matches on all or part of a service's name.
+The `name` filter matches on all or a prefix of the service's name.
 
-The following filter matches services with a name containing `redis`.
+The following filter commands match services with a name containing `redis`.
 
 ```bash
 $ docker service ls --filter name=redis
+ID            NAME   MODE        REPLICAS  IMAGE
+0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
+
+$ docker service ls --filter name=red
 ID            NAME   MODE        REPLICAS  IMAGE
 0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
 ```
