@@ -42,7 +42,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		loggedIn        bool
 		regsToLogout    []string
 		hostnameAddress = serverAddress
-		regsToTry       = []string{serverAddress}
+		regsToTry       []string
 	)
 	if !isDefaultRegistry {
 		hostnameAddress = registry.ConvertToHostname(serverAddress)
