@@ -300,7 +300,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 	tlsData := ContextTLSData{
 		Endpoints: map[string]EndpointTLSData{},
 	}
-
+	var importedMetaFile bool
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -325,6 +325,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			if err := s.CreateOrUpdate(meta); err != nil {
 				return err
 			}
+			importedMetaFile = true
 		} else if strings.HasPrefix(hdr.Name, "tls/") {
 			data, err := ioutil.ReadAll(tr)
 			if err != nil {
@@ -335,7 +336,9 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			}
 		}
 	}
-
+	if !importedMetaFile {
+		return errdefs.InvalidParameter(errors.New("invalid context: no metadata found"))
+	}
 	return s.ResetTLSMaterial(name, &tlsData)
 }
 
@@ -352,6 +355,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 		Endpoints: map[string]EndpointTLSData{},
 	}
 
+	var importedMetaFile bool
 	for _, zf := range zr.File {
 		fi := zf.FileInfo()
 		if fi.IsDir() {
@@ -376,6 +380,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			if err := s.CreateOrUpdate(meta); err != nil {
 				return err
 			}
+			importedMetaFile = true
 		} else if strings.HasPrefix(zf.Name, "tls/") {
 			f, err := zf.Open()
 			if err != nil {
@@ -392,7 +397,9 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			}
 		}
 	}
-
+	if !importedMetaFile {
+		return errdefs.InvalidParameter(errors.New("invalid context: no metadata found"))
+	}
 	return s.ResetTLSMaterial(name, &tlsData)
 }
 
