@@ -1,6 +1,7 @@
 package store
 
 import (
+	"archive/tar"
 	"archive/zip"
 	"bufio"
 	"bytes"
@@ -144,6 +145,39 @@ func TestDetectImportContentType(t *testing.T) {
 	assert.Assert(t, zipType != ct)
 }
 
+func TestImportTarInvalid(t *testing.T) {
+	testDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(testDir)
+
+	tf := path.Join(testDir, "test.context")
+
+	f, err := os.Create(tf)
+	defer f.Close()
+	assert.NilError(t, err)
+
+	tw := tar.NewWriter(f)
+	hdr := &tar.Header{
+		Name: "dummy-file",
+		Mode: 0600,
+		Size: int64(len("hello world")),
+	}
+	err = tw.WriteHeader(hdr)
+	assert.NilError(t, err)
+	_, err = tw.Write([]byte("hello world"))
+	assert.NilError(t, err)
+	err = tw.Close()
+	assert.NilError(t, err)
+
+	source, err := os.Open(tf)
+	assert.NilError(t, err)
+	defer source.Close()
+	var r io.Reader = source
+	s := New(testDir, testCfg)
+	err = Import("tarInvalid", s, r)
+	assert.ErrorContains(t, err, "invalid context: no metadata found")
+}
+
 func TestImportZip(t *testing.T) {
 	testDir, err := ioutil.TempDir("", t.Name())
 	assert.NilError(t, err)
@@ -193,4 +227,32 @@ func TestImportZip(t *testing.T) {
 	s := New(testDir, testCfg)
 	err = Import("zipTest", s, r)
 	assert.NilError(t, err)
+}
+
+func TestImportZipInvalid(t *testing.T) {
+	testDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(testDir)
+
+	zf := path.Join(testDir, "test.zip")
+
+	f, err := os.Create(zf)
+	defer f.Close()
+	assert.NilError(t, err)
+	w := zip.NewWriter(f)
+
+	df, err := w.Create("dummy-file")
+	assert.NilError(t, err)
+	_, err = df.Write([]byte("hello world"))
+	assert.NilError(t, err)
+	err = w.Close()
+	assert.NilError(t, err)
+
+	source, err := os.Open(zf)
+	assert.NilError(t, err)
+	defer source.Close()
+	var r io.Reader = source
+	s := New(testDir, testCfg)
+	err = Import("zipInvalid", s, r)
+	assert.ErrorContains(t, err, "invalid context: no metadata found")
 }
