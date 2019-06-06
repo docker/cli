@@ -33,9 +33,8 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 	ctx := context.Background()
 
 	var (
-		hostnameAddress = serverAddress
-		loggedIn        bool     // is set later, when checking for credentials
-		regsToTry       []string // is set based on the type of registry
+		loggedIn  bool     // is set later, when checking for credentials
+		regsToTry []string // is set based on the type of registry
 	)
 
 	// differentiate between default und private registry
@@ -45,7 +44,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		regsToTry = []string{serverAddress}
 	} else {
 		// if server address given, handle case for private registry
-		hostnameAddress = registry.ConvertToHostname(serverAddress)
+		hostnameAddress := registry.ConvertToHostname(serverAddress)
 
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
@@ -59,7 +58,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 			loggedIn = true
 
 			// remove credentials, for found auth config
-			fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
+			fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", serverAddress)
 			if err := dockerCli.ConfigFile().GetCredentialsStore(s).Erase(s); err != nil {
 				fmt.Fprintf(dockerCli.Err(), "WARNING: could not erase credentials: %v\n", err)
 			}
@@ -67,7 +66,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 	}
 
 	if !loggedIn {
-		fmt.Fprintf(dockerCli.Out(), "Not logged in to %s\n", hostnameAddress)
+		fmt.Fprintf(dockerCli.Out(), "Not logged in to %s\n", serverAddress)
 		return nil
 	}
 
