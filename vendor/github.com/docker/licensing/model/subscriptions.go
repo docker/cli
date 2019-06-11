@@ -31,6 +31,19 @@ type Subscription struct {
 	State             string            `json:"state"`
 	Eusa              *EusaState        `json:"eusa,omitempty"`
 	PricingComponents PricingComponents `json:"pricing_components"`
+	GraceDays         int               `json:"grace_days"`
+}
+
+// GetFeatureValue returns true if a given feature is among a subscription's pricing component entitlements along with
+// it's corresponding value and false if it is not found
+func (s *Subscription) GetFeatureValue(featureName string) (int, bool) {
+	for _, component := range s.PricingComponents {
+		if component.Name == featureName && component.Value > 0 {
+			return component.Value, true
+		}
+	}
+
+	return 0, false
 }
 
 func (s *Subscription) String() string {
@@ -61,7 +74,7 @@ func (s *Subscription) String() string {
 	for i, pc := range s.PricingComponents {
 		pcStrs[i] = fmt.Sprintf("%d %s", pc.Value, pc.Name)
 	}
-	quantityMsg := "Quantity: " + strings.Join(pcStrs, ", ")
+	componentsMsg := "Components: " + strings.Join(pcStrs, ", ")
 	if s.Name != "" {
 		nameMsg = fmt.Sprintf("License Name: %s\t", s.Name)
 	} else if s.ProductRatePlan == "free-trial" {
@@ -70,7 +83,7 @@ func (s *Subscription) String() string {
 		statusMsg = fmt.Sprintf("\tTo purchase go to %s", storeURL)
 	}
 
-	return fmt.Sprintf("%s%s\t%s%s", nameMsg, quantityMsg, expirationMsg, statusMsg)
+	return fmt.Sprintf("%s%s\t%s%s", nameMsg, componentsMsg, expirationMsg, statusMsg)
 }
 
 // SubscriptionDetail presents Subscription information to billing service clients.

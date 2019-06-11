@@ -71,11 +71,6 @@ type EncodeOptions struct {
 
 // Encode creates a JWT string for the given identity.DockerIdentity.
 func Encode(identity identity.DockerIdentity, options EncodeOptions) (string, error) {
-	// Note: we only support a RS256 signing method right now. If we want to support
-	// additional signing methods (for example, HS256), this could be specified as an
-	// encoding option.
-	token := jwt.New(jwt.SigningMethodRS256)
-
 	block, _ := pem.Decode(options.Certificate)
 	if block == nil {
 		return "", fmt.Errorf("invalid key: failed to parse header")
@@ -84,35 +79,44 @@ func Encode(identity identity.DockerIdentity, options EncodeOptions) (string, er
 	encodedCert := base64.StdEncoding.EncodeToString(block.Bytes)
 	x5cCerts := [1]string{encodedCert}
 
-	token.Header[x5c] = x5cCerts
-
 	// non standard fields
 	// Note: this is a required field
-	token.Claims[username] = identity.Username
-	token.Claims[email] = identity.Email
+	claims := make(map[string]interface{})
+	claims[username] = identity.Username
+	claims[email] = identity.Email
 
 	// standard JWT fields, consult the JWT spec for details
-	token.Claims[sub] = identity.DockerID
+	claims[sub] = identity.DockerID
 
 	if len(identity.Scopes) > 0 {
-		token.Claims[scope] = strings.Join(identity.Scopes, " ")
+		claims[scope] = strings.Join(identity.Scopes, " ")
 	}
 
 	jtiStr := options.Jti
 	if len(jtiStr) == 0 {
 		jtiStr = "jti-" + uuid.New().String()
 	}
-	token.Claims[jti] = jtiStr
+	claims[jti] = jtiStr
 
-	token.Claims[iat] = time.Now().Unix()
-	token.Claims[exp] = options.Expiration
+	claims[iat] = time.Now().Unix()
+	claims[exp] = options.Expiration
 
 	if options.IncludeLegacyClaims {
-		token.Claims[sessionid] = jtiStr
-		token.Claims[userid] = identity.DockerID
+		claims[sessionid] = jtiStr
+		claims[userid] = identity.DockerID
 	}
 
-	return token.SignedString(options.SigningKey)
+	// Note: we only support a RS256 signing method right now. If we want to support
+	// additional signing methods (for example, HS256), this could be specified as an
+	// encoding option.
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims(claims))
+	token.Header[x5c] = x5cCerts
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(options.SigningKey)
+	if err != nil {
+		return "", err
+	}
+	return token.SignedString(privateKey)
 }
 
 // DecodeOptions holds JWT decoding options
@@ -122,24 +126,30 @@ type DecodeOptions struct {
 
 // Decode decodes the given JWT string, returning the decoded identity.DockerIdentity
 func Decode(tokenStr string, options DecodeOptions) (*identity.DockerIdentity, error) {
-	rootCerts := options.CertificateChain
-	token, err := jwt.Parse(tokenStr, keyFunc(rootCerts))
+	token, err := jwt.Parse(tokenStr, keyFunc(options.CertificateChain))
 
-	if err == nil && token.Valid {
-		username, ok := token.Claims[username].(string)
+	if err != nil {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			return nil, &ValidationError{VError: ve}
+		}
+		return nil, fmt.Errorf("error decoding token: %s", err)
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		username, ok := claims[username].(string)
 		if !ok {
 			return nil, fmt.Errorf("%v claim not present", username)
 		}
-		dockerID, ok := token.Claims[sub].(string)
+		dockerID, ok := claims[sub].(string)
 		if !ok {
 			return nil, fmt.Errorf("%v claim not present", sub)
 		}
 
 		// email is optional
-		email, _ := token.Claims[email].(string)
+		email, _ := claims[email].(string)
 
 		var scopes []string
-		if scopeClaim, ok := token.Claims[scope]; ok {
+		if scopeClaim, ok := claims[scope]; ok {
 			sstr, ok := scopeClaim.(string)
 			if !ok {
 				return nil, fmt.Errorf("scope claim invalid")
@@ -147,24 +157,16 @@ func Decode(tokenStr string, options DecodeOptions) (*identity.DockerIdentity, e
 			scopes = strings.Split(sstr, " ")
 		}
 
-		identity := &identity.DockerIdentity{
+		return &identity.DockerIdentity{
 			Username: username,
 			DockerID: dockerID,
 			Email:    email,
 			Scopes:   scopes,
-		}
-		return identity, nil
+		}, nil
 	}
 
 	// no error but an invalid token seems like a corner case, but just to be sure
-	if err == nil && !token.Valid {
-		return nil, fmt.Errorf("token was invalid")
-	}
-
-	if ve, ok := err.(*jwt.ValidationError); ok {
-		return nil, &ValidationError{VError: ve}
-	}
-	return nil, fmt.Errorf("error decoding token: %s", err)
+	return nil, fmt.Errorf("token was invalid")
 }
 
 // IsExpired returns true if the token has expired, false otherwise
@@ -225,7 +227,7 @@ func keyFunc(roots *x509.CertPool) jwt.Keyfunc {
 
 		key := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 
-		return key, nil
+		return jwt.ParseRSAPublicKeyFromPEM(key)
 	}
 }
 
