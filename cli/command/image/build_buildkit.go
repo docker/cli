@@ -103,6 +103,11 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		} else {
 			dockerfileDir = options.context
 		}
+
+		if err := build.OpenDockerignore(contextDir); err != nil {
+			return errors.Errorf("check .dockerignore failed: %s", err)
+		}
+
 		remote = clientSessionRemote
 	case urlutil.IsGitURL(options.context):
 		remote = options.context
