@@ -199,7 +199,11 @@ func continueOnError(err error) bool {
 	return false
 }
 
-func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, lookup func(hostname string) (endpoints []registry.APIEndpoint, err error), each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
+func (c *client) iterateEndpoints(
+	ctx context.Context,
+	namedRef reference.Named,
+	lookup func(hostname string) (endpoints []registry.APIEndpoint, err error),
+	each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
 	endpoints, err := lookup(reference.Domain(namedRef))
 	if err != nil {
 		return err
