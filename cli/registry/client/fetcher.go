@@ -199,8 +199,8 @@ func continueOnError(err error) bool {
 	return false
 }
 
-func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
-	endpoints, err := allEndpoints(namedRef, c.insecureRegistry)
+func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, lookup func(hostname string) (endpoints []registry.APIEndpoint, err error), each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
+	endpoints, err := lookup(reference.Domain(namedRef))
 	if err != nil {
 		return err
 	}
@@ -261,27 +261,6 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 	return newNotFoundError(namedRef.String())
 }
 
-// allEndpoints returns a list of endpoints ordered by priority (v2, https, v1).
-func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
-	repoInfo, err := registry.ParseRepositoryInfo(namedRef)
-	if err != nil {
-		return nil, err
-	}
-
-	var serviceOpts registry.ServiceOptions
-	if insecure {
-		logrus.Debugf("allowing insecure registry for: %s", reference.Domain(namedRef))
-		serviceOpts.InsecureRegistries = []string{reference.Domain(namedRef)}
-	}
-	registryService, err := registry.NewService(serviceOpts)
-	if err != nil {
-		return []registry.APIEndpoint{}, err
-	}
-	endpoints, err := registryService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
-	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
-	return endpoints, err
-}
-
 type notFoundError struct {
 	object string
 }
@@ -305,4 +284,18 @@ func IsNotFound(err error) bool {
 
 type notFound interface {
 	NotFound()
+}
+
+func registryService(namedRef reference.Named, insecure bool) (registry.Service, error) {
+	var serviceOpts registry.ServiceOptions
+	if insecure {
+		logrus.Debugf("allowing insecure registry for: %s", reference.Domain(namedRef))
+		serviceOpts.InsecureRegistries = []string{reference.Domain(namedRef)}
+	}
+	registryService, err := registry.NewService(serviceOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	return registryService, nil
 }
