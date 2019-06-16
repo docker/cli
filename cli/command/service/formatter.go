@@ -123,6 +123,17 @@ Secrets:
  Target:	{{$secret.File.Name}}
   Source:	{{$secret.SecretName}}
 {{- end }}{{ end }}
+{{- if .HasLogDriver }}
+Log Driver:
+{{- if .HasLogDriverName }}
+ Name:		{{ .LogDriverName }}
+{{- end }}
+{{- if .LogOpts }}
+ LogOpts:
+{{- range $k, $v := .LogOpts }}
+  {{ $k }}{{if $v }}:       {{ $v }}{{ end }}
+{{- end }}{{ end }}
+{{ end }}
 {{- if .HasResources }}
 Resources:
 {{- if .HasResourceReservations }}
@@ -236,6 +247,21 @@ func (ctx *serviceInspectContext) Name() string {
 
 func (ctx *serviceInspectContext) Labels() map[string]string {
 	return ctx.Service.Spec.Labels
+}
+
+func (ctx *serviceInspectContext) HasLogDriver() bool {
+	return ctx.Service.Spec.TaskTemplate.LogDriver != nil
+}
+
+func (ctx *serviceInspectContext) HasLogDriverName() bool {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Name != ""
+}
+func (ctx *serviceInspectContext) LogDriverName() string {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Name
+}
+
+func (ctx *serviceInspectContext) LogOpts() map[string]string {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Options
 }
 
 func (ctx *serviceInspectContext) Configs() []*swarm.ConfigReference {

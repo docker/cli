@@ -43,6 +43,12 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 				Labels: map[string]string{"com.label": "foo"},
 			},
 			TaskTemplate: swarm.TaskSpec{
+				LogDriver: &swarm.Driver{
+					Name: "driver",
+					Options: map[string]string{
+						"max-file": "5",
+					},
+				},
 				ContainerSpec: &swarm.ContainerSpec{
 					Image: "foo/bar@sha256:this_is_a_test",
 					Configs: []*swarm.ConfigReference{
@@ -163,7 +169,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 
 func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
 	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
-
+	assert.Check(t, is.Contains(s, "Log Driver:"), "Pretty print missing Log Driver")
 	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
 	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")
 	assert.Check(t, is.Contains(s, "Healthcheck:"), "Pretty print missing healthcheck")
