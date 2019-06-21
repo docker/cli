@@ -854,3 +854,34 @@ func TestParseSystemPaths(t *testing.T) {
 		assert.DeepEqual(t, readonlyPaths, tc.readonly)
 	}
 }
+
+func TestConvertToStandardNotation(t *testing.T) {
+	valid := map[string][]string{
+		"10:10/tcp":               {"target=10,published=10"},
+		"30:30":                   {"30:30"},
+		"20:20 80:4444":           {"20:20", "80:4444"},
+		"2500:1500/tcp 1300:1300": {"target=2500,published=1500", "1300:1300"},
+		"200:1500/tcp 80:90/tcp":  {"published=1500,target=200", "target=80,published=90"},
+	}
+
+	inValid := [][]string{
+		{"published=1500,target:444"},
+		{"published=1500,444"},
+		{"published=1500,target,444"},
+	}
+
+	for key, ports := range valid {
+		convertedPorts, err := convertToStandardNotation(ports)
+
+		if err != nil {
+			assert.NilError(t, err)
+		}
+		assert.DeepEqual(t, strings.Split(key, " "), convertedPorts)
+	}
+
+	for _, ports := range inValid {
+		if _, err := convertToStandardNotation(ports); err == nil {
+			t.Fatalf("ConvertToStandardNotation(`%q`) should have failed conversion", ports)
+		}
+	}
+}
