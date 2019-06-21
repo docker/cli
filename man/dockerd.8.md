@@ -12,6 +12,7 @@ dockerd - Enable daemon mode
 [**--authorization-plugin**[=*[]*]]
 [**-b**|**--bridge**[=*BRIDGE*]]
 [**--bip**[=*BIP*]]
+[**--capabilities**[=*[]*]]
 [**--cgroup-parent**[=*[]*]]
 [**--cluster-store**[=*[]*]]
 [**--cluster-advertise**[=*[]*]]
@@ -147,6 +148,10 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 **--bip**=""
   Use the provided CIDR notation address for the dynamically created bridge
   (docker0); Mutually exclusive of \-b
+
+**--capabilities**=""
+  Set the default capabilities. The first use of this flag will set the capabilities
+  to that capability. Additional uses of this flag will add additional capabilities.
 
 **--cgroup-parent**=""
   Set parent cgroup for all containers. Default is "/docker" for fs cgroup
