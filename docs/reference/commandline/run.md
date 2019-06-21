@@ -605,6 +605,33 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 > Windows containers. This option fails if the container isolation is `hyperv`
 > or when running Linux Containers on Windows (LCOW).
 
+### Access an NVIDIA GPU
+
+The `--gpus­` flag allows you to access NVIDIA GPU resources. First you need to
+install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
+Visit [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
+for more information.
+
+To use `--gpus`, specify which GPUs (or all) to use. If no value is provied, all
+available GPUs are used. The example below exposes all available GPUs.
+
+```bash
+$ docker run -it --rm --gpus all ubuntu nvidia-smi
+```
+
+Use the `device` option to specify GPUs. The example below exposes a specific
+GPU.
+
+```bash
+$ docker run -it --rm --gpus device=GPU-3a23c669-1f69-c64e-cf85-44e9b07e7a2a ubuntu nvidia-smi
+```
+
+The example below exposes the first and third GPUs.
+
+```bash
+$ docker run -it --rm --gpus device=0,2 nvidia-smi
+```
+
 ### Restart policies (--restart)
 
 Use Docker's `--restart` to specify a container's *restart policy*. A restart
