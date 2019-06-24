@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -69,12 +70,14 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 }
 
 func getPrivKeyBytesFromPath(keyPath string) ([]byte, error) {
-	fileInfo, err := os.Stat(keyPath)
-	if err != nil {
-		return nil, err
-	}
-	if fileInfo.Mode()&nonOwnerReadWriteMask != 0 {
-		return nil, fmt.Errorf("private key file %s must not be readable or writable by others", keyPath)
+	if runtime.GOOS != "windows" {
+		fileInfo, err := os.Stat(keyPath)
+		if err != nil {
+			return nil, err
+		}
+		if fileInfo.Mode()&nonOwnerReadWriteMask != 0 {
+			return nil, fmt.Errorf("private key file %s must not be readable or writable by others", keyPath)
+		}
 	}
 
 	from, err := os.OpenFile(keyPath, os.O_RDONLY, notary.PrivExecPerms)
