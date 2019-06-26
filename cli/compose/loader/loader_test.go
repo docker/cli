@@ -507,7 +507,7 @@ volumes:
 
 func TestLoadWithInterpolationCastFull(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
-version: "3.4"
+version: "3.7"
 services:
   web:
     configs:
@@ -522,6 +522,9 @@ services:
     deploy:
       replicas: $theint
       update_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
+      rollback_config:
         parallelism: $theint
         max_failure_ratio: $thefloat
       restart_policy:
@@ -574,7 +577,7 @@ networks:
 	assert.NilError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
-		Version:  "3.4",
+		Version:  "3.7",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",
@@ -597,6 +600,10 @@ networks:
 				Deploy: types.DeployConfig{
 					Replicas: uint64Ptr(555),
 					UpdateConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
+					RollbackConfig: &types.UpdateConfig{
 						Parallelism:     uint64Ptr(555),
 						MaxFailureRatio: 3.14,
 					},
