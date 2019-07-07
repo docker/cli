@@ -33,7 +33,7 @@ type createOptions struct {
 	name      string
 	platform  string
 	untrusted bool
-	pull      string // alway, missing, never
+	pull      string // always, missing, never
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -244,7 +244,13 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
 		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
 			// we don't want to write to stdout anything apart from container.ID
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			fmt.Fprintf(stderr, "Error while creating container: Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			if reference.FamiliarString(namedRef) == "config" || reference.FamiliarString(namedRef) == "container" ||
+				reference.FamiliarString(namedRef) == "network" || reference.FamiliarString(namedRef) == "plugin" ||
+				reference.FamiliarString(namedRef) == "secret" || reference.FamiliarString(namedRef) == "service" ||
+				reference.FamiliarString(namedRef) == "volume" {
+				fmt.Fprintf(stderr, "If you were trying to create a %[1]s, see 'docker %[1]s create --help'\n", reference.FamiliarString(namedRef))
+			}
 			if err := pullAndTagImage(); err != nil {
 				return nil, err
 			}
