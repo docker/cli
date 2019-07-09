@@ -978,6 +978,84 @@ services:
 	assert.Error(t, err, `invalid mount config for type "bind": field Source must not be empty`)
 }
 
+func TestLoadBindMountSourceIsWindowsAbsolute(t *testing.T) {
+	tests := []struct {
+		doc      string
+		yaml     string
+		expected types.ServiceVolumeConfig
+	}{
+		{
+			doc: "Z-drive lowercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: z:\
+        target: c:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `z:\`, Target: `c:\data`},
+		},
+		{
+			doc: "Z-drive uppercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\`, Target: `C:\data`},
+		},
+		{
+			doc: "Z-drive subdirectory",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\some-dir
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\some-dir`, Target: `C:\data`},
+		},
+		{
+			doc: "forward-slashes",
+			yaml: `
+version: '3.3'
+
+services:
+  app:
+    image: app:latest
+    volumes:
+      - type: bind
+        source: /z/some-dir
+        target: /c/data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `/z/some-dir`, Target: `/c/data`},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			config, err := loadYAML(tc.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+			assert.Check(t, is.DeepEqual(tc.expected, config.Services[0].Volumes[0]))
+		})
+	}
+}
+
 func TestLoadBindMountWithSource(t *testing.T) {
 	config, err := loadYAML(`
 version: "3.5"
