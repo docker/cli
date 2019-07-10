@@ -1,7 +1,5 @@
 ARG GO_VERSION=1.12.8
 
-FROM docker/containerd-shim-process:a4d1531 AS containerd-shim-process
-
 # Use Debian based image as docker-compose requires glibc.
 FROM golang:${GO_VERSION}
 
@@ -9,10 +7,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     openssl \
-    btrfs-tools \
-    libapparmor-dev \
-    libseccomp-dev \
-    iptables \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
