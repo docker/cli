@@ -16,6 +16,8 @@ var interpolateTypeCastMapping = map[interp.Path]interp.Cast{
 	servicePath("deploy", "replicas"):                                toInt,
 	servicePath("deploy", "update_config", "parallelism"):            toInt,
 	servicePath("deploy", "update_config", "max_failure_ratio"):      toFloat,
+	servicePath("deploy", "rollback_config", "parallelism"):          toInt,
+	servicePath("deploy", "rollback_config", "max_failure_ratio"):    toFloat,
 	servicePath("deploy", "restart_policy", "max_attempts"):          toInt,
 	servicePath("ports", interp.PathMatchList, "target"):             toInt,
 	servicePath("ports", interp.PathMatchList, "published"):          toInt,
