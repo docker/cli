@@ -397,7 +397,8 @@ Valid placeholders for the Go template are listed below:
 | `.CreatedAt`  | Time when the container was created.                                                            |
 | `.RunningFor` | Elapsed time since the container was started.                                                   |
 | `.Ports`      | Exposed ports.                                                                                  |
-| `.Status`     | Container status.                                                                               |
+| `.State`      | Container status (for example; "created", "running", "exited").                                 |
+| `.Status`     | Container status with details about duration and health-status.                                 |
 | `.Size`       | Container disk size.                                                                            |
 | `.Names`      | Container names.                                                                                |
 | `.Labels`     | All labels assigned to the container.                                                           |

@@ -168,6 +168,10 @@ containerID2        ubuntu              ""                  24 hours ago        
 			Context{Format: NewContainerFormat("table", true, false)},
 			"containerID1\ncontainerID2\n",
 		},
+		{
+			Context{Format: NewContainerFormat("table {{.State}}", false, true)},
+			"STATE\nrunning\nrunning\n",
+		},
 		// Raw Format
 		{
 			Context{Format: NewContainerFormat("raw", false, false)},
@@ -175,6 +179,7 @@ containerID2        ubuntu              ""                  24 hours ago        
 image: ubuntu
 command: ""
 created_at: %s
+state: running
 status:
 names: foobar_baz
 labels:
@@ -184,6 +189,7 @@ container_id: containerID2
 image: ubuntu
 command: ""
 created_at: %s
+state: running
 status:
 names: foobar_bar
 labels:
@@ -197,6 +203,7 @@ ports:
 image: ubuntu
 command: ""
 created_at: %s
+state: running
 status:
 names: foobar_baz
 labels:
@@ -207,6 +214,7 @@ container_id: containerID2
 image: ubuntu
 command: ""
 created_at: %s
+state: running
 status:
 names: foobar_bar
 labels:
@@ -237,8 +245,8 @@ size: 0B
 
 	for _, testcase := range cases {
 		containers := []types.Container{
-			{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime},
-			{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime},
+			{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
+			{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
 		}
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
@@ -314,8 +322,8 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 func TestContainerContextWriteJSON(t *testing.T) {
 	unix := time.Now().Add(-65 * time.Second).Unix()
 	containers := []types.Container{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: "running"},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: "running"},
 	}
 	expectedCreated := time.Unix(unix, 0).String()
 	expectedJSONs := []map[string]interface{}{
@@ -332,6 +340,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
 			"Size":         "0B",
+			"State":        "running",
 			"Status":       "",
 		},
 		{
@@ -347,6 +356,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
 			"Size":         "0B",
+			"State":        "running",
 			"Status":       "",
 		},
 	}
