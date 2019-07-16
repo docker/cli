@@ -92,12 +92,12 @@ func (h Secretservice) List() (map[string]string, error) {
 	defer C.free(unsafe.Pointer(acctsC))
 	var listLenC C.uint
 	err := C.list(credsLabelC, &pathsC, &acctsC, &listLenC)
+	defer C.freeListData(&pathsC, listLenC)
+	defer C.freeListData(&acctsC, listLenC)
 	if err != nil {
 		defer C.g_error_free(err)
 		return nil, errors.New("Error from list function in secretservice_linux.c likely due to error in secretservice library")
 	}
-	defer C.freeListData(&pathsC, listLenC)
-	defer C.freeListData(&acctsC, listLenC)
 
 	resp := make(map[string]string)
 
