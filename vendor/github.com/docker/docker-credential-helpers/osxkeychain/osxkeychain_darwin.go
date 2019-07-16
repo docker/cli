@@ -109,6 +109,8 @@ func (h Osxkeychain) List() (map[string]string, error) {
 	defer C.free(unsafe.Pointer(acctsC))
 	var listLenC C.uint
 	errMsg := C.keychain_list(credsLabelC, &pathsC, &acctsC, &listLenC)
+	defer C.freeListData(&pathsC, listLenC)
+	defer C.freeListData(&acctsC, listLenC)
 	if errMsg != nil {
 		defer C.free(unsafe.Pointer(errMsg))
 		goMsg := C.GoString(errMsg)
@@ -118,9 +120,6 @@ func (h Osxkeychain) List() (map[string]string, error) {
 
 		return nil, errors.New(goMsg)
 	}
-
-	defer C.freeListData(&pathsC, listLenC)
-	defer C.freeListData(&acctsC, listLenC)
 
 	var listLen int
 	listLen = int(listLenC)
