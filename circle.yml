@@ -5,6 +5,8 @@ jobs:
   lint:
     working_directory: /work
     docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
@@ -22,6 +24,8 @@ jobs:
   cross:
     working_directory: /work
     docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     parallelism: 3
     steps:
       - checkout
@@ -47,6 +51,8 @@ jobs:
   test:
     working_directory: /work
     docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
@@ -83,6 +89,8 @@ jobs:
   validate:
     working_directory: /work
     docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
@@ -100,6 +108,8 @@ jobs:
   shellcheck:
     working_directory: /work
     docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
