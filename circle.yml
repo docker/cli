@@ -4,13 +4,13 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           command: docker version
       - run:
@@ -21,14 +21,14 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
     parallelism: 3
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Cross"
           command: |
@@ -46,13 +46,13 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Unit Test with Coverage"
           command: |
@@ -82,13 +82,13 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
@@ -99,13 +99,13 @@ jobs:
           no_output_timeout: 15m
   shellcheck:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Run shellcheck"
           command: |
