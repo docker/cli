@@ -3,7 +3,7 @@ ARG GO_VERSION=1.12.7
 FROM docker/containerd-shim-process:a4d1531 AS containerd-shim-process
 
 # Use Debian based image as docker-compose requires glibc.
-FROM golang:${GO_VERSION}
+FROM golang:${GO_VERSION}-stretch
 
 RUN apt-get update && apt-get install -y \
     build-essential \
