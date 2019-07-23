@@ -10,7 +10,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/docker/licensing/lib/go-auth/identity"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 const (
@@ -100,7 +100,7 @@ func Encode(identity identity.DockerIdentity, options EncodeOptions) (string, er
 
 	jtiStr := options.Jti
 	if len(jtiStr) == 0 {
-		jtiStr = "jti-" + uuid.NewV4().String()
+		jtiStr = "jti-" + uuid.New().String()
 	}
 	token.Claims[jti] = jtiStr
 
