@@ -570,7 +570,7 @@ __docker_append_to_completions() {
 # The result is cached for the duration of one invocation of bash completion.
 __docker_fetch_info() {
 	if [ -z "$info_fetched" ] ; then
-		read -r client_experimental server_experimental server_os < <(__docker_q version -f '{{.Client.Experimental}} {{.Server.Experimental}} {{.Server.Os}}')
+		read -r client_experimental server_experimental server_os <<< "$(__docker_q version -f '{{.Client.Experimental}} {{.Server.Experimental}} {{.Server.Os}}')"
 		info_fetched=true
 	fi
 }
@@ -4848,6 +4848,10 @@ _docker_system_events() {
 			__docker_complete_networks --cur "${cur##*=}"
 			return
 			;;
+		node)
+			__docker_complete_nodes --cur "${cur##*=}"
+			return
+			;;
 		scope)
 			COMPREPLY=( $( compgen -W "local swarm" -- "${cur##*=}" ) )
 			return
@@ -4864,7 +4868,7 @@ _docker_system_events() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -S = -W "container daemon event image label network scope type volume" -- "$cur" ) )
+			COMPREPLY=( $( compgen -S = -W "container daemon event image label network node scope type volume" -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
