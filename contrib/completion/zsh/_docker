@@ -9,6 +9,7 @@
 #   - Felix Riedel
 #   - Steve Durrheimer
 #   - Vincent Bernat
+#   - Rohan Verma
 #
 # license:
 #
@@ -2784,7 +2785,7 @@ __docker_subcommand() {
                 $opts_help \
                 "($help -p --password)"{-p=,--password=}"[Password]:password: " \
                 "($help)--password-stdin[Read password from stdin]" \
-                "($help -u --user)"{-u=,--user=}"[Username]:username: " \
+                "($help -u --username)"{-u=,--username=}"[Username]:username: " \
                 "($help -)1:server: " && ret=0
             ;;
         (logout)
