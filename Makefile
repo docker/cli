@@ -21,6 +21,10 @@ test: test-unit ## run tests
 test-coverage: ## run test coverage
 	./scripts/test/unit-with-coverage $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
+.PHONY: fmt
+fmt:
+	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
+
 .PHONY: lint
 lint: ## run all the lint tools
 	gometalinter --config gometalinter.json ./...
