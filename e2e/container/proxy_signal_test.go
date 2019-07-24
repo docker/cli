@@ -19,17 +19,19 @@ import (
 func TestSigProxyWithTTY(t *testing.T) {
 	_, tty, err := pty.Open()
 	assert.NilError(t, err, "could not open pty")
-	defer func() { _ = tty.Close() }()
 
 	containerName := "repro-28872"
 	cmd := exec.Command("docker", "run", "-i", "-t", "--init", "--name", containerName, fixtures.BusyboxImage, "sleep", "30")
 	cmd.Stdin = tty
 	cmd.Stdout = tty
 	cmd.Stderr = tty
+	defer func() {
+		_ = cmd.Wait()
+		_ = tty.Close()
+	}()
 
 	err = cmd.Start()
-	out, _ := cmd.CombinedOutput()
-	assert.NilError(t, err, "failed to start container: %s", out)
+	assert.NilError(t, err, "failed to start container")
 	defer icmd.RunCommand("docker", "container", "rm", "-f", containerName)
 
 	poll.WaitOn(t, containerExistsWithStatus(t, containerName, "running"), poll.WithDelay(100*time.Millisecond), poll.WithTimeout(5*time.Second))
