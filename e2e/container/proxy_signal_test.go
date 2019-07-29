@@ -46,7 +46,7 @@ func TestSigProxyWithTTY(t *testing.T) {
 
 func containerExistsWithStatus(t *testing.T, containerID, status string) func(poll.LogT) poll.Result {
 	return func(poll.LogT) poll.Result {
-		result := icmd.RunCommand("docker", "inspect", "-f", "{{ .State.Status }}", containerID)
+		result := icmd.RunCommand("docker", "container", "inspect", "-f", "{{ .State.Status }}", containerID)
 		// ignore initial failures as the container may not yet exist (i.e., don't result.Assert(t, icmd.Success))
 
 		actual := strings.TrimSpace(result.Stdout())
