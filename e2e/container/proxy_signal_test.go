@@ -53,6 +53,11 @@ func containerExistsWithStatus(t *testing.T, containerID, status string) func(po
 		if actual == status {
 			return poll.Success()
 		}
+		if result.Error != nil {
+			t.Log(result.Error)
+		}
+		t.Log(result.Stderr())
+		t.Log(result.Stdout())
 		return poll.Continue("expected status %s != %s", status, actual)
 	}
 }
