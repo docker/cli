@@ -135,3 +135,12 @@ func createRemoteImage(t *testing.T) string {
 	icmd.RunCommand("docker", "rmi", image).Assert(t, icmd.Success)
 	return image
 }
+
+func TestRunWithCgroupNamespace(t *testing.T) {
+	environment.SkipIfDaemonNotLinux(t)
+	environment.SkipIfCgroupNamespacesNotSupported(t)
+
+	result := icmd.RunCommand("docker", "run", "--cgroupns=private", "--rm", fixtures.AlpineImage,
+		"/bin/grep", "-q", "':memory:/$'", "/proc/1/cgroup")
+	result.Assert(t, icmd.Success)
+}

@@ -1865,6 +1865,7 @@ _docker_container_run_and_create() {
 		--blkio-weight-device
 		--cap-add
 		--cap-drop
+		--cgroupns
 		--cgroup-parent
 		--cidfile
 		--cpu-period
@@ -2020,6 +2021,10 @@ _docker_container_run_and_create() {
 			;;
 		--cidfile|--env-file|--label-file)
 			_filedir
+			return
+			;;
+		--cgroupns)
+			COMPREPLY=( $( compgen -W "host private" -- "$cur" ) )
 			return
 			;;
 		--device|--tmpfs|--volume|-v)

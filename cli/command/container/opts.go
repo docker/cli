@@ -70,6 +70,7 @@ type containerOptions struct {
 	pidMode            string
 	utsMode            string
 	usernsMode         string
+	cgroupnsMode       string
 	publishAll         bool
 	stdin              bool
 	tty                bool
@@ -198,6 +199,12 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.BoolVar(&copts.privileged, "privileged", false, "Give extended privileges to this container")
 	flags.Var(&copts.securityOpt, "security-opt", "Security Options")
 	flags.StringVar(&copts.usernsMode, "userns", "", "User namespace to use")
+	flags.StringVar(&copts.cgroupnsMode, "cgroupns", "", `Cgroup namespace to use (host|private)
+'host':    Run the container in the Docker host's cgroup namespace
+'private': Run the container in its own private cgroup namespace
+'':        Use the cgroup namespace as configured by the
+           default-cgroupns-mode option on the daemon (default)`)
+	flags.SetAnnotation("cgroupns", "version", []string{"1.41"})
 
 	// Network and port publishing flag
 	flags.Var(&copts.extraHosts, "add-host", "Add a custom host-to-IP mapping (host:ip)")
@@ -469,6 +476,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, errors.Errorf("--userns: invalid USER mode")
 	}
 
+	cgroupnsMode := container.CgroupnsMode(copts.cgroupnsMode)
+	if !cgroupnsMode.Valid() {
+		return nil, errors.Errorf("--cgroupns: invalid CGROUP mode")
+	}
+
 	restartPolicy, err := opts.ParseRestartPolicy(copts.restartPolicy)
 	if err != nil {
 		return nil, err
@@ -620,6 +632,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		PidMode:        pidMode,
 		UTSMode:        utsMode,
 		UsernsMode:     usernsMode,
+		CgroupnsMode:   cgroupnsMode,
 		CapAdd:         strslice.StrSlice(copts.capAdd.GetAll()),
 		CapDrop:        strslice.StrSlice(copts.capDrop.GetAll()),
 		GroupAdd:       copts.groupAdd.GetAll(),

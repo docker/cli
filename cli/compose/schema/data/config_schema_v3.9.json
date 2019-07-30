@@ -96,6 +96,7 @@
         },
         "cap_add": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "cap_drop": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "cgroupns_mode": {"type": "string"},
         "cgroup_parent": {"type": "string"},
         "command": {
           "oneOf": [
