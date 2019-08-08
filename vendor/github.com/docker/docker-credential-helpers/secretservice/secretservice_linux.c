@@ -158,5 +158,4 @@ void freeListData(char *** data, unsigned int length) {
 	for(i=0; i<length; i++) {
 		free((*data)[i]);
 	}
-	free(*data);
 }
