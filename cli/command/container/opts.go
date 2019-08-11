@@ -785,7 +785,7 @@ func parsePortOpts(publishOpts []string) ([]string, error) {
 	optsList := []string{}
 	for _, publish := range publishOpts {
 		params := map[string]string{"protocol": "tcp"}
-		if strings.Index(publish, "=") != -1 {
+		if strings.Contains(publish, "=") {
 			for _, param := range strings.Split(publish, ",") {
 				opt := strings.Split(param, "=")
 				if len(opt) < 2 {
