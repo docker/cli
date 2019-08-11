@@ -854,3 +854,18 @@ func TestParseSystemPaths(t *testing.T) {
 		assert.DeepEqual(t, readonlyPaths, tc.readonly)
 	}
 }
+
+func TestParsePublishPorts(t *testing.T){
+	valids:= []struct{
+		input []string
+		out []string
+	}{
+		{[]string{"8080:80","4040:443"},[]string{"8080:80","4040:443",}},
+		{[]string{"8080:80","target=4040,published=443"},[]string{"8080:80","4040:443/tcp",}},
+	}
+	for _,testCase:= range valids {
+		if o,_:=parsePortOpts(testCase.input); o[0]!=testCase.out[0] || o[1]!=testCase.out[1]{
+			t.Fatalf("Expected %s and %s ,got %s and %s",testCase.out[0],testCase.out[1],o[0],o[1])
+		}
+	}
+}
