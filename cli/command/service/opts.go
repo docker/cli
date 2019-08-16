@@ -613,9 +613,16 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 
 	networks := convertNetworks(options.networks)
 	for i, net := range networks {
-		nwID, err := resolveNetworkID(ctx, apiClient, net.Target)
-		if err != nil {
-			return service, err
+		var nwID string
+		if !container.NetworkMode(net.Target).IsUserDefined() {
+			// Networks that are not user defined always exist on all nodes as
+			// local-scoped networks, so there's no need to inspect them.
+			nwID = net.Target
+		} else {
+			nwID, err = resolveNetworkID(ctx, apiClient, net.Target)
+			if err != nil {
+				return service, err
+			}
 		}
 		networks[i].Target = nwID
 	}
