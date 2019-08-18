@@ -27,10 +27,10 @@ Options:
 ## Description
 
 The `docker unpause` command un-suspends all processes in the specified containers.
-On Linux, it does this using the cgroups freezer.
+On Linux, it does this using the freezer cgroup.
 
 See the
-[cgroups freezer documentation](https://www.kernel.org/doc/Documentation/cgroup-v1/freezer-subsystem.txt)
+[freezer cgroup documentation](https://www.kernel.org/doc/Documentation/cgroup-v1/freezer-subsystem.txt)
 for further details.
 
 ## Examples
