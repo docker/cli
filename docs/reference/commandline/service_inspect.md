@@ -158,6 +158,10 @@ $ docker service inspect --format='{{.Spec.Mode.Replicated.Replicas}}' redis
 10
 ```
 
+#### Restart Policy Delay
+
+The restart policy delay value is reported in `ns`.
+
 
 ## Related commands
 
