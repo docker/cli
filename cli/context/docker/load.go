@@ -104,8 +104,8 @@ func (c *Endpoint) ClientOpts() ([]client.Opt, error) {
 				return nil, err
 			}
 			result = append(result,
-				client.WithHost(c.Host),
 				withHTTPClient(tlsConfig),
+				client.WithHost(c.Host),
 			)
 
 		} else {
