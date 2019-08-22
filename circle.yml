@@ -4,35 +4,39 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           command: docker version
       - run:
           name: "Lint"
           command: |
-            docker build -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
+            docker build --progress=plain -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
             docker run --rm cli-linter:$CIRCLE_BUILD_NUM
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     parallelism: 3
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Cross"
           command: |
-            docker build -f dockerfiles/Dockerfile.cross --tag cli-builder:$CIRCLE_BUILD_NUM .
+            docker build --progress=plain -f dockerfiles/Dockerfile.cross --tag cli-builder:$CIRCLE_BUILD_NUM .
             name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
             docker run \
                 -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
@@ -46,18 +50,20 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Unit Test with Coverage"
           command: |
             mkdir -p test-results/unit-tests
-            docker build -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
+            docker build --progress=plain -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
             docker run \
                 -e GOTESTSUM_JUNITFILE=/tmp/junit.xml \
                 --name \
@@ -82,34 +88,38 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Validate Vendor, Docs, and Code Generation"
           command: |
             rm -f .dockerignore # include .git
-            docker build -f dockerfiles/Dockerfile.dev --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
+            docker build --progress=plain -f dockerfiles/Dockerfile.dev --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
                 make ci-validate
           no_output_timeout: 15m
   shellcheck:
     working_directory: /work
-    docker: [{image: 'docker:18.03-git'}]
+    docker: [{image: 'docker:18.09-git'}]
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-            version: 18.03.1-ce
-            reusable: true
-            exclusive: false
+          version: 18.09.3
+          reusable: true
+          exclusive: false
       - run:
           name: "Run shellcheck"
           command: |
-            docker build -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
+            docker build --progress=plain -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
             docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
                 make shellcheck
 workflows:
