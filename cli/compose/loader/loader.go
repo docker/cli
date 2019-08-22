@@ -32,6 +32,14 @@ type Options struct {
 	SkipInterpolation bool
 	// Interpolation options
 	Interpolate *interp.Options
+	// Discard 'env_file' entries after resolving to 'environment' section
+	discardEnvFiles bool
+}
+
+// WithDiscardEnvFiles sets the Options to discard the `env_file` section after resolving to
+// the `environment` section
+func WithDiscardEnvFiles(opts *Options) {
+	opts.discardEnvFiles = true
 }
 
 // ParseYAML reads the bytes from a file, parses the bytes into a mapping
@@ -105,6 +113,11 @@ func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.
 			return nil, err
 		}
 		cfg.Filename = file.Filename
+		if opts.discardEnvFiles {
+			for i := range cfg.Services {
+				cfg.Services[i].EnvFile = nil
+			}
+		}
 
 		configs = append(configs, cfg)
 	}
