@@ -759,6 +759,38 @@ services:
 	assert.Check(t, is.DeepEqual([]string{"build", "links", "pid"}, unsupported))
 }
 
+func TestDiscardEnvFileOption(t *testing.T) {
+	dict, err := ParseYAML([]byte(`version: "3"
+services:
+  web:
+    image: nginx
+    env_file:
+     - example1.env
+     - example2.env
+`))
+	expectedEnvironmentMap := types.MappingWithEquals{
+		"FOO": strPtr("foo_from_env_file"),
+		"BAZ": strPtr("baz_from_env_file"),
+		"BAR": strPtr("bar_from_env_file_2"), // Original value is overwritten by example2.env
+		"QUX": strPtr("quz_from_env_file_2"),
+	}
+	assert.NilError(t, err)
+	configDetails := buildConfigDetails(dict, nil)
+
+	// Default behavior keeps the `env_file` entries
+	configWithEnvFiles, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, configWithEnvFiles.Services[0].EnvFile, types.StringList{"example1.env",
+		"example2.env"})
+	assert.DeepEqual(t, configWithEnvFiles.Services[0].Environment, expectedEnvironmentMap)
+
+	// Custom behavior removes the `env_file` entries
+	configWithoutEnvFiles, err := Load(configDetails, WithDiscardEnvFiles)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, configWithoutEnvFiles.Services[0].EnvFile, types.StringList(nil))
+	assert.DeepEqual(t, configWithoutEnvFiles.Services[0].Environment, expectedEnvironmentMap)
+}
+
 func TestBuildProperties(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3"
