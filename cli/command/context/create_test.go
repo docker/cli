@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -131,6 +132,11 @@ func TestCreateInvalids(t *testing.T) {
 	}
 }
 
+func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
+	assert.Equal(t, n+"\n", cli.OutBuffer().String())
+	assert.Equal(t, fmt.Sprintf("Successfully created context %q\n", n), cli.ErrBuffer().String())
+}
+
 func TestCreateOrchestratorSwarm(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
@@ -141,8 +147,7 @@ func TestCreateOrchestratorSwarm(t *testing.T) {
 		Docker:                   map[string]string{},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, "test\n", cli.OutBuffer().String())
-	assert.Equal(t, "Successfully created context \"test\"\n", cli.ErrBuffer().String())
+	assertContextCreateLogging(t, cli, "test")
 }
 
 func TestCreateOrchestratorEmpty(t *testing.T) {
@@ -154,6 +159,7 @@ func TestCreateOrchestratorEmpty(t *testing.T) {
 		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
+	assertContextCreateLogging(t, cli, "test")
 }
 
 func validateTestKubeEndpoint(t *testing.T, s store.Reader, name string) {
@@ -189,6 +195,7 @@ func TestCreateOrchestratorAllKubernetesEndpointFromCurrent(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
 	createTestContextWithKube(t, cli)
+	assertContextCreateLogging(t, cli, "test")
 	validateTestKubeEndpoint(t, cli.ContextStore(), "test")
 }
 
@@ -225,6 +232,7 @@ func TestCreateFromContext(t *testing.T) {
 	defer cleanup()
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
+	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
 		Description: "original description",
@@ -236,6 +244,9 @@ func TestCreateFromContext(t *testing.T) {
 		},
 		DefaultStackOrchestrator: "swarm",
 	}))
+	assertContextCreateLogging(t, cli, "original")
+
+	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "dummy",
 		Description: "dummy description",
@@ -247,11 +258,13 @@ func TestCreateFromContext(t *testing.T) {
 		},
 		DefaultStackOrchestrator: "swarm",
 	}))
+	assertContextCreateLogging(t, cli, "dummy")
 
 	cli.SetCurrentContext("dummy")
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
 				From:                     "original",
 				Name:                     c.name,
@@ -261,6 +274,7 @@ func TestCreateFromContext(t *testing.T) {
 				Kubernetes:               c.kubernetes,
 			})
 			assert.NilError(t, err)
+			assertContextCreateLogging(t, cli, c.name)
 			newContext, err := cli.ContextStore().GetMetadata(c.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
@@ -308,6 +322,7 @@ func TestCreateFromCurrent(t *testing.T) {
 	defer cleanup()
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
+	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
 		Description: "original description",
@@ -319,17 +334,20 @@ func TestCreateFromCurrent(t *testing.T) {
 		},
 		DefaultStackOrchestrator: "swarm",
 	}))
+	assertContextCreateLogging(t, cli, "original")
 
 	cli.SetCurrentContext("original")
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
 				Name:                     c.name,
 				Description:              c.description,
 				DefaultStackOrchestrator: c.orchestrator,
 			})
 			assert.NilError(t, err)
+			assertContextCreateLogging(t, cli, c.name)
 			newContext, err := cli.ContextStore().GetMetadata(c.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)

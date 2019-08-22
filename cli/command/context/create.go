@@ -78,13 +78,19 @@ func RunCreate(cli command.Cli, o *CreateOptions) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to parse default-stack-orchestrator")
 	}
-	if o.From == "" && o.Docker == nil && o.Kubernetes == nil {
-		return createFromExistingContext(s, cli.CurrentContext(), stackOrchestrator, o)
+	switch {
+	case o.From == "" && o.Docker == nil && o.Kubernetes == nil:
+		err = createFromExistingContext(s, cli.CurrentContext(), stackOrchestrator, o)
+	case o.From != "":
+		err = createFromExistingContext(s, o.From, stackOrchestrator, o)
+	default:
+		err = createNewContext(o, stackOrchestrator, cli, s)
 	}
-	if o.From != "" {
-		return createFromExistingContext(s, o.From, stackOrchestrator, o)
+	if err == nil {
+		fmt.Fprintln(cli.Out(), o.Name)
+		fmt.Fprintf(cli.Err(), "Successfully created context %q\n", o.Name)
 	}
-	return createNewContext(o, stackOrchestrator, cli, s)
+	return err
 }
 
 func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, cli command.Cli, s store.Writer) error {
@@ -127,8 +133,6 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 	if err := s.ResetTLSMaterial(o.Name, &contextTLSData); err != nil {
 		return err
 	}
-	fmt.Fprintln(cli.Out(), o.Name)
-	fmt.Fprintf(cli.Err(), "Successfully created context %q\n", o.Name)
 	return nil
 }
 
