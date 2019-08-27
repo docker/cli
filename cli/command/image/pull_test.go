@@ -72,11 +72,8 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			expectedTag: "image:latest",
 		},
 		{
-			name: "with-registry-token",
-			args: []string{"image"},
-			flags: map[string]string{
-				"registry-token": "dummy",
-			},
+			name:        "with-registry-token",
+			args:        []string{"--registry-token", "dummy", "image"},
 			expectedTag: "image:latest",
 		},
 	}
