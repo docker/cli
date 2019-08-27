@@ -71,6 +71,14 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			},
 			expectedTag: "image:latest",
 		},
+		{
+			name: "with-registry-token",
+			args: []string{"image"},
+			flags: map[string]string{
+				"registry-token": "dummy",
+			},
+			expectedTag: "image:latest",
+		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{

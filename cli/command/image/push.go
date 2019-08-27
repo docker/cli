@@ -12,8 +12,9 @@ import (
 )
 
 type pushOptions struct {
-	remote    string
-	untrusted bool
+	remote        string
+	untrusted     bool
+	registryToken string
 }
 
 // NewPushCommand creates a new `docker push` command
@@ -33,6 +34,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	flags.StringVarP(&opts.registryToken, "registry-token", "t", "", "Registry Token")
 
 	return cmd
 }
@@ -54,6 +56,9 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	if opts.registryToken != "" {
+		authConfig.RegistryToken = opts.registryToken
+	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
 
 	if !opts.untrusted {

@@ -15,11 +15,12 @@ import (
 
 // PullOptions defines what and how to pull
 type PullOptions struct {
-	remote    string
-	all       bool
-	platform  string
-	quiet     bool
-	untrusted bool
+	remote        string
+	all           bool
+	platform      string
+	quiet         bool
+	untrusted     bool
+	registryToken string
 }
 
 // NewPullCommand creates a new `docker pull` command
@@ -40,6 +41,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Download all tagged images in the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
+	flags.StringVarP(&opts.registryToken, "registry-token", "t", "", "Registry Token")
 
 	command.AddPlatformFlag(flags, &opts.platform)
 	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
@@ -66,6 +68,10 @@ func RunPull(cli command.Cli, opts PullOptions) error {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, AuthResolver(cli), distributionRef.String())
 	if err != nil {
 		return err
+	}
+
+	if opts.registryToken != "" {
+		imgRefAndAuth.AuthConfig().RegistryToken = opts.registryToken
 	}
 
 	// Check if reference has a digest
