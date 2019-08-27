@@ -14,11 +14,10 @@ relative paths as relative to the current working directory where `docker contai
 run.
 
 The `cp` command behaves like the Unix `cp -a` command in that directories are
-copied recursively with permissions preserved if possible. Ownership is set to
-the user and primary group at the destination. For example, files copied to a
-container are created with `UID:GID` of the root user. Files copied to the local
+copied recursively with ownership and permissions preserved if possible. For example, files copied to a
+container are created with `UID:GID` of the user which invoked the `docker container cp` command. Likewise, files copied to the local
 machine are created with the `UID:GID` of the user which invoked the `docker container cp`
-command.  If you specify the `-L` option, `docker container cp` follows any symbolic link
+command. If you specify the `-L` option, `docker container cp` follows any symbolic link
 in the `SRC_PATH`. `docker container cp` does *not* create parent directories for
 `DEST_PATH` if they do not exist.
 

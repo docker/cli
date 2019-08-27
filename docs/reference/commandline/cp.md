@@ -49,13 +49,14 @@ be an absolute or relative value. The command interprets a local machine's
 relative paths as relative to the current working directory where `docker cp` is
 run.
 
-The `cp` command behaves like the Unix `cp -a` command in that directories are
-copied recursively with permissions preserved if possible. Ownership is set to
-the user and primary group at the destination. For example, files copied to a
-container are created with `UID:GID` of the root user. Files copied to the local
-machine are created with the `UID:GID` of the user which invoked the `docker cp`
-command. However, if you specify the `-a` option, `docker cp` sets the ownership
-to the user and primary group at the source.
+When copying from the host into a container, the `cp` command behaves like the
+Unix `cp -a` command in that directories are copied recursively with ownership and
+permissions preserved if possible. For example, files copied to a container are
+created with the same `UID:GID` that was associated with the file in the host. When
+copying from a container into a host, directories are copied recursively and permissions
+are preserved, but ownership is changed to the `UID:GID` of the user who invoked the
+`docker cp` command.
+
 If you specify the `-L` option, `docker cp` follows any symbolic link
 in the `SRC_PATH`.  `docker cp` does *not* create parent directories for
 `DEST_PATH` if they do not exist.
