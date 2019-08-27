@@ -50,7 +50,6 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name        string
 		args        []string
-		flags       map[string]string
 		expectedTag string
 	}{
 		{
@@ -64,11 +63,8 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			expectedTag: "image:latest",
 		},
 		{
-			name: "simple-quiet",
-			args: []string{"image"},
-			flags: map[string]string{
-				"quiet": "true",
-			},
+			name:        "simple-quiet",
+			args:        []string{"--quiet", "image"},
 			expectedTag: "image:latest",
 		},
 	}
