@@ -83,7 +83,7 @@ This example displays images with a name containing 'busybox',
 at least 3 stars and the description isn't truncated in the output:
 
 ```bash
-$ docker search --stars=3 --no-trunc busybox
+$ docker search --filter=stars=3 --no-trunc busybox
 NAME                 DESCRIPTION                                                                               STARS     OFFICIAL   AUTOMATED
 busybox              Busybox base image.                                                                       325       [OK]       
 progrium/busybox                                                                                               50                   [OK]
