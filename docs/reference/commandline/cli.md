@@ -96,28 +96,43 @@ variables.
 ### Configuration files
 
 By default, the Docker command line stores its configuration files in a
-directory called `.docker` within your `$HOME` directory. However, you can
-specify a different location via the `DOCKER_CONFIG` environment variable
-or the `--config` command line option. If both are specified, then the
-`--config` option overrides the `DOCKER_CONFIG` environment variable.
-For example:
-
-    docker --config ~/testconfigs/ ps
-
-Instructs Docker to use the configuration files in your `~/testconfigs/`
-directory when running the `ps` command.
+directory called `.docker` within your `$HOME` directory.
 
 Docker manages most of the files in the configuration directory
 and you should not modify them. However, you *can modify* the
 `config.json` file to control certain aspects of how the `docker`
 command behaves.
 
-Currently, you can modify the `docker` command behavior using environment
+You can modify the `docker` command behavior using environment
 variables or command-line options. You can also use options within
-`config.json` to modify some of the same behavior. When using these
-mechanisms, you must keep in mind the order of precedence among them. Command
-line options override environment variables and environment variables override
-properties you specify in a `config.json` file.
+`config.json` to modify some of the same behavior. If an environment variable
+and the `--config` flag are set, the flag takes precedent over the environment
+variable. Command line options override environment variables and environment
+variables override properties you specify in a `config.json` file.
+
+
+#### Change the `.docker` directory
+
+To specify a different directory, use the `DOCKER_CONFIG`
+environment variable or the `--config` command line option. If both are
+specified, then the `--config` option overrides the `DOCKER_CONFIG` environment
+variable. The example below overrides runs the `docker ps` command using a
+`config.json` file located in the `~/testconfigs/` directory.
+
+```bash
+$ docker --config ~/testconfigs/ ps
+```
+
+This flag only applies to whatever command is being ran. For persistent
+configuration, you can set the `DOCKER_CONFIG` environment variable in your
+shell (e.g. `~/.profile` or `~/.bashrc`). The example below sets the new
+directory to be `HOME/newdir/.docker`.
+
+```bash
+echo export DOCKER_CONFIG=$HOME/newdir/.docker > ~/.profile
+```
+
+#### `config.json` properties
 
 The `config.json` file stores a JSON encoding of several properties:
 
@@ -264,6 +279,23 @@ Following is a sample `config.json` file:
 }
 {% endraw %}
 ```
+
+### Experimental features
+
+To enable experimental features, edit the `config.json` file and set
+`experimental` to `enabled`. The example below enables experimental features
+in a `config.json` file that already enables a debug feature.
+
+```json
+{
+  "experimental": "enabled",
+  "debug": true
+}
+```
+
+You can also enable experimental features from the Docker Desktop menu. See the
+[Docker Desktop Getting Started page](https://docs.docker.com/docker-for-mac#experimental-features)
+for more information.
 
 ### Notary
 
