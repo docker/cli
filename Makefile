@@ -91,7 +91,7 @@ help: ## print this help
 cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
 	go generate github.com/docker/cli/cli/compose/schema
 
-compose-jsonschema: cli/compose/schema/bindata.go
+compose-jsonschema: cli/compose/schema/bindata.go ## generate compose-file schemas
 	scripts/validate/check-git-diff cli/compose/schema/bindata.go
 
 .PHONY: ci-validate
