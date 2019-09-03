@@ -4,6 +4,7 @@ FROM    golang:${GO_VERSION}-alpine
 
 RUN     apk add -U git bash coreutils gcc musl-dev
 
+ARG     GOPROXY
 ENV     CGO_ENABLED=0 \
         DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /go/src/github.com/docker/cli

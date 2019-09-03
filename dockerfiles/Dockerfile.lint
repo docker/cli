@@ -4,6 +4,7 @@ FROM    golang:${GO_VERSION}-alpine
 
 RUN     apk add -U git
 
+ARG     GOPROXY
 ARG     GOMETALINTER_SHA=v2.0.6
 RUN     go get -d github.com/alecthomas/gometalinter && \
         cd /go/src/github.com/alecthomas/gometalinter && \

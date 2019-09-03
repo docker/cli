@@ -27,32 +27,32 @@ ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIR
 .PHONY: build_docker_image
 build_docker_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.dev | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(DEV_DOCKER_IMAGE_NAME) -
+	cat ./dockerfiles/Dockerfile.dev | docker build ${DOCKER_BUILD_ARGS} --build-arg=GOPROXY --build-arg=GO_VERSION -t $(DEV_DOCKER_IMAGE_NAME) -
 
 # build docker image having the linting tools (dockerfiles/Dockerfile.lint)
 .PHONY: build_linter_image
 build_linter_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.lint | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(LINTER_IMAGE_NAME) -
+	cat ./dockerfiles/Dockerfile.lint | docker build ${DOCKER_BUILD_ARGS} --build-arg=GOPROXY --build-arg=GO_VERSION -t $(LINTER_IMAGE_NAME) -
 
 .PHONY: build_cross_image
 build_cross_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.cross | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(CROSS_IMAGE_NAME) -
+	cat ./dockerfiles/Dockerfile.cross | docker build ${DOCKER_BUILD_ARGS} --build-arg=GOPROXY --build-arg=GO_VERSION -t $(CROSS_IMAGE_NAME) -
 
 .PHONY: build_shell_validate_image
 build_shell_validate_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.shellcheck | docker build --build-arg=GO_VERSION -t $(VALIDATE_IMAGE_NAME) -
+	cat ./dockerfiles/Dockerfile.shellcheck | docker build --build-arg=GOPROXY --build-arg=GO_VERSION -t $(VALIDATE_IMAGE_NAME) -
 
 .PHONY: build_binary_native_image
 build_binary_native_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.binary-native | docker build --build-arg=GO_VERSION -t $(BINARY_NATIVE_IMAGE_NAME) -
+	cat ./dockerfiles/Dockerfile.binary-native | docker build --build-arg=GOPROXY --build-arg=GO_VERSION -t $(BINARY_NATIVE_IMAGE_NAME) -
 
 .PHONY: build_e2e_image
 build_e2e_image:
-	docker build -t $(E2E_IMAGE_NAME) --build-arg=GO_VERSION --build-arg VERSION=$(VERSION) --build-arg GITCOMMIT=$(GITCOMMIT) -f ./dockerfiles/Dockerfile.e2e .
+	docker build -t $(E2E_IMAGE_NAME) --build-arg=GOPROXY --build-arg=GO_VERSION --build-arg VERSION=$(VERSION) --build-arg GITCOMMIT=$(GITCOMMIT) -f ./dockerfiles/Dockerfile.e2e .
 
 DOCKER_RUN_NAME_OPTION := $(if $(DOCKER_CLI_CONTAINER_NAME),--name $(DOCKER_CLI_CONTAINER_NAME),)
 DOCKER_RUN := docker run --rm $(ENVVARS) $(DOCKER_CLI_MOUNTS) $(DOCKER_RUN_NAME_OPTION)
