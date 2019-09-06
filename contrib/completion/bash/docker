@@ -551,7 +551,7 @@ __docker_complete_nodes() {
 # precedence over the environment setting.
 __docker_services() {
 	local format='{{.Name}}'  # default: service name only
-	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS}" = yes ] && format='{{.ID}},{{.Name}}' # ID & name
+	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS}" = yes ] && format='{{.ID}} {{.Name}}' # ID & name
 
 	if [ "$1" = "--id" ] ; then
 		format='{{.ID}}' # IDs only
