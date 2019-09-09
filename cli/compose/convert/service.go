@@ -147,6 +147,8 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 				Sysctls:         service.Sysctls,
+				CapabilityAdd:   service.CapAdd,
+				CapabilityDrop:  service.CapDrop,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
