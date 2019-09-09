@@ -623,3 +623,29 @@ func TestConvertUpdateConfigParallelism(t *testing.T) {
 	})
 	assert.Check(t, is.Equal(parallel, updateConfig.Parallelism))
 }
+
+func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
+	// test default behavior
+	result, err := Service("1.41", Namespace{name: "foo"}, composetypes.ServiceConfig{}, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityAdd, []string(nil)))
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityDrop, []string(nil)))
+
+	// with some values
+	service := composetypes.ServiceConfig{
+		CapAdd: []string{
+			"SYS_NICE",
+			"CAP_NET_ADMIN",
+		},
+		CapDrop: []string{
+			"CHOWN",
+			"DAC_OVERRIDE",
+			"CAP_FSETID",
+			"CAP_FOWNER",
+		},
+	}
+	result, err = Service("1.41", Namespace{name: "foo"}, service, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityAdd, service.CapAdd))
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityDrop, service.CapDrop))
+}
