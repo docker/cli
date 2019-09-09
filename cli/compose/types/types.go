@@ -9,8 +9,6 @@ import (
 // UnsupportedProperties not yet supported by this implementation of the compose file
 var UnsupportedProperties = []string{
 	"build",
-	"cap_add",
-	"cap_drop",
 	"cgroupns_mode",
 	"cgroup_parent",
 	"devices",
@@ -21,7 +19,6 @@ var UnsupportedProperties = []string{
 	"mac_address",
 	"network_mode",
 	"pid",
-	"privileged",
 	"restart",
 	"security_opt",
 	"shm_size",

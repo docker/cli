@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/oci/caps"
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
@@ -622,4 +623,58 @@ func TestConvertUpdateConfigParallelism(t *testing.T) {
 		Parallelism: &parallel,
 	})
 	assert.Check(t, is.Equal(parallel, updateConfig.Parallelism))
+}
+
+func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
+	result, err := Service("1.41", Namespace{name: "foo"}, composetypes.ServiceConfig{}, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.Capabilities, []string{}))
+
+	result, err = Service("1.40", Namespace{name: "foo"},
+		composetypes.ServiceConfig{CapAdd: []string{"SYS_NICE"}}, nil, nil, nil, nil)
+	assert.Error(t, err, "Engine version does not support exact list of capabilities")
+
+	service := composetypes.ServiceConfig{
+		CapAdd: []string{
+			"SYS_NICE",
+			"CAP_NET_ADMIN",
+		},
+		CapDrop: []string{
+			"CHOWN",
+			"DAC_OVERRIDE",
+			"CAP_FSETID",
+			"CAP_FOWNER",
+		},
+	}
+	expected := []string{
+		"CAP_MKNOD",
+		"CAP_NET_RAW",
+		"CAP_SETGID",
+		"CAP_SETUID",
+		"CAP_SETFCAP",
+		"CAP_SETPCAP",
+		"CAP_NET_BIND_SERVICE",
+		"CAP_SYS_CHROOT",
+		"CAP_KILL",
+		"CAP_AUDIT_WRITE",
+		"CAP_SYS_NICE",
+		"CAP_NET_ADMIN",
+	}
+	result, err = Service("1.41", Namespace{name: "foo"}, service, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.Capabilities, expected))
+}
+
+func TestConvertServicePrivileged(t *testing.T) {
+	service := composetypes.ServiceConfig{
+		Privileged: true,
+	}
+
+	result, err := Service("1.40", Namespace{name: "foo"}, service, nil, nil, nil, nil)
+	assert.Error(t, err, "Engine version does not support exact list of capabilities")
+
+	expected := caps.GetAllCapabilities()
+	result, err = Service("1.41", Namespace{name: "foo"}, service, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.Capabilities, expected))
 }
