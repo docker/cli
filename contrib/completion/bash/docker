@@ -561,7 +561,7 @@ __docker_services() {
 		shift
 	fi
 
-  __docker_q service ls -q --format "$format" --filter "name=$1"
+  __docker_q service ls --quiet --format "$format" "$@"
 }
 
 # __docker_complete_services applies completion of services based on the current
@@ -573,7 +573,7 @@ __docker_complete_services() {
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(__docker_services "$@" "$current") )
+	COMPREPLY=( $(__docker_services "$@" --filter "name=$current") )
 }
 
 # __docker_tasks returns a list of all task IDs.
