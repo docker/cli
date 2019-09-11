@@ -16,7 +16,7 @@ var patternString = fmt.Sprintf(
 
 var defaultPattern = regexp.MustCompile(patternString)
 
-// DefaultSubstituteFuncs contains the default SubstitueFunc used by the docker cli
+// DefaultSubstituteFuncs contains the default SubstituteFunc used by the docker cli
 var DefaultSubstituteFuncs = []SubstituteFunc{
 	softDefault,
 	hardDefault,
@@ -176,15 +176,21 @@ func extractVariable(value interface{}, pattern *regexp.Regexp) ([]extractedValu
 
 // Soft default (fall back if unset or empty)
 func softDefault(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefault(substitution, mapping, "-:")
+	sep := ":-"
+	if !strings.Contains(substitution, sep) {
+		return "", false, nil
+	}
+	name, defaultValue := partition(substitution, sep)
+	value, ok := mapping(name)
+	if !ok || value == "" {
+		return defaultValue, true, nil
+	}
+	return value, true, nil
 }
 
 // Hard default (fall back if-and-only-if empty)
 func hardDefault(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefault(substitution, mapping, "-")
-}
-
-func withDefault(substitution string, mapping Mapping, sep string) (string, bool, error) {
+	sep := "-"
 	if !strings.Contains(substitution, sep) {
 		return "", false, nil
 	}

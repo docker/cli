@@ -3,7 +3,7 @@
         "Name": "reg/img:unsigned-tag",
         "SignedTags": [],
         "Signers": [],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [

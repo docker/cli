@@ -1,0 +1,6 @@
+version: "3.7"
+services:
+  test:
+    image: "some-image"
+    x-kubernetes:
+      pull_policy: "Never"

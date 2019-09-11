@@ -9,16 +9,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/tonistiigi/fsutil"
+	fstypes "github.com/tonistiigi/fsutil/types"
 	"google.golang.org/grpc"
 )
 
-func sendDiffCopy(stream grpc.Stream, dir string, includes, excludes, followPaths []string, progress progressCb, _map func(*fsutil.Stat) bool) error {
-	return fsutil.Send(stream.Context(), stream, dir, &fsutil.WalkOpt{
-		ExcludePatterns: excludes,
-		IncludePatterns: includes,
-		FollowPaths:     followPaths,
-		Map:             _map,
-	}, progress)
+func sendDiffCopy(stream grpc.Stream, fs fsutil.FS, progress progressCb) error {
+	return fsutil.Send(stream.Context(), stream, fs, progress)
 }
 
 func newStreamWriter(stream grpc.ClientStream) io.WriteCloser {
@@ -61,7 +57,7 @@ func (wc *streamWriterCloser) Close() error {
 	return nil
 }
 
-func recvDiffCopy(ds grpc.Stream, dest string, cu CacheUpdater, progress progressCb) error {
+func recvDiffCopy(ds grpc.Stream, dest string, cu CacheUpdater, progress progressCb, filter func(string, *fstypes.Stat) bool) error {
 	st := time.Now()
 	defer func() {
 		logrus.Debugf("diffcopy took: %v", time.Since(st))
@@ -77,6 +73,7 @@ func recvDiffCopy(ds grpc.Stream, dest string, cu CacheUpdater, progress progres
 		NotifyHashed:  cf,
 		ContentHasher: ch,
 		ProgressCb:    progress,
+		Filter:        fsutil.FilterFunc(filter),
 	})
 }
 
@@ -86,10 +83,10 @@ func syncTargetDiffCopy(ds grpc.Stream, dest string) error {
 	}
 	return fsutil.Receive(ds.Context(), ds, dest, fsutil.ReceiveOpt{
 		Merge: true,
-		Filter: func() func(*fsutil.Stat) bool {
+		Filter: func() func(string, *fstypes.Stat) bool {
 			uid := os.Getuid()
 			gid := os.Getgid()
-			return func(st *fsutil.Stat) bool {
+			return func(p string, st *fstypes.Stat) bool {
 				st.Uid = uint32(uid)
 				st.Gid = uint32(gid)
 				return true

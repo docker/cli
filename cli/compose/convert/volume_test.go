@@ -41,7 +41,7 @@ func TestConvertVolumeToMountUnapprovedType(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.Error(t, err, "volume type must be volume, bind, or tmpfs")
+	assert.Error(t, err, "volume type must be volume, bind, tmpfs or npipe")
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInVolume(t *testing.T) {
@@ -342,4 +342,20 @@ func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.Error(t, err, "invalid tmpfs source, source must be empty")
+}
+
+func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Source: `\\.\pipe\foo`,
+		Target: `\\.\pipe\foo`,
+	}
+	expected := mount.Mount{
+		Type:   mount.TypeNamedPipe,
+		Source: `\\.\pipe\foo`,
+		Target: `\\.\pipe\foo`,
+	}
+	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
 }

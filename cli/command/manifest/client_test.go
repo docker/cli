@@ -15,6 +15,7 @@ type fakeRegistryClient struct {
 	getManifestListFunc func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error)
 	mountBlobFunc       func(ctx context.Context, source reference.Canonical, target reference.Named) error
 	putManifestFunc     func(ctx context.Context, source reference.Named, mf distribution.Manifest) (digest.Digest, error)
+	getTagsFunc         func(ctx context.Context, ref reference.Named) ([]string, error)
 }
 
 func (c *fakeRegistryClient) GetManifest(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
@@ -43,6 +44,13 @@ func (c *fakeRegistryClient) PutManifest(ctx context.Context, ref reference.Name
 		return c.putManifestFunc(ctx, ref, mf)
 	}
 	return digest.Digest(""), nil
+}
+
+func (c *fakeRegistryClient) GetTags(ctx context.Context, ref reference.Named) ([]string, error) {
+	if c.getTagsFunc != nil {
+		return c.getTagsFunc(ctx, ref)
+	}
+	return nil, nil
 }
 
 var _ client.RegistryClient = &fakeRegistryClient{}

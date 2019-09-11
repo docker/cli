@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
@@ -17,7 +15,7 @@ import (
 
 type stats struct {
 	mu sync.Mutex
-	cs []*formatter.ContainerStats
+	cs []*Stats
 }
 
 // daemonOSType is set once we have at least one stat for a container
@@ -25,7 +23,7 @@ type stats struct {
 // on the daemon platform.
 var daemonOSType string
 
-func (s *stats) add(cs *formatter.ContainerStats) bool {
+func (s *stats) add(cs *Stats) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.isKnownContainer(cs.Container); !exists {
@@ -52,7 +50,7 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 	return -1, false
 }
 
-func collect(ctx context.Context, s *formatter.ContainerStats, cli client.APIClient, streamStats bool, waitFirst *sync.WaitGroup) {
+func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bool, waitFirst *sync.WaitGroup) {
 	logrus.Debugf("collecting stats for %s", s.Container)
 	var (
 		getFirst       bool
@@ -115,7 +113,7 @@ func collect(ctx context.Context, s *formatter.ContainerStats, cli client.APICli
 				mem = float64(v.MemoryStats.PrivateWorkingSet)
 			}
 			netRx, netTx := calculateNetwork(v.Networks)
-			s.SetStatistics(formatter.StatsEntry{
+			s.SetStatistics(StatsEntry{
 				Name:             v.Name,
 				ID:               v.ID,
 				CPUPercentage:    cpuPercent,
@@ -203,10 +201,13 @@ func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
 func calculateBlockIO(blkio types.BlkioStats) (uint64, uint64) {
 	var blkRead, blkWrite uint64
 	for _, bioEntry := range blkio.IoServiceBytesRecursive {
-		switch strings.ToLower(bioEntry.Op) {
-		case "read":
+		if len(bioEntry.Op) == 0 {
+			continue
+		}
+		switch bioEntry.Op[0] {
+		case 'r', 'R':
 			blkRead = blkRead + bioEntry.Value
-		case "write":
+		case 'w', 'W':
 			blkWrite = blkWrite + bioEntry.Value
 		}
 	}

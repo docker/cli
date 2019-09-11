@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"fmt"
 	"testing"
 
 	"gotest.tools/assert"
@@ -76,6 +77,48 @@ func TestValidateAllowsXFields(t *testing.T) {
 	}
 	err := Validate(config, "3.7")
 	assert.NilError(t, err)
+}
+
+func TestValidateCredentialSpecs(t *testing.T) {
+	tests := []struct {
+		version     string
+		expectedErr string
+	}{
+		{version: "3.0", expectedErr: "credential_spec"},
+		{version: "3.1", expectedErr: "credential_spec"},
+		{version: "3.2", expectedErr: "credential_spec"},
+		{version: "3.3", expectedErr: "config"},
+		{version: "3.4", expectedErr: "config"},
+		{version: "3.5", expectedErr: "config"},
+		{version: "3.6", expectedErr: "config"},
+		{version: "3.7", expectedErr: "config"},
+		{version: "3.8"},
+		{version: "3.9"},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.version, func(t *testing.T) {
+			config := dict{
+				"version": "99.99",
+				"services": dict{
+					"foo": dict{
+						"image": "busybox",
+						"credential_spec": dict{
+							"config": "foobar",
+						},
+					},
+				},
+			}
+			err := Validate(config, tc.version)
+			if tc.expectedErr != "" {
+				assert.ErrorContains(t, err, fmt.Sprintf("Additional property %s is not allowed", tc.expectedErr))
+			} else {
+				assert.NilError(t, err)
+			}
+		})
+	}
+
 }
 
 func TestValidateSecretConfigNames(t *testing.T) {

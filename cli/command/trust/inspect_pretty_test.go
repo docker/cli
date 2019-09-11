@@ -1,17 +1,22 @@
 package trust
 
 import (
+	"bytes"
+	"context"
 	"encoding/hex"
+	"io"
 	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
+	"github.com/docker/docker/api/types"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
+	"github.com/theupdateframework/notary/tuf/utils"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 	"gotest.tools/golden"
@@ -21,6 +26,18 @@ import (
 
 type fakeClient struct {
 	dockerClient.Client
+}
+
+func (c *fakeClient) Info(ctx context.Context) (types.Info, error) {
+	return types.Info{}, nil
+}
+
+func (c *fakeClient) ImageInspectWithRaw(ctx context.Context, imageID string) (types.ImageInspect, []byte, error) {
+	return types.ImageInspect{}, []byte{}, nil
+}
+
+func (c *fakeClient) ImagePush(ctx context.Context, image string, options types.ImagePushOptions) (io.ReadCloser, error) {
+	return &utils.NoopCloser{Reader: bytes.NewBuffer([]byte{})}, nil
 }
 
 func TestTrustInspectPrettyCommandErrors(t *testing.T) {
@@ -439,4 +456,21 @@ func TestFormatAdminRole(t *testing.T) {
 	}
 	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
 	assert.Check(t, is.Equal("Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs)))
+}
+
+func TestPrintSignerInfoSortOrder(t *testing.T) {
+	roleToKeyIDs := map[string][]string{
+		"signer2-foo":  {"B"},
+		"signer10-foo": {"C"},
+		"signer1-foo":  {"A"},
+	}
+
+	expected := `SIGNER              KEYS
+signer1-foo         A
+signer2-foo         B
+signer10-foo        C
+`
+	buf := new(bytes.Buffer)
+	assert.NilError(t, printSignerInfo(buf, roleToKeyIDs))
+	assert.Check(t, is.Equal(expected, buf.String()))
 }

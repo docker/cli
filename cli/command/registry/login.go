@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
@@ -125,6 +126,11 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 		}
 
 		response, err = clnt.RegistryLogin(ctx, *authConfig)
+		if err != nil && client.IsErrConnectionFailed(err) {
+			// If the server isn't responding (yet) attempt to login purely client side
+			response, err = loginClientSide(ctx, *authConfig)
+		}
+		// If we (still) have an error, give up
 		if err != nil {
 			return err
 		}
@@ -137,14 +143,15 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
 
 	store, isDefault := creds.(isFileStore)
-	if isDefault {
+	// Display a warning if we're storing the users password (not a token)
+	if isDefault && authConfig.Password != "" {
 		err = displayUnencryptedWarning(dockerCli, store.GetFilename())
 		if err != nil {
 			return err
 		}
 	}
 
-	if err := creds.Store(*authConfig); err != nil {
+	if err := creds.Store(configtypes.AuthConfig(*authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
 
@@ -166,4 +173,18 @@ func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authCon
 		}
 	}
 	return response, err
+}
+
+func loginClientSide(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+	svc, err := registry.NewService(registry.ServiceOptions{})
+	if err != nil {
+		return registrytypes.AuthenticateOKBody{}, err
+	}
+
+	status, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+
+	return registrytypes.AuthenticateOKBody{
+		Status:        status,
+		IdentityToken: token,
+	}, err
 }

@@ -171,5 +171,5 @@ On Windows:
     "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
 
-> **Note**: On Docker 17.09 and older, the `{{.Container}}` column was used, in
-> stead of `{{.ID}}\t{{.Name}}`.
+> **Note**: On Docker 17.09 and older, the `{{.Container}}` column was used,
+> instead of `{{.ID}}\t{{.Name}}`.

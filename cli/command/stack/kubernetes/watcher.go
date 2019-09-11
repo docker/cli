@@ -5,11 +5,12 @@ import (
 	"sync"
 	"time"
 
-	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
-	"github.com/docker/cli/kubernetes/labels"
+	apiv1beta1 "github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
+	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -220,13 +221,11 @@ func newPodInformer(podsClient podListWatch, stackName string, indexers cache.In
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				options.LabelSelector = labels.SelectorForStack(stackName)
-				options.IncludeUninitialized = true
 				return podsClient.List(options)
 			},
 
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				options.LabelSelector = labels.SelectorForStack(stackName)
-				options.IncludeUninitialized = true
 				return podsClient.Watch(options)
 			},
 		},
@@ -240,12 +239,12 @@ func newStackInformer(stacksClient stackListWatch, stackName string) cache.Share
 	return cache.NewSharedInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				options.LabelSelector = labels.SelectorForStack(stackName)
+				options.FieldSelector = fields.OneTermEqualSelector("metadata.name", stackName).String()
 				return stacksClient.List(options)
 			},
 
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				options.LabelSelector = labels.SelectorForStack(stackName)
+				options.FieldSelector = fields.OneTermEqualSelector("metadata.name", stackName).String()
 				return stacksClient.Watch(options)
 			},
 		},

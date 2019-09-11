@@ -1,9 +1,10 @@
+ARG GO_VERSION=1.12.9
 
-FROM    golang:1.10.3-alpine
+FROM    golang:${GO_VERSION}-alpine
 
 RUN     apk add -U git make bash coreutils ca-certificates curl
 
-ARG     VNDR_SHA=1fc68ee0c852556a9ed53cbde16247033f104111
+ARG     VNDR_SHA=b177b583eb9d44bd5abfca3083a4aeb971b75861
 RUN     go get -d github.com/LK4D4/vndr && \
         cd /go/src/github.com/LK4D4/vndr && \
         git checkout -q "$VNDR_SHA" && \
@@ -17,8 +18,14 @@ RUN     go get -d github.com/mjibson/esc && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
+ARG     GOTESTSUM_VERSION=0.3.4
+RUN     curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz && \
+        tar -xf gotestsum.tar.gz gotestsum -C /usr/bin && \
+        rm gotestsum.tar.gz
+
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
         DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /go/src/github.com/docker/cli
 CMD     sh
+COPY    . .

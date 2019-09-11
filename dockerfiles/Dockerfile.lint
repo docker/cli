@@ -1,4 +1,6 @@
-FROM    golang:1.10.3-alpine
+ARG GO_VERSION=1.12.9
+
+FROM    golang:${GO_VERSION}-alpine
 
 RUN     apk add -U git
 
@@ -15,3 +17,4 @@ ENV     CGO_ENABLED=0
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENTRYPOINT ["/usr/local/bin/gometalinter"]
 CMD     ["--config=gometalinter.json", "./..."]
+COPY    . .

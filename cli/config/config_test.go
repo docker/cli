@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -150,9 +151,8 @@ func TestOldValidAuth(t *testing.T) {
 
 	// defaultIndexserver is https://index.docker.io/v1/
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -213,9 +213,8 @@ func TestOldJSON(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -249,9 +248,8 @@ func TestNewJSON(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -284,9 +282,8 @@ func TestNewJSONNoEmail(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 
 	// Now save it and make sure it shows up in new form
 	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -431,10 +428,8 @@ func TestJSONReaderNoFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
-
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 }
 
 func TestOldJSONReaderNoFile(t *testing.T) {
@@ -444,9 +439,8 @@ func TestOldJSONReaderNoFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	if ac.Username != "joejoe" || ac.Password != "hello" {
-		t.Fatalf("Missing data from parsing:\n%q", config)
-	}
+	assert.Equal(t, ac.Username, "joejoe")
+	assert.Equal(t, ac.Password, "hello")
 }
 
 func TestJSONWithPsFormatNoFile(t *testing.T) {
@@ -547,4 +541,54 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	expected.PsFormat = "format"
 
 	assert.Check(t, is.DeepEqual(expected, configFile))
+}
+
+func TestConfigPath(t *testing.T) {
+	oldDir := Dir()
+
+	for _, tc := range []struct {
+		name        string
+		dir         string
+		path        []string
+		expected    string
+		expectedErr string
+	}{
+		{
+			name:     "valid_path",
+			dir:      "dummy",
+			path:     []string{"a", "b"},
+			expected: filepath.Join("dummy", "a", "b"),
+		},
+		{
+			name:     "valid_path_absolute_dir",
+			dir:      "/dummy",
+			path:     []string{"a", "b"},
+			expected: filepath.Join("/dummy", "a", "b"),
+		},
+		{
+			name:        "invalid_relative_path",
+			dir:         "dummy",
+			path:        []string{"e", "..", "..", "f"},
+			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
+		},
+		{
+			name:        "invalid_absolute_path",
+			dir:         "dummy",
+			path:        []string{"/a", "..", ".."},
+			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			SetDir(tc.dir)
+			f, err := Path(tc.path...)
+			assert.Equal(t, f, tc.expected)
+			if tc.expectedErr == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.expectedErr)
+			}
+		})
+	}
+
+	SetDir(oldDir)
 }

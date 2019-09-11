@@ -9,6 +9,7 @@
 #   - Felix Riedel
 #   - Steve Durrheimer
 #   - Vincent Bernat
+#   - Rohan Verma
 #
 # license:
 #
@@ -617,6 +618,7 @@ __docker_container_subcommand() {
         "($help)*--dns=[Custom DNS servers]:DNS server: "
         "($help)*--dns-option=[Custom DNS options]:DNS option: "
         "($help)*--dns-search=[Custom DNS search domains]:DNS domains: "
+        "($help)*--domainname=[Container NIS domain name]:domainname:_hosts"
         "($help)*"{-e=,--env=}"[Environment variables]:environment variable: "
         "($help)--entrypoint=[Overwrite the default entrypoint of the image]:entry point: "
         "($help)*--env-file=[Read environment variables from a file]:environment file:_files"
@@ -675,6 +677,7 @@ __docker_container_subcommand() {
         "($help -m --memory)"{-m=,--memory=}"[Memory limit]:Memory limit: "
         "($help)--memory-reservation=[Memory soft limit]:Memory limit: "
         "($help)--memory-swap=[Total memory limit with swap]:Memory limit: "
+        "($help)--pids-limit[Tune container pids limit (set -1 for unlimited)]"
         "($help)--restart=[Restart policy]:restart policy:(no on-failure always unless-stopped)"
     )
     opts_help=("(: -)--help[Print usage]")
@@ -2285,6 +2288,9 @@ __docker_swarm_subcommand() {
                 $opts_help \
                 "($help)--advertise-addr=[Advertised address]:ip\:port: " \
                 "($help)--data-path-addr=[Data path IP or interface]:ip " \
+                "($help)--data-path-port=[Data Path Port]:port " \
+                "($help)--default-addr-pool=[Default address pool]" \
+                "($help)--default-addr-pool-mask-length=[Default address pool subnet mask length]" \
                 "($help)--autolock[Enable manager autolocking]" \
                 "($help)--availability=[Availability of the node]:availability:(active drain pause)" \
                 "($help)--cert-expiry=[Validity period for node certificates]:duration: " \
@@ -2779,7 +2785,7 @@ __docker_subcommand() {
                 $opts_help \
                 "($help -p --password)"{-p=,--password=}"[Password]:password: " \
                 "($help)--password-stdin[Read password from stdin]" \
-                "($help -u --user)"{-u=,--user=}"[Username]:username: " \
+                "($help -u --username)"{-u=,--username=}"[Username]:username: " \
                 "($help -)1:server: " && ret=0
             ;;
         (logout)

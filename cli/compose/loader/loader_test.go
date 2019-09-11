@@ -115,6 +115,67 @@ var sampleDict = map[string]interface{}{
 	},
 }
 
+var samplePortsConfig = []types.ServicePortConfig{
+	{
+		Mode:      "ingress",
+		Target:    8080,
+		Published: 80,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8081,
+		Published: 81,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8082,
+		Published: 82,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8090,
+		Published: 90,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8091,
+		Published: 91,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8092,
+		Published: 92,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8500,
+		Published: 85,
+		Protocol:  "tcp",
+	},
+	{
+		Mode:      "ingress",
+		Target:    8600,
+		Published: 0,
+		Protocol:  "tcp",
+	},
+	{
+		Target:    53,
+		Published: 10053,
+		Protocol:  "udp",
+	},
+	{
+		Mode:      "host",
+		Target:    22,
+		Published: 10022,
+	},
+}
+
 func strPtr(val string) *string {
 	return &val
 }
@@ -222,7 +283,7 @@ services:
   foo:
     image: busybox
     credential_spec:
-      File: "/foo"
+      file: "/foo"
     configs: [super]
 configs:
   super:
@@ -232,6 +293,20 @@ configs:
 	assert.Assert(t, is.Len(actual.Services, 1))
 	assert.Check(t, is.Equal(actual.Services[0].CredentialSpec.File, "/foo"))
 	assert.Assert(t, is.Len(actual.Configs, 1))
+}
+
+func TestLoadV38(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.8"
+services:
+  foo:
+    image: busybox
+    credential_spec:
+      config: "0bt9dmxjvjiqermk6xrop3ekq"
+`)
+	assert.NilError(t, err)
+	assert.Assert(t, is.Len(actual.Services, 1))
+	assert.Check(t, is.Equal(actual.Services[0].CredentialSpec.Config, "0bt9dmxjvjiqermk6xrop3ekq"))
 }
 
 func TestParseAndLoad(t *testing.T) {
@@ -507,7 +582,7 @@ volumes:
 
 func TestLoadWithInterpolationCastFull(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
-version: "3.4"
+version: "3.7"
 services:
   web:
     configs:
@@ -522,6 +597,9 @@ services:
     deploy:
       replicas: $theint
       update_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
+      rollback_config:
         parallelism: $theint
         max_failure_ratio: $thefloat
       restart_policy:
@@ -574,7 +652,7 @@ networks:
 	assert.NilError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
-		Version:  "3.4",
+		Version:  "3.7",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",
@@ -597,6 +675,10 @@ networks:
 				Deploy: types.DeployConfig{
 					Replicas: uint64Ptr(555),
 					UpdateConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
+					RollbackConfig: &types.UpdateConfig{
 						Parallelism:     uint64Ptr(555),
 						MaxFailureRatio: 3.14,
 					},
@@ -806,15 +888,16 @@ volumes:
   external_volume:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "volume.external.name and volume.name conflict; only use volume.name")
 	assert.ErrorContains(t, err, "external_volume")
 }
 
-func durationPtr(value time.Duration) *time.Duration {
-	return &value
+func durationPtr(value time.Duration) *types.Duration {
+	result := types.Duration(value)
+	return &result
 }
 
 func uint64Ptr(value uint64) *uint64 {
@@ -900,6 +983,84 @@ services:
         target: /app
 `)
 	assert.Error(t, err, `invalid mount config for type "bind": field Source must not be empty`)
+}
+
+func TestLoadBindMountSourceIsWindowsAbsolute(t *testing.T) {
+	tests := []struct {
+		doc      string
+		yaml     string
+		expected types.ServiceVolumeConfig
+	}{
+		{
+			doc: "Z-drive lowercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: z:\
+        target: c:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `z:\`, Target: `c:\data`},
+		},
+		{
+			doc: "Z-drive uppercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\`, Target: `C:\data`},
+		},
+		{
+			doc: "Z-drive subdirectory",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\some-dir
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\some-dir`, Target: `C:\data`},
+		},
+		{
+			doc: "forward-slashes",
+			yaml: `
+version: '3.3'
+
+services:
+  app:
+    image: app:latest
+    volumes:
+      - type: bind
+        source: /z/some-dir
+        target: /c/data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `/z/some-dir`, Target: `/c/data`},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			config, err := loadYAML(tc.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+			assert.Check(t, is.DeepEqual(tc.expected, config.Services[0].Volumes[0]))
+		})
+	}
 }
 
 func TestLoadBindMountWithSource(t *testing.T) {
@@ -1037,69 +1198,8 @@ services:
 `)
 	assert.NilError(t, err)
 
-	expected := []types.ServicePortConfig{
-		{
-			Mode:      "ingress",
-			Target:    8080,
-			Published: 80,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8081,
-			Published: 81,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8082,
-			Published: 82,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8090,
-			Published: 90,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8091,
-			Published: 91,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8092,
-			Published: 92,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8500,
-			Published: 85,
-			Protocol:  "tcp",
-		},
-		{
-			Mode:      "ingress",
-			Target:    8600,
-			Published: 0,
-			Protocol:  "tcp",
-		},
-		{
-			Target:    53,
-			Published: 10053,
-			Protocol:  "udp",
-		},
-		{
-			Mode:      "host",
-			Target:    22,
-			Published: 10022,
-		},
-	}
-
 	assert.Check(t, is.Len(config.Services, 1))
-	assert.Check(t, is.DeepEqual(expected, config.Services[0].Ports))
+	assert.Check(t, is.DeepEqual(samplePortsConfig, config.Services[0].Ports))
 }
 
 func TestLoadExpandedMountFormat(t *testing.T) {
@@ -1281,7 +1381,7 @@ secrets:
   external_secret:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "secret.external.name and secret.name conflict; only use secret.name")
@@ -1368,7 +1468,7 @@ networks:
   foo:
     name: user_specified_name
     external:
-      name:	external_name
+      name: external_name
 `)
 
 	assert.ErrorContains(t, err, "network.external.name and network.name conflict; only use network.name")
@@ -1458,4 +1558,194 @@ services:
 			assert.Check(t, is.DeepEqual(config.Services[0].Init, testcase.init))
 		})
 	}
+}
+
+func TestLoadSysctls(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.8"
+services:
+  web:
+    image: busybox
+    sysctls:
+      - net.core.somaxconn=1024
+      - net.ipv4.tcp_syncookies=0
+      - testing.one.one=
+      - testing.one.two
+`)
+	assert.NilError(t, err)
+
+	expected := types.Mapping{
+		"net.core.somaxconn":      "1024",
+		"net.ipv4.tcp_syncookies": "0",
+		"testing.one.one":         "",
+		"testing.one.two":         "",
+	}
+
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Sysctls))
+
+	config, err = loadYAML(`
+version: "3.8"
+services:
+  web:
+    image: busybox
+    sysctls:
+      net.core.somaxconn: 1024
+      net.ipv4.tcp_syncookies: 0
+      testing.one.one: ""
+      testing.one.two:
+`)
+	assert.NilError(t, err)
+
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Sysctls))
+}
+
+func TestTransform(t *testing.T) {
+	var source = []interface{}{
+		"80-82:8080-8082",
+		"90-92:8090-8092/udp",
+		"85:8500",
+		8600,
+		map[string]interface{}{
+			"protocol":  "udp",
+			"target":    53,
+			"published": 10053,
+		},
+		map[string]interface{}{
+			"mode":      "host",
+			"target":    22,
+			"published": 10022,
+		},
+	}
+	var ports []types.ServicePortConfig
+	err := Transform(source, &ports)
+	assert.NilError(t, err)
+
+	assert.Check(t, is.DeepEqual(samplePortsConfig, ports))
+}
+
+func TestLoadTemplateDriver(t *testing.T) {
+	config, err := loadYAML(`
+version: '3.8'
+services:
+  hello-world:
+    image: redis:alpine
+    secrets:
+      - secret
+    configs:
+      - config
+
+configs:
+  config:
+    name: config
+    external: true
+    template_driver: config-driver
+
+secrets:
+  secret:
+    name: secret
+    external: true
+    template_driver: secret-driver
+`)
+	assert.NilError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.8",
+		Services: types.Services{
+			{
+				Name:  "hello-world",
+				Image: "redis:alpine",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "config",
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "secret",
+					},
+				},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"config": {
+				Name:           "config",
+				External:       types.External{External: true},
+				TemplateDriver: "config-driver",
+			},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"secret": {
+				Name:           "secret",
+				External:       types.External{External: true},
+				TemplateDriver: "secret-driver",
+			},
+		},
+	}
+	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
+}
+
+func TestLoadSecretDriver(t *testing.T) {
+	config, err := loadYAML(`
+version: '3.8'
+services:
+  hello-world:
+    image: redis:alpine
+    secrets:
+      - secret
+    configs:
+      - config
+
+configs:
+  config:
+    name: config
+    external: true
+
+secrets:
+  secret:
+    name: secret
+    driver: secret-bucket
+    driver_opts:
+      OptionA: value for driver option A
+      OptionB: value for driver option B
+`)
+	assert.NilError(t, err)
+	expected := &types.Config{
+		Filename: "filename.yml",
+		Version:  "3.8",
+		Services: types.Services{
+			{
+				Name:  "hello-world",
+				Image: "redis:alpine",
+				Configs: []types.ServiceConfigObjConfig{
+					{
+						Source: "config",
+					},
+				},
+				Secrets: []types.ServiceSecretConfig{
+					{
+						Source: "secret",
+					},
+				},
+			},
+		},
+		Configs: map[string]types.ConfigObjConfig{
+			"config": {
+				Name:     "config",
+				External: types.External{External: true},
+			},
+		},
+		Secrets: map[string]types.SecretConfig{
+			"secret": {
+				Name:   "secret",
+				Driver: "secret-bucket",
+				DriverOpts: map[string]string{
+					"OptionA": "value for driver option A",
+					"OptionB": "value for driver option B",
+				},
+			},
+		},
+	}
+	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
 }

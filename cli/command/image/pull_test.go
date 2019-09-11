@@ -62,6 +62,11 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			args:        []string{"image"},
 			expectedTag: "image:latest",
 		},
+		{
+			name:        "simple-quiet",
+			args:        []string{"--quiet", "image"},
+			expectedTag: "image:latest",
+		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{

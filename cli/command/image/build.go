@@ -5,15 +5,16 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -58,7 +59,7 @@ type buildOptions struct {
 	isolation      string
 	quiet          bool
 	noCache        bool
-	console        opts.NullableBool
+	progress       string
 	rm             bool
 	forceRm        bool
 	pull           bool
@@ -72,6 +73,9 @@ type buildOptions struct {
 	stream         bool
 	platform       string
 	untrusted      bool
+	secrets        []string
+	ssh            []string
+	outputs        []string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -92,7 +96,7 @@ func newBuildOptions() buildOptions {
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
 		ulimits:    opts.NewUlimitOpt(&ulimits),
-		labels:     opts.NewListOpts(opts.ValidateEnv),
+		labels:     opts.NewListOpts(opts.ValidateLabel),
 		extraHosts: opts.NewListOpts(opts.ValidateExtraHost),
 	}
 }
@@ -135,6 +139,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.pull, "pull", false, "Always attempt to pull a newer version of the image")
 	flags.StringSliceVar(&options.cacheFrom, "cache-from", []string{}, "Images to consider as cache sources")
 	flags.BoolVar(&options.compress, "compress", false, "Compress the build context using gzip")
+	flags.SetAnnotation("compress", "no-buildkit", nil)
+
 	flags.StringSliceVar(&options.securityOpt, "security-opt", []string{}, "Security options")
 	flags.StringVar(&options.networkMode, "network", "default", "Set the networking mode for the RUN instructions during build")
 	flags.SetAnnotation("network", "version", []string{"1.25"})
@@ -143,7 +149,16 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
-	command.AddPlatformFlag(flags, &options.platform)
+
+	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
+	// Platform is not experimental when BuildKit is used
+	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
+	if err == nil && buildkitEnabled {
+		flags.SetAnnotation("platform", "version", []string{"1.38"})
+	} else {
+		flags.SetAnnotation("platform", "version", []string{"1.32"})
+		flags.SetAnnotation("platform", "experimental", nil)
+	}
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
@@ -152,10 +167,23 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
 	flags.SetAnnotation("stream", "experimental", nil)
 	flags.SetAnnotation("stream", "version", []string{"1.31"})
+	flags.SetAnnotation("stream", "no-buildkit", nil)
 
-	flags.Var(&options.console, "console", "Show console output (with buildkit only) (true, false, auto)")
-	flags.SetAnnotation("console", "experimental", nil)
-	flags.SetAnnotation("console", "version", []string{"1.38"})
+	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (auto, plain, tty). Use plain to show container output")
+	flags.SetAnnotation("progress", "buildkit", nil)
+
+	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
+	flags.SetAnnotation("secret", "version", []string{"1.39"})
+	flags.SetAnnotation("secret", "buildkit", nil)
+
+	flags.StringArrayVar(&options.ssh, "ssh", []string{}, "SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])")
+	flags.SetAnnotation("ssh", "version", []string{"1.39"})
+	flags.SetAnnotation("ssh", "buildkit", nil)
+
+	flags.StringArrayVarP(&options.outputs, "output", "o", []string{}, "Output destination (format: type=local,dest=path)")
+	flags.SetAnnotation("output", "version", []string{"1.40"})
+	flags.SetAnnotation("output", "buildkit", nil)
+
 	return cmd
 }
 
@@ -177,20 +205,17 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
-		enableBuildkit, err := strconv.ParseBool(buildkitEnv)
-		if err != nil {
-			return errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
-		}
-		if enableBuildkit {
-			return runBuildBuildKit(dockerCli, options)
-		}
+	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
+	if err != nil {
+		return err
+	}
+	if buildkitEnabled {
+		return runBuildBuildKit(dockerCli, options)
 	}
 
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
-		err           error
 		contextDir    string
 		tempDir       string
 		relDockerfile string
@@ -275,7 +300,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
-			ChownOpts:       &idtools.IDPair{UID: 0, GID: 0},
+			ChownOpts:       &idtools.Identity{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err
@@ -342,7 +367,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildCtx = dockerfileCtx
 	}
 
-	s, err := trySession(dockerCli, contextDir)
+	s, err := trySession(dockerCli, contextDir, true)
 	if err != nil {
 		return err
 	}
@@ -375,7 +400,11 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	configFile := dockerCli.ConfigFile()
-	authConfigs, _ := configFile.GetAllCredentials()
+	creds, _ := configFile.GetAllCredentials()
+	authConfigs := make(map[string]types.AuthConfig, len(creds))
+	for k, auth := range creds {
+		authConfigs[k] = types.AuthConfig(auth)
+	}
 	buildOptions := imageBuildOptions(dockerCli, options)
 	buildOptions.Version = types.BuilderV1
 	buildOptions.Dockerfile = relDockerfile
@@ -385,7 +414,10 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	if s != nil {
 		go func() {
 			logrus.Debugf("running session: %v", s.ID())
-			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
+			dialSession := func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
+				return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
+			}
+			if err := s.Run(ctx, dialSession); err != nil {
 				logrus.Error(err)
 				cancel() // cancel progress context
 			}
@@ -611,7 +643,7 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		CgroupParent:   options.cgroupParent,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetAll())),
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,
 		SecurityOpt:    options.securityOpt,
@@ -621,4 +653,59 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		Target:         options.target,
 		Platform:       options.platform,
 	}
+}
+
+func parseOutputs(inp []string) ([]types.ImageBuildOutput, error) {
+	var outs []types.ImageBuildOutput
+	if len(inp) == 0 {
+		return nil, nil
+	}
+	for _, s := range inp {
+		csvReader := csv.NewReader(strings.NewReader(s))
+		fields, err := csvReader.Read()
+		if err != nil {
+			return nil, err
+		}
+		if len(fields) == 1 && fields[0] == s && !strings.HasPrefix(s, "type=") {
+			if s == "-" {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "tar",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			} else {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "local",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			}
+			continue
+		}
+
+		out := types.ImageBuildOutput{
+			Attrs: map[string]string{},
+		}
+		for _, field := range fields {
+			parts := strings.SplitN(field, "=", 2)
+			if len(parts) != 2 {
+				return nil, errors.Errorf("invalid value %s", field)
+			}
+			key := strings.ToLower(parts[0])
+			value := parts[1]
+			switch key {
+			case "type":
+				out.Type = value
+			default:
+				out.Attrs[key] = value
+			}
+		}
+		if out.Type == "" {
+			return nil, errors.Errorf("type is required for output")
+		}
+		outs = append(outs, out)
+	}
+	return outs, nil
 }

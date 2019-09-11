@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	interp "github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
@@ -265,9 +266,9 @@ func getServices(configDict map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{}
 }
 
-// Transform converts the source map into the target struct with compose types transformer
+// Transform converts the source into the target struct with compose types transformer
 // and the specified transformers if any.
-func Transform(source map[string]interface{}, target interface{}, additionalTransformers ...Transformer) error {
+func Transform(source interface{}, target interface{}, additionalTransformers ...Transformer) error {
 	data := mapstructure.Metadata{}
 	config := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
@@ -303,12 +304,14 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 		reflect.TypeOf(types.ServiceConfigObjConfig{}):           transformStringSourceMap,
 		reflect.TypeOf(types.StringOrNumberList{}):               transformStringOrNumberList,
 		reflect.TypeOf(map[string]*types.ServiceNetworkConfig{}): transformServiceNetworkMap,
+		reflect.TypeOf(types.Mapping{}):                          transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithEquals{}):                transformMappingOrListFunc("=", true),
 		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),
 		reflect.TypeOf(types.HostsList{}):                        transformListOrMappingFunc(":", false),
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
 		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
+		reflect.TypeOf(types.Duration(0)):                        transformStringToDuration,
 	}
 
 	for _, transformer := range additionalTransformers {
@@ -476,12 +479,13 @@ func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, 
 		}
 
 		filePath := expandUser(volume.Source, lookupEnv)
-		// Check for a Unix absolute path first, to handle a Windows client
-		// with a Unix daemon. This handles a Windows client connecting to a
-		// Unix daemon. Note that this is not required for Docker for Windows
-		// when specifying a local Windows path, because Docker for Windows
-		// translates the Windows path into a valid path within the VM.
-		if !path.IsAbs(filePath) {
+		// Check if source is an absolute path (either Unix or Windows), to
+		// handle a Windows client with a Unix daemon or vice-versa.
+		//
+		// Note that this is not required for Docker for Windows when specifying
+		// a local Windows path, because Docker for Windows translates the Windows
+		// path into a valid path within the VM.
+		if !path.IsAbs(filePath) && !isAbs(filePath) {
 			filePath = absPath(workingDir, filePath)
 		}
 		volume.Source = filePath
@@ -631,7 +635,8 @@ func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) 
 
 func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
 	// if "external: true"
-	if obj.External.External {
+	switch {
+	case obj.External.External:
 		// handle deprecated external.name
 		if obj.External.Name != "" {
 			if obj.Name != "" {
@@ -648,7 +653,11 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 			}
 		}
 		// if not "external: true"
-	} else {
+	case obj.Driver != "":
+		if obj.File != "" {
+			return obj, errors.Errorf("%[1]s %[2]s: %[1]s.driver and %[1]s.file conflict; only use %[1]s.driver", objType, name)
+		}
+	default:
 		obj.File = absPath(details.WorkingDir, obj.File)
 	}
 
@@ -852,6 +861,19 @@ func transformSize(value interface{}) (interface{}, error) {
 		return units.RAMInBytes(value)
 	}
 	panic(errors.Errorf("invalid type for size %T", value))
+}
+
+func transformStringToDuration(value interface{}) (interface{}, error) {
+	switch value := value.(type) {
+	case string:
+		d, err := time.ParseDuration(value)
+		if err != nil {
+			return value, err
+		}
+		return types.Duration(d), nil
+	default:
+		return value, errors.Errorf("invalid type %T for duration", value)
+	}
 }
 
 func toServicePortConfigs(value string) ([]interface{}, error) {

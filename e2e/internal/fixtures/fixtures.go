@@ -12,6 +12,8 @@ import (
 const (
 	//NotaryURL is the location of the notary server
 	NotaryURL = "https://notary-server:4443"
+	//EvilNotaryURL is the location of the evil notary server
+	EvilNotaryURL = "https://evil-notary-server:4444"
 	//AlpineImage is an image in the test registry
 	AlpineImage = "registry:5000/alpine:3.6"
 	//AlpineSha is the sha of the alpine image
@@ -25,19 +27,26 @@ const (
 //SetupConfigFile creates a config.json file for testing
 func SetupConfigFile(t *testing.T) fs.Dir {
 	t.Helper()
-	dir := fs.NewDir(t, "trust_test", fs.WithMode(0700), fs.WithFile("config.json", `
+	return SetupConfigWithNotaryURL(t, "trust_test", NotaryURL)
+}
+
+//SetupConfigWithNotaryURL creates a config.json file for testing in the given path
+//with the given notaryURL
+func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
+	t.Helper()
+	dir := fs.NewDir(t, path, fs.WithMode(0700), fs.WithFile("config.json", fmt.Sprintf(`
 	{
 		"auths": {
 			"registry:5000": {
 				"auth": "ZWlhaXM6cGFzc3dvcmQK"
 			},
-			"https://notary-server:4443": {
+			"%s": {
 				"auth": "ZWlhaXM6cGFzc3dvcmQK"
 			}
 		},
 		"experimental": "enabled"
 	}
-	`), fs.WithDir("trust", fs.WithDir("private")))
+	`, notaryURL)), fs.WithDir("trust", fs.WithDir("private")))
 	return *dir
 }
 

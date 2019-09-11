@@ -1,6 +1,7 @@
 package node
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -66,13 +67,14 @@ func TestNodePsErrors(t *testing.T) {
 
 func TestNodePs(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		flags           map[string]string
-		infoFunc        func() (types.Info, error)
-		nodeInspectFunc func() (swarm.Node, []byte, error)
-		taskListFunc    func(options types.TaskListOptions) ([]swarm.Task, error)
-		taskInspectFunc func(taskID string) (swarm.Task, []byte, error)
+		name               string
+		args               []string
+		flags              map[string]string
+		infoFunc           func() (types.Info, error)
+		nodeInspectFunc    func() (swarm.Node, []byte, error)
+		taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
+		taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)
+		serviceInspectFunc func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error)
 	}{
 		{
 			name: "simple",
@@ -91,6 +93,16 @@ func TestNodePs(t *testing.T) {
 					}))),
 				}, nil
 			},
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+				return swarm.Service{
+					ID: serviceID,
+					Spec: swarm.ServiceSpec{
+						Annotations: swarm.Annotations{
+							Name: serviceID,
+						},
+					},
+				}, []byte{}, nil
+			},
 		},
 		{
 			name: "with-errors",
@@ -108,14 +120,25 @@ func TestNodePs(t *testing.T) {
 						WithStatus(Timestamp(time.Now().Add(-4*time.Hour)), StatusErr("a task error"))),
 				}, nil
 			},
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+				return swarm.Service{
+					ID: serviceID,
+					Spec: swarm.ServiceSpec{
+						Annotations: swarm.Annotations{
+							Name: serviceID,
+						},
+					},
+				}, []byte{}, nil
+			},
 		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
-			infoFunc:        tc.infoFunc,
-			nodeInspectFunc: tc.nodeInspectFunc,
-			taskInspectFunc: tc.taskInspectFunc,
-			taskListFunc:    tc.taskListFunc,
+			infoFunc:           tc.infoFunc,
+			nodeInspectFunc:    tc.nodeInspectFunc,
+			taskInspectFunc:    tc.taskInspectFunc,
+			taskListFunc:       tc.taskListFunc,
+			serviceInspectFunc: tc.serviceInspectFunc,
 		})
 		cmd := newPsCommand(cli)
 		cmd.SetArgs(tc.args)

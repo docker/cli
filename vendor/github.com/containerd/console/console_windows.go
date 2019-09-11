@@ -150,11 +150,11 @@ func (m *master) Close() error {
 }
 
 func (m *master) Read(b []byte) (int, error) {
-	panic("not implemented on windows")
+	return os.Stdin.Read(b)
 }
 
 func (m *master) Write(b []byte) (int, error) {
-	panic("not implemented on windows")
+	return os.Stdout.Write(b)
 }
 
 func (m *master) Fd() uintptr {

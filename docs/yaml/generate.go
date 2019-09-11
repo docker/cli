@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	"github.com/docker/docker/pkg/term"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -18,10 +17,13 @@ import (
 const descriptionSourcePath = "docs/reference/commandline/"
 
 func generateCliYaml(opts *options) error {
-	stdin, stdout, stderr := term.StdStreams()
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, false)
+	dockerCli, err := command.NewDockerCli()
+	if err != nil {
+		return err
+	}
 	cmd := &cobra.Command{Use: "docker"}
 	commands.AddCommands(cmd, dockerCli)
+	disableFlagsInUseLine(cmd)
 	source := filepath.Join(opts.source, descriptionSourcePath)
 	if err := loadLongDescription(cmd, source); err != nil {
 		return err
@@ -29,6 +31,23 @@ func generateCliYaml(opts *options) error {
 
 	cmd.DisableAutoGenTag = true
 	return GenYamlTree(cmd, opts.target)
+}
+
+func disableFlagsInUseLine(cmd *cobra.Command) {
+	visitAll(cmd, func(ccmd *cobra.Command) {
+		// do not add a `[flags]` to the end of the usage line.
+		ccmd.DisableFlagsInUseLine = true
+	})
+}
+
+// visitAll will traverse all commands from the root.
+// This is different from the VisitAll of cobra.Command where only parents
+// are checked.
+func visitAll(root *cobra.Command, fn func(*cobra.Command)) {
+	for _, cmd := range root.Commands() {
+		visitAll(cmd, fn)
+	}
+	fn(root)
 }
 
 func loadLongDescription(cmd *cobra.Command, path ...string) error {

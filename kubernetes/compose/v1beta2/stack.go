@@ -1,256 +1,115 @@
 package v1beta2
 
-import (
-	"time"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-)
+import api "github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
 
 // StackList is a list of stacks
-type StackList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-
-	Items []Stack `json:"items" protobuf:"bytes,2,rep,name=items"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackList instead
+type StackList = api.StackList
 
 // Stack is v1beta2's representation of a Stack
-type Stack struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   *StackSpec   `json:"spec,omitempty"`
-	Status *StackStatus `json:"status,omitempty"`
-}
-
-// DeepCopyObject clones the stack
-func (s *Stack) DeepCopyObject() runtime.Object {
-	return s.clone()
-}
-
-// DeepCopyObject clones the stack list
-func (s *StackList) DeepCopyObject() runtime.Object {
-	if s == nil {
-		return nil
-	}
-	result := new(StackList)
-	result.TypeMeta = s.TypeMeta
-	result.ListMeta = s.ListMeta
-	if s.Items == nil {
-		return result
-	}
-	result.Items = make([]Stack, len(s.Items))
-	for ix, s := range s.Items {
-		result.Items[ix] = *s.clone()
-	}
-	return result
-}
-
-func (s *Stack) clone() *Stack {
-	if s == nil {
-		return nil
-	}
-	result := new(Stack)
-	result.TypeMeta = s.TypeMeta
-	result.ObjectMeta = s.ObjectMeta
-	result.Spec = s.Spec.clone()
-	result.Status = s.Status.clone()
-	return result
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Stack instead
+type Stack = api.Stack
 
 // StackSpec defines the desired state of Stack
-type StackSpec struct {
-	Services []ServiceConfig            `json:"services,omitempty"`
-	Secrets  map[string]SecretConfig    `json:"secrets,omitempty"`
-	Configs  map[string]ConfigObjConfig `json:"configs,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackSpec instead
+type StackSpec = api.StackSpec
 
 // ServiceConfig is the configuration of one service
-type ServiceConfig struct {
-	Name string `json:"name,omitempty"`
-
-	CapAdd          []string                 `json:"cap_add,omitempty"`
-	CapDrop         []string                 `json:"cap_drop,omitempty"`
-	Command         []string                 `json:"command,omitempty"`
-	Configs         []ServiceConfigObjConfig `json:"configs,omitempty"`
-	Deploy          DeployConfig             `json:"deploy,omitempty"`
-	Entrypoint      []string                 `json:"entrypoint,omitempty"`
-	Environment     map[string]*string       `json:"environment,omitempty"`
-	ExtraHosts      []string                 `json:"extra_hosts,omitempty"`
-	Hostname        string                   `json:"hostname,omitempty"`
-	HealthCheck     *HealthCheckConfig       `json:"health_check,omitempty"`
-	Image           string                   `json:"image,omitempty"`
-	Ipc             string                   `json:"ipc,omitempty"`
-	Labels          map[string]string        `json:"labels,omitempty"`
-	Pid             string                   `json:"pid,omitempty"`
-	Ports           []ServicePortConfig      `json:"ports,omitempty"`
-	Privileged      bool                     `json:"privileged,omitempty"`
-	ReadOnly        bool                     `json:"read_only,omitempty"`
-	Secrets         []ServiceSecretConfig    `json:"secrets,omitempty"`
-	StdinOpen       bool                     `json:"stdin_open,omitempty"`
-	StopGracePeriod *time.Duration           `json:"stop_grace_period,omitempty"`
-	Tmpfs           []string                 `json:"tmpfs,omitempty"`
-	Tty             bool                     `json:"tty,omitempty"`
-	User            *int64                   `json:"user,omitempty"`
-	Volumes         []ServiceVolumeConfig    `json:"volumes,omitempty"`
-	WorkingDir      string                   `json:"working_dir,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ServiceConfig instead
+type ServiceConfig = api.ServiceConfig
 
 // ServicePortConfig is the port configuration for a service
-type ServicePortConfig struct {
-	Mode      string `json:"mode,omitempty"`
-	Target    uint32 `json:"target,omitempty"`
-	Published uint32 `json:"published,omitempty"`
-	Protocol  string `json:"protocol,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ServicePortConfig instead
+type ServicePortConfig = api.ServicePortConfig
 
 // FileObjectConfig is a config type for a file used by a service
-type FileObjectConfig struct {
-	Name     string            `json:"name,omitempty"`
-	File     string            `json:"file,omitempty"`
-	External External          `json:"external,omitempty"`
-	Labels   map[string]string `json:"labels,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.FileObjectConfig instead
+type FileObjectConfig = api.FileObjectConfig
 
 // SecretConfig for a secret
-type SecretConfig FileObjectConfig
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.SecretConfig instead
+type SecretConfig = api.SecretConfig
 
 // ConfigObjConfig is the config for the swarm "Config" object
-type ConfigObjConfig FileObjectConfig
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ConfigObjConfig instead
+type ConfigObjConfig = api.ConfigObjConfig
 
 // External identifies a Volume or Network as a reference to a resource that is
 // not managed, and should already exist.
 // External.name is deprecated and replaced by Volume.name
-type External struct {
-	Name     string `json:"name,omitempty"`
-	External bool   `json:"external,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.External instead
+type External = api.External
 
 // FileReferenceConfig for a reference to a swarm file object
-type FileReferenceConfig struct {
-	Source string  `json:"source,omitempty"`
-	Target string  `json:"target,omitempty"`
-	UID    string  `json:"uid,omitempty"`
-	GID    string  `json:"gid,omitempty"`
-	Mode   *uint32 `json:"mode,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.FileReferenceConfig instead
+type FileReferenceConfig = api.FileReferenceConfig
 
 // ServiceConfigObjConfig is the config obj configuration for a service
-type ServiceConfigObjConfig FileReferenceConfig
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ServiceConfigObjConfig instead
+type ServiceConfigObjConfig = api.ServiceConfigObjConfig
 
 // ServiceSecretConfig is the secret configuration for a service
-type ServiceSecretConfig FileReferenceConfig
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ServiceSecretConfig instead
+type ServiceSecretConfig = api.ServiceSecretConfig
 
 // DeployConfig is the deployment configuration for a service
-type DeployConfig struct {
-	Mode          string            `json:"mode,omitempty"`
-	Replicas      *uint64           `json:"replicas,omitempty"`
-	Labels        map[string]string `json:"labels,omitempty"`
-	UpdateConfig  *UpdateConfig     `json:"update_config,omitempty"`
-	Resources     Resources         `json:"resources,omitempty"`
-	RestartPolicy *RestartPolicy    `json:"restart_policy,omitempty"`
-	Placement     Placement         `json:"placement,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.DeployConfig instead
+type DeployConfig = api.DeployConfig
 
 // UpdateConfig is the service update configuration
-type UpdateConfig struct {
-	Parallelism *uint64 `json:"paralellism,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.UpdateConfig instead
+type UpdateConfig = api.UpdateConfig
 
 // Resources the resource limits and reservations
-type Resources struct {
-	Limits       *Resource `json:"limits,omitempty"`
-	Reservations *Resource `json:"reservations,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Resources instead
+type Resources = api.Resources
 
 // Resource is a resource to be limited or reserved
-type Resource struct {
-	NanoCPUs    string `json:"cpus,omitempty"`
-	MemoryBytes int64  `json:"memory,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Resource instead
+type Resource = api.Resource
 
 // RestartPolicy is the service restart policy
-type RestartPolicy struct {
-	Condition string `json:"condition,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.RestartPolicy instead
+type RestartPolicy = api.RestartPolicy
 
 // Placement constraints for the service
-type Placement struct {
-	Constraints *Constraints `json:"constraints,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Placement instead
+type Placement = api.Placement
 
 // Constraints lists constraints that can be set on the service
-type Constraints struct {
-	OperatingSystem *Constraint
-	Architecture    *Constraint
-	Hostname        *Constraint
-	MatchLabels     map[string]Constraint
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Constraints instead
+type Constraints = api.Constraints
 
 // Constraint defines a constraint and it's operator (== or !=)
-type Constraint struct {
-	Value    string
-	Operator string
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.Constraint instead
+type Constraint = api.Constraint
 
 // HealthCheckConfig the healthcheck configuration for a service
-type HealthCheckConfig struct {
-	Test     []string       `json:"test,omitempty"`
-	Timeout  *time.Duration `json:"timeout,omitempty"`
-	Interval *time.Duration `json:"interval,omitempty"`
-	Retries  *uint64        `json:"retries,omitempty"`
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.HealthCheckConfig instead
+type HealthCheckConfig = api.HealthCheckConfig
 
 // ServiceVolumeConfig are references to a volume used by a service
-type ServiceVolumeConfig struct {
-	Type     string `json:"type,omitempty"`
-	Source   string `json:"source,omitempty"`
-	Target   string `json:"target,omitempty"`
-	ReadOnly bool   `json:"read_only,omitempty"`
-}
-
-func (s *StackSpec) clone() *StackSpec {
-	if s == nil {
-		return nil
-	}
-	result := *s
-	return &result
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.ServiceVolumeConfig instead
+type ServiceVolumeConfig = api.ServiceVolumeConfig
 
 // StackPhase is the deployment phase of a stack
-type StackPhase string
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackPhase instead
+type StackPhase = api.StackPhase
 
 // These are valid conditions of a stack.
 const (
 	// StackAvailable means the stack is available.
-	StackAvailable StackPhase = "Available"
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackAvailable instead
+	StackAvailable StackPhase = api.StackAvailable
 	// StackProgressing means the deployment is progressing.
-	StackProgressing StackPhase = "Progressing"
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackProgressing instead
+	StackProgressing StackPhase = api.StackProgressing
 	// StackFailure is added in a stack when one of its members fails to be created
 	// or deleted.
-	StackFailure StackPhase = "Failure"
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackFailure instead
+	StackFailure StackPhase = api.StackFailure
 )
 
 // StackStatus defines the observed state of Stack
-type StackStatus struct {
-	// Current condition of the stack.
-	// +optional
-	Phase StackPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StackPhase"`
-	// A human readable message indicating details about the stack.
-	// +optional
-	Message string `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
-}
-
-func (s *StackStatus) clone() *StackStatus {
-	if s == nil {
-		return nil
-	}
-	result := *s
-	return &result
-}
-
-// Clone clones a Stack
-func (s *Stack) Clone() *Stack {
-	return s.clone()
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/compose/v1beta2.StackStatus instead
+type StackStatus = api.StackStatus

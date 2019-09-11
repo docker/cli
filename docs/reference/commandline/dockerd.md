@@ -181,6 +181,22 @@ The Docker client will honor the `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`
 environment variables (or the lowercase versions thereof). `HTTPS_PROXY` takes
 precedence over `HTTP_PROXY`.
 
+Starting with Docker 18.09, the Docker client supports connecting to a remote
+daemon via SSH:
+
+```
+$ docker -H ssh://me@example.com:22 ps
+$ docker -H ssh://me@example.com ps
+$ docker -H ssh://example.com ps
+```
+
+To use SSH connection, you need to set up `ssh` so that it can reach the
+remote host with public key authentication. Password authentication is not
+supported. If your key is protected with passphrase, you need to set up
+`ssh-agent`.
+
+Also, you need to have `docker` binary 18.09 or later on the daemon host.
+
 #### Bind Docker to another host/port or a Unix socket
 
 > **Warning**:
@@ -287,7 +303,7 @@ the same file can share a single page cache entry (or entries), it makes
 > **Note**: As promising as `overlay` is, the feature is still quite young and
 > should not be used in production. Most notably, using `overlay` can cause
 > excessive inode consumption (especially as the number of images grows), as
-> well as > being incompatible with the use of RPMs.
+> well as being incompatible with the use of RPMs.
 
 The `overlay2` uses the same fast union filesystem but takes advantage of
 [additional features](https://lkml.org/lkml/2015/2/11/106) added in Linux
@@ -796,7 +812,7 @@ Defaults to 20G.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt size=40G
 ```
 
@@ -811,7 +827,7 @@ deployments).
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.globalmode=false
 ```
 
@@ -822,7 +838,7 @@ used for booting a utility VM. Defaults to `%ProgramFiles%\Linux Containers`.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.kirdpath=c:\path\to\files
 ```
 
@@ -833,7 +849,7 @@ Defaults to `bootx64.efi`.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.kernel=kernel.efi
 ```
 
@@ -844,7 +860,7 @@ Defaults to `initrd.img`.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.initrd=myinitrd.img
 ```
 
@@ -856,7 +872,7 @@ are kernel specific.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt "lcow.bootparameters='option=value'"
 ```
 
@@ -867,7 +883,7 @@ and initrd booting. Defaults to `uvm.vhdx` under `lcow.kirdpath`.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.vhdx=custom.vhdx
 ```
 
@@ -878,7 +894,7 @@ to 300.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.timeout=240
 ```
 
@@ -889,7 +905,7 @@ containers. Defaults to 20. Cannot be less than 20.
 
 ###### Example
 
-```PowerShell
+```powershell
 C:\> dockerd --storage-opt lcow.sandboxsize=40
 ```
 
@@ -1215,9 +1231,13 @@ The `--metrics-addr` option takes a tcp address to serve the metrics API.
 This feature is still experimental, therefore, the daemon must be running in experimental
 mode for this feature to work.
 
-To serve the metrics API on localhost:1337 you would specify `--metrics-addr 127.0.0.1:1337`
-allowing you to make requests on the API at `127.0.0.1:1337/metrics` to receive metrics in the
+To serve the metrics API on `localhost:9323` you would specify `--metrics-addr 127.0.0.1:9323`,
+allowing you to make requests on the API at `127.0.0.1:9323/metrics` to receive metrics in the
 [prometheus](https://prometheus.io/docs/instrumenting/exposition_formats/) format.
+
+Port `9323` is the [default port associated with Docker
+metrics](https://github.com/prometheus/prometheus/wiki/Default-port-allocations)
+to avoid collisions with other prometheus exporters and services.
 
 If you are running a prometheus server you can add this address to your scrape configs
 to have prometheus collect metrics on Docker.  For more information
@@ -1227,7 +1247,7 @@ on prometheus you can view the website [here](https://prometheus.io/).
 scrape_configs:
   - job_name: 'docker'
     static_configs:
-      - targets: ['127.0.0.1:1337']
+      - targets: ['127.0.0.1:9323']
 ```
 
 Please note that this feature is still marked as experimental as metrics and metric
@@ -1284,12 +1304,18 @@ This is a full example of the allowed configuration options on Linux:
 	"exec-opts": [],
 	"exec-root": "",
 	"experimental": false,
+	"features": {},
 	"storage-driver": "",
 	"storage-opts": [],
 	"labels": [],
 	"live-restore": true,
-	"log-driver": "",
-	"log-opts": {},
+	"log-driver": "json-file",
+	"log-opts": {
+		"max-size": "10m",
+		"max-file":"5",
+		"labels": "somelabel",
+		"env": "os,customer"
+	},
 	"mtu": 0,
 	"pidfile": "",
 	"cluster-store": "",
@@ -1313,7 +1339,13 @@ This is a full example of the allowed configuration options on Linux:
 	"userns-remap": "",
 	"group": "",
 	"cgroup-parent": "",
-	"default-ulimits": {},
+	"default-ulimits": {
+		"nofile": {
+			"Name": "nofile",
+			"Hard": 64000,
+			"Soft": 64000
+		}
+	},
 	"init": false,
 	"init-path": "/usr/libexec/docker-init",
 	"ipv6": false,
@@ -1350,8 +1382,10 @@ This is a full example of the allowed configuration options on Linux:
 			]
 		}
 	},
-	"default-address-pools":[{"base":"172.80.0.0/16","size":24},
-	{"base":"172.90.0.0/16","size":24}]
+	"default-address-pools":[
+		{"base":"172.80.0.0/16","size":24},
+		{"base":"172.90.0.0/16","size":24}
+	]
 }
 ```
 
@@ -1379,6 +1413,7 @@ This is a full example of the allowed configuration options on Windows:
     "dns-search": [],
     "exec-opts": [],
     "experimental": false,
+    "features":{},
     "storage-driver": "",
     "storage-opts": [],
     "labels": [],
@@ -1409,6 +1444,16 @@ This is a full example of the allowed configuration options on Windows:
 }
 ```
 
+#### Feature options
+The optional field `features` in `daemon.json` allows users to enable or disable specific 
+daemon features. For example, `{"features":{"buildkit": true}}` enables `buildkit` as the 
+default docker image builder.
+
+The list of currently supported feature options:
+- `buildkit`: It enables `buildkit` as default builder when set to `true` or disables it by
+`false`. Note that if this option is not explicitly set in the daemon config file, then it
+is up to the cli to determine which builder to invoke.
+
 #### Configuration reload behavior
 
 Some options can be reconfigured when the daemon is running without requiring
@@ -1433,11 +1478,12 @@ The list of currently supported options that can be reconfigured is this:
   the runtime shipped with the official docker packages.
 - `runtimes`: it updates the list of available OCI runtimes that can
   be used to run containers.
-- `authorization-plugin`: specifies the authorization plugins to use.
+- `authorization-plugin`: it specifies the authorization plugins to use.
 - `allow-nondistributable-artifacts`: Replaces the set of registries to which the daemon will push nondistributable artifacts with a new set of registries.
 - `insecure-registries`: it replaces the daemon insecure registries with a new set of insecure registries. If some existing insecure registries in daemon's configuration are not in newly reloaded insecure resgitries, these existing ones will be removed from daemon's config.
 - `registry-mirrors`: it replaces the daemon registry mirrors with a new set of registry mirrors. If some existing registry mirrors in daemon's configuration are not in newly reloaded registry mirrors, these existing ones will be removed from daemon's config.
 - `shutdown-timeout`: it replaces the daemon's existing configuration timeout with a new timeout for shutting down all containers.
+- `features`: it explicitly enables or disables specific features.
 
 Updating and reloading the cluster configurations such as `--cluster-store`,
 `--cluster-advertise` and `--cluster-store-opts` will take effect only if

@@ -6,7 +6,6 @@ import (
 	"net"
 	"path"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types/filters"
@@ -268,10 +267,24 @@ func validateDomain(val string) (string, error) {
 }
 
 // ValidateLabel validates that the specified string is a valid label, and returns it.
-// Labels are in the form on key=value.
+//
+// Labels are in the form of key=value; key must be a non-empty string, and not
+// contain whitespaces. A value is optional (defaults to an empty string if omitted).
+//
+// Leading whitespace is removed during validation but values are kept as-is
+// otherwise, so any string value is accepted for both, which includes whitespace
+// (for values) and quotes (surrounding, or embedded in key or value).
+//
+// TODO discuss if quotes (and other special characters) should be valid or invalid for keys
+// TODO discuss if leading/trailing whitespace in keys should be preserved (and valid)
 func ValidateLabel(val string) (string, error) {
-	if strings.Count(val, "=") < 1 {
-		return "", fmt.Errorf("bad attribute format: %s", val)
+	arr := strings.SplitN(val, "=", 2)
+	key := strings.TrimLeft(arr[0], whiteSpaces)
+	if key == "" {
+		return "", fmt.Errorf("invalid label '%s': empty name", val)
+	}
+	if strings.ContainsAny(key, whiteSpaces) {
+		return "", fmt.Errorf("label '%s' contains whitespaces", key)
 	}
 	return val, nil
 }
@@ -306,6 +319,17 @@ func ValidateSysctl(val string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("sysctl '%s' is not whitelisted", val)
+}
+
+// ValidateProgressOutput errors out if an invalid value is passed to --progress
+func ValidateProgressOutput(val string) error {
+	valid := []string{"auto", "plain", "tty"}
+	for _, s := range valid {
+		if s == val {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid value %q passed to --progress, valid values are: %s", val, strings.Join(valid, ", "))
 }
 
 // FilterOpt is a flag type for validating filters
@@ -496,39 +520,4 @@ func (m *MemSwapBytes) String() string {
 func (m *MemSwapBytes) UnmarshalJSON(s []byte) error {
 	b := MemBytes(*m)
 	return b.UnmarshalJSON(s)
-}
-
-// NullableBool is a type for tri-state boolean options
-type NullableBool struct {
-	b *bool
-}
-
-// Type returns the type
-func (n *NullableBool) Type() string {
-	return ""
-}
-
-// Value returns the value in *bool
-func (n *NullableBool) Value() *bool {
-	return n.b
-}
-
-// Set sets the value. If value is empty string or "auto", nil is set.
-// Otherwise true or false are set based on flag.Bool behavior.
-func (n *NullableBool) Set(value string) error {
-	if value != "auto" && value != "" {
-		b, err := strconv.ParseBool(value)
-		if err != nil {
-			return err
-		}
-		n.b = &b
-	}
-	return nil
-}
-
-func (n *NullableBool) String() string {
-	if n.b == nil {
-		return "auto"
-	}
-	return strconv.FormatBool(*n.b)
 }

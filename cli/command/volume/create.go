@@ -22,7 +22,7 @@ type createOptions struct {
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
-		labels:     opts.NewListOpts(opts.ValidateEnv),
+		labels:     opts.NewListOpts(opts.ValidateLabel),
 	}
 
 	cmd := &cobra.Command{

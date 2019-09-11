@@ -2,26 +2,27 @@ package llb
 
 import (
 	"fmt"
+	"net"
 	"path"
 
 	"github.com/containerd/containerd/platforms"
 	"github.com/google/shlex"
+	"github.com/moby/buildkit/solver/pb"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type contextKeyT string
 
 var (
-	keyArgs     = contextKeyT("llb.exec.args")
-	keyDir      = contextKeyT("llb.exec.dir")
-	keyEnv      = contextKeyT("llb.exec.env")
-	keyUser     = contextKeyT("llb.exec.user")
-	keyPlatform = contextKeyT("llb.platform")
+	keyArgs      = contextKeyT("llb.exec.args")
+	keyDir       = contextKeyT("llb.exec.dir")
+	keyEnv       = contextKeyT("llb.exec.env")
+	keyUser      = contextKeyT("llb.exec.user")
+	keyExtraHost = contextKeyT("llb.exec.extrahost")
+	keyPlatform  = contextKeyT("llb.platform")
+	keyNetwork   = contextKeyT("llb.network")
+	keySecurity  = contextKeyT("llb.security")
 )
-
-func addEnv(key, value string) StateOption {
-	return addEnvf(key, value)
-}
 
 func addEnvf(key, value string, v ...interface{}) StateOption {
 	return func(s State) State {
@@ -124,6 +125,53 @@ func getPlatform(s State) *specs.Platform {
 	return nil
 }
 
+func extraHost(host string, ip net.IP) StateOption {
+	return func(s State) State {
+		return s.WithValue(keyExtraHost, append(getExtraHosts(s), HostIP{Host: host, IP: ip}))
+	}
+}
+
+func getExtraHosts(s State) []HostIP {
+	v := s.Value(keyExtraHost)
+	if v != nil {
+		return v.([]HostIP)
+	}
+	return nil
+}
+
+type HostIP struct {
+	Host string
+	IP   net.IP
+}
+
+func network(v pb.NetMode) StateOption {
+	return func(s State) State {
+		return s.WithValue(keyNetwork, v)
+	}
+}
+func getNetwork(s State) pb.NetMode {
+	v := s.Value(keyNetwork)
+	if v != nil {
+		n := v.(pb.NetMode)
+		return n
+	}
+	return NetModeSandbox
+}
+
+func security(v pb.SecurityMode) StateOption {
+	return func(s State) State {
+		return s.WithValue(keySecurity, v)
+	}
+}
+func getSecurity(s State) pb.SecurityMode {
+	v := s.Value(keySecurity)
+	if v != nil {
+		n := v.(pb.SecurityMode)
+		return n
+	}
+	return SecurityModeSandbox
+}
+
 type EnvList []KeyValue
 
 type KeyValue struct {
@@ -134,6 +182,13 @@ type KeyValue struct {
 func (e EnvList) AddOrReplace(k, v string) EnvList {
 	e = e.Delete(k)
 	e = append(e, KeyValue{key: k, value: v})
+	return e
+}
+
+func (e EnvList) SetDefault(k, v string) EnvList {
+	if _, ok := e.Get(k); !ok {
+		e = append(e, KeyValue{key: k, value: v})
+	}
 	return e
 }
 

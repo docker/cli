@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -23,14 +24,24 @@ var testAuthErrors = map[string]error{
 }
 
 var expiredPassword = "I_M_EXPIRED"
+var useToken = "I_M_TOKEN"
 
 type fakeClient struct {
 	client.Client
 }
 
+func (c fakeClient) Info(ctx context.Context) (types.Info, error) {
+	return types.Info{}, nil
+}
+
 func (c fakeClient) RegistryLogin(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	if auth.Password == expiredPassword {
 		return registrytypes.AuthenticateOKBody{}, fmt.Errorf("Invalid Username or Password")
+	}
+	if auth.Password == useToken {
+		return registrytypes.AuthenticateOKBody{
+			IdentityToken: auth.Password,
+		}, nil
 	}
 	err := testAuthErrors[auth.Username]
 	return registrytypes.AuthenticateOKBody{}, err
@@ -75,21 +86,26 @@ func TestRunLogin(t *testing.T) {
 	const validPassword = "p1"
 	const validPassword2 = "p2"
 
-	validAuthConfig := types.AuthConfig{
+	validAuthConfig := configtypes.AuthConfig{
 		ServerAddress: storedServerAddress,
 		Username:      validUsername,
 		Password:      validPassword,
 	}
-	expiredAuthConfig := types.AuthConfig{
+	expiredAuthConfig := configtypes.AuthConfig{
 		ServerAddress: storedServerAddress,
 		Username:      validUsername,
 		Password:      expiredPassword,
 	}
+	validIdentityToken := configtypes.AuthConfig{
+		ServerAddress: storedServerAddress,
+		Username:      validUsername,
+		IdentityToken: useToken,
+	}
 	testCases := []struct {
 		inputLoginOption  loginOptions
-		inputStoredCred   *types.AuthConfig
+		inputStoredCred   *configtypes.AuthConfig
 		expectedErr       string
-		expectedSavedCred types.AuthConfig
+		expectedSavedCred configtypes.AuthConfig
 	}{
 		{
 			inputLoginOption: loginOptions{
@@ -114,7 +130,7 @@ func TestRunLogin(t *testing.T) {
 			},
 			inputStoredCred: &validAuthConfig,
 			expectedErr:     "",
-			expectedSavedCred: types.AuthConfig{
+			expectedSavedCred: configtypes.AuthConfig{
 				ServerAddress: storedServerAddress,
 				Username:      validUsername,
 				Password:      validPassword2,
@@ -128,6 +144,16 @@ func TestRunLogin(t *testing.T) {
 			},
 			inputStoredCred: &validAuthConfig,
 			expectedErr:     testAuthErrMsg,
+		},
+		{
+			inputLoginOption: loginOptions{
+				serverAddress: storedServerAddress,
+				user:          validUsername,
+				password:      useToken,
+			},
+			inputStoredCred:   &validIdentityToken,
+			expectedErr:       "",
+			expectedSavedCred: validIdentityToken,
 		},
 	}
 	for i, tc := range testCases {

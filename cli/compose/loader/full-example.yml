@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.9"
 
 services:
   foo:
@@ -82,6 +82,7 @@ services:
         window: 120s
       placement:
         constraints: [node=foo]
+        max_replicas_per_node: 5
         preferences:
           - spread: node.labels.az
       endpoint_mode: dnsrr
@@ -238,6 +239,10 @@ services:
     stop_grace_period: 20s
 
     stop_signal: SIGUSR1
+
+    sysctls:
+      net.core.somaxconn: 1024
+      net.ipv4.tcp_syncookies: 0
 
     # String or list
     # tmpfs: /run

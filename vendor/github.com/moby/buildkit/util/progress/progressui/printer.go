@@ -1,8 +1,12 @@
 package progressui
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"os"
+	"sort"
+	"strings"
 	"time"
 
 	digest "github.com/opencontainers/go-digest"
@@ -11,13 +15,26 @@ import (
 
 const antiFlicker = 5 * time.Second
 const maxDelay = 10 * time.Second
+const minTimeDelta = 5 * time.Second
+const minProgressDelta = 0.05 // %
+
+type lastStatus struct {
+	Current   int64
+	Timestamp time.Time
+}
 
 type textMux struct {
-	w       io.Writer
-	current digest.Digest
+	w        io.Writer
+	current  digest.Digest
+	last     map[string]lastStatus
+	notFirst bool
 }
 
 func (p *textMux) printVtx(t *trace, dgst digest.Digest) {
+	if p.last == nil {
+		p.last = make(map[string]lastStatus)
+	}
+
 	v, ok := t.byDigest[dgst]
 	if !ok {
 		return
@@ -31,10 +48,22 @@ func (p *textMux) printVtx(t *trace, dgst digest.Digest) {
 			}
 			old.logsOffset = 0
 			old.count = 0
-			fmt.Fprintf(p.w, "#%d ...\n", v.index)
+			fmt.Fprintf(p.w, "#%d ...\n", old.index)
 		}
 
-		fmt.Fprintf(p.w, "\n#%d %s\n", v.index, limitString(v.Name, 72))
+		if p.notFirst {
+			fmt.Fprintln(p.w, "")
+		} else {
+			p.notFirst = true
+		}
+
+		if os.Getenv("PROGRESS_NO_TRUNC") == "1" {
+			fmt.Fprintf(p.w, "#%d %s\n", v.index, v.Name)
+			fmt.Fprintf(p.w, "#%d %s\n", v.index, v.Digest)
+		} else {
+			fmt.Fprintf(p.w, "#%d %s\n", v.index, limitString(v.Name, 72))
+		}
+
 	}
 
 	if len(v.events) != 0 {
@@ -47,6 +76,28 @@ func (p *textMux) printVtx(t *trace, dgst digest.Digest) {
 
 	for _, s := range v.statuses {
 		if _, ok := v.statusUpdates[s.ID]; ok {
+			doPrint := true
+
+			if last, ok := p.last[s.ID]; ok && s.Completed == nil {
+				var progressDelta float64
+				if s.Total > 0 {
+					progressDelta = float64(s.Current-last.Current) / float64(s.Total)
+				}
+				timeDelta := s.Timestamp.Sub(last.Timestamp)
+				if progressDelta < minProgressDelta && timeDelta < minTimeDelta {
+					doPrint = false
+				}
+			}
+
+			if !doPrint {
+				continue
+			}
+
+			p.last[s.ID] = lastStatus{
+				Timestamp: s.Timestamp,
+				Current:   s.Current,
+			}
+
 			var bytes string
 			if s.Total != 0 {
 				bytes = fmt.Sprintf(" %.2f / %.2f", units.Bytes(s.Current), units.Bytes(s.Total))
@@ -93,18 +144,46 @@ func (p *textMux) printVtx(t *trace, dgst digest.Digest) {
 	}
 
 	p.current = dgst
-
 	if v.Completed != nil {
 		p.current = ""
 		v.count = 0
-		fmt.Fprintf(p.w, "\n")
+
+		if v.Error != "" {
+			if v.logsPartial {
+				fmt.Fprintln(p.w, "")
+			}
+			if strings.HasSuffix(v.Error, context.Canceled.Error()) {
+				fmt.Fprintf(p.w, "#%d CANCELED\n", v.index)
+			} else {
+				fmt.Fprintf(p.w, "#%d ERROR: %s\n", v.index, v.Error)
+			}
+		} else if v.Cached {
+			fmt.Fprintf(p.w, "#%d CACHED\n", v.index)
+		} else {
+			tm := ""
+			if v.Started != nil {
+				tm = fmt.Sprintf(" %.1fs", v.Completed.Sub(*v.Started).Seconds())
+			}
+			fmt.Fprintf(p.w, "#%d DONE%s\n", v.index, tm)
+		}
+
 	}
 
 	delete(t.updates, dgst)
 }
 
-func (p *textMux) print(t *trace) {
+func sortCompleted(t *trace, m map[digest.Digest]struct{}) []digest.Digest {
+	out := make([]digest.Digest, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return t.byDigest[out[i]].Completed.Before(*t.byDigest[out[j]].Completed)
+	})
+	return out
+}
 
+func (p *textMux) print(t *trace) {
 	completed := map[digest.Digest]struct{}{}
 	rest := map[digest.Digest]struct{}{}
 
@@ -127,7 +206,7 @@ func (p *textMux) print(t *trace) {
 		p.printVtx(t, current)
 	}
 
-	for dgst := range completed {
+	for _, dgst := range sortCompleted(t, completed) {
 		if dgst != current {
 			p.printVtx(t, dgst)
 		}

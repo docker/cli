@@ -13,6 +13,8 @@ import (
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
 
 	. "github.com/docker/cli/cli/command"
+	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -78,6 +80,8 @@ func TestElectAuthServer(t *testing.T) {
 			},
 		},
 	}
+	// Enable debug to see warnings we're checking for
+	debug.Enable()
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
 		server := ElectAuthServer(context.Background(), cli)
@@ -131,7 +135,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 	errBuf := new(bytes.Buffer)
 	cli.SetErr(errBuf)
 	for _, authconfig := range testAuthConfigs {
-		cli.ConfigFile().GetCredentialsStore(authconfig.ServerAddress).Store(authconfig)
+		cli.ConfigFile().GetCredentialsStore(authconfig.ServerAddress).Store(configtypes.AuthConfig(authconfig))
 	}
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress

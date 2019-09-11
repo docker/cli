@@ -12,6 +12,7 @@ import (
 
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"github.com/tonistiigi/fsutil/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,7 +26,7 @@ type DiskWriterOpt struct {
 	Filter        FilterFunc
 }
 
-type FilterFunc func(*Stat) bool
+type FilterFunc func(string, *types.Stat) bool
 
 type DiskWriter struct {
 	opt  DiskWriterOpt
@@ -83,6 +84,12 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 	destPath := filepath.Join(dw.dest, filepath.FromSlash(p))
 
 	if kind == ChangeKindDelete {
+		if dw.filter != nil {
+			var empty types.Stat
+			if ok := dw.filter(p, &empty); !ok {
+				return nil
+			}
+		}
 		// todo: no need to validate if diff is trusted but is it always?
 		if err := os.RemoveAll(destPath); err != nil {
 			return errors.Wrapf(err, "failed to remove: %s", destPath)
@@ -95,7 +102,7 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 		return nil
 	}
 
-	stat, ok := fi.Sys().(*Stat)
+	stat, ok := fi.Sys().(*types.Stat)
 	if !ok {
 		return errors.Errorf("%s invalid change without stat information", p)
 	}
@@ -103,7 +110,7 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 	statCopy := *stat
 
 	if dw.filter != nil {
-		if ok := dw.filter(&statCopy); !ok {
+		if ok := dw.filter(p, &statCopy); !ok {
 			return nil
 		}
 	}
@@ -175,6 +182,11 @@ func (dw *DiskWriter) HandleChange(kind ChangeKind, p string, fi os.FileInfo, er
 	}
 
 	if rename {
+		if oldFi.IsDir() != fi.IsDir() {
+			if err := os.RemoveAll(destPath); err != nil {
+				return errors.Wrapf(err, "failed to remove %s", destPath)
+			}
+		}
 		if err := os.Rename(newPath, destPath); err != nil {
 			return errors.Wrapf(err, "failed to rename %s to %s", newPath, destPath)
 		}
@@ -241,7 +253,7 @@ type hashedWriter struct {
 }
 
 func newHashWriter(ch ContentHasher, fi os.FileInfo, w io.WriteCloser) (*hashedWriter, error) {
-	stat, ok := fi.Sys().(*Stat)
+	stat, ok := fi.Sys().(*types.Stat)
 	if !ok {
 		return nil, errors.Errorf("invalid change without stat information")
 	}

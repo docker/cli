@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/fileutils"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -295,5 +296,121 @@ func TestIsArchive(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		assert.Check(t, is.Equal(testcase.expected, IsArchive(testcase.header)), testcase.doc)
+	}
+}
+
+func TestDetectArchiveReader(t *testing.T) {
+	var testcases = []struct {
+		file     string
+		desc     string
+		expected bool
+	}{
+		{
+			file:     "../testdata/tar.test",
+			desc:     "tar file without pax headers",
+			expected: true,
+		},
+		{
+			file:     "../testdata/gittar.test",
+			desc:     "tar file with pax headers",
+			expected: true,
+		},
+		{
+			file:     "../testdata/Dockerfile.test",
+			desc:     "not a tar file",
+			expected: false,
+		},
+	}
+	for _, testcase := range testcases {
+		content, err := os.Open(testcase.file)
+		assert.NilError(t, err)
+		defer content.Close()
+
+		_, isArchive, err := DetectArchiveReader(content)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(testcase.expected, isArchive), testcase.file)
+	}
+}
+
+func mustPatternMatcher(t *testing.T, patterns []string) *fileutils.PatternMatcher {
+	t.Helper()
+	pm, err := fileutils.NewPatternMatcher(patterns)
+	if err != nil {
+		t.Fatal("failed to construct pattern matcher: ", err)
+	}
+	return pm
+}
+
+func TestWildcardMatches(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"*"}), "fileutils.go")
+	if !match {
+		t.Errorf("failed to get a wildcard match, got %v", match)
+	}
+}
+
+// A simple pattern match should return true.
+func TestPatternMatches(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"*.go"}), "fileutils.go")
+	if !match {
+		t.Errorf("failed to get a match, got %v", match)
+	}
+}
+
+// An exclusion followed by an inclusion should return true.
+func TestExclusionPatternMatchesPatternBefore(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"!fileutils.go", "*.go"}), "fileutils.go")
+	if !match {
+		t.Errorf("failed to get true match on exclusion pattern, got %v", match)
+	}
+}
+
+// A folder pattern followed by an exception should return false.
+func TestPatternMatchesFolderExclusions(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"docs", "!docs/README.md"}), "docs/README.md")
+	if match {
+		t.Errorf("failed to get a false match on exclusion pattern, got %v", match)
+	}
+}
+
+// A folder pattern followed by an exception should return false.
+func TestPatternMatchesFolderWithSlashExclusions(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"docs/", "!docs/README.md"}), "docs/README.md")
+	if match {
+		t.Errorf("failed to get a false match on exclusion pattern, got %v", match)
+	}
+}
+
+// A folder pattern followed by an exception should return false.
+func TestPatternMatchesFolderWildcardExclusions(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"docs/*", "!docs/README.md"}), "docs/README.md")
+	if match {
+		t.Errorf("failed to get a false match on exclusion pattern, got %v", match)
+	}
+}
+
+// A pattern followed by an exclusion should return false.
+func TestExclusionPatternMatchesPatternAfter(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"*.go", "!fileutils.go"}), "fileutils.go")
+	if match {
+		t.Errorf("failed to get false match on exclusion pattern, got %v", match)
+	}
+}
+
+// A filename evaluating to . should return false.
+func TestExclusionPatternMatchesWholeDirectory(t *testing.T) {
+	match, _ := filepathMatches(mustPatternMatcher(t, []string{"*.go"}), ".")
+	if match {
+		t.Errorf("failed to get false match on ., got %v", match)
+	}
+}
+
+// Matches with no patterns
+func TestMatchesWithNoPatterns(t *testing.T) {
+	matches, err := filepathMatches(mustPatternMatcher(t, []string{}), "/any/path/there")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if matches {
+		t.Fatalf("Should not have match anything")
 	}
 }

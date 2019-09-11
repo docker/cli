@@ -107,9 +107,9 @@ func getRepoTrustInfo(cli command.Cli, remote string) ([]byte, error) {
 	sort.Slice(adminList, func(i, j int) bool { return adminList[i].Name > adminList[j].Name })
 
 	return json.Marshal(trustRepo{
-		Name:              remote,
-		SignedTags:        signatureRows,
-		Signers:           signerList,
-		AdminstrativeKeys: adminList,
+		Name:               remote,
+		SignedTags:         signatureRows,
+		Signers:            signerList,
+		AdministrativeKeys: adminList,
 	})
 }

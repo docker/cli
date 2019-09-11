@@ -54,7 +54,7 @@ func Contains(expected string) func(string) error {
 	}
 }
 
-// Equals returns wether the line is the same as the specified string
+// Equals returns whether the line is the same as the specified string
 func Equals(expected string) func(string) error {
 	return func(actual string) error {
 		if expected == actual {

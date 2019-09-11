@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"sort"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -180,7 +182,7 @@ func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.
 }
 
 // trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, platform string) error {
+func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
 	refs, err := getTrustedPullTargets(cli, imgRefAndAuth)
 	if err != nil {
 		return err
@@ -202,7 +204,12 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, false, platform); err != nil {
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, PullOptions{
+			all:      false,
+			platform: opts.platform,
+			quiet:    opts.quiet,
+			remote:   opts.remote,
+		}); err != nil {
 			return err
 		}
 
@@ -268,7 +275,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 }
 
 // imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, all bool, platform string) error {
+func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
 	ref := reference.FamiliarString(imgRefAndAuth.Reference())
 
 	encodedAuth, err := command.EncodeAuthToBase64(*imgRefAndAuth.AuthConfig())
@@ -279,8 +286,8 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	options := types.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
-		All:           all,
-		Platform:      platform,
+		All:           opts.all,
+		Platform:      opts.platform,
 	}
 	responseBody, err := cli.Client().ImagePull(ctx, ref, options)
 	if err != nil {
@@ -288,7 +295,11 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, cli.Out(), nil)
+	out := cli.Out()
+	if opts.quiet {
+		out = streams.NewOut(ioutil.Discard)
+	}
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference

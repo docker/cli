@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -55,7 +56,7 @@ Are you sure you want to continue?`
 )
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
-	pruneFilters := options.filter.Value()
+	pruneFilters := options.filter.Value().Clone()
 	pruneFilters.Add("dangling", fmt.Sprintf("%v", !options.all))
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
@@ -73,14 +74,20 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 	}
 
 	if len(report.ImagesDeleted) > 0 {
-		output = "Deleted Images:\n"
+		var sb strings.Builder
+		sb.WriteString("Deleted Images:\n")
 		for _, st := range report.ImagesDeleted {
 			if st.Untagged != "" {
-				output += fmt.Sprintln("untagged:", st.Untagged)
+				sb.WriteString("untagged: ")
+				sb.WriteString(st.Untagged)
+				sb.WriteByte('\n')
 			} else {
-				output += fmt.Sprintln("deleted:", st.Deleted)
+				sb.WriteString("deleted: ")
+				sb.WriteString(st.Deleted)
+				sb.WriteByte('\n')
 			}
 		}
+		output = sb.String()
 		spaceReclaimed = report.SpaceReclaimed
 	}
 

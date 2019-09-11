@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -20,10 +22,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Pull constants
+const (
+	PullImageAlways  = "always"
+	PullImageMissing = "missing" // Default (matches previous behavior)
+	PullImageNever   = "never"
+)
+
 type createOptions struct {
 	name      string
 	platform  string
 	untrusted bool
+	pull      string // alway, missing, never
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -48,6 +58,8 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetInterspersed(false)
 
 	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&opts.pull, "pull", PullImageMissing,
+		`Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -59,13 +71,27 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *createOptions, copts *containerOptions) error {
-	containerConfig, err := parse(flags, copts)
+func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
+	newEnv := []string{}
+	for k, v := range proxyConfig {
+		if v == nil {
+			newEnv = append(newEnv, k)
+		} else {
+			newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, *v))
+		}
+	}
+	copts.env = *opts.NewListOptsRef(&newEnv, nil)
+	containerConfig, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerConfig, opts)
+	if err = validateAPIVersion(containerConfig, dockerCli.Client().ClientVersion()); err != nil {
+		reportError(dockerCli.Err(), "create", err.Error(), true)
+		return cli.StatusError{StatusCode: 125}
+	}
+	response, err := createContainer(context.Background(), dockerCli, containerConfig, options)
 	if err != nil {
 		return err
 	}
@@ -159,11 +185,15 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
+// nolint: gocyclo
 func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.ContainerCreateCreatedBody, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig
 	stderr := dockerCli.Err()
+
+	warnOnOomKillDisable(*hostConfig, stderr)
+	warnOnLocalhostDNS(*hostConfig, stderr)
 
 	var (
 		trustedRef reference.Canonical
@@ -193,24 +223,32 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 		}
 	}
 
-	//create the container
+	pullAndTagImage := func() error {
+		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
+			return err
+		}
+		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
+			return image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef)
+		}
+		return nil
+	}
+
+	if opts.pull == PullImageAlways {
+		if err := pullAndTagImage(); err != nil {
+			return nil, err
+		}
+	}
+
 	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
-
-	//if image not found try to pull it
 	if err != nil {
-		if apiclient.IsErrNotFound(err) && namedRef != nil {
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
-
+		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
+		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
 			// we don't want to write to stdout anything apart from container.ID
-			if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
+			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			if err := pullAndTagImage(); err != nil {
 				return nil, err
 			}
-			if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-				if err := image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef); err != nil {
-					return nil, err
-				}
-			}
-			// Retry
+
 			var retryErr error
 			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
 			if retryErr != nil {
@@ -226,4 +264,33 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	}
 	err = containerIDFile.Write(response.ID)
 	return &response, err
+}
+
+func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
+	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
+		fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
+	}
+}
+
+// check the DNS settings passed via --dns against localhost regexp to warn if
+// they are trying to set a DNS to a localhost address
+func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
+	for _, dnsIP := range hostConfig.DNS {
+		if isLocalhost(dnsIP) {
+			fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
+			return
+		}
+	}
+}
+
+// IPLocalhost is a regex pattern for IPv4 or IPv6 loopback range.
+const ipLocalhost = `((127\.([0-9]{1,3}\.){2}[0-9]{1,3})|(::1)$)`
+
+var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
+
+// IsLocalhost returns true if ip matches the localhost IP regular expression.
+// Used for determining if nameserver settings are being passed which are
+// localhost addresses
+func isLocalhost(ip string) bool {
+	return localhostIPRegexp.MatchString(ip)
 }

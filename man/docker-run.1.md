@@ -35,6 +35,7 @@ docker-run - Run a command in a new container
 [**--dns**[=*[]*]]
 [**--dns-option**[=*[]*]]
 [**--dns-search**[=*[]*]]
+[**--domainname**[=*DOMAINNAME*]]
 [**-e**|**--env**[=*[]*]]
 [**--entrypoint**[=*ENTRYPOINT*]]
 [**--env-file**[=*[]*]]
@@ -285,6 +286,12 @@ configuration passed to the container. Typically this is necessary when the
 host DNS configuration is invalid for the container (e.g., 127.0.0.1). When this
 is the case the **--dns** flags is necessary for every run.
 
+**--domainname**=""
+   Container NIS domain name
+
+   Sets the container's NIS domain name (see also **setdomainname(2)**) that is
+   available inside the container.
+
 **-e**, **--env**=[]
    Set environment variables
 
@@ -446,12 +453,18 @@ according to RFC4862.
 
    * `src`, `source`: mount source spec for `bind` and `volume`. Mandatory for `bind`.
    * `dst`, `destination`, `target`: mount destination spec.
-   * `ro`, `read-only`: `true` or `false` (default).
+   * `ro`, `readonly`: `true` or `false` (default).
+
+   **Note**: setting `readonly` for a bind mount does not make its submounts
+   read-only on the current Linux implementation. See also `bind-nonrecursive`.
 
    Options specific to `bind`:
 
    * `bind-propagation`: `shared`, `slave`, `private`, `rshared`, `rslave`, or `rprivate`(default). See also `mount(2)`.
    * `consistency`: `consistent`(default), `cached`, or `delegated`. Currently, only effective for Docker for Mac.
+   * `bind-nonrecursive`: `true` or `false` (default). If set to `true`,
+   submounts are not recursively bind-mounted. This option is useful for
+   `readonly` bind mount.
 
    Options specific to `volume`:
 

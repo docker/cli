@@ -3,8 +3,8 @@ package kubernetes
 import (
 	"testing"
 
-	apiv1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
-	composelabels "github.com/docker/cli/kubernetes/labels"
+	apiv1beta1 "github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
+	composelabels "github.com/docker/compose-on-kubernetes/api/labels"
 	"gotest.tools/assert"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

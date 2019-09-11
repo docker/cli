@@ -43,7 +43,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 
 	tasksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewTaskFormat(format, quiet),
+		Format: NewTaskFormat(format, quiet),
 		Trunc:  trunc,
 	}
 
@@ -80,7 +80,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 		nodes[task.ID] = nodeValue
 	}
 
-	return formatter.TaskWrite(tasksCtx, tasks, names, nodes)
+	return FormatWrite(tasksCtx, tasks, names, nodes)
 }
 
 // DefaultFormat returns the default format from the config file, or table

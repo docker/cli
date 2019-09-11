@@ -256,7 +256,7 @@ The UTS namespace is for setting the hostname and the domain that is visible
 to running processes in that namespace.  By default, all containers, including
 those with `--network=host`, have their own UTS namespace.  The `host` setting will
 result in the container using the same UTS namespace as the host.  Note that
-`--hostname` is invalid in `host` UTS mode.
+`--hostname` and `--domainname` are invalid in `host` UTS mode.
 
 You may wish to share the UTS namespace with the host if you would like the
 hostname of the container to change as the hostname of the host changes.  A
@@ -396,8 +396,8 @@ network stack and all interfaces from the host will be available to the
 container.  The container's hostname will match the hostname on the host
 system. Note that `--mac-address` is invalid in `host` netmode. Even in `host`
 network mode a container has its own UTS namespace by default. As such
-`--hostname` is allowed in `host` network mode and will only change the
-hostname inside the container.
+`--hostname` and `--domainname` are allowed in `host` network mode and will
+only change the hostname and domain name inside the container.
 Similar to `--hostname`, the `--add-host`, `--dns`, `--dns-search`, and
 `--dns-option` options can be used in `host` network mode. These options update
 `/etc/hosts` or `/etc/resolv.conf` inside the container. No change are made to
@@ -1085,7 +1085,7 @@ per second from `/dev/sda`:
 
     $ docker run -it --device-read-bps /dev/sda:1mb ubuntu
 
-The `--device-write-bps` flag limits the write rate (bytes per second)to a device.
+The `--device-write-bps` flag limits the write rate (bytes per second) to a device.
 For example, this command creates a container and limits the write rate to `1mb`
 per second for `/dev/sda`:
 
@@ -1433,7 +1433,7 @@ today=Wednesday
 HOME=/root
 ```
 
-```PowerShell
+```powershell
 PS C:\> docker run --rm -e "foo=bar" microsoft/nanoserver cmd /s /c set
 ALLUSERSPROFILE=C:\ProgramData
 APPDATA=C:\Users\ContainerAdministrator\AppData\Roaming
@@ -1555,7 +1555,7 @@ The example below mounts an empty tmpfs into the container with the `rw`,
     If neither 'rw' or 'ro' is specified then the volume is mounted in
     read-write mode.
 
-    The `nocopy` modes is used to disable automatic copying requested volume
+    The `nocopy` mode is used to disable automatically copying the requested volume
     path in the container to the volume storage location.
     For named volumes, `copy` is the default mode. Copy modes are not supported
     for bind-mounted volumes.

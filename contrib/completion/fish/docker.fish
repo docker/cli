@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
+        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
             return 1
         end
     end
@@ -33,6 +33,11 @@ function __fish_print_docker_containers --description 'Print a list of docker co
             docker ps -a --no-trunc --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
     end
 end
+
+function __fish_print_docker_networks --description 'Print a list of docker networks'
+    docker network ls --format "{{.ID}}\n{{.Name}}" | tr ',' '\n'
+end
+
 
 function __fish_docker_no_subcommand_trust --description 'Test if docker has yet to be given the trust subcommand'
     if __fish_seen_subcommand_from trust
@@ -369,6 +374,21 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -s t -l timestamp
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l since -d 'Show logs since timestamp'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l tail -d 'Output the specified number of lines at the end of logs (defaults to all logs)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -a '(__fish_print_docker_containers running)' -d "Container"
+
+# network
+complete -c docker -f -n '__fish_docker_no_subcommand' -a network -d 'Manage networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a connect -d 'Connect a container to a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a create -d 'Create a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a disconnect -d 'Disconnect a container from a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a inspect -d 'Display detailed information on one or more networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a ls -d 'List networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a prune -d 'Remove all unused networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a rm -d 'Remove one or more networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network rm' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network connect' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network disconnect' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network inspect' -a '(__fish_print_docker_networks)' -d "Network"
 
 # port
 complete -c docker -f -n '__fish_docker_no_subcommand' -a port -d 'Lookup the public-facing port that is NAT-ed to PRIVATE_PORT'

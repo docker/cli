@@ -3,13 +3,15 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/service"
+	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"vbom.ml/util/sortorder"
 )
 
 // RunServices is the swarm implementation of docker stack services
@@ -29,7 +31,10 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 		return nil
 	}
 
-	info := map[string]formatter.ServiceListInfo{}
+	sort.Slice(services, func(i, j int) bool {
+		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+	})
+	info := map[string]service.ListInfo{}
 	if !opts.Quiet {
 		taskFilter := filters.NewArgs()
 		for _, service := range services {
@@ -60,7 +65,7 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 
 	servicesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewServiceListFormat(format, opts.Quiet),
+		Format: service.NewListFormat(format, opts.Quiet),
 	}
-	return formatter.ServiceListWrite(servicesCtx, services, info)
+	return service.ListFormatWrite(servicesCtx, services, info)
 }

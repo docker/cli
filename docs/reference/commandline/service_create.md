@@ -61,6 +61,7 @@ Options:
   -q, --quiet                              Suppress progress output
       --read-only                          Mount the container's root filesystem as read only
       --replicas uint                      Number of tasks
+      --replicas-max-per-node uint         Maximum number of tasks per node (default 0 = unlimited)
       --reserve-cpu decimal                Reserve CPUs
       --reserve-memory bytes               Reserve Memory
       --restart-condition string           Restart when condition is met ("none"|"on-failure"|"any") (default "any")
@@ -76,6 +77,7 @@ Options:
       --secret secret                      Specify secrets to expose to the service
       --stop-grace-period duration         Time to wait before force killing a container (ns|us|ms|s|m|h) (default 10s)
       --stop-signal string                 Signal to stop the container
+      --sysctl list                        Sysctl options
   -t, --tty                                Allocate a pseudo-TTY
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h) (default 0s)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback") (default "pause")
@@ -219,7 +221,7 @@ tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
 ### Set environment variables (-e, --env)
 
-This sets an environmental variable for all tasks in a service. For example:
+This sets an environment variable for all tasks in a service. For example:
 
 ```bash
 $ docker service create \
@@ -271,7 +273,7 @@ metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
 on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind mounts_, and _tmpfs_.
+as volumes), _bind mounts_, _tmpfs_, and _named pipes_.
 
 A **bind mount** makes a file or directory on the host available to the
 container it is mounted within. A bind mount may be either read-only or
@@ -290,6 +292,8 @@ containers. Docker uses a _volume driver_ to create, manage, and mount volumes.
 You can back up or restore volumes using Docker commands.
 
 A **tmpfs** mounts a tmpfs inside a container for volatile data.
+
+A **npipe** mounts a named pipe from the host into the container.
 
 Consider a situation where your image starts a lightweight web server. You could
 use that image as a base image, copy in your website's HTML files, and package
@@ -312,21 +316,22 @@ volumes in a service:
     <th>Description</th>
   </tr>
   <tr>
-    <td><b>types</b></td>
+    <td><b>type</b></td>
     <td></td>
     <td>
-      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, or <tt>tmpfs</tt>. Defaults to <tt>volume</tt> if no type is specified.
+      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.
       <ul>
         <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
         into the container.</li> <li><tt>bind</tt>:
         bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
+        <li><tt>npipe</tt>: mounts named pipe from the host into the container (Windows containers only).</li>
       </ul></p>
     </td>
   </tr>
   <tr>
     <td><b>src</b> or <b>source</b></td>
-    <td>for <tt>type=bind</tt> only></td>
+    <td>for <tt>type=bind</tt> and <tt>type=npipe</tt></td>
     <td>
       <ul>
         <li>
@@ -360,16 +365,34 @@ volumes in a service:
     <td></td>
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
-      is given when mounting the bind or volume.
+      is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
+      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
       </ul></p>
     </td>
   </tr>
+</table>
+
+#### Options for Bind Mounts
+
+The following options can only be used for bind mounts (`type=bind`):
+
+
+<table>
+  <tr>
+    <th>Option</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><b>bind-propagation</b></td>
+    <td>
+      <p>See the <a href="#bind-propagation">bind propagation section</a>.</p>
+    </td>
+  </tr>
   <tr>
     <td><b>consistency</b></td>
-    <td></td>
     <td>
       <p>The consistency requirements for the mount; one of
          <ul>
@@ -381,9 +404,24 @@ volumes in a service:
      </p>
     </td>
   </tr>
+  <tr>
+    <td><b>bind-nonrecursive</b></td>
+    <td>
+      By default, submounts are recursively bind-mounted as well. However, this behavior can be confusing when a
+      bind mount is configured with <tt>readonly</tt> option, because submounts are not mounted as read-only.
+      Set <tt>bind-nonrecursive</tt> to disable recursive bind-mount.<br />
+      <br />
+      A value is optional:<br />
+      <br />
+      <ul>
+        <li><tt>true</tt> or <tt>1</tt>: Disables recursive bind-mount.</li>
+        <li><tt>false</tt> or <tt>0</tt>: Default if you do not provide a value. Enables recursive bind-mount.</li>
+      </ul>
+    </td>
+  </tr>
 </table>
 
-#### Bind Propagation
+##### Bind propagation
 
 Bind propagation refers to whether or not mounts created within a given
 bind mount or named volume can be propagated to replicas of that mount. Consider
@@ -420,7 +458,7 @@ volumes do not support bind propagation.
 For more information about bind propagation, see the
 [Linux kernel documentation for shared subtree](https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt).
 
-#### Options for Named Volumes
+#### Options for named volumes
 
 The following options can only be used for named volumes (`type=volume`):
 
@@ -456,9 +494,9 @@ The following options can only be used for named volumes (`type=volume`):
       the Engine copies those files and directories into the volume, allowing
       the host to access them. Set <tt>volume-nocopy</tt> to disable copying files
       from the container's filesystem to the volume and mount the empty volume.<br />
-
-      A value is optional:
-
+      <br />
+      A value is optional:<br />
+      <br />
       <ul>
         <li><tt>true</tt> or <tt>1</tt>: Default if you do not provide a value. Disables copying.</li>
         <li><tt>false</tt> or <tt>0</tt>: Enables copying.</li>
@@ -720,6 +758,26 @@ When updating a service with `docker service update`, `--placement-pref-add`
 appends a new placement preference after all existing placement preferences.
 `--placement-pref-rm` removes an existing placement preference that matches the
 argument.
+
+### Specify maximum replicas per node (--replicas-max-per-node)
+
+Use the `--replicas-max-per-node` flag to set the maximum number of replica tasks that can run on a node.
+The following command creates a nginx service with 2 replica tasks but only one replica task per node.
+
+One example where this can be useful is to balance tasks over a set of data centers together with `--placement-pref`
+and let `--replicas-max-per-node` setting make sure that replicas are not migrated to another datacenter during
+maintenance or datacenter failure.
+
+The example below illustrates this:
+
+```bash
+$ docker service create \
+  --name nginx \
+  --replicas 2 \
+  --replicas-max-per-node 1 \
+  --placement-pref 'spread=node.labels.datacenter' \
+  nginx
+```
 
 ### Attach a service to an existing network (--network)
 

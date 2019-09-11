@@ -11,7 +11,7 @@
             }
         ],
         "Signers": [],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [

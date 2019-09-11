@@ -109,3 +109,21 @@ func TestVolumeListWithFormat(t *testing.T) {
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-format.golden")
 }
+
+func TestVolumeListSortOrder(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+			return volumetypes.VolumeListOKBody{
+				Volumes: []*types.Volume{
+					Volume(VolumeName("volume-2-foo")),
+					Volume(VolumeName("volume-10-foo")),
+					Volume(VolumeName("volume-1-foo")),
+				},
+			}, nil
+		},
+	})
+	cmd := newListCommand(cli)
+	cmd.Flags().Set("format", "{{ .Name }}")
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "volume-list-sort.golden")
+}

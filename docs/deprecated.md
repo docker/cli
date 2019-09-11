@@ -19,6 +19,68 @@ The following list of features are deprecated in Engine.
 To learn more about Docker Engine's deprecation policy,
 see [Feature Deprecation Policy](https://docs.docker.com/engine/#feature-deprecation-policy).
 
+### Pushing and pulling with image manifest v2 schema 1
+
+**Deprecated in Release: v19.03.0**
+
+**Target For Removal In Release: v19.09.0**
+
+The image manifest
+[v2 schema 1](https://github.com/docker/distribution/blob/fda42e5ef908bdba722d435ff1f330d40dfcd56c/docs/spec/manifest-v2-1.md)
+format is deprecated in favor of the
+[v2 schema 2](https://github.com/docker/distribution/blob/fda42e5ef908bdba722d435ff1f330d40dfcd56c/docs/spec/manifest-v2-2.md) format.
+
+If the registry you are using still supports v2 schema 1, urge their administrators to move to v2 schema 2.
+
+### Legacy "overlay" storage driver
+
+**Deprecated in Release: v18.09.0**
+
+The `overlay` storage driver is deprecated in favor of the `overlay2` storage
+driver, which has all the benefits of `overlay`, without its limitations (excessive
+inode consumption). The legacy `overlay` storage driver will be removed in a future
+release. Users of the `overlay` storage driver should migrate to the `overlay2`
+storage driver.
+
+The legacy `overlay` storage driver allowed using overlayFS-backed filesystems
+on pre 4.x kernels. Now that all supported distributions are able to run `overlay2`
+(as they are either on kernel 4.x, or have support for multiple lowerdirs
+backported), there is no reason to keep maintaining the `overlay` storage driver.
+
+### device mapper storage driver
+
+**Deprecated in Release: v18.09.0**
+
+The `devicemapper` storage driver is deprecated in favor of `overlay2`, and will
+be removed in a future release. Users of the `devicemapper` storage driver are
+recommended to migrate to a different storage driver, such as `overlay2`, which
+is now the default storage driver.
+
+The `devicemapper` storage driver facilitates running Docker on older (3.x) kernels
+that have no support for other storage drivers (such as overlay2, or AUFS).
+
+Now that support for `overlay2` is added to all supported distros (as they are
+either on kernel 4.x, or have support for multiple lowerdirs backported), there
+is no reason to continue maintenance of the `devicemapper` storage driver.
+
+### AuFS storage driver
+
+**Deprecated in Release: v19.03.0**
+
+The `aufs` storage driver is deprecated in favor of `overlay2`, and will
+be removed in a future release. Users of the `aufs` storage driver are
+recommended to migrate to a different storage driver, such as `overlay2`, which
+is now the default storage driver.
+
+The `aufs` storage driver facilitates running Docker on distros that have no
+support for OverlayFS, such as Ubuntu 14.04 LTS, which originally shipped with
+a 3.14 kernel.
+
+Now that Ubuntu 14.04 is no longer a supported distro for Docker, and `overlay2`
+is available to all supported distros (as they are either on kernel 4.x, or have
+support for multiple lowerdirs backported), there is no reason to continue
+maintenance of the `aufs` storage driver.
+
 ### Reserved namespaces in engine labels
 
 **Deprecated in Release: v18.06.0**
@@ -167,7 +229,7 @@ The docker login command is removing the ability to automatically register for a
 
 **Target For Removal In Release: v17.06**
 
-The flag `--security-opt` doesn't use the colon separator(`:`) anymore to divide keys and values, it uses the equal symbol(`=`) for consistency with other similar flags, like `--storage-opt`.
+The flag `--security-opt` doesn't use the colon separator (`:`) anymore to divide keys and values, it uses the equal symbol (`=`) for consistency with other similar flags, like `--storage-opt`.
 
 ### `/containers/(id or name)/copy` endpoint
 

@@ -59,6 +59,29 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $pushed=$False  # To restore the directory if we have temporarily pushed to one.
 
+# Utility function to get the commit ID of the repository
+Function Get-GitCommit() {
+    if (-not (Test-Path ".\.git")) {
+        # If we don't have a .git directory, but we do have the environment
+        # variable DOCKER_GITCOMMIT set, that can override it.
+        if ($env:DOCKER_GITCOMMIT.Length -eq 0) {
+            Throw ".git directory missing and DOCKER_GITCOMMIT environment variable not specified."
+        }
+        Write-Host "INFO: Git commit ($env:DOCKER_GITCOMMIT) assumed from DOCKER_GITCOMMIT environment variable"
+        return $env:DOCKER_GITCOMMIT
+    }
+    $gitCommit=$(git rev-parse --short HEAD)
+    if ($(git status --porcelain --untracked-files=no).Length -ne 0) {
+        $gitCommit="$gitCommit-unsupported"
+        Write-Host ""
+        Write-Warning "This version is unsupported because there are uncommitted file(s)."
+        Write-Warning "Either commit these changes, or add them to .gitignore."
+        git status --porcelain --untracked-files=no | Write-Warning
+        Write-Host ""
+    }
+    return $gitCommit
+}
+
 # Build a binary (client or daemon)
 Function Execute-Build($additionalBuildTags, $directory) {
     # Generate the build flags
@@ -69,20 +92,53 @@ Function Execute-Build($additionalBuildTags, $directory) {
     if ($NoOpt)                     { $optParm=" -gcflags "+""""+"-N -l"+"""" }
     if ($additionalBuildTags -ne "") { $buildTags += $(" " + $additionalBuildTags) }
 
+
+    # Get the git commit. This will also verify if we are in a repo or not. Then add a custom string if supplied.
+    $gitCommit=Get-GitCommit
+    if ($CommitSuffix -ne "") { $gitCommit += "-"+$CommitSuffix -Replace ' ', '' }
+    if (Test-Path Env:\DOCKER_GITCOMMIT) {$gitCommit=$env:DOCKER_GITCOMMIT}
+
+    # Get the version of docker (eg 17.04.0-dev)
+    $dockerVersion="0.0.0-dev"
+    if (Test-Path Env:\VERSION) {$dockerVersion=$env:VERSION}
+
     # Do the go build in the appropriate directory
     # Note -linkmode=internal is required to be able to debug on Windows.
     # https://github.com/golang/go/issues/14319#issuecomment-189576638
     Write-Host "INFO: Building..."
+
+    $buildTime=$(Get-Date).ToUniversalTime()
+    $env:LDFLAGS="-linkmode=internal `
+      -X \""github.com/docker/cli/cli/version.Version=$dockerVersion\"" `
+      -X \""github.com/docker/cli/cli/version.GitCommit=$gitCommit\"" `
+      -X \""github.com/docker/cli/cli/version.BuildTime=$buildTime\"""
+    if ($env:PLATFORM) {
+      $env:LDFLAGS="$env:LDFLAGS -X \""github.com/docker/cli/cli/version.PlatformName=$env:PLATFORM\"""
+    }
+
+    # Generate a version in the form major,minor,patch,build
+    $versionQuad=$dockerVersion -replace "[^0-9.]*" -replace "\.", ","
+
+    # If you really want to understand this madness below, search the Internet for powershell variables after verbatim arguments... Needed to get double-quotes passed through to the compiler options.
+    # Generate the .syso files containing all the resources and manifest needed to compile the final docker binaries. Both 32 and 64-bit clients.
+    $env:_ag_dockerVersion=$dockerVersion
+    $env:_ag_gitCommit=$gitCommit
+
+    New-Item -ItemType Directory -Path .\tmp | Out-Null
+    windres -i scripts/winresources/docker.rc -o cli/winresources/rsrc_amd64.syso  -F pe-x86-64 --use-temp-file -I ./tmp -D DOCKER_VERSION_QUAD=$versionQuad --% -D DOCKER_VERSION=\"%_ag_dockerVersion%\" -D DOCKER_COMMIT=\"%_ag_gitCommit%\"
+    if ($LASTEXITCODE -ne 0) { Throw "Failed to compile client 64-bit resources" }
+
+    windres -i scripts/winresources/docker.rc -o cli/winresources/rsrc_386.syso    -F pe-i386   --use-temp-file -I ./tmp -D DOCKER_VERSION_QUAD=$versionQuad --% -D DOCKER_VERSION=\"%_ag_dockerVersion%\" -D DOCKER_COMMIT=\"%_ag_gitCommit%\"
+    if ($LASTEXITCODE -ne 0) { Throw "Failed to compile client 32-bit resources" }
+    Remove-Item .\tmp -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+
     Push-Location $root\cmd\$directory; $global:pushed=$True
-    $buildCommand = "go build" + `
-                    $raceParm + `
-                    $verboseParm + `
-                    $allParm + `
-                    $optParm + `
-                    " -tags """ + $buildTags + """" + `
-                    " -ldflags """ + "-linkmode=internal" + """" + `
-                    " -o $root\build\"+$directory+".exe"
-    Invoke-Expression $buildCommand
+
+    # By using --% we can use \"key=%foo%\" and have a environment variable foo that contains spaces
+    go build $raceParm $verboseParm $allParm $optParm -tags "$buildTags" `
+      -o "$root\build\$directory.exe" `
+      -ldflags --% "%LDFLAGS%"
+
     if ($LASTEXITCODE -ne 0) { Throw "Failed to compile" }
     Pop-Location; $global:pushed=$False
 }

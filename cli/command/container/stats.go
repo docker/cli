@@ -108,7 +108,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 			closeChan <- err
 		}
 		for _, container := range cs {
-			s := formatter.NewContainerStats(container.ID[:12])
+			s := NewStats(container.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -125,7 +125,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		eh := command.InitEventHandler()
 		eh.Handle("create", func(e events.Message) {
 			if opts.all {
-				s := formatter.NewContainerStats(e.ID[:12])
+				s := NewStats(e.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
 					go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -134,7 +134,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		})
 
 		eh.Handle("start", func(e events.Message) {
-			s := formatter.NewContainerStats(e.ID[:12])
+			s := NewStats(e.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -160,7 +160,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// Artificially send creation events for the containers we were asked to
 		// monitor (same code path than we use when monitoring all containers).
 		for _, name := range opts.containers {
-			s := formatter.NewContainerStats(name)
+			s := NewStats(name)
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, dockerCli.Client(), !opts.noStream, waitFirst)
@@ -198,7 +198,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	}
 	statsCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewStatsFormat(format, daemonOSType),
+		Format: NewStatsFormat(format, daemonOSType),
 	}
 	cleanScreen := func() {
 		if !opts.noStream {
@@ -210,13 +210,13 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	var err error
 	for range time.Tick(500 * time.Millisecond) {
 		cleanScreen()
-		ccstats := []formatter.StatsEntry{}
+		ccstats := []StatsEntry{}
 		cStats.mu.Lock()
 		for _, c := range cStats.cs {
 			ccstats = append(ccstats, c.GetStatistics())
 		}
 		cStats.mu.Unlock()
-		if err = formatter.ContainerStatsWrite(statsCtx, ccstats, daemonOSType, !opts.noTrunc); err != nil {
+		if err = statsFormatWrite(statsCtx, ccstats, daemonOSType, !opts.noTrunc); err != nil {
 			break
 		}
 		if len(cStats.cs) == 0 && !showAll {

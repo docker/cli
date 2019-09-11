@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
+	"vbom.ml/util/sortorder"
 )
 
 type listOptions struct {
@@ -55,7 +56,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	}
 
 	sort.Slice(volumes.Volumes, func(i, j int) bool {
-		return volumes.Volumes[i].Name < volumes.Volumes[j].Name
+		return sortorder.NaturalLess(volumes.Volumes[i].Name, volumes.Volumes[j].Name)
 	})
 
 	volumeCtx := formatter.Context{

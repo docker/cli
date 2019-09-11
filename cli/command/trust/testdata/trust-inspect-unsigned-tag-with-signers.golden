@@ -20,7 +20,7 @@
                 ]
             }
         ],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [

@@ -1,0 +1,31 @@
+[
+    {
+        "Name": "current",
+        "Metadata": {
+            "Description": "description of current",
+            "StackOrchestrator": "all"
+        },
+        "Endpoints": {
+            "docker": {
+                "Host": "https://someswarmserver",
+                "SkipTLSVerify": false
+            },
+            "kubernetes": {
+                "Host": "https://someserver",
+                "SkipTLSVerify": false,
+                "DefaultNamespace": "default"
+            }
+        },
+        "TLSMaterial": {
+            "kubernetes": [
+                "ca.pem",
+                "cert.pem",
+                "key.pem"
+            ]
+        },
+        "Storage": {
+            "MetadataPath": "<METADATA_PATH>",
+            "TLSPath": "<TLS_PATH>"
+        }
+    }
+]

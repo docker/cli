@@ -5,8 +5,9 @@ wrappedNode(label: 'linux && x86_64', cleanWorkspace: true) {
 
     stage "Run end-to-end test suite"
     sh "docker version"
+    sh "docker info"
     sh "E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
         IMAGE_TAG=clie2e${BUILD_NUMBER} \
-        make -f docker.Makefile test-e2e"
+        DOCKER_BUILDKIT=1 make -f docker.Makefile test-e2e"
   }
 }

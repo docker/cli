@@ -53,7 +53,7 @@ $ docker trust inspect alpine:latest
       }
     ],
     "Signers": [],
-    "AdminstrativeKeys": [
+    "AdministrativeKeys": [
       {
         "Name": "Repository",
         "Keys": [
@@ -131,7 +131,7 @@ $ docker trust inspect my-image:purple
         ]
       }
     ],
-    "AdminstrativeKeys": [
+    "AdministrativeKeys": [
       {
         "Name": "Repository",
         "Keys": [
@@ -170,7 +170,7 @@ $ docker trust inspect alpine:unsigned
   {
     "Name": "alpine:unsigned",
     "Signers": [],
-    "AdminstrativeKeys": [
+    "AdministrativeKeys": [
       {
         "Name": "Repository",
         "Keys": [
@@ -233,7 +233,7 @@ $ docker trust inspect alpine
             }
         ],
         "Signers": [],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Repository",
                 "Keys": [
@@ -304,7 +304,7 @@ $ docker trust inspect alpine notary
             }
         ],
         "Signers": [],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Repository",
                 "Keys": [
@@ -342,7 +342,7 @@ $ docker trust inspect alpine notary
             }
         ],
         "Signers": [],
-        "AdminstrativeKeys": [
+        "AdministrativeKeys": [
             {
                 "Name": "Root",
                 "Keys": [

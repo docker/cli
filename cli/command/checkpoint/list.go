@@ -48,7 +48,7 @@ func runList(dockerCli command.Cli, container string, opts listOptions) error {
 
 	cpCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewCheckpointFormat(formatter.TableFormatKey),
+		Format: NewFormat(formatter.TableFormatKey),
 	}
-	return formatter.CheckpointWrite(cpCtx, checkpoints)
+	return FormatWrite(cpCtx, checkpoints)
 }

@@ -8,16 +8,13 @@ alpine_dest=registry:5000/alpine:3.6
 busybox_src=busybox@sha256:3e8fa85ddfef1af9ca85a5cfb714148956984e02f00bec3f7f49d3925a91e0e7
 busybox_dest=registry:5000/busybox:1.27.2
 
-function fetch_tag_image {
-    local src=$1
-    local dest=$2
-    docker pull "$src"
-    docker tag "$src" "$dest"
+fetch_tag_image() {
+    docker pull "$1"
+    docker tag "$1" "$2"
 }
 
-function push_image {
-  local img=$1
-  docker push "$img"
+push_image() {
+  docker push "$1"
 }
 
 cmd=${1-}

@@ -12,19 +12,24 @@ import (
 
 type fakeClient struct {
 	client.Client
-	inspectFunc           func(string) (types.ContainerJSON, error)
-	execInspectFunc       func(execID string) (types.ContainerExecInspect, error)
-	execCreateFunc        func(container string, config types.ExecConfig) (types.IDResponse, error)
-	createContainerFunc   func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
-	containerStartFunc    func(container string, options types.ContainerStartOptions) error
-	imageCreateFunc       func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
-	infoFunc              func() (types.Info, error)
-	containerStatPathFunc func(container, path string) (types.ContainerPathStat, error)
-	containerCopyFromFunc func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
-	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
-	waitFunc              func(string) (<-chan container.ContainerWaitOKBody, <-chan error)
-	containerListFunc     func(types.ContainerListOptions) ([]types.Container, error)
-	Version               string
+	inspectFunc         func(string) (types.ContainerJSON, error)
+	execInspectFunc     func(execID string) (types.ContainerExecInspect, error)
+	execCreateFunc      func(container string, config types.ExecConfig) (types.IDResponse, error)
+	createContainerFunc func(config *container.Config,
+		hostConfig *container.HostConfig,
+		networkingConfig *network.NetworkingConfig,
+		containerName string) (container.ContainerCreateCreatedBody, error)
+	containerStartFunc      func(container string, options types.ContainerStartOptions) error
+	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
+	infoFunc                func() (types.Info, error)
+	containerStatPathFunc   func(container, path string) (types.ContainerPathStat, error)
+	containerCopyFromFunc   func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
+	logFunc                 func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
+	waitFunc                func(string) (<-chan container.ContainerWaitOKBody, <-chan error)
+	containerListFunc       func(types.ContainerListOptions) ([]types.Container, error)
+	containerExportFunc     func(string) (io.ReadCloser, error)
+	containerExecResizeFunc func(id string, options types.ResizeOptions) error
+	Version                 string
 }
 
 func (f *fakeClient) ContainerList(_ context.Context, options types.ContainerListOptions) ([]types.Container, error) {
@@ -121,6 +126,20 @@ func (f *fakeClient) ContainerWait(_ context.Context, container string, _ contai
 func (f *fakeClient) ContainerStart(_ context.Context, container string, options types.ContainerStartOptions) error {
 	if f.containerStartFunc != nil {
 		return f.containerStartFunc(container, options)
+	}
+	return nil
+}
+
+func (f *fakeClient) ContainerExport(_ context.Context, container string) (io.ReadCloser, error) {
+	if f.containerExportFunc != nil {
+		return f.containerExportFunc(container)
+	}
+	return nil, nil
+}
+
+func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options types.ResizeOptions) error {
+	if f.containerExecResizeFunc != nil {
+		return f.containerExecResizeFunc(id, options)
 	}
 	return nil
 }

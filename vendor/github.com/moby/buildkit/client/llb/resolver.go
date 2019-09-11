@@ -3,16 +3,18 @@ package llb
 import (
 	"context"
 
+	gw "github.com/moby/buildkit/frontend/gateway/client"
 	digest "github.com/opencontainers/go-digest"
-	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
+// WithMetaResolver adds a metadata resolver to an image
 func WithMetaResolver(mr ImageMetaResolver) ImageOption {
-	return ImageOptionFunc(func(ii *ImageInfo) {
+	return imageOptionFunc(func(ii *ImageInfo) {
 		ii.metaResolver = mr
 	})
 }
 
+// ImageMetaResolver can resolve image config metadata from a reference
 type ImageMetaResolver interface {
-	ResolveImageConfig(ctx context.Context, ref string, platform *specs.Platform) (digest.Digest, []byte, error)
+	ResolveImageConfig(ctx context.Context, ref string, opt gw.ResolveImageConfigOpt) (digest.Digest, []byte, error)
 }

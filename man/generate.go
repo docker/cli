@@ -6,10 +6,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	"github.com/docker/docker/pkg/term"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/pflag"
@@ -24,8 +25,21 @@ func generateManPages(opts *options) error {
 		Source:  "Docker Community",
 	}
 
-	stdin, stdout, stderr := term.StdStreams()
-	dockerCli := command.NewDockerCli(stdin, stdout, stderr, false)
+	// If SOURCE_DATE_EPOCH is set, in order to allow reproducible package
+	// builds, we explicitly set the build time to SOURCE_DATE_EPOCH.
+	if epoch := os.Getenv("SOURCE_DATE_EPOCH"); epoch != "" {
+		unixEpoch, err := strconv.ParseInt(epoch, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid SOURCE_DATE_EPOCH: %v", err)
+		}
+		now := time.Unix(unixEpoch, 0)
+		header.Date = &now
+	}
+
+	dockerCli, err := command.NewDockerCli()
+	if err != nil {
+		return err
+	}
 	cmd := &cobra.Command{Use: "docker"}
 	commands.AddCommands(cmd, dockerCli)
 	source := filepath.Join(opts.source, descriptionSourcePath)

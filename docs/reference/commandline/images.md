@@ -286,6 +286,16 @@ busybox             uclibc              e02e811dd08f        5 weeks ago         
 busybox             glibc               21c16b6787c6        5 weeks ago         4.19 MB
 ```
 
+Filtering with multiple `reference` would give, either match A or B:
+
+```bash
+$ docker images --filter=reference='busy*:uclibc' --filter=reference='busy*:glibc'
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+busybox             uclibc              e02e811dd08f        5 weeks ago         1.09 MB
+busybox             glibc               21c16b6787c6        5 weeks ago         4.19 MB
+```
+
 ### Format the output
 
 The formatting option (`--format`) will pretty print container output

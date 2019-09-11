@@ -12,17 +12,20 @@ func TestGetStackAPIVersion(t *testing.T) {
 	var tests = []struct {
 		description   string
 		groups        *metav1.APIGroupList
+		experimental  bool
 		err           bool
 		expectedStack StackVersion
 	}{
-		{"no stack api", makeGroups(), true, ""},
-		{"v1beta1", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1"}}), false, StackAPIV1Beta1},
-		{"v1beta2", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta2"}}), false, StackAPIV1Beta2},
-		{"most recent has precedence", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1", "v1beta2"}}), false, StackAPIV1Beta2},
+		{"no stack api", makeGroups(), false, true, ""},
+		{"v1beta1", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1"}}), false, false, StackAPIV1Beta1},
+		{"v1beta2", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta2"}}), false, false, StackAPIV1Beta2},
+		{"most recent has precedence", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1", "v1beta2"}}), false, false, StackAPIV1Beta2},
+		{"most recent has precedence", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1", "v1beta2", "v1alpha3"}}), false, false, StackAPIV1Beta2},
+		{"most recent has precedence", makeGroups(groupVersion{"compose.docker.com", []string{"v1beta1", "v1beta2", "v1alpha3"}}), true, false, StackAPIV1Alpha3},
 	}
 
 	for _, test := range tests {
-		version, err := getAPIVersion(test.groups)
+		version, err := getAPIVersion(test.groups, test.experimental)
 		if test.err {
 			assert.ErrorContains(t, err, "")
 		} else {

@@ -122,6 +122,26 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	return result, nil
 }
 
+func handleNpipeToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, error) {
+	result := createMountFromVolume(volume)
+
+	if volume.Source == "" {
+		return mount.Mount{}, errors.New("invalid npipe source, source cannot be empty")
+	}
+	if volume.Volume != nil {
+		return mount.Mount{}, errors.New("volume options are incompatible with type npipe")
+	}
+	if volume.Tmpfs != nil {
+		return mount.Mount{}, errors.New("tmpfs options are incompatible with type npipe")
+	}
+	if volume.Bind != nil {
+		result.BindOptions = &mount.BindOptions{
+			Propagation: mount.Propagation(volume.Bind.Propagation),
+		}
+	}
+	return result, nil
+}
+
 func convertVolumeToMount(
 	volume composetypes.ServiceVolumeConfig,
 	stackVolumes volumes,
@@ -135,6 +155,8 @@ func convertVolumeToMount(
 		return handleBindToMount(volume)
 	case "tmpfs":
 		return handleTmpfsToMount(volume)
+	case "npipe":
+		return handleNpipeToMount(volume)
 	}
-	return mount.Mount{}, errors.New("volume type must be volume, bind, or tmpfs")
+	return mount.Mount{}, errors.New("volume type must be volume, bind, tmpfs or npipe")
 }

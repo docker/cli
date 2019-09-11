@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/pflag"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
+	"gotest.tools/skip"
 )
 
 func TestValidateAttach(t *testing.T) {
@@ -48,7 +49,7 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 		return nil, nil, nil, err
 	}
 	// TODO: fix tests to accept ContainerConfig
-	containerConfig, err := parse(flags, copts)
+	containerConfig, err := parse(flags, copts, runtime.GOOS)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -265,14 +266,35 @@ func TestParseHostname(t *testing.T) {
 	hostnameWithDomainTld := "--hostname=hostname.domainname.tld"
 	for hostname, expectedHostname := range validHostnames {
 		if config, _ := mustParse(t, fmt.Sprintf("--hostname=%s", hostname)); config.Hostname != expectedHostname {
-			t.Fatalf("Expected the config to have 'hostname' as hostname, got '%v'", config.Hostname)
+			t.Fatalf("Expected the config to have 'hostname' as %q, got %q", expectedHostname, config.Hostname)
 		}
 	}
-	if config, _ := mustParse(t, hostnameWithDomain); config.Hostname != "hostname.domainname" && config.Domainname != "" {
-		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname, got '%v'", config.Hostname)
+	if config, _ := mustParse(t, hostnameWithDomain); config.Hostname != "hostname.domainname" || config.Domainname != "" {
+		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname, got %q", config.Hostname)
 	}
-	if config, _ := mustParse(t, hostnameWithDomainTld); config.Hostname != "hostname.domainname.tld" && config.Domainname != "" {
-		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname.tld, got '%v'", config.Hostname)
+	if config, _ := mustParse(t, hostnameWithDomainTld); config.Hostname != "hostname.domainname.tld" || config.Domainname != "" {
+		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname.tld, got %q", config.Hostname)
+	}
+}
+
+func TestParseHostnameDomainname(t *testing.T) {
+	validDomainnames := map[string]string{
+		"domainname":    "domainname",
+		"domain-name":   "domain-name",
+		"domainname123": "domainname123",
+		"123domainname": "123domainname",
+		"domainname-63-bytes-long-should-be-valid-and-without-any-errors": "domainname-63-bytes-long-should-be-valid-and-without-any-errors",
+	}
+	for domainname, expectedDomainname := range validDomainnames {
+		if config, _ := mustParse(t, "--domainname="+domainname); config.Domainname != expectedDomainname {
+			t.Fatalf("Expected the config to have 'domainname' as %q, got %q", expectedDomainname, config.Domainname)
+		}
+	}
+	if config, _ := mustParse(t, "--hostname=some.prefix --domainname=domainname"); config.Hostname != "some.prefix" || config.Domainname != "domainname" {
+		t.Fatalf("Expected the config to have 'hostname' as 'some.prefix' and 'domainname' as 'domainname', got %q and %q", config.Hostname, config.Domainname)
+	}
+	if config, _ := mustParse(t, "--hostname=another-prefix --domainname=domainname.tld"); config.Hostname != "another-prefix" || config.Domainname != "domainname.tld" {
+		t.Fatalf("Expected the config to have 'hostname' as 'another-prefix' and 'domainname' as 'domainname.tld', got %q and %q", config.Hostname, config.Domainname)
 	}
 }
 
@@ -330,6 +352,7 @@ func TestParseWithExpose(t *testing.T) {
 }
 
 func TestParseDevice(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
 	valids := map[string]container.DeviceMapping{
 		"/dev/snd": {
 			PathOnHost:        "/dev/snd",
@@ -367,12 +390,145 @@ func TestParseDevice(t *testing.T) {
 
 }
 
+func TestParseNetworkConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		flags       []string
+		expected    map[string]*networktypes.EndpointSettings
+		expectedCfg container.HostConfig
+		expectedErr string
+	}{
+		{
+			name:        "single-network-legacy",
+			flags:       []string{"--network", "net1"},
+			expected:    map[string]*networktypes.EndpointSettings{},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "single-network-advanced",
+			flags:       []string{"--network", "name=net1"},
+			expected:    map[string]*networktypes.EndpointSettings{},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name: "single-network-legacy-with-options",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "name=net1",
+				"--network-alias", "web1",
+				"--network-alias", "web2",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links:   []string{"foo:bar", "bar:baz"},
+					Aliases: []string{"web1", "web2"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name: "multiple-network-advanced-mixed",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "name=net1,driver-opt=field1=value1",
+				"--network-alias", "web1",
+				"--network-alias", "web2",
+				"--network", "net2",
+				"--network", "name=net3,alias=web3,driver-opt=field3=value3",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					DriverOpts: map[string]string{"field1": "value1"},
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links:   []string{"foo:bar", "bar:baz"},
+					Aliases: []string{"web1", "web2"},
+				},
+				"net2": {},
+				"net3": {
+					DriverOpts: map[string]string{"field3": "value3"},
+					Aliases:    []string{"web3"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:  "single-network-advanced-with-options",
+			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2"},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					DriverOpts: map[string]string{
+						"field1": "value1",
+						"field2": "value2",
+					},
+					Aliases: []string{"web1", "web2"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "multiple-networks",
+			flags:       []string{"--network", "net1", "--network", "name=net2"},
+			expected:    map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:        "conflict-network",
+			flags:       []string{"--network", "duplicate", "--network", "name=duplicate"},
+			expectedErr: `network "duplicate" is specified multiple times`,
+		},
+		{
+			name:        "conflict-options",
+			flags:       []string{"--network", "name=net1,alias=web1", "--network-alias", "web1"},
+			expectedErr: `conflicting options: cannot specify both --network-alias and per-network alias`,
+		},
+		{
+			name:        "invalid-mixed-network-types",
+			flags:       []string{"--network", "name=host", "--network", "net1"},
+			expectedErr: `conflicting options: cannot attach both user-defined and non-user-defined network-modes`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, hConfig, nwConfig, err := parseRun(tc.flags)
+
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
+				return
+			}
+
+			assert.NilError(t, err)
+			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedCfg.NetworkMode)
+			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
+		})
+	}
+}
+
 func TestParseModes(t *testing.T) {
 	// pid ko
 	flags, copts := setupRunFlags()
 	args := []string{"--pid=container:", "img", "cmd"}
 	assert.NilError(t, flags.Parse(args))
-	_, err := parse(flags, copts)
+	_, err := parse(flags, copts, runtime.GOOS)
 	assert.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
@@ -594,6 +750,7 @@ func TestParseEntryPoint(t *testing.T) {
 }
 
 func TestValidateDevice(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
 	valid := []string{
 		"/home",
 		"/home:/home",
@@ -628,18 +785,72 @@ func TestValidateDevice(t *testing.T) {
 	}
 
 	for _, path := range valid {
-		if _, err := validateDevice(path); err != nil {
+		if _, err := validateDevice(path, runtime.GOOS); err != nil {
 			t.Fatalf("ValidateDevice(`%q`) should succeed: error %q", path, err)
 		}
 	}
 
 	for path, expectedError := range invalid {
-		if _, err := validateDevice(path); err == nil {
+		if _, err := validateDevice(path, runtime.GOOS); err == nil {
 			t.Fatalf("ValidateDevice(`%q`) should have failed validation", path)
 		} else {
 			if err.Error() != expectedError {
 				t.Fatalf("ValidateDevice(`%q`) error should contain %q, got %q", path, expectedError, err.Error())
 			}
 		}
+	}
+}
+
+func TestParseSystemPaths(t *testing.T) {
+	tests := []struct {
+		doc                       string
+		in, out, masked, readonly []string
+	}{
+		{
+			doc: "not set",
+			in:  []string{},
+			out: []string{},
+		},
+		{
+			doc: "not set, preserve other options",
+			in: []string{
+				"seccomp=unconfined",
+				"apparmor=unconfined",
+				"label=user:USER",
+				"foo=bar",
+			},
+			out: []string{
+				"seccomp=unconfined",
+				"apparmor=unconfined",
+				"label=user:USER",
+				"foo=bar",
+			},
+		},
+		{
+			doc:      "unconfined",
+			in:       []string{"systempaths=unconfined"},
+			out:      []string{},
+			masked:   []string{},
+			readonly: []string{},
+		},
+		{
+			doc:      "unconfined and other options",
+			in:       []string{"foo=bar", "bar=baz", "systempaths=unconfined"},
+			out:      []string{"foo=bar", "bar=baz"},
+			masked:   []string{},
+			readonly: []string{},
+		},
+		{
+			doc: "unknown option",
+			in:  []string{"foo=bar", "systempaths=unknown", "bar=baz"},
+			out: []string{"foo=bar", "systempaths=unknown", "bar=baz"},
+		},
+	}
+
+	for _, tc := range tests {
+		securityOpts, maskedPaths, readonlyPaths := parseSystemPaths(tc.in)
+		assert.DeepEqual(t, securityOpts, tc.out)
+		assert.DeepEqual(t, maskedPaths, tc.masked)
+		assert.DeepEqual(t, readonlyPaths, tc.readonly)
 	}
 }

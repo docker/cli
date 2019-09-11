@@ -24,6 +24,7 @@ Options:
   -c, --change value     Apply Dockerfile instruction to the created image (default [])
       --help             Print usage
   -m, --message string   Set commit message for imported image
+      --platform string  Set platform if server is multi-platform capable
 ```
 
 ## Description
@@ -87,3 +88,11 @@ Note the `sudo` in this example – you must preserve
 the ownership of the files (especially root ownership) during the
 archiving with tar. If you are not root (or the sudo command) when you
 tar, then the ownerships might not get preserved.
+
+## When the daemon supports multiple operating systems
+If the daemon supports multiple operating systems, and the image being imported
+does not match the default operating system, it may be necessary to add
+`--platform`. This would be necessary when importing a Linux image into a Windows
+daemon.
+
+    # docker import --platform=linux .\linuximage.tar

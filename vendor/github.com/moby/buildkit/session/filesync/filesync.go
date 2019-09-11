@@ -10,8 +10,11 @@ import (
 	"github.com/moby/buildkit/session"
 	"github.com/pkg/errors"
 	"github.com/tonistiigi/fsutil"
+	fstypes "github.com/tonistiigi/fsutil/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -32,7 +35,7 @@ type SyncedDir struct {
 	Name     string
 	Dir      string
 	Excludes []string
-	Map      func(*fsutil.Stat) bool
+	Map      func(string, *fstypes.Stat) bool
 }
 
 // NewFSSyncProvider creates a new provider for sending files from client
@@ -79,7 +82,7 @@ func (sp *fsSyncProvider) handle(method string, stream grpc.ServerStream) (retEr
 
 	dir, ok := sp.dirs[dirName]
 	if !ok {
-		return errors.Errorf("no access allowed to dir %q", dirName)
+		return status.Errorf(codes.NotFound, "no access allowed to dir %q", dirName)
 	}
 
 	excludes := opts[keyExcludePatterns]
@@ -101,7 +104,12 @@ func (sp *fsSyncProvider) handle(method string, stream grpc.ServerStream) (retEr
 		doneCh = sp.doneCh
 		sp.doneCh = nil
 	}
-	err := pr.sendFn(stream, dir.Dir, includes, excludes, followPaths, progress, dir.Map)
+	err := pr.sendFn(stream, fsutil.NewFS(dir.Dir, &fsutil.WalkOpt{
+		ExcludePatterns: excludes,
+		IncludePatterns: includes,
+		FollowPaths:     followPaths,
+		Map:             dir.Map,
+	}), progress)
 	if doneCh != nil {
 		if err != nil {
 			doneCh <- err
@@ -120,8 +128,8 @@ type progressCb func(int, bool)
 
 type protocol struct {
 	name   string
-	sendFn func(stream grpc.Stream, srcDir string, includes, excludes, followPaths []string, progress progressCb, _map func(*fsutil.Stat) bool) error
-	recvFn func(stream grpc.Stream, destDir string, cu CacheUpdater, progress progressCb) error
+	sendFn func(stream grpc.Stream, fs fsutil.FS, progress progressCb) error
+	recvFn func(stream grpc.Stream, destDir string, cu CacheUpdater, progress progressCb, mapFunc func(string, *fstypes.Stat) bool) error
 }
 
 func isProtoSupported(p string) bool {
@@ -150,6 +158,7 @@ type FSSendRequestOpt struct {
 	DestDir          string
 	CacheUpdater     CacheUpdater
 	ProgressCb       func(int, bool)
+	Filter           func(string, *fstypes.Stat) bool
 }
 
 // CacheUpdater is an object capable of sending notifications for the cache hash changes
@@ -169,7 +178,7 @@ func FSSync(ctx context.Context, c session.Caller, opt FSSendRequestOpt) error {
 		}
 	}
 	if pr == nil {
-		return errors.New("no fssync handlers")
+		return errors.New("no local sources enabled")
 	}
 
 	opts := make(map[string][]string)
@@ -217,7 +226,7 @@ func FSSync(ctx context.Context, c session.Caller, opt FSSendRequestOpt) error {
 		panic(fmt.Sprintf("invalid protocol: %q", pr.name))
 	}
 
-	return pr.recvFn(stream, opt.DestDir, opt.CacheUpdater, opt.ProgressCb)
+	return pr.recvFn(stream, opt.DestDir, opt.CacheUpdater, opt.ProgressCb, opt.Filter)
 }
 
 // NewFSSyncTargetDir allows writing into a directory
@@ -256,7 +265,7 @@ func (sp *fsSyncTarget) DiffCopy(stream FileSend_DiffCopyServer) error {
 	return writeTargetFile(stream, sp.outfile)
 }
 
-func CopyToCaller(ctx context.Context, srcPath string, c session.Caller, progress func(int, bool)) error {
+func CopyToCaller(ctx context.Context, fs fsutil.FS, c session.Caller, progress func(int, bool)) error {
 	method := session.MethodURL(_FileSend_serviceDesc.ServiceName, "diffcopy")
 	if !c.Supports(method) {
 		return errors.Errorf("method %s not supported by the client", method)
@@ -269,7 +278,7 @@ func CopyToCaller(ctx context.Context, srcPath string, c session.Caller, progres
 		return err
 	}
 
-	return sendDiffCopy(cc, srcPath, nil, nil, nil, progress, nil)
+	return sendDiffCopy(cc, fs, progress)
 }
 
 func CopyFileWriter(ctx context.Context, c session.Caller) (io.WriteCloser, error) {

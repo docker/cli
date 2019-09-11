@@ -63,8 +63,8 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 	pluginsCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewPluginFormat(format, options.quiet),
+		Format: NewFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return formatter.PluginWrite(pluginsCtx, plugins)
+	return FormatWrite(pluginsCtx, plugins)
 }

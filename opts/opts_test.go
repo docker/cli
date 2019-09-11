@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"gotest.tools/assert"
 )
 
 func TestValidateIPAddress(t *testing.T) {
@@ -175,19 +177,104 @@ func TestValidateDNSSearch(t *testing.T) {
 }
 
 func TestValidateLabel(t *testing.T) {
-	if _, err := ValidateLabel("label"); err == nil || err.Error() != "bad attribute format: label" {
-		t.Fatalf("Expected an error [bad attribute format: label], go %v", err)
+	tests := []struct {
+		name        string
+		value       string
+		expectedErr string
+	}{
+		{
+			name:        "empty",
+			expectedErr: `invalid label '': empty name`,
+		},
+		{
+			name:        "whitespace only ",
+			value:       " ",
+			expectedErr: `invalid label ' ': empty name`,
+		},
+		{
+			name:        "whitespace around equal-sign",
+			value:       " = ",
+			expectedErr: `invalid label ' = ': empty name`,
+		},
+		{
+			name:  "leading whitespace",
+			value: "    label=value",
+		},
+		{
+			name:        "whitespaces in key without value",
+			value:       "this is a label without value",
+			expectedErr: `label 'this is a label without value' contains whitespaces`,
+		},
+		{
+			name:        "whitespaces in key",
+			value:       "this is a label=value",
+			expectedErr: `label 'this is a label' contains whitespaces`,
+		},
+		{
+			name:  "whitespaces in value",
+			value: "label=a value that has whitespace",
+		},
+		{
+			name:  "trailing whitespace in value",
+			value: "label=value      ",
+		},
+		{
+			name:  "leading whitespace in value",
+			value: "label=    value",
+		},
+		{
+			name:  "no value",
+			value: "label",
+		},
+		{
+			name:        "no key",
+			value:       "=label",
+			expectedErr: `invalid label '=label': empty name`,
+		},
+		{
+			name:  "empty value",
+			value: "label=",
+		},
+		{
+			name:  "key value",
+			value: "key1=value1",
+		},
+		{
+			name:  "double equal-signs",
+			value: "key1=value1=value2",
+		},
+		{
+			name:  "multiple equal-signs",
+			value: "key1=value1=value2=value",
+		},
+		{
+			name:  "double quotes in key and value",
+			value: `key"with"quotes={"hello"}`,
+		},
+		{
+			name:  "double quotes around key and value",
+			value: `"quoted-label"="quoted value"`,
+		},
+		{
+			name:  "single quotes in key and value",
+			value: `key'with'quotes=hello'with'quotes`,
+		},
+		{
+			name:  "single quotes around key and value",
+			value: `'quoted-label'='quoted value''`,
+		},
 	}
-	if actual, err := ValidateLabel("key1=value1"); err != nil || actual != "key1=value1" {
-		t.Fatalf("Expected [key1=value1], got [%v,%v]", actual, err)
-	}
-	// Validate it's working with more than one =
-	if actual, err := ValidateLabel("key1=value1=value2"); err != nil {
-		t.Fatalf("Expected [key1=value1=value2], got [%v,%v]", actual, err)
-	}
-	// Validate it's working with one more
-	if actual, err := ValidateLabel("key1=value1=value2=value3"); err != nil {
-		t.Fatalf("Expected [key1=value1=value2=value2], got [%v,%v]", actual, err)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			val, err := ValidateLabel(tc.value)
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
+				return
+			}
+			assert.NilError(t, err)
+			assert.Equal(t, val, tc.value)
+		})
 	}
 }
 

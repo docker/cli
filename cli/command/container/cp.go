@@ -128,6 +128,10 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		}
 	}
 
+	if err := command.ValidateOutputPath(dstPath); err != nil {
+		return err
+	}
+
 	client := dockerCli.Client()
 	// if client requests to follow symbol link, then must decide target file to be copied
 	var rebaseName string
@@ -207,6 +211,11 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 
 		dstInfo.Path = linkTarget
 		dstStat, err = client.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+	}
+
+	// Validate the destination path
+	if err := command.ValidateOutputPathFileMode(dstStat.Mode); err != nil {
+		return errors.Wrapf(err, `destination "%s:%s" must be a directory or a regular file`, copyConfig.container, dstPath)
 	}
 
 	// Ignore any error and assume that the parent directory of the destination

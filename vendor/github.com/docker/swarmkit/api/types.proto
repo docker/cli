@@ -4,6 +4,7 @@ package docker.swarmkit.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/wrappers.proto";
 import "gogoproto/gogo.proto";
 
 // This file contains types that are common to objects and spec or that are not
@@ -77,6 +78,17 @@ message Resources {
 message ResourceRequirements {
 	Resources limits = 1;
 	Resources reservations = 2;
+
+	// Amount of swap in bytes - can only be used together with a memory limit
+	// -1 means unlimited
+	// a null pointer indicates that the default behaviour of granting twice
+	// the memory is maintained
+	google.protobuf.Int64Value swap_bytes = 3;
+
+	// Tune container memory swappiness (0 to 100) - if not specified, defaults
+	// to the container OS's default - generally 60, or the value predefined in
+	// the image; set to -1 to unset a previously set value
+	google.protobuf.Int64Value memory_swappiness = 4;
 }
 
 message Platform {
@@ -202,6 +214,7 @@ message Mount {
 		BIND = 0 [(gogoproto.enumvalue_customname) = "MountTypeBind"]; // Bind mount host dir
 		VOLUME = 1 [(gogoproto.enumvalue_customname) = "MountTypeVolume"];  // Remote storage volumes
 		TMPFS = 2 [(gogoproto.enumvalue_customname) = "MountTypeTmpfs"]; // Mount a tmpfs
+		NPIPE = 3 [(gogoproto.enumvalue_customname) = "MountTypeNamedPipe"]; // Windows named pipes
 	}
 
 	// Type defines the nature of the mount.
@@ -245,6 +258,8 @@ message Mount {
 
 		// Propagation mode of mount.
 		Propagation propagation = 1;
+		// allows non-recursive bind-mount, i.e. mount(2) with "bind" rather than "rbind".
+		bool nonrecursive = 2 [(gogoproto.customname) = "NonRecursive"];
 	}
 
 	// VolumeOptions contains parameters for mounting the volume.
@@ -276,6 +291,8 @@ message Mount {
 		// Mode of the tmpfs upon creation
 		uint32 mode = 2 [(gogoproto.customtype) = "os.FileMode", (gogoproto.nullable) = false];
 
+		// Options passed to tmpfs mount
+		string options = 3;
 		// TODO(stevvooe): There are several more tmpfs flags, specified in the
 		// daemon, that are accepted. Only the most basic are added for now.
 		//
@@ -861,6 +878,9 @@ message Placement {
 	// This field is used in the platform filter for scheduling. If empty,
 	// then the platform filter is off, meaning there are no scheduling restrictions.
 	repeated Platform platforms = 3;
+
+	// MaxReplicas specifies the limit for maximum number of replicas running on one node.
+	uint64 max_replicas = 4;
 }
 
 // JoinToken contains the join tokens for workers and managers.
@@ -970,6 +990,12 @@ message FileTarget {
 	uint32 mode = 4 [(gogoproto.customtype) = "os.FileMode", (gogoproto.nullable) = false];
 }
 
+// RuntimeTarget represents that this secret is _not_ mounted into the
+// container, but is used for some other purpose by the container runtime.
+//
+// Currently, RuntimeTarget has no fields; it's just a placeholder.
+message RuntimeTarget {}
+
 // SecretReference is the linkage between a service and a secret that it uses.
 message SecretReference {
 	// SecretID represents the ID of the specific Secret that we're
@@ -997,9 +1023,10 @@ message ConfigReference {
 	// lookup/display purposes. The config in the reference will be identified by its ID.
 	string config_name = 2;
 
-	// Target specifies how this secret should be exposed to the task.
+	// Target specifies how this config should be exposed to the task.
 	oneof target {
 		FileTarget file = 3;
+		RuntimeTarget runtime = 4;
 	}
 }
 
@@ -1069,6 +1096,10 @@ message Privileges {
 		oneof source {
 			string file = 1;
 			string registry = 2;
+
+			// Config represents a Config ID from which to get the CredentialSpec.
+			// The Config MUST be included in the SecretReferences with a RuntimeTarget
+			string config = 3;
 		}
 	}
 	CredentialSpec credential_spec = 1;

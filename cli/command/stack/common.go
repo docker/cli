@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/stack/kubernetes"
+	"github.com/spf13/pflag"
 )
 
 // validateStackName checks if the provided string is a valid stack name (namespace).
@@ -28,4 +32,19 @@ func validateStackNames(namespaces []string) error {
 
 func quotesOrWhitespace(r rune) bool {
 	return unicode.IsSpace(r) || r == '"' || r == '\''
+}
+
+func runOrchestratedCommand(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, swarmCmd func() error, kubernetesCmd func(*kubernetes.KubeCli) error) error {
+	switch {
+	case commonOrchestrator.HasAll():
+		return errUnsupportedAllOrchestrator
+	case commonOrchestrator.HasKubernetes():
+		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
+		if err != nil {
+			return err
+		}
+		return kubernetesCmd(kli)
+	default:
+		return swarmCmd()
+	}
 }

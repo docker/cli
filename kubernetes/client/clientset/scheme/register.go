@@ -1,25 +1,16 @@
 package scheme
 
-import (
-	composev1beta1 "github.com/docker/cli/kubernetes/compose/v1beta1"
-	composev1beta2 "github.com/docker/cli/kubernetes/compose/v1beta2"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-)
+import api "github.com/docker/compose-on-kubernetes/api/client/clientset/scheme"
 
 // Variables required for registration
 var (
-	Scheme         = runtime.NewScheme()
-	Codecs         = serializer.NewCodecFactory(Scheme)
-	ParameterCodec = runtime.NewParameterCodec(Scheme)
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/scheme.Scheme instead
+	Scheme = api.Scheme
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/scheme.Codecs instead
+	Codecs = api.Codecs
+	// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/scheme.ParameterCodec instead
+	ParameterCodec = api.ParameterCodec
 )
-
-func init() {
-	v1.AddToGroupVersion(Scheme, schema.GroupVersion{Version: "v1"})
-	AddToScheme(Scheme)
-}
 
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition
 // of clientsets, like in:
@@ -35,7 +26,5 @@ func init() {
 //
 // After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
 // correctly.
-func AddToScheme(scheme *runtime.Scheme) {
-	composev1beta2.AddToScheme(scheme)
-	composev1beta1.AddToScheme(scheme)
-}
+// Deprecated: Use github.com/docker/compose-on-kubernetes/api/client/clientset/scheme.AddToScheme instead
+var AddToScheme = api.AddToScheme
