@@ -243,9 +243,9 @@ func getWithStatusError(url string) (resp *http.Response, err error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		return nil, errors.Wrapf(err, msg+": error reading body")
+		return nil, errors.Wrapf(err, "%s: error reading body", msg)
 	}
-	return nil, errors.Errorf(msg+": %s", bytes.TrimSpace(body))
+	return nil, errors.Errorf("%s: %s", msg, bytes.TrimSpace(body))
 }
 
 // GetContextFromLocalDir uses the given local directory as context for a
