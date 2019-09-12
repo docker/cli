@@ -243,6 +243,26 @@ func TestLoad(t *testing.T) {
 	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
 
+func TestLoadSkipEnvFileResolution(t *testing.T) {
+	testDict := map[string]interface{}{
+		"version": "3",
+		"services": map[string]interface{}{
+			"foo": map[string]interface{}{
+				"image":    "busybox",
+				"env_file": "myenv.env",
+			},
+		},
+	}
+	actual, err := Load(buildConfigDetails(testDict, nil), func(opts *Options) {
+		opts.SkipEnvironmentResolving = true
+	})
+	assert.NilError(t, err)
+	assert.Assert(t, actual != nil)
+	assert.Assert(t, is.Len(actual.Services, 1))
+	assert.Assert(t, is.Len(actual.Services[0].EnvFile, 1))
+	assert.Assert(t, is.Equal(actual.Services[0].EnvFile[0], "myenv.env"))
+}
+
 func TestLoadExtras(t *testing.T) {
 	actual, err := loadYAML(`
 version: "3.7"

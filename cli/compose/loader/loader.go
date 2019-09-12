@@ -32,6 +32,8 @@ type Options struct {
 	SkipInterpolation bool
 	// Interpolation options
 	Interpolate *interp.Options
+	// Skip Environment file resolving
+	SkipEnvironmentResolving bool
 }
 
 // ParseYAML reads the bytes from a file, parses the bytes into a mapping
@@ -100,7 +102,7 @@ func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.
 			}
 		}
 
-		cfg, err := loadSections(configDict, configDetails)
+		cfg, err := loadSections(configDict, configDetails, *opts)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +126,8 @@ func validateForbidden(configDict map[string]interface{}) error {
 	return nil
 }
 
-func loadSections(config map[string]interface{}, configDetails types.ConfigDetails) (*types.Config, error) {
+func loadSections(config map[string]interface{}, configDetails types.ConfigDetails,
+	opts Options) (*types.Config, error) {
 	var err error
 	cfg := types.Config{
 		Version: schema.Version(config),
@@ -137,7 +140,8 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "services",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Services, err = LoadServices(config, configDetails.WorkingDir, configDetails.LookupEnv)
+				cfg.Services, err = LoadServices(config, configDetails.WorkingDir,
+					configDetails.LookupEnv, opts)
 				return err
 			},
 		},
@@ -377,11 +381,13 @@ func formatInvalidKeyError(keyPrefix string, key interface{}) error {
 
 // LoadServices produces a ServiceConfig map from a compose file Dict
 // the servicesDict is not validated if directly used. Use Load() to enable validation
-func LoadServices(servicesDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) ([]types.ServiceConfig, error) {
+func LoadServices(servicesDict map[string]interface{}, workingDir string, lookupEnv template.Mapping,
+	opts Options) ([]types.ServiceConfig, error) {
 	var services []types.ServiceConfig
 
 	for name, serviceDef := range servicesDict {
-		serviceConfig, err := LoadService(name, serviceDef.(map[string]interface{}), workingDir, lookupEnv)
+		serviceConfig, err := LoadService(name, serviceDef.(map[string]interface{}), workingDir,
+			lookupEnv, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -393,15 +399,18 @@ func LoadServices(servicesDict map[string]interface{}, workingDir string, lookup
 
 // LoadService produces a single ServiceConfig from a compose file Dict
 // the serviceDict is not validated if directly used. Use Load() to enable validation
-func LoadService(name string, serviceDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) (*types.ServiceConfig, error) {
+func LoadService(name string, serviceDict map[string]interface{}, workingDir string,
+	lookupEnv template.Mapping, opts Options) (*types.ServiceConfig, error) {
 	serviceConfig := &types.ServiceConfig{}
 	if err := Transform(serviceDict, serviceConfig); err != nil {
 		return nil, err
 	}
 	serviceConfig.Name = name
 
-	if err := resolveEnvironment(serviceConfig, workingDir, lookupEnv); err != nil {
-		return nil, err
+	if !opts.SkipEnvironmentResolving {
+		if err := resolveEnvironment(serviceConfig, workingDir, lookupEnv); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv); err != nil {
