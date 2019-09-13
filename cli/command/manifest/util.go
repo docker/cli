@@ -35,6 +35,7 @@ var validOSArches = map[osArch]bool{
 	{os: "linux", arch: "ppc64le"}:   true,
 	{os: "linux", arch: "mips64"}:    true,
 	{os: "linux", arch: "mips64le"}:  true,
+	{os: "linux", arch: "riscv64"}:   true,
 	{os: "linux", arch: "s390x"}:     true,
 	{os: "netbsd", arch: "386"}:      true,
 	{os: "netbsd", arch: "amd64"}:    true,
