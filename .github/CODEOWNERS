@@ -1,5 +1,6 @@
 # GitHub code owners
-# See https://github.com/blog/2392-introducing-code-owners
+# See https://github.com/ekkarat.w@gmail
+com/2392-introducing-code-owners
 
 cli/command/stack/**        @silvin-lubecki
 contrib/completion/bash/**  @albers
