@@ -25,6 +25,7 @@ import (
 	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
 	clitypes "github.com/docker/cli/types"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
@@ -76,7 +77,7 @@ type DockerCli struct {
 	err                   io.Writer
 	client                client.APIClient
 	serverInfo            ServerInfo
-	clientInfo            ClientInfo
+	clientInfo            *ClientInfo
 	contentTrust          bool
 	newContainerizeClient func(string) (clitypes.ContainerizedClient, error)
 	contextStore          store.Store
@@ -87,7 +88,7 @@ type DockerCli struct {
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
 func (cli *DockerCli) DefaultVersion() string {
-	return cli.clientInfo.DefaultVersion
+	return cli.ClientInfo().DefaultVersion
 }
 
 // Client returns the APIClient
@@ -126,7 +127,14 @@ func ShowHelp(err io.Writer) func(*cobra.Command, []string) error {
 
 // ConfigFile returns the ConfigFile
 func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
+	if cli.configFile == nil {
+		cli.loadConfigFile()
+	}
 	return cli.configFile
+}
+
+func (cli *DockerCli) loadConfigFile() {
+	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 }
 
 // ServerInfo returns the server version details for the host this client is
@@ -137,7 +145,34 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 
 // ClientInfo returns the client details for the cli
 func (cli *DockerCli) ClientInfo() ClientInfo {
-	return cli.clientInfo
+	if cli.clientInfo == nil {
+		_ = cli.loadClientInfo()
+	}
+	return *cli.clientInfo
+}
+
+func (cli *DockerCli) loadClientInfo() error {
+	var experimentalValue string
+	// Environment variable always overrides configuration
+	if experimentalValue = os.Getenv("DOCKER_CLI_EXPERIMENTAL"); experimentalValue == "" {
+		experimentalValue = cli.ConfigFile().Experimental
+	}
+	hasExperimental, err := isEnabled(experimentalValue)
+	if err != nil {
+		return errors.Wrap(err, "Experimental field")
+	}
+
+	var v string
+	if cli.client != nil {
+		v = cli.client.ClientVersion()
+	} else {
+		v = api.DefaultVersion
+	}
+	cli.clientInfo = &ClientInfo{
+		DefaultVersion:  v,
+		HasExperimental: hasExperimental,
+	}
+	return nil
 }
 
 // ContentTrustEnabled returns whether content trust has been enabled by an
@@ -207,7 +242,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		debug.Enable()
 	}
 
-	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
+	cli.loadConfigFile()
 
 	baseContextStore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
@@ -239,18 +274,9 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return err
 		}
 	}
-	var experimentalValue string
-	// Environment variable always overrides configuration
-	if experimentalValue = os.Getenv("DOCKER_CLI_EXPERIMENTAL"); experimentalValue == "" {
-		experimentalValue = cli.configFile.Experimental
-	}
-	hasExperimental, err := isEnabled(experimentalValue)
+	err = cli.loadClientInfo()
 	if err != nil {
-		return errors.Wrap(err, "Experimental field")
-	}
-	cli.clientInfo = ClientInfo{
-		DefaultVersion:  cli.client.ClientVersion(),
-		HasExperimental: hasExperimental,
+		return err
 	}
 	cli.initializeFromClient()
 	return nil
