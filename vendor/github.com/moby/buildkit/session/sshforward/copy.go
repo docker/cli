@@ -3,23 +3,24 @@ package sshforward
 import (
 	io "io"
 
+	"github.com/pkg/errors"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
 
-func Copy(ctx context.Context, conn io.ReadWriteCloser, stream grpc.Stream) error {
+func Copy(ctx context.Context, conn io.ReadWriteCloser, stream grpc.Stream, closeStream func() error) error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() (retErr error) {
 		p := &BytesMessage{}
 		for {
 			if err := stream.RecvMsg(p); err != nil {
+				conn.Close()
 				if err == io.EOF {
 					return nil
 				}
-				conn.Close()
-				return err
+				return errors.WithStack(err)
 			}
 			select {
 			case <-ctx.Done():
@@ -29,7 +30,7 @@ func Copy(ctx context.Context, conn io.ReadWriteCloser, stream grpc.Stream) erro
 			}
 			if _, err := conn.Write(p.Data); err != nil {
 				conn.Close()
-				return err
+				return errors.WithStack(err)
 			}
 			p.Data = p.Data[:0]
 		}
@@ -41,9 +42,12 @@ func Copy(ctx context.Context, conn io.ReadWriteCloser, stream grpc.Stream) erro
 			n, err := conn.Read(buf)
 			switch {
 			case err == io.EOF:
+				if closeStream != nil {
+					closeStream()
+				}
 				return nil
 			case err != nil:
-				return err
+				return errors.WithStack(err)
 			}
 			select {
 			case <-ctx.Done():
@@ -52,7 +56,7 @@ func Copy(ctx context.Context, conn io.ReadWriteCloser, stream grpc.Stream) erro
 			}
 			p := &BytesMessage{Data: buf[:n]}
 			if err := stream.SendMsg(p); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 		}
 	})
