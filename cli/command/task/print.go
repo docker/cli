@@ -12,23 +12,34 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 )
 
-type tasksBySlot []swarm.Task
+type tasksSortable []swarm.Task
 
-func (t tasksBySlot) Len() int {
+func (t tasksSortable) Len() int {
 	return len(t)
 }
 
-func (t tasksBySlot) Swap(i, j int) {
+func (t tasksSortable) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
-func (t tasksBySlot) Less(i, j int) bool {
-	// Sort by slot.
+func (t tasksSortable) Less(i, j int) bool {
+	// Sort by service ID.
+	if t[i].ServiceID != t[j].ServiceID {
+		return t[i].ServiceID < t[j].ServiceID
+	}
+
+	// If same service, sort by slot.
 	if t[i].Slot != t[j].Slot {
 		return t[i].Slot < t[j].Slot
 	}
 
-	// If same slot, sort by most recent.
+	// If same service and slot, sort by node ID.
+	// This sorting is relevant only for global services.
+	if t[i].NodeID != t[j].NodeID {
+		return t[i].NodeID < t[j].NodeID
+	}
+
+	// If same service, slot and node - sort by most recent.
 	return t[j].Meta.CreatedAt.Before(t[i].CreatedAt)
 }
 
@@ -36,7 +47,7 @@ func (t tasksBySlot) Less(i, j int) bool {
 // Besides this, command `docker node ps <node>`
 // and `docker stack ps` will call this, too.
 func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resolver *idresolver.IDResolver, trunc, quiet bool, format string) error {
-	sort.Stable(tasksBySlot(tasks))
+	sort.Stable(tasksSortable(tasks))
 
 	names := map[string]string{}
 	nodes := map[string]string{}
