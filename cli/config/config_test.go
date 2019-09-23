@@ -7,16 +7,24 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
+
+var homeKey = "HOME"
+
+func init() {
+	if runtime.GOOS == "windows" {
+		homeKey = "USERPROFILE"
+	}
+}
 
 func setupConfigDir(t *testing.T) (string, func()) {
 	tmpdir, err := ioutil.TempDir("", "config-test")
@@ -113,10 +121,10 @@ email`: "Invalid auth configuration file",
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
-	homeKey := homedir.Key()
-	homeVal := homedir.Get()
+	homeDir, err := os.UserHomeDir()
+	assert.NilError(t, err)
 
-	defer func() { os.Setenv(homeKey, homeVal) }()
+	defer func() { os.Setenv(homeKey, homeDir) }()
 	os.Setenv(homeKey, tmpHome)
 
 	for content, expectedError := range invalids {
@@ -134,10 +142,10 @@ func TestOldValidAuth(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
-	homeKey := homedir.Key()
-	homeVal := homedir.Get()
+	homeDir, err := os.UserHomeDir()
+	assert.NilError(t, err)
 
-	defer func() { os.Setenv(homeKey, homeVal) }()
+	defer func() { os.Setenv(homeKey, homeDir) }()
 	os.Setenv(homeKey, tmpHome)
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
@@ -173,10 +181,10 @@ func TestOldJSONInvalid(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
-	homeKey := homedir.Key()
-	homeVal := homedir.Get()
+	homeDir, err := os.UserHomeDir()
+	assert.NilError(t, err)
 
-	defer func() { os.Setenv(homeKey, homeVal) }()
+	defer func() { os.Setenv(homeKey, homeDir) }()
 	os.Setenv(homeKey, tmpHome)
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
@@ -197,10 +205,10 @@ func TestOldJSON(t *testing.T) {
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
-	homeKey := homedir.Key()
-	homeVal := homedir.Get()
+	homeDir, err := os.UserHomeDir()
+	assert.NilError(t, err)
 
-	defer func() { os.Setenv(homeKey, homeVal) }()
+	defer func() { os.Setenv(homeKey, homeDir) }()
 	os.Setenv(homeKey, tmpHome)
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
