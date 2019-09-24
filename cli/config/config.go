@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -28,7 +27,11 @@ var (
 
 func init() {
 	if configDir == "" {
-		configDir = filepath.Join(homedir.Get(), configFileDir)
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		configDir = filepath.Join(homedir, configFileDir)
 	}
 }
 
@@ -106,7 +109,11 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 	}
 
 	// Can't find latest config file so check for the old one
-	confFile := filepath.Join(homedir.Get(), oldConfigfile)
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return configFile, errors.Wrap(err, oldConfigfile)
+	}
+	confFile := filepath.Join(homedir, oldConfigfile)
 	if _, err := os.Stat(confFile); err != nil {
 		return configFile, nil //missing file is not an error
 	}
