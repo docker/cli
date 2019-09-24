@@ -2873,11 +2873,6 @@ _docker_image_build() {
 		boolean_options+="
 			--compress
 		"
-		if __docker_server_is_experimental ; then
-			boolean_options+="
-				--stream
-			"
-		fi
 	fi
 
 	local all_options="$options_with_args $boolean_options"

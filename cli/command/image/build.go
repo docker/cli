@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,7 +32,6 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -165,9 +163,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("squash", "version", []string{"1.25"})
 
 	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
-	flags.SetAnnotation("stream", "experimental", nil)
-	flags.SetAnnotation("stream", "version", []string{"1.31"})
-	flags.SetAnnotation("stream", "no-buildkit", nil)
+	flags.MarkHidden("stream")
 
 	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (auto, plain, tty). Use plain to show container output")
 	flags.SetAnnotation("progress", "buildkit", nil)
@@ -224,8 +220,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		remote        string
 	)
 
-	if options.compress && options.stream {
-		return errors.New("--compress conflicts with --stream options")
+	if options.stream {
+		return errors.New("Experimental flag --stream was removed, enable BuildKit instead with DOCKER_BUILDKIT=1")
 	}
 
 	if options.dockerfileFromStdin() {
@@ -284,7 +280,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	// read from a directory into tar archive
-	if buildCtx == nil && !options.stream {
+	if buildCtx == nil {
 		excludes, err := build.ReadDockerignore(contextDir)
 		if err != nil {
 			return err
@@ -313,16 +309,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	// if streaming and Dockerfile was not from stdin then read from file
-	// to the same reader that is usually stdin
-	if options.stream && dockerfileCtx == nil {
-		dockerfileCtx, err = os.Open(relDockerfile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to open %s", relDockerfile)
-		}
-		defer dockerfileCtx.Close()
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -367,36 +353,9 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildCtx = dockerfileCtx
 	}
 
-	s, err := trySession(dockerCli, contextDir, true)
-	if err != nil {
-		return err
-	}
-
 	var body io.Reader
-	if buildCtx != nil && !options.stream {
+	if buildCtx != nil {
 		body = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
-	}
-
-	// add context stream to the session
-	if options.stream && s != nil {
-		syncDone := make(chan error) // used to signal first progress reporting completed.
-		// progress would also send errors but don't need it here as errors
-		// are handled by session.Run() and ImageBuild()
-		if err := addDirToSession(s, contextDir, progressOutput, syncDone); err != nil {
-			return err
-		}
-
-		buf := newBufferedWriter(syncDone, buildBuff)
-		defer func() {
-			select {
-			case <-buf.flushed:
-			case <-ctx.Done():
-			}
-		}()
-		buildBuff = buf
-
-		remote = clientSessionRemote
-		body = buildCtx
 	}
 
 	configFile := dockerCli.ConfigFile()
@@ -410,20 +369,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	buildOptions.Dockerfile = relDockerfile
 	buildOptions.AuthConfigs = authConfigs
 	buildOptions.RemoteContext = remote
-
-	if s != nil {
-		go func() {
-			logrus.Debugf("running session: %v", s.ID())
-			dialSession := func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
-				return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
-			}
-			if err := s.Run(ctx, dialSession); err != nil {
-				logrus.Error(err)
-				cancel() // cancel progress context
-			}
-		}()
-		buildOptions.SessionID = s.ID()
-	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
 	if err != nil {
