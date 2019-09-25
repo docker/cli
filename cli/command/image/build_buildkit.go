@@ -156,7 +156,8 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 				}
 				w = f
 			}
-			s.Allow(filesync.NewFSSyncTarget(w))
+			output := func(map[string]string) (io.WriteCloser, error) { return w, nil }
+			s.Allow(filesync.NewFSSyncTarget(output))
 		}
 	}
 
