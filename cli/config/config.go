@@ -28,10 +28,9 @@ var (
 func init() {
 	if configDir == "" {
 		homedir, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
+		if err == nil {
+			configDir = filepath.Join(homedir, configFileDir)
 		}
-		configDir = filepath.Join(homedir, configFileDir)
 	}
 }
 
