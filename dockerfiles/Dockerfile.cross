@@ -1,4 +1,6 @@
-FROM	dockercore/golang-cross:1.11.13
+ARG GO_VERSION=1.12.10
+
+FROM	dockercore/golang-cross:${GO_VERSION}
 ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
 WORKDIR /go/src/github.com/docker/cli
 COPY    . .
