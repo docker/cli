@@ -1205,6 +1205,7 @@ _docker_build() {
 
 _docker_builder() {
 	local subcommands="
+		build
 		prune
 	"
 	__docker_subcommands "$subcommands" && return
