@@ -389,23 +389,31 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 		Username: "user",
 		Password: "pass",
 	}
-	cf := ConfigFile{
-		AuthConfigs: map[string]types.AuthConfig{
-			"example.com/foo": want,
+
+	for _, tc := range []types.AuthConfig{
+		want,
+		types.AuthConfig{
+			Auth: encodeAuth(&want),
 		},
+	} {
+		cf := ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"example.com/foo": tc,
+			},
+		}
+
+		b, err := json.Marshal(cf)
+		assert.NilError(t, err)
+
+		err = configFile.LoadFromReader(bytes.NewReader(b))
+		assert.NilError(t, err)
+
+		got, err := configFile.GetAuthConfig("example.com/foo")
+		assert.NilError(t, err)
+
+		assert.Check(t, is.DeepEqual(want.Username, got.Username))
+		assert.Check(t, is.DeepEqual(want.Password, got.Password))
 	}
-
-	b, err := json.Marshal(cf)
-	assert.NilError(t, err)
-
-	err = configFile.LoadFromReader(bytes.NewReader(b))
-	assert.NilError(t, err)
-
-	got, err := configFile.GetAuthConfig("example.com/foo")
-	assert.NilError(t, err)
-
-	assert.Check(t, is.DeepEqual(want.Username, got.Username))
-	assert.Check(t, is.DeepEqual(want.Password, got.Password))
 }
 
 func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
