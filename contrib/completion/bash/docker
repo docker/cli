@@ -1219,6 +1219,10 @@ _docker_builder() {
 	esac
 }
 
+_docker_builder_build() {
+	_docker_image_build
+}
+
 _docker_builder_prune() {
 	case "$prev" in
 		--filter)
