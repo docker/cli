@@ -54,7 +54,7 @@ each `docker` command with `sudo`. To avoid having to use `sudo` with the
 For more information about installing Docker or `sudo` configuration, refer to
 the [installation](https://docs.docker.com/install/) instructions for your operating system.
 
-### Environment variables
+## Environment variables
 
 For easy reference, the following list of environment variables are supported
 by the `docker` command line:
@@ -99,7 +99,7 @@ By default, the Docker command line stores its configuration files in a
 directory called `.docker` within your `$HOME` directory.
 
 Docker manages most of the files in the configuration directory
-and you should not modify them. However, you *can modify* the
+and you should not modify them. However, you *can* modify the
 `config.json` file to control certain aspects of how the `docker`
 command behaves.
 
@@ -111,12 +111,12 @@ variable. Command line options override environment variables and environment
 variables override properties you specify in a `config.json` file.
 
 
-#### Change the `.docker` directory
+### Change the `.docker` directory
 
 To specify a different directory, use the `DOCKER_CONFIG`
 environment variable or the `--config` command line option. If both are
 specified, then the `--config` option overrides the `DOCKER_CONFIG` environment
-variable. The example below overrides runs the `docker ps` command using a
+variable. The example below overrides the `docker ps` command using a
 `config.json` file located in the `~/testconfigs/` directory.
 
 ```bash
@@ -132,7 +132,7 @@ directory to be `HOME/newdir/.docker`.
 echo export DOCKER_CONFIG=$HOME/newdir/.docker > ~/.profile
 ```
 
-#### `config.json` properties
+### `config.json` properties
 
 The `config.json` file stores a JSON encoding of several properties:
 
