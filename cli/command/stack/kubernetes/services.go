@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/docker/docker/api/types/filters"
@@ -79,39 +78,39 @@ func getResourcesForServiceList(dockerCli *KubeCli, filters filters.Args, labelS
 	return replicas, daemons, services, nil
 }
 
-// RunServices is the kubernetes implementation of docker stack services
-func RunServices(dockerCli *KubeCli, opts options.Services) error {
+// GetServices is the kubernetes implementation of listing stack services
+func GetServices(dockerCli *KubeCli, opts options.Services) ([]swarm.Service, map[string]service.ListInfo, error) {
 	filters := opts.Filter.Value()
 	if err := filters.Validate(supportedServicesFilters); err != nil {
-		return err
+		return nil, nil, err
 	}
 	client, err := dockerCli.composeClient()
 	if err != nil {
-		return nil
+		return nil, nil, err
 	}
 	stacks, err := client.Stacks(false)
 	if err != nil {
-		return nil
+		return nil, nil, err
 	}
 	stackName := opts.Namespace
 	_, err = stacks.Get(stackName)
 	if apierrs.IsNotFound(err) {
-		return fmt.Errorf("nothing found in stack: %s", stackName)
+		return []swarm.Service{}, nil, nil
 	}
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	labelSelector := generateLabelSelector(filters, stackName)
 	replicasList, daemonsList, servicesList, err := getResourcesForServiceList(dockerCli, filters, labelSelector)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	// Convert Replicas sets and kubernetes services to swarm services and formatter information
 	services, info, err := convertToServices(replicasList, daemonsList, servicesList)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	services = filterServicesByName(services, filters.Get("name"), stackName)
 
@@ -119,20 +118,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 		info = map[string]service.ListInfo{}
 	}
 
-	format := opts.Format
-	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
-			format = dockerCli.ConfigFile().ServicesFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
-	}
-
-	servicesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: service.NewListFormat(format, opts.Quiet),
-	}
-	return service.ListFormatWrite(servicesCtx, services, info)
+	return services, info, nil
 }
 
 func filterServicesByName(services []swarm.Service, names []string, stackName string) []swarm.Service {

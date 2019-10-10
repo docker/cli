@@ -2,38 +2,35 @@ package swarm
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/swarm"
 	"vbom.ml/util/sortorder"
 )
 
-// RunServices is the swarm implementation of docker stack services
-func RunServices(dockerCli command.Cli, opts options.Services) error {
+// GetServices is the swarm implementation of listing stack services
+func GetServices(dockerCli command.Cli, opts options.Services) ([]swarm.Service, map[string]service.ListInfo, error) {
 	ctx := context.Background()
 	client := dockerCli.Client()
 
 	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 	services, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: filter})
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-
-	// if no services in this stack, print message and exit 0
 	if len(services) == 0 {
-		fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", opts.Namespace)
-		return nil
+		return []swarm.Service{}, nil, nil
 	}
 
 	sort.Slice(services, func(i, j int) bool {
 		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
 	})
+
 	info := map[string]service.ListInfo{}
 	if !opts.Quiet {
 		taskFilter := filters.NewArgs()
@@ -43,29 +40,15 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 
 		tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		nodes, err := client.NodeList(ctx, types.NodeListOptions{})
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		info = service.GetServicesStatus(services, nodes, tasks)
 	}
-
-	format := opts.Format
-	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
-			format = dockerCli.ConfigFile().ServicesFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
-	}
-
-	servicesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: service.NewListFormat(format, opts.Quiet),
-	}
-	return service.ListFormatWrite(servicesCtx, services, info)
+	return services, info, nil
 }
