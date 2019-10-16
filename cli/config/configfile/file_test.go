@@ -392,7 +392,7 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 
 	for _, tc := range []types.AuthConfig{
 		want,
-		types.AuthConfig{
+		{
 			Auth: encodeAuth(&want),
 		},
 	} {
