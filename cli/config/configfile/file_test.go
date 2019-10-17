@@ -2,6 +2,7 @@ package configfile
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -378,6 +379,41 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
+}
+
+func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
+	configFile := New("test-load")
+	defer os.Remove("test-load")
+
+	want := types.AuthConfig{
+		Username: "user",
+		Password: "pass",
+	}
+
+	for _, tc := range []types.AuthConfig{
+		want,
+		{
+			Auth: encodeAuth(&want),
+		},
+	} {
+		cf := ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"example.com/foo": tc,
+			},
+		}
+
+		b, err := json.Marshal(cf)
+		assert.NilError(t, err)
+
+		err = configFile.LoadFromReader(bytes.NewReader(b))
+		assert.NilError(t, err)
+
+		got, err := configFile.GetAuthConfig("example.com/foo")
+		assert.NilError(t, err)
+
+		assert.Check(t, is.DeepEqual(want.Username, got.Username))
+		assert.Check(t, is.DeepEqual(want.Password, got.Password))
+	}
 }
 
 func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
