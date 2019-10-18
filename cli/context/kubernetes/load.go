@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/store"
 	api "github.com/docker/compose-on-kubernetes/api"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -80,7 +79,9 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 func (c *EndpointMeta) ResolveDefault(stackOrchestrator command.Orchestrator) (interface{}, *store.EndpointTLSData, error) {
 	kubeconfig := os.Getenv("KUBECONFIG")
 	if kubeconfig == "" {
-		kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
+		// Error is deliberately unhandled to mimic old behavior.
+		homeDir, _ := os.UserHomeDir()
+		kubeconfig = filepath.Join(homeDir, ".kube/config")
 	}
 	kubeEP, err := FromKubeConfig(kubeconfig, "", "")
 	if err != nil {

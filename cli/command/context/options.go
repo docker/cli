@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -189,7 +188,9 @@ func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*ku
 		// fallback to env-based kubeconfig
 		kubeconfig := os.Getenv("KUBECONFIG")
 		if kubeconfig == "" {
-			kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
+			// Error is deliberately unhandled to mimic old behavior.
+			homeDir, _ := os.UserHomeDir()
+			kubeconfig = filepath.Join(homeDir, ".kube/config")
 		}
 		ep, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
 		if err != nil {
