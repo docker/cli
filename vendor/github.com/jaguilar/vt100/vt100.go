@@ -52,7 +52,7 @@ func (i Intensity) alpha() uint8 {
 	case Dim:
 		return 85
 	default:
-		return 170
+		panic(fmt.Errorf("unknown intensity: %d", uint8(i)))
 	}
 }
 
@@ -135,8 +135,6 @@ type VT100 struct {
 
 	// savedCursor is the state of the cursor last time save() was called.
 	savedCursor Cursor
-
-	unparsed []byte
 }
 
 // NewVT100 creates a new VT100 object with the specified dimensions. y and x
@@ -165,79 +163,6 @@ func NewVT100(y, x int) *VT100 {
 		}
 	}
 	return v
-}
-
-func (v *VT100) UsedHeight() int {
-	count := 0
-	for _, l := range v.Content {
-		for _, r := range l {
-			if r != ' ' {
-				count++
-				break
-			}
-		}
-	}
-	return count
-}
-
-func (v *VT100) Resize(y, x int) {
-	if y > v.Height {
-		n := y - v.Height
-		for row := 0; row < n; row++ {
-			v.Content = append(v.Content, make([]rune, v.Width))
-			v.Format = append(v.Format, make([]Format, v.Width))
-			for col := 0; col < v.Width; col++ {
-				v.clear(v.Height+row, col)
-			}
-		}
-		v.Height = y
-	} else if y < v.Height {
-		v.Content = v.Content[:y]
-		v.Height = y
-	}
-
-	if x > v.Width {
-		for i := range v.Content {
-			row := make([]rune, x)
-			copy(row, v.Content[i])
-			v.Content[i] = row
-			format := make([]Format, x)
-			copy(format, v.Format[i])
-			v.Format[i] = format
-			for j := v.Width; j < x; j++ {
-				v.clear(i, j)
-			}
-		}
-		v.Width = x
-	} else if x < v.Width {
-		for i := range v.Content {
-			v.Content[i] = v.Content[i][:x]
-			v.Format[i] = v.Format[i][:x]
-		}
-		v.Width = x
-	}
-}
-
-func (v *VT100) Write(dt []byte) (int, error) {
-	n := len(dt)
-	if len(v.unparsed) > 0 {
-		dt = append(v.unparsed, dt...) // this almost never happens
-		v.unparsed = nil
-	}
-	buf := bytes.NewBuffer(dt)
-	for {
-		if buf.Len() == 0 {
-			return n, nil
-		}
-		cmd, err := Decode(buf)
-		if err != nil {
-			if l := buf.Len(); l > 0 && l < 12 { // on small leftover handle unparsed, otherwise skip
-				v.unparsed = buf.Bytes()
-			}
-			return n, nil
-		}
-		v.Process(cmd) // ignore error
-	}
 }
 
 // Process handles a single ANSI terminal command, updating the terminal
@@ -308,7 +233,6 @@ func maybeEscapeRune(r rune) string {
 
 // put puts r onto the current cursor's position, then advances the cursor.
 func (v *VT100) put(r rune) {
-	v.scrollIfNeeded()
 	v.Content[v.Cursor.Y][v.Cursor.X] = r
 	v.Format[v.Cursor.Y][v.Cursor.X] = v.Cursor.F
 	v.advance()
@@ -321,22 +245,9 @@ func (v *VT100) advance() {
 		v.Cursor.X = 0
 		v.Cursor.Y++
 	}
-	// if v.Cursor.Y >= v.Height {
-	// 	// TODO(jaguilar): if we implement scroll, this should probably scroll.
-	// 	// v.Cursor.Y = 0
-	// 	v.scroll()
-	// }
-}
-
-func (v *VT100) scrollIfNeeded() {
 	if v.Cursor.Y >= v.Height {
-		first := v.Content[0]
-		copy(v.Content, v.Content[1:])
-		for i := range first {
-			first[i] = ' '
-		}
-		v.Content[v.Height-1] = first
-		v.Cursor.Y = v.Height - 1
+		// TODO(jaguilar): if we implement scroll, this should probably scroll.
+		v.Cursor.Y = 0
 	}
 }
 
@@ -407,9 +318,6 @@ func (v *VT100) eraseRegion(y1, x1, y2, x2 int) {
 }
 
 func (v *VT100) clear(y, x int) {
-	if y >= len(v.Content) || x >= len(v.Content[0]) {
-		return
-	}
 	v.Content[y][x] = ' '
 	v.Format[y][x] = Format{}
 }

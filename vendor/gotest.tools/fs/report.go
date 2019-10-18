@@ -101,15 +101,6 @@ func eqFile(x, y *file) []problem {
 	if xErr != nil || yErr != nil {
 		return p
 	}
-
-	if x.compareContentFunc != nil {
-		r := x.compareContentFunc(yContent)
-		if !r.Success() {
-			p = append(p, existenceProblem("content", r.FailureMessage()))
-		}
-		return p
-	}
-
 	if x.ignoreCariageReturn || y.ignoreCariageReturn {
 		xContent = removeCarriageReturn(xContent)
 		yContent = removeCarriageReturn(yContent)
@@ -160,13 +151,11 @@ func eqSymlink(x, y *symlink) []problem {
 func eqDirectory(path string, x, y *directory) []failure {
 	p := eqResource(x.resource, y.resource)
 	var f []failure
-	matchedFiles := make(map[string]bool)
 
 	for _, name := range sortedKeys(x.items) {
 		if name == anyFile {
 			continue
 		}
-		matchedFiles[name] = true
 		xEntry := x.items[name]
 		yEntry, ok := y.items[name]
 		if !ok {
@@ -182,30 +171,19 @@ func eqDirectory(path string, x, y *directory) []failure {
 		f = append(f, eqEntry(filepath.Join(path, name), xEntry, yEntry)...)
 	}
 
-	if len(x.filepathGlobs) != 0 {
+	if _, ok := x.items[anyFile]; !ok {
 		for _, name := range sortedKeys(y.items) {
-			m := matchGlob(name, y.items[name], x.filepathGlobs)
-			matchedFiles[name] = m.match
-			f = append(f, m.failures...)
+			if _, ok := x.items[name]; !ok {
+				yEntry := y.items[name]
+				p = append(p, existenceProblem(name, "unexpected %s", yEntry.Type()))
+			}
 		}
 	}
 
-	if _, ok := x.items[anyFile]; ok {
-		return maybeAppendFailure(f, path, p)
+	if len(p) > 0 {
+		f = append(f, failure{path: path, problems: p})
 	}
-	for _, name := range sortedKeys(y.items) {
-		if !matchedFiles[name] {
-			p = append(p, existenceProblem(name, "unexpected %s", y.items[name].Type()))
-		}
-	}
-	return maybeAppendFailure(f, path, p)
-}
-
-func maybeAppendFailure(failures []failure, path string, problems []problem) []failure {
-	if len(problems) > 0 {
-		return append(failures, failure{path: path, problems: problems})
-	}
-	return failures
+	return f
 }
 
 func sortedKeys(items map[string]dirEntry) []string {
@@ -235,30 +213,6 @@ func eqEntry(path string, x, y dirEntry) []failure {
 		return eqDirectory(path, typed, y.(*directory))
 	}
 	return nil
-}
-
-type globMatch struct {
-	match    bool
-	failures []failure
-}
-
-func matchGlob(name string, yEntry dirEntry, globs map[string]*filePath) globMatch {
-	m := globMatch{}
-
-	for glob, expectedFile := range globs {
-		ok, err := filepath.Match(glob, name)
-		if err != nil {
-			p := errProblem("failed to match glob pattern", err)
-			f := failure{path: name, problems: []problem{p}}
-			m.failures = append(m.failures, f)
-		}
-		if ok {
-			m.match = true
-			m.failures = eqEntry(name, expectedFile.file, yEntry)
-			return m
-		}
-	}
-	return m
 }
 
 func formatFailures(failures []failure) string {

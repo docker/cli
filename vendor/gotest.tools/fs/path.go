@@ -64,13 +64,6 @@ func (p *directoryPath) AddFile(path string, ops ...PathOp) error {
 	return applyPathOps(exp, ops)
 }
 
-func (p *directoryPath) AddGlobFiles(glob string, ops ...PathOp) error {
-	newFile := &file{resource: newResource(0)}
-	newFilePath := &filePath{file: newFile}
-	p.directory.filepathGlobs[glob] = newFilePath
-	return applyPathOps(newFilePath, ops)
-}
-
 func (p *directoryPath) AddDirectory(path string, ops ...PathOp) error {
 	newDir := newDirectoryWithDefaults()
 	p.directory.items[path] = newDir
@@ -94,9 +87,8 @@ func Expected(t assert.TestingT, ops ...PathOp) Manifest {
 
 func newDirectoryWithDefaults() *directory {
 	return &directory{
-		resource:      newResource(defaultRootDirMode),
-		items:         make(map[string]dirEntry),
-		filepathGlobs: make(map[string]*filePath),
+		resource: newResource(defaultRootDirMode),
+		items:    make(map[string]dirEntry),
 	}
 }
 
@@ -153,37 +145,6 @@ func MatchExtraFiles(path Path) error {
 		m.AddFile(anyFile)
 	}
 	return nil
-}
-
-// CompareResult is the result of comparison.
-//
-// See gotest.tools/assert/cmp.StringResult for a convenient implementation of
-// this interface.
-type CompareResult interface {
-	Success() bool
-	FailureMessage() string
-}
-
-// MatchFileContent is a PathOp that updates a Manifest to use the provided
-// function to determine if a file's content matches the expectation.
-func MatchFileContent(f func([]byte) CompareResult) PathOp {
-	return func(path Path) error {
-		if m, ok := path.(*filePath); ok {
-			m.file.compareContentFunc = f
-		}
-		return nil
-	}
-}
-
-// MatchFilesWithGlob is a PathOp that updates a Manifest to match files using
-// glob pattern, and check them using the ops.
-func MatchFilesWithGlob(glob string, ops ...PathOp) PathOp {
-	return func(path Path) error {
-		if m, ok := path.(*directoryPath); ok {
-			m.AddGlobFiles(glob, ops...)
-		}
-		return nil
-	}
 }
 
 // anyFileMode is represented by uint32_max

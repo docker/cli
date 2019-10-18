@@ -26,7 +26,6 @@ type file struct {
 	resource
 	content             io.ReadCloser
 	ignoreCariageReturn bool
-	compareContentFunc  func(b []byte) CompareResult
 }
 
 func (f *file) Type() string {
@@ -44,8 +43,7 @@ func (f *symlink) Type() string {
 
 type directory struct {
 	resource
-	items         map[string]dirEntry
-	filepathGlobs map[string]*filePath
+	items map[string]dirEntry
 }
 
 func (f *directory) Type() string {
@@ -97,9 +95,8 @@ func newDirectory(path string, info os.FileInfo) (*directory, error) {
 	}
 
 	return &directory{
-		resource:      newResourceFromInfo(info),
-		items:         items,
-		filepathGlobs: make(map[string]*filePath),
+		resource: newResourceFromInfo(info),
+		items:    items,
 	}, nil
 }
 

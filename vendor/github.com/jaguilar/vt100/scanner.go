@@ -61,7 +61,7 @@ func scanEscapeCommand(s io.RuneScanner) (Command, error) {
 		return nil, err
 	}
 	if esc != escape && esc != monogramCsi {
-		return nil, fmt.Errorf("invalid content")
+		panic(fmt.Errorf("not positioned at beginning of escape sequence, saw: %v", esc))
 	}
 	if esc == monogramCsi {
 		csi = true

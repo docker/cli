@@ -62,9 +62,10 @@ plugins-osx: ## build example CLI plugins for macOS
 dynbinary: ## build dynamically linked binary
 	./scripts/build/dynbinary
 
-vendor: vendor.conf ## check that vendor matches vendor.conf
+vendor: go.mod ## check that vendor matches go.mod
 	rm -rf vendor
-	bash -c 'vndr |& grep -v -i clone'
+	# TODO: this can be removed when CI is using Go 1.13 or higher
+	GO111MODULE=on go mod vendor
 	scripts/validate/check-git-diff vendor
 
 .PHONY: authors

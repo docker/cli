@@ -283,6 +283,8 @@ func (c controlCommand) display(v *VT100) error {
 		v.Cursor.X = 0
 	case carriageReturn:
 		v.Cursor.X = 0
+	default:
+		return supportError(fmt.Errorf("control code not implemented %0x", uint(c)))
 	}
 	return nil
 }
