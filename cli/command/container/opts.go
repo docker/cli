@@ -382,8 +382,25 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	var ports map[nat.Port]struct{}
 	var portBindings map[nat.Port][]nat.PortBinding
 
-	ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
-
+	for _, publishOpt := range publishOpts {
+		publishOptList = []string{publishOpt}
+		if strings.Index(publishOpt, "=") > 0 {
+			publishOptList, err = parsePortOpts(publishOptList)
+			if err != nil {
+				return nil, err
+			}
+		}
+		p, pb, err := nat.ParsePortSpecs(publishOptList)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range p {
+			ports[k] = v
+		}
+		for k, v := range pb {
+			portBindings[k] = v
+		}
+	}
 	// If simple port parsing fails try to parse as long format
 	if err != nil {
 		publishOpts, err = parsePortOpts(publishOpts)
