@@ -390,7 +390,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 				return nil, err
 			}
 		}
-		p, pb, err = nat.ParsePortSpecs(publishOptList)
+		p, pb, err := nat.ParsePortSpecs(publishOptList)
 		if err != nil {
 			return nil, err
 		}
