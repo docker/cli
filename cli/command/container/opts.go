@@ -383,7 +383,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	var portBindings map[nat.Port][]nat.PortBinding
 
 	for _, publishOpt := range publishOpts {
-		publishOptList = []string{publishOpt}
+		publishOptList := []string{publishOpt}
 		if strings.Index(publishOpt, "=") > 0 {
 			publishOptList, err = parsePortOpts(publishOptList)
 			if err != nil {
@@ -401,20 +401,6 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 			portBindings[k] = v
 		}
 	}
-	// If simple port parsing fails try to parse as long format
-	if err != nil {
-		publishOpts, err = parsePortOpts(publishOpts)
-		if err != nil {
-			return nil, err
-		}
-
-		ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// Merge in exposed ports to the map of published ports
 	for _, e := range copts.expose.GetAll() {
 		if strings.Contains(e, ":") {
