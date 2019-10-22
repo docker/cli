@@ -385,6 +385,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	for _, publishOpt := range publishOpts {
 		publishOptList := []string{publishOpt}
 		if strings.Index(publishOpt, "=") > 0 {
+			var err error 
 			publishOptList, err = parsePortOpts(publishOptList)
 			if err != nil {
 				return nil, err
