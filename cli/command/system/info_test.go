@@ -377,6 +377,11 @@ func TestFormatInfo(t *testing.T) {
 			template:      "{{}",
 			expectedError: `Status: Template parsing error: template: :1: unexpected "}" in command, Code: 64`,
 		},
+		{
+			doc:           "syntax",
+			template:      "{{.badString}}",
+			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.info`,
+		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
