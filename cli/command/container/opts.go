@@ -379,8 +379,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	}
 
 	publishOpts := copts.publish.GetAll()
-	var ports map[nat.Port]struct{}
-	var portBindings map[nat.Port][]nat.PortBinding
+	ports := make(map[nat.Port]struct{})
+	portBindings := make(map[nat.Port][]nat.PortBinding)
 
 	for _, publishOpt := range publishOpts {
 		publishOptList := []string{publishOpt}
