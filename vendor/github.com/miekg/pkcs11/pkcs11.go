@@ -800,13 +800,13 @@ func (c *Ctx) Destroy() {
 	c.ctx = nil
 }
 
-// Initialize initializes the Cryptoki library. */
+// Initialize initializes the Cryptoki library.
 func (c *Ctx) Initialize() error {
 	e := C.Initialize(c.ctx)
 	return toError(e)
 }
 
-// Finalize indicates that an application is done with the Cryptoki library. */
+// Finalize indicates that an application is done with the Cryptoki library.
 func (c *Ctx) Finalize() error {
 	if c.ctx == nil {
 		return toError(CKR_CRYPTOKI_NOT_INITIALIZED)
@@ -815,7 +815,7 @@ func (c *Ctx) Finalize() error {
 	return toError(e)
 }
 
-// GetInfo returns general information about Cryptoki. */
+// GetInfo returns general information about Cryptoki.
 func (c *Ctx) GetInfo() (Info, error) {
 	var p C.ckInfo
 	e := C.GetInfo(c.ctx, &p)
@@ -829,7 +829,7 @@ func (c *Ctx) GetInfo() (Info, error) {
 	return i, toError(e)
 }
 
-// GetSlotList obtains a list of slots in the system. */
+// GetSlotList obtains a list of slots in the system.
 func (c *Ctx) GetSlotList(tokenPresent bool) ([]uint, error) {
 	var (
 		slotList C.CK_ULONG_PTR
@@ -843,7 +843,7 @@ func (c *Ctx) GetSlotList(tokenPresent bool) ([]uint, error) {
 	return l, nil
 }
 
-// GetSlotInfo obtains information about a particular slot in the system. */
+// GetSlotInfo obtains information about a particular slot in the system.
 func (c *Ctx) GetSlotInfo(slotID uint) (SlotInfo, error) {
 	var csi C.CK_SLOT_INFO
 	e := C.GetSlotInfo(c.ctx, C.CK_ULONG(slotID), &csi)
@@ -885,7 +885,7 @@ func (c *Ctx) GetTokenInfo(slotID uint) (TokenInfo, error) {
 	return s, toError(e)
 }
 
-// GetMechanismList obtains a list of mechanism types supported by a token. */
+// GetMechanismList obtains a list of mechanism types supported by a token.
 func (c *Ctx) GetMechanismList(slotID uint) ([]*Mechanism, error) {
 	var (
 		mech    C.CK_ULONG_PTR // in pkcs#11 we're all CK_ULONGs \o/
@@ -997,11 +997,11 @@ func (c *Ctx) GetOperationState(sh SessionHandle) ([]byte, error) {
 		statelen C.CK_ULONG
 	)
 	e := C.GetOperationState(c.ctx, C.CK_SESSION_HANDLE(sh), &state, &statelen)
+	defer C.free(unsafe.Pointer(state))
 	if toError(e) != nil {
 		return nil, toError(e)
 	}
 	b := C.GoBytes(unsafe.Pointer(state), C.int(statelen))
-	C.free(unsafe.Pointer(state))
 	return b, nil
 }
 
