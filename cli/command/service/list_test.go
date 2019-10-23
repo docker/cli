@@ -22,6 +22,7 @@ func TestServiceListOrder(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
 	cmd.Flags().Set("format", "{{.Name}}")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "service-list-sort.golden")

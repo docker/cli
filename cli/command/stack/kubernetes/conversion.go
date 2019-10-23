@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
@@ -154,35 +153,65 @@ const (
 	publishedOnRandomPortSuffix = "-random-ports"
 )
 
-func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta2.DaemonSetList, services *apiv1.ServiceList) ([]swarm.Service, map[string]service.ListInfo, error) {
+func convertToServices(replicas *appsv1beta2.ReplicaSetList, daemons *appsv1beta2.DaemonSetList, services *apiv1.ServiceList) ([]swarm.Service, error) {
 	result := make([]swarm.Service, len(replicas.Items))
-	infos := make(map[string]service.ListInfo, len(replicas.Items)+len(daemons.Items))
+
 	for i, r := range replicas.Items {
-		s, err := convertToService(r.Labels[labels.ForServiceName], services, r.Spec.Template.Spec.Containers)
+		s, err := replicatedService(r, services)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		result[i] = *s
-		infos[s.ID] = service.ListInfo{
-			Mode:     "replicated",
-			Replicas: fmt.Sprintf("%d/%d", r.Status.AvailableReplicas, r.Status.Replicas),
-		}
 	}
 	for _, d := range daemons.Items {
-		s, err := convertToService(d.Labels[labels.ForServiceName], services, d.Spec.Template.Spec.Containers)
+		s, err := globalService(d, services)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		result = append(result, *s)
-		infos[s.ID] = service.ListInfo{
-			Mode:     "global",
-			Replicas: fmt.Sprintf("%d/%d", d.Status.NumberReady, d.Status.DesiredNumberScheduled),
-		}
 	}
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].ID < result[j].ID
 	})
-	return result, infos, nil
+	return result, nil
+}
+
+func uint64ptr(i int32) *uint64 {
+	var o uint64
+	if i > 0 {
+		o = uint64(i)
+	}
+	return &o
+}
+
+func replicatedService(r appsv1beta2.ReplicaSet, services *apiv1.ServiceList) (*swarm.Service, error) {
+	s, err := convertToService(r.Labels[labels.ForServiceName], services, r.Spec.Template.Spec.Containers)
+	if err != nil {
+		return nil, err
+	}
+	s.Spec.Mode = swarm.ServiceMode{
+		Replicated: &swarm.ReplicatedService{Replicas: uint64ptr(r.Status.Replicas)},
+	}
+	s.ServiceStatus = &swarm.ServiceStatus{
+		RunningTasks: uint64(r.Status.AvailableReplicas),
+		DesiredTasks: uint64(r.Status.Replicas),
+	}
+	return s, nil
+}
+
+func globalService(d appsv1beta2.DaemonSet, services *apiv1.ServiceList) (*swarm.Service, error) {
+	s, err := convertToService(d.Labels[labels.ForServiceName], services, d.Spec.Template.Spec.Containers)
+	if err != nil {
+		return nil, err
+	}
+	s.Spec.Mode = swarm.ServiceMode{
+		Global: &swarm.GlobalService{},
+	}
+	s.ServiceStatus = &swarm.ServiceStatus{
+		RunningTasks: uint64(d.Status.NumberReady),
+		DesiredTasks: uint64(d.Status.DesiredNumberScheduled),
+	}
+	return s, nil
 }
 
 func convertToService(serviceName string, services *apiv1.ServiceList, containers []apiv1.Container) (*swarm.Service, error) {

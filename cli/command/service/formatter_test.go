@@ -33,29 +33,37 @@ func TestServiceContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewListFormat("table", false)},
-			`ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
-id_baz              baz                 global              2/4                                     *:80->8080/tcp
-id_bar              bar                 replicated          2/4                                     *:80->8080/tcp
+			`ID                  NAME                MODE                REPLICAS               IMAGE               PORTS
+02_bar              bar                 replicated          2/4                                        *:80->8090/udp
+01_baz              baz                 global              1/3                                        *:80->8080/tcp
+04_qux2             qux2                replicated          3/3 (max 2 per node)                       
+03_qux10            qux10               replicated          2/3 (max 1 per node)                       
 `,
 		},
 		{
 			formatter.Context{Format: NewListFormat("table", true)},
-			`id_baz
-id_bar
+			`02_bar
+01_baz
+04_qux2
+03_qux10
 `,
 		},
 		{
-			formatter.Context{Format: NewListFormat("table {{.Name}}", false)},
-			`NAME
-baz
-bar
+			formatter.Context{Format: NewListFormat("table {{.Name}}\t{{.Mode}}", false)},
+			`NAME                MODE
+bar                 replicated
+baz                 global
+qux2                replicated
+qux10               replicated
 `,
 		},
 		{
 			formatter.Context{Format: NewListFormat("table {{.Name}}", true)},
 			`NAME
-baz
 bar
+baz
+qux2
+qux10
 `,
 		},
 		// Raw Format
@@ -65,15 +73,19 @@ bar
 		},
 		{
 			formatter.Context{Format: NewListFormat("raw", true)},
-			`id: id_baz
-id: id_bar
+			`id: 02_bar
+id: 01_baz
+id: 04_qux2
+id: 03_qux10
 `,
 		},
 		// Custom Format
 		{
 			formatter.Context{Format: NewListFormat("{{.Name}}", false)},
-			`baz
-bar
+			`bar
+baz
+qux2
+qux10
 `,
 		},
 	}
@@ -81,9 +93,12 @@ bar
 	for _, testcase := range cases {
 		services := []swarm.Service{
 			{
-				ID: "id_baz",
+				ID: "01_baz",
 				Spec: swarm.ServiceSpec{
 					Annotations: swarm.Annotations{Name: "baz"},
+					Mode: swarm.ServiceMode{
+						Global: &swarm.GlobalService{},
+					},
 				},
 				Endpoint: swarm.Endpoint{
 					Ports: []swarm.PortConfig{
@@ -94,38 +109,71 @@ bar
 							Protocol:      "tcp",
 						},
 					},
+				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks: 1,
+					DesiredTasks: 3,
 				},
 			},
 			{
-				ID: "id_bar",
+				ID: "02_bar",
 				Spec: swarm.ServiceSpec{
 					Annotations: swarm.Annotations{Name: "bar"},
+					Mode: swarm.ServiceMode{
+						Replicated: &swarm.ReplicatedService{},
+					},
 				},
 				Endpoint: swarm.Endpoint{
 					Ports: []swarm.PortConfig{
 						{
 							PublishMode:   "ingress",
 							PublishedPort: 80,
-							TargetPort:    8080,
-							Protocol:      "tcp",
+							TargetPort:    8090,
+							Protocol:      "udp",
 						},
 					},
 				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks: 2,
+					DesiredTasks: 4,
+				},
 			},
-		}
-		info := map[string]ListInfo{
-			"id_baz": {
-				Mode:     "global",
-				Replicas: "2/4",
+			{
+				ID: "03_qux10",
+				Spec: swarm.ServiceSpec{
+					Annotations: swarm.Annotations{Name: "qux10"},
+					Mode: swarm.ServiceMode{
+						Replicated: &swarm.ReplicatedService{},
+					},
+					TaskTemplate: swarm.TaskSpec{
+						Placement: &swarm.Placement{MaxReplicas: 1},
+					},
+				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks: 2,
+					DesiredTasks: 3,
+				},
 			},
-			"id_bar": {
-				Mode:     "replicated",
-				Replicas: "2/4",
+			{
+				ID: "04_qux2",
+				Spec: swarm.ServiceSpec{
+					Annotations: swarm.Annotations{Name: "qux2"},
+					Mode: swarm.ServiceMode{
+						Replicated: &swarm.ReplicatedService{},
+					},
+					TaskTemplate: swarm.TaskSpec{
+						Placement: &swarm.Placement{MaxReplicas: 2},
+					},
+				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks: 3,
+					DesiredTasks: 3,
+				},
 			},
 		}
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
-		err := ListFormatWrite(testcase.context, services, info)
+		err := ListFormatWrite(testcase.context, services)
 		if err != nil {
 			assert.Error(t, err, testcase.expected)
 		} else {
@@ -137,9 +185,12 @@ bar
 func TestServiceContextWriteJSON(t *testing.T) {
 	services := []swarm.Service{
 		{
-			ID: "id_baz",
+			ID: "01_baz",
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{Name: "baz"},
+				Mode: swarm.ServiceMode{
+					Global: &swarm.GlobalService{},
+				},
 			},
 			Endpoint: swarm.Endpoint{
 				Ports: []swarm.PortConfig{
@@ -150,12 +201,19 @@ func TestServiceContextWriteJSON(t *testing.T) {
 						Protocol:      "tcp",
 					},
 				},
+			},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 1,
+				DesiredTasks: 3,
 			},
 		},
 		{
-			ID: "id_bar",
+			ID: "02_bar",
 			Spec: swarm.ServiceSpec{
 				Annotations: swarm.Annotations{Name: "bar"},
+				Mode: swarm.ServiceMode{
+					Replicated: &swarm.ReplicatedService{},
+				},
 			},
 			Endpoint: swarm.Endpoint{
 				Ports: []swarm.PortConfig{
@@ -167,25 +225,19 @@ func TestServiceContextWriteJSON(t *testing.T) {
 					},
 				},
 			},
-		},
-	}
-	info := map[string]ListInfo{
-		"id_baz": {
-			Mode:     "global",
-			Replicas: "2/4",
-		},
-		"id_bar": {
-			Mode:     "replicated",
-			Replicas: "2/4",
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 2,
+				DesiredTasks: 4,
+			},
 		},
 	}
 	expectedJSONs := []map[string]interface{}{
-		{"ID": "id_baz", "Name": "baz", "Mode": "global", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
-		{"ID": "id_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
+		{"ID": "02_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
+		{"ID": "01_baz", "Name": "baz", "Mode": "global", "Replicas": "1/3", "Image": "", "Ports": "*:80->8080/tcp"},
 	}
 
 	out := bytes.NewBufferString("")
-	err := ListFormatWrite(formatter.Context{Format: "{{json .}}", Output: out}, services, info)
+	err := ListFormatWrite(formatter.Context{Format: "{{json .}}", Output: out}, services)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,21 +251,35 @@ func TestServiceContextWriteJSON(t *testing.T) {
 }
 func TestServiceContextWriteJSONField(t *testing.T) {
 	services := []swarm.Service{
-		{ID: "id_baz", Spec: swarm.ServiceSpec{Annotations: swarm.Annotations{Name: "baz"}}},
-		{ID: "id_bar", Spec: swarm.ServiceSpec{Annotations: swarm.Annotations{Name: "bar"}}},
-	}
-	info := map[string]ListInfo{
-		"id_baz": {
-			Mode:     "global",
-			Replicas: "2/4",
+		{
+			ID: "01_baz",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "baz"},
+				Mode: swarm.ServiceMode{
+					Global: &swarm.GlobalService{},
+				},
+			},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 2,
+				DesiredTasks: 4,
+			},
 		},
-		"id_bar": {
-			Mode:     "replicated",
-			Replicas: "2/4",
+		{
+			ID: "24_bar",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "bar"},
+				Mode: swarm.ServiceMode{
+					Replicated: &swarm.ReplicatedService{},
+				},
+			},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 2,
+				DesiredTasks: 4,
+			},
 		},
 	}
 	out := bytes.NewBufferString("")
-	err := ListFormatWrite(formatter.Context{Format: "{{json .Name}}", Output: out}, services, info)
+	err := ListFormatWrite(formatter.Context{Format: "{{json .Name}}", Output: out}, services)
 	if err != nil {
 		t.Fatal(err)
 	}
