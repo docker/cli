@@ -14,14 +14,10 @@
    limitations under the License.
 */
 
-package devices
+package images
 
-import (
-	"os"
-
-	"github.com/pkg/errors"
+const (
+	// AnnotationImageName is an annotation on a Descriptor in an index.json
+	// containing the `Name` value as used by an `Image` struct
+	AnnotationImageName = "io.containerd.image.name"
 )
-
-func DeviceInfo(fi os.FileInfo) (uint64, uint64, error) {
-	return 0, 0, errors.Wrap(ErrNotSupported, "cannot get device info on windows")
-}
