@@ -14,11 +14,27 @@ jobs:
           reusable: true
           exclusive: false
       - run:
+          name: "Docker version"
           command: docker version
+      - run:
+          name: "Docker info"
+          command: docker info
+      - run:
+          name: "Shellcheck - build image"
+          command: |
+            docker build --progress=plain -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
+      - run:
+          name: "Shellcheck"
+          command: |
+            docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
+                make shellcheck
+      - run:
+          name: "Lint - build image"
+          command: |
+            docker build --progress=plain -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
       - run:
           name: "Lint"
           command: |
-            docker build --progress=plain -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
             docker run --rm cli-linter:$CIRCLE_BUILD_NUM
 
   cross:
@@ -34,9 +50,18 @@ jobs:
           reusable: true
           exclusive: false
       - run:
-          name: "Cross"
+          name: "Docker version"
+          command: docker version
+      - run:
+          name: "Docker info"
+          command: docker info
+      - run:
+          name: "Cross - build image"
           command: |
             docker build --progress=plain -f dockerfiles/Dockerfile.cross --tag cli-builder:$CIRCLE_BUILD_NUM .
+      - run:
+          name: "Cross"
+          command: |
             name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
             docker run \
                 -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
@@ -60,10 +85,19 @@ jobs:
           reusable: true
           exclusive: false
       - run:
-          name: "Unit Test with Coverage"
+          name: "Docker version"
+          command: docker version
+      - run:
+          name: "Docker info"
+          command: docker info
+      - run:
+          name: "Unit Test with Coverage - build image"
           command: |
             mkdir -p test-results/unit-tests
             docker build --progress=plain -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
+      - run:
+          name: "Unit Test with Coverage"
+          command: |
             docker run \
                 -e GOTESTSUM_JUNITFILE=/tmp/junit.xml \
                 --name \
@@ -98,30 +132,23 @@ jobs:
           reusable: true
           exclusive: false
       - run:
-          name: "Validate Vendor, Docs, and Code Generation"
+          name: "Docker version"
+          command: docker version
+      - run:
+          name: "Docker info"
+          command: docker info
+      - run:
+          name: "Validate - build image"
           command: |
             rm -f .dockerignore # include .git
             docker build --progress=plain -f dockerfiles/Dockerfile.dev --tag cli-builder-with-git:$CIRCLE_BUILD_NUM .
+      - run:
+          name: "Validate Vendor, Docs, and Code Generation"
+          command: |
             docker run --rm cli-builder-with-git:$CIRCLE_BUILD_NUM \
                 make ci-validate
           no_output_timeout: 15m
-  shellcheck:
-    working_directory: /work
-    docker: [{image: 'docker:18.09-git'}]
-    environment:
-      DOCKER_BUILDKIT: 1
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 18.09.3
-          reusable: true
-          exclusive: false
-      - run:
-          name: "Run shellcheck"
-          command: |
-            docker build --progress=plain -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
-            docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
-                make shellcheck
+
 workflows:
   version: 2
   ci:
@@ -130,4 +157,3 @@ workflows:
       - cross
       - test
       - validate
-      - shellcheck
