@@ -2,12 +2,16 @@
   "Vendor": true,
   "Deadline": "2m",
   "Sort": ["linter", "severity", "path", "line"],
-  "Exclude": [
+  "Skip": [
       "cli/compose/schema/bindata.go",
       "cli/command/stack/kubernetes/api/openapi",
       "cli/command/stack/kubernetes/api/client",
       ".*generated.*",
-      "parameter .* always receives"
+      "vendor"
+  ],
+  "Exclude": [
+    "parameter .* always receives",
+    "_esc(Dir|FS|FSString|FSMustString) is unused"
   ],
   "EnableGC": true,
   "Linters": {
