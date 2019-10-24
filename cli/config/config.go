@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
@@ -23,10 +24,15 @@ const (
 )
 
 var (
-	configDir = os.Getenv("DOCKER_CONFIG")
+	initConfigDir sync.Once
+	configDir     string
 )
 
-func init() {
+func setConfigDir() {
+	if configDir != "" {
+		return
+	}
+	configDir = os.Getenv("DOCKER_CONFIG")
 	if configDir == "" {
 		configDir = filepath.Join(homedir.Get(), configFileDir)
 	}
@@ -34,6 +40,7 @@ func init() {
 
 // Dir returns the directory the configuration file is stored in
 func Dir() string {
+	initConfigDir.Do(setConfigDir)
 	return configDir
 }
 
