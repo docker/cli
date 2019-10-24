@@ -29,7 +29,7 @@ Options:
       --help                  Print usage
       --kubeconfig string     Kubernetes config file
       --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
+      --orchestrator string   Orchestrator to use (swarm|kubernetes)
       --prune                 Prune services that are no longer referenced
       --resolve-image string  Query the registry to resolve image digest and supported platforms
                               ("always"|"changed"|"never") (default "always")

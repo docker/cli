@@ -28,7 +28,7 @@ Options:
       --namespace string      Kubernetes namespace to use
       --no-resolve            Do not map IDs to Names
       --no-trunc              Do not truncate output
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
+      --orchestrator string   Orchestrator to use (swarm|kubernetes)
   -q, --quiet                 Only display task IDs
 ```
 

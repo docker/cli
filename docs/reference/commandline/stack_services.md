@@ -26,7 +26,7 @@ Options:
       --help                  Print usage
       --kubeconfig string     Kubernetes config file
       --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
+      --orchestrator string   Orchestrator to use (swarm|kubernetes)
   -q, --quiet                 Only display IDs
 ```
 
