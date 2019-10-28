@@ -46,10 +46,31 @@ func ServiceLabels(labels map[string]string) func(*swarm.Service) {
 	}
 }
 
-// ReplicatedService sets the number of replicas for the service
+// GlobalService sets the service to use "global" mode
+func GlobalService() func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.Spec.Mode = swarm.ServiceMode{Global: &swarm.GlobalService{}}
+	}
+}
+
+// ReplicatedService sets the service to use "replicated" mode with the specified number of replicas
 func ReplicatedService(replicas uint64) func(*swarm.Service) {
 	return func(service *swarm.Service) {
 		service.Spec.Mode = swarm.ServiceMode{Replicated: &swarm.ReplicatedService{Replicas: &replicas}}
+		if service.ServiceStatus == nil {
+			service.ServiceStatus = &swarm.ServiceStatus{}
+		}
+		service.ServiceStatus.DesiredTasks = replicas
+	}
+}
+
+// ServiceStatus sets the services' ServiceStatus (API v1.41 and above)
+func ServiceStatus(desired, running uint64) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		service.ServiceStatus = &swarm.ServiceStatus{
+			RunningTasks: running,
+			DesiredTasks: desired,
+		}
 	}
 }
 
