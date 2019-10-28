@@ -120,7 +120,7 @@ option can be set multiple times.
    Always attempt to pull a newer version of the image. The default is *false*.
 
 **--compress**=*true*|*false*
-    Compress the build context using gzip. The default is *false*.
+   Compress the build context using gzip. The default is *false*.
 
 **-q**, **--quiet**=*true*|*false*
    Suppress the build output and print image ID on success. The default is *false*.
@@ -134,21 +134,19 @@ option can be set multiple times.
    about valid tag names.
 
 **-m**, **--memory**=*MEMORY*
-  Memory limit
+   Memory limit
 
-**--memory-swap**=*LIMIT*
-   A limit value equal to memory plus swap. Must be used with the  **-m**
-(**--memory**) flag. The swap `LIMIT` should always be larger than **-m**
-(**--memory**) value.
+**--memory-swap**=*number*[*S*]
+   Combined memory plus swap limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
-   The format of `LIMIT` is `<number>[<unit>]`. Unit can be `b` (bytes),
-`k` (kilobytes), `m` (megabytes), or `g` (gigabytes). If you don't specify a
-unit, `b` is used. Set LIMIT to `-1` to enable unlimited swap.
+   This option can only be used together with **--memory**. The argument should always be larger than that of **--memory**. Default is double the value of **--memory**. Set to **-1** to enable unlimited swap.
 
-**--network**=*bridge*
+**--network**=*type*
   Set the networking mode for the RUN instructions during build. Supported standard
-  values are: `bridge`, `host`, `none` and `container:<name|id>`. Any other value
+  values are: **none**, **bridge**, **host** and **container:**_name_|_id_. Any other value
   is taken as a custom network's name or ID which this container should connect to.
+
+Default is **bridge**.
 
 **--shm-size**=*SHM-SIZE*
   Size of `/dev/shm`. The format is `<number><unit>`. `number` must be greater than `0`.
