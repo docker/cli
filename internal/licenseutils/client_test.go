@@ -96,7 +96,6 @@ func (c *fakeLicensingClient) StoreLicense(ctx context.Context, dclnt licensing.
 }
 
 func (c *fakeLicensingClient) LoadLocalLicense(ctx context.Context, dclnt licensing.WrappedDockerClient) (*model.Subscription, error) {
-
 	if c.loadLocalLicenseFunc != nil {
 		return c.loadLocalLicenseFunc(ctx, dclnt)
 

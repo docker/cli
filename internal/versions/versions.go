@@ -24,7 +24,6 @@ const (
 
 // GetEngineVersions reports the versions of the engine that are available
 func GetEngineVersions(ctx context.Context, registryClient registryclient.RegistryClient, registryPrefix, imageName, versionString string) (clitypes.AvailableVersions, error) {
-
 	if imageName == "" {
 		var err error
 		localMetadata, err := GetCurrentRuntimeMetadata("")
