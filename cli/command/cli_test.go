@@ -152,6 +152,7 @@ func TestInitializeFromClient(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			apiclient := &fakeClient{
 				pingFunc: testcase.pingFunc,
@@ -189,6 +190,7 @@ func TestExperimentalCLI(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
 			defer dir.Remove()
@@ -242,6 +244,7 @@ func TestGetClientWithPassword(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			passRetriever := func(_, _ string, _ bool, attempts int) (passphrase string, giveup bool, err error) {
 				// Always return an invalid pass first to test iteration
