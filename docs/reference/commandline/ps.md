@@ -75,6 +75,22 @@ $ docker ps -a
 container that exposes TCP ports `100, 101, 102` displays `100-102/tcp` in
 the `PORTS` column.
 
+### Show disk usage by container
+
+The `docker ps -s` command displays two different on-disk-sizes for each container:
+
+```bash
+$ docker ps -s
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE                                                                                      SIZE
+e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours           my_nginx     35.58 kB (virtual 109.2 MB)
+00c6131c5e30   telegraf:1.5   "/entrypoint.sh"         11 weeks ago   Up 11 weeks          my_telegraf  0 B (virtual 209.5 MB)
+```
+  * The "size" information shows the amount of data (on disk) that is used for the _writable_ layer of each container
+  * The "virtual size" is the total amount of disk-space used for the read-only _image_ data used by the container and the writable layer.
+  
+For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
+
+
 ### Filtering
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
