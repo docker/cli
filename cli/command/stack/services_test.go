@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
@@ -35,17 +36,20 @@ func TestStackServicesErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*Service()}, nil
+				return []swarm.Service{*Service(GlobalService())}, nil
 			},
 			nodeListFunc: func(options types.NodeListOptions) ([]swarm.Node, error) {
 				return nil, errors.Errorf("error getting nodes")
+			},
+			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
+				return []swarm.Task{*Task()}, nil
 			},
 			expectedError: "error getting nodes",
 		},
 		{
 			args: []string{"foo"},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*Service()}, nil
+				return []swarm.Service{*Service(GlobalService())}, nil
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 				return nil, errors.Errorf("error getting tasks")
@@ -65,18 +69,21 @@ func TestStackServicesErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			serviceListFunc: tc.serviceListFunc,
-			nodeListFunc:    tc.nodeListFunc,
-			taskListFunc:    tc.taskListFunc,
+		tc := tc
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				serviceListFunc: tc.serviceListFunc,
+				nodeListFunc:    tc.nodeListFunc,
+				taskListFunc:    tc.taskListFunc,
+			})
+			cmd := newServicesCommand(cli, &orchestrator)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			cmd.SetOutput(ioutil.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
-		cmd := newServicesCommand(cli, &orchestrator)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOutput(ioutil.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 

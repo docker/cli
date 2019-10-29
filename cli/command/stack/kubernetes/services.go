@@ -109,15 +109,11 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 	}
 
 	// Convert Replicas sets and kubernetes services to swarm services and formatter information
-	services, info, err := convertToServices(replicasList, daemonsList, servicesList)
+	services, err := convertToServices(replicasList, daemonsList, servicesList)
 	if err != nil {
 		return err
 	}
 	services = filterServicesByName(services, filters.Get("name"), stackName)
-
-	if opts.Quiet {
-		info = map[string]service.ListInfo{}
-	}
 
 	format := opts.Format
 	if len(format) == 0 {
@@ -132,7 +128,7 @@ func RunServices(dockerCli *KubeCli, opts options.Services) error {
 		Output: dockerCli.Out(),
 		Format: service.NewListFormat(format, opts.Quiet),
 	}
-	return service.ListFormatWrite(servicesCtx, services, info)
+	return service.ListFormatWrite(servicesCtx, services)
 }
 
 func filterServicesByName(services []swarm.Service, names []string, stackName string) []swarm.Service {

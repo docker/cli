@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
+	"vbom.ml/util/sortorder"
 )
 
 const serviceInspectPrettyTemplate formatter.Format = `
@@ -520,17 +521,14 @@ func NewListFormat(source string, quiet bool) formatter.Format {
 	return formatter.Format(source)
 }
 
-// ListInfo stores the information about mode and replicas to be used by template
-type ListInfo struct {
-	Mode     string
-	Replicas string
-}
-
 // ListFormatWrite writes the context
-func ListFormatWrite(ctx formatter.Context, services []swarm.Service, info map[string]ListInfo) error {
+func ListFormatWrite(ctx formatter.Context, services []swarm.Service) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
+		sort.Slice(services, func(i, j int) bool {
+			return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+		})
 		for _, service := range services {
-			serviceCtx := &serviceContext{service: service, mode: info[service.ID].Mode, replicas: info[service.ID].Replicas}
+			serviceCtx := &serviceContext{service: service}
 			if err := format(serviceCtx); err != nil {
 				return err
 			}
@@ -551,9 +549,7 @@ func ListFormatWrite(ctx formatter.Context, services []swarm.Service, info map[s
 
 type serviceContext struct {
 	formatter.HeaderContext
-	service  swarm.Service
-	mode     string
-	replicas string
+	service swarm.Service
 }
 
 func (c *serviceContext) MarshalJSON() ([]byte, error) {
@@ -569,11 +565,35 @@ func (c *serviceContext) Name() string {
 }
 
 func (c *serviceContext) Mode() string {
-	return c.mode
+	switch {
+	case c.service.Spec.Mode.Global != nil:
+		return "global"
+	case c.service.Spec.Mode.Replicated != nil:
+		return "replicated"
+	default:
+		return ""
+	}
 }
 
 func (c *serviceContext) Replicas() string {
-	return c.replicas
+	s := &c.service
+
+	var running, desired uint64
+	if s.ServiceStatus != nil {
+		running = c.service.ServiceStatus.RunningTasks
+		desired = c.service.ServiceStatus.DesiredTasks
+	}
+	if r := c.maxReplicas(); r > 0 {
+		return fmt.Sprintf("%d/%d (max %d per node)", running, desired, r)
+	}
+	return fmt.Sprintf("%d/%d", running, desired)
+}
+
+func (c *serviceContext) maxReplicas() uint64 {
+	if c.Mode() != "replicated" || c.service.Spec.TaskTemplate.Placement == nil {
+		return 0
+	}
+	return c.service.Spec.TaskTemplate.Placement.MaxReplicas
 }
 
 func (c *serviceContext) Image() string {
