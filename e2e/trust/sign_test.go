@@ -31,7 +31,6 @@ func TestSignLocalImage(t *testing.T) {
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary)
 	result.Assert(t, icmd.Success)
 	assert.Check(t, is.Contains(result.Stdout(), fmt.Sprintf("v1: digest: sha256:%s", fixtures.AlpineSha)))
-
 }
 
 func TestSignWithLocalFlag(t *testing.T) {
