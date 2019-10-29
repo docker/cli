@@ -65,6 +65,8 @@ func TestParseTruncateFunction(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		testCase := testCase
+
 		tm, err := Parse(testCase.template)
 		assert.NilError(t, err)
 
