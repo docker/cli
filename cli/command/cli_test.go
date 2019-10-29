@@ -294,11 +294,12 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	inbuf := bytes.NewBuffer([]byte("input"))
 	outbuf := bytes.NewBuffer(nil)
 	errbuf := bytes.NewBuffer(nil)
-	cli.Apply(
+	err = cli.Apply(
 		WithInputStream(ioutil.NopCloser(inbuf)),
 		WithOutputStream(outbuf),
 		WithErrorStream(errbuf),
 	)
+	assert.NilError(t, err)
 	// Check input stream
 	inputStream, err := ioutil.ReadAll(cli.In())
 	assert.NilError(t, err)
