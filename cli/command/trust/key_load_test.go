@@ -117,6 +117,7 @@ var testKeys = map[string][]byte{
 func TestLoadKeyFromPath(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
+		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
 			testLoadKeyFromPath(t, keyID, keyBytes)
 		})
@@ -172,6 +173,7 @@ func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) 
 func TestLoadKeyTooPermissive(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
+		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
 			testLoadKeyTooPermissive(t, keyBytes)
 		})
