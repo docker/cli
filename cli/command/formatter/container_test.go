@@ -304,7 +304,8 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 	}
 
 	for _, context := range contexts {
-		ContainerWrite(context.context, containers)
+		err := ContainerWrite(context.context, containers)
+		assert.NilError(t, err)
 		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
