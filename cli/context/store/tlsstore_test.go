@@ -75,5 +75,4 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 	resEmpty, err := testee.listContextData("test-ctx")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resEmpty, map[string]EndpointFiles{})
-
 }

@@ -345,7 +345,6 @@ func getDockerfileRelPath(absContextDir, givenDockerfile string) (string, error)
 		absDockerfile, err = filepath.EvalSymlinks(absDockerfile)
 		if err != nil {
 			return "", errors.Errorf("unable to evaluate symlinks in Dockerfile path: %v", err)
-
 		}
 	}
 
