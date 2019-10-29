@@ -43,7 +43,8 @@ var winisabstests = []IsAbsTest{
 }
 
 func TestIsAbs(t *testing.T) {
-	tests := append(isabstests, winisabstests...)
+	tests := winisabstests
+
 	// All non-windows tests should fail, because they have no volume letter.
 	for _, test := range isabstests {
 		tests = append(tests, IsAbsTest{test.path, false})
@@ -53,7 +54,7 @@ func TestIsAbs(t *testing.T) {
 		tests = append(tests, IsAbsTest{"c:" + test.path, test.isAbs})
 	}
 
-	for _, test := range winisabstests {
+	for _, test := range tests {
 		if r := isAbs(test.path); r != test.isAbs {
 			t.Errorf("IsAbs(%q) = %v, want %v", test.path, r, test.isAbs)
 		}
