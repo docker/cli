@@ -195,6 +195,7 @@ func TestHandlePullSecret(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
@@ -222,6 +223,7 @@ func TestHandlePullPolicy(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
@@ -271,6 +273,7 @@ func TestHandleInternalServiceType(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			res, err := fromComposeServiceConfig(composetypes.ServiceConfig{
 				Name:  "test",
