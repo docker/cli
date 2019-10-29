@@ -348,7 +348,8 @@ func TestImageContextWriteWithNoImage(t *testing.T) {
 	}
 
 	for _, context := range contexts {
-		ImageWrite(context.context, images)
+		err := ImageWrite(context.context, images)
+		assert.NilError(t, err)
 		assert.Check(t, is.Equal(context.expected, out.String()))
 		// Clean buffer
 		out.Reset()
