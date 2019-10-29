@@ -209,7 +209,6 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 
 	confirmedTLSRegistries := make(map[string]bool)
 	for _, endpoint := range endpoints {
-
 		if endpoint.Version == registry.APIVersion1 {
 			logrus.Debugf("skipping v1 endpoint %s", endpoint.URL)
 			continue
