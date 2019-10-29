@@ -1004,6 +1004,7 @@ func updatePorts(flags *pflag.FlagSet, portConfig *[]swarm.PortConfig) error {
 
 	// Build the current list of portConfig
 	for _, entry := range *portConfig {
+		entry := entry
 		if _, ok := portSet[portConfigToString(&entry)]; !ok {
 			portSet[portConfigToString(&entry)] = entry
 		}
@@ -1031,6 +1032,7 @@ portLoop:
 		ports := flags.Lookup(flagPublishAdd).Value.(*opts.PortOpt).Value()
 
 		for _, port := range ports {
+			port := port
 			if _, ok := portSet[portConfigToString(&port)]; ok {
 				continue
 			}
