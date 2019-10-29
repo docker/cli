@@ -88,7 +88,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 
 	pubPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
 	if err != nil {
-		fmt.Fprintf(streams.Out(), err.Error())
+		fmt.Fprint(streams.Out(), err.Error())
 		return errors.Wrapf(err, "failed to generate key for %s", keyName)
 	}
 
