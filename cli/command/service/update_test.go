@@ -28,7 +28,7 @@ func TestUpdateServiceArgs(t *testing.T) {
 	cspec := spec.TaskTemplate.ContainerSpec
 	cspec.Args = []string{"old", "args"}
 
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.DeepEqual([]string{"the", "new args"}, cspec.Args))
 }
 
@@ -532,18 +532,18 @@ func TestUpdateReadOnly(t *testing.T) {
 	// Update with --read-only=true, changed to true
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("read-only", "true")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, cspec.ReadOnly)
 
 	// Update without --read-only, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, cspec.ReadOnly)
 
 	// Update with --read-only=false, changed to false
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("read-only", "false")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, !cspec.ReadOnly)
 }
 
@@ -558,18 +558,18 @@ func TestUpdateInit(t *testing.T) {
 	// Update with --init=true
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("init", "true")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(true, *cspec.Init))
 
 	// Update without --init, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(true, *cspec.Init))
 
 	// Update with --init=false
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("init", "false")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(false, *cspec.Init))
 }
 
@@ -584,18 +584,18 @@ func TestUpdateStopSignal(t *testing.T) {
 	// Update with --stop-signal=SIGUSR1
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("stop-signal", "SIGUSR1")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGUSR1", cspec.StopSignal))
 
 	// Update without --stop-signal, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGUSR1", cspec.StopSignal))
 
 	// Update with --stop-signal=SIGWINCH
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("stop-signal", "SIGWINCH")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGWINCH", cspec.StopSignal))
 }
 
