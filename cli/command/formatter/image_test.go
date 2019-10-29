@@ -16,6 +16,7 @@ import (
 func TestImageContext(t *testing.T) {
 	imageID := stringid.GenerateRandomID()
 	unix := time.Now().Unix()
+	zeroTime := int64(-62135596800)
 
 	var ctx imageContext
 	cases := []struct {
@@ -76,6 +77,11 @@ func TestImageContext(t *testing.T) {
 				i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000},
 			}, "15kB", ctx.UniqueSize,
 		},
+		{
+			imageContext{
+				i: types.ImageSummary{Created: zeroTime},
+			}, "", ctx.CreatedSince,
+		},
 	}
 
 	for _, c := range cases {
@@ -91,7 +97,9 @@ func TestImageContext(t *testing.T) {
 
 func TestImageContextWrite(t *testing.T) {
 	unixTime := time.Now().AddDate(0, 0, -1).Unix()
+	zeroTime := int64(-62135596800)
 	expectedTime := time.Unix(unixTime, 0).String()
+	expectedZeroTime := time.Unix(zeroTime, 0).String()
 
 	cases := []struct {
 		context  ImageContext
@@ -125,7 +133,7 @@ func TestImageContextWrite(t *testing.T) {
 			},
 			`REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 image               tag1                imageID1            24 hours ago        0B
-image               tag2                imageID2            24 hours ago        0B
+image               tag2                imageID2            N/A                 0B
 <none>              <none>              imageID3            24 hours ago        0B
 `,
 		},
@@ -183,7 +191,7 @@ image               <none>
 			},
 			`REPOSITORY          TAG                 DIGEST                                                                    IMAGE ID            CREATED             SIZE
 image               tag1                sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf   imageID1            24 hours ago        0B
-image               tag2                <none>                                                                    imageID2            24 hours ago        0B
+image               tag2                <none>                                                                    imageID2            N/A                 0B
 <none>              <none>              <none>                                                                    imageID3            24 hours ago        0B
 `,
 		},
@@ -221,7 +229,7 @@ image_id: imageID3
 created_at: %s
 virtual_size: 0B
 
-`, expectedTime, expectedTime, expectedTime),
+`, expectedTime, expectedZeroTime, expectedTime),
 		},
 		{
 			ImageContext{
@@ -251,7 +259,7 @@ image_id: imageID3
 created_at: %s
 virtual_size: 0B
 
-`, expectedTime, expectedTime, expectedTime),
+`, expectedTime, expectedZeroTime, expectedTime),
 		},
 		{
 			ImageContext{
@@ -287,7 +295,7 @@ image_id: imageID3
 	for _, testcase := range cases {
 		images := []types.ImageSummary{
 			{ID: "imageID1", RepoTags: []string{"image:tag1"}, RepoDigests: []string{"image@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf"}, Created: unixTime},
-			{ID: "imageID2", RepoTags: []string{"image:tag2"}, Created: unixTime},
+			{ID: "imageID2", RepoTags: []string{"image:tag2"}, Created: zeroTime},
 			{ID: "imageID3", RepoTags: []string{"<none>:<none>"}, RepoDigests: []string{"<none>@<none>"}, Created: unixTime},
 		}
 		out := bytes.NewBufferString("")

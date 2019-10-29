@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	defaultImageTableFormat           = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}"
-	defaultImageTableFormatWithDigest = "table {{.Repository}}\t{{.Tag}}\t{{.Digest}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}"
+	defaultImageTableFormat           = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{if .CreatedSince }}{{.CreatedSince}}{{else}}N/A{{end}}\t{{.Size}}"
+	defaultImageTableFormatWithDigest = "table {{.Repository}}\t{{.Tag}}\t{{.Digest}}\t{{.ID}}\t{{if .CreatedSince }}{{.CreatedSince}}{{else}}N/A{{end}}\t{{.Size}}"
 
 	imageIDHeader    = "IMAGE ID"
 	repositoryHeader = "REPOSITORY"
@@ -235,6 +235,11 @@ func (c *imageContext) Digest() string {
 
 func (c *imageContext) CreatedSince() string {
 	createdAt := time.Unix(c.i.Created, 0)
+
+	if createdAt.IsZero() {
+		return ""
+	}
+
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
