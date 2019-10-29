@@ -93,6 +93,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
 			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
 			if testcase.expectedErr != "" {
