@@ -474,7 +474,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	// should be just the image ID and we'll print that to stdout.
 	if options.quiet {
 		imageID = fmt.Sprintf("%s", buildBuff)
-		fmt.Fprintf(dockerCli.Out(), imageID)
+		_, _ = fmt.Fprint(dockerCli.Out(), imageID)
 	}
 
 	if options.imageIDFile != "" {
