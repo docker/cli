@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultSecretTableFormat                     = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.CreatedAt}}\t{{.UpdatedAt}}"
+	defaultSecretTableFormat                     = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.CreatedAt}}\t{{.UpdatedAt}}" // #nosec G101
 	secretIDHeader                               = "ID"
 	secretCreatedHeader                          = "CREATED"
 	secretUpdatedHeader                          = "UPDATED"
