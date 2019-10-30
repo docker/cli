@@ -64,6 +64,12 @@ services:
 $ docker stack deploy --orchestrator=kubernetes -c docker-compose.yml hellokube
 ```
 
+## Remove a stack
+
+```
+$ docker stack rm --orchestrator=kubernetes hellokube
+```
+
 # Developing Compose on Kubernetes
 
 See the [contributing](./CONTRIBUTING.md) guides for how to contribute code.
