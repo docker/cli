@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"testing"
 
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/assert"
@@ -45,8 +46,8 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 				},
 			},
 			expectedServices: []swarm.Service{
-				makeSwarmService(t, "stack_service1", "uid1", withMode("replicated", 5), withStatus(2, 5)),
-				makeSwarmService(t, "stack_service2", "uid2", withMode("replicated", 3), withStatus(3, 3)),
+				makeSwarmService(t, "stack_service1", "uid1", ReplicatedService(5), ServiceStatus(5, 2)),
+				makeSwarmService(t, "stack_service2", "uid2", ReplicatedService(3), ServiceStatus(3, 3)),
 			},
 		},
 		{
@@ -70,8 +71,9 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 			},
 			expectedServices: []swarm.Service{
 				makeSwarmService(t, "stack_service", "uid1",
-					withMode("replicated", 1),
-					withStatus(1, 1), withPort(swarm.PortConfig{
+					ReplicatedService(1),
+					ServiceStatus(1, 1),
+					withPort(swarm.PortConfig{
 						PublishMode:   swarm.PortConfigPublishModeIngress,
 						PublishedPort: 80,
 						TargetPort:    80,
@@ -101,8 +103,8 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 			},
 			expectedServices: []swarm.Service{
 				makeSwarmService(t, "stack_service", "uid1",
-					withMode("replicated", 1),
-					withStatus(1, 1),
+					ReplicatedService(1),
+					ServiceStatus(1, 1),
 					withPort(swarm.PortConfig{
 						PublishMode:   swarm.PortConfigPublishModeHost,
 						PublishedPort: 35666,
@@ -165,25 +167,7 @@ func makeKubeService(service, stack, uid string, serviceType apiv1.ServiceType, 
 	}
 }
 
-func withMode(mode string, replicas uint64) func(*swarm.Service) {
-	return func(service *swarm.Service) {
-		switch mode {
-		case "global":
-			service.Spec.Mode = swarm.ServiceMode{
-				Global: &swarm.GlobalService{},
-			}
-		case "replicated":
-			service.Spec.Mode = swarm.ServiceMode{
-				Replicated: &swarm.ReplicatedService{Replicas: &replicas},
-			}
-			withStatus(0, replicas)
-		default:
-			service.Spec.Mode = swarm.ServiceMode{}
-			withStatus(0, 0)
-		}
-	}
-}
-
+// TODO convertToServices currently doesn't set swarm.EndpointSpec.Ports
 func withPort(port swarm.PortConfig) func(*swarm.Service) {
 	return func(service *swarm.Service) {
 		if service.Endpoint.Ports == nil {
@@ -193,32 +177,9 @@ func withPort(port swarm.PortConfig) func(*swarm.Service) {
 	}
 }
 
-func withStatus(running, desired uint64) func(*swarm.Service) {
-	return func(service *swarm.Service) {
-		service.ServiceStatus = &swarm.ServiceStatus{
-			RunningTasks: running,
-			DesiredTasks: desired,
-		}
-	}
-}
-
-func makeSwarmService(t *testing.T, service, id string, opts ...func(*swarm.Service)) swarm.Service {
+func makeSwarmService(t *testing.T, name, id string, opts ...func(*swarm.Service)) swarm.Service {
 	t.Helper()
-	s := swarm.Service{
-		ID: id,
-		Spec: swarm.ServiceSpec{
-			Annotations: swarm.Annotations{
-				Name: service,
-			},
-			TaskTemplate: swarm.TaskSpec{
-				ContainerSpec: &swarm.ContainerSpec{
-					Image: "image",
-				},
-			},
-		},
-	}
-	for _, o := range opts {
-		o(&s)
-	}
-	return s
+	options := []func(*swarm.Service){ServiceID(id), ServiceName(name), ServiceImage("image")}
+	options = append(options, opts...)
+	return *Service(options...)
 }
