@@ -2,17 +2,16 @@ package swarm
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 )
 
-// RunServices is the swarm implementation of docker stack services
-func RunServices(dockerCli command.Cli, opts options.Services) error {
+// GetServices is the swarm implementation of listing stack services
+func GetServices(dockerCli command.Cli, opts options.Services) ([]swarm.Service, error) {
 	var (
 		err    error
 		ctx    = context.Background()
@@ -30,13 +29,7 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 
 	services, err := client.ServiceList(ctx, listOpts)
 	if err != nil {
-		return err
-	}
-
-	// if no services in this stack, print message and exit 0
-	if len(services) == 0 {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", opts.Namespace)
-		return nil
+		return nil, err
 	}
 
 	if listOpts.Status {
@@ -54,22 +47,8 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 		// a ServiceStatus set, and perform a lookup for those.
 		services, err = service.AppendServiceStatus(ctx, client, services)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-
-	format := opts.Format
-	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
-			format = dockerCli.ConfigFile().ServicesFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
-	}
-
-	servicesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: service.NewListFormat(format, opts.Quiet),
-	}
-	return service.ListFormatWrite(servicesCtx, services)
+	return services, nil
 }
