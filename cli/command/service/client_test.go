@@ -72,6 +72,6 @@ func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, optio
 	return types.NetworkResource{}, nil
 }
 
-func newService(id string, name string, opts ...func(*swarm.Service)) swarm.Service {
-	return *Service(append(opts, ServiceID(id), ServiceName(name))...)
+func newService(id string, name string) swarm.Service {
+	return *Service(ServiceID(id), ServiceName(name))
 }
