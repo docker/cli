@@ -6,20 +6,12 @@ import (
 
 // Service creates a service with default values.
 // Any number of service builder functions can be passed to augment it.
-// Currently, only ServiceName is implemented
 func Service(builders ...func(*swarm.Service)) *swarm.Service {
-	service := &swarm.Service{
-		ID: "serviceID",
-		Spec: swarm.ServiceSpec{
-			Annotations: swarm.Annotations{
-				Name: "defaultServiceName",
-			},
-			EndpointSpec: &swarm.EndpointSpec{},
-		},
-	}
+	service := &swarm.Service{}
+	defaults := []func(*swarm.Service){ServiceID("serviceID"), ServiceName("defaultServiceName")}
 
-	for _, builder := range builders {
-		builder(service)
+	for _, opt := range append(defaults, builders...) {
+		opt(service)
 	}
 
 	return service
@@ -77,13 +69,19 @@ func ServiceStatus(desired, running uint64) func(*swarm.Service) {
 // ServiceImage sets the service's image
 func ServiceImage(image string) func(*swarm.Service) {
 	return func(service *swarm.Service) {
-		service.Spec.TaskTemplate = swarm.TaskSpec{ContainerSpec: &swarm.ContainerSpec{Image: image}}
+		if service.Spec.TaskTemplate.ContainerSpec == nil {
+			service.Spec.TaskTemplate.ContainerSpec = &swarm.ContainerSpec{}
+		}
+		service.Spec.TaskTemplate.ContainerSpec.Image = image
 	}
 }
 
 // ServicePort sets the service's port
 func ServicePort(port swarm.PortConfig) func(*swarm.Service) {
 	return func(service *swarm.Service) {
+		if service.Spec.EndpointSpec == nil {
+			service.Spec.EndpointSpec = &swarm.EndpointSpec{}
+		}
 		service.Spec.EndpointSpec.Ports = append(service.Spec.EndpointSpec.Ports, port)
 
 		assignedPort := port
