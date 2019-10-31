@@ -275,6 +275,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			actual := ExtractVariables(tc.dict, defaultPattern)
 			assert.Check(t, is.DeepEqual(actual, tc.expected))

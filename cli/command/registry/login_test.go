@@ -69,7 +69,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	}
 	ctx := context.Background()
 	for _, tc := range testCases {
-		cli := (*test.FakeCli)(test.NewFakeCli(&fakeClient{}))
+		cli := test.NewFakeCli(&fakeClient{})
 		errBuf := new(bytes.Buffer)
 		cli.SetErr(errBuf)
 		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
@@ -166,7 +166,7 @@ func TestRunLogin(t *testing.T) {
 
 			if tc.inputStoredCred != nil {
 				cred := *tc.inputStoredCred
-				configfile.GetCredentialsStore(cred.ServerAddress).Store(cred)
+				assert.NilError(t, configfile.GetCredentialsStore(cred.ServerAddress).Store(cred))
 			}
 			loginErr := runLogin(cli, tc.inputLoginOption)
 			if tc.expectedErr != "" {

@@ -58,7 +58,7 @@ func TestListErrors(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	singlePluginListFunc := func(filter filters.Args) (types.PluginsListResponse, error) {
+	singlePluginListFunc := func(_ filters.Args) (types.PluginsListResponse, error) {
 		return types.PluginsListResponse{
 			{
 				ID:      "id-foo",
@@ -113,7 +113,7 @@ func TestList(t *testing.T) {
 				"format":   "{{ .ID }}",
 			},
 			golden: "plugin-list-with-no-trunc-option.golden",
-			listFunc: func(filter filters.Args) (types.PluginsListResponse, error) {
+			listFunc: func(_ filters.Args) (types.PluginsListResponse, error) {
 				return types.PluginsListResponse{
 					{
 						ID:      "xyg4z2hiSLO5yTnBJfg4OYia9gKA6Qjd",
@@ -142,7 +142,7 @@ func TestList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-list-sort.golden",
-			listFunc: func(filter filters.Args) (types.PluginsListResponse, error) {
+			listFunc: func(_ filters.Args) (types.PluginsListResponse, error) {
 				return types.PluginsListResponse{
 					{
 						ID:   "id-1",

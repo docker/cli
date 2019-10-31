@@ -29,7 +29,7 @@ func GetStacks(kubeCli *KubeCli, opts options.List) ([]*formatter.Stack, error) 
 }
 
 func isAllNamespacesDisabled(kubeCliConfig *configfile.KubernetesConfig) bool {
-	return kubeCliConfig == nil || kubeCliConfig != nil && kubeCliConfig.AllNamespaces != "disabled"
+	return kubeCliConfig == nil || kubeCliConfig.AllNamespaces != "disabled"
 }
 
 func getStacks(kubeCli *KubeCli, opts options.List) ([]*formatter.Stack, error) {

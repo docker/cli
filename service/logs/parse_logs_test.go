@@ -22,6 +22,7 @@ func TestParseLogDetails(t *testing.T) {
 		{"errors", nil, errors.New("invalid details format")},
 	}
 	for _, testcase := range testCases {
+		testcase := testcase
 		t.Run(testcase.line, func(t *testing.T) {
 			actual, err := ParseLogDetails(testcase.line)
 			if testcase.err != nil {

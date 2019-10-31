@@ -462,7 +462,6 @@ func TestJSONWithPsFormatNoFile(t *testing.T) {
 	if config.PsFormat != `table {{.ID}}\t{{.Label "com.docker.label.cpu"}}` {
 		t.Fatalf("Unknown ps format: %s\n", config.PsFormat)
 	}
-
 }
 
 func TestJSONSaveWithNoFile(t *testing.T) {
@@ -586,6 +585,7 @@ func TestConfigPath(t *testing.T) {
 			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
 		},
 	} {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			SetDir(tc.dir)
 			f, err := Path(tc.path...)

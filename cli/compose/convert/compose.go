@@ -109,7 +109,7 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 		var obj swarmFileObject
 		var err error
 		if secret.Driver != "" {
-			obj, err = driverObjectConfig(namespace, name, composetypes.FileObjectConfig(secret))
+			obj = driverObjectConfig(namespace, name, composetypes.FileObjectConfig(secret))
 		} else {
 			obj, err = fileObjectConfig(namespace, name, composetypes.FileObjectConfig(secret))
 		}
@@ -161,7 +161,7 @@ type swarmFileObject struct {
 	Data        []byte
 }
 
-func driverObjectConfig(namespace Namespace, name string, obj composetypes.FileObjectConfig) (swarmFileObject, error) {
+func driverObjectConfig(namespace Namespace, name string, obj composetypes.FileObjectConfig) swarmFileObject {
 	if obj.Name != "" {
 		name = obj.Name
 	} else {
@@ -174,7 +174,7 @@ func driverObjectConfig(namespace Namespace, name string, obj composetypes.FileO
 			Labels: AddStackLabel(namespace, obj.Labels),
 		},
 		Data: []byte{},
-	}, nil
+	}
 }
 
 func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObjectConfig) (swarmFileObject, error) {

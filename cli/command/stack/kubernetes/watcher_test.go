@@ -41,11 +41,13 @@ func newTestPodAndStackRepository(initialPods []apiv1.Pod, initialStacks []apiv1
 
 	o := k8stesting.NewObjectTracker(scheme, codecs.UniversalDecoder())
 	for _, obj := range initialPods {
+		obj := obj
 		if err := o.Add(&obj); err != nil {
 			panic(err)
 		}
 	}
 	for _, obj := range initialStacks {
+		obj := obj
 		if err := o.Add(&obj); err != nil {
 			panic(err)
 		}

@@ -108,6 +108,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
+		c := c
 		pullCounter := 0
 
 		client := &fakeClient{
@@ -178,6 +179,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		cli := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
@@ -236,6 +238,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				createContainerFunc: func(config *container.Config,

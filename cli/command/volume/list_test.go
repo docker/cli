@@ -6,12 +6,11 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
 	"gotest.tools/assert"
 	"gotest.tools/golden"
 )

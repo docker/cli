@@ -88,7 +88,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 
 	pubPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
 	if err != nil {
-		fmt.Fprintf(streams.Out(), err.Error())
+		fmt.Fprint(streams.Out(), err.Error())
 		return errors.Wrapf(err, "failed to generate key for %s", keyName)
 	}
 
@@ -108,8 +108,7 @@ func generateKeyAndOutputPubPEM(keyName string, privKeyStore trustmanager.KeySto
 		return pem.Block{}, err
 	}
 
-	privKeyStore.AddKey(trustmanager.KeyInfo{Role: data.RoleName(keyName)}, privKey)
-	if err != nil {
+	if err := privKeyStore.AddKey(trustmanager.KeyInfo{Role: data.RoleName(keyName)}, privKey); err != nil {
 		return pem.Block{}, err
 	}
 

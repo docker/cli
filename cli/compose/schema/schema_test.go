@@ -118,7 +118,6 @@ func TestValidateCredentialSpecs(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestValidateSecretConfigNames(t *testing.T) {
