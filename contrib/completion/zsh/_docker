@@ -2295,7 +2295,7 @@ __docker_swarm_subcommand() {
                 "($help)--availability=[Availability of the node]:availability:(active drain pause)" \
                 "($help)--cert-expiry=[Validity period for node certificates]:duration: " \
                 "($help)--dispatcher-heartbeat=[Dispatcher heartbeat period]:duration: " \
-                "($help)*--external-ca=[Specifications of one or more certificate signing endpoints]:endpoint: " \
+                "($help)*--external-ca=[Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"]:endpoint: " \
                 "($help)--force-new-cluster[Force create a new cluster from current state]" \
                 "($help)--listen-addr=[Listen address]:ip\:port: " \
                 "($help)--max-snapshots[Number of additional Raft snapshots to retain]" \
@@ -2340,7 +2340,7 @@ __docker_swarm_subcommand() {
                 "($help)--autolock[Enable manager autolocking]" \
                 "($help)--cert-expiry=[Validity period for node certificates]:duration: " \
                 "($help)--dispatcher-heartbeat=[Dispatcher heartbeat period]:duration: " \
-                "($help)*--external-ca=[Specifications of one or more certificate signing endpoints]:endpoint: " \
+                "($help)*--external-ca=[Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"]:endpoint: " \
                 "($help)--max-snapshots[Number of additional Raft snapshots to retain]" \
                 "($help)--snapshot-interval[Number of log entries between Raft snapshots]" \
                 "($help)--task-history-limit=[Task history retention limit]:limit: " && ret=0

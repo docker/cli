@@ -24,7 +24,7 @@ Options:
       --autolock                        Change manager autolocking setting (true|false)
       --cert-expiry duration            Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
       --dispatcher-heartbeat duration   Dispatcher heartbeat period (ns|us|ms|s|m|h) (default 5s)
-      --external-ca external-ca         Specifications of one or more certificate signing endpoints
+      --external-ca external-ca         Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"
       --help                            Print usage
       --max-snapshots uint              Number of additional Raft snapshots to retain
       --snapshot-interval uint          Number of log entries between Raft snapshots (default 10000)
@@ -40,6 +40,28 @@ Updates a swarm with new parameter values. This command must target a manager no
 ```bash
 $ docker swarm update --cert-expiry 720h
 ```
+
+## `--external-ca`
+
+Provide an external CA URL to the managers - this CA will be used to issue all new
+node certificates.  One or more of these flags can be passed in order to provide
+multiple alternative URLs - the swarm will try each one in order before falling
+back on the next. If an external CA URL is added, swarm will only use the external CA
+even if it has access to the CA key.
+
+The only protocol currently supported for external CAs is the CFSSL signing
+protocol, and the URL provided should be to the [`/api/v1/cfssl/sign`](https://github.com/cloudflare/cfssl/blob/master/doc/api/endpoint_sign.txt)
+endpoint on a CFSSL server.
+
+The URL must be HTTPS, and the TLS certificate for the external URL must be signed
+by the CA certificate currently used by the swarm.
+
+Example usage:
+
+`--external-ca=protocol=cfssl,url=https://my.cfssl.server/api/v1/cfssl/sign`
+
+External CAs can be removed though by passing an empty string, e.g.
+`--external-ca=""`.
 
 ## Related commands
 

@@ -25,7 +25,7 @@ Options:
       --ca-key pem-file           Path to the PEM-formatted root CA key to use for the new cluster
       --cert-expiry duration      Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
   -d, --detach                    Exit immediately instead of waiting for the root rotation to converge
-      --external-ca external-ca   Specifications of one or more certificate signing endpoints
+      --external-ca external-ca   Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"
       --help                      Print usage
   -q, --quiet                     Suppress progress output
       --rotate                    Rotate the swarm CA - if no certificate or key are provided, new ones will be generated
@@ -33,7 +33,10 @@ Options:
 
 ## Description
 
-View or rotate the current swarm CA certificate. This command must target a manager node.
+View or rotate the current swarm CA certificate. This command must target a manager node.  If no CA certificate
+is provided, a new certificate and key will be generated and used.
+
+A CA certificate, along with either a CA key and/or an external CA URL, may optionally be provided instead.
 
 ## Examples
 
@@ -111,6 +114,32 @@ see if any nodes are down or otherwise unable to rotate TLS certificates.
 
 Initiate the root CA rotation, but do not wait for the completion of or display the
 progress of the rotation.
+
+## `--external-ca`
+
+Provide an external CA URL to the managers - this CA will be used to issue all new
+node certificates.  One or more of these flags can be passed in order to provide
+multiple alternative URLs - the swarm will try each one in order before falling
+back on the next. If a key and an external CA are both provided, swarm will only
+use the external CA.
+
+This flag must be passed in conjunction with the `--ca-cert` flag, to specify
+which CA certificate will be used by these external URLs to sign certificates.
+
+The only protocol currently supported for external CAs is the CFSSL signing
+protocol, and the URL provided should be to the [`/api/v1/cfssl/sign`](https://github.com/cloudflare/cfssl/blob/master/doc/api/endpoint_sign.txt)
+endpoint on a CFSSL server.
+
+The URL must be HTTPS, and the TLS certificate for the external URL must be signed
+by the CA certificate provided via the `--ca-cert` flag.
+
+Example usage:
+
+`--external-ca=protocol=cfssl,url=https://my.cfssl.server/api/v1/cfssl/sign`
+
+External CAs can be removed though by passing an empty string, e.g.
+`--external-ca=""`.
+
 
 ## Related commands
 

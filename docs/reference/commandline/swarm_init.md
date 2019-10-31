@@ -30,7 +30,7 @@ Options:
       --default-addr-pool IPnet         List of default address pool (format: <cidr>)
       --default-addr-pool-mask-length   Subnet mask length for default address pool (default 24)
       --dispatcher-heartbeat duration   Dispatcher heartbeat period (ns|us|ms|s|m|h) (default 5s)
-      --external-ca external-ca         Specifications of one or more certificate signing endpoints
+      --external-ca external-ca         Specifications of one or more certificate signing endpoints in the form: "protocol=<protocol>,url=<url>"
       --force-new-cluster               Force create a new cluster from current state
       --help                            Print usage
       --listen-addr node-addr           Listen address (format: <ip|interface>[:port]) (default 0.0.0.0:2377)
