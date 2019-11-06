@@ -22,7 +22,7 @@ Remove unused images
 
 Options:
   -a, --all             Remove all unused images, not just dangling ones
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
+      --filter filter   Provide filter values (e.g. 'until=<timestamp>', or 'until!=<timestamp>')
   -f, --force           Do not prompt for confirmation
       --help            Print usage
 ```
