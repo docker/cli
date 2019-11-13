@@ -49,23 +49,36 @@ func TestNewPushCommandErrors(t *testing.T) {
 
 func TestNewPushCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name string
-		args []string
+		name   string
+		args   []string
+		output string
 	}{
 		{
-			name: "simple",
+			name: "push",
 			args: []string{"image:tag"},
+		},
+		{
+			name: "push quiet",
+			args: []string{"--quiet", "image:tag"},
+			output: `docker.io/library/image:tag
+`,
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
-				return ioutil.NopCloser(strings.NewReader("")), nil
-			},
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
+					return ioutil.NopCloser(strings.NewReader("")), nil
+				},
+			})
+			cmd := NewPushCommand(cli)
+			cmd.SetOutput(cli.OutBuffer())
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			if tc.output != "" {
+				assert.Equal(t, tc.output, cli.OutBuffer().String())
+			}
 		})
-		cmd := NewPushCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
 	}
 }

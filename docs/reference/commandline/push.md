@@ -23,6 +23,7 @@ Push an image or a repository to a registry
 Options:
       --disable-content-trust   Skip image signing (default true)
       --help                    Print usage
+  -q, --quiet                   Suppress verbose output
 ```
 
 ## Description

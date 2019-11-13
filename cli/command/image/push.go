@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -14,6 +15,7 @@ import (
 type pushOptions struct {
 	remote    string
 	untrusted bool
+	quiet     bool
 }
 
 // NewPushCommand creates a new `docker push` command
@@ -31,7 +33,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-
+	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 
 	return cmd
@@ -66,5 +68,9 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	}
 
 	defer responseBody.Close()
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	if !opts.quiet {
+		return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	}
+	fmt.Fprintln(dockerCli.Out(), ref.String())
+	return nil
 }
