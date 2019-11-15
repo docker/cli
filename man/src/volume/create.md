@@ -6,7 +6,7 @@ configure the container to use it, for example:
     hello
     $ docker run -d -v hello:/world busybox ls /world
 
-The mount is created inside the container's `/src` directory. Docker doesn't
+The mount is created inside the container's `/src` directory. Docker does
 not support relative paths for mount points inside the container.
 
 Multiple containers can use the same volume in the same time period. This is
