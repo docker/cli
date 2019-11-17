@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/oci/caps"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -100,6 +101,11 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
 	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
 	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
+
+	flags.Var(newListOptsVar(), flagCapAdd, "Add Linux capabilities")
+	flags.SetAnnotation(flagCapAdd, "version", []string{"1.41"})
+	flags.Var(newListOptsVar(), flagCapDrop, "Drop Linux capabilities")
+	flags.SetAnnotation(flagCapDrop, "version", []string{"1.41"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -334,6 +340,9 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		return err
 	}
 	if err := updateMounts(flags, &cspec.Mounts); err != nil {
+		return err
+	}
+	if err := updateCapabilities(flags, &task.ContainerSpec.Capabilities); err != nil {
 		return err
 	}
 
@@ -711,6 +720,22 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 
 	toRemove := buildToRemoveSet(flags, flagEnvRemove)
 	*field = removeItems(*field, toRemove, envKey)
+}
+
+func updateCapabilities(flags *pflag.FlagSet, capabilities *[]string) error {
+	if flags.Changed(flagCapAdd) || flags.Changed(flagCapDrop) {
+		capAdd := flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll()
+		capDrop := flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll()
+
+		if len(capAdd) > 0 || len(capDrop) > 0 {
+			var err error
+			*capabilities, err = caps.TweakCapabilities(*capabilities, capAdd, capDrop, nil, false)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {

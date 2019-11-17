@@ -1248,3 +1248,18 @@ func TestUpdateCredSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCapabilities(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	flags.Set("cap-add", "CAP_SYS_NICE")
+	flags.Set("cap-drop", "MKNOD")
+
+	containerSpec := &swarm.ContainerSpec{
+		Capabilities: []string{"CAP_MKNOD", "CAP_NET_RAW"},
+	}
+
+	updateCapabilities(flags, &containerSpec.Capabilities)
+	assert.Assert(t, is.Len(containerSpec.Capabilities, 2))
+	assert.Check(t, is.Equal("CAP_NET_RAW", containerSpec.Capabilities[0]))
+	assert.Check(t, is.Equal("CAP_SYS_NICE", containerSpec.Capabilities[1]))
+}

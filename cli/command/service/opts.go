@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/oci/caps"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/api/defaults"
 	gogotypes "github.com/gogo/protobuf/types"
@@ -490,6 +491,7 @@ type serviceOptions struct {
 	hostname        string
 	env             opts.ListOpts
 	envFile         opts.ListOpts
+	capabilities    opts.ListOpts
 	workdir         string
 	user            string
 	groups          opts.ListOpts
@@ -539,6 +541,7 @@ func newServiceOptions() *serviceOptions {
 		containerLabels: opts.NewListOpts(opts.ValidateLabel),
 		env:             opts.NewListOpts(opts.ValidateEnv),
 		envFile:         opts.NewListOpts(nil),
+		capabilities:    opts.NewListOpts(nil),
 		groups:          opts.NewListOpts(nil),
 		logDriver:       newLogDriverOptions(),
 		dns:             opts.NewListOpts(opts.ValidateIPAddress),
@@ -577,6 +580,44 @@ func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Dur
 		return options.stopGrace.Value()
 	}
 	return nil
+}
+
+func (options *serviceOptions) ToCapabilities(flags *pflag.FlagSet) ([]string, error) {
+	if flags.Changed(flagCapAdd) || flags.Changed(flagCapDrop) || flags.Changed(flagPrivileged) {
+		privileged, err := strconv.ParseBool(flags.Lookup(flagPrivileged).Value.String())
+		if err != nil {
+			return nil, err
+		}
+		capAdd := flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll()
+		capDrop := flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll()
+
+		defaultCapabilities := []string{
+			"CAP_CHOWN",
+			"CAP_DAC_OVERRIDE",
+			"CAP_FSETID",
+			"CAP_FOWNER",
+			"CAP_MKNOD",
+			"CAP_NET_RAW",
+			"CAP_SETGID",
+			"CAP_SETUID",
+			"CAP_SETFCAP",
+			"CAP_SETPCAP",
+			"CAP_NET_BIND_SERVICE",
+			"CAP_SYS_CHROOT",
+			"CAP_KILL",
+			"CAP_AUDIT_WRITE",
+		}
+		capabilities := []string{}
+		if privileged || len(capAdd) > 0 || len(capDrop) > 0 {
+			capabilities, err := caps.TweakCapabilities(defaultCapabilities, capAdd, capDrop, nil, privileged)
+			if err != nil {
+				return nil, err
+			}
+			return capabilities, nil
+		}
+		return capabilities, nil
+	}
+	return nil, nil
 }
 
 func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
@@ -628,6 +669,11 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
+	capabilities, err := options.ToCapabilities(flags)
+	if err != nil {
+		return service, err
+	}
+
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
@@ -659,6 +705,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
+				Capabilities:    capabilities,
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -841,6 +888,8 @@ const (
 	flagPlacementPref           = "placement-pref"
 	flagPlacementPrefAdd        = "placement-pref-add"
 	flagPlacementPrefRemove     = "placement-pref-rm"
+	flagCapAdd                  = "cap-add"
+	flagCapDrop                 = "cap-drop"
 	flagConstraint              = "constraint"
 	flagConstraintRemove        = "constraint-rm"
 	flagConstraintAdd           = "constraint-add"
@@ -886,6 +935,7 @@ const (
 	flagNetwork                 = "network"
 	flagNetworkAdd              = "network-add"
 	flagNetworkRemove           = "network-rm"
+	flagPrivileged              = "privileged"
 	flagPublish                 = "publish"
 	flagPublishRemove           = "publish-rm"
 	flagPublishAdd              = "publish-add"

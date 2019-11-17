@@ -65,6 +65,13 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Var(&opts.sysctls, flagSysCtl, "Sysctl options")
 	flags.SetAnnotation(flagSysCtl, "version", []string{"1.40"})
 
+	flags.Var(newListOptsVar(), flagCapAdd, "Add Linux capabilities")
+	flags.SetAnnotation(flagCapAdd, "version", []string{"1.41"})
+	flags.Var(newListOptsVar(), flagCapDrop, "Drop Linux capabilities")
+	flags.SetAnnotation(flagCapDrop, "version", []string{"1.41"})
+	flags.Bool(flagPrivileged, false, "Give extended privileges to this container")
+	flags.SetAnnotation(flagPrivileged, "version", []string{"1.41"})
+
 	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 

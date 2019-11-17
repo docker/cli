@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/oci/caps"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -299,4 +300,49 @@ func TestToServiceSysCtls(t *testing.T) {
 	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Sysctls, expected))
+}
+
+func TestToServiceCapAddAndCapDrop(t *testing.T) {
+	o := newServiceOptions()
+	o.mode = "replicated"
+
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("cap-add", "SYS_NICE")
+	flags.Set("cap-add", "CAP_NET_ADMIN")
+	flags.Set("cap-drop", "CHOWN")
+	flags.Set("cap-drop", "DAC_OVERRIDE")
+	flags.Set("cap-drop", "CAP_FSETID")
+	flags.Set("cap-drop", "CAP_FOWNER")
+
+	expected := []string{
+		"CAP_MKNOD",
+		"CAP_NET_RAW",
+		"CAP_SETGID",
+		"CAP_SETUID",
+		"CAP_SETFCAP",
+		"CAP_SETPCAP",
+		"CAP_NET_BIND_SERVICE",
+		"CAP_SYS_CHROOT",
+		"CAP_KILL",
+		"CAP_AUDIT_WRITE",
+		"CAP_SYS_NICE",
+		"CAP_NET_ADMIN",
+	}
+
+	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Capabilities, expected))
+}
+
+func TestToServicePrivileged(t *testing.T) {
+	o := newServiceOptions()
+	o.mode = "replicated"
+
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("privileged", "true")
+
+	expected := caps.GetAllCapabilities()
+	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Capabilities, expected))
 }
