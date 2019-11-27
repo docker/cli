@@ -13,6 +13,7 @@ var UnsupportedProperties = []string{
 	"cap_drop",
 	"cgroupns_mode",
 	"cgroup_parent",
+	"device_cgroup_rules",
 	"devices",
 	"domainname",
 	"external_links",
@@ -157,58 +158,59 @@ func (s Services) MarshalJSON() ([]byte, error) {
 type ServiceConfig struct {
 	Name string `yaml:"-" json:"-"`
 
-	Build           BuildConfig                      `yaml:",omitempty" json:"build,omitempty"`
-	CapAdd          []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty" json:"cap_add,omitempty"`
-	CapDrop         []string                         `mapstructure:"cap_drop" yaml:"cap_drop,omitempty" json:"cap_drop,omitempty"`
-	CgroupNSMode    string                           `mapstructure:"cgroupns_mode" yaml:"cgroupns_mode,omitempty" json:"cgroupns_mode,omitempty"`
-	CgroupParent    string                           `mapstructure:"cgroup_parent" yaml:"cgroup_parent,omitempty" json:"cgroup_parent,omitempty"`
-	Command         ShellCommand                     `yaml:",omitempty" json:"command,omitempty"`
-	Configs         []ServiceConfigObjConfig         `yaml:",omitempty" json:"configs,omitempty"`
-	ContainerName   string                           `mapstructure:"container_name" yaml:"container_name,omitempty" json:"container_name,omitempty"`
-	CredentialSpec  CredentialSpecConfig             `mapstructure:"credential_spec" yaml:"credential_spec,omitempty" json:"credential_spec,omitempty"`
-	DependsOn       []string                         `mapstructure:"depends_on" yaml:"depends_on,omitempty" json:"depends_on,omitempty"`
-	Deploy          DeployConfig                     `yaml:",omitempty" json:"deploy,omitempty"`
-	Devices         []string                         `yaml:",omitempty" json:"devices,omitempty"`
-	DNS             StringList                       `yaml:",omitempty" json:"dns,omitempty"`
-	DNSSearch       StringList                       `mapstructure:"dns_search" yaml:"dns_search,omitempty" json:"dns_search,omitempty"`
-	DomainName      string                           `mapstructure:"domainname" yaml:"domainname,omitempty" json:"domainname,omitempty"`
-	Entrypoint      ShellCommand                     `yaml:",omitempty" json:"entrypoint,omitempty"`
-	Environment     MappingWithEquals                `yaml:",omitempty" json:"environment,omitempty"`
-	EnvFile         StringList                       `mapstructure:"env_file" yaml:"env_file,omitempty" json:"env_file,omitempty"`
-	Expose          StringOrNumberList               `yaml:",omitempty" json:"expose,omitempty"`
-	ExternalLinks   []string                         `mapstructure:"external_links" yaml:"external_links,omitempty" json:"external_links,omitempty"`
-	ExtraHosts      HostsList                        `mapstructure:"extra_hosts" yaml:"extra_hosts,omitempty" json:"extra_hosts,omitempty"`
-	Hostname        string                           `yaml:",omitempty" json:"hostname,omitempty"`
-	HealthCheck     *HealthCheckConfig               `yaml:",omitempty" json:"healthcheck,omitempty"`
-	Image           string                           `yaml:",omitempty" json:"image,omitempty"`
-	Init            *bool                            `yaml:",omitempty" json:"init,omitempty"`
-	Ipc             string                           `yaml:",omitempty" json:"ipc,omitempty"`
-	Isolation       string                           `mapstructure:"isolation" yaml:"isolation,omitempty" json:"isolation,omitempty"`
-	Labels          Labels                           `yaml:",omitempty" json:"labels,omitempty"`
-	Links           []string                         `yaml:",omitempty" json:"links,omitempty"`
-	Logging         *LoggingConfig                   `yaml:",omitempty" json:"logging,omitempty"`
-	MacAddress      string                           `mapstructure:"mac_address" yaml:"mac_address,omitempty" json:"mac_address,omitempty"`
-	NetworkMode     string                           `mapstructure:"network_mode" yaml:"network_mode,omitempty" json:"network_mode,omitempty"`
-	Networks        map[string]*ServiceNetworkConfig `yaml:",omitempty" json:"networks,omitempty"`
-	Pid             string                           `yaml:",omitempty" json:"pid,omitempty"`
-	Ports           []ServicePortConfig              `yaml:",omitempty" json:"ports,omitempty"`
-	Privileged      bool                             `yaml:",omitempty" json:"privileged,omitempty"`
-	ReadOnly        bool                             `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
-	Restart         string                           `yaml:",omitempty" json:"restart,omitempty"`
-	Secrets         []ServiceSecretConfig            `yaml:",omitempty" json:"secrets,omitempty"`
-	SecurityOpt     []string                         `mapstructure:"security_opt" yaml:"security_opt,omitempty" json:"security_opt,omitempty"`
-	ShmSize         string                           `mapstructure:"shm_size" yaml:"shm_size,omitempty" json:"shm_size,omitempty"`
-	StdinOpen       bool                             `mapstructure:"stdin_open" yaml:"stdin_open,omitempty" json:"stdin_open,omitempty"`
-	StopGracePeriod *Duration                        `mapstructure:"stop_grace_period" yaml:"stop_grace_period,omitempty" json:"stop_grace_period,omitempty"`
-	StopSignal      string                           `mapstructure:"stop_signal" yaml:"stop_signal,omitempty" json:"stop_signal,omitempty"`
-	Sysctls         Mapping                          `yaml:",omitempty" json:"sysctls,omitempty"`
-	Tmpfs           StringList                       `yaml:",omitempty" json:"tmpfs,omitempty"`
-	Tty             bool                             `mapstructure:"tty" yaml:"tty,omitempty" json:"tty,omitempty"`
-	Ulimits         map[string]*UlimitsConfig        `yaml:",omitempty" json:"ulimits,omitempty"`
-	User            string                           `yaml:",omitempty" json:"user,omitempty"`
-	UserNSMode      string                           `mapstructure:"userns_mode" yaml:"userns_mode,omitempty" json:"userns_mode,omitempty"`
-	Volumes         []ServiceVolumeConfig            `yaml:",omitempty" json:"volumes,omitempty"`
-	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
+	Build             BuildConfig                      `yaml:",omitempty" json:"build,omitempty"`
+	CapAdd            []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty" json:"cap_add,omitempty"`
+	CapDrop           []string                         `mapstructure:"cap_drop" yaml:"cap_drop,omitempty" json:"cap_drop,omitempty"`
+	CgroupNSMode      string                           `mapstructure:"cgroupns_mode" yaml:"cgroupns_mode,omitempty" json:"cgroupns_mode,omitempty"`
+	CgroupParent      string                           `mapstructure:"cgroup_parent" yaml:"cgroup_parent,omitempty" json:"cgroup_parent,omitempty"`
+	Command           ShellCommand                     `yaml:",omitempty" json:"command,omitempty"`
+	Configs           []ServiceConfigObjConfig         `yaml:",omitempty" json:"configs,omitempty"`
+	ContainerName     string                           `mapstructure:"container_name" yaml:"container_name,omitempty" json:"container_name,omitempty"`
+	CredentialSpec    CredentialSpecConfig             `mapstructure:"credential_spec" yaml:"credential_spec,omitempty" json:"credential_spec,omitempty"`
+	DependsOn         []string                         `mapstructure:"depends_on" yaml:"depends_on,omitempty" json:"depends_on,omitempty"`
+	Deploy            DeployConfig                     `yaml:",omitempty" json:"deploy,omitempty"`
+	DeviceCgroupRules []string                         `yaml:",omitempty" json:"device_cgroup_rules,omitempty"`
+	Devices           []string                         `yaml:",omitempty" json:"devices,omitempty"`
+	DNS               StringList                       `yaml:",omitempty" json:"dns,omitempty"`
+	DNSSearch         StringList                       `mapstructure:"dns_search" yaml:"dns_search,omitempty" json:"dns_search,omitempty"`
+	DomainName        string                           `mapstructure:"domainname" yaml:"domainname,omitempty" json:"domainname,omitempty"`
+	Entrypoint        ShellCommand                     `yaml:",omitempty" json:"entrypoint,omitempty"`
+	Environment       MappingWithEquals                `yaml:",omitempty" json:"environment,omitempty"`
+	EnvFile           StringList                       `mapstructure:"env_file" yaml:"env_file,omitempty" json:"env_file,omitempty"`
+	Expose            StringOrNumberList               `yaml:",omitempty" json:"expose,omitempty"`
+	ExternalLinks     []string                         `mapstructure:"external_links" yaml:"external_links,omitempty" json:"external_links,omitempty"`
+	ExtraHosts        HostsList                        `mapstructure:"extra_hosts" yaml:"extra_hosts,omitempty" json:"extra_hosts,omitempty"`
+	Hostname          string                           `yaml:",omitempty" json:"hostname,omitempty"`
+	HealthCheck       *HealthCheckConfig               `yaml:",omitempty" json:"healthcheck,omitempty"`
+	Image             string                           `yaml:",omitempty" json:"image,omitempty"`
+	Init              *bool                            `yaml:",omitempty" json:"init,omitempty"`
+	Ipc               string                           `yaml:",omitempty" json:"ipc,omitempty"`
+	Isolation         string                           `mapstructure:"isolation" yaml:"isolation,omitempty" json:"isolation,omitempty"`
+	Labels            Labels                           `yaml:",omitempty" json:"labels,omitempty"`
+	Links             []string                         `yaml:",omitempty" json:"links,omitempty"`
+	Logging           *LoggingConfig                   `yaml:",omitempty" json:"logging,omitempty"`
+	MacAddress        string                           `mapstructure:"mac_address" yaml:"mac_address,omitempty" json:"mac_address,omitempty"`
+	NetworkMode       string                           `mapstructure:"network_mode" yaml:"network_mode,omitempty" json:"network_mode,omitempty"`
+	Networks          map[string]*ServiceNetworkConfig `yaml:",omitempty" json:"networks,omitempty"`
+	Pid               string                           `yaml:",omitempty" json:"pid,omitempty"`
+	Ports             []ServicePortConfig              `yaml:",omitempty" json:"ports,omitempty"`
+	Privileged        bool                             `yaml:",omitempty" json:"privileged,omitempty"`
+	ReadOnly          bool                             `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
+	Restart           string                           `yaml:",omitempty" json:"restart,omitempty"`
+	Secrets           []ServiceSecretConfig            `yaml:",omitempty" json:"secrets,omitempty"`
+	SecurityOpt       []string                         `mapstructure:"security_opt" yaml:"security_opt,omitempty" json:"security_opt,omitempty"`
+	ShmSize           string                           `mapstructure:"shm_size" yaml:"shm_size,omitempty" json:"shm_size,omitempty"`
+	StdinOpen         bool                             `mapstructure:"stdin_open" yaml:"stdin_open,omitempty" json:"stdin_open,omitempty"`
+	StopGracePeriod   *Duration                        `mapstructure:"stop_grace_period" yaml:"stop_grace_period,omitempty" json:"stop_grace_period,omitempty"`
+	StopSignal        string                           `mapstructure:"stop_signal" yaml:"stop_signal,omitempty" json:"stop_signal,omitempty"`
+	Sysctls           Mapping                          `yaml:",omitempty" json:"sysctls,omitempty"`
+	Tmpfs             StringList                       `yaml:",omitempty" json:"tmpfs,omitempty"`
+	Tty               bool                             `mapstructure:"tty" yaml:"tty,omitempty" json:"tty,omitempty"`
+	Ulimits           map[string]*UlimitsConfig        `yaml:",omitempty" json:"ulimits,omitempty"`
+	User              string                           `yaml:",omitempty" json:"user,omitempty"`
+	UserNSMode        string                           `mapstructure:"userns_mode" yaml:"userns_mode,omitempty" json:"userns_mode,omitempty"`
+	Volumes           []ServiceVolumeConfig            `yaml:",omitempty" json:"volumes,omitempty"`
+	WorkingDir        string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
 
 	Extras map[string]interface{} `yaml:",inline" json:"-"`
 }
