@@ -24,9 +24,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/cli/version"
-	"github.com/docker/cli/internal/containerizedengine"
 	dopts "github.com/docker/cli/opts"
-	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -63,7 +61,6 @@ type Cli interface {
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
-	NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error)
 	ContextStore() store.Store
 	CurrentContext() string
 	StackOrchestrator(flagValue string) (Orchestrator, error)
@@ -73,19 +70,18 @@ type Cli interface {
 // DockerCli is an instance the docker command line client.
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
-	configFile            *configfile.ConfigFile
-	in                    *streams.In
-	out                   *streams.Out
-	err                   io.Writer
-	client                client.APIClient
-	serverInfo            ServerInfo
-	clientInfo            *ClientInfo
-	contentTrust          bool
-	newContainerizeClient func(string) (clitypes.ContainerizedClient, error)
-	contextStore          store.Store
-	currentContext        string
-	dockerEndpoint        docker.Endpoint
-	contextStoreConfig    store.Config
+	configFile         *configfile.ConfigFile
+	in                 *streams.In
+	out                *streams.Out
+	err                io.Writer
+	client             client.APIClient
+	serverInfo         ServerInfo
+	clientInfo         *ClientInfo
+	contentTrust       bool
+	contextStore       store.Store
+	currentContext     string
+	dockerEndpoint     docker.Endpoint
+	contextStoreConfig store.Config
 }
 
 // DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
@@ -421,11 +417,6 @@ func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions 
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
-// NewContainerizedEngineClient returns a containerized engine client
-func (cli *DockerCli) NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error) {
-	return cli.newContainerizeClient(sockPath)
-}
-
 // ContextStore returns the ContextStore
 func (cli *DockerCli) ContextStore() store.Store {
 	return cli.contextStore
@@ -485,13 +476,12 @@ type ClientInfo struct {
 }
 
 // NewDockerCli returns a DockerCli instance with all operators applied on it.
-// It applies by default the standard streams, the content trust from
-// environment and the default containerized client constructor operations.
+// It applies by default the standard streams, and the content trust from
+// environment.
 func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	cli := &DockerCli{}
 	defaultOps := []DockerCliOption{
 		WithContentTrustFromEnv(),
-		WithContainerizedClient(containerizedengine.NewClient),
 	}
 	cli.contextStoreConfig = DefaultContextStoreConfig()
 	ops = append(defaultOps, ops...)
