@@ -2,7 +2,6 @@ package commands
 
 import (
 	"os"
-	"runtime"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/builder"
@@ -10,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/context"
-	"github.com/docker/cli/cli/command/engine"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/manifest"
 	"github.com/docker/cli/cli/command/network"
@@ -125,10 +123,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(image.NewSaveCommand(dockerCli)),
 		hide(image.NewTagCommand(dockerCli)),
 	)
-	if runtime.GOOS == "linux" {
-		// engine
-		cmd.AddCommand(engine.NewEngineCommand(dockerCli))
-	}
 }
 
 func hide(cmd *cobra.Command) *cobra.Command {

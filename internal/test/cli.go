@@ -15,7 +15,6 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
-	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
@@ -23,27 +22,25 @@ import (
 // NotaryClientFuncType defines a function that returns a fake notary client
 type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 type clientInfoFuncType func() command.ClientInfo
-type containerizedEngineFuncType func(string) (clitypes.ContainerizedClient, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
 	command.DockerCli
-	client                        client.APIClient
-	configfile                    *configfile.ConfigFile
-	out                           *streams.Out
-	outBuffer                     *bytes.Buffer
-	err                           *bytes.Buffer
-	in                            *streams.In
-	server                        command.ServerInfo
-	clientInfoFunc                clientInfoFuncType
-	notaryClientFunc              NotaryClientFuncType
-	manifestStore                 manifeststore.Store
-	registryClient                registryclient.RegistryClient
-	contentTrust                  bool
-	containerizedEngineClientFunc containerizedEngineFuncType
-	contextStore                  store.Store
-	currentContext                string
-	dockerEndpoint                docker.Endpoint
+	client           client.APIClient
+	configfile       *configfile.ConfigFile
+	out              *streams.Out
+	outBuffer        *bytes.Buffer
+	err              *bytes.Buffer
+	in               *streams.In
+	server           command.ServerInfo
+	clientInfoFunc   clientInfoFuncType
+	notaryClientFunc NotaryClientFuncType
+	manifestStore    manifeststore.Store
+	registryClient   registryclient.RegistryClient
+	contentTrust     bool
+	contextStore     store.Store
+	currentContext   string
+	dockerEndpoint   docker.Endpoint
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -216,19 +213,6 @@ func (c *FakeCli) ContentTrustEnabled() bool {
 // EnableContentTrust on the fake cli
 func EnableContentTrust(c *FakeCli) {
 	c.contentTrust = true
-}
-
-// NewContainerizedEngineClient returns a containerized engine client
-func (c *FakeCli) NewContainerizedEngineClient(sockPath string) (clitypes.ContainerizedClient, error) {
-	if c.containerizedEngineClientFunc != nil {
-		return c.containerizedEngineClientFunc(sockPath)
-	}
-	return nil, fmt.Errorf("no containerized engine client available unless defined")
-}
-
-// SetContainerizedEngineClient on the fake cli
-func (c *FakeCli) SetContainerizedEngineClient(containerizedEngineClientFunc containerizedEngineFuncType) {
-	c.containerizedEngineClientFunc = containerizedEngineClientFunc
 }
 
 // StackOrchestrator return the selected stack orchestrator
