@@ -39,7 +39,7 @@ Options:
                              network segment (default [])
       --scope value          Promote a network to swarm scope (value = [ local | swarm ])
       --config-only          Creates a configuration only network
-      --config-from          The name of the network from which copying the configuration
+      --config-from          The name of the network from which to copy the configuration
 ```
 
 ## Description

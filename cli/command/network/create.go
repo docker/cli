@@ -68,7 +68,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("scope", "version", []string{"1.30"})
 	flags.BoolVar(&options.configOnly, "config-only", false, "Create a configuration only network")
 	flags.SetAnnotation("config-only", "version", []string{"1.30"})
-	flags.StringVar(&options.configFrom, "config-from", "", "The network from which copying the configuration")
+	flags.StringVar(&options.configFrom, "config-from", "", "The network from which to copy the configuration")
 	flags.SetAnnotation("config-from", "version", []string{"1.30"})
 
 	flags.StringVar(&options.ipamDriver, "ipam-driver", "default", "IP Address Management Driver")
