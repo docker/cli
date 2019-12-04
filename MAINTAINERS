@@ -36,14 +36,6 @@
 			"vieux",
 		]
 
-	[Org."Docs maintainers"]
-
-	# TODO Describe the docs maintainers role.
-
-		people = [
-			"thajeztah"
-		]
-
 	[Org.Curators]
 
 	# The curators help ensure that incoming issues and pull requests are properly triaged and
