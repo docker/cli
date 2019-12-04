@@ -22,10 +22,8 @@
 	# subsystem maintainers accountable. If ownership is unclear, they are the de facto owners.
 
 		people = [
-			"aaronlehmann",
 			"albers",
 			"cpuguy83",
-			"justincormack",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -75,11 +73,6 @@
 
 	# ADD YOURSELF HERE IN ALPHABETICAL ORDER
 
-	[people.aaronlehmann]
-	Name = "Aaron Lehmann"
-	Email = "aaron.lehmann@docker.com"
-	GitHub = "aaronlehmann"
-
 	[people.albers]
 	Name = "Harald Albers"
 	Email = "github@albersweb.de"
@@ -94,11 +87,6 @@
 	Name = "Daniel Nephin"
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
-
-	[people.justincormack]
-	Name = "Justin Cormack"
-	Email = "justin.cormack@docker.com"
-	GitHub = "justincormack"
 
 	[people.programmerq]
 	Name = "Jeff Anderson"
