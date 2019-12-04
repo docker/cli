@@ -449,7 +449,7 @@ func TestParseNetworkConfig(t *testing.T) {
 				"--network-alias", "web1",
 				"--network-alias", "web2",
 				"--network", "net2",
-				"--network", "name=net3,alias=web3,driver-opt=field3=value3",
+				"--network", "name=net3,alias=web3,driver-opt=field3=value3,ip=172.20.88.22,ip6=2001:db8::8822",
 			},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
@@ -465,19 +465,27 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net2": {},
 				"net3": {
 					DriverOpts: map[string]string{"field3": "value3"},
-					Aliases:    []string{"web3"},
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address: "172.20.88.22",
+						IPv6Address: "2001:db8::8822",
+					},
+					Aliases: []string{"web3"},
 				},
 			},
 			expectedCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:  "single-network-advanced-with-options",
-			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2"},
+			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822"},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					DriverOpts: map[string]string{
 						"field1": "value1",
 						"field2": "value2",
+					},
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address: "172.20.88.22",
+						IPv6Address: "2001:db8::8822",
 					},
 					Aliases: []string{"web1", "web2"},
 				},
@@ -496,9 +504,19 @@ func TestParseNetworkConfig(t *testing.T) {
 			expectedErr: `network "duplicate" is specified multiple times`,
 		},
 		{
-			name:        "conflict-options",
+			name:        "conflict-options-alias",
 			flags:       []string{"--network", "name=net1,alias=web1", "--network-alias", "web1"},
 			expectedErr: `conflicting options: cannot specify both --network-alias and per-network alias`,
+		},
+		{
+			name:        "conflict-options-ip",
+			flags:       []string{"--network", "name=net1,ip=172.20.88.22,ip6=2001:db8::8822", "--ip", "172.20.88.22"},
+			expectedErr: `conflicting options: cannot specify both --ip and per-network IPv4 address`,
+		},
+		{
+			name:        "conflict-options-ip6",
+			flags:       []string{"--network", "name=net1,ip=172.20.88.22,ip6=2001:db8::8822", "--ip6", "2001:db8::8822"},
+			expectedErr: `conflicting options: cannot specify both --ip6 and per-network IPv6 address`,
 		},
 		{
 			name:        "invalid-mixed-network-types",
