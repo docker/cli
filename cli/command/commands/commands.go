@@ -90,7 +90,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		context.NewContextCommand(dockerCli),
 
 		// legacy commands may be hidden
-		hide(stack.NewTopLevelDeployCommand(dockerCli)),
 		hide(system.NewEventsCommand(dockerCli)),
 		hide(system.NewInfoCommand(dockerCli)),
 		hide(system.NewInspectCommand(dockerCli)),
