@@ -31,8 +31,8 @@ type target struct {
 }
 
 // TrustedPush handles content trust pushing of an image
-func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, requestPrivilege types.RequestPrivilegeFunc) error {
-	responseBody, err := imagePushPrivileged(ctx, cli, authConfig, ref, requestPrivilege)
+func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, options types.ImagePushOptions) error {
+	responseBody, err := cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
 	if err != nil {
 		return err
 	}
@@ -165,20 +165,6 @@ func AddTargetToAllSignableRoles(repo client.Repository, target *client.Target) 
 	}
 
 	return repo.AddTarget(target, signableRoles...)
-}
-
-// imagePushPrivileged push the image
-func imagePushPrivileged(ctx context.Context, cli command.Cli, authConfig types.AuthConfig, ref reference.Reference, requestPrivilege types.RequestPrivilegeFunc) (io.ReadCloser, error) {
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
-	if err != nil {
-		return nil, err
-	}
-	options := types.ImagePushOptions{
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: requestPrivilege,
-	}
-
-	return cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
 }
 
 // trustedPull handles content trust pulling of an image

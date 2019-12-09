@@ -21,6 +21,7 @@ Usage:  docker push [OPTIONS] NAME[:TAG]
 Push an image or a repository to a registry
 
 Options:
+  -a, --all-tags                Push all tagged images in the repository
       --disable-content-trust   Skip image signing (default true)
       --help                    Print usage
   -q, --quiet                   Suppress verbose output
@@ -28,13 +29,13 @@ Options:
 
 ## Description
 
-Use `docker push` to share your images to the [Docker Hub](https://hub.docker.com)
+Use `docker image push` to share your images to the [Docker Hub](https://hub.docker.com)
 registry or to a self-hosted one.
 
-Refer to the [`docker tag`](tag.md) reference for more information about valid
+Refer to the [`docker image tag`](tag.md) reference for more information about valid
 image and tag names.
 
-Killing the `docker push` process, for example by pressing `CTRL-c` while it is
+Killing the `docker image push` process, for example by pressing `CTRL-c` while it is
 running in a terminal, terminates the push operation.
 
 Progress bars are shown during docker push, which show the uncompressed size. The 
@@ -54,12 +55,12 @@ this via the `--max-concurrent-uploads` daemon option. See the
 
 ### Push a new image to a registry
 
-First save the new image by finding the container ID (using [`docker ps`](ps.md))
+First save the new image by finding the container ID (using [`docker container ls`](ps.md))
 and then committing it to a new image name.  Note that only `a-z0-9-_.` are
 allowed when naming images:
 
 ```bash
-$ docker commit c16378f943fe rhel-httpd
+$ docker container commit c16378f943fe rhel-httpd:latest
 ```
 
 Now, push the image to the registry using the image ID. In this example the
@@ -68,16 +69,63 @@ this, tag the image with the host name or IP address, and the port of the
 registry:
 
 ```bash
-$ docker tag rhel-httpd registry-host:5000/myadmin/rhel-httpd
+$ docker image tag rhel-httpd:latest registry-host:5000/myadmin/rhel-httpd:latest
 
-$ docker push registry-host:5000/myadmin/rhel-httpd
+$ docker image push registry-host:5000/myadmin/rhel-httpd:latest
 ```
 
 Check that this worked by running:
 
 ```bash
-$ docker images
+$ docker image ls
 ```
 
 You should see both `rhel-httpd` and `registry-host:5000/myadmin/rhel-httpd`
 listed.
+
+### Push all tags of an image
+
+Use the `-a` (or `--all-tags`) option to push To push all tags of a local image.
+
+The following example creates multiple tags for an image, and pushes all those
+tags to Docker Hub.
+
+
+```bash
+$ docker image tag myimage registry-host:5000/myname/myimage:latest
+$ docker image tag myimage registry-host:5000/myname/myimage:v1.0.1
+$ docker image tag myimage registry-host:5000/myname/myimage:v1.0
+$ docker image tag myimage registry-host:5000/myname/myimage:v1
+```
+
+The image is now tagged under multiple names:
+
+```bash
+$ docker image ls
+
+REPOSITORY                          TAG        IMAGE ID       CREATED      SIZE
+myimage                             latest     6d5fcfe5ff17   2 hours ago  1.22MB
+registry-host:5000/myname/myimage   latest     6d5fcfe5ff17   2 hours ago  1.22MB
+registry-host:5000/myname/myimage   v1         6d5fcfe5ff17   2 hours ago  1.22MB
+registry-host:5000/myname/myimage   v1.0       6d5fcfe5ff17   2 hours ago  1.22MB
+registry-host:5000/myname/myimage   v1.0.1     6d5fcfe5ff17   2 hours ago  1.22MB
+```
+
+When pushing with the `--all-tags` option, all tags of the `registry-host:5000/myname/myimage`
+image are pushed:
+
+
+```bash
+$ docker image push --all-tags registry-host:5000/myname/myimage
+
+The push refers to repository [registry-host:5000/myname/myimage]
+195be5f8be1d: Pushed
+latest: digest: sha256:edafc0a0fb057813850d1ba44014914ca02d671ae247107ca70c94db686e7de6 size: 4527
+195be5f8be1d: Layer already exists
+v1: digest: sha256:edafc0a0fb057813850d1ba44014914ca02d671ae247107ca70c94db686e7de6 size: 4527
+195be5f8be1d: Layer already exists
+v1.0: digest: sha256:edafc0a0fb057813850d1ba44014914ca02d671ae247107ca70c94db686e7de6 size: 4527
+195be5f8be1d: Layer already exists
+v1.0.1: digest: sha256:edafc0a0fb057813850d1ba44014914ca02d671ae247107ca70c94db686e7de6 size: 4527
+```
+
