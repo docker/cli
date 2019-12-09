@@ -139,6 +139,10 @@ func ValidateOutputPath(path string) error {
 	// check whether `path` points to a regular file
 	// (if the path exists and doesn't point to a directory)
 	if fileInfo, err := os.Stat(path); !os.IsNotExist(err) {
+		if err != nil {
+			return err
+		}
+
 		if fileInfo.Mode().IsDir() || fileInfo.Mode().IsRegular() {
 			return nil
 		}
