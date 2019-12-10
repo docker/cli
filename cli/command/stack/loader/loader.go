@@ -72,7 +72,7 @@ func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {
-		return details, errors.New("no composefile(s)")
+		return details, errors.New("Please specify a Compose file (with --compose-file)")
 	}
 
 	if composefiles[0] == "-" && len(composefiles) == 1 {

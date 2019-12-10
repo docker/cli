@@ -4,7 +4,6 @@ import "github.com/docker/cli/opts"
 
 // Deploy holds docker stack deploy options
 type Deploy struct {
-	Bundlefile       string
 	Composefiles     []string
 	Namespace        string
 	ResolveImage     string

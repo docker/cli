@@ -1,8 +1,6 @@
 package stack
 
 import (
-	"context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/kubernetes"
@@ -10,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -28,24 +25,6 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-
-			commonOrchestrator := command.OrchestratorSwarm // default for top-level deploy command
-			if common != nil {
-				commonOrchestrator = common.orchestrator
-			}
-
-			switch {
-			case opts.Bundlefile == "" && len(opts.Composefiles) == 0:
-				return errors.Errorf("Please specify either a bundle file (with --bundle-file) or a Compose file (with --compose-file).")
-			case opts.Bundlefile != "" && len(opts.Composefiles) != 0:
-				return errors.Errorf("You cannot specify both a bundle file and a Compose file.")
-			case opts.Bundlefile != "":
-				if commonOrchestrator != command.OrchestratorSwarm {
-					return errors.Errorf("bundle files are not supported on another orchestrator than swarm.")
-				}
-				return swarm.DeployBundle(context.Background(), dockerCli, opts)
-			}
-
 			config, err := loader.LoadComposefile(dockerCli, opts)
 			if err != nil {
 				return err
@@ -55,9 +34,6 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.Bundlefile, "bundle-file", "", "Path to a Distributed Application Bundle file")
-	flags.SetAnnotation("bundle-file", "experimental", nil)
-	flags.SetAnnotation("bundle-file", "swarm", nil)
 	flags.StringSliceVarP(&opts.Composefiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
 	flags.SetAnnotation("compose-file", "version", []string{"1.25"})
 	flags.BoolVar(&opts.SendRegistryAuth, "with-registry-auth", false, "Send registry authentication details to Swarm agents")

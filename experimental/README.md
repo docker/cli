@@ -38,11 +38,8 @@ Option to squash image layers to the base image after successful builds.
 Checkpoint and restore support for Containers.
 Metrics (Prometheus) output for basic container, image, and daemon operations.
 
- * The top-level [docker deploy](../docs/reference/commandline/deploy.md) command. The
-   `docker stack deploy` command is **not** experimental.
  * [External graphdriver plugins](../docs/extend/plugins_graphdriver.md)
  * [Ipvlan Network Drivers](vlan-networks.md)
- * [Distributed Application Bundles](docker-stacks-and-bundles.md)
  * [Checkpoint & Restore](checkpoint-restore.md)
  * [Docker build with --squash argument](../docs/reference/commandline/build.md#squash-an-images-layers---squash-experimental-only)
 

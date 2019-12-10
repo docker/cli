@@ -2216,7 +2216,6 @@ __docker_stack_subcommand() {
         (deploy|up)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help)--bundle-file=[Path to a Distributed Application Bundle file]:dab:_files -g \"*.dab\"" \
                 "($help -c --compose-file)"{-c=,--compose-file=}"[Path to a Compose file, or '-' to read from stdin]:compose file:_files -g \"*.(yml|yaml)\"" \
                 "($help)--with-registry-auth[Send registry authentication details to Swarm agents]" \
                 "($help -):stack:__docker_complete_stacks" && ret=0

@@ -2695,10 +2695,6 @@ _docker_daemon() {
 	esac
 }
 
-_docker_deploy() {
-	__docker_server_is_experimental && _docker_stack_deploy
-}
-
 _docker_diff() {
 	_docker_container_diff
 }
@@ -4878,10 +4874,6 @@ _docker_stack_deploy() {
 	__docker_complete_stack_orchestrator_options && return
 
 	case "$prev" in
-		--bundle-file)
-			_filedir dab
-			return
-			;;
 		--compose-file|-c)
 			_filedir yml
 			return
@@ -4895,13 +4887,12 @@ _docker_stack_deploy() {
 	case "$cur" in
 		-*)
 			local options="--compose-file -c --help --orchestrator"
-			__docker_server_is_experimental && __docker_stack_orchestrator_is swarm && options+=" --bundle-file"
 			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig --namespace"
 			__docker_stack_orchestrator_is swarm && options+=" --prune --resolve-image --with-registry-auth"
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--bundle-file|--compose-file|-c|--kubeconfig|--namespace|--orchestrator|--resolve-image')
+			local counter=$(__docker_pos_first_nonflag '--compose-file|-c|--kubeconfig|--namespace|--orchestrator|--resolve-image')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
@@ -5531,7 +5522,6 @@ _docker() {
 
 	local experimental_server_commands=(
 		checkpoint
-		deploy
 	)
 
 	local commands=(${management_commands[*]} ${top_level_commands[*]})
