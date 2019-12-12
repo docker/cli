@@ -92,8 +92,11 @@ Options:
 
 ## Description
 
-Creates a service as described by the specified parameters. You must run this
-command on a manager node.
+Creates a service as described by the specified parameters.
+
+> **Note**: This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the [Swarm mode
+> section](https://docs.docker.com/engine/swarm/) in the documentation.
 
 ## Examples
 
