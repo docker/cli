@@ -40,8 +40,8 @@ func TestSubscriptionContextWrite(t *testing.T) {
 		},
 		{
 			formatter.Context{Format: NewSubscriptionsFormat("table", true)},
-			`1:License Name: name1	Quantity: 10 nodes	Expiration date: 2020-01-01
-2:License Name: name2	Quantity: 20 nodes	Expiration date: 2020-01-01
+			`1:License Name: name1	Components: 10 nodes	Expiration date: 2020-01-01
+2:License Name: name2	Components: 20 nodes	Expiration date: 2020-01-01
 `,
 		},
 		{
@@ -197,7 +197,7 @@ func TestSubscriptionContextWriteJSON(t *testing.T) {
 			"ProductRatePlan":   "",
 			"ProductRatePlanID": "",
 			"State":             "",
-			"Summary":           "License Name: name1\tQuantity: 10 nodes\tExpiration date: 2020-01-01",
+			"Summary":           "License Name: name1\tComponents: 10 nodes\tExpiration date: 2020-01-01",
 		},
 		{
 			"Owner":            "owner2",
@@ -219,7 +219,7 @@ func TestSubscriptionContextWriteJSON(t *testing.T) {
 			"ProductRatePlan":   "",
 			"ProductRatePlanID": "",
 			"State":             "",
-			"Summary":           "License Name: name2\tQuantity: 20 nodes\tExpiration date: 2020-01-01",
+			"Summary":           "License Name: name2\tComponents: 20 nodes\tExpiration date: 2020-01-01",
 		},
 	}
 

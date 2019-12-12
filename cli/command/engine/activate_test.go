@@ -119,7 +119,7 @@ func (c mockLicenseClient) StoreLicense(ctx context.Context, dclnt licensing.Wra
 func (c mockLicenseClient) LoadLocalLicense(ctx context.Context, dclnt licensing.WrappedDockerClient) (*model.Subscription, error) {
 	return nil, fmt.Errorf("not implemented")
 }
-func (c mockLicenseClient) SummarizeLicense(res *model.CheckResponse, keyID string) *model.Subscription {
+func (c mockLicenseClient) SummarizeLicense(res *model.CheckResponse) *model.Subscription {
 	return nil
 }
 func TestActivateDisplayOnlyHub(t *testing.T) {

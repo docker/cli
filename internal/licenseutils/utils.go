@@ -166,7 +166,7 @@ func GetLicenseSummary(ctx context.Context, license model.IssuedLicense) (string
 	if err != nil {
 		return "", err
 	}
-	return lclient.SummarizeLicense(cr, license.KeyID).String(), nil
+	return lclient.SummarizeLicense(cr).String(), nil
 }
 
 func doLoadLocalIssuedLicense(ctx context.Context, filename string, lclient licensing.Client) (*model.IssuedLicense, error) {

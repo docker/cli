@@ -11,6 +11,21 @@ type CheckResponse struct {
 	ScanningEnabled bool      `json:"scanningEnabled"`
 	Type            string    `json:"licenseType"`
 	Tier            string    `json:"tier"`
+
+	SubscriptionID    string            `json:"subscription_id,omitempty"`
+	ProductID         string            `json:"product_id,omitempty"`
+	RatePlanID        string            `json:"rate_plan_id,omitempty"`
+	Version           int               `json:"version"`
+	GraceDays         int               `json:"grace_days,omitempty"`
+	Metadata          *Metadata         `json:"metadata,omitempty"`
+	PricingComponents PricingComponents `json:"pricing_components,omitempty"`
+}
+
+// Metadata holds non-essential license information, that is, anything that is not required by clients to ensure
+// the license is valid
+type Metadata struct {
+	Username string `json:"username,omitempty"`
+	Company  string `json:"company,omitempty"`
 }
 
 // IssuedLicense represents an issued license

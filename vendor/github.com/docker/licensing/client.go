@@ -35,7 +35,7 @@ type Client interface {
 	ParseLicense(license []byte) (parsedLicense *model.IssuedLicense, err error)
 	StoreLicense(ctx context.Context, dclnt WrappedDockerClient, licenses *model.IssuedLicense, localRootDir string) error
 	LoadLocalLicense(ctx context.Context, dclnt WrappedDockerClient) (*model.Subscription, error)
-	SummarizeLicense(res *model.CheckResponse, keyID string) *model.Subscription
+	SummarizeLicense(res *model.CheckResponse) *model.Subscription
 }
 
 func (c *client) LoginViaAuth(ctx context.Context, username, password string) (string, error) {
@@ -115,7 +115,7 @@ func (c *client) ListSubscriptions(ctx context.Context, authToken, dockerID stri
 	// filter out non docker licenses
 	dockerSubs := []*model.Subscription{}
 	for _, sub := range subs {
-		if !strings.HasPrefix(sub.ProductID, "docker-ee") {
+		if !strings.HasPrefix(sub.ProductID, "docker") {
 			continue
 		}
 
@@ -139,7 +139,7 @@ func (c *client) ListSubscriptionsDetails(ctx context.Context, authToken, docker
 	// filter out non docker licenses
 	dockerSubs := []*model.SubscriptionDetail{}
 	for _, sub := range subs {
-		if !strings.HasPrefix(sub.ProductID, "docker-ee") {
+		if !strings.HasPrefix(sub.ProductID, "docker") {
 			continue
 		}
 

@@ -122,59 +122,41 @@ func (c *client) LoadLocalLicense(ctx context.Context, clnt WrappedDockerClient)
 	if err != nil {
 		return nil, err
 	}
-	return checkResponseToSubscription(checkResponse, parsedLicense.KeyID), nil
+	return checkResponseToSubscription(checkResponse), nil
 }
 
-func checkResponseToSubscription(checkResponse *model.CheckResponse, keyID string) *model.Subscription {
-
-	// TODO - this translation still needs some work
-	// Primary missing piece is how to distinguish from basic, vs std/advanced
-	var productID string
-	var ratePlan string
-	var state string
-	switch strings.ToLower(checkResponse.Tier) {
-	case "internal":
-		productID = "docker-ee-trial"
-		ratePlan = "free-trial"
-	case "production":
-		productID = "docker-ee"
-		if checkResponse.ScanningEnabled {
-			ratePlan = "nfr-advanced"
-		} else {
-			ratePlan = "nfr-standard"
-		}
-	}
-
+func checkResponseToSubscription(checkResponse *model.CheckResponse) *model.Subscription {
 	// Determine if the license has already expired
+	var state string
 	if checkResponse.Expiration.Before(time.Now()) {
 		state = "expired"
 	} else {
 		state = "active"
 	}
 
+	// For backward compatibility, show information about old (per node) licenses
+	components := checkResponse.PricingComponents
+	if checkResponse.MaxEngines > 0 {
+		components = append(components, &model.SubscriptionPricingComponent{
+			Name:  "Nodes",
+			Value: checkResponse.MaxEngines,
+		})
+	}
+
 	// Translate the legacy structure into the new Subscription fields
 	return &model.Subscription{
-		// Name
-		ID: keyID, // This is not actually the same, but is unique
-		// DockerID
-		ProductID:       productID,
-		ProductRatePlan: ratePlan,
-		// ProductRatePlanID
-		// Start
-		Expires: &checkResponse.Expiration,
-		State:   state,
-		// Eusa
-		PricingComponents: model.PricingComponents{
-			{
-				Name:  "Nodes",
-				Value: checkResponse.MaxEngines,
-			},
-		},
+		ID:                checkResponse.SubscriptionID,
+		ProductID:         checkResponse.ProductID,
+		ProductRatePlanID: checkResponse.RatePlanID,
+		Expires:           &checkResponse.Expiration,
+		State:             state,
+		PricingComponents: components,
+		GraceDays:         checkResponse.GraceDays,
 	}
 }
 
-func (c *client) SummarizeLicense(checkResponse *model.CheckResponse, keyID string) *model.Subscription {
-	return checkResponseToSubscription(checkResponse, keyID)
+func (c *client) SummarizeLicense(checkResponse *model.CheckResponse) *model.Subscription {
+	return checkResponseToSubscription(checkResponse)
 }
 
 // getLatestNamedConfig looks for versioned instances of configs with the
