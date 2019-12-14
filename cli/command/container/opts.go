@@ -382,7 +382,13 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	var ports map[nat.Port]struct{}
 	var portBindings map[nat.Port][]nat.PortBinding
 
+	isAdvanced := strings.Contains(strings.Join(publishOpts[:],""),"=")
+
 	ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
+
+	if err != nil && !isAdvanced {
+		return nil, err
+	}
 
 	// If simple port parsing fails try to parse as long format
 	if err != nil {
