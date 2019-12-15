@@ -298,7 +298,7 @@ func TestParseHostnameDomainname(t *testing.T) {
 	}
 }
 
-func TestParseWithPublish(t *testing.T) {
+func TestParseWithShorthandPublish(t *testing.T) {
 	invalids := map[string]string{
 		":":          "No port specified:  :<empty>",
 		"80809:80":   "Invalid hostPort:  80809",
