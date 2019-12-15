@@ -298,6 +298,19 @@ func TestParseHostnameDomainname(t *testing.T) {
 	}
 }
 
+func TestParseWithPublish(t *testing.T) {
+	invalids := map[string]string{
+		":":          "No port specified:  :<empty>",
+		"80809:80":   "Invalid hostPort:  80809",
+		"8080:80809": "Invalid containerPort: 80809",
+	}
+	for publish, expectedError := range invalids {
+		if _, _, _, err := parseRun([]string{fmt.Sprintf("-p %v", publish), "img", "cmd"}); err == nil || err.Error() != expectedError {
+			t.Fatalf("Expected error '%v' with '-p %v', got '%v'", expectedError, publish, err)
+		}
+	}
+}
+
 func TestParseWithExpose(t *testing.T) {
 	invalids := map[string]string{
 		":":                   "invalid port format for --expose: :",
