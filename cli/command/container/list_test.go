@@ -78,7 +78,7 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				last:   5,
 				filter: filters,
 				// With .Size, size should be true
-				format: "{{.Size}} {{.CreatedAt}} {{.Networks}}",
+				format: "{{.Size}} {{.CreatedAt}} {{upper .Networks}}",
 			},
 			expectedAll:   true,
 			expectedSize:  true,
