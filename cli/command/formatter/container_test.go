@@ -241,6 +241,10 @@ size: 0B
 			Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
 			string(golden.Get(t, "container-context-write-special-headers.golden")),
 		},
+		{
+			Context{Format: NewContainerFormat(`table {{split .Image ":"}}`, false, false)},
+			"IMAGE\n[ubuntu]\n[ubuntu]\n",
+		},
 	}
 
 	for _, testcase := range cases {
