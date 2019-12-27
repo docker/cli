@@ -29,6 +29,7 @@ const (
 	networksHeader     = "NETWORKS"
 	platformHeader     = "PLATFORM"
 	healthStatusHeader = "HEALTH STATUS"
+	ipAddressesHeader  = "IP ADDRESSES"
 )
 
 // Platform wraps a [ocispec.Platform] to implement the stringer interface.
@@ -123,6 +124,7 @@ func NewContainerContext() *ContainerContext {
 		"Networks":     networksHeader,
 		"Platform":     platformHeader,
 		"HealthStatus": healthStatusHeader,
+		"IPAddresses":  ipAddressesHeader,
 	}
 	return &containerCtx
 }
@@ -381,6 +383,25 @@ func (c *ContainerContext) HealthStatus() string {
 	default:
 		return ""
 	}
+}
+
+// IPAddresses returns the list of IP-addresses assigned to the container
+// IP-addresses are prefixed with the name of the network, separated with a colon.
+// For example: "bridge:192.168.1.10"
+func (c *ContainerContext) IPAddresses() []string {
+	ipAddresses := []string{}
+	if c.c.NetworkSettings == nil {
+		return ipAddresses
+	}
+	for name, nw := range c.c.NetworkSettings.Networks {
+		if nw.IPAddress.IsValid() {
+			ipAddresses = append(ipAddresses, name+":"+nw.IPAddress.String())
+		}
+		if nw.GlobalIPv6Address.IsValid() {
+			ipAddresses = append(ipAddresses, name+":"+nw.GlobalIPv6Address.String())
+		}
+	}
+	return ipAddresses
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
