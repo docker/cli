@@ -14,6 +14,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -390,7 +391,7 @@ size: 0B
 	}
 
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning, NetworkSettings: &container.NetworkSettingsSummary{}},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
 	}
 
@@ -574,6 +575,36 @@ func TestContainerContextWriteJSONField(t *testing.T) {
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.Equal(containers[i].ID, s), msg)
 	}
+}
+
+func TestContainerContextIPAddresses(t *testing.T) {
+	containers := []container.Summary{
+		{
+			ID: "containerID1",
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"one": {IPAddress: "192.168.1.2"},
+					"two": {IPAddress: "192.168.178.2"},
+				},
+			},
+		},
+		{
+			ID: "containerID2",
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"one": {IPAddress: "192.168.1.3"},
+					"two": {IPAddress: "192.168.178.3"},
+				},
+			},
+		},
+	}
+
+	out := bytes.NewBufferString("")
+	err := ContainerWrite(Context{Format: "{{.IPAddresses}}", Output: out}, containers)
+	assert.NilError(t, err)
+	assert.Equal(t, out.String(), `[one:192.168.1.2 two:192.168.178.2]
+[one:192.168.1.3 two:192.168.178.3]
+`)
 }
 
 func TestContainerBackCompat(t *testing.T) {

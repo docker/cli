@@ -21,13 +21,14 @@ import (
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
-	namesHeader      = "NAMES"
-	commandHeader    = "COMMAND"
-	runningForHeader = "CREATED"
-	mountsHeader     = "MOUNTS"
-	localVolumes     = "LOCAL VOLUMES"
-	networksHeader   = "NETWORKS"
-	platformHeader   = "PLATFORM"
+	namesHeader       = "NAMES"
+	commandHeader     = "COMMAND"
+	runningForHeader  = "CREATED"
+	mountsHeader      = "MOUNTS"
+	localVolumes      = "LOCAL VOLUMES"
+	networksHeader    = "NETWORKS"
+	platformHeader    = "PLATFORM"
+	ipAddressesHeader = "IP ADDRESSES"
 )
 
 // Platform wraps a [ocispec.Platform] to implement the stringer interface.
@@ -121,6 +122,7 @@ func NewContainerContext() *ContainerContext {
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
 		"Platform":     platformHeader,
+		"IPAddresses":  ipAddressesHeader,
 	}
 	return &containerCtx
 }
@@ -339,6 +341,25 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// IPAddresses returns the list of IP-addresses assigned to the container
+// IP-addresses are prefixed with the name of the network, separated with a colon.
+// For example: "bridge:192.168.1.10"
+func (c *ContainerContext) IPAddresses() []string {
+	ipAddresses := []string{}
+	if c.c.NetworkSettings == nil {
+		return ipAddresses
+	}
+	for name, nw := range c.c.NetworkSettings.Networks {
+		if nw.IPAddress != "" {
+			ipAddresses = append(ipAddresses, name+":"+nw.IPAddress)
+		}
+		if nw.GlobalIPv6Address != "" {
+			ipAddresses = append(ipAddresses, name+":"+nw.GlobalIPv6Address)
+		}
+	}
+	return ipAddresses
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
