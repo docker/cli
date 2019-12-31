@@ -6,11 +6,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/spf13/cobra"
+	"vbom.ml/util/sortorder"
 )
 
 // ReexecEnvvar is the name of an ennvar which is set to the command
@@ -140,6 +142,10 @@ func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error
 			plugins = append(plugins, p)
 		}
 	}
+
+	sort.Slice(plugins, func(i, j int) bool {
+		return sortorder.NaturalLess(plugins[i].Name, plugins[j].Name)
+	})
 
 	return plugins, nil
 }

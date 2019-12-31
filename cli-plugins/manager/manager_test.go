@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	"github.com/spf13/cobra"
 	"gotest.tools/assert"
 	"gotest.tools/fs"
 )
@@ -79,6 +80,34 @@ func TestListPluginCandidates(t *testing.T) {
 	}
 
 	assert.DeepEqual(t, candidates, exp)
+}
+
+func TestListPluginsIsSorted(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile("docker-bbb", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+		fs.WithFile("docker-aaa", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+	)
+	defer dir.Remove()
+
+	cli := test.NewFakeCli(nil)
+	cli.SetConfigFile(&configfile.ConfigFile{CLIPluginsExtraDirs: []string{dir.Path()}})
+
+	plugins, err := ListPlugins(cli, &cobra.Command{})
+	assert.NilError(t, err)
+
+	// We're only interested in the plugins we created for testing this, and only
+	// if they appear in the expected order
+	var names []string
+	for _, p := range plugins {
+		if p.Name == "aaa" || p.Name == "bbb" {
+			names = append(names, p.Name)
+		}
+	}
+	assert.DeepEqual(t, names, []string{"aaa", "bbb"})
 }
 
 func TestErrPluginNotFound(t *testing.T) {
