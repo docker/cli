@@ -159,12 +159,12 @@ a single overlay network. Each of the subnetworks has 126 usable addresses.
 
 ```bash
 $ docker network create -d overlay \
-  --subnet=192.168.1.0/25 \
-  --subnet=192.170.2.0/25 \
-  --gateway=192.168.1.100 \
-  --gateway=192.170.2.100 \
-  --aux-address="my-router=192.168.1.5" --aux-address="my-switch=192.168.1.6" \
-  --aux-address="my-printer=192.170.1.5" --aux-address="my-nas=192.170.1.6" \
+  --subnet=192.168.10.0/25 \
+  --subnet=192.168.20.0/25 \
+  --gateway=192.168.10.100 \
+  --gateway=192.168.20.100 \
+  --aux-address="my-router=192.168.10.5" --aux-address="my-switch=192.168.10.6" \
+  --aux-address="my-printer=192.168.20.5" --aux-address="my-nas=192.168.20.6" \
   my-multihost-network
 ```
 
