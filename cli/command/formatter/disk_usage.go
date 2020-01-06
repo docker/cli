@@ -136,7 +136,7 @@ func (ctx *DiskUsageContext) Write() (err error) {
 
 type diskUsageContext struct {
 	Images     []*imageContext
-	Containers []*containerContext
+	Containers []*ContainerContext
 	Volumes    []*volumeContext
 	BuildCache []*buildCacheContext
 }
@@ -144,7 +144,7 @@ type diskUsageContext struct {
 func (ctx *DiskUsageContext) verboseWrite() error {
 	duc := &diskUsageContext{
 		Images:     make([]*imageContext, 0, len(ctx.Images)),
-		Containers: make([]*containerContext, 0, len(ctx.Containers)),
+		Containers: make([]*ContainerContext, 0, len(ctx.Containers)),
 		Volumes:    make([]*volumeContext, 0, len(ctx.Volumes)),
 		BuildCache: make([]*buildCacheContext, 0, len(ctx.BuildCache)),
 	}
@@ -178,7 +178,7 @@ func (ctx *DiskUsageContext) verboseWrite() error {
 	for _, c := range ctx.Containers {
 		// Don't display the virtual size
 		c.SizeRootFs = 0
-		duc.Containers = append(duc.Containers, &containerContext{trunc: trunc, c: *c})
+		duc.Containers = append(duc.Containers, &ContainerContext{trunc: trunc, c: *c})
 	}
 
 	// And volumes
@@ -227,7 +227,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 			return err
 		}
 	}
-	ctx.postFormat(tmpl, newContainerContext())
+	ctx.postFormat(tmpl, NewContainerContext())
 
 	tmpl, err = ctx.startSubsection(defaultDiskUsageVolumeTableFormat)
 	if err != nil {

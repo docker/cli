@@ -19,7 +19,7 @@ func TestContainerPsContext(t *testing.T) {
 	containerID := stringid.GenerateRandomID()
 	unix := time.Now().Add(-65 * time.Second).Unix()
 
-	var ctx containerContext
+	var ctx ContainerContext
 	cases := []struct {
 		container types.Container
 		trunc     bool
@@ -87,7 +87,7 @@ func TestContainerPsContext(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		ctx = containerContext{c: c.container, trunc: c.trunc}
+		ctx = ContainerContext{c: c.container, trunc: c.trunc}
 		v := c.call()
 		if strings.Contains(v, ",") {
 			compareMultipleValues(t, v, c.expValue)
@@ -97,7 +97,7 @@ func TestContainerPsContext(t *testing.T) {
 	}
 
 	c1 := types.Container{Labels: map[string]string{"com.docker.swarm.swarm-id": "33", "com.docker.swarm.node_name": "ubuntu"}}
-	ctx = containerContext{c: c1, trunc: true}
+	ctx = ContainerContext{c: c1, trunc: true}
 
 	sid := ctx.Label("com.docker.swarm.swarm-id")
 	node := ctx.Label("com.docker.swarm.node_name")
@@ -110,7 +110,7 @@ func TestContainerPsContext(t *testing.T) {
 	}
 
 	c2 := types.Container{}
-	ctx = containerContext{c: c2, trunc: true}
+	ctx = ContainerContext{c: c2, trunc: true}
 
 	label := ctx.Label("anything.really")
 	if label != "" {
@@ -240,6 +240,10 @@ size: 0B
 		{
 			Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
 			string(golden.Get(t, "container-context-write-special-headers.golden")),
+		},
+		{
+			Context{Format: NewContainerFormat(`table {{split .Image ":"}}`, false, false)},
+			"IMAGE\n[ubuntu]\n[ubuntu]\n",
 		},
 	}
 

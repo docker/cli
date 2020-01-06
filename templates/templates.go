@@ -30,9 +30,21 @@ var basicFunctions = template.FuncMap{
 // HeaderFunctions are used to created headers of a table.
 // This is a replacement of basicFunctions for header generation
 // because we want the header to remain intact.
-// Some functions like `split` are irrelevant so not added.
+// Some functions like `pad` are not overridden (to preserve alignment
+// with the columns).
 var HeaderFunctions = template.FuncMap{
 	"json": func(v string) string {
+		return v
+	},
+	"split": func(v string, _ string) string {
+		// we want the table header to show the name of the column, and not
+		// split the table header itself. Using a different signature
+		// here, and return a string instead of []string
+		return v
+	},
+	"join": func(v string, _ string) string {
+		// table headers are always a string, so use a different signature
+		// for the "join" function (string instead of []string)
 		return v
 	},
 	"title": func(v string) string {
