@@ -14,26 +14,29 @@
    limitations under the License.
 */
 
-package driver
+package ttrpc
 
 import (
-	"os"
-
-	"golang.org/x/sys/unix"
+	"github.com/gogo/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
-// Lchmod changes the mode of a file not following symlinks.
-func (d *driver) Lchmod(path string, mode os.FileMode) error {
-	// On Linux, file mode is not supported for symlinks,
-	// and fchmodat() does not support AT_SYMLINK_NOFOLLOW,
-	// so symlinks need to be skipped entirely.
-	if st, err := os.Stat(path); err == nil && st.Mode()&os.ModeSymlink != 0 {
-		return nil
-	}
+type codec struct{}
 
-	err := unix.Fchmodat(unix.AT_FDCWD, path, uint32(mode), 0)
-	if err != nil {
-		err = &os.PathError{Op: "lchmod", Path: path, Err: err}
+func (c codec) Marshal(msg interface{}) ([]byte, error) {
+	switch v := msg.(type) {
+	case proto.Message:
+		return proto.Marshal(v)
+	default:
+		return nil, errors.Errorf("ttrpc: cannot marshal unknown type: %T", msg)
 	}
-	return err
+}
+
+func (c codec) Unmarshal(p []byte, msg interface{}) error {
+	switch v := msg.(type) {
+	case proto.Message:
+		return proto.Unmarshal(p, v)
+	default:
+		return errors.Errorf("ttrpc: cannot unmarshal into unknown type: %T", msg)
+	}
 }
