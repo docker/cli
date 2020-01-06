@@ -266,6 +266,7 @@ func TestValidateLabel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			val, err := ValidateLabel(tc.value)
 			if tc.expectedErr != "" {

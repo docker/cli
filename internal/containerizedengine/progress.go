@@ -93,7 +93,6 @@ outer:
 }
 
 func updateNonActive(ctx context.Context, ongoing *jobs, cs content.Store, statuses map[string]statusInfo, keys *[]string, activeSeen map[string]struct{}, done *bool, start time.Time) error {
-
 	for _, j := range ongoing.jobs() {
 		key := remotes.MakeRefKey(ctx, j)
 		*keys = append(*keys, key)

@@ -65,7 +65,7 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 }
 
 func parseMustError(t *testing.T, args string) {
-	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
+	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " ")) //nolint:dogsled
 	assert.ErrorContains(t, err, "", args)
 }
 
@@ -539,7 +539,7 @@ func TestParseModes(t *testing.T) {
 	}
 
 	// uts ko
-	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"})
+	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"}) //nolint:dogsled
 	assert.ErrorContains(t, err, "--uts: invalid UTS mode")
 
 	// uts ok
@@ -600,7 +600,7 @@ func TestParseRestartPolicy(t *testing.T) {
 
 func TestParseRestartPolicyAutoRemove(t *testing.T) {
 	expected := "Conflicting options: --restart and --rm"
-	_, _, _, err := parseRun([]string{"--rm", "--restart=always", "img", "cmd"})
+	_, _, _, err := parseRun([]string{"--rm", "--restart=always", "img", "cmd"}) //nolint:dogsled
 	if err == nil || err.Error() != expected {
 		t.Fatalf("Expected error %v, but got none", expected)
 	}

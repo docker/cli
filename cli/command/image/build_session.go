@@ -35,16 +35,13 @@ func isSessionSupported(dockerCli command.Cli, forStream bool) bool {
 }
 
 func trySession(dockerCli command.Cli, contextDir string, forStream bool) (*session.Session, error) {
-	var s *session.Session
-	if isSessionSupported(dockerCli, forStream) {
-		sharedKey, err := getBuildSharedKey(contextDir)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get build shared key")
-		}
-		s, err = session.NewSession(context.Background(), filepath.Base(contextDir), sharedKey)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create session")
-		}
+	if !isSessionSupported(dockerCli, forStream) {
+		return nil, nil
+	}
+	sharedKey := getBuildSharedKey(contextDir)
+	s, err := session.NewSession(context.Background(), filepath.Base(contextDir), sharedKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create session")
 	}
 	return s, nil
 }
@@ -130,10 +127,10 @@ func (bw *bufferedWriter) String() string {
 	return fmt.Sprintf("%s", bw.Writer)
 }
 
-func getBuildSharedKey(dir string) (string, error) {
+func getBuildSharedKey(dir string) string {
 	// build session is hash of build dir with node based randomness
 	s := sha256.Sum256([]byte(fmt.Sprintf("%s:%s", tryNodeIdentifier(), dir)))
-	return hex.EncodeToString(s[:]), nil
+	return hex.EncodeToString(s[:])
 }
 
 func tryNodeIdentifier() string {

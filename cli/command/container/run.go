@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http/httputil"
 	"os"
 	"runtime"
 	"strings"
@@ -248,10 +247,7 @@ func attachContainer(
 	}
 
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
-	if errAttach != nil && errAttach != httputil.ErrPersistEOF {
-		// ContainerAttach returns an ErrPersistEOF (connection closed)
-		// means server met an error and put it in Hijacked connection
-		// keep the error and read detailed error message from hijacked connection later
+	if errAttach != nil {
 		return nil, errAttach
 	}
 

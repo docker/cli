@@ -54,7 +54,6 @@ func Interpolate(config map[string]interface{}, opts Options) (map[string]interf
 
 func recursiveInterpolate(value interface{}, path Path, opts Options) (interface{}, error) {
 	switch value := value.(type) {
-
 	case string:
 		newValue, err := opts.Substitute(value, template.Mapping(opts.LookupValue))
 		if err != nil || newValue == value {
@@ -91,7 +90,6 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 
 	default:
 		return value, nil
-
 	}
 }
 

@@ -263,6 +263,7 @@ func TestCreateFromContext(t *testing.T) {
 	cli.SetCurrentContext("dummy")
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
@@ -339,6 +340,7 @@ func TestCreateFromCurrent(t *testing.T) {
 	cli.SetCurrentContext("original")
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{

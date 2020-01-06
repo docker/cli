@@ -153,8 +153,8 @@ func TestImportTarInvalid(t *testing.T) {
 	tf := path.Join(testDir, "test.context")
 
 	f, err := os.Create(tf)
-	defer f.Close()
 	assert.NilError(t, err)
+	defer f.Close()
 
 	tw := tar.NewWriter(f)
 	hdr := &tar.Header{
@@ -186,8 +186,8 @@ func TestImportZip(t *testing.T) {
 	zf := path.Join(testDir, "test.zip")
 
 	f, err := os.Create(zf)
-	defer f.Close()
 	assert.NilError(t, err)
+	defer f.Close()
 	w := zip.NewWriter(f)
 
 	meta, err := json.Marshal(Metadata{
@@ -237,8 +237,8 @@ func TestImportZipInvalid(t *testing.T) {
 	zf := path.Join(testDir, "test.zip")
 
 	f, err := os.Create(zf)
-	defer f.Close()
 	assert.NilError(t, err)
+	defer f.Close()
 	w := zip.NewWriter(f)
 
 	df, err := w.Create("dummy-file")

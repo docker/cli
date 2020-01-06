@@ -116,7 +116,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.Check(t, is.DeepEqual(rootKeyA.Public(), rootKeyB.Public()))
 
 	// Now also try with a delegation key
-	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, data.RoleName(trust.ReleasesRole))
+	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, trust.ReleasesRole)
 	assert.NilError(t, err)
 	assert.Check(t, releasesKey != nil)
 
