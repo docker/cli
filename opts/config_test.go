@@ -33,6 +33,7 @@ func TestConfigOptionsSource(t *testing.T) {
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
 	assert.Check(t, is.Equal("foo", req.ConfigName))
+	assert.Check(t, is.Equal("foo", req.File.Name))
 }
 
 func TestConfigOptionsSourceTarget(t *testing.T) {

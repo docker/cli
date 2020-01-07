@@ -33,6 +33,7 @@ func TestSecretOptionsSource(t *testing.T) {
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
 	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.File.Name))
 }
 
 func TestSecretOptionsSourceTarget(t *testing.T) {

@@ -72,6 +72,9 @@ func (o *ConfigOpt) Set(value string) error {
 	if options.ConfigName == "" {
 		return fmt.Errorf("source is required")
 	}
+	if options.File.Name == "" {
+		options.File.Name = options.ConfigName
+	}
 
 	o.values = append(o.values, options)
 	return nil

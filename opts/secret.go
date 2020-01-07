@@ -72,6 +72,9 @@ func (o *SecretOpt) Set(value string) error {
 	if options.SecretName == "" {
 		return fmt.Errorf("source is required")
 	}
+	if options.File.Name == "" {
+		options.File.Name = options.SecretName
+	}
 
 	o.values = append(o.values, options)
 	return nil
