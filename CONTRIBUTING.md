@@ -88,7 +88,7 @@ use for simple changes](https://docs.docker.com/opensource/workflow/make-a-contr
   <tr>
     <td>Community Slack</td>
     <td>
-      The Docker Community has a dedicated Slack chat to discuss features and issues.  You can sign-up <a href="http://dockr.ly/slack" target="_blank">with this link</a>.
+      The Docker Community has a dedicated Slack chat to discuss features and issues.  You can sign-up <a href="https://dockr.ly/slack" target="_blank">with this link</a>.
     </td>
   </tr>
   <tr>
