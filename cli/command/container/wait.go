@@ -42,6 +42,9 @@ func runWait(dockerCli command.Cli, opts *waitOptions) error {
 		select {
 		case result := <-resultC:
 			fmt.Fprintf(dockerCli.Out(), "%d\n", result.StatusCode)
+			if result.StatusCode != 0 {
+				return cli.StatusError{StatusCode: int(result.StatusCode)}
+			}
 		case err := <-errC:
 			errs = append(errs, err.Error())
 		}
