@@ -32,7 +32,7 @@ func (o *ConfigOpt) Set(value string) error {
 	}
 
 	// support a simple syntax of --config foo
-	if len(fields) == 1 {
+	if len(fields) == 1 && !strings.Contains(fields[0], "=") {
 		options.File.Name = fields[0]
 		options.ConfigName = fields[0]
 		o.values = append(o.values, options)

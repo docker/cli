@@ -8,23 +8,23 @@ import (
 	is "gotest.tools/assert/cmp"
 )
 
-func TestSecretOptionsSimple(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsSimple(t *testing.T) {
+	var opt ConfigOpt
 
-	testCase := "app-secret"
+	testCase := "app-config"
 	assert.NilError(t, opt.Set(testCase))
 
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("app-secret", req.SecretName))
-	assert.Check(t, is.Equal("app-secret", req.File.Name))
+	assert.Check(t, is.Equal("app-config", req.ConfigName))
+	assert.Check(t, is.Equal("app-config", req.File.Name))
 	assert.Check(t, is.Equal("0", req.File.UID))
 	assert.Check(t, is.Equal("0", req.File.GID))
 }
 
-func TestSecretOptionsSource(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsSource(t *testing.T) {
+	var opt ConfigOpt
 
 	testCase := "source=foo"
 	assert.NilError(t, opt.Set(testCase))
@@ -32,11 +32,11 @@ func TestSecretOptionsSource(t *testing.T) {
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.ConfigName))
 }
 
-func TestSecretOptionsSourceTarget(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsSourceTarget(t *testing.T) {
+	var opt ConfigOpt
 
 	testCase := "source=foo,target=testing"
 	assert.NilError(t, opt.Set(testCase))
@@ -44,12 +44,12 @@ func TestSecretOptionsSourceTarget(t *testing.T) {
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.ConfigName))
 	assert.Check(t, is.Equal("testing", req.File.Name))
 }
 
-func TestSecretOptionsShorthand(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsShorthand(t *testing.T) {
+	var opt ConfigOpt
 
 	testCase := "src=foo,target=testing"
 	assert.NilError(t, opt.Set(testCase))
@@ -57,11 +57,11 @@ func TestSecretOptionsShorthand(t *testing.T) {
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.ConfigName))
 }
 
-func TestSecretOptionsCustomUidGid(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsCustomUidGid(t *testing.T) {
+	var opt ConfigOpt
 
 	testCase := "source=foo,target=testing,uid=1000,gid=1001"
 	assert.NilError(t, opt.Set(testCase))
@@ -69,14 +69,14 @@ func TestSecretOptionsCustomUidGid(t *testing.T) {
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.ConfigName))
 	assert.Check(t, is.Equal("testing", req.File.Name))
 	assert.Check(t, is.Equal("1000", req.File.UID))
 	assert.Check(t, is.Equal("1001", req.File.GID))
 }
 
-func TestSecretOptionsCustomMode(t *testing.T) {
-	var opt SecretOpt
+func TestConfigOptionsCustomMode(t *testing.T) {
+	var opt ConfigOpt
 
 	testCase := "source=foo,target=testing,uid=1000,gid=1001,mode=0444"
 	assert.NilError(t, opt.Set(testCase))
@@ -84,7 +84,7 @@ func TestSecretOptionsCustomMode(t *testing.T) {
 	reqs := opt.Value()
 	assert.Assert(t, is.Len(reqs, 1))
 	req := reqs[0]
-	assert.Check(t, is.Equal("foo", req.SecretName))
+	assert.Check(t, is.Equal("foo", req.ConfigName))
 	assert.Check(t, is.Equal("testing", req.File.Name))
 	assert.Check(t, is.Equal("1000", req.File.UID))
 	assert.Check(t, is.Equal("1001", req.File.GID))
