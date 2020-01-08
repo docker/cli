@@ -149,37 +149,42 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		}()
 	}
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
+	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+	startc := func() error {
+		if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
+			// If we have hijackedIOStreamer, we should notify
+			// hijackedIOStreamer we are going to exit and wait
+			// to avoid the terminal are not restored.
+			if attach {
+				cancelFun()
+				<-errCh
+			}
+
+			reportError(stderr, "run", err.Error(), false)
+			if copts.autoRemove {
+				// wait container to be removed
+				<-statusChan
+			}
+			return runStartContainerErr(err)
+		}
+		return nil
+	}
 	if attach {
 		if opts.detachKeys != "" {
 			dockerCli.ConfigFile().DetachKeys = opts.detachKeys
 		}
 
-		close, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
+		// attach and start the container
+		// use callback to let user type ssh password when needed
+		close, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID, startc)
 
 		if err != nil {
 			return err
 		}
 		defer close()
-	}
-
-	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
-
-	//start the container
-	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
-		// If we have hijackedIOStreamer, we should notify
-		// hijackedIOStreamer we are going to exit and wait
-		// to avoid the terminal are not restored.
-		if attach {
-			cancelFun()
-			<-errCh
-		}
-
-		reportError(stderr, "run", err.Error(), false)
-		if copts.autoRemove {
-			// wait container to be removed
-			<-statusChan
-		}
-		return runStartContainerErr(err)
+	} else {
+		// start the container
+		startc()
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
@@ -220,7 +225,7 @@ func attachContainer(
 	errCh *chan error,
 	config *container.Config,
 	containerID string,
-) (func(), error) {
+	beforeHijack func() error) (func(), error) {
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	var (
 		out, cerr io.Writer
@@ -251,6 +256,14 @@ func attachContainer(
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
 		return nil, errAttach
+	}
+
+	if beforeHijack != nil {
+		err := beforeHijack()
+		if err != nil {
+			resp.Close()
+			return nil, err
+		}
 	}
 
 	ch := make(chan error, 1)
