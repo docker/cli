@@ -560,7 +560,8 @@ device or audio device can be added to an otherwise unprivileged container
 
 By default, the container will be able to `read`, `write` and `mknod` these devices.
 This can be overridden using a third `:rwm` set of options to each `--device`
-flag:
+flag. If the container is running in privileged mode, then the permissions specified
+will be ignored.
 
 ```bash
 $ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
