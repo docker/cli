@@ -285,7 +285,7 @@ func TestToServiceMaxReplicasGlobalModeConflict(t *testing.T) {
 		maxReplicas: 1,
 	}
 	_, err := opt.ToServiceMode()
-	assert.Error(t, err, "replicas-max-per-node can only be used with replicated mode")
+	assert.Error(t, err, "replicas-max-per-node can only be used with replicated or replicated-job mode")
 }
 
 func TestToServiceSysCtls(t *testing.T) {

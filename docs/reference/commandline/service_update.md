@@ -54,6 +54,7 @@ Options:
       --limit-memory bytes                 Limit Memory
       --log-driver string                  Logging driver for service
       --log-opt list                       Logging driver options
+      --max-concurrent                     Number of job tasks to run at once (default equal to --replicas)
       --mount-add mount                    Add or update a mount on a service
       --mount-rm list                      Remove a mount by its target path
       --network-add network                Add a network
@@ -297,6 +298,23 @@ See [`service create`](service_create.md#create-services-using-templates) for th
 
 `service update` supports the same `--isolation` flag as `service create`
 See [`service create`](service_create.md) for the reference.
+
+### Updating Jobs
+
+When a service is created as a job, by setting its mode to `replicated-job` or
+to `global-job` when doing `service create`, options for updating it are
+limited.
+
+Updating a Job immediately stops any Tasks that are in progress. The operation
+creates a new set of Tasks for the job and effectively resets its completion
+status. If any Tasks were running before the update, they are stopped, and new
+Tasks are created.
+
+Jobs cannot be rolled out or rolled back. None of the flags for configuring
+update or rollback settings are valid with job modes.
+
+To run a job again with the same parameters that it was run previously, it can
+be force updated with the `--force` flag.
 
 ## Related commands
 

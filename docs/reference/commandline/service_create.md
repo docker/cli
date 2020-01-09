@@ -41,7 +41,8 @@ Options:
       --limit-memory bytes                 Limit Memory
       --log-driver string                  Logging driver for service
       --log-opt list                       Logging driver options
-      --mode string                        Service mode (replicated or global) (default "replicated")
+      --max-concurrent                     Number of job tasks to run at once (default equal to --replicas)
+      --mode string                        Service mode (replicated, global, replicated-job, or global-job) (default "replicated")
       --mount mount                        Attach a filesystem mount to the service
       --name string                        Service name
       --network network                    Network attachments
@@ -1114,6 +1115,66 @@ $ docker service create \
     --generic-resource "SSD=1" \
     nvidia/cuda
 ```
+
+### Running as a job
+
+Jobs are a special kind of service designed to run an operation to completion
+and then stop, as opposed to running long-running daemons. When a Task
+belonging to a job exits successfully (return value 0), the Task is marked as
+"Completed", and is not run again.
+
+Jobs are started by using one of two modes, `replicated-job` or `global-job`
+
+```bash
+$ docker service create --name myjob \
+                        --mode replicated-job \
+                        bash "true"
+```
+
+This command will run one Task, which will, using the `bash` image, execute the
+command `true`, which will return 0 and then exit.
+
+Though Jobs are ultimately a different kind of service, they a couple of
+caveats compared to other services:
+
+- None of the update or rollback configuration options are valid.  Jobs can be
+  updated, but cannot be rolled out or rolled back, making these configuration
+  options moot.
+- Jobs are never restarted on reaching the `Complete` state. This means that
+  for jobs, setting `--restart-condition` to `any` is the same as setting it to
+  `on-failure`.
+
+Jobs are available in both replicated and global modes.
+
+#### Replicated Jobs
+
+A replicated job is like a replicated service. Setting the `--replicas` flag
+will specify total number of iterations of a job to execute.
+
+By default, all replicas of a replicated job will launch at once. To control
+the total number of replicas that are executing simultaneously at any one time,
+the `--max-concurrent` flag can be used:
+
+```bash
+$ docker service create --name mythrottledjob \
+                        --mode replicated-job \
+                        --replicas 10 \
+                        --max-concurrent 2 \
+                        bash "true"
+```
+
+The above command will execute 10 Tasks in total, but only 2 of them will be
+run at any given time.
+
+#### Global Jobs
+
+Global jobs are like global services, in that a Task is executed once on each node
+matching placement constraints. Global jobs are represented by the mode `global-job`.
+
+Note that after a Global job is created, any new Nodes added to the cluster
+will have a Task from that job started on them. The Global Job does not as a
+whole have a "done" state, except insofar as every Node meeting the job's
+constraints has a Completed task.
 
 ## Related commands
 

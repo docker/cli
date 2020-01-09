@@ -52,7 +52,7 @@ b4g08uwuairexjub6ome6usqh
 
 $ docker service scale backend=10
 
-backend: scale can only be used with replicated mode
+backend: scale can only be used with replicated or replicated-job mode
 ```
 
 Directly afterwards, run `docker service ls`, to see the actual number of

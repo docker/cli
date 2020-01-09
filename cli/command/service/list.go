@@ -111,6 +111,8 @@ func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swa
 	status := map[string]*swarm.ServiceStatus{}
 	taskFilter := filters.NewArgs()
 	for i, s := range services {
+		// there is no need in this switch to check for job modes. jobs are not
+		// supported until after ServiceStatus was introduced.
 		switch {
 		case s.ServiceStatus != nil:
 			// Server already returned service-status, so we don't
