@@ -4,7 +4,7 @@ set -eu
 PLATFORM=${PLATFORM:-}
 VERSION=${VERSION:-"unknown-version"}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
-BUILDTIME=${BUILDTIME:-$(date --utc --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')}
+BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
 PLATFORM_LDFLAGS=
 if test -n "${PLATFORM}"; then
