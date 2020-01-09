@@ -3,6 +3,7 @@ package swarm
 import (
 	"testing"
 
+	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
@@ -43,10 +44,6 @@ func TestExternalCAOptionErrors(t *testing.T) {
 		expectedError string
 	}{
 		{
-			externalCA:    "",
-			expectedError: "EOF",
-		},
-		{
 			externalCA:    "anything",
 			expectedError: "invalid field 'anything' must be a key=value pair",
 		},
@@ -71,34 +68,112 @@ func TestExternalCAOptionErrors(t *testing.T) {
 
 func TestExternalCAOption(t *testing.T) {
 	testCases := []struct {
-		externalCA string
-		expected   string
+		externalCAs    []string
+		expected       []*swarm.ExternalCA
+		expectedString string
 	}{
 		{
-			externalCA: "protocol=cfssl,url=anything",
-			expected:   "cfssl: anything",
+			externalCAs:    []string{""},
+			expected:       nil,
+			expectedString: "",
 		},
 		{
-			externalCA: "protocol=CFSSL,url=anything",
-			expected:   "cfssl: anything",
+			externalCAs: []string{"protocol=cfssl,url=anything"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "anything",
+					Options:  make(map[string]string),
+				},
+			},
+			expectedString: "cfssl: anything",
 		},
 		{
-			externalCA: "protocol=Cfssl,url=https://example.com",
-			expected:   "cfssl: https://example.com",
+			externalCAs: []string{"protocol=CFSSL,url=anything"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "anything",
+					Options:  make(map[string]string),
+				},
+			},
+			expectedString: "cfssl: anything",
 		},
 		{
-			externalCA: "protocol=Cfssl,url=https://example.com,foo=bar",
-			expected:   "cfssl: https://example.com",
+			externalCAs: []string{"protocol=Cfssl,url=https://example.com"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example.com",
+					Options:  make(map[string]string),
+				},
+			},
+			expectedString: "cfssl: https://example.com",
 		},
 		{
-			externalCA: "protocol=Cfssl,url=https://example.com,foo=bar,foo=baz",
-			expected:   "cfssl: https://example.com",
+			externalCAs: []string{"protocol=Cfssl,url=https://example.com,foo=bar"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example.com",
+					Options: map[string]string{
+						"foo": "bar",
+					},
+				},
+			},
+			expectedString: "cfssl: https://example.com",
+		},
+		{
+			externalCAs: []string{"protocol=Cfssl,url=https://example.com,foo=bar,foo=baz"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example.com",
+					Options: map[string]string{
+						"foo": "baz",
+					},
+				},
+			},
+			expectedString: "cfssl: https://example.com",
+		},
+		{
+			externalCAs: []string{"", "protocol=Cfssl,url=https://example.com"},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example.com",
+					Options:  make(map[string]string),
+				},
+			},
+			expectedString: "cfssl: https://example.com",
+		},
+		{
+			externalCAs: []string{
+				"protocol=Cfssl,url=https://example.com",
+				"protocol=Cfssl,url=https://example2.com",
+			},
+			expected: []*swarm.ExternalCA{
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example.com",
+					Options:  make(map[string]string),
+				},
+				{
+					Protocol: swarm.ExternalCAProtocolCFSSL,
+					URL:      "https://example2.com",
+					Options:  make(map[string]string),
+				},
+			},
+			expectedString: "cfssl: https://example.com, cfssl: https://example2.com",
 		},
 	}
 	for _, tc := range testCases {
 		opt := &ExternalCAOption{}
-		assert.NilError(t, opt.Set(tc.externalCA))
-		assert.Check(t, is.Equal(tc.expected, opt.String()))
+		for _, extCA := range tc.externalCAs {
+			assert.NilError(t, opt.Set(extCA))
+		}
+		assert.Check(t, is.DeepEqual(tc.expected, opt.Value()))
+		assert.Check(t, is.Equal(tc.expectedString, opt.String()))
 	}
 }
 

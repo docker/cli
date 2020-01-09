@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -99,7 +100,9 @@ func (m *ExternalCAOption) Set(value string) error {
 		return err
 	}
 
-	m.values = append(m.values, parsed)
+	if parsed != nil {
+		m.values = append(m.values, parsed)
+	}
 	return nil
 }
 
@@ -112,8 +115,10 @@ func (m *ExternalCAOption) Type() string {
 func (m *ExternalCAOption) String() string {
 	externalCAs := []string{}
 	for _, externalCA := range m.values {
-		repr := fmt.Sprintf("%s: %s", externalCA.Protocol, externalCA.URL)
-		externalCAs = append(externalCAs, repr)
+		if externalCA != nil {
+			repr := fmt.Sprintf("%s: %s", externalCA.Protocol, externalCA.URL)
+			externalCAs = append(externalCAs, repr)
+		}
 	}
 	return strings.Join(externalCAs, ", ")
 }
@@ -161,6 +166,9 @@ func (p *PEMFile) Contents() string {
 func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	csvReader := csv.NewReader(strings.NewReader(caSpec))
 	fields, err := csvReader.Read()
+	if err == io.EOF {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
