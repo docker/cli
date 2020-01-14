@@ -872,3 +872,9 @@ func TestParseSystemPaths(t *testing.T) {
 		assert.DeepEqual(t, readonlyPaths, tc.readonly)
 	}
 }
+
+func TestParsePortOpts(t *testing.T) {
+	parsed, err := parsePortOpts([]string{"published=1500,target=200", "target=80,published=90"})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, []string{"1500:200/tcp", "90:80/tcp"}, parsed)
+}
