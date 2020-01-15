@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-ARG COMPOSE_VERSION=1.21.2
+ARG COMPOSE_VERSION=1.25.1
 RUN curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
@@ -36,7 +36,10 @@ RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
 COPY . .
 ARG VERSION
 ARG GITCOMMIT
-ENV VERSION=${VERSION} GITCOMMIT=${GITCOMMIT}
+ENV VERSION=${VERSION}
+ENV GITCOMMIT=${GITCOMMIT}
+ENV DOCKER_BUILDKIT=1
+ENV COMPOSE_DOCKER_CLI_BUILD=1
 RUN ./scripts/build/binary
 RUN ./scripts/build/plugins e2e/cli-plugins/plugins/*
 
