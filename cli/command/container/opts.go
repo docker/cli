@@ -808,7 +808,7 @@ func parsePortOpts(publishOpts []string) ([]string, error) {
 
 			params[opt[0]] = opt[1]
 		}
-		optsList = append(optsList, fmt.Sprintf("%s:%s/%s", params["target"], params["published"], params["protocol"]))
+		optsList = append(optsList, fmt.Sprintf("%s:%s/%s", params["published"], params["target"], params["protocol"]))
 	}
 	return optsList, nil
 }
