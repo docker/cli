@@ -873,8 +873,33 @@ func TestParseSystemPaths(t *testing.T) {
 	}
 }
 
-func TestParsePortOpts(t *testing.T) {
-	parsed, err := parsePortOpts([]string{"published=1500,target=200", "target=80,published=90"})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, []string{"1500:200/tcp", "90:80/tcp"}, parsed)
+func TestConvertToStandardNotation(t *testing.T) {
+	valid := map[string][]string{
+		"20:10/tcp":               {"target=10,published=20"},
+		"40:30":                   {"40:30"},
+		"20:20 80:4444":           {"20:20", "80:4444"},
+		"1500:2500/tcp 1400:1300": {"target=2500,published=1500", "1400:1300"},
+		"1500:200/tcp 90:80/tcp":  {"published=1500,target=200", "target=80,published=90"},
+	}
+
+	invalid := [][]string{
+		{"published=1500,target:444"},
+		{"published=1500,444"},
+		{"published=1500,target,444"},
+	}
+
+	for key, ports := range valid {
+		convertedPorts, err := convertToStandardNotation(ports)
+
+		if err != nil {
+			assert.NilError(t, err)
+		}
+		assert.DeepEqual(t, strings.Split(key, " "), convertedPorts)
+	}
+
+	for _, ports := range invalid {
+		if _, err := convertToStandardNotation(ports); err == nil {
+			t.Fatalf("ConvertToStandardNotation(`%q`) should have failed conversion", ports)
+		}
+	}
 }
