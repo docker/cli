@@ -10,28 +10,28 @@ import (
 )
 
 const (
-	//NotaryURL is the location of the notary server
+	// NotaryURL is the location of the notary server
 	NotaryURL = "https://notary-server:4443"
-	//EvilNotaryURL is the location of the evil notary server
+	// EvilNotaryURL is the location of the evil notary server
 	EvilNotaryURL = "https://evil-notary-server:4444"
-	//AlpineImage is an image in the test registry
+	// AlpineImage is an image in the test registry
 	AlpineImage = "registry:5000/alpine:3.6"
-	//AlpineSha is the sha of the alpine image
+	// AlpineSha is the sha of the alpine image
 	AlpineSha = "641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d"
-	//BusyboxImage is an image in the test registry
+	// BusyboxImage is an image in the test registry
 	BusyboxImage = "registry:5000/busybox:1.27.2"
-	//BusyboxSha is the sha of the busybox image
+	// BusyboxSha is the sha of the busybox image
 	BusyboxSha = "030fcb92e1487b18c974784dcc110a93147c9fc402188370fbfd17efabffc6af"
 )
 
-//SetupConfigFile creates a config.json file for testing
+// SetupConfigFile creates a config.json file for testing
 func SetupConfigFile(t *testing.T) fs.Dir {
 	t.Helper()
 	return SetupConfigWithNotaryURL(t, "trust_test", NotaryURL)
 }
 
-//SetupConfigWithNotaryURL creates a config.json file for testing in the given path
-//with the given notaryURL
+// SetupConfigWithNotaryURL creates a config.json file for testing in the given path
+// with the given notaryURL
 func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 	t.Helper()
 	dir := fs.NewDir(t, path, fs.WithMode(0700), fs.WithFile("config.json", fmt.Sprintf(`
@@ -50,7 +50,7 @@ func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 	return *dir
 }
 
-//WithConfig sets an environment variable for the docker config location
+// WithConfig sets an environment variable for the docker config location
 func WithConfig(dir string) func(cmd *icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
 		env := append(os.Environ(),
@@ -60,7 +60,7 @@ func WithConfig(dir string) func(cmd *icmd.Cmd) {
 	}
 }
 
-//WithPassphrase sets environment variables for passphrases
+// WithPassphrase sets environment variables for passphrases
 func WithPassphrase(rootPwd, repositoryPwd string) func(cmd *icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
 		env := append(os.Environ(),
@@ -71,7 +71,7 @@ func WithPassphrase(rootPwd, repositoryPwd string) func(cmd *icmd.Cmd) {
 	}
 }
 
-//WithTrust sets DOCKER_CONTENT_TRUST to 1
+// WithTrust sets DOCKER_CONTENT_TRUST to 1
 func WithTrust(cmd *icmd.Cmd) {
 	env := append(os.Environ(),
 		"DOCKER_CONTENT_TRUST=1",
@@ -79,7 +79,7 @@ func WithTrust(cmd *icmd.Cmd) {
 	cmd.Env = append(cmd.Env, env...)
 }
 
-//WithNotary sets the location of the notary server
+// WithNotary sets the location of the notary server
 func WithNotary(cmd *icmd.Cmd) {
 	env := append(os.Environ(),
 		"DOCKER_CONTENT_TRUST_SERVER="+NotaryURL,
@@ -87,14 +87,14 @@ func WithNotary(cmd *icmd.Cmd) {
 	cmd.Env = append(cmd.Env, env...)
 }
 
-//WithHome sets the HOME environment variable
+// WithHome sets the HOME environment variable
 func WithHome(path string) func(*icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
 		cmd.Env = append(cmd.Env, "HOME="+path)
 	}
 }
 
-//WithNotaryServer sets the location of the notary server
+// WithNotaryServer sets the location of the notary server
 func WithNotaryServer(notaryURL string) func(*icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
 		env := append(os.Environ(),
