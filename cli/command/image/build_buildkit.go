@@ -233,7 +233,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		buildOptions := imageBuildOptions(dockerCli, options)
 		buildOptions.Version = types.BuilderBuildKit
 		buildOptions.Dockerfile = dockerfileName
-		//buildOptions.AuthConfigs = authConfigs   // handled by session
+		// buildOptions.AuthConfigs = authConfigs   // handled by session
 		buildOptions.RemoteContext = remote
 		buildOptions.SessionID = s.ID()
 		buildOptions.BuildID = buildID

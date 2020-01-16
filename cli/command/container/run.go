@@ -164,7 +164,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 
 	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
 
-	//start the container
+	// start the container
 	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait

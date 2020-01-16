@@ -40,11 +40,9 @@ func testDefaultMetadata() store.Metadata {
 }
 
 func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (store.Store, func()) {
-	//meta := testDefaultMetadata()
 	testDir, err := ioutil.TempDir("", t.Name())
 	assert.NilError(t, err)
-	//defer os.RemoveAll(testDir)
-	store := &ContextStoreWithDefault{
+	s := &ContextStoreWithDefault{
 		Store: store.New(testDir, testCfg),
 		Resolver: func() (*DefaultContext, error) {
 			return &DefaultContext{
@@ -53,8 +51,8 @@ func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (sto
 			}, nil
 		},
 	}
-	return store, func() {
-		os.RemoveAll(testDir)
+	return s, func() {
+		_ = os.RemoveAll(testDir)
 	}
 }
 

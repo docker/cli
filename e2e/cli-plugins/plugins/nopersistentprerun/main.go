@@ -15,7 +15,7 @@ func main() {
 		cmd := &cobra.Command{
 			Use:   "nopersistentprerun",
 			Short: "Testing without PersistentPreRun hooks",
-			//PersistentPreRunE: Not specified, we need to test that it works in the absence of an explicit call
+			// PersistentPreRunE: Not specified, we need to test that it works in the absence of an explicit call
 			RunE: func(cmd *cobra.Command, args []string) error {
 				cli := dockerCli.Client()
 				ping, err := cli.Ping(context.Background())
