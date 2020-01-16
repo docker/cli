@@ -130,7 +130,7 @@ func AddPlatformFlag(flags *pflag.FlagSet, target *string) {
 
 // ValidateOutputPath validates the output paths of the `export` and `save` commands.
 func ValidateOutputPath(path string) error {
-	dir := filepath.Dir(path)
+	dir := filepath.Dir(filepath.Clean(path))
 	if dir != "" && dir != "." {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			return errors.Errorf("invalid output path: directory %q does not exist", dir)
