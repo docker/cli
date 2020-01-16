@@ -69,6 +69,8 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 				if present {
 					// if only a pass-through variable is given, clean it up.
 					lines = append(lines, fmt.Sprintf("%s=%s", strings.TrimSpace(line), value))
+				} else {
+					lines = append(lines, strings.TrimSpace(line))
 				}
 			}
 		}
