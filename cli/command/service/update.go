@@ -1036,7 +1036,7 @@ portLoop:
 			if _, ok := portSet[portConfigToString(&port)]; ok {
 				continue
 			}
-			//portSet[portConfigToString(&port)] = port
+			// portSet[portConfigToString(&port)] = port
 			newPorts = append(newPorts, port)
 		}
 	}
