@@ -92,8 +92,11 @@ Options:
 
 ## Description
 
-Creates a service as described by the specified parameters. You must run this
-command on a manager node.
+Creates a service as described by the specified parameters.
+
+> **Note**: This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the [Swarm mode
+> section](https://docs.docker.com/engine/swarm/) in the documentation.
 
 ## Examples
 
@@ -425,7 +428,7 @@ The following options can only be used for bind mounts (`type=bind`):
 
 Bind propagation refers to whether or not mounts created within a given
 bind mount or named volume can be propagated to replicas of that mount. Consider
-a mount point `/mnt`, which is also mounted on `/tmp`. The propation settings
+a mount point `/mnt`, which is also mounted on `/tmp`. The propagation settings
 control whether a mount on `/tmp/a` would also be available on `/mnt/a`. Each
 propagation setting has a recursive counterpoint. In the case of recursion,
 consider that `/tmp/a` is also mounted as `/foo`. The propagation settings
