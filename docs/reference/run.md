@@ -508,9 +508,10 @@ Docker supports the following restart policies:
         </span>
       </td>
       <td>
-        Restart only if the container exits with a non-zero exit status.
+        Restart if the container exits with a non-zero exit status.
         Optionally, limit the number of restart retries the Docker
-        daemon attempts.
+        daemon attempts. The container will also always start
+        on daemon startup, regardless of the current state of the container.
       </td>
     </tr>
     <tr>
