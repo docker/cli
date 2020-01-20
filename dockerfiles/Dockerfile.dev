@@ -12,7 +12,8 @@ RUN     go get -d github.com/LK4D4/vndr && \
         go build -v -o /usr/bin/vndr . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     ESC_SHA=58d9cde84f237ecdd89bd7f61c2de2853f4c5c6e
+# v0.2.0
+ARG     ESC_SHA=0ea7db170df78dcddf3e223365f444163147fe89
 RUN     go get -d github.com/mjibson/esc && \
         cd /go/src/github.com/mjibson/esc && \
         git checkout -q "$ESC_SHA" && \
