@@ -26,12 +26,14 @@ end
 function __fish_print_docker_containers --description 'Print a list of docker containers' -a select
     switch $select
         case running
-            docker ps -a --no-trunc --filter status=running --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
+            set filter --filter status=running
         case stopped
-            docker ps -a --no-trunc --filter status=exited --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
+            set filter --filter status=exited
         case all
-            docker ps -a --no-trunc --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
+            # No filter
     end
+    docker ps -a --no-trunc $filter --format '{{.ID}},{{.Names}}\tContainer {{.Status}}' \
+        | awk -F'\t' '{OFS="\t"; split($1,arr,","); for(i in arr) print arr[i],$2}'
 end
 
 function __fish_print_docker_networks --description 'Print a list of docker networks'
@@ -74,7 +76,7 @@ function __fish_docker_subcommand_path_without --description 'Test if command ha
 end
 
 function __fish_print_docker_images --description 'Print a list of docker images'
-    docker images --format "{{.Repository}}:{{.Tag}}" | command grep -v '<none>'
+    docker images --format "{{.Repository}}:{{.Tag}}\tImage created {{.CreatedSince}}, {{.Size}}" | command grep -v '<none>'
 end
 
 function __fish_print_docker_repositories --description 'Print a list of docker repositories'
@@ -126,7 +128,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l detach-keys 
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l no-stdin -d 'Do not attach STDIN'
 complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -l sig-proxy -d 'Proxy all received signals to the process'
-complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from attach' -a '(__fish_print_docker_containers running)'
 
 # build
 complete -c docker -f -n '__fish_docker_no_subcommand' -a build -d 'Build an image from a Dockerfile'
@@ -167,7 +169,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s c -l change 
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s m -l message -d 'Commit message'
 complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -s p -l pause -d 'Pause container during commit'
-complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -a '(__fish_print_docker_containers all)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from commit' -a '(__fish_print_docker_containers all)'
 
 # cp
 complete -c docker -f -n '__fish_docker_no_subcommand' -a cp -d "Copy files/folders between a container and the local filesystem"
@@ -270,12 +272,12 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s v -l volume 
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l volume-driver -d 'Optional volume driver for the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l volumes-from -d 'Mount volumes from the specified container(s)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s w -l workdir -d 'Working directory inside the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from create' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from create' -a '(__fish_print_docker_images)'
 
 # diff
 complete -c docker -f -n '__fish_docker_no_subcommand' -a diff -d "Inspect changes on a container's filesystem"
 complete -c docker -A -f -n '__fish_seen_subcommand_from diff' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from diff' -a '(__fish_print_docker_containers all)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from diff' -a '(__fish_print_docker_containers all)'
 
 # events
 complete -c docker -f -n '__fish_docker_no_subcommand' -a events -d 'Get real time events from the server'
@@ -296,13 +298,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l privileged -d 
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s t -l tty -d 'Allocate a pseudo-TTY'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s u -l user -d 'Username or UID (format: <name|uid>[:<group|gid>])'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s w -l workdir -d 'Working directory inside the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -a '(__fish_print_docker_containers running)'
 
 # export
 complete -c docker -f -n '__fish_docker_no_subcommand' -a export -d 'Stream the contents of a container as a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from export' -s o -l output -d 'Write to a file, instead of STDOUT'
-complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_print_docker_containers all)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_print_docker_containers all)'
 
 # history
 complete -c docker -f -n '__fish_docker_no_subcommand' -a history -d 'Show the history of an image'
@@ -311,7 +313,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Pr
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
-complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)'
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
@@ -341,14 +343,14 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s f -l format
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -s s -l size -d 'Display total file sizes if the type is container.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -l type -d 'Return JSON for specified type'
-complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_images)' -d "Image"
-complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_containers all)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_images)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from inspect' -a '(__fish_print_docker_containers all)'
 
 # kill
 complete -c docker -f -n '__fish_docker_no_subcommand' -a kill -d 'Kill a running container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -s s -l signal -d 'Signal to send to the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from kill' -a '(__fish_print_docker_containers running)'
 
 # load
 complete -c docker -f -n '__fish_docker_no_subcommand' -a load -d 'Load an image from a tar archive'
@@ -373,7 +375,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l help -d 'Print
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -s t -l timestamps -d 'Show timestamps'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l since -d 'Show logs since timestamp'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l tail -d 'Output the specified number of lines at the end of logs (defaults to all logs)'
-complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -a '(__fish_print_docker_containers running)'
 
 # network
 complete -c docker -f -n '__fish_docker_no_subcommand' -a network -d 'Manage networks'
@@ -393,11 +395,11 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from network inspect' -a '(_
 # port
 complete -c docker -f -n '__fish_docker_no_subcommand' -a port -d 'Lookup the public-facing port that is NAT-ed to PRIVATE_PORT'
 complete -c docker -A -f -n '__fish_seen_subcommand_from port' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from port' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from port' -a '(__fish_print_docker_containers running)'
 
 # pause
 complete -c docker -f -n '__fish_docker_no_subcommand' -a pause -d 'Pause all processes within a container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from pause' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from pause' -a '(__fish_print_docker_containers running)'
 
 # ps
 complete -c docker -f -n '__fish_docker_no_subcommand' -a ps -d 'List containers'
@@ -416,13 +418,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l since -d 'Show o
 complete -c docker -f -n '__fish_docker_no_subcommand' -a pull -d 'Pull an image or a repository from a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -s a -l all-tags -d 'Download all tagged images in the repository'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # push
 complete -c docker -f -n '__fish_docker_no_subcommand' -a push -d 'Push an image or a repository to a Docker registry server'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # rename
@@ -432,7 +434,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a rename -d 'Rename an e
 complete -c docker -f -n '__fish_docker_no_subcommand' -a restart -d 'Restart a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from restart' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from restart' -s t -l time -d 'Number of seconds to try to stop for before killing the container. Once killed it will then be restarted. Default is 10 seconds.'
-complete -c docker -A -f -n '__fish_seen_subcommand_from restart' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from restart' -a '(__fish_print_docker_containers running)'
 
 # rm
 complete -c docker -f -n '__fish_docker_no_subcommand' -a rm -d 'Remove one or more containers'
@@ -440,15 +442,15 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s f -l force -d 'F
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s l -l link -d 'Remove the specified link and not the underlying container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s v -l volumes -d 'Remove the volumes associated with the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -a '(__fish_print_docker_containers stopped)' -d "Container"
-complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s f -l force -a '(__fish_print_docker_containers all)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -a '(__fish_print_docker_containers stopped)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s f -l force -a '(__fish_print_docker_containers all)'
 
 # rmi
 complete -c docker -f -n '__fish_docker_no_subcommand' -a rmi -d 'Remove one or more images'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -s f -l force -d 'Force removal of the image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -l no-prune -d 'Do not delete untagged parents'
-complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_docker_images)'
 
 # run
 complete -c docker -f -n '__fish_docker_no_subcommand' -a run -d 'Run a command in a new container'
@@ -497,13 +499,13 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l tmpfs -d 'Mount
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s v -l volume -d 'Bind mount a volume (e.g., from the host: -v /host:/container, from Docker: -v /container)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l volumes-from -d 'Mount volumes from the specified container(s)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s w -l workdir -d 'Working directory inside the container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from run' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from run' -a '(__fish_print_docker_images)'
 
 # save
 complete -c docker -f -n '__fish_docker_no_subcommand' -a save -d 'Save an image to a tar archive'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from save' -s o -l output -d 'Write to an file, instead of STDOUT'
-complete -c docker -A -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_docker_images)' -d "Image"
+complete -c docker -A -f -n '__fish_seen_subcommand_from save' -a '(__fish_print_docker_images)'
 
 # search
 complete -c docker -f -n '__fish_docker_no_subcommand' -a search -d 'Search for an image on the registry (defaults to the Docker Hub)'
@@ -517,19 +519,19 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a start -d 'Start a cont
 complete -c docker -A -f -n '__fish_seen_subcommand_from start' -s a -l attach -d "Attach container's STDOUT and STDERR and forward all signals to the process"
 complete -c docker -A -f -n '__fish_seen_subcommand_from start' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from start' -s i -l interactive -d "Attach container's STDIN"
-complete -c docker -A -f -n '__fish_seen_subcommand_from start' -a '(__fish_print_docker_containers stopped)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from start' -a '(__fish_print_docker_containers stopped)'
 
 # stats
 complete -c docker -f -n '__fish_docker_no_subcommand' -a stats -d "Display a live stream of one or more containers' resource usage statistics"
 complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -l no-stream -d 'Disable streaming stats and only pull the first result'
-complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -a '(__fish_print_docker_containers running)'
 
 # stop
 complete -c docker -f -n '__fish_docker_no_subcommand' -a stop -d 'Stop a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -s t -l time -d 'Number of seconds to wait for the container to stop before killing it. Default is 10 seconds.'
-complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -a '(__fish_print_docker_containers running)'
 
 # tag
 complete -c docker -f -n '__fish_docker_no_subcommand' -a tag -d 'Tag an image into a repository'
@@ -539,7 +541,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from tag' -l help -d 'Print 
 # top
 complete -c docker -f -n '__fish_docker_no_subcommand' -a top -d 'Lookup the running processes of a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from top' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from top' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from top' -a '(__fish_print_docker_containers running)'
 
 #trust
 complete -c docker -f -n '__fish_docker_no_subcommand' -a trust -d 'Manage trust on Docker images'
@@ -571,7 +573,7 @@ complete -c docker -A -f -n '__fish_docker_subcommand_path trust signer; and __f
 
 # unpause
 complete -c docker -f -n '__fish_docker_no_subcommand' -a unpause -d 'Unpause a paused container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from unpause' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from unpause' -a '(__fish_print_docker_containers running)'
 
 # version
 complete -c docker -f -n '__fish_docker_no_subcommand' -a version -d 'Show the Docker version information'
@@ -581,4 +583,4 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from version' -l help -d 'Pr
 # wait
 complete -c docker -f -n '__fish_docker_no_subcommand' -a wait -d 'Block until a container stops, then print its exit code'
 complete -c docker -A -f -n '__fish_seen_subcommand_from wait' -l help -d 'Print usage'
-complete -c docker -A -f -n '__fish_seen_subcommand_from wait' -a '(__fish_print_docker_containers running)' -d "Container"
+complete -c docker -A -f -n '__fish_seen_subcommand_from wait' -a '(__fish_print_docker_containers running)'
