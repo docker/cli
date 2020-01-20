@@ -124,7 +124,7 @@ Function Execute-Build($additionalBuildTags, $directory) {
     $env:_ag_dockerVersion=$dockerVersion
     $env:_ag_gitCommit=$gitCommit
 
-    New-Item -ItemType Directory -Path .\tmp | Out-Null
+    New-Item -ItemType Directory -Path .\tmp -Force | Out-Null
     windres -i scripts/winresources/docker.rc -o cli/winresources/rsrc_amd64.syso  -F pe-x86-64 --use-temp-file -I ./tmp -D DOCKER_VERSION_QUAD=$versionQuad --% -D DOCKER_VERSION=\"%_ag_dockerVersion%\" -D DOCKER_COMMIT=\"%_ag_gitCommit%\"
     if ($LASTEXITCODE -ne 0) { Throw "Failed to compile client 64-bit resources" }
 
