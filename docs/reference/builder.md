@@ -546,10 +546,8 @@ Now consider this example:
 All of the README files are included.  The middle line has no effect because
 `!README*.md` matches `README-secret.md` and comes last.
 
-You can even use the `.dockerignore` file to exclude the `Dockerfile`
-and `.dockerignore` files.  These files are still sent to the daemon
-because it needs them to do its job.  But the `ADD` and `COPY` instructions
-do not copy them to the image.
+By default the `Dockerfile` and `.dockerignore` files  will be sent to the daemon because it needs them to do its job.
+If you don't want that there will be added to the image, you can exclude them inside the `.dockerignore`.
 
 Finally, you may want to specify which files to include in the
 context, rather than which to exclude. To achieve this, specify `*` as
