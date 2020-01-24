@@ -3,9 +3,11 @@ package image
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
@@ -68,9 +70,12 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	}
 
 	defer responseBody.Close()
-	if !opts.quiet {
-		return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	if opts.quiet {
+		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(ioutil.Discard), nil)
+		if err == nil {
+			fmt.Fprintln(dockerCli.Out(), ref.String())
+		}
+		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), ref.String())
-	return nil
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
 }
