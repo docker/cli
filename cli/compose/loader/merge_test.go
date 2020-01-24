@@ -1,9 +1,11 @@
 package loader
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/imdario/mergo"
 	"gotest.tools/assert"
 )
 
@@ -1013,4 +1015,95 @@ func TestLoadMultipleNetworks(t *testing.T) {
 		Secrets: map[string]types.SecretConfig{},
 		Configs: map[string]types.ConfigObjConfig{},
 	}, config)
+}
+
+func TestMergeUlimitsConfig(t *testing.T) {
+	specials := &specials{
+		m: map[reflect.Type]func(dst, src reflect.Value) error{
+			reflect.TypeOf(&types.UlimitsConfig{}): mergeUlimitsConfig,
+		},
+	}
+	base := map[string]*types.UlimitsConfig{
+		"override-single":                &types.UlimitsConfig{Single: 100},
+		"override-single-with-soft-hard": &types.UlimitsConfig{Single: 200},
+		"override-soft-hard":             &types.UlimitsConfig{Soft: 300, Hard: 301},
+		"override-soft-hard-with-single": &types.UlimitsConfig{Soft: 400, Hard: 401},
+		"dont-override":                  &types.UlimitsConfig{Single: 500},
+	}
+	override := map[string]*types.UlimitsConfig{
+		"override-single":                &types.UlimitsConfig{Single: 110},
+		"override-single-with-soft-hard": &types.UlimitsConfig{Soft: 210, Hard: 211},
+		"override-soft-hard":             &types.UlimitsConfig{Soft: 310, Hard: 311},
+		"override-soft-hard-with-single": &types.UlimitsConfig{Single: 410},
+		"add":                            &types.UlimitsConfig{Single: 610},
+	}
+	err := mergo.Merge(&base, &override, mergo.WithOverride, mergo.WithTransformers(specials))
+	assert.NilError(t, err)
+	assert.DeepEqual(
+		t,
+		base,
+		map[string]*types.UlimitsConfig{
+			"override-single":                &types.UlimitsConfig{Single: 110},
+			"override-single-with-soft-hard": &types.UlimitsConfig{Soft: 210, Hard: 211},
+			"override-soft-hard":             &types.UlimitsConfig{Soft: 310, Hard: 311},
+			"override-soft-hard-with-single": &types.UlimitsConfig{Single: 410},
+			"dont-override":                  &types.UlimitsConfig{Single: 500},
+			"add":                            &types.UlimitsConfig{Single: 610},
+		},
+	)
+}
+
+func TestMergeServiceNetworkConfig(t *testing.T) {
+	specials := &specials{
+		m: map[reflect.Type]func(dst, src reflect.Value) error{
+			reflect.TypeOf(&types.ServiceNetworkConfig{}): mergeServiceNetworkConfig,
+		},
+	}
+	base := map[string]*types.ServiceNetworkConfig{
+		"override-aliases": &types.ServiceNetworkConfig{
+			Aliases:     []string{"100", "101"},
+			Ipv4Address: "127.0.0.1",
+			Ipv6Address: "0:0:0:0:0:0:0:1",
+		},
+		"dont-override": &types.ServiceNetworkConfig{
+			Aliases:     []string{"200", "201"},
+			Ipv4Address: "127.0.0.2",
+			Ipv6Address: "0:0:0:0:0:0:0:2",
+		},
+	}
+	override := map[string]*types.ServiceNetworkConfig{
+		"override-aliases": &types.ServiceNetworkConfig{
+			Aliases:     []string{"110", "111"},
+			Ipv4Address: "127.0.1.1",
+			Ipv6Address: "0:0:0:0:0:0:1:1",
+		},
+		"add": &types.ServiceNetworkConfig{
+			Aliases:     []string{"310", "311"},
+			Ipv4Address: "127.0.3.1",
+			Ipv6Address: "0:0:0:0:0:0:3:1",
+		},
+	}
+	err := mergo.Merge(&base, &override, mergo.WithOverride, mergo.WithTransformers(specials))
+	assert.NilError(t, err)
+	assert.DeepEqual(
+		t,
+		base,
+		map[string]*types.ServiceNetworkConfig{
+			"override-aliases": &types.ServiceNetworkConfig{
+				Aliases:     []string{"110", "111"},
+				Ipv4Address: "127.0.1.1",
+				Ipv6Address: "0:0:0:0:0:0:1:1",
+			},
+			"dont-override": &types.ServiceNetworkConfig{
+				Aliases:     []string{"200", "201"},
+				Ipv4Address: "127.0.0.2",
+				Ipv6Address: "0:0:0:0:0:0:0:2",
+			},
+			"add": &types.ServiceNetworkConfig{
+				Aliases:     []string{"310", "311"},
+				Ipv4Address: "127.0.3.1",
+				Ipv6Address: "0:0:0:0:0:0:3:1",
+			},
+		},
+	)
 }
