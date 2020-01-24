@@ -55,6 +55,14 @@ func TestPushWithContentTrust(t *testing.T) {
 	})
 }
 
+func TestPushQuietErrors(t *testing.T) {
+	result := icmd.RunCmd(icmd.Command("docker", "push", "--quiet", "nosuchimage"))
+	result.Assert(t, icmd.Expected{
+		ExitCode: 1,
+		Err:      "An image does not exist locally with the tag: nosuchimage",
+	})
+}
+
 func TestPushWithContentTrustUnreachableServer(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
