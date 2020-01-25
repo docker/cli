@@ -24,7 +24,7 @@ Options:
   -f, --force     Force the removal of a running container (uses SIGKILL)
       --help      Print usage
   -l, --link      Remove the specified link
-  -v, --volumes   Remove the volumes associated with the container
+  -v, --volumes   Remove anonymous volumes associated with the container
 ```
 
 ## Examples
