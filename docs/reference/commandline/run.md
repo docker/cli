@@ -352,6 +352,11 @@ machine. You can also specify `udp` and `sctp` ports.
 The [Docker User Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
 explains in detail how to manipulate ports in Docker.
 
+Note that ports which are not bound to the host (i.e., `-p 80:80` instead of
+`-p 127.0.0.1:80:80`) will be accessible from the outside. This also applies if
+you configured UFW to block this specific port, as Docker manages his
+own iptables rules. [Read more](https://docs.docker.com/network/iptables/)
+
 ```bash
 $ docker run --expose 80 ubuntu bash
 ```
