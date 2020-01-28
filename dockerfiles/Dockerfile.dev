@@ -4,21 +4,23 @@ FROM    golang:${GO_VERSION}-alpine
 
 RUN     apk add -U git make bash coreutils ca-certificates curl
 
-ARG     VNDR_SHA=b177b583eb9d44bd5abfca3083a4aeb971b75861
+# v0.1.0
+ARG     VNDR_SHA=d385c05e4c23b602dd16b3d2a1a6c710919bf02f
 RUN     go get -d github.com/LK4D4/vndr && \
         cd /go/src/github.com/LK4D4/vndr && \
         git checkout -q "$VNDR_SHA" && \
         go build -v -o /usr/bin/vndr . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     ESC_SHA=58d9cde84f237ecdd89bd7f61c2de2853f4c5c6e
+# v0.2.0
+ARG     ESC_SHA=0ea7db170df78dcddf3e223365f444163147fe89
 RUN     go get -d github.com/mjibson/esc && \
         cd /go/src/github.com/mjibson/esc && \
         git checkout -q "$ESC_SHA" && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     GOTESTSUM_VERSION=0.3.4
+ARG     GOTESTSUM_VERSION=0.4.0
 RUN     curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz && \
         tar -xf gotestsum.tar.gz gotestsum -C /usr/bin && \
         rm gotestsum.tar.gz
