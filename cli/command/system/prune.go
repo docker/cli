@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/docker/cli/cli"
@@ -74,21 +75,30 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
 		return nil
 	}
-	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
+	pruneFuncNames := []string{"Containers", "Networks"}
+	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (int, uint64, string, error){
 		container.RunPrune,
 		network.RunPrune,
 	}
 	if options.pruneVolumes {
 		pruneFuncs = append(pruneFuncs, volume.RunPrune)
+		pruneFuncNames = append(pruneFuncNames, "Volumes")
 	}
 	pruneFuncs = append(pruneFuncs, image.RunPrune)
+	pruneFuncNames = append(pruneFuncNames, "Images")
 	if options.pruneBuildCache {
 		pruneFuncs = append(pruneFuncs, builder.CachePrune)
+		pruneFuncNames = append(pruneFuncNames, "Caches")
 	}
 
+	var sb strings.Builder
+	sb.WriteString("Final report:\n")
+	hasFinalReport := false
+
 	var spaceReclaimed uint64
-	for _, pruneFn := range pruneFuncs {
-		spc, output, err := pruneFn(dockerCli, options.all, options.filter)
+	for i, pruneFn := range pruneFuncs {
+		funcName := pruneFuncNames[i]
+		objectsDeleted, spc, output, err := pruneFn(dockerCli, options.all, options.filter)
 		if err != nil {
 			return err
 		}
@@ -96,6 +106,18 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		if output != "" {
 			fmt.Fprintln(dockerCli.Out(), output)
 		}
+
+		if objectsDeleted > 0 {
+			hasFinalReport = true
+			sb.WriteString(fmt.Sprintf("%s:\n", funcName))
+			sb.WriteString(fmt.Sprintf("Deleted objects: %d\n", objectsDeleted))
+			sb.WriteString(fmt.Sprintf("Space reclaimed: %s", units.HumanSize(float64(spc))))
+			sb.WriteString("\n\n")
+		}
+	}
+
+	if hasFinalReport {
+		fmt.Fprintln(dockerCli.Out(), sb.String())
 	}
 
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))

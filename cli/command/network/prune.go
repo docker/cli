@@ -24,13 +24,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove all unused networks",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			output, err := runPrune(dockerCli, options)
+			objectsDeleted, output, err := runPrune(dockerCli, options)
 			if err != nil {
 				return err
 			}
 			if output != "" {
 				fmt.Fprintln(dockerCli.Out(), output)
 			}
+			fmt.Fprintln(dockerCli.Out(), "Total networks deleted:", objectsDeleted)
 			return nil
 		},
 		Annotations: map[string]string{"version": "1.25"},
@@ -46,16 +47,16 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all networks not used by at least one container.
 Are you sure you want to continue?`
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err error) {
+func runPrune(dockerCli command.Cli, options pruneOptions) (objectsDeleted int, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return "", nil
+		return 0, "", nil
 	}
 
 	report, err := dockerCli.Client().NetworksPrune(context.Background(), pruneFilters)
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 
 	if len(report.NetworksDeleted) > 0 {
@@ -65,12 +66,12 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err e
 		}
 	}
 
-	return output, nil
+	return len(report.NetworksDeleted), output, nil
 }
 
 // RunPrune calls the Network Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	output, err := runPrune(dockerCli, pruneOptions{force: true, filter: filter})
-	return 0, output, err
+func RunPrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (int, uint64, string, error) {
+	objectsDeleted, output, err := runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+	return objectsDeleted, 0, output, err
 }

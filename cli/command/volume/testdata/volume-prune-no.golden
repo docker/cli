@@ -1,2 +1,3 @@
 WARNING! This will remove all local volumes not used by at least one container.
-Are you sure you want to continue? [y/N] Total reclaimed space: 0B
+Are you sure you want to continue? [y/N] Total volumes deleted: 0
+Total reclaimed space: 0B

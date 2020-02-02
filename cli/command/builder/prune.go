@@ -29,13 +29,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove build cache",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spaceReclaimed, output, err := runPrune(dockerCli, options)
+			objectsDeleted, spaceReclaimed, output, err := runPrune(dockerCli, options)
 			if err != nil {
 				return err
 			}
 			if output != "" {
 				fmt.Fprintln(dockerCli.Out(), output)
 			}
+			fmt.Fprintln(dockerCli.Out(), "Total caches deleted:", objectsDeleted)
 			fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 			return nil
 		},
@@ -56,7 +57,7 @@ const (
 	allCacheWarning = `WARNING! This will remove all build cache. Are you sure you want to continue?`
 )
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(dockerCli command.Cli, options pruneOptions) (objectsDeleted int, spaceReclaimed uint64, output string, err error) {
 	pruneFilters := options.filter.Value()
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
@@ -65,7 +66,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 		warning = allCacheWarning
 	}
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", nil
+		return 0, 0, "", nil
 	}
 
 	report, err := dockerCli.Client().BuildCachePrune(context.Background(), types.BuildCachePruneOptions{
@@ -74,7 +75,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 		Filters:     pruneFilters,
 	})
 	if err != nil {
-		return 0, "", err
+		return 0, 0, "", err
 	}
 
 	if len(report.CachesDeleted) > 0 {
@@ -87,10 +88,10 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 		output = sb.String()
 	}
 
-	return report.SpaceReclaimed, output, nil
+	return len(report.CachesDeleted), report.SpaceReclaimed, output, nil
 }
 
 // CachePrune executes a prune command for build cache
-func CachePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
+func CachePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (int, uint64, string, error) {
 	return runPrune(dockerCli, pruneOptions{force: true, all: all, filter: filter})
 }
