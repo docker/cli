@@ -690,7 +690,7 @@ using IPv4 or IPv6 networking in your containers. Use the following
 flags for IPv4 address retrieval for a network device named `eth0`:
 
 ```bash
-$ HOSTIP=`ip -4 addr show scope global dev eth0 | grep inet | awk '{print \$2}' | cut -d / -f 1`
+$ HOSTIP=`ip -4 addr show scope global dev eth0 | grep inet | awk '{print $2}' | cut -d / -f 1 | sed -n 1p`
 $ docker run  --add-host=docker:${HOSTIP} --rm -it debian
 ```
 
