@@ -47,6 +47,7 @@ Options:
                                 'host': use the Docker host network stack
                                 '<network-name>|<network-id>': connect to a user-defined network
       --no-cache                Do not use cache when building the image
+  -o, --output                  Output destination (format: type=local,dest=path)
       --pull                    Always attempt to pull a newer version of the image
       --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty). 
                                 Use plain to show container output
@@ -323,7 +324,16 @@ Successfully built 99cc1ad10469
 This example shows the use of the `.dockerignore` file to exclude the `.git`
 directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
-[creating a .dockerignore file](../builder.md#dockerignore-file)
+[creating a .dockerignore file](../builder.md#dockerignore-file).
+
+When using the [BuildKit backend](../builder.md#buildkit), `docker build` searches
+for a `.dockerignore` file relative to the Dockerfile name. For example, running
+`docker build -f myapp.Dockerfile .` will first look for an ignore file named
+`myapp.Dockerfile.dockerignore`. If such a file is not found, the `.dockerignore`
+file is used if present. Using a Dockerfile based `.dockerignore` is useful if a
+project contains multiple Dockerfiles that expect to ignore different sets of
+files.
+
 
 ### Tag an image (-t)
 
@@ -488,6 +498,137 @@ FROM alpine AS production-env
 ```bash
 $ docker build -t mybuildimage --target build-env .
 ```
+
+### Custom build outputs
+
+By default, a local container image is created from the build result. The
+`--output` (or `-o`) flag allows you to override this behavior, and a specify a
+custom exporter. For example, custom exporters allow you to export the build
+artifacts as files on the local filesystem instead of a Docker image, which can
+be useful for generating local binaries, code generation etc.
+
+The value for `--output` is a CSV-formatted string defining the exporter type
+and options. Currently, `local` and `tar` exporters are supported. The `local`
+exporter writes the resulting build files to a directory on the client side. The
+`tar` exporter is similar but writes the files as a single tarball (`.tar`).
+
+If no type is specified, the value defaults to the output directory of the local
+exporter. Use a hyphen (`-`) to write the output tarball to standard output
+(`STDOUT`).
+
+The following example builds an image using the current directory (`.`) as build
+context, and exports the files to a directory named `out` in the current directory.
+If the directory does not exist, Docker creates the directory automatically:
+
+```bash
+$ docker build -o out .
+```
+
+The example above uses the short-hand syntax, omitting the `type` options, and
+thus uses the default (`local`) exporter. The example below shows the equivalent
+using the long-hand CSV syntax, specifying both `type` and `dest` (destination
+path):
+
+```bash
+$ docker build --output type=local,dest=out .
+```
+
+Use the `tar` type to export the files as a `.tar` archive: 
+
+```bash
+$ docker build --output type=tar,dest=out.tar .
+```
+
+The example below shows the equivalent when using the short-hand syntax. In this
+case, `-` is specified as destination, which automatically selects the `tar` type,
+and writes the output tarball to standard output, which is then redirected to
+the `out.tar` file:
+
+```bash
+docker build -o - . > out.tar
+```
+
+The `--output` option exports all files from the target stage. A common pattern
+for exporting only specific files is to do multi-stage builds and to copy the
+desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
+
+The example `Dockerfile` below uses a separate stage to collect the
+build-artifacts for exporting:
+
+```Dockerfile
+FROM golang AS build-stage
+RUN go get -u github.com/LK4D4/vndr
+
+FROM scratch AS export-stage
+COPY --from=build-stage /go/bin/vndr /
+```
+
+When building the Dockerfile with the `-o` option, only the files from the final
+stage are exported to the `out` directory, in this case, the `vndr` binary:
+
+```bash
+$ docker build -o out .
+
+[+] Building 2.3s (7/7) FINISHED
+ => [internal] load build definition from Dockerfile                                                                          0.1s
+ => => transferring dockerfile: 176B                                                                                          0.0s
+ => [internal] load .dockerignore                                                                                             0.0s
+ => => transferring context: 2B                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/golang:latest                                                              1.6s
+ => [build-stage 1/2] FROM docker.io/library/golang@sha256:2df96417dca0561bf1027742dcc5b446a18957cd28eba6aa79269f23f1846d3f   0.0s
+ => => resolve docker.io/library/golang@sha256:2df96417dca0561bf1027742dcc5b446a18957cd28eba6aa79269f23f1846d3f               0.0s
+ => CACHED [build-stage 2/2] RUN go get -u github.com/LK4D4/vndr                                                              0.0s
+ => [export-stage 1/1] COPY --from=build-stage /go/bin/vndr /                                                                 0.2s
+ => exporting to client                                                                                                       0.4s
+ => => copying files 10.30MB                                                                                                  0.3s
+
+$ ls ./out
+vndr
+```
+
+> **Note**: This feature requires the BuildKit backend. You can either
+> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
+> plugin which provides more output type options.
+
+### Specifying external cache sources
+
+In addition to local build cache, the builder can reuse the cache generated from
+previous builds with the `--cache-from` flag pointing to an image in the registry.
+
+To use an image as a cache source, cache metadata needs to be written into the
+image on creation. This can be done by setting `--build-arg BUILDKIT_INLINE_CACHE=1`
+when building the image. After that, the built image can be used as a cache source
+for subsequent builds.
+
+Upon importing the cache, the builder will only pull the JSON metadata from the
+registry and determine possible cache hits based on that information. If there
+is a cache hit, the matched layers are pulled into the local environment.
+
+In addition to images, the cache can also be pulled from special cache manifests
+generated by [`buildx`](https://github.com/docker/buildx) or the BuildKit CLI
+(`buildctl`). These manifests (when built with the `type=registry` and `mode=max`
+options) allow pulling layer data for intermediate stages in multi-stage builds.
+
+The following example builds an image with inline-cache metadata and pushes it
+to a registry, then uses the image as a cache source on another machine:
+
+```bash
+$ docker build -t myname/myapp --build-arg BUILDKIT_INLINE_CACHE=1 .
+$ docker push myname/myapp
+```
+
+After pushing the image, the image is used as cache source on another machine.
+BuildKit automatically pulls the image from the registry if needed.
+
+```bash
+# on another machine
+$ docker build --cache-from myname/myapp .
+```
+
+> **Note**: This feature requires the BuildKit backend. You can either
+> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
+> plugin. The previous builder has limited support for reusing cache from
+> pre-pulled images.
 
 ### Squash an image's layers (--squash) (experimental)
 
