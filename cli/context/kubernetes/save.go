@@ -39,6 +39,13 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 			Key:  key,
 		}
 	}
+	var usernamePassword *UsernamePassword
+	if clientcfg.Username != "" || clientcfg.Password != "" {
+		usernamePassword = &UsernamePassword{
+			Username: clientcfg.Username,
+			Password: clientcfg.Password,
+		}
+	}
 	return Endpoint{
 		EndpointMeta: EndpointMeta{
 			EndpointMetaBase: context.EndpointMetaBase{
@@ -48,6 +55,7 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 			DefaultNamespace: ns,
 			AuthProvider:     clientcfg.AuthProvider,
 			Exec:             clientcfg.ExecProvider,
+			UsernamePassword: usernamePassword,
 		},
 		TLSData: tlsData,
 	}, nil

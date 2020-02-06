@@ -21,6 +21,13 @@ type EndpointMeta struct {
 	DefaultNamespace string                           `json:",omitempty"`
 	AuthProvider     *clientcmdapi.AuthProviderConfig `json:",omitempty"`
 	Exec             *clientcmdapi.ExecConfig         `json:",omitempty"`
+	UsernamePassword *UsernamePassword                `json:"usernamePassword,omitempty"`
+}
+
+// UsernamePassword contains username/password auth info
+type UsernamePassword struct {
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 var _ command.EndpointDefaultResolver = &EndpointMeta{}
@@ -61,6 +68,10 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 		cluster.CertificateAuthorityData = c.TLSData.CA
 		authInfo.ClientCertificateData = c.TLSData.Cert
 		authInfo.ClientKeyData = c.TLSData.Key
+	}
+	if c.UsernamePassword != nil {
+		authInfo.Username = c.UsernamePassword.Username
+		authInfo.Password = c.UsernamePassword.Password
 	}
 	authInfo.AuthProvider = c.AuthProvider
 	authInfo.Exec = c.Exec
