@@ -98,7 +98,7 @@ be in the range between 1 and 100. The default value of `--limit` is 25.
 ### Filtering
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g. `--filter is-automated=true --filter stars=3`)
 
 The currently supported filters are:
 
@@ -126,7 +126,7 @@ This example displays images with a name containing 'busybox'
 and are automated builds:
 
 ```bash
-$ docker search --filter is-automated busybox
+$ docker search --filter is-automated=true busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
 progrium/busybox                                                     50                   [OK]
@@ -139,7 +139,7 @@ This example displays images with a name containing 'busybox', at least
 3 stars and are official builds:
 
 ```bash
-$ docker search --filter "is-official=true" --filter "stars=3" busybox
+$ docker search --filter is-official=true --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
 progrium/busybox                                                     50                   [OK]
