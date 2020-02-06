@@ -14,6 +14,8 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+const tokenKey = "token"
+
 // EndpointMeta is a typed wrapper around a context-store generic endpoint describing
 // a Kubernetes endpoint, without TLS data
 type EndpointMeta struct {
@@ -29,7 +31,47 @@ var _ command.EndpointDefaultResolver = &EndpointMeta{}
 // a Kubernetes endpoint, with TLS data
 type Endpoint struct {
 	EndpointMeta
-	TLSData *context.TLSData
+	TLSData *TLSData
+}
+
+// TLSData holds sensitive Kubernetes endpoint configurations (ca/cert/key and tokens)
+type TLSData struct {
+	context.TLSData
+	Token string
+}
+
+// ToStoreTLSData converts TLSData to the store representation
+func (data *TLSData) ToStoreTLSData() *store.EndpointTLSData {
+	if data == nil {
+		return nil
+	}
+	result := data.TLSData.ToStoreTLSData()
+	if data.Token != "" {
+		result.Files[tokenKey] = []byte(data.Token)
+	}
+	return result
+}
+
+// LoadTLSData loads TLS data from the store
+func LoadTLSData(s store.Reader, contextName string) (*TLSData, error) {
+	var token []byte
+	tlsData, err := context.LoadTLSData(s, contextName, KubernetesEndpoint, context.ExtraTLSData(tokenKey, &token))
+	if err != nil {
+		return nil, err
+	}
+	if tlsData == nil {
+		return nil, nil
+	}
+	var strToken string
+	if token != nil {
+		strToken = string(token)
+	}
+	result := &TLSData{
+		TLSData: *tlsData,
+		Token:   strToken,
+	}
+
+	return result, nil
 }
 
 func init() {
@@ -40,7 +82,7 @@ func init() {
 
 // WithTLSData loads TLS materials for the endpoint
 func (c *EndpointMeta) WithTLSData(s store.Reader, contextName string) (Endpoint, error) {
-	tlsData, err := context.LoadTLSData(s, contextName, KubernetesEndpoint)
+	tlsData, err := LoadTLSData(s, contextName)
 	if err != nil {
 		return Endpoint{}, err
 	}
@@ -61,6 +103,7 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 		cluster.CertificateAuthorityData = c.TLSData.CA
 		authInfo.ClientCertificateData = c.TLSData.Cert
 		authInfo.ClientKeyData = c.TLSData.Key
+		authInfo.Token = c.TLSData.Token
 	}
 	authInfo.AuthProvider = c.AuthProvider
 	authInfo.Exec = c.Exec

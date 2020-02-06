@@ -41,8 +41,23 @@ func (data *TLSData) ToStoreTLSData() *store.EndpointTLSData {
 	return &result
 }
 
+// ExtraTLSDataOption represents extra TLS data fields extending the base TLS Data
+type ExtraTLSDataOption struct {
+	name        string
+	dataPointer *[]byte
+}
+
+// ExtraTLSData create an ExtraTLSDataOption
+func ExtraTLSData(name string, data *[]byte) ExtraTLSDataOption {
+	return ExtraTLSDataOption{name: name, dataPointer: data}
+}
+
 // LoadTLSData loads TLS data from the store
-func LoadTLSData(s store.Reader, contextName, endpointName string) (*TLSData, error) {
+func LoadTLSData(s store.Reader, contextName, endpointName string, options ...ExtraTLSDataOption) (*TLSData, error) {
+	opts := map[string]ExtraTLSDataOption{}
+	for _, o := range options {
+		opts[o.name] = o
+	}
 	tlsFiles, err := s.ListTLSFiles(contextName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to retrieve context tls files for context %q", contextName)
@@ -62,7 +77,11 @@ func LoadTLSData(s store.Reader, contextName, endpointName string) (*TLSData, er
 			case keyKey:
 				tlsData.Key = data
 			default:
-				logrus.Warnf("unknown file %s in context %s tls bundle", f, contextName)
+				if o, ok := opts[f]; ok {
+					*o.dataPointer = data
+				} else {
+					logrus.Warnf("unknown file %s in context %s tls bundle", f, contextName)
+				}
 			}
 		}
 		return &tlsData, nil
