@@ -667,48 +667,25 @@ $ docker service create \
 ### Specify service constraints (--constraint)
 
 You can limit the set of nodes where a task can be scheduled by defining
-constraint expressions. Multiple constraints find nodes that satisfy every
+constraint expressions. Constraint expressions can either use a _match_ (`==`)
+or _exclude_ (`!=`) rule. Multiple constraints find nodes that satisfy every
 expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
-
-<table>
-  <tr>
-    <th>node attribute</th>
-    <th>matches</th>
-    <th>example</th>
-  </tr>
-  <tr>
-    <td><tt>node.id</tt></td>
-    <td>Node ID</td>
-    <td><tt>node.id==2ivku8v2gvtg4</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.hostname</tt></td>
-    <td>Node hostname</td>
-    <td><tt>node.hostname!=node-2</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.role</tt></td>
-    <td>Node role</td>
-    <td><tt>node.role==manager</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.labels</tt></td>
-    <td>user defined node labels</td>
-    <td><tt>node.labels.security==high</tt></td>
-  </tr>
-  <tr>
-    <td><tt>engine.labels</tt></td>
-    <td>Docker Engine's labels</td>
-    <td><tt>engine.labels.operatingsystem==ubuntu 14.04</tt></td>
-  </tr>
-</table>
+node attribute       | matches                        | example
+---------------------|--------------------------------|-----------------------------------------------
+`node.id`            | Node ID                        | `node.id==2ivku8v2gvtg4`
+`node.hostname`      | Node hostname                  | `node.hostname!=node-2`
+`node.role`          | Node role (`manager`/`worker`) | `node.role==manager`
+`node.platform.os`   | Node operating system          | `node.platform.os==windows`
+`node.platform.arch` | Node architecture              | `node.platform.arch==x86_64`
+`node.labels`        | User-defined node labels       | `node.labels.security==high`
+`engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-14.04`
 
 
-`engine.labels` apply to Docker Engine labels like operating system,
-drivers, etc. Swarm administrators add `node.labels` for operational purposes by
-using the [`docker node update`](node_update.md) command.
+`engine.labels` apply to Docker Engine labels like operating system, drivers,
+etc. Swarm administrators add `node.labels` for operational purposes by using
+the [`docker node update`](node_update.md) command.
 
 For example, the following limits tasks for the redis service to nodes where the
 node type label equals queue:
@@ -716,8 +693,43 @@ node type label equals queue:
 ```bash
 $ docker service create \
   --name redis_2 \
-  --constraint 'node.labels.type == queue' \
+  --constraint node.platform.os==linux \
+  --constraint node.labels.type==queue \
   redis:3.0.6
+```
+
+If the service constraints exclude all nodes in the cluster, a message is printed
+that no suitable node is found, but the scheduler will start a reconciliation
+loop and deploy the service once a suitable node becomes available.
+
+In the example below, no node satisfying the constraint was found, causing the
+service to not reconcile with the desired state:
+
+```bash
+$ docker service create \
+  --name web \
+  --constraint node.labels.region==east \
+  nginx:alpine
+
+lx1wrhhpmbbu0wuk0ybws30bc
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 5 nodes)
+
+$ docker service ls
+ID                  NAME     MODE         REPLICAS   IMAGE               PORTS
+b6lww17hrr4e        web      replicated   0/1        nginx:alpine
+```
+
+After adding the `region=east` label to a node in the cluster, the service
+reconciles, and the desired number of replicas are deployed:
+
+```bash
+$ docker node update --label-add region=east yswe2dm4c5fdgtsrli1e8ya5l 
+yswe2dm4c5fdgtsrli1e8ya5l
+
+$ docker service ls
+ID                  NAME     MODE         REPLICAS   IMAGE               PORTS
+b6lww17hrr4e        web      replicated   1/1        nginx:alpine
 ```
 
 ### Specify service placement preferences (--placement-pref)
@@ -730,7 +742,7 @@ of datacenters or availability zones. The example below illustrates this:
 $ docker service create \
   --replicas 9 \
   --name redis_2 \
-  --placement-pref 'spread=node.labels.datacenter' \
+  --placement-pref spread=node.labels.datacenter \
   redis:3.0.6
 ```
 
