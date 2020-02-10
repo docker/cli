@@ -671,44 +671,18 @@ constraint expressions. Multiple constraints find nodes that satisfy every
 expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
-
-<table>
-  <tr>
-    <th>node attribute</th>
-    <th>matches</th>
-    <th>example</th>
-  </tr>
-  <tr>
-    <td><tt>node.id</tt></td>
-    <td>Node ID</td>
-    <td><tt>node.id==2ivku8v2gvtg4</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.hostname</tt></td>
-    <td>Node hostname</td>
-    <td><tt>node.hostname!=node-2</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.role</tt></td>
-    <td>Node role</td>
-    <td><tt>node.role==manager</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.labels</tt></td>
-    <td>user defined node labels</td>
-    <td><tt>node.labels.security==high</tt></td>
-  </tr>
-  <tr>
-    <td><tt>engine.labels</tt></td>
-    <td>Docker Engine's labels</td>
-    <td><tt>engine.labels.operatingsystem==ubuntu 14.04</tt></td>
-  </tr>
-</table>
+node attribute     | matches                  | example
+-------------------|--------------------------|-----------------------------------------------
+`node.id`          | Node ID                  | `node.id==2ivku8v2gvtg4`
+`node.hostname`    | Node hostname            | `node.hostname!=node-2`
+`node.role`        | Node role                | `node.role==manager`
+`node.labels`      | User-defined node labels | `node.labels.security==high`
+`engine.labels`    | Docker Engine's labels   | `engine.labels.operatingsystem==ubuntu-14.04`
 
 
-`engine.labels` apply to Docker Engine labels like operating system,
-drivers, etc. Swarm administrators add `node.labels` for operational purposes by
-using the [`docker node update`](node_update.md) command.
+`engine.labels` apply to Docker Engine labels like operating system, drivers,
+etc. Swarm administrators add `node.labels` for operational purposes by using
+the [`docker node update`](node_update.md) command.
 
 For example, the following limits tasks for the redis service to nodes where the
 node type label equals queue:
@@ -716,7 +690,7 @@ node type label equals queue:
 ```bash
 $ docker service create \
   --name redis_2 \
-  --constraint 'node.labels.type == queue' \
+  --constraint node.labels.type==queue \
   redis:3.0.6
 ```
 
@@ -730,7 +704,7 @@ of datacenters or availability zones. The example below illustrates this:
 $ docker service create \
   --replicas 9 \
   --name redis_2 \
-  --placement-pref 'spread=node.labels.datacenter' \
+  --placement-pref spread=node.labels.datacenter \
   redis:3.0.6
 ```
 
