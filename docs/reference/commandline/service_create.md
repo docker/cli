@@ -200,11 +200,40 @@ $ docker service create --name redis \
 
 To grant a service access to multiple secrets, use multiple `--secret` flags.
 
-Secrets are located in `/run/secrets` in the container.  If no target is
-specified, the name of the secret will be used as the in memory file in the
-container.  If a target is specified, that will be the filename.  In the
-example above, two files will be created: `/run/secrets/ssh` and
+Secrets are located in `/run/secrets` in the container if no target is specified.
+If no target is specified, the name of the secret is used as the in memory file
+in the container. If a target is specified, that is used as the filename. In the
+example above, two files are created: `/run/secrets/ssh` and
 `/run/secrets/app` for each of the secret targets specified.
+
+### Create a service with configs
+
+Use the `--config` flag to give a container access to a
+[config](config_create.md).
+
+Create a service with a config. The config will be mounted into `redis-config`,
+be owned by the user who runs the command inside the container (often `root`),
+and have file mode `0444` or world-readable. You can specify the `uid` and `gid`
+as numerical IDs or names. When using names, the provided group/user names must
+pre-exist in the container. The `mode` is specified as a 4-number sequence such
+as `0755`.
+
+```bash
+$ docker service create --name=redis --config redis-conf redis:3.0.6
+```
+
+Create a service with a config and specify the target location and file mode:
+
+```bash
+$ docker service create --name redis \
+  --config source=redis-conf,target=/etc/redis/redis.conf,mode=0400 redis:3.0.6
+```
+
+To grant a service access to multiple configs, use multiple `--config` flags.
+
+Configs are located in `/` in the container if no target is specified. If no
+target is specified, the name of the config is used as the name of the file in
+the container. If a target is specified, that is used as the filename.
 
 ### Create a service with a rolling update policy
 
