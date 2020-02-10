@@ -667,7 +667,8 @@ $ docker service create \
 ### Specify service constraints (--constraint)
 
 You can limit the set of nodes where a task can be scheduled by defining
-constraint expressions. Multiple constraints find nodes that satisfy every
+constraint expressions. Constraint expressions can either use a _match_ (`==`)
+or _exclude_ (`!=`) rule. Multiple constraints find nodes that satisfy every
 expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
