@@ -806,6 +806,107 @@ volumes:
 	assert.ErrorContains(t, err, "external_volume")
 }
 
+func TestValidNotExternalVolumeDriverOpsLabelCombination(t *testing.T) {
+	config, err := loadYAML(`
+version: "3"
+volumes:
+  my_volume:
+    driver: foobar
+    driver_opts:
+      beep: boop
+      click: clack
+    labels:
+    - tick=tock
+    - ping=pong
+`)
+
+	assert.NilError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"my_volume": {
+			Driver: "foobar",
+			DriverOpts: map[string]string{
+				"beep":  "boop",
+				"click": "clack",
+			},
+			Labels: types.Labels{
+				"tick": "tock",
+				"ping": "pong",
+			},
+		},
+	}
+	assert.Assert(t, is.Len(config.Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Volumes))
+}
+
+func TestValidExternalAndDriverCombination34(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.4"
+volumes:
+  external_volume:
+    external: true
+    driver: foobar
+`)
+
+	assert.NilError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"external_volume": {
+			Name:     "external_volume",
+			External: types.External{External: true},
+			Driver:   "foobar",
+		},
+	}
+	assert.Assert(t, is.Len(config.Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Volumes))
+}
+
+func TestValidExternalAndDirverOptsCombination35(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.5"
+volumes:
+  external_volume:
+    external: true
+    driver_opts:
+      beep: boop
+`)
+
+	assert.NilError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"external_volume": {
+			Name:     "external_volume",
+			External: types.External{External: true},
+			DriverOpts: map[string]string{
+				"beep": "boop",
+			},
+		},
+	}
+	assert.Assert(t, is.Len(config.Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Volumes))
+}
+
+func TestValidExternalAndLabelsCombination36(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+volumes:
+  external_volume:
+    external: true
+    labels:
+      - beep=boop
+`)
+
+	assert.NilError(t, err)
+	expected := map[string]types.VolumeConfig{
+		"external_volume": {
+			Name:     "external_volume",
+			External: types.External{External: true},
+			Labels: types.Labels{
+				"beep": "boop",
+			},
+		},
+	}
+	assert.Assert(t, is.Len(config.Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Volumes))
+}
+
 func TestLoadVolumeInvalidExternalNameAndNameCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3.4"

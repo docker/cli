@@ -567,13 +567,17 @@ func LoadVolumes(source map[string]interface{}, version string) (map[string]type
 		if !volume.External.External {
 			continue
 		}
+		if versions.LessThan(version, "3.4") {
+			switch {
+			case volume.Driver != "":
+				return nil, externalVolumeError(name, "driver")
+			case len(volume.DriverOpts) > 0:
+				return nil, externalVolumeError(name, "driver_opts")
+			case len(volume.Labels) > 0:
+				return nil, externalVolumeError(name, "labels")
+			}
+		}
 		switch {
-		case volume.Driver != "":
-			return nil, externalVolumeError(name, "driver")
-		case len(volume.DriverOpts) > 0:
-			return nil, externalVolumeError(name, "driver_opts")
-		case len(volume.Labels) > 0:
-			return nil, externalVolumeError(name, "labels")
 		case volume.External.Name != "":
 			if volume.Name != "" {
 				return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
