@@ -27,6 +27,10 @@ Options:
       --blkio-weight-device value     Block IO weight (relative device weight) (default [])
       --cap-add value                 Add Linux capabilities (default [])
       --cap-drop value                Drop Linux capabilities (default [])
+      --cgroupns string               Cgroup namespace to use
+                                      'host':    Run the container in the Docker host's cgroup namespace
+                                      'private': Run the container in its own private cgroup namespace
+                                      '':        Use the default Docker daemon cgroup namespace specified by the `--default-cgroupns-mode` option
       --cgroup-parent string          Optional parent cgroup for the container
       --cidfile string                Write the container ID to the file
       --cpu-count int                 The number of CPUs available for execution by the container.

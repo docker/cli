@@ -65,6 +65,7 @@ var sampleInfoNoSwarm = types.Info{
 	NEventsListener:    0,
 	KernelVersion:      "4.4.0-87-generic",
 	OperatingSystem:    "Ubuntu 16.04.3 LTS",
+	OSVersion:          "",
 	OSType:             "linux",
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",

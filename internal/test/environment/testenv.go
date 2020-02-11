@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -87,4 +88,23 @@ func SkipIfNotExperimentalDaemon(t *testing.T) {
 	result.Assert(t, icmd.Expected{Err: icmd.None})
 	experimentalBuild := strings.TrimSpace(result.Stdout()) == "true"
 	skip.If(t, !experimentalBuild, "running against a non-experimental daemon")
+}
+
+// SkipIfDaemonNotLinux skips the test unless the running docker daemon is on Linux
+func SkipIfDaemonNotLinux(t *testing.T) {
+	t.Helper()
+	result := icmd.RunCmd(icmd.Command("docker", "info", "--format", "{{.OSType}}"))
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	isLinux := strings.TrimSpace(result.Stdout()) == "linux"
+	skip.If(t, !isLinux, "running against a Linux daemon")
+}
+
+// SkipIfCgroupNamespacesNotSupported skips the test if the running docker daemon doesn't support cgroup namespaces
+func SkipIfCgroupNamespacesNotSupported(t *testing.T) {
+	t.Helper()
+	result := icmd.RunCmd(icmd.Command("docker", "info", "--format", "{{.SecurityOptions}}"))
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	cgroupNsFound := strings.Contains(result.Stdout(), "name=cgroupns")
+
+	skip.If(t, !cgroupNsFound, fmt.Sprintf("running against a daemon that doesn't support cgroup namespaces (security options: %s)", result.Stdout()))
 }

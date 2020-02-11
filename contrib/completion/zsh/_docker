@@ -605,6 +605,7 @@ __docker_container_subcommand() {
         "($help)*--blkio-weight-device=[Block IO (relative device weight)]:device:Block IO weight: "
         "($help)*--cap-add=[Add Linux capabilities]:capability: "
         "($help)*--cap-drop=[Drop Linux capabilities]:capability: "
+        "($help)--cgroupns=[Cgroup namespace mode to use]:cgroup namespace mode: "
         "($help)--cgroup-parent=[Parent cgroup for the container]:cgroup: "
         "($help)--cidfile=[Write the container ID to the file]:CID file:_files"
         "($help)--cpus=[Number of CPUs (default 0.000)]:cpus: "
