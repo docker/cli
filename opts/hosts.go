@@ -2,6 +2,7 @@ package opts
 
 import (
 	"fmt"
+	_ "github.com/docker/docker/daemon/network"
 	"net"
 	"net/url"
 	"strconv"
