@@ -19,10 +19,6 @@ type searchOptions struct {
 	noTrunc bool
 	limit   int
 	filter  opts.FilterOpt
-
-	// Deprecated
-	stars     uint
-	automated bool
 }
 
 // NewSearchCommand creates a new `docker search` command
@@ -45,12 +41,6 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 	flags.IntVar(&options.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
 	flags.StringVar(&options.format, "format", "", "Pretty-print search using a Go template")
-
-	flags.BoolVar(&options.automated, "automated", false, "Only show automated builds")
-	flags.UintVarP(&options.stars, "stars", "s", 0, "Only displays with at least x stars")
-
-	flags.MarkDeprecated("automated", "use --filter=is-automated=true instead")
-	flags.MarkDeprecated("stars", "use --filter=stars=3 instead")
 
 	return cmd
 }
@@ -93,5 +83,5 @@ func runSearch(dockerCli command.Cli, options searchOptions) error {
 		Format: NewSearchFormat(options.format),
 		Trunc:  !options.noTrunc,
 	}
-	return SearchWrite(searchCtx, results, options.automated, int(options.stars))
+	return SearchWrite(searchCtx, results)
 }
