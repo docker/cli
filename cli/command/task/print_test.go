@@ -15,6 +15,41 @@ import (
 	"gotest.tools/golden"
 )
 
+func TestTaskPrintSorted(t *testing.T) {
+	apiClient := &fakeClient{
+		serviceInspectWithRaw: func(ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+			if ref == "service-id-one" {
+				return *Service(ServiceName("service-name-1")), nil, nil
+			}
+			return *Service(ServiceName("service-name-10")), nil, nil
+		},
+	}
+
+	cli := test.NewFakeCli(apiClient)
+	tasks := []swarm.Task{
+		*Task(
+			TaskID("id-foo"),
+			TaskServiceID("service-id-ten"),
+			TaskNodeID("id-node"),
+			WithTaskSpec(TaskImage("myimage:mytag")),
+			TaskDesiredState(swarm.TaskStateReady),
+			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		),
+		*Task(
+			TaskID("id-bar"),
+			TaskServiceID("service-id-one"),
+			TaskNodeID("id-node"),
+			WithTaskSpec(TaskImage("myimage:mytag")),
+			TaskDesiredState(swarm.TaskStateReady),
+			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		),
+	}
+
+	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, false), false, false, formatter.TableFormatKey)
+	assert.NilError(t, err)
+	golden.Assert(t, cli.OutBuffer().String(), "task-print-sorted.golden")
+}
+
 func TestTaskPrintWithQuietOption(t *testing.T) {
 	quiet := true
 	trunc := false
