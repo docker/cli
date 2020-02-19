@@ -44,11 +44,12 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		hostnameAddress = serverAddress
 		regsToTry       = []string{serverAddress}
 	)
+
 	if !isDefaultRegistry {
 		hostnameAddress = registry.ConvertToHostname(serverAddress)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
-		regsToTry = append(regsToTry, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
+		regsToTry = append(regsToTry, "http://"+hostnameAddress, "https://"+hostnameAddress)
 	}
 
 	// check if we're logged in based on the records in the config file
