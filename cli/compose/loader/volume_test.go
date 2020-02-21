@@ -162,6 +162,8 @@ func TestParseVolumeWindowsNamedPipe(t *testing.T) {
 
 func TestIsFilePath(t *testing.T) {
 	assert.Check(t, !isFilePath("a界"))
+	assert.Check(t, !isFilePath("1"))
+	assert.Check(t, !isFilePath("c"))
 }
 
 // Preserve the test cases for VolumeSplitN
