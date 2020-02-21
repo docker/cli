@@ -16,8 +16,8 @@ keywords: "copy, container, files, folders"
 # cp
 
 ```markdown
-Usage:  docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
-        docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
+Usage:  docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH
+        docker cp [OPTIONS] SRC_PATH CONTAINER:DEST_PATH
 
 Copy files/folders between a container and the local filesystem
 
