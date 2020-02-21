@@ -22,7 +22,7 @@ import (
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/stringid"
+	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
 
@@ -387,14 +387,15 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		AccessTime: now,
 		ChangeTime: now,
 	}
-	randomName := ".dockerfile." + stringid.GenerateRandomID()[:20]
+
+	generatedName := ".dockerfile." + digest.FromBytes(file).String()
 
 	buildCtx = archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
-		// Add the dockerfile with a random filename
-		randomName: func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
+		// Add the dockerfile with a deterministic, unique filename
+		generatedName: func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
 			return hdrTmpl, file, nil
 		},
-		// Update .dockerignore to include the random filename
+		// Update .dockerignore to include the generated filename
 		".dockerignore": func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
 			if h == nil {
 				h = hdrTmpl
@@ -408,11 +409,11 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 			} else {
 				b.WriteString(".dockerignore")
 			}
-			b.WriteString("\n" + randomName + "\n")
+			b.WriteString("\n" + generatedName + "\n")
 			return h, b.Bytes(), nil
 		},
 	})
-	return buildCtx, randomName, nil
+	return buildCtx, generatedName, nil
 }
 
 // Compress the build context for sending to the API
