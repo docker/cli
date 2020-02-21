@@ -111,6 +111,9 @@ func isFilePath(source string) bool {
 	case '.', '/', '~':
 		return true
 	}
+	if len([]rune(source)) == 1 {
+		return false
+	}
 
 	// windows named pipes
 	if strings.HasPrefix(source, `\\`) {
