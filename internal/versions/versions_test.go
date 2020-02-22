@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	clitypes "github.com/docker/cli/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestParseTagsSimple(t *testing.T) {

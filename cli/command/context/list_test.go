@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command"
-	"gotest.tools/assert"
-	"gotest.tools/env"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
+	"gotest.tools/v3/golden"
 )
 
 func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name string, orchestrator string) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"gotest.tools/golden"
+	"gotest.tools/v3/golden"
 )
 
 func TestWarnings(t *testing.T) {

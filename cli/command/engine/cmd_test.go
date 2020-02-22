@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestNewEngineCommand(t *testing.T) {

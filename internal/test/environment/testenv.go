@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"gotest.tools/icmd"
-	"gotest.tools/poll"
-	"gotest.tools/skip"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/poll"
+	"gotest.tools/v3/skip"
 )
 
 // Setup a new environment

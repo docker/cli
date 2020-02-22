@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestValidateIPAddress(t *testing.T) {

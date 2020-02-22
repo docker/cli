@@ -11,9 +11,9 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/go-connections/tlsconfig"
-	"gotest.tools/assert"
-	"gotest.tools/env"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
+	"gotest.tools/v3/golden"
 )
 
 type endpoint struct {

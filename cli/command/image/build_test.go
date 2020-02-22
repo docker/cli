@@ -19,9 +19,9 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/skip"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {

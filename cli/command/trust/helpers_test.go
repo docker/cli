@@ -8,7 +8,7 @@ import (
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGetOrGenerateNotaryKeyAndInitRepo(t *testing.T) {
