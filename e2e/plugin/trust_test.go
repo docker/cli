@@ -12,10 +12,10 @@ import (
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 const registryPrefix = "registry:5000"

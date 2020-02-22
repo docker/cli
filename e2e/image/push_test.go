@@ -10,11 +10,11 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/golden"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/golden"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 const (

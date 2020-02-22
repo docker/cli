@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/store"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"gotest.tools/icmd"
+	"gotest.tools/v3/icmd"
 )
 
 // TestRunGoodArgument ensures correct behaviour when running a valid plugin with an `--argument`.

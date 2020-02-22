@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/environment"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 func TestTLSVerify(t *testing.T) {

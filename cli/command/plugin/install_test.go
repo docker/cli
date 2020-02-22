@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestInstallErrors(t *testing.T) {

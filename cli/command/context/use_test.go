@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/store"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestUse(t *testing.T) {

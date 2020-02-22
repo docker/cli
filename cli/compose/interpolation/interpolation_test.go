@@ -5,9 +5,9 @@ import (
 
 	"strconv"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/env"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/env"
 )
 
 var defaults = map[string]string{

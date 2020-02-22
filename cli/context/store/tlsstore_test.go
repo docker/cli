@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestTlsCreateUpdateGetRemove(t *testing.T) {

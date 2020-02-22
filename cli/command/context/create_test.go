@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	"gotest.tools/env"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
 )
 
 func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func()) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestFromCompose(t *testing.T) {

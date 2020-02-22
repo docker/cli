@@ -9,9 +9,9 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/docker/cli/e2e/internal/fixtures"
-	"gotest.tools/assert"
-	"gotest.tools/icmd"
-	"gotest.tools/poll"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/poll"
 )
 
 // TestSigProxyWithTTY tests that killing the docker CLI forwards the signal to
