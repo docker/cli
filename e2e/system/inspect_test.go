@@ -3,7 +3,7 @@ package system
 import (
 	"testing"
 
-	"gotest.tools/icmd"
+	"gotest.tools/v3/icmd"
 )
 
 // TestInspectInvalidReference migrated from moby/integration-cli

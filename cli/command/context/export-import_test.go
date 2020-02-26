@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/streams"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestExportImportWithFile(t *testing.T) {

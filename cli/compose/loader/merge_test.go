@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/imdario/mergo"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestLoadTwoDifferentVersion(t *testing.T) {
