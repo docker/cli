@@ -1,7 +1,7 @@
-ARG GO_VERSION=1.12.17
+ARG GO_VERSION=1.13.8
 
 # Use Debian based image as docker-compose requires glibc.
-FROM golang:${GO_VERSION}
+FROM golang:${GO_VERSION}-buster
 
 RUN apt-get update && apt-get install -y \
     build-essential \
