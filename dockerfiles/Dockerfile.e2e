@@ -11,15 +11,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ARG COMPOSE_VERSION=1.25.1
-RUN curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
+RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
 ARG NOTARY_VERSION=v0.6.1
-RUN curl -Ls https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary \
+RUN curl -fsSL https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary \
     && chmod +x /usr/local/bin/notary
 
 ARG GOTESTSUM_VERSION=0.4.0
-RUN curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz \
+RUN curl -fsSL https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz \
     && tar -xf gotestsum.tar.gz gotestsum \
     && mv gotestsum /usr/local/bin/gotestsum \
     && rm gotestsum.tar.gz 
