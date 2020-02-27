@@ -1,6 +1,6 @@
 [![build status](https://circleci.com/gh/docker/cli.svg?style=shield)](https://circleci.com/gh/docker/cli/tree/master)
 [![Build Status](https://ci.docker.com/public/job/cli/job/master/badge/icon)](https://ci.docker.com/public/job/cli/job/master)
-
+    
 docker/cli
 ==========
 
@@ -12,7 +12,8 @@ Development
 
 `docker/cli` is developed using Docker.
 
-Build a linux binary:
+Build a linux binary:H6lm+5488LRPnu4iqCXPm7bwoSsTBvVwLjQ9ZkL+qjvEHFjwVlYOxocWnSTOgwSCFyHxv66cmC5qGL4E1Dqbzk0=
+
 
 ```
 $ make -f docker.Makefile binary
