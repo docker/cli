@@ -40,7 +40,7 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only show numeric IDs")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only show image IDs")
 	flags.BoolVarP(&options.all, "all", "a", false, "Show all images (default hides intermediate images)")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.BoolVar(&options.showDigests, "digests", false, "Show digests")

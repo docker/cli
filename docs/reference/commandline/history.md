@@ -25,7 +25,7 @@ Options:
       --help            Print usage
   -H, --human           Print sizes and dates in human readable format (default true)
       --no-trunc        Don't truncate output
-  -q, --quiet           Only show numeric IDs
+  -q, --quiet           Only show image IDs
 ```
 
 
