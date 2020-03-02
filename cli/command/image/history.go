@@ -35,7 +35,7 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.BoolVarP(&opts.human, "human", "H", true, "Print sizes and dates in human readable format")
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only show numeric IDs")
+	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only show image IDs")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
 

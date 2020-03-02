@@ -804,7 +804,7 @@ __docker_container_subcommand() {
                 "($help -l --latest)"{-l,--latest}"[Show only the latest created container]" \
                 "($help -n --last)"{-n=,--last=}"[Show n last created containers (includes all states)]:n:(1 5 10 25 50)" \
                 "($help)--no-trunc[Do not truncate output]" \
-                "($help -q --quiet)"{-q,--quiet}"[Only show numeric IDs]" \
+                "($help -q --quiet)"{-q,--quiet}"[Only show container IDs]" \
                 "($help -s --size)"{-s,--size}"[Display total file sizes]" \
                 "($help)--since=[Show only containers created since...]:containers:__docker_complete_containers" && ret=0
             ;;
@@ -1027,7 +1027,7 @@ __docker_image_subcommand() {
                 $opts_help \
                 "($help -H --human)"{-H,--human}"[Print sizes and dates in human readable format]" \
                 "($help)--no-trunc[Do not truncate output]" \
-                "($help -q --quiet)"{-q,--quiet}"[Only show numeric IDs]" \
+                "($help -q --quiet)"{-q,--quiet}"[Only show image IDs]" \
                 "($help -)*: :__docker_complete_images" && ret=0
             ;;
         (import)
@@ -1059,7 +1059,7 @@ __docker_image_subcommand() {
                 "($help)*"{-f=,--filter=}"[Filter values]:filter:__docker_complete_images_filters" \
                 "($help)--format=[Pretty-print images using a Go template]:template: " \
                 "($help)--no-trunc[Do not truncate output]" \
-                "($help -q --quiet)"{-q,--quiet}"[Only show numeric IDs]" \
+                "($help -q --quiet)"{-q,--quiet}"[Only show image IDs]" \
                 "($help -): :__docker_complete_repositories" && ret=0
             ;;
         (prune)
@@ -1290,7 +1290,7 @@ __docker_network_subcommand() {
                 "($help)--no-trunc[Do not truncate the output]" \
                 "($help)*"{-f=,--filter=}"[Provide filter values]:filter:__docker_network_complete_ls_filters" \
                 "($help)--format=[Pretty-print networks using a Go template]:template: " \
-                "($help -q --quiet)"{-q,--quiet}"[Only display numeric IDs]" && ret=0
+                "($help -q --quiet)"{-q,--quiet}"[Only display network IDs]" && ret=0
             ;;
         (prune)
             _arguments $(__docker_arguments) \

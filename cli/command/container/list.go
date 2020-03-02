@@ -40,7 +40,7 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display numeric IDs")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display container IDs")
 	flags.BoolVarP(&options.size, "size", "s", false, "Display total file sizes")
 	flags.BoolVarP(&options.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")

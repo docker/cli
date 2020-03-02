@@ -32,7 +32,7 @@ Options:
       --format string   Pretty-print images using a Go template
       --help            Print usage
       --no-trunc        Don't truncate output
-  -q, --quiet           Only show numeric IDs
+  -q, --quiet           Only show image IDs
 ```
 
 ## Description
