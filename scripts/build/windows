@@ -13,7 +13,7 @@ export GOOS=windows
 export GOARCH=amd64
 
 # Override TARGET
-TARGET="build/docker-$GOOS-$GOARCH"
+TARGET="build/docker-$GOOS-$GOARCH.exe"
 
 echo "Generating windows resources"
 go generate ./cli/winresources
