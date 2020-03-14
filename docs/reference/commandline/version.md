@@ -4,15 +4,6 @@ description: "The version command description and usage"
 keywords: "version, architecture, api"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # version
 
 ```markdown
