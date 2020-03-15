@@ -1,0 +1,5 @@
+manifests:
+    -
+        image: test/hello-world-ppc64le:latest
+        platform:
+            architecture: nope

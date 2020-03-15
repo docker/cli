@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
@@ -12,6 +13,18 @@ import (
 type osArch struct {
 	os   string
 	arch string
+}
+
+type invalidOSArchErr struct {
+	osArch
+}
+
+func (e *invalidOSArchErr) Error() string {
+	return fmt.Sprintf("manifest entry for image has unsupported os/arch combination: %s/%s", e.os, e.arch)
+}
+
+func newInvalidOSArchErr(os1 string, arch1 string) *invalidOSArchErr {
+	return &invalidOSArchErr{osArch{os: os1, arch: arch1}}
 }
 
 // Remove any unsupported os/arch combo
@@ -50,10 +63,13 @@ var validOSArches = map[osArch]bool{
 	{os: "windows", arch: "amd64"}:   true,
 }
 
-func isValidOSArch(os string, arch string) bool {
+func validateOSArch(os string, arch string) error {
 	// check for existence of this combo
 	_, ok := validOSArches[osArch{os, arch}]
-	return ok
+	if !ok {
+		return newInvalidOSArchErr(os, arch)
+	}
+	return nil
 }
 
 func normalizeReference(ref string) (reference.Named, error) {

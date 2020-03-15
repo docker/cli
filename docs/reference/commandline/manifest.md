@@ -97,14 +97,19 @@ Usage:  docker manifest push [OPTIONS] MANIFEST_LIST
 Push a manifest list to a repository
 
 Options:
-      --help       Print usage
-      --insecure   Allow push to an insecure registry
-  -p, --purge      Remove the local manifest list after push
+      --help          Print usage
+      --insecure      Allow push to an insecure registry
+      --file string   File containing the yaml representation of manifest list
+  -p, --purge         Remove the local manifest list after push
 ```
+
+### Working with manifest lists
+
+Manifest lists can only be used in conjunction with a registry. The idea of manifest lists is that they push the complexity of dealing with multiple platforms' and architectures' images down to the image owners. Application developers need not know the names of all the different images living on a remote registry. Since the manifest list is to simplify pulling from a registry, no information about a manifest list is stored for later use by the docker engine. This means that in order to create a manifest list, its constituent images must first have been pushed to the registry from which it will laber be accessed. This then allows the registry, during the manifest push operation, to link directly to the image layers contained within its filesystem.
 
 ### Working with insecure registries
 
-The manifest command interacts solely with a Docker registry. Because of this, it has no way to query the engine for the list of allowed insecure registries. To allow the CLI to interact with an insecure registry, some `docker manifest` commands have an `--insecure` flag. For each transaction, such as a `create`, which queries a registry, the `--insecure` flag must be specified. This flag tells the CLI that this registry call may ignore security concerns like missing or self-signed certificates. Likewise, on a `manifest push` to an insecure registry, the `--insecure` flag must be specified. If this is not used with an insecure registry, the manifest command fails to find a registry that meets the default requirements.
+Because the manifest command interacts soley with a registry, it has no way to query the engine for the list of allowed insecure registries. To allow the CLI to interact with an insecure registry, some `docker manifest` commands have an `--insecure` flag. For each transaction, such as a `create`, which queries a registry, the `--insecure` flag must be specified. This flag tells the CLI that this registry call may ignore security concerns like missing or self-signed certificates. Likewise, on a `manifest push` to an insecure registry, the `--insecure` flag must be specified. If this is not used with an insecure registry, the manifest command fails to find a registry that meets the default requirements.
 
 ## Examples
 
@@ -168,9 +173,9 @@ $ docker manifest inspect --verbose hello-world
 }
 ```
 
-### Create and push a manifest list
+### Create, annotate and push a manifest list
 
-To create a manifest list, you first `create` the manifest list locally by specifying the constituent images you would
+To create a manifest list, you may first `create` the manifest list locally by specifying the constituent images you would
 like to have included in your manifest list. Keep in mind that this is pushed to a registry, so if you want to push
 to a registry other than the docker registry, you need to create your manifest list with the registry name or IP and port.
 This is similar to tagging an image and pushing it to a foreign registry.
@@ -204,6 +209,42 @@ Pushed manifest 45.55.81.106:5000/coolapp@sha256:f91b1145cd4ac800b28122313ae9e88
 sha256:050b213d49d7673ba35014f21454c573dcbec75254a08f4a7c34f66a47c06aba
 
 ```
+
+### Push a manifest list using yaml
+
+Instead of using three cli commands (or more, depending on your annotations), you can push a manifest list using a single yaml file.
+
+
+```
+docker manifest push --file my-hello-world.yaml myregistry:port/my-hello-world:latest
+```
+
+Sample file referencing four images:
+
+```
+manifests:
+    -
+        image: hello-world-ppc64le:latest
+    -
+        image: hello-world-amd64:latest
+    -
+        image: hello-world-amd64-windows:latest
+        platform:
+            os: windows
+            osversion: "10.0.14393.2189"
+    -
+        image: hello-world-390x:latest
+        platform:
+            architecture: s390x
+            os: linux
+    -
+        image: hello-world-armhf:latest
+        platform:
+            architecture: arm
+            os: linux
+            variant: v7
+```
+
 
 ### Inspect a manifest list
 
