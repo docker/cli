@@ -43,7 +43,6 @@ Repeat passphrase for new alice key with ID 17acf3c:
 Successfully generated and loaded private key. Corresponding public key available: alice.pub
 $ ls
 alice.pub
-
 ```
 
 The private signing key is encrypted by the passphrase and loaded into the docker trust keystore.
@@ -63,5 +62,4 @@ Repeat passphrase for new alice key with ID 17acf3c:
 Successfully generated and loaded private key. Corresponding public key available: alice.pub
 $ ls /foo
 alice.pub
-
 ```

@@ -42,8 +42,8 @@ SIGNED TAG          DIGEST                                                      
 v1                  c24134c079c35e698060beabe110bb83ab285d0d978de7d92fed2c8c83570a41   (Repo Admin)
 
 Administrative keys for example/trust-demo:
-Repository Key:	36d4c3601102fa7c5712a343c03b94469e5835fb27c191b529c06fd19c14a942
-Root Key:	246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
+Repository Key: 36d4c3601102fa7c5712a343c03b94469e5835fb27c191b529c06fd19c14a942
+Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 ```
 
 Sign a new tag with `docker trust sign`:
@@ -65,7 +65,7 @@ Enter passphrase for repository key with ID 36d4c36:
 Successfully signed docker.io/example/trust-demo:v2
 ```
 
-`docker trust view` lists the new signature:
+Use `docker trust view` to list the new signature:
 
 ```bash
 $ docker trust view example/trust-demo
@@ -74,8 +74,8 @@ v1                  c24134c079c35e698060beabe110bb83ab285d0d978de7d92fed2c8c8357
 v2                  8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56   (Repo Admin)
 
 Administrative keys for example/trust-demo:
-Repository Key:	36d4c3601102fa7c5712a343c03b94469e5835fb27c191b529c06fd19c14a942
-Root Key:	246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
+Repository Key: 36d4c3601102fa7c5712a343c03b94469e5835fb27c191b529c06fd19c14a942
+Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 ```
 
 ### Sign a tag as a signer
@@ -95,8 +95,8 @@ alice               05e87edcaecb
 bob                 5600f5ab76a2
 
 Administrative keys for example/trust-demo:
-Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
-Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
+Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
+Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
 Sign a new tag with `docker trust sign`:
@@ -130,8 +130,8 @@ alice               05e87edcaecb
 bob                 5600f5ab76a2
 
 Administrative keys for example/trust-demo:
-Repository Key:	ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
-Root Key:	3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
+Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
+Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
 ## Initialize a new repo and sign a tag
@@ -178,7 +178,6 @@ SIGNER              KEYS
 alice               6d52b29d940f
 
 Administrative keys for example/trust-demo:
-Repository Key:	731396b65eac3ef5ec01406801bdfb70feb40c17808d2222427c18046eb63beb
-Root Key:	70d174714bd1461f6c58cb3ef39087c8fdc7633bb11a98af844fd9a04e208103
+Repository Key: 731396b65eac3ef5ec01406801bdfb70feb40c17808d2222427c18046eb63beb
+Root Key:       70d174714bd1461f6c58cb3ef39087c8fdc7633bb11a98af844fd9a04e208103
 ```
-

@@ -123,21 +123,21 @@ JSON output, by using the `--pretty` option:
 ```bash
 $ docker service inspect --pretty frontend
 
-ID:		c8wgl7q4ndfd52ni6qftkvnnp
-Name:		frontend
+ID:     c8wgl7q4ndfd52ni6qftkvnnp
+Name:   frontend
 Labels:
  - org.example.projectname=demo-app
-Service Mode:	REPLICATED
- Replicas:		5
+Service Mode:   REPLICATED
+ Replicas:      5
 Placement:
 UpdateConfig:
- Parallelism:	0
- On failure:	pause
- Max failure ratio:	0
+ Parallelism:   0
+ On failure:    pause
+ Max failure ratio: 0
 ContainerSpec:
- Image:		nginx:alpine
+ Image:     nginx:alpine
 Resources:
-Networks:	net1
+Networks:   net1
 Endpoint Mode:  vip
 Ports:
  PublishedPort = 4443
