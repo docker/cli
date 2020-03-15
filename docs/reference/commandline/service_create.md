@@ -724,7 +724,7 @@ After adding the `region=east` label to a node in the cluster, the service
 reconciles, and the desired number of replicas are deployed:
 
 ```bash
-$ docker node update --label-add region=east yswe2dm4c5fdgtsrli1e8ya5l 
+$ docker node update --label-add region=east yswe2dm4c5fdgtsrli1e8ya5l
 yswe2dm4c5fdgtsrli1e8ya5l
 
 $ docker service ls
@@ -925,7 +925,7 @@ The swarm extends my-network to each node running the service.
 Containers on the same network can access each other using
 [service discovery](https://docs.docker.com/engine/swarm/networking/#use-swarm-mode-service-discovery).
 
-Long form syntax of `--network` allows to specify list of aliases and driver options:  
+Long form syntax of `--network` allows to specify list of aliases and driver options:
 `--network name=my-network,alias=web1,driver-opt=field1=value1`
 
 ### Publish service ports externally to the swarm (-p, --publish)

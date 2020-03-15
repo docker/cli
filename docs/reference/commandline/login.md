@@ -32,6 +32,8 @@ Options:
 
 Login to a registry.
 
+## Examples
+
 ### Login to a self-hosted registry
 
 If you want to login to a self-hosted registry you can specify this by
@@ -94,7 +96,7 @@ For example, to use `docker-credential-osxkeychain`:
 
 ```json
 {
-	"credsStore": "osxkeychain"
+  "credsStore": "osxkeychain"
 }
 ```
 
@@ -124,9 +126,9 @@ or an identity token.
 
 ```json
 {
-	"ServerURL": "https://index.docker.io/v1",
-	"Username": "david",
-	"Secret": "passw0rd1"
+  "ServerURL": "https://index.docker.io/v1",
+  "Username": "david",
+  "Secret": "passw0rd1"
 }
 ```
 
@@ -145,8 +147,8 @@ and password from this payload:
 
 ```json
 {
-	"Username": "david",
-	"Secret": "passw0rd1"
+  "Username": "david",
+  "Secret": "passw0rd1"
 }
 ```
 

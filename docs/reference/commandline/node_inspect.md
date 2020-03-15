@@ -42,87 +42,94 @@ details of the format.
 
 ### Inspect a node
 
-```none
+```bash
 $ docker node inspect swarm-manager
+```
 
+```json
 [
-{
+  {
     "ID": "e216jshn25ckzbvmwlnh5jr3g",
     "Version": {
-        "Index": 10
+      "Index": 10
     },
     "CreatedAt": "2017-05-16T22:52:44.9910662Z",
     "UpdatedAt": "2017-05-16T22:52:45.230878043Z",
     "Spec": {
-        "Role": "manager",
-        "Availability": "active"
+      "Role": "manager",
+      "Availability": "active"
     },
     "Description": {
-        "Hostname": "swarm-manager",
-        "Platform": {
-            "Architecture": "x86_64",
-            "OS": "linux"
-        },
-        "Resources": {
-            "NanoCPUs": 1000000000,
-            "MemoryBytes": 1039843328
-        },
-        "Engine": {
-            "EngineVersion": "17.06.0-ce",
-            "Plugins": [
-                {
-                    "Type": "Volume",
-                    "Name": "local"
-                },
-                {
-                    "Type": "Network",
-                    "Name": "overlay"
-                },
-                {
-                    "Type": "Network",
-                    "Name": "null"
-                },
-                {
-                    "Type": "Network",
-                    "Name": "host"
-                },
-                {
-                    "Type": "Network",
-                    "Name": "bridge"
-                },
-                {
-                    "Type": "Network",
-                    "Name": "overlay"
-                }
-            ]
-        },
-        "TLSInfo": {
-            "TrustRoot": "-----BEGIN CERTIFICATE-----\nMIIBazCCARCgAwIBAgIUOzgqU4tA2q5Yv1HnkzhSIwGyIBswCgYIKoZIzj0EAwIw\nEzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMTcwNTAyMDAyNDAwWhcNMzcwNDI3MDAy\nNDAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABMbiAmET+HZyve35ujrnL2kOLBEQhFDZ5MhxAuYs96n796sFlfxTxC1lM/2g\nAh8DI34pm3JmHgZxeBPKUURJHKWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB\nAf8EBTADAQH/MB0GA1UdDgQWBBS3sjTJOcXdkls6WSY2rTx1KIJueTAKBggqhkjO\nPQQDAgNJADBGAiEAoeVWkaXgSUAucQmZ3Yhmx22N/cq1EPBgYHOBZmHt0NkCIQC3\nzONcJ/+WA21OXtb+vcijpUOXtNjyHfcox0N8wsLDqQ==\n-----END CERTIFICATE-----\n",
-            "CertIssuerSubject": "MBMxETAPBgNVBAMTCHN3YXJtLWNh",
-            "CertIssuerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExuICYRP4dnK97fm6OucvaQ4sERCEUNnkyHEC5iz3qfv3qwWV/FPELWUz/aACHwMjfimbcmYeBnF4E8pRREkcpQ=="
-        }
+      "Hostname": "swarm-manager",
+      "Platform": {
+        "Architecture": "x86_64",
+        "OS": "linux"
+      },
+      "Resources": {
+        "NanoCPUs": 1000000000,
+        "MemoryBytes": 1039843328
+      },
+      "Engine": {
+        "EngineVersion": "17.06.0-ce",
+        "Plugins": [
+          {
+            "Type": "Volume",
+            "Name": "local"
+          },
+          {
+            "Type": "Network",
+            "Name": "overlay"
+          },
+          {
+            "Type": "Network",
+            "Name": "null"
+          },
+          {
+            "Type": "Network",
+            "Name": "host"
+          },
+          {
+            "Type": "Network",
+            "Name": "bridge"
+          },
+          {
+            "Type": "Network",
+            "Name": "overlay"
+          }
+        ]
+      },
+      "TLSInfo": {
+        "TrustRoot": "-----BEGIN CERTIFICATE-----\nMIIBazCCARCgAwIBAgIUOzgqU4tA2q5Yv1HnkzhSIwGyIBswCgYIKoZIzj0EAwIw\nEzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMTcwNTAyMDAyNDAwWhcNMzcwNDI3MDAy\nNDAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABMbiAmET+HZyve35ujrnL2kOLBEQhFDZ5MhxAuYs96n796sFlfxTxC1lM/2g\nAh8DI34pm3JmHgZxeBPKUURJHKWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB\nAf8EBTADAQH/MB0GA1UdDgQWBBS3sjTJOcXdkls6WSY2rTx1KIJueTAKBggqhkjO\nPQQDAgNJADBGAiEAoeVWkaXgSUAucQmZ3Yhmx22N/cq1EPBgYHOBZmHt0NkCIQC3\nzONcJ/+WA21OXtb+vcijpUOXtNjyHfcox0N8wsLDqQ==\n-----END CERTIFICATE-----\n",
+        "CertIssuerSubject": "MBMxETAPBgNVBAMTCHN3YXJtLWNh",
+        "CertIssuerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExuICYRP4dnK97fm6OucvaQ4sERCEUNnkyHEC5iz3qfv3qwWV/FPELWUz/aACHwMjfimbcmYeBnF4E8pRREkcpQ=="
+      }
     },
     "Status": {
-        "State": "ready",
-        "Addr": "168.0.32.137"
+      "State": "ready",
+      "Addr": "168.0.32.137"
     },
     "ManagerStatus": {
-        "Leader": true,
-        "Reachability": "reachable",
-        "Addr": "168.0.32.137:2377"
+      "Leader": true,
+      "Reachability": "reachable",
+      "Addr": "168.0.32.137:2377"
     }
-}
+  }
 ]
 ```
 
 ### Specify an output format
 
-```none
+```bash
 $ docker node inspect --format '{{ .ManagerStatus.Leader }}' self
 
 false
+```
 
-$ docker node inspect --pretty self
+Use `--format=pretty` or the `--pretty` shorthand to pretty-print the output:
+
+```bash
+$ docker node inspect --format=pretty self
+
 ID:                     e216jshn25ckzbvmwlnh5jr3g
 Hostname:               swarm-manager
 Joined at:              2017-05-16 22:52:44.9910662 +0000 utc
@@ -157,8 +164,8 @@ PQQDAgNJADBGAiEAoeVWkaXgSUAucQmZ3Yhmx22N/cq1EPBgYHOBZmHt0NkCIQC3
 zONcJ/+WA21OXtb+vcijpUOXtNjyHfcox0N8wsLDqQ==
 -----END CERTIFICATE-----
 
- Issuer Public Key:	MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExuICYRP4dnK97fm6OucvaQ4sERCEUNnkyHEC5iz3qfv3qwWV/FPELWUz/aACHwMjfimbcmYeBnF4E8pRREkcpQ==
- Issuer Subject:	MBMxETAPBgNVBAMTCHN3YXJtLWNh
+ Issuer Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExuICYRP4dnK97fm6OucvaQ4sERCEUNnkyHEC5iz3qfv3qwWV/FPELWUz/aACHwMjfimbcmYeBnF4E8pRREkcpQ==
+ Issuer Subject:    MBMxETAPBgNVBAMTCHN3YXJtLWNh
 ```
 
 ## Related commands

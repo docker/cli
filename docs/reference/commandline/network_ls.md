@@ -192,7 +192,7 @@ The following filter matches all user defined networks:
 ```bash
 $ docker network ls --filter type=custom
 NETWORK ID          NAME                DRIVER       SCOPE
-95e74588f40d        foo                 bridge       local  
+95e74588f40d        foo                 bridge       local
 63d1ff1f77b0        dev                 bridge       local
 ```
 
