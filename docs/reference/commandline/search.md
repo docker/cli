@@ -50,7 +50,7 @@ This example displays images with a name containing 'busybox':
 $ docker search busybox
 
 NAME                             DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
-busybox                          Busybox base image.                             316       [OK]       
+busybox                          Busybox base image.                             316       [OK]
 progrium/busybox                                                                 50                   [OK]
 radial/busyboxplus               Full-chain, Internet enabled, busybox made...   8                    [OK]
 odise/busybox-python                                                             2                    [OK]
@@ -85,7 +85,7 @@ at least 3 stars and the description isn't truncated in the output:
 ```bash
 $ docker search --filter=stars=3 --no-trunc busybox
 NAME                 DESCRIPTION                                                                               STARS     OFFICIAL   AUTOMATED
-busybox              Busybox base image.                                                                       325       [OK]       
+busybox              Busybox base image.                                                                       325       [OK]
 progrium/busybox                                                                                               50                   [OK]
 radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Comes in git and cURL flavors.   8                    [OK]
 ```
@@ -115,7 +115,7 @@ least 3 stars:
 $ docker search --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
-busybox              Busybox base image.                             325       [OK]       
+busybox              Busybox base image.                             325       [OK]
 progrium/busybox                                                     50                   [OK]
 radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8                    [OK]
 ```
@@ -193,10 +193,10 @@ $ docker search --format "table {{.Name}}\t{{.IsAutomated}}\t{{.IsOfficial}}" ng
 
 NAME                                     AUTOMATED           OFFICIAL
 nginx                                                        [OK]
-jwilder/nginx-proxy                      [OK]                
-richarvey/nginx-php-fpm                  [OK]                
-jrcs/letsencrypt-nginx-proxy-companion   [OK]                
-million12/nginx-php                      [OK]                
-webdevops/php-nginx                      [OK]                
+jwilder/nginx-proxy                      [OK]
+richarvey/nginx-php-fpm                  [OK]
+jrcs/letsencrypt-nginx-proxy-companion   [OK]
+million12/nginx-php                      [OK]
+webdevops/php-nginx                      [OK]
 {% endraw %}
 ```

@@ -149,12 +149,12 @@ the port is configured:
 
 ```bash
 docker info
-	...
-	ClusterID: 9vs5ygs0gguyyec4iqf2314c0
-	Managers: 1
-	Nodes: 1
-	Data Path Port: 7777
-	...
+...
+ClusterID: 9vs5ygs0gguyyec4iqf2314c0
+Managers: 1
+Nodes: 1
+Data Path Port: 7777
+...
 ```
 
 ### `--default-addr-pool`

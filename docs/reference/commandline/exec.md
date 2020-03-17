@@ -29,7 +29,7 @@ Options:
       --privileged     Give extended privileges to the command
   -t, --tty            Allocate a pseudo-TTY
   -u, --user           Username or UID (format: <name|uid>[:<group|gid>])
-  -w, --workdir        Working directory inside the container  
+  -w, --workdir        Working directory inside the container
 ```
 
 ## Description
@@ -83,8 +83,8 @@ Next, set an environment variable in the current bash session.
 $ docker exec -it -e VAR=1 ubuntu_bash bash
 ```
 
-This will create a new Bash session in the container `ubuntu_bash` with environment 
-variable `$VAR` set to "1". Note that this environment variable will only be valid 
+This will create a new Bash session in the container `ubuntu_bash` with environment
+variable `$VAR` set to "1". Note that this environment variable will only be valid
 on the current Bash session.
 
 By default `docker exec` command runs in the same working directory set when container was created.

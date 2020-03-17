@@ -31,11 +31,11 @@ Options:
 ## Description
 
 Use `docker events` to get real-time events from the server. These events differ
-per Docker object type. Different event types have different scopes. Local 
-scoped events are only seen on the node they take place on, and swarm scoped 
+per Docker object type. Different event types have different scopes. Local
+scoped events are only seen on the node they take place on, and swarm scoped
 events are seen on all managers.
 
-Only the last 1000 log events are returned. You can use filters to further limit 
+Only the last 1000 log events are returned. You can use filters to further limit
 the number of events returned.
 
 ### Object types
@@ -165,7 +165,7 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
-Only the last 1000 log events are returned. You can use filters to further limit 
+Only the last 1000 log events are returned. You can use filters to further limit
 the number of events returned.
 
 #### Filtering
@@ -207,7 +207,7 @@ format. Go's [text/template](http://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
+Lines. For information about JSON Lines, please refer to http://jsonlines.org/.
 
 ## Examples
 
@@ -410,12 +410,12 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-```none
-    $ docker events --format '{{json .}}'
+```bash
+$ docker events --format '{{json .}}'
 
-    {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
-    {"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
-    {"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
+{"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
+{"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 ```
