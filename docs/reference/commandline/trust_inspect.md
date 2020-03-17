@@ -378,8 +378,8 @@ SIGNED TAG          DIGEST                                                      
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
 
 Administrative keys for alpine:latest:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 The `SIGNED TAG` is the signed image tag with a unique content-addressable
@@ -406,8 +406,8 @@ bob                 034370bcbd77, 82a66673242c
 carol               b6f9f8e1aab0
 
 Administrative keys for my-image:
-Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
-Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
+Repository Key: 27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
+Root Key:       40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```
 
 However, if other tags are signed in the same image repository,
@@ -420,8 +420,8 @@ No signatures for alpine:unsigned
 
 
 Administrative keys for alpine:unsigned:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 ### Get details about signatures for all image tags in a repository
@@ -441,8 +441,8 @@ edge                79d50d15bd7ea48ea00cf3dd343b0e740c1afaa8e899bee475236ef338e1
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
 
 Administrative keys for alpine:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 Here's an example with signers that are set up by `docker trust` commands:
@@ -465,6 +465,6 @@ bob                 034370bcbd77, 82a66673242c
 carol               b6f9f8e1aab0
 
 Administrative keys for my-image:
-Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
-Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
+Repository Key: 27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
+Root Key:       40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```

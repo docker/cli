@@ -87,7 +87,7 @@ e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours
 ```
   * The "size" information shows the amount of data (on disk) that is used for the _writable_ layer of each container
   * The "virtual size" is the total amount of disk-space used for the read-only _image_ data used by the container and the writable layer.
-  
+
 For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
 
 

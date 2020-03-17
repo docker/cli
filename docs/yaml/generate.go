@@ -25,6 +25,7 @@ func generateCliYaml(opts *options) error {
 	commands.AddCommands(cmd, dockerCli)
 	disableFlagsInUseLine(cmd)
 	source := filepath.Join(opts.source, descriptionSourcePath)
+	fmt.Println("Markdown source:", source)
 	if err := loadLongDescription(cmd, source); err != nil {
 		return err
 	}
@@ -50,23 +51,29 @@ func visitAll(root *cobra.Command, fn func(*cobra.Command)) {
 	fn(root)
 }
 
-func loadLongDescription(cmd *cobra.Command, path ...string) error {
-	for _, cmd := range cmd.Commands() {
-		if cmd.Name() == "" {
-			continue
-		}
-		fullpath := filepath.Join(path[0], strings.Join(append(path[1:], cmd.Name()), "_")+".md")
-
+func loadLongDescription(parentCmd *cobra.Command, path string) error {
+	for _, cmd := range parentCmd.Commands() {
 		if cmd.HasSubCommands() {
-			loadLongDescription(cmd, path[0], cmd.Name())
+			if err := loadLongDescription(cmd, path); err != nil {
+				return err
+			}
 		}
-
-		if _, err := os.Stat(fullpath); err != nil {
-			log.Printf("WARN: %s does not exist, skipping\n", fullpath)
+		name := cmd.CommandPath()
+		log.Println("INFO: Generating docs for", name)
+		if i := strings.Index(name, " "); i >= 0 {
+			// remove root command / binary name
+			name = name[i+1:]
+		}
+		if name == "" {
 			continue
 		}
-
-		content, err := ioutil.ReadFile(fullpath)
+		mdFile := strings.ReplaceAll(name, " ", "_") + ".md"
+		fullPath := filepath.Join(path, mdFile)
+		content, err := ioutil.ReadFile(fullPath)
+		if os.IsNotExist(err) {
+			log.Printf("WARN: %s does not exist, skipping\n", mdFile)
+			continue
+		}
 		if err != nil {
 			return err
 		}
@@ -95,11 +102,11 @@ func parseArgs() (*options, error) {
 func main() {
 	opts, err := parseArgs()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		log.Println(err)
 	}
-	fmt.Printf("Project root: %s\n", opts.source)
-	fmt.Printf("Generating yaml files into %s\n", opts.target)
+	fmt.Println("Project root:   ", opts.source)
+	fmt.Println("YAML output dir:", opts.target)
 	if err := generateCliYaml(opts); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to generate yaml files: %s\n", err.Error())
+		log.Println("Failed to generate yaml files:", err)
 	}
 }

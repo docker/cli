@@ -27,7 +27,9 @@ Options:
 
 ## Description
 
-`docker trust key load` adds private keys to the local docker trust keystore. To add a signer to a repository use `docker trust signer add`.
+`docker trust key load` adds private keys to the local docker trust keystore.
+
+To add a signer to a repository use `docker trust signer add`.
 
 ## Examples
 
@@ -39,19 +41,18 @@ For a private key `alice.pem` with permissions `-rw-------`
 $ docker trust key load alice.pem
 
 Loading key from "alice.pem"...
-Enter passphrase for new signer key with ID f8097df: 
-Repeat passphrase for new signer key with ID f8097df: 
+Enter passphrase for new signer key with ID f8097df:
+Repeat passphrase for new signer key with ID f8097df:
 Successfully imported key from alice.pem
-
 ```
-to specify a name use the `--name` flag
+
+To specify a name use the `--name` flag:
 
 ```bash
 $ docker trust key load --name alice-key alice.pem
 
 Loading key from "alice.pem"...
-Enter passphrase for new alice-key key with ID f8097df: 
-Repeat passphrase for new alice-key key with ID f8097df: 
+Enter passphrase for new alice-key key with ID f8097df:
+Repeat passphrase for new alice-key key with ID f8097df:
 Successfully imported key from alice.pem
-
 ```
