@@ -487,7 +487,7 @@ When building a Dockerfile with multiple build stages, `--target` can be used to
 specify an intermediate build stage by name as a final stage for the resulting
 image. Commands after the target stage will be skipped.
 
-```Dockerfile
+```dockerfile
 FROM debian AS build-env
 ...
 
@@ -555,7 +555,7 @@ desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
 The example `Dockerfile` below uses a separate stage to collect the
 build-artifacts for exporting:
 
-```Dockerfile
+```dockerfile
 FROM golang AS build-stage
 RUN go get -u github.com/LK4D4/vndr
 
@@ -718,7 +718,7 @@ true
 
 The following is an example of docker build with `--squash` argument
 
-```Dockerfile
+```dockerfile
 FROM busybox
 RUN echo hello > /hello
 RUN echo world >> /hello
