@@ -167,7 +167,7 @@ Status: Downloaded newer image for ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25c
 
 Digest can also be used in the `FROM` of a Dockerfile, for example:
 
-```Dockerfile
+```dockerfile
 FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 MAINTAINER some maintainer <maintainer@example.com>
 ```
