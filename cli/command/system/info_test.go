@@ -124,6 +124,12 @@ var sampleInfoNoSwarm = types.Info{
 		Expected: "949e6fa",
 	},
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
+	DefaultAddressPools: []types.NetworkAddressPool{
+		{
+			Base: "10.123.0.0/16",
+			Size: 24,
+		},
+	},
 }
 
 var sampleSwarmInfo = swarm.Info{
