@@ -4,15 +4,6 @@ description: "The swarm unlock-keycommand description and usage"
 keywords: "swarm, unlock-key"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # swarm unlock-key
 
 ```markdown
