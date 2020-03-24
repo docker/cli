@@ -93,6 +93,14 @@ The sections below provide an inexhaustive overview of available plugins.
 | [HBM plugin](https://github.com/kassisol/hbm)                        | An authorization plugin that prevents from executing commands with certains parameters.                                                                                                                                                                                                                                              |
 | [Twistlock AuthZ Broker](https://github.com/twistlock/authz)         | A basic extendable authorization plugin that runs directly on the host or inside a container. This plugin allows you to define user policies that it evaluates during authorization. Basic authorization is provided if Docker daemon is started with the --tlsverify flag (username is extracted from the certificate common name). |
 
+### Logging plugins
+
+| Plugin                                                               | Description                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [H1 Docker Journal Plugin](https://github.com/hyperonecom/h1-docker-journal-plugin)             | A logging plugin with extends and expands Docker's logging capabilities so that customers can push their Docker and container logs to HyperOne Journal service. |
+| [Splunk Connect for Docker](https://github.com/splunk/docker-logging-plugin)             | A logging plugin that allows docker containers to send their logs directly to Splunk Enterprise or a Splunk Cloud deployment. |
+| [Logz.io logging plugin](https://github.com/logzio/docker-logging-plugin)             | Docker plugin which ships container logs to your Logz.io account. |
+
 ## Troubleshooting a plugin
 
 If you are having problems with Docker after loading a plugin, ask the authors
