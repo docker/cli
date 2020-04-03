@@ -25,7 +25,10 @@ The `docker stats` command returns a live data stream for running containers. To
 
 If you want more detailed information about a container's resource usage, use the `/containers/(id)/stats` API endpoint.
 
-> **Note**: On Linux, the Docker CLI reports memory usage by subtracting page cache usage from the total memory usage. The API does not perform such a calculation but rather provides the total memory usage and the amount from the page cache so that clients can use the data as needed.
+> **Note**: On Linux, the Docker CLI reports memory usage by subtracting cache usage from the total memory usage. The API does not perform such a calculation but rather provides the total memory usage and the amount from the cache so that clients can use the data as needed.
+The cache usage is defined as the value of `total_inactive_file` field in the `memory.stat` file on cgroup v1 hosts.
+On Docker 19.03 and older, the cache usage was defined as the value of `cache` field.
+On cgroup v2 hosts, the cache usage is defined as the value of `inactive_file` field.
 
 > **Note**: The `PIDS` column contains the number of processes and kernel threads created by that container. Threads is the term used by Linux kernel. Other equivalent terms are "lightweight process" or "kernel task", etc. A large number in the `PIDS` column combined with a small number of processes (as reported by `ps` or `top`) may indicate that something in the container is creating many threads.
 
