@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/docker/cli/cli/config"
 	cliconfig "github.com/docker/cli/cli/config"
@@ -137,9 +140,12 @@ func (cli *DockerCli) loadConfigFile() {
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 }
 
+var fetchServerInfo sync.Once
+
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
+	fetchServerInfo.Do(cli.initializeFromClient)
 	return cli.serverInfo
 }
 
@@ -274,11 +280,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return err
 		}
 	}
-	err = cli.loadClientInfo()
-	if err != nil {
-		return err
-	}
-	cli.initializeFromClient()
 	return nil
 }
 
@@ -369,7 +370,16 @@ func isEnabled(value string) (bool, error) {
 }
 
 func (cli *DockerCli) initializeFromClient() {
-	ping, err := cli.client.Ping(context.Background())
+	ctx := context.Background()
+	if strings.HasPrefix(cli.DockerEndpoint().Host, "tcp://") {
+		// @FIXME context.WithTimeout doesn't work with connhelper / ssh connections
+		// time="2020-04-10T10:16:26Z" level=warning msg="commandConn.CloseWrite: commandconn: failed to wait: signal: killed"
+		var cancel func()
+		ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+	}
+
+	ping, err := cli.client.Ping(ctx)
 	if err != nil {
 		// Default to true if we fail to connect to daemon
 		cli.serverInfo = ServerInfo{HasExperimental: true}
