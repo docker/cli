@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 type historyCase struct {
@@ -52,6 +53,7 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
+	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
 	dateStr := "2009-11-10T23:00:00Z"
 	var ctx historyContext
 	cases := []historyCase{
