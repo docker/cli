@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/env"
 )
 
 var homeKey = "HOME"
@@ -120,12 +121,7 @@ email`: "Invalid auth configuration file",
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
-
-	homeDir, err := os.UserHomeDir()
-	assert.NilError(t, err)
-
-	defer func() { os.Setenv(homeKey, homeDir) }()
-	os.Setenv(homeKey, tmpHome)
+	defer env.Patch(t, homeKey, tmpHome)()
 
 	for content, expectedError := range invalids {
 		fn := filepath.Join(tmpHome, oldConfigfile)
@@ -141,12 +137,7 @@ func TestOldValidAuth(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
-
-	homeDir, err := os.UserHomeDir()
-	assert.NilError(t, err)
-
-	defer func() { os.Setenv(homeKey, homeDir) }()
-	os.Setenv(homeKey, tmpHome)
+	defer env.Patch(t, homeKey, tmpHome)()
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
 	js := `username = am9lam9lOmhlbGxv
@@ -180,12 +171,7 @@ func TestOldJSONInvalid(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
-
-	homeDir, err := os.UserHomeDir()
-	assert.NilError(t, err)
-
-	defer func() { os.Setenv(homeKey, homeDir) }()
-	os.Setenv(homeKey, tmpHome)
+	defer env.Patch(t, homeKey, tmpHome)()
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
 	js := `{"https://index.docker.io/v1/":{"auth":"test","email":"user@example.com"}}`
@@ -204,12 +190,7 @@ func TestOldJSON(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
-
-	homeDir, err := os.UserHomeDir()
-	assert.NilError(t, err)
-
-	defer func() { os.Setenv(homeKey, homeDir) }()
-	os.Setenv(homeKey, tmpHome)
+	defer env.Patch(t, homeKey, tmpHome)()
 
 	fn := filepath.Join(tmpHome, oldConfigfile)
 	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
