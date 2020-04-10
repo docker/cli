@@ -10,7 +10,7 @@ import (
 
 func TestCalculateMemUsageUnixNoCache(t *testing.T) {
 	// Given
-	stats := types.MemoryStats{Usage: 500, Stats: map[string]uint64{"cache": 400}}
+	stats := types.MemoryStats{Usage: 500, Stats: map[string]uint64{"total_inactive_file": 400}}
 
 	// When
 	result := calculateMemUsageUnixNoCache(stats)
