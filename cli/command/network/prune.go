@@ -43,7 +43,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-const warning = `WARNING! This will remove all networks not used by at least one container.
+const warning = `WARNING! This will remove all custom networks not used by at least one container.
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err error) {
