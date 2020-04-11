@@ -16,6 +16,7 @@ type rmOptions struct {
 	rmVolumes bool
 	rmLink    bool
 	force     bool
+	all				bool
 
 	containers []string
 }
@@ -38,6 +39,7 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.rmVolumes, "volumes", "v", false, "Remove anonymous volumes associated with the container")
 	flags.BoolVarP(&opts.rmLink, "link", "l", false, "Remove the specified link")
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force the removal of a running container (uses SIGKILL)")
+	flags.BoolVarP(&opts.all, "all", "a", false, "All stopped containers")
 	return cmd
 }
 
@@ -49,6 +51,21 @@ func runRm(dockerCli command.Cli, opts *rmOptions) error {
 		RemoveVolumes: opts.rmVolumes,
 		RemoveLinks:   opts.rmLink,
 		Force:         opts.force,
+	}
+
+	if opts.all {
+		listOptions := &types.ContainerListOptions{
+			All:     true,
+		}
+
+		containers, err := dockerCli.Client().ContainerList(ctx, *listOptions)
+
+		if err == nil {
+			opts.containers = make([]string, len(containers))
+			for index := range containers {
+				opts.containers[index] = containers[index].ID
+			}
+		}
 	}
 
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
