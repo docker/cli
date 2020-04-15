@@ -1276,11 +1276,13 @@ services:
     extra_hosts:
       "zulu": "162.242.195.82"
       "alpha": "50.31.209.229"
+      "host.docker.internal": "host-gateway"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"alpha:50.31.209.229",
+		"host.docker.internal:host-gateway",
 		"zulu:162.242.195.82",
 	}
 
@@ -1298,6 +1300,7 @@ services:
       - "zulu:162.242.195.82"
       - "alpha:50.31.209.229"
       - "zulu:ff02::1"
+      - "host.docker.internal:host-gateway"
 `)
 	assert.NilError(t, err)
 
@@ -1305,6 +1308,7 @@ services:
 		"zulu:162.242.195.82",
 		"alpha:50.31.209.229",
 		"zulu:ff02::1",
+		"host.docker.internal:host-gateway",
 	}
 
 	assert.Assert(t, is.Len(config.Services, 1))

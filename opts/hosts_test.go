@@ -154,6 +154,7 @@ func TestValidateExtraHosts(t *testing.T) {
 		`thathost:10.0.2.1`,
 		`anipv6host:2003:ab34:e::1`,
 		`ipv6local:::1`,
+		`host.docker.internal:host-gateway`,
 	}
 
 	invalid := map[string]string{
