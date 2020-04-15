@@ -358,15 +358,19 @@ func TestUpdateHosts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("host-add", "example.net:2.2.2.2")
 	flags.Set("host-add", "ipv6.net:2001:db8:abc8::1")
+	// adding the special "host-gateway" target should work
+	flags.Set("host-add", "host.docker.internal:host-gateway")
 	// remove with ipv6 should work
 	flags.Set("host-rm", "example.net:2001:db8:abc8::1")
 	// just hostname should work as well
 	flags.Set("host-rm", "example.net")
+	// removing the special "host-gateway" target should work
+	flags.Set("host-rm", "gateway.docker.internal:host-gateway")
 	// bad format error
 	assert.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
-	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net"}
-	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net"}
+	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net", "gateway.docker.internal:host-gateway"}
+	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net", "host-gateway host.docker.internal"}
 
 	err := updateHosts(flags, &hosts)
 	assert.NilError(t, err)
