@@ -144,6 +144,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			ExtraHosts: []string{
 				"somehost:162.242.195.82",
 				"otherhost:50.31.209.229",
+				"host.docker.internal:host-gateway",
 			},
 			Extras: map[string]interface{}{
 				"x-bar": "baz",
@@ -626,6 +627,7 @@ services:
     extra_hosts:
     - somehost:162.242.195.82
     - otherhost:50.31.209.229
+    - host.docker.internal:host-gateway
     hostname: foo
     healthcheck:
       test:
@@ -1135,7 +1137,8 @@ func fullExampleJSON(workingDir string) string {
       ],
       "extra_hosts": [
         "somehost:162.242.195.82",
-        "otherhost:50.31.209.229"
+        "otherhost:50.31.209.229",
+        "host.docker.internal:host-gateway"
       ],
       "hostname": "foo",
       "healthcheck": {
