@@ -113,6 +113,25 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
+	// Wrap the global pre-run to handle non-BuildKit use of the --platform flag.
+	//
+	// We're doing it here so that we're only contacting the daemon when actually
+	// running the command, and not during initialization.
+	// TODO remove this hack once we no longer support the experimental use of --platform
+	rootFn := cmd.Root().PersistentPreRunE
+	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if ok, _ := command.BuildKitEnabled(dockerCli.ServerInfo()); !ok {
+			f := cmd.Flag("platform")
+			delete(f.Annotations, "buildkit")
+			f.Annotations["version"] = []string{"1.32"}
+			f.Annotations["experimental"] = nil
+		}
+		if rootFn != nil {
+			return rootFn(cmd, args)
+		}
+		return nil
+	}
+
 	flags := cmd.Flags()
 
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
@@ -161,14 +180,8 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
-	// Platform is not experimental when BuildKit is used
-	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
-	if err == nil && buildkitEnabled {
-		flags.SetAnnotation("platform", "version", []string{"1.38"})
-	} else {
-		flags.SetAnnotation("platform", "version", []string{"1.32"})
-		flags.SetAnnotation("platform", "experimental", nil)
-	}
+	flags.SetAnnotation("platform", "version", []string{"1.38"})
+	flags.SetAnnotation("platform", "buildkit", nil)
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)

@@ -20,11 +20,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/skip"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
 	fakeImageBuild := func(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
@@ -60,6 +62,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 }
 
 func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	skip.If(t, os.Getuid() != 0, "root is required to chown files")
 	fakeBuild := newFakeBuild()
 	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
@@ -90,6 +93,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 }
 
 func TestRunBuildDockerfileOutsideContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("data", "data file"))
 	defer dir.Remove()
@@ -122,7 +126,8 @@ COPY data /data
 // TODO: test "context selection" logic directly when runBuild is refactored
 // to support testing (ex: docker/cli#294)
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
-	cmd := NewBuildCommand(test.NewFakeCli(nil))
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	cmd := NewBuildCommand(test.NewFakeCli(&fakeClient{}))
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
 	cmd.SetOutput(ioutil.Discard)
@@ -135,6 +140,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 // starting with `github.com` takes precedence over the `github.com` special
 // case.
 func TestRunBuildFromLocalGitHubDir(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	tmpDir, err := ioutil.TempDir("", "docker-build-from-local-dir-")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
@@ -154,6 +160,7 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 }
 
 func TestRunBuildWithSymlinkedContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	dockerfile := `
 FROM alpine:3.6
 RUN echo hello world
