@@ -17,8 +17,8 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/term"
 	"github.com/docker/docker/registry"
+	"github.com/moby/term"
 	"github.com/pkg/errors"
 )
 
