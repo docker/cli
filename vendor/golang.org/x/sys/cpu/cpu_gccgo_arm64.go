@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin,arm,!go1.12
+// +build gccgo
 
-package unix
+package cpu
 
-func Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) {
-	return 0, ENOSYS
-}
+func getisar0() uint64 { return 0 }
+func getisar1() uint64 { return 0 }
+func getpfr0() uint64  { return 0 }
