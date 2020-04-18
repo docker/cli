@@ -544,13 +544,13 @@ retrieve the container's ID once the container has finished running.
 
 ```bash
 $ docker run --device=/dev/sdc:/dev/xvdc \
-             --device=/dev/sdd --device=/dev/zero:/dev/nulo \
+             --device=/dev/sdd --device=/dev/zero:/dev/null \
              -i -t \
-             ubuntu ls -l /dev/{xvdc,sdd,nulo}
+             ubuntu ls -l /dev/{xvdc,sdd,null}
 
 brw-rw---- 1 root disk 8, 2 Feb  9 16:05 /dev/xvdc
 brw-rw---- 1 root disk 8, 3 Feb  9 16:05 /dev/sdd
-crw-rw-rw- 1 root root 1, 5 Feb  9 16:05 /dev/nulo
+crw-rw-rw- 1 root root 1, 5 Feb  9 16:05 /dev/null
 ```
 
 It is often necessary to directly expose devices to a container. The `--device`
