@@ -75,8 +75,8 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder    | Description
----------------|------------------------------------------------------------------------------------------
+Placeholder        | Description
+-------------------|------------------------------------------------------------
 `.ID`              | Plugin ID
 `.Name`            | Plugin name
 `.Description`     | Plugin description

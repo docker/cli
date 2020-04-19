@@ -57,10 +57,10 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-* dangling (boolean - true or false, 0 or 1)
-* driver (a volume driver's name)
-* label (`label=<key>` or `label=<key>=<value>`)
-* name (a volume's name)
+- dangling (boolean - true or false, 0 or 1)
+- driver (a volume driver's name)
+- label (`label=<key>` or `label=<key>=<value>`)
+- name (a volume's name)
 
 #### dangling
 
@@ -187,4 +187,4 @@ vol3: local
 * [volume inspect](volume_inspect.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)

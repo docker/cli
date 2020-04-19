@@ -396,13 +396,13 @@ the command line.
 
 When `docker build` is run with the `--cgroup-parent` option the containers
 used in the build will be run with the [corresponding `docker run`
-flag](../run.md#specifying-custom-cgroups).
+flag](../run.md#specify-custom-cgroups).
 
 ### Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
 container to be started using those [`--ulimit`
-flag values](./run.md#set-ulimits-in-container-ulimit).
+flag values](run.md#set-ulimits-in-container---ulimit).
 
 ### Set build-time variables (--build-arg)
 

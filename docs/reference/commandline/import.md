@@ -60,7 +60,7 @@ $ docker import http://example.com/exampleimage.tgz
 - Import to docker from a local archive.
 
   ```bash
-    $ docker import /path/to/exampleimage.tgz
+  $ docker import /path/to/exampleimage.tgz
   ```
 
 ### Import from a local directory
@@ -81,9 +81,12 @@ archiving with tar. If you are not root (or the sudo command) when you
 tar, then the ownerships might not get preserved.
 
 ## When the daemon supports multiple operating systems
+
 If the daemon supports multiple operating systems, and the image being imported
 does not match the default operating system, it may be necessary to add
 `--platform`. This would be necessary when importing a Linux image into a Windows
 daemon.
 
-    # docker import --platform=linux .\linuximage.tar
+```bash
+$ docker import --platform=linux .\linuximage.tar
+```

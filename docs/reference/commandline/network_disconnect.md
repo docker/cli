@@ -24,7 +24,7 @@ disconnect it from the network.
 ## Examples
 
 ```bash
-  $ docker network disconnect multi-host-network container1
+$ docker network disconnect multi-host-network container1
 ```
 
 

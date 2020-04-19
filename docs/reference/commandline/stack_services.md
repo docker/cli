@@ -87,7 +87,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 Placeholder | Description
-------------|------------------------------------------------------------------------------------------
+------------|-------------------------------------------------------------------
 `.ID`       | Service ID
 `.Name`     | Service name
 `.Mode`     | Service mode (replicated, global)

@@ -40,8 +40,10 @@ $ docker service ls
 ID  NAME  MODE  REPLICAS  IMAGE
 ```
 
-> **Warning**: Unlike `docker rm`, this command does not ask for confirmation
-> before removing a running service.
+> **Warning**
+>
+> Unlike `docker rm`, this command does not ask for confirmation before removing
+> a running service.
 
 ## Related commands
 

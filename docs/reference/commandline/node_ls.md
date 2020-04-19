@@ -54,11 +54,11 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-* [id](node_ls.md#id)
-* [label](node_ls.md#label)
-* [membership](node_ls.md#membership)
-* [name](node_ls.md#name)
-* [role](node_ls.md#role)
+* [id](#id)
+* [label](#label)
+* [membership](#membership)
+* [name](#name)
+* [role](#role)
 
 #### id
 
