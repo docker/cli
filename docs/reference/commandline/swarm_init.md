@@ -55,7 +55,7 @@ a new node to the swarm, the node joins as a worker or manager node based upon t
 to [swarm join](swarm_join.md).
 
 After you create the swarm, you can display or rotate the token using
-[swarm join-token](swarm_join_token.md).
+[swarm join-token](swarm_join-token.md).
 
 ### `--autolock`
 
@@ -189,8 +189,8 @@ by passing `--availability=drain` to `docker swarm init`.
 
 * [swarm ca](swarm_ca.md)
 * [swarm join](swarm_join.md)
-* [swarm join-token](swarm_join_token.md)
+* [swarm join-token](swarm_join-token.md)
 * [swarm leave](swarm_leave.md)
 * [swarm unlock](swarm_unlock.md)
-* [swarm unlock-key](swarm_unlock_key.md)
+* [swarm unlock-key](swarm_unlock-key.md)
 * [swarm update](swarm_update.md)

@@ -32,45 +32,43 @@ by looking at the `Settable` field.
 
 Here is an extract of a plugin manifest:
 
-```
+```json
 {
-        "config": {
-            ...
-            "args": {
-                "name": "myargs",
-                "settable": ["value"],
-                "value": ["foo", "bar"]
-            },
-            "env": [
-                {
-                    "name": "DEBUG",
-                    "settable": ["value"],
-                    "value": "0"
-                },
-                {
-                    "name": "LOGGING",
-                    "value": "1"
-                }
-            ],
-	    "devices": [
-                {
-                    "name": "mydevice",
-                    "path": "/dev/foo",
-                    "settable": ["path"]
-                }
-            ],
-	    "mounts": [
-                {
-                    "destination": "/baz",
-                    "name": "mymount",
-                    "options": ["rbind"],
-                    "settable": ["source"],
-                    "source": "/foo",
-                    "type": "bind"
-                }
-            ],
-	    ...
-	 }
+  "config": {
+    "args": {
+      "name": "myargs",
+      "settable": ["value"],
+      "value": ["foo", "bar"]
+    },
+    "env": [
+      {
+        "name": "DEBUG",
+        "settable": ["value"],
+        "value": "0"
+      },
+      {
+        "name": "LOGGING",
+        "value": "1"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mydevice",
+        "path": "/dev/foo",
+        "settable": ["path"]
+      }
+    ],
+    "mounts": [
+      {
+        "destination": "/baz",
+        "name": "mymount",
+        "options": ["rbind"],
+        "settable": ["source"],
+        "source": "/foo",
+        "type": "bind"
+      }
+    ]
+  }
 }
 ```
 

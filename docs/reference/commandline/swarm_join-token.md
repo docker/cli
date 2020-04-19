@@ -39,6 +39,7 @@ the swarm:
 
 ```bash
 $ docker swarm join-token worker
+
 To add a worker to this swarm, run the following command:
 
     docker swarm join \
@@ -46,6 +47,7 @@ To add a worker to this swarm, run the following command:
     172.17.0.2:2377
 
 $ docker swarm join-token manager
+
 To add a manager to this swarm, run the following command:
 
     docker swarm join \
@@ -57,6 +59,7 @@ Use the `--rotate` flag to generate a new join token for the specified role:
 
 ```bash
 $ docker swarm join-token --rotate worker
+
 Successfully rotated worker join token.
 
 To add a worker to this swarm, run the following command:
@@ -106,5 +109,5 @@ Only print the token. Do not print a complete command for joining.
 * [swarm join](swarm_join.md)
 * [swarm leave](swarm_leave.md)
 * [swarm unlock](swarm_unlock.md)
-* [swarm unlock-key](swarm_unlock_key.md)
+* [swarm unlock-key](swarm_unlock-key.md)
 * [swarm update](swarm_update.md)

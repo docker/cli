@@ -22,8 +22,7 @@ Options:
 
 ### Remove a container
 
-This will remove the container referenced under the link
-`/redis`.
+This removes the container referenced under the link `/redis`.
 
 ```bash
 $ docker rm /redis
@@ -33,7 +32,7 @@ $ docker rm /redis
 
 ### Remove a link specified with `--link` on the default bridge network
 
-This will remove the underlying link between `/webapp` and the `/redis`
+This removes the underlying link between `/webapp` and the `/redis`
 containers on the default bridge network, removing all network communication
 between the two containers. This does not apply when `--link` is used with
 user-specified networks.
@@ -46,7 +45,7 @@ $ docker rm --link /webapp/redis
 
 ### Force-remove a running container
 
-This command will force-remove a running container.
+This command force-removes a running container.
 
 ```bash
 $ docker rm --force redis
@@ -63,10 +62,9 @@ The main process inside the container referenced under the link `redis` will rec
 $ docker rm $(docker ps -a -q)
 ```
 
-This command will delete all stopped containers. The command
-`docker ps -a -q` will return all existing container IDs and pass them to
-the `rm` command which will delete them. Any running containers will not be
-deleted.
+This command deletes all stopped containers. The command
+`docker ps -a -q` above returns all existing container IDs and passes them to
+the `rm` command which deletes them. Running containers are not deleted.
 
 ### Remove a container and its volumes
 
@@ -75,7 +73,7 @@ $ docker rm -v redis
 redis
 ```
 
-This command will remove the container and any volumes associated with it.
+This command removes the container and any volumes associated with it.
 Note that if a volume was specified with a name, it will not be removed.
 
 ### Remove a container and selectively remove volumes
@@ -83,9 +81,10 @@ Note that if a volume was specified with a name, it will not be removed.
 ```bash
 $ docker create -v awesome:/foo -v /bar --name hello redis
 hello
+
 $ docker rm -v hello
 ```
 
-In this example, the volume for `/foo` will remain intact, but the volume for
-`/bar` will be removed. The same behavior holds for volumes inherited with
+In this example, the volume for `/foo` remains intact, but the volume for
+`/bar` is removed. The same behavior holds for volumes inherited with
 `--volumes-from`.

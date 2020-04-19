@@ -49,9 +49,9 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-* [id](secret_ls.md#id) (secret's ID)
-* [label](secret_ls.md#label) (`label=<key>` or `label=<key>=<value>`)
-* [name](secret_ls.md#name) (secret's name)
+- [id](#id) (secret's ID)
+- [label](#label) (`label=<key>` or `label=<key>=<value>`)
+- [name](#name) (secret's name)
 
 #### id
 

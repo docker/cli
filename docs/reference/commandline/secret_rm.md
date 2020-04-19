@@ -37,8 +37,10 @@ $ docker secret rm secret.json
 sapth4csdo5b6wz2p5uimh5xg
 ```
 
-> **Warning**: Unlike `docker rm`, this command does not ask for confirmation
-> before removing a secret.
+> **Warning**
+>
+> Unlike `docker rm`, this command does not ask for confirmation before removing
+> a secret.
 
 
 ## Related commands

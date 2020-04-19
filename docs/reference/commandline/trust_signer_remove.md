@@ -26,7 +26,7 @@ Options:
 
 To remove an existing signer, `alice`, from this repository:
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
 
@@ -52,10 +52,10 @@ Enter passphrase for repository key with ID 642692c:
 Successfully removed alice from example/trust-demo
 ```
 
-`docker trust view` now does not list `alice` as a valid signer:
+`docker trust inspect --pretty` now does not list `alice` as a valid signer:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
 
@@ -75,7 +75,8 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 To remove an existing signer, `alice`, from multiple repositories:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice, bob
 
@@ -91,7 +92,8 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
 ```bash
-$ docker trust view example/trust-demo2
+$ docker trust inspect --pretty example/trust-demo2
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice, bob
 
@@ -120,11 +122,12 @@ Enter passphrase for repository key with ID ece554f:
 Successfully removed alice from example/trust-demo2
 ```
 
-Run `docker trust view` to confirm that `alice` is no longer listed as a valid
+Run `docker trust inspect --pretty` to confirm that `alice` is no longer listed as a valid
 signer of either `example/trust-demo` or `example/trust-demo2`:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   bob
 
@@ -139,7 +142,8 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
 ```bash
-$ docker trust view example/trust-demo2
+$ docker trust inspect --pretty example/trust-demo2
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   bob
 

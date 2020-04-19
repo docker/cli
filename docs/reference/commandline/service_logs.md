@@ -35,11 +35,13 @@ service, or with the ID of a task. If a service is passed, it will display logs
 for all of the containers in that service. If a task is passed, it will only
 display logs from that particular task.
 
-> **Note**: This command is only functional for services that are started with
+> **Note**
+>
+> This command is only functional for services that are started with
 > the `json-file` or `journald` logging driver.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/engine/admin/logging/overview/).
+[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
 
 The `docker service logs --follow` command will continue streaming the new output from
 the service's `STDOUT` and `STDERR`.

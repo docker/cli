@@ -23,10 +23,17 @@ in a JSON array.
 
 ## Examples
 
+### Inspect a plugin
 
-```none
+The following example example inspects the `tiborvass/sample-volume-plugin` plugin:
+
+```bash
 $ docker plugin inspect tiborvass/sample-volume-plugin:latest
+```
 
+Output is in JSON format (output below is formatted for readability):
+
+```json
 {
   "Id": "8c74c978c434745c3ade82f1bc0acf38d04990eaf494fa507c16d9f1daa99c21",
   "Name": "tiborvass/sample-volume-plugin:latest",
@@ -134,7 +141,6 @@ $ docker plugin inspect tiborvass/sample-volume-plugin:latest
 }
 ```
 
-(output formatted for readability)
 
 ### Formatting the output
 

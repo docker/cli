@@ -21,13 +21,28 @@ Options:
 
 ## Description
 
-The `docker stats` command returns a live data stream for running containers. To limit data to one or more specific containers, specify a list of container names or ids separated by a space. You can specify a stopped container but stopped containers do not return any data.
+The `docker stats` command returns a live data stream for running containers. To
+limit data to one or more specific containers, specify a list of container names
+or ids separated by a space. You can specify a stopped container but stopped
+containers do not return any data.
 
-If you want more detailed information about a container's resource usage, use the `/containers/(id)/stats` API endpoint.
+If you need more detailed information about a container's resource usage, use
+the `/containers/(id)/stats` API endpoint.
 
-> **Note**: On Linux, the Docker CLI reports memory usage by subtracting page cache usage from the total memory usage. The API does not perform such a calculation but rather provides the total memory usage and the amount from the page cache so that clients can use the data as needed.
+> **Note**
+>
+> On Linux, the Docker CLI reports memory usage by subtracting page cache usage
+> from the total memory usage. The API does not perform such a calculation but
+> rather provides the total memory usage and the amount from the page cache so
+> that clients can use the data as needed.
 
-> **Note**: The `PIDS` column contains the number of processes and kernel threads created by that container. Threads is the term used by Linux kernel. Other equivalent terms are "lightweight process" or "kernel task", etc. A large number in the `PIDS` column combined with a small number of processes (as reported by `ps` or `top`) may indicate that something in the container is creating many threads.
+> **Note**
+>
+> The `PIDS` column contains the number of processes and kernel threads created
+> by that container. Threads is the term used by Linux kernel. Other equivalent
+> terms are "lightweight process" or "kernel task", etc. A large number in the
+> `PIDS` column combined with a small number of processes (as reported by `ps`
+> or `top`) may indicate that something in the container is creating many threads.
 
 ## Examples
 
@@ -161,6 +176,3 @@ On Windows:
 
     "table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
-
-> **Note**: On Docker 17.09 and older, the `{{.Container}}` column was used,
-> instead of `{{.ID}}\t{{.Name}}`.

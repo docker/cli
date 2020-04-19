@@ -28,7 +28,8 @@ Options:
 Given an image:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  c24134c079c35e698060beabe110bb83ab285d0d978de7d92fed2c8c83570a41   (Repo Admin)
 
@@ -41,6 +42,7 @@ Sign a new tag with `docker trust sign`:
 
 ```bash
 $ docker trust sign example/trust-demo:v2
+
 Signing and pushing trust metadata for example/trust-demo:v2
 The push refers to a repository [docker.io/example/trust-demo]
 eed4e566104a: Layer already exists
@@ -56,10 +58,11 @@ Enter passphrase for repository key with ID 36d4c36:
 Successfully signed docker.io/example/trust-demo:v2
 ```
 
-Use `docker trust view` to list the new signature:
+Use `docker trust inspect --pretty` to list the new signature:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  c24134c079c35e698060beabe110bb83ab285d0d978de7d92fed2c8c83570a41   (Repo Admin)
 v2                  8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56   (Repo Admin)
@@ -74,7 +77,7 @@ Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 Given an image:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
 
@@ -94,6 +97,7 @@ Sign a new tag with `docker trust sign`:
 
 ```bash
 $ docker trust sign example/trust-demo:v1
+
 Signing and pushing trust metadata for example/trust-demo:v1
 The push refers to a repository [docker.io/example/trust-demo]
 26b126eb8632: Layer already exists
@@ -107,10 +111,11 @@ Enter passphrase for delegation key with ID 27d42a8:
 Successfully signed docker.io/example/trust-demo:v1
 ```
 
-`docker trust view` lists the new signature:
+`docker trust inspect --pretty` lists the new signature:
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  74d4bfa917d55d53c7df3d2ab20a8d926874d61c3da5ef6de15dd2654fc467c4   alice
 
@@ -130,12 +135,14 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 When signing an image on a repo for the first time, `docker trust sign` sets up new keys before signing the image.
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 No signatures or cannot access example/trust-demo
 ```
 
 ```bash
 $ docker trust sign example/trust-demo:v1
+
 Signing and pushing trust metadata for example/trust-demo:v1
 Enter passphrase for root key with ID 36cac18:
 Enter passphrase for new repository key with ID 731396b:
@@ -159,7 +166,8 @@ Successfully signed docker.io/example/trust-demo:v1
 ```
 
 ```bash
-$ docker trust view example/trust-demo
+$ docker trust inspect --pretty example/trust-demo
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 v1                  8f6f460abf0436922df7eb06d28b3cdf733d2cac1a185456c26debbff0839c56   alice
 

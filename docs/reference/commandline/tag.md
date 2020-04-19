@@ -31,7 +31,7 @@ digits, underscores, periods and dashes. A tag name may not start with a
 period or a dash and may contain a maximum of 128 characters.
 
 You can group your images together using names and tags, and then upload them
-to [*Share Images via Repositories*](https://docs.docker.com/engine/tutorials/dockerrepos/#/contributing-to-docker-hub).
+to [*Share images on Docker Hub*](https://docs.docker.com/get-started/part3/).
 
 ## Examples
 
