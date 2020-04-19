@@ -78,7 +78,8 @@ that succeeds, the directory is sent to the Docker daemon as the context.
 Local copy gives you the ability to access private repositories using local
 user credentials, VPN's, and so forth.
 
-> **Note:**
+> **Note**
+>
 > If the `URL` parameter contains a fragment the system will recursively clone
 > the repository and its submodules using a `git clone --recursive` command.
 
@@ -577,7 +578,9 @@ $ ls ./out
 vndr
 ```
 
-> **Note**: This feature requires the BuildKit backend. You can either
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
 > [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
 > plugin which provides more output type options.
 
@@ -616,7 +619,9 @@ BuildKit automatically pulls the image from the registry if needed.
 $ docker build --cache-from myname/myapp .
 ```
 
-> **Note**: This feature requires the BuildKit backend. You can either
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
 > [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
 > plugin. The previous builder has limited support for reusing cache from
 > pre-pulled images.

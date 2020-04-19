@@ -163,7 +163,9 @@ FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5
 MAINTAINER some maintainer <maintainer@example.com>
 ```
 
-> **Note**: Using this feature "pins" an image to a specific version in time.
+> **Note**
+>
+> Using this feature "pins" an image to a specific version in time.
 > Docker will therefore not pull updated versions of an image, which may include
 > security updates. If you want to pull an updated image, you need to change the
 > digest accordingly.

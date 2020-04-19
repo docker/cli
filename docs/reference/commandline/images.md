@@ -184,8 +184,7 @@ dea752e4e117
 511136ea3c5a
 ```
 
-> **Note**: Docker warns you if any containers exist that are using these
-> untagged images.
+Docker warns you if any containers exist that are using these untagged images.
 
 
 #### Show images with a given label
