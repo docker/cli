@@ -407,7 +407,9 @@ Sometimes, multiple options can call for a more complex value string as for
 $ docker run -v /host:/container example/mysql
 ```
 
-> **Note**: Do not use the `-t` and `-a stderr` options together due to
+> **Note**
+>
+> Do not use the `-t` and `-a stderr` options together due to
 > limitations in the `pty` implementation. All `stderr` in `pty` mode
 > simply goes to `stdout`.
 

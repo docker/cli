@@ -24,9 +24,12 @@ services which are global mode. The command will return immediately, but the
 actual scaling of the service may take some time. To stop all replicas of a
 service while keeping the service active in the swarm you can set the scale to 0.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
