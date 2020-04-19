@@ -152,7 +152,7 @@ output the data exactly as the template declares. If you use the
 `table` directive, column headers are included as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `StarCount` entries separated by a colon for all images:
+`Name` and `StarCount` entries separated by a colon (`:`) for all images:
 
 ```bash
 $ docker search --format "{{.Name}}: {{.StarCount}}" nginx

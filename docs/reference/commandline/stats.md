@@ -149,7 +149,7 @@ outputs the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Container` and `CPUPerc` entries separated by a colon for all images:
+`Container` and `CPUPerc` entries separated by a colon (`:`) for all images:
 
 ```bash
 $ docker stats --format "{{.Container}}: {{.CPUPerc}}"

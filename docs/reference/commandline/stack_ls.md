@@ -63,7 +63,7 @@ the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Services` entries separated by a colon for all stacks:
+`Name` and `Services` entries separated by a colon (`:`) for all stacks:
 
 ```bash
 $ docker stack ls --format "{{.Name}}: {{.Services}}"

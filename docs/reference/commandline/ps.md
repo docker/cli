@@ -421,7 +421,7 @@ exactly as the template declares or, when using the `table` directive, includes
 column headers as well.
 
 The following example uses a template without headers and outputs the `ID` and
-`Command` entries separated by a colon for all running containers:
+`Command` entries separated by a colon (`:`) for all running containers:
 
 ```bash
 $ docker ps --format "{{.ID}}: {{.Command}}"

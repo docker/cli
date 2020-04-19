@@ -926,7 +926,7 @@ Long form syntax of `--network` allows to specify list of aliases and driver opt
 You can publish service ports to make them available externally to the swarm
 using the `--publish` flag. The `--publish` flag can take two different styles
 of arguments. The short version is positional, and allows you to specify the
-published port and target port separated by a colon.
+published port and target port separated by a colon (`:`).
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx

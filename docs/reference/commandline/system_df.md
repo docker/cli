@@ -99,7 +99,7 @@ the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`Type` and `TotalCount` entries separated by a colon:
+`Type` and `TotalCount` entries separated by a colon (`:`):
 
 ```bash
 $ docker system df --format "{{.Type}}: {{.TotalCount}}"
