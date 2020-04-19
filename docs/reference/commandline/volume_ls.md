@@ -171,7 +171,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Driver` entries separated by a colon for all volumes:
+`Name` and `Driver` entries separated by a colon (`:`) for all volumes:
 
 ```bash
 $ docker volume ls --format "{{.Name}}: {{.Driver}}"

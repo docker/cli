@@ -84,7 +84,7 @@ user credentials, VPN's, and so forth.
 > the repository and its submodules using a `git clone --recursive` command.
 
 Git URLs accept context configuration in their fragment section, separated by a
-colon `:`.  The first part represents the reference that Git will check out,
+colon (`:`).  The first part represents the reference that Git will check out,
 and can be either a branch, a tag, or a remote reference. The second part
 represents a subdirectory inside the repository that will be used as a build
 context.

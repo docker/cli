@@ -152,7 +152,8 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID`, `Hostname`, and `TLS Status` entries separated by a colon for all nodes:
+`ID`, `Hostname`, and `TLS Status` entries separated by a colon (`:`) for all
+nodes:
 
 ```bash
 $ docker node ls --format "{{.ID}}: {{.Hostname}} {{.TLSStatus}}"
