@@ -175,7 +175,7 @@ $ docker stop test
 
 **Shell 1: (Again .. now showing events):**
 
-```none
+```console
 2017-01-05T00:35:58.859401177+08:00 container create 0fdb48addc82871eb34eb23a847cfd033dedd1a0a37bef2e6d9eb3870fc7ff37 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1f5ceda09d4300f3a846f0acfaa9a8bb0d89e775eb744c5acecd60e0529e2 (container=0fdb...ff37, name=bridge, type=bridge)
 2017-01-05T00:36:04.795031609+08:00 container start 0fdb...ff37 (image=alpine:latest, name=test)
@@ -194,6 +194,7 @@ machine, using the following different time syntaxes:
 
 ```bash
 $ docker system events --since 1483283804
+
 2017-01-05T00:35:41.241772953+08:00 volume create testVol (driver=local)
 2017-01-05T00:35:58.859401177+08:00 container create d9cd...4d70 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1...29e2 (container=0fdb...ff37, name=bridge, type=bridge)
@@ -204,6 +205,7 @@ $ docker system events --since 1483283804
 2017-01-05T00:36:09.890214053+08:00 container stop 0fdb...ff37 (image=alpine:latest, name=test)
 
 $ docker system events --since '2017-01-05'
+
 2017-01-05T00:35:41.241772953+08:00 volume create testVol (driver=local)
 2017-01-05T00:35:58.859401177+08:00 container create d9cd...4d70 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1...29e2 (container=0fdb...ff37, name=bridge, type=bridge)
@@ -214,6 +216,7 @@ $ docker system events --since '2017-01-05'
 2017-01-05T00:36:09.890214053+08:00 container stop 0fdb...ff37 (image=alpine:latest, name=test)
 
 $ docker system events --since '2013-09-03T15:49:29'
+
 2017-01-05T00:35:41.241772953+08:00 volume create testVol (driver=local)
 2017-01-05T00:35:58.859401177+08:00 container create d9cd...4d70 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1...29e2 (container=0fdb...ff37, name=bridge, type=bridge)
@@ -224,6 +227,7 @@ $ docker system events --since '2013-09-03T15:49:29'
 2017-01-05T00:36:09.890214053+08:00 container stop 0fdb...ff37 (image=alpine:latest, name=test)
 
 $ docker system events --since '10m'
+
 2017-01-05T00:35:41.241772953+08:00 volume create testVol (driver=local)
 2017-01-05T00:35:58.859401177+08:00 container create d9cd...4d70 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1...29e2 (container=0fdb...ff37, name=bridge, type=bridge)
@@ -325,12 +329,12 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-```none
-    $ docker system events --format '{{json .}}'
+```bash
+$ docker system events --format '{{json .}}'
 
-    {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
-    {"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
-    {"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
+{"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
+{"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 ```

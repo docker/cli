@@ -190,7 +190,9 @@ This example removes images which have a maintainer label not set to `john`:
 $ docker image prune --filter="label!=maintainer=john"
 ```
 
-> **Note**: You are prompted for confirmation before the `prune` removes
+> **Note**
+>
+> You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
 > In addition, `docker image ls` does not support negative filtering, so it
 > difficult to predict what images will actually be removed.

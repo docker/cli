@@ -221,7 +221,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Driver` entries separated by a colon for all networks:
+`ID` and `Driver` entries separated by a colon (`:`) for all networks:
 
 ```bash
 $ docker network ls --format "{{.ID}}: {{.Driver}}"

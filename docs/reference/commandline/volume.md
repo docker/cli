@@ -33,7 +33,7 @@ prune volumes.
 
 * [volume create](volume_create.md)
 * [volume inspect](volume_inspect.md)
-* [volume list](volume_list.md)
+* [volume list](volume_ls.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)

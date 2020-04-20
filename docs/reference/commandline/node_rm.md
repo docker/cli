@@ -23,9 +23,12 @@ Options:
 
 Removes the specified nodes from a swarm.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 

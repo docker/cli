@@ -26,11 +26,6 @@ Options:
 
 Search [Docker Hub](https://hub.docker.com) for images
 
-See [*Find Public Images on Docker Hub*](https://docs.docker.com/engine/tutorials/dockerrepos/#searching-for-images) for
-more details on finding shared images from the command line.
-
-> **Note**: Search queries return a maximum of 25 results.
-
 ## Examples
 
 ### Search images by name
@@ -93,9 +88,9 @@ than one filter, then pass multiple flags (e.g. `--filter is-automated=true --fi
 
 The currently supported filters are:
 
-* stars (int - number of stars the image has)
-* is-automated (boolean - true or false) - is the image automated or not
-* is-official (boolean - true or false) - is the image official or not
+- stars (int - number of stars the image has)
+- is-automated (boolean - true or false) - is the image automated or not
+- is-official (boolean - true or false) - is the image official or not
 
 #### stars
 
@@ -157,10 +152,9 @@ output the data exactly as the template declares. If you use the
 `table` directive, column headers are included as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `StarCount` entries separated by a colon for all images:
+`Name` and `StarCount` entries separated by a colon (`:`) for all images:
 
 ```bash
-{% raw %}
 $ docker search --format "{{.Name}}: {{.StarCount}}" nginx
 
 nginx: 5441
@@ -173,13 +167,11 @@ bitnami/nginx: 23
 evild/alpine-nginx: 14
 million12/nginx: 9
 maxexcloo/nginx: 7
-{% endraw %}
 ```
 
 This example outputs a table format:
 
 ```bash
-{% raw %}
 $ docker search --format "table {{.Name}}\t{{.IsAutomated}}\t{{.IsOfficial}}" nginx
 
 NAME                                     AUTOMATED           OFFICIAL
@@ -189,5 +181,4 @@ richarvey/nginx-php-fpm                  [OK]
 jrcs/letsencrypt-nginx-proxy-companion   [OK]
 million12/nginx-php                      [OK]
 webdevops/php-nginx                      [OK]
-{% endraw %}
 ```

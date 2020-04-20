@@ -85,9 +85,12 @@ Options:
 
 Creates a service as described by the specified parameters.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -289,7 +292,7 @@ $ docker service create \
 ```
 
 For more information about labels, refer to [apply custom
-metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
+metadata](https://docs.docker.com/config/labels-custom-metadata/).
 
 ### Add bind mounts, volumes or memory filesystems
 
@@ -327,7 +330,7 @@ your web server containers when they start. To update the website, you just
 update the named volume.
 
 For more information about named volumes, see
-[Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/).
+[Data Volumes](https://docs.docker.com/storage/volumes/).
 
 The following table describes options which apply to both bind mounts and named
 volumes in a service:
@@ -342,14 +345,14 @@ volumes in a service:
     <td><b>type</b></td>
     <td></td>
     <td>
-      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.
+      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.</p>
       <ul>
         <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
         into the container.</li> <li><tt>bind</tt>:
         bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
         <li><tt>npipe</tt>: mounts named pipe from the host into the container (Windows containers only).</li>
-      </ul></p>
+      </ul>
     </td>
   </tr>
   <tr>
@@ -389,11 +392,11 @@ volumes in a service:
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
       is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
-      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.
+      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.</p>
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
-      </ul></p>
+      </ul>
     </td>
   </tr>
 </table>
@@ -417,14 +420,13 @@ The following options can only be used for bind mounts (`type=bind`):
   <tr>
     <td><b>consistency</b></td>
     <td>
-      <p>The consistency requirements for the mount; one of
-         <ul>
-           <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
-           <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
-           <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
-           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
-        </ul>
-     </p>
+      <p>The consistency requirements for the mount; one of </p>
+      <ul>
+       <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
+       <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
+       <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
+       <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
+      </ul>
     </td>
   </tr>
   <tr>
@@ -506,7 +508,7 @@ The following options can only be used for named volumes (`type=volume`):
       creation. For example,
       <tt>volume-label=mylabel=hello-world,my-other-label=hello-mars</tt>. For more
       information about labels, refer to
-      <a href="https://docs.docker.com/engine/userguide/labels-custom-metadata/">apply custom metadata</a>.
+      <a href="https://docs.docker.com/config/labels-custom-metadata/">apply custom metadata</a>.
     </td>
   </tr>
   <tr>
@@ -914,7 +916,7 @@ $ docker service create \
 The swarm extends my-network to each node running the service.
 
 Containers on the same network can access each other using
-[service discovery](https://docs.docker.com/engine/swarm/networking/#use-swarm-mode-service-discovery).
+[service discovery](https://docs.docker.com/network/overlay/#container-discovery).
 
 Long form syntax of `--network` allows to specify list of aliases and driver options:
 `--network name=my-network,alias=web1,driver-opt=field1=value1`
@@ -924,7 +926,7 @@ Long form syntax of `--network` allows to specify list of aliases and driver opt
 You can publish service ports to make them available externally to the swarm
 using the `--publish` flag. The `--publish` flag can take two different styles
 of arguments. The short version is positional, and allows you to specify the
-published port and target port separated by a colon.
+published port and target port separated by a colon (`:`).
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
@@ -1068,9 +1070,10 @@ In this example, we are going to set the template of the created containers base
 service's name, the node's ID and hostname where it sits.
 
 ```bash
-$ docker service create --name hosttempl \
-                        --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
-                         busybox top
+$ docker service create \
+    --name hosttempl \
+    --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
+    busybox top
 
 va8ew30grofhjoychbr6iot8c
 
@@ -1105,10 +1108,11 @@ You can narrow the kind of nodes your task can land on through the using the
 `--generic-resource` flag (if the nodes advertise these resources):
 
 ```bash
-$ docker service create --name cuda \
-                        --generic-resource "NVIDIA-GPU=2" \
-                        --generic-resource "SSD=1" \
-                        nvidia/cuda
+$ docker service create \
+    --name cuda \
+    --generic-resource "NVIDIA-GPU=2" \
+    --generic-resource "SSD=1" \
+    nvidia/cuda
 ```
 
 ## Related commands

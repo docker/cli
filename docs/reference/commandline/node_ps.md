@@ -27,9 +27,12 @@ Lists all the tasks on a Node that Docker knows about. You can filter using the
 `-f` or `--filter` flag. Refer to the [filtering](#filtering) section for more
 information about available filter options.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -127,7 +130,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Image` entries separated by a colon for all tasks:
+`Name` and `Image` entries separated by a colon (`:`) for all tasks:
 
 ```bash
 $ docker node ps --format "{{.Name}}: {{.Image}}"

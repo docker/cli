@@ -27,9 +27,12 @@ the given template will be executed for each result.
 Go's [text/template](http://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -48,47 +51,47 @@ dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
 Both `docker service inspect redis`, and `docker service inspect dmu1ept4cxcf`
 produce the same result:
 
-```none
+```bash
 $ docker service inspect redis
 
 [
-    {
-        "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
-        "Version": {
-            "Index": 12
+  {
+    "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
+    "Version": {
+      "Index": 12
+    },
+    "CreatedAt": "2016-06-17T18:44:02.558012087Z",
+    "UpdatedAt": "2016-06-17T18:44:02.558012087Z",
+    "Spec": {
+      "Name": "redis",
+      "TaskTemplate": {
+        "ContainerSpec": {
+          "Image": "redis:3.0.6"
         },
-        "CreatedAt": "2016-06-17T18:44:02.558012087Z",
-        "UpdatedAt": "2016-06-17T18:44:02.558012087Z",
-        "Spec": {
-            "Name": "redis",
-            "TaskTemplate": {
-                "ContainerSpec": {
-                    "Image": "redis:3.0.6"
-                },
-                "Resources": {
-                    "Limits": {},
-                    "Reservations": {}
-                },
-                "RestartPolicy": {
-                    "Condition": "any",
-                    "MaxAttempts": 0
-                },
-                "Placement": {}
-            },
-            "Mode": {
-                "Replicated": {
-                    "Replicas": 1
-                }
-            },
-            "UpdateConfig": {},
-            "EndpointSpec": {
-                "Mode": "vip"
-            }
+        "Resources": {
+          "Limits": {},
+          "Reservations": {}
         },
-        "Endpoint": {
-            "Spec": {}
+        "RestartPolicy": {
+          "Condition": "any",
+          "MaxAttempts": 0
+        },
+        "Placement": {}
+      },
+      "Mode": {
+        "Replicated": {
+          "Replicas": 1
         }
+      },
+      "UpdateConfig": {},
+      "EndpointSpec": {
+        "Mode": "vip"
+      }
+    },
+    "Endpoint": {
+      "Spec": {}
     }
+  }
 ]
 ```
 
@@ -96,13 +99,13 @@ $ docker service inspect redis
 $ docker service inspect dmu1ept4cxcf
 
 [
-    {
-        "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
-        "Version": {
-            "Index": 12
-        },
-        ...
-    }
+  {
+    "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
+    "Version": {
+      "Index": 12
+    },
+    ...
+  }
 ]
 ```
 

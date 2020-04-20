@@ -20,7 +20,9 @@ Options:
 
 Demotes an existing manager so that it is no longer a manager.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the [Swarm mode
 > section](https://docs.docker.com/engine/swarm/) in the documentation.
 

@@ -26,10 +26,12 @@ Options:
 
 Lists the stacks.
 
-> **Note**: This is a cluster management command. When using swarm as an orchestrator,
-> this command must be executed on a swarm manager node. To learn about managers
-> and workers, refer to the [Swarm mode section](https://docs.docker.com/engine/swarm/)
-> in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -61,7 +63,7 @@ the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Services` entries separated by a colon for all stacks:
+`Name` and `Services` entries separated by a colon (`:`) for all stacks:
 
 ```bash
 $ docker stack ls --format "{{.Name}}: {{.Services}}"

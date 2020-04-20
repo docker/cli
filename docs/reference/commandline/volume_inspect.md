@@ -28,19 +28,26 @@ details of the format.
 
 ```bash
 $ docker volume create
-85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
+
+8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5
+
 $ docker volume inspect 85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
+
 [
   {
-      "Name": "85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d",
-      "Driver": "local",
-      "Mountpoint": "/var/lib/docker/volumes/85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d/_data",
-      "Status": null
+    "CreatedAt": "2020-04-19T11:00:21Z",
+    "Driver": "local",
+    "Labels": {},
+    "Mountpoint": "/var/lib/docker/volumes/8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5/_data",
+    "Name": "8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5",
+    "Options": {},
+    "Scope": "local"
   }
 ]
 
-$ docker volume inspect --format '{{ .Mountpoint }}' 85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
-/var/lib/docker/volumes/85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d/_data
+$ docker volume inspect --format '{{ .Mountpoint }}' 8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5
+
+/var/lib/docker/volumes/8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5/_data
 ```
 
 ## Related commands
@@ -49,4 +56,4 @@ $ docker volume inspect --format '{{ .Mountpoint }}' 85bffb0677236974f93955d8ecc
 * [volume ls](volume_ls.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)

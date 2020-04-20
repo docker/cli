@@ -32,5 +32,5 @@ Manage secrets.
 
 * [secret create](secret_create.md)
 * [secret inspect](secret_inspect.md)
-* [secret list](secret_list.md)
+* [secret list](secret_ls.md)
 * [secret rm](secret_rm.md)

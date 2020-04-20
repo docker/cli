@@ -15,8 +15,10 @@ Options:
       --help        Print usage
 ```
 
-> **Note**: `docker wait` returns `0` when run against a container which had
-> already exited before the `docker wait` command was run.
+> **Note**
+>
+> `docker wait` returns `0` when run against a container which had already
+> exited before the `docker wait` command was run.
 
 ## Examples
 
