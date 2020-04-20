@@ -21,7 +21,10 @@ func generateCliYaml(opts *options) error {
 	if err != nil {
 		return err
 	}
-	cmd := &cobra.Command{Use: "docker"}
+	cmd := &cobra.Command{
+		Use:   "docker [OPTIONS] COMMAND [ARG...]",
+		Short: "The base command for the Docker CLI.",
+	}
 	commands.AddCommands(cmd, dockerCli)
 	disableFlagsInUseLine(cmd)
 	source := filepath.Join(opts.source, descriptionSourcePath)
