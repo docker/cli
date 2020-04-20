@@ -78,12 +78,13 @@ that succeeds, the directory is sent to the Docker daemon as the context.
 Local copy gives you the ability to access private repositories using local
 user credentials, VPN's, and so forth.
 
-> **Note:**
+> **Note**
+>
 > If the `URL` parameter contains a fragment the system will recursively clone
 > the repository and its submodules using a `git clone --recursive` command.
 
 Git URLs accept context configuration in their fragment section, separated by a
-colon `:`.  The first part represents the reference that Git will check out,
+colon (`:`).  The first part represents the reference that Git will check out,
 and can be either a branch, a tag, or a remote reference. The second part
 represents a subdirectory inside the repository that will be used as a build
 context.
@@ -396,13 +397,13 @@ the command line.
 
 When `docker build` is run with the `--cgroup-parent` option the containers
 used in the build will be run with the [corresponding `docker run`
-flag](../run.md#specifying-custom-cgroups).
+flag](../run.md#specify-custom-cgroups).
 
 ### Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
 container to be started using those [`--ulimit`
-flag values](./run.md#set-ulimits-in-container-ulimit).
+flag values](run.md#set-ulimits-in-container---ulimit).
 
 ### Set build-time variables (--build-arg)
 
@@ -577,7 +578,9 @@ $ ls ./out
 vndr
 ```
 
-> **Note**: This feature requires the BuildKit backend. You can either
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
 > [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
 > plugin which provides more output type options.
 
@@ -616,7 +619,9 @@ BuildKit automatically pulls the image from the registry if needed.
 $ docker build --cache-from myname/myapp .
 ```
 
-> **Note**: This feature requires the BuildKit backend. You can either
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
 > [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
 > plugin. The previous builder has limited support for reusing cache from
 > pre-pulled images.

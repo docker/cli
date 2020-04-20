@@ -35,7 +35,7 @@ If you are behind an HTTP proxy server, for example in corporate settings,
 before open a connect to registry, you may need to configure the Docker
 daemon's proxy settings, using the `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`
 environment variables. To set these environment variables on a host using
-`systemd`, refer to the [control and configure Docker with systemd](https://docs.docker.com/engine/admin/systemd/#http-proxy)
+`systemd`, refer to the [control and configure Docker with systemd](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
 for variables configuration.
 
 ### Concurrent downloads
@@ -101,7 +101,7 @@ same image, their layers are stored only once and do not consume extra disk
 space.
 
 For more information about images, layers, and the content-addressable store,
-refer to [understand images, containers, and storage drivers](https://docs.docker.com/engine/userguide/storagedriver/imagesandcontainers/).
+refer to [understand images, containers, and storage drivers](https://docs.docker.com/storage/storagedriver/).
 
 
 ### Pull an image by digest (immutable identifier)
@@ -163,7 +163,9 @@ FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5
 MAINTAINER some maintainer <maintainer@example.com>
 ```
 
-> **Note**: Using this feature "pins" an image to a specific version in time.
+> **Note**
+>
+> Using this feature "pins" an image to a specific version in time.
 > Docker will therefore not pull updated versions of an image, which may include
 > security updates. If you want to pull an updated image, you need to change the
 > digest accordingly.
@@ -240,7 +242,9 @@ a3ed95caeb02: Pulling fs layer
 ^C
 ```
 
-> **Note**: Technically, the Engine terminates a pull operation when the
-> connection between the Docker Engine daemon and the Docker Engine client
-> initiating the pull is lost. If the connection with the Engine daemon is
-> lost for other reasons than a manual interaction, the pull is also aborted.
+> **Note**
+>
+> The Engine terminates a pull operation when the connection between the Docker
+> Engine daemon and the Docker Engine client initiating the pull is lost. If the
+> connection with the Engine daemon is lost for other reasons than a manual
+> interaction, the pull is also aborted.

@@ -27,9 +27,12 @@ Lists all the nodes that the Docker Swarm manager knows about. You can filter
 using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section
 for more information about available filter options.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -41,10 +44,11 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 38ciaotwjuritcdtn9npbnkuz    swarm-worker1   Ready   Active
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
-> **Note**:
-> In the above example output, there is a hidden column of `.Self` that indicates if the
-> node is the same node as the current docker daemon. A `*` (e.g., `e216jshn25ckzbvmwlnh5jr3g *`)
-> means this node is the current docker daemon.
+> **Note**
+>
+> In the above example output, there is a hidden column of `.Self` that indicates
+> if the node is the same node as the current docker daemon. A `*` (e.g.,
+> `e216jshn25ckzbvmwlnh5jr3g *`) means this node is the current docker daemon.
 
 
 ### Filtering
@@ -54,11 +58,11 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-* [id](node_ls.md#id)
-* [label](node_ls.md#label)
-* [membership](node_ls.md#membership)
-* [name](node_ls.md#name)
-* [role](node_ls.md#role)
+* [id](#id)
+* [label](#label)
+* [membership](#membership)
+* [name](#name)
+* [role](#role)
 
 #### id
 
@@ -148,7 +152,8 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID`, `Hostname`, and `TLS Status` entries separated by a colon for all nodes:
+`ID`, `Hostname`, and `TLS Status` entries separated by a colon (`:`) for all
+nodes:
 
 ```bash
 $ docker node ls --format "{{.ID}}: {{.Hostname}} {{.TLSStatus}}"

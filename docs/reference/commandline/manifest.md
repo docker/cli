@@ -40,7 +40,7 @@ to two images -- one for windows on amd64, and one for darwin on amd64.
 
 ### manifest inspect
 
-```
+```bash
 manifest inspect --help
 
 Usage:  docker manifest inspect [OPTIONS] [MANIFEST_LIST] MANIFEST
@@ -275,9 +275,10 @@ $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1
 $ docker manifest push --insecure myprivateregistry.mycompany.com/repo/image:tag
 ```
 
-> **Note**: the `--insecure` flag is not required to annotate a manifest list,
+> **Note**
+>
+> The `--insecure` flag is not required to annotate a manifest list,
 > since annotations are to a locally-stored copy of a manifest list. You may also
 > skip the `--insecure` flag if you are performing a `docker manifest inspect`
 > on a locally-stored manifest list. Be sure to keep in mind that locally-stored
 > manifest lists are never used by the engine on a `docker pull`.
-

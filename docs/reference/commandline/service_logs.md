@@ -26,20 +26,25 @@ Options:
 
 The `docker service logs` command batch-retrieves logs present at the time of execution.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 The `docker service logs` command can be used with either the name or ID of a
 service, or with the ID of a task. If a service is passed, it will display logs
 for all of the containers in that service. If a task is passed, it will only
 display logs from that particular task.
 
-> **Note**: This command is only functional for services that are started with
+> **Note**
+>
+> This command is only functional for services that are started with
 > the `json-file` or `journald` logging driver.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/engine/admin/logging/overview/).
+[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
 
 The `docker service logs --follow` command will continue streaming the new output from
 the service's `STDOUT` and `STDERR`.

@@ -35,7 +35,7 @@ prune, connect, and disconnect networks.
 
 * [network create](network_create.md)
 * [network inspect](network_inspect.md)
-* [network list](network_list.md)
+* [network list](network_ls.md)
 * [network rm](network_rm.md)
 * [network prune](network_prune.md)
 * [network connect](network_connect.md)

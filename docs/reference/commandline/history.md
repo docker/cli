@@ -68,7 +68,8 @@ output the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `CreatedSince` entries separated by a colon for the `busybox` image:
+`ID` and `CreatedSince` entries separated by a colon (`:`) for the `busybox`
+image:
 
 ```bash
 $ docker history --format "{{.ID}}: {{.CreatedSince}}" busybox

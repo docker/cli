@@ -25,10 +25,12 @@ Options:
 
 Lists the services that are running as part of the specified stack.
 
-> **Note**: This is a cluster management command. When using swarm as an orchestrator,
-> this command must be executed on a swarm manager node. To learn about managers
-> and workers, refer to the [Swarm mode section](https://docs.docker.com/engine/swarm/)
-> in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -87,7 +89,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 Placeholder | Description
-------------|------------------------------------------------------------------------------------------
+------------|-------------------------------------------------------------------
 `.ID`       | Service ID
 `.Name`     | Service name
 `.Mode`     | Service mode (replicated, global)
@@ -99,7 +101,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID`, `Mode`, and `Replicas` entries separated by a colon for all services:
+`ID`, `Mode`, and `Replicas` entries separated by a colon (`:`) for all services:
 
 ```bash
 $ docker stack services --format "{{.ID}}: {{.Mode}} {{.Replicas}}"

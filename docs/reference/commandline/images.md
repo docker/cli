@@ -184,8 +184,7 @@ dea752e4e117
 511136ea3c5a
 ```
 
-> **Note**: Docker warns you if any containers exist that are using these
-> untagged images.
+Docker warns you if any containers exist that are using these untagged images.
 
 
 #### Show images with a given label
@@ -309,7 +308,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Repository` entries separated by a colon for all images:
+`ID` and `Repository` entries separated by a colon (`:`) for all images:
 
 ```bash
 $ docker images --format "{{.ID}}: {{.Repository}}"

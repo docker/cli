@@ -66,8 +66,9 @@ my-named-vol                                                       0            
 * `UNIQUE SIZE` is the amount of space that is only used by a given image
 * `SIZE` is the virtual size of the image, it is the sum of `SHARED SIZE` and `UNIQUE SIZE`
 
-> **Note**: Network information is not shown because it doesn't consume the disk
-> space.
+> **Note**
+>
+> Network information is not shown because it does not consume disk space.
 
 ## Performance
 
@@ -98,7 +99,7 @@ the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`Type` and `TotalCount` entries separated by a colon:
+`Type` and `TotalCount` entries separated by a colon (`:`):
 
 ```bash
 $ docker system df --format "{{.Type}}: {{.TotalCount}}"

@@ -75,8 +75,8 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder    | Description
----------------|------------------------------------------------------------------------------------------
+Placeholder        | Description
+-------------------|------------------------------------------------------------
 `.ID`              | Plugin ID
 `.Name`            | Plugin name
 `.Description`     | Plugin description
@@ -88,7 +88,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Name` entries separated by a colon for all plugins:
+`ID` and `Name` entries separated by a colon (`:`) for all plugins:
 
 ```bash
 $ docker plugin ls --format "{{.ID}}: {{.Name}}"

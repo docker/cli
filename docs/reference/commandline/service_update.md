@@ -110,9 +110,12 @@ service requires recreating the tasks for it to take effect. For example, only c
 setting. However, the `--force` flag will cause the tasks to be recreated anyway. This can be used to perform a
 rolling restart without any changes to the service parameters.
 
-> **Note**: This is a cluster management command, and must be executed on a swarm
-> manager node. To learn about managers and workers, refer to the [Swarm mode
-> section](https://docs.docker.com/engine/swarm/) in the documentation.
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -147,9 +150,8 @@ point, effectively removing the `test-data` volume. Each command returns the
 service name.
 
 - The `--mount-add` flag takes the same parameters as the `--mount` flag on
-  `service create`. Refer to the [volumes and
-  bind mounts](service_create.md#volumes-and-bind-mounts-mount) section in the
-  `service create` reference for details.
+  `service create`. Refer to the [volumes and bind mounts](service_create.md#add-bind-mounts-volumes-or-memory-filesystems)
+  section in the `service create` reference for details.
 
 - The `--mount-rm` flag takes the `target` path of the mount.
 
@@ -179,7 +181,7 @@ myservice
 
 Use the `--publish-add` or `--publish-rm` flags to add or remove a published
 port for a service. You can use the short or long syntax discussed in the
-[docker service create](service_create/#publish-service-ports-externally-to-the-swarm)
+[docker service create](service_create.md#publish-service-ports-externally-to-the-swarm--p---publish)
 reference.
 
 The following example adds a published service port to an existing service.
@@ -194,7 +196,7 @@ $ docker service update \
 
 Use the `--network-add` or `--network-rm` flags to add or remove a network for
 a service. You can use the short or long syntax discussed in the
-[docker service create](service_create/#attach-a-service-to-an-existing-network-network)
+[docker service create](service_create.md#attach-a-service-to-an-existing-network---network)
 reference.
 
 The following example adds a new alias name to an existing service already connected to network my-network:
@@ -288,13 +290,13 @@ $ docker service update \
 ### Update services using templates
 
 Some flags of `service update` support the use of templating.
-See [`service create`](./service_create.md#templating) for the reference.
+See [`service create`](service_create.md#create-services-using-templates) for the reference.
 
 
 ### Specify isolation mode (Windows)
 
 `service update` supports the same `--isolation` flag as `service create`
-See [`service create`](./service_create.md) for the reference.
+See [`service create`](service_create.md) for the reference.
 
 ## Related commands
 

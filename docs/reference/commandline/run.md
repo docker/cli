@@ -155,7 +155,7 @@ of all containers.
 The `docker run` command can be used in combination with `docker commit` to
 [*change the command that a container runs*](commit.md). There is additional detailed information about `docker run` in the [Docker run reference](../run.md).
 
-For information on connecting a container to a network, see the ["*Docker network overview*"](https://docs.docker.com/engine/userguide/networking/).
+For information on connecting a container to a network, see the ["*Docker network overview*"](https://docs.docker.com/network/).
 
 ## Examples
 
@@ -282,8 +282,7 @@ $ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/stat
 ```
 
 By bind-mounting the docker unix socket and statically linked docker
-binary (refer to [get the linux binary](
-https://docs.docker.com/engine/installation/binaries/#/get-the-linux-binary)),
+binary (refer to [get the linux binary](https://docs.docker.com/engine/install/binaries/#install-static-binaries)),
 you give the container the full access to create and manipulate the host's
 Docker daemon.
 
@@ -311,7 +310,7 @@ docker run -v c:\foo:c: ...
 docker run -v c:\foo:c:\existing-directory-with-contents ...
 ```
 
-For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/engine/tutorials/dockervolumes/)
+For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/storage/volumes/)
 
 
 ### Add bind mounts or volumes using the --mount flag
@@ -322,7 +321,7 @@ mounts in a container.
 The `--mount` flag supports most options that are supported by the `-v` or the
 `--volume` flag, but uses a different syntax. For in-depth information on the
 `--mount` flag, and a comparison between `--volume` and `--mount`, refer to
-the [service create command reference](service_create.md#add-bind-mounts-or-volumes).
+the [service create command reference](service_create.md#add-bind-mounts-volumes-or-memory-filesystems).
 
 Even though there is no plan to deprecate `--volume`, usage of `--mount` is recommended.
 
@@ -344,7 +343,7 @@ $ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
 
 This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the host
 machine. You can also specify `udp` and `sctp` ports.
-The [Docker User Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
+The [Docker User Guide](https://docs.docker.com/network/links/)
 explains in detail how to manipulate ports in Docker.
 
 Note that ports which are not bound to the host (i.e., `-p 80:80` instead of
@@ -449,8 +448,8 @@ com.example.label3
 You can load multiple label-files by supplying multiple  `--label-file` flags.
 
 For additional information on working with labels, see [*Labels - custom
-metadata in Docker*](https://docs.docker.com/engine/userguide/labels-custom-metadata/) in the Docker User
-Guide.
+metadata in Docker*](https://docs.docker.com/config/labels-custom-metadata/) in
+the Docker User Guide.
 
 ### Connect a container to a network (--network)
 
@@ -476,9 +475,11 @@ or name. For `overlay` networks or custom plugins that support multi-host
 connectivity, containers connected to the same multi-host network but launched
 from different Engines can also communicate in this way.
 
-> **Note**: Service discovery is unavailable on the default bridge network.
-> Containers can communicate via their IP addresses by default. To communicate
-> by name, they must be linked.
+> **Note**
+>
+> Service discovery is unavailable on the default bridge network. Containers can
+> communicate via their IP addresses by default. To communicate by name, they
+> must be linked.
 
 You can disconnect a container from a network using the `docker network
 disconnect` command.
@@ -580,9 +581,10 @@ $ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
 fdisk: unable to open /dev/xvdc: Operation not permitted
 ```
 
-> **Note**: `--device` cannot be safely used with ephemeral devices. Block devices
-> that may be removed should not be added to untrusted containers with
-> `--device`.
+> **Note**
+>
+> The `--device` option cannot be safely used with ephemeral devices. Block devices
+> that may be removed should not be added to untrusted containers with `--device`.
 
 For Windows, the format of the string passed to the `--device` option is in
 the form of `--device=<IdType>/<Id>`. Beginning with Windows Server 2019
@@ -602,9 +604,11 @@ ports on the host visible in the container.
 PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.microsoft.com/windows/servercore:ltsc2019
 ```
 
-> **Note**: the `--device` option is only supported on process-isolated
-> Windows containers. This option fails if the container isolation is `hyperv`
-> or when running Linux Containers on Windows (LCOW).
+> **Note**
+>
+> The `--device` option is only supported on process-isolated Windows containers.
+> This option fails if the container isolation is `hyperv` or when running Linux
+> Containers on Windows (LCOW).
 
 ### Access an NVIDIA GPU
 
@@ -705,9 +709,11 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 1024
 ```
 
-> **Note**: If you do not provide a `hard limit`, the `soft limit` will be used
-> for both values. If no `ulimits` are set, they will be inherited from
-> the default `ulimits` set on the daemon.  `as` option is disabled now.
+> **Note**
+>
+> If you do not provide a `hard limit`, the `soft limit` is used
+> for both values. If no `ulimits` are set, they are inherited from
+> the default `ulimits` set on the daemon. The `as` option is disabled now.
 > In other words, the following script is not supported:
 >
 > ```bash
@@ -845,23 +851,22 @@ network namespace, run this command:
 $ docker run --sysctl net.ipv4.ip_forward=1 someimage
 ```
 
-> **Note**: Not all sysctls are namespaced. Docker does not support changing sysctls
+> **Note**
+>
+> Not all sysctls are namespaced. Docker does not support changing sysctls
 > inside of a container that also modify the host system. As the kernel
 > evolves we expect to see more sysctls become namespaced.
 
 #### Currently supported sysctls
 
-- `IPC Namespace`:
+IPC Namespace:
 
-  ```none
-  kernel.msgmax, kernel.msgmnb, kernel.msgmni, kernel.sem, kernel.shmall, kernel.shmmax, kernel.shmmni, kernel.shm_rmid_forced
-  Sysctls beginning with fs.mqueue.*
-  ```
+- `kernel.msgmax`, `kernel.msgmnb`, `kernel.msgmni`, `kernel.sem`,
+  `kernel.shmall`, `kernel.shmmax`, `kernel.shmmni`, `kernel.shm_rmid_forced`.
+- Sysctls beginning with `fs.mqueue.*`
+- If you use the `--ipc=host` option these sysctls are not allowed.
 
-  If you use the `--ipc=host` option these sysctls will not be allowed.
+Network Namespace:
 
-- `Network Namespace`:
-
-  Sysctls beginning with net.*
-
-  If you use the `--network=host` option using these sysctls will not be allowed.
+- Sysctls beginning with `net.*`
+- If you use the `--network=host` option using these sysctls are not allowed.
