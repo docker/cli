@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestLoadTwoDifferentVersion(t *testing.T) {

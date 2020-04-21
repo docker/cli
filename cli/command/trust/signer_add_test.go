@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/theupdateframework/notary"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestTrustSignerAddErrors(t *testing.T) {

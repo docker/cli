@@ -10,8 +10,8 @@ import (
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestGetTag(t *testing.T) {

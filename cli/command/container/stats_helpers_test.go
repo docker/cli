@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestCalculateMemUsageUnixNoCache(t *testing.T) {

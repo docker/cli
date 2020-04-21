@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNetworkConnectErrors(t *testing.T) {

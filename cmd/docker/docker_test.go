@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
 	"github.com/sirupsen/logrus"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestClientDebugEnabled(t *testing.T) {

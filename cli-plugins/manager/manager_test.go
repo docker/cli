@@ -7,8 +7,8 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
 )
 
 func TestListPluginCandidates(t *testing.T) {

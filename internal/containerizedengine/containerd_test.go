@@ -9,7 +9,7 @@ import (
 	"github.com/containerd/containerd"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestPullWithAuthPullFail(t *testing.T) {

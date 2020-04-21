@@ -14,9 +14,9 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/licensing"
 	"github.com/docker/licensing/model"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/golden"
 )
 
 const (

@@ -11,7 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/licensing/model"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestLoginNoAuth(t *testing.T) {

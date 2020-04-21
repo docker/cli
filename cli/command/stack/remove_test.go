@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func fakeClientForRemoveStackTest(version string) *fakeClient {

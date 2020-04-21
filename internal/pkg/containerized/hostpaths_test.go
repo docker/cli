@@ -6,7 +6,7 @@ import (
 
 	"github.com/containerd/containerd/containers"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestWithAllCapabilities(t *testing.T) {

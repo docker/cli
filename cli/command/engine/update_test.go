@@ -8,7 +8,7 @@ import (
 	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestUpdateNoContainerd(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestCheckpointContextFormatWrite(t *testing.T) {

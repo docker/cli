@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestParseLogDetails(t *testing.T) {

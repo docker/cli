@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
 

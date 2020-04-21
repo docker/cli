@@ -6,8 +6,8 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestVisitAll(t *testing.T) {

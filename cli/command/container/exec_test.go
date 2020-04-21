@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func withDefaultOpts(options execOptions) execOptions {

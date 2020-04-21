@@ -14,8 +14,8 @@ import (
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func setupConfigDir(t *testing.T) (string, func()) {

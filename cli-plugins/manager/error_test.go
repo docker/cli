@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestPluginError(t *testing.T) {
