@@ -158,16 +158,13 @@ service name.
 ```bash
 $ docker service create \
     --name=myservice \
-    --mount \
-      type=volume,source=test-data,target=/somewhere \
-    nginx:alpine \
-    myservice
+    --mount type=volume,source=test-data,target=/somewhere \
+    nginx:alpine
 
 myservice
 
 $ docker service update \
-    --mount-add \
-      type=volume,source=other-volume,target=/somewhere-else \
+    --mount-add type=volume,source=other-volume,target=/somewhere-else \
     myservice
 
 myservice
