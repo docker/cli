@@ -24,7 +24,8 @@ import (
 // called.
 var PersistentPreRunE func(*cobra.Command, []string) error
 
-func runPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
+// RunPlugin executes the specified plugin command
+func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
 	tcmd := newPluginCommand(dockerCli, plugin, meta)
 
 	var persistentPreRunOnce sync.Once
@@ -60,7 +61,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 
 	plugin := makeCmd(dockerCli)
 
-	if err := runPlugin(dockerCli, plugin, meta); err != nil {
+	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
