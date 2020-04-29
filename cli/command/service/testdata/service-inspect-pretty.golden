@@ -1,0 +1,42 @@
+
+ID:		de179gar9d0o7ltdybungplod
+Name:		my_service
+Labels:
+ com.label=foo
+Service Mode:	Replicated
+ Replicas:	2
+Placement:
+ContainerSpec:
+ Image:		foo/bar@sha256:this_is_a_test
+Configs:
+ Target:	/configtest.conf
+  Source:	configtest.conf
+Secrets:
+ Target:	/secrettest.conf
+  Source:	secrettest.conf
+Log Driver:
+ Name:		driver
+ LogOpts:
+  max-file:       5
+
+Resources:
+ Limits:
+  CPU:		100
+  Memory:	10MiB
+  PIDs:		20
+Networks: mynetwork 
+Endpoint Mode:	vip
+Ports:
+ PublishedPort = 30000
+  Protocol = tcp
+  TargetPort = 5000
+  PublishMode =  
+ Healthcheck:
+  Interval = 4ns
+  Retries = 3
+  StartPeriod =	2ns
+  Timeout =	1ns
+  Tests:
+	 Test = CMD-SHELL
+	 Test = curl 
+
