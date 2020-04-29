@@ -157,6 +157,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	}
 	fprintlnNonEmpty(dockerCli.Out(), " Logging Driver:", info.LoggingDriver)
 	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Driver:", info.CgroupDriver)
+	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Version:", info.CgroupVersion)
 
 	fmt.Fprintln(dockerCli.Out(), " Plugins:")
 	fmt.Fprintln(dockerCli.Out(), "  Volume:", strings.Join(info.Plugins.Volume, " "))
