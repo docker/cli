@@ -29,7 +29,7 @@ The basic `docker run` command takes this form:
 
     $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
 
-The `docker run` command must specify an [*IMAGE*](glossary.md#image)
+The `docker run` command must specify an [*IMAGE*](https://docs.docker.com/glossary/#image)
 to derive the container from. An image developer can define image
 defaults related to:
 
@@ -45,8 +45,8 @@ operator's ability to override image and Docker runtime defaults is why
 [*run*](commandline/run.md) has more options than any
 other `docker` command.
 
-To learn how to interpret the types of `[OPTIONS]`, see [*Option
-types*](commandline/cli.md#option-types).
+To learn how to interpret the types of `[OPTIONS]`, see
+[*Option types*](commandline/cli.md#option-types).
 
 > **Note**
 >
