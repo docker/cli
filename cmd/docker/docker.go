@@ -312,63 +312,65 @@ type versionDetails interface {
 	ServerInfo() command.ServerInfo
 }
 
-func hideFeatureFlag(f *pflag.Flag, hasFeature bool, annotation string) {
-	if hasFeature {
+func hideFlagIf(f *pflag.Flag, condition func(string) bool, annotation string) {
+	if f.Hidden {
 		return
 	}
-	if _, ok := f.Annotations[annotation]; ok {
-		f.Hidden = true
+	if values, ok := f.Annotations[annotation]; ok && len(values) > 0 {
+		if condition(values[0]) {
+			f.Hidden = true
+		}
 	}
 }
 
-func hideFeatureSubCommand(subcmd *cobra.Command, hasFeature bool, annotation string) {
-	if hasFeature {
+func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annotation string) {
+	if subcmd.Hidden {
 		return
 	}
-	if _, ok := subcmd.Annotations[annotation]; ok {
-		subcmd.Hidden = true
+	if v, ok := subcmd.Annotations[annotation]; ok {
+		if condition(v) {
+			subcmd.Hidden = true
+		}
 	}
 }
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
-	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-	hasBuildKit, err := command.BuildKitEnabled(details.ServerInfo())
-	if err != nil {
-		return err
-	}
+	var (
+		buildKitDisabled   = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return !v }
+		buildKitEnabled    = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return v }
+		notExperimental    = func(_ string) bool { return !details.ServerInfo().HasExperimental }
+		notExperimentalCLI = func(_ string) bool { return !details.ClientInfo().HasExperimental }
+		notOSType          = func(v string) bool { return v != details.ServerInfo().OSType }
+		versionOlderThan   = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
+	)
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		hideFeatureFlag(f, hasExperimental, "experimental")
-		hideFeatureFlag(f, hasExperimentalCLI, "experimentalCLI")
-		hideFeatureFlag(f, hasBuildKit, "buildkit")
-		hideFeatureFlag(f, !hasBuildKit, "no-buildkit")
 		// hide flags not supported by the server
-		if !isOSTypeSupported(f, osType) || !isVersionSupported(f, clientVersion) {
-			f.Hidden = true
-		}
 		// root command shows all top-level flags
 		if cmd.Parent() != nil {
-			if commands, ok := f.Annotations["top-level"]; ok {
-				f.Hidden = !findCommand(cmd, commands)
+			if cmds, ok := f.Annotations["top-level"]; ok {
+				f.Hidden = !findCommand(cmd, cmds)
+			}
+			if f.Hidden {
+				return
 			}
 		}
+
+		hideFlagIf(f, buildKitDisabled, "buildkit")
+		hideFlagIf(f, buildKitEnabled, "no-buildkit")
+		hideFlagIf(f, notExperimental, "experimental")
+		hideFlagIf(f, notExperimentalCLI, "experimentalCLI")
+		hideFlagIf(f, notOSType, "ostype")
+		hideFlagIf(f, versionOlderThan, "version")
 	})
 
 	for _, subcmd := range cmd.Commands() {
-		hideFeatureSubCommand(subcmd, hasExperimental, "experimental")
-		hideFeatureSubCommand(subcmd, hasExperimentalCLI, "experimentalCLI")
-		hideFeatureSubCommand(subcmd, hasBuildKit, "buildkit")
-		hideFeatureSubCommand(subcmd, !hasBuildKit, "no-buildkit")
-		// hide subcommands not supported by the server
-		if subcmdVersion, ok := subcmd.Annotations["version"]; ok && versions.LessThan(clientVersion, subcmdVersion) {
-			subcmd.Hidden = true
-		}
-		if v, ok := subcmd.Annotations["ostype"]; ok && v != osType {
-			subcmd.Hidden = true
-		}
+		hideSubcommandIf(subcmd, buildKitDisabled, "buildkit")
+		hideSubcommandIf(subcmd, buildKitEnabled, "no-buildkit")
+		hideSubcommandIf(subcmd, notExperimental, "experimental")
+		hideSubcommandIf(subcmd, notExperimentalCLI, "experimentalCLI")
+		hideSubcommandIf(subcmd, notOSType, "ostype")
+		hideSubcommandIf(subcmd, versionOlderThan, "version")
 	}
 	return nil
 }
@@ -394,31 +396,31 @@ func isSupported(cmd *cobra.Command, details versionDetails) error {
 }
 
 func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
-	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-
 	errs := []string{}
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		if f.Changed {
-			if !isVersionSupported(f, clientVersion) {
-				errs = append(errs, fmt.Sprintf("\"--%s\" requires API version %s, but the Docker daemon API version is %s", f.Name, getFlagAnnotation(f, "version"), clientVersion))
-				return
-			}
-			if !isOSTypeSupported(f, osType) {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", f.Name, getFlagAnnotation(f, "ostype"), osType))
-				return
-			}
-			if _, ok := f.Annotations["experimental"]; ok && !hasExperimental {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker daemon with experimental features enabled", f.Name))
-			}
-			if _, ok := f.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
-				errs = append(errs, fmt.Sprintf("\"--%s\" is only supported on a Docker cli with experimental cli features enabled", f.Name))
-			}
-			// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
+		if !f.Changed {
+			return
 		}
+		if !isVersionSupported(f, details.Client().ClientVersion()) {
+			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.Client().ClientVersion()))
+			return
+		}
+		if !isOSTypeSupported(f, details.ServerInfo().OSType) {
+			errs = append(errs, fmt.Sprintf(
+				`"--%s" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s`,
+				f.Name,
+				getFlagAnnotation(f, "ostype"), details.ServerInfo().OSType),
+			)
+			return
+		}
+		if _, ok := f.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
+			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker daemon with experimental features enabled`, f.Name))
+		}
+		if _, ok := f.Annotations["experimentalCLI"]; ok && !details.ClientInfo().HasExperimental {
+			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker cli with experimental cli features enabled`, f.Name))
+		}
+		// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
 	})
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
@@ -428,23 +430,18 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 
 // Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
-	clientVersion := details.Client().ClientVersion()
-	osType := details.ServerInfo().OSType
-	hasExperimental := details.ServerInfo().HasExperimental
-	hasExperimentalCLI := details.ClientInfo().HasExperimental
-
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
-		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(clientVersion, cmdVersion) {
-			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, clientVersion)
+		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.Client().ClientVersion(), cmdVersion) {
+			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.Client().ClientVersion())
 		}
-		if os, ok := curr.Annotations["ostype"]; ok && os != osType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, osType)
+		if os, ok := curr.Annotations["ostype"]; ok && os != details.ServerInfo().OSType {
+			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, details.ServerInfo().OSType)
 		}
-		if _, ok := curr.Annotations["experimental"]; ok && !hasExperimental {
+		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
 		}
-		if _, ok := curr.Annotations["experimentalCLI"]; ok && !hasExperimentalCLI {
+		if _, ok := curr.Annotations["experimentalCLI"]; ok && !details.ClientInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker cli with experimental cli features enabled", cmd.CommandPath())
 		}
 	}
