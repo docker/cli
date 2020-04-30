@@ -30,8 +30,8 @@ import (
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/term"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"
@@ -477,14 +477,20 @@ type ClientInfo struct {
 func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	cli := &DockerCli{}
 	defaultOps := []DockerCliOption{
+		// 从环境变量加载 DOCKER_CONTENT_TRUST配置，就是一个对镜像签名的东西
 		WithContentTrustFromEnv(),
 	}
+	// 加载默认的上下文，其实就是封装了几个函数
 	cli.contextStoreConfig = DefaultContextStoreConfig()
+	// 这里的ops 是一个DockerCliOption类型的，为什么要这么写呢，我觉得其实就是把函数的功能更加的扩展了，支持实例化的时候直接添加一些原始的操作
+	// 所以下面会把这些操作添加到切片中
 	ops = append(defaultOps, ops...)
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}
+	// 设置了客户输出信息
 	if cli.out == nil || cli.in == nil || cli.err == nil {
+		// 这里其实就是os.stdin...cli封装了输入地址，后续如果不想直接stdout输出的话，直接实例化的时候改就行，下面这些逻辑只有没有设置的时候才会，去设置的，
 		stdin, stdout, stderr := term.StdStreams()
 		if cli.in == nil {
 			cli.in = streams.NewIn(stdin)
@@ -565,6 +571,7 @@ func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
 }
 
 // DefaultContextStoreConfig returns a new store.Config with the default set of endpoints configured.
+//最后的返回值类似于 {0xa16b00 map[docker:0xa16700 kubernetes:0xf31d50]}
 func DefaultContextStoreConfig() store.Config {
 	return store.NewConfig(
 		func() interface{} { return &DockerContext{} },
