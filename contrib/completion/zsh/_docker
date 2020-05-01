@@ -266,12 +266,12 @@ __docker_run_all_capabilities() {
     # when all caps have been added, the default off ones should be available for dropping
     if [[ $IPREFIX == *drop* ]]; then
         _describe -t dropable-capabilities "on by default capabilities" default_on_capabilities
-        [[ "$opt_args[--cap-add]" == "ALL" ]] && _describe -t addable-capabilities "off by default capabilities" default_off_capabilities
+        [[ "$opt_args[--cap-add]" == *ALL* ]] && _describe -t addable-capabilities "off by default capabilities" default_off_capabilities
     fi
     # and vice-versa
     if [[ $IPREFIX == *add* ]]; then
         _describe -t addable-capabilities "off by default capabilities" default_off_capabilities
-        [[ "$opt_args[--cap-drop]" == "ALL" ]] && _describe -t dropable-capabilities "on by default capabilities" default_on_capabilities
+        [[ "$opt_args[--cap-drop]" == *ALL* ]] && _describe -t dropable-capabilities "on by default capabilities" default_on_capabilities
     fi
 }
 
