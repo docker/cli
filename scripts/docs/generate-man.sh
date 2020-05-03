@@ -4,7 +4,7 @@ set -eu -o pipefail
 
 mkdir -p ./man/man1
 
-go install ./vendor/github.com/cpuguy83/go-md2man
+go install ./vendor/github.com/cpuguy83/go-md2man/v2
 
 # Generate man pages from cobra commands
 go build -o /tmp/gen-manpages github.com/docker/cli/man
