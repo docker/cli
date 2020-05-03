@@ -18,5 +18,5 @@ for FILE in *.md; do
 		continue
 	fi
 	mkdir -p "./man${num}"
-	go-md2man -in "$FILE" -out "./man${num}/${name}"
+	md2man -in "$FILE" -out "./man${num}/${name}"
 done
