@@ -51,7 +51,7 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.forceNewCluster, "force-new-cluster", false, "Force create a new cluster from current state")
 	flags.BoolVar(&opts.autolock, flagAutolock, false, "Enable manager autolocking (requiring an unlock key to start a stopped manager)")
 	flags.StringVar(&opts.availability, flagAvailability, "active", `Availability of the node ("active"|"pause"|"drain")`)
-	flags.IPNetSliceVar(&opts.defaultAddrPools, flagDefaultAddrPool, []net.IPNet{}, "default address pool in CIDR format")
+	flags.Var(newIPNetSliceValue([]net.IPNet{}, &opts.defaultAddrPools), flagDefaultAddrPool, "default address pool in CIDR format")
 	flags.SetAnnotation(flagDefaultAddrPool, "version", []string{"1.39"})
 	flags.Uint32Var(&opts.DefaultAddrPoolMaskLength, flagDefaultAddrPoolMaskLength, 24, "default address pool subnet mask length")
 	flags.SetAnnotation(flagDefaultAddrPoolMaskLength, "version", []string{"1.39"})
