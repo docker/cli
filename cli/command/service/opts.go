@@ -423,6 +423,7 @@ type healthCheckOptions struct {
 	timeout       opts.PositiveDurationOpt
 	retries       int
 	startPeriod   opts.PositiveDurationOpt
+	bufferSize    int
 	noHealthcheck bool
 }
 
@@ -431,7 +432,8 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 	haveHealthSettings := opts.cmd != "" ||
 		opts.interval.Value() != nil ||
 		opts.timeout.Value() != nil ||
-		opts.retries != 0
+		opts.retries != 0 ||
+		opts.bufferSize != 0
 	if opts.noHealthcheck {
 		if haveHealthSettings {
 			return nil, errors.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
@@ -458,6 +460,7 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 			Timeout:     timeout,
 			Retries:     opts.retries,
 			StartPeriod: startPeriod,
+			BufferSize:  opts.bufferSize,
 		}
 	}
 	return healthConfig, nil
@@ -821,6 +824,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.SetAnnotation(flagHealthRetries, "version", []string{"1.25"})
 	flags.Var(&opts.healthcheck.startPeriod, flagHealthStartPeriod, "Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)")
 	flags.SetAnnotation(flagHealthStartPeriod, "version", []string{"1.29"})
+	flags.IntVar(&opts.healthcheck.bufferSize, flagHealthBufferSize, 0, "Longest healthcheck probe output message to store")
+	flags.SetAnnotation(flagHealthBufferSize, "version", []string{"1.42"})
 	flags.BoolVar(&opts.healthcheck.noHealthcheck, flagNoHealthcheck, false, "Disable any container-specified HEALTHCHECK")
 	flags.SetAnnotation(flagNoHealthcheck, "version", []string{"1.25"})
 
@@ -929,6 +934,7 @@ const (
 	flagHealthRetries           = "health-retries"
 	flagHealthTimeout           = "health-timeout"
 	flagHealthStartPeriod       = "health-start-period"
+	flagHealthBufferSize        = "health-buffer-size"
 	flagNoHealthcheck           = "no-healthcheck"
 	flagSecret                  = "secret"
 	flagSecretAdd               = "secret-add"

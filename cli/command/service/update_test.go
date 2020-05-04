@@ -322,6 +322,21 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 			expected: &container.HealthConfig{Test: []string{"CMD", "cmd1"}, StartPeriod: time.Minute},
 		},
 		{
+			flags:    [][2]string{{"health-buffer-size", "4096"}},
+			initial:  &container.HealthConfig{Test: []string{"CMD", "cmd1"}},
+			expected: &container.HealthConfig{Test: []string{"CMD", "cmd1"}, BufferSize: 4096},
+		},
+		{
+			flags:    [][2]string{{"health-buffer-size", "0"}},
+			initial:  &container.HealthConfig{Test: []string{"CMD", "cmd1"}, BufferSize: 4096},
+			expected: &container.HealthConfig{Test: []string{"CMD", "cmd1"}},
+		},
+		{
+			flags:    [][2]string{{"health-cmd", ""}},
+			initial:  &container.HealthConfig{Test: []string{"CMD", "cmd1"}, BufferSize: 4096},
+			expected: &container.HealthConfig{BufferSize: 4096},
+		},
+		{
 			flags: [][2]string{{"health-cmd", "cmd1"}, {"no-healthcheck", "true"}},
 			err:   "--no-healthcheck conflicts with --health-* options",
 		},
@@ -331,6 +346,10 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 		},
 		{
 			flags: [][2]string{{"health-timeout", "1m"}, {"no-healthcheck", "true"}},
+			err:   "--no-healthcheck conflicts with --health-* options",
+		},
+		{
+			flags: [][2]string{{"health-buffer-size", "4096"}, {"no-healthcheck", "true"}},
 			err:   "--no-healthcheck conflicts with --health-* options",
 		},
 	}

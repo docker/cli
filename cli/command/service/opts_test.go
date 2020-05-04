@@ -113,6 +113,7 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 		timeout:     opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
 		startPeriod: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
 		retries:     10,
+		bufferSize:  4096,
 	}
 	config, err := opt.toHealthConfig()
 	assert.NilError(t, err)
@@ -122,6 +123,7 @@ func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 		Timeout:     time.Second,
 		StartPeriod: time.Second,
 		Retries:     10,
+		BufferSize:  4096,
 	}, config))
 }
 

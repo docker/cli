@@ -121,6 +121,7 @@ type containerOptions struct {
 	healthTimeout      time.Duration
 	healthStartPeriod  time.Duration
 	healthRetries      int
+	healthBufferSize   int
 	runtime            string
 	autoRemove         bool
 	init               bool
@@ -509,7 +510,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		copts.healthInterval != 0 ||
 		copts.healthTimeout != 0 ||
 		copts.healthStartPeriod != 0 ||
-		copts.healthRetries != 0
+		copts.healthRetries != 0 ||
+		copts.healthBufferSize != 0
 	if copts.noHealthcheck {
 		if haveHealthSettings {
 			return nil, errors.Errorf("--no-healthcheck conflicts with --health-* options")
@@ -534,6 +536,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if copts.healthStartPeriod < 0 {
 			return nil, fmt.Errorf("--health-start-period cannot be negative")
 		}
+		if copts.healthBufferSize < 0 {
+			return nil, errors.Errorf("--health-buffer-size cannot be negative")
+		}
 
 		healthConfig = &container.HealthConfig{
 			Test:        probe,
@@ -541,6 +546,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 			Timeout:     copts.healthTimeout,
 			StartPeriod: copts.healthStartPeriod,
 			Retries:     copts.healthRetries,
+			BufferSize:  copts.healthBufferSize,
 		}
 	}
 

@@ -72,6 +72,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 
 					Healthcheck: &container.HealthConfig{
 						Test:        []string{"CMD-SHELL", "curl"},
+						BufferSize:  5,
 						Interval:    4,
 						Retries:     3,
 						StartPeriod: 2,

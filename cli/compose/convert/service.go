@@ -437,7 +437,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	}
 	var (
 		timeout, interval, startPeriod time.Duration
-		retries                        int
+		retries, bufferSize            int
 	)
 	if healthcheck.Disable {
 		if len(healthcheck.Test) != 0 {
@@ -460,12 +460,16 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
 	}
+	if healthcheck.BufferSize != nil {
+		bufferSize = int(*healthcheck.BufferSize)
+	}
 	return &container.HealthConfig{
 		Test:        healthcheck.Test,
 		Timeout:     timeout,
 		Interval:    interval,
 		Retries:     retries,
 		StartPeriod: startPeriod,
+		BufferSize:  bufferSize,
 	}, nil
 }
 

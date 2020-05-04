@@ -170,6 +170,7 @@ Ports:
   Retries = {{ .Healthcheck.Retries }}
   StartPeriod =	{{ .Healthcheck.StartPeriod }}
   Timeout =	{{ .Healthcheck.Timeout }}
+  BufferSize = {{ .Healthcheck.BufferSize }}
   {{- if .Healthcheck.Test }}
   Tests:
 	{{- range $test := .Healthcheck.Test }}

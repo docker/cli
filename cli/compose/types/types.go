@@ -283,6 +283,7 @@ type HealthCheckConfig struct {
 	Interval    *Duration       `yaml:",omitempty" json:"interval,omitempty"`
 	Retries     *uint64         `yaml:",omitempty" json:"retries,omitempty"`
 	StartPeriod *Duration       `mapstructure:"start_period" yaml:"start_period,omitempty" json:"start_period,omitempty"`
+	BufferSize  *uint64         `mapstructure:"buffer_size" yaml:"buffer_size,omitempty" json:"buffer_size,omitempty"`
 	Disable     bool            `yaml:",omitempty" json:"disable,omitempty"`
 }
 

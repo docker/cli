@@ -156,6 +156,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				Timeout:     durationPtr(1 * time.Second),
 				Retries:     uint64Ptr(5),
 				StartPeriod: durationPtr(15 * time.Second),
+				BufferSize:  uint64Ptr(4096),
 			},
 			Hostname: "foo",
 			Image:    "redis",
