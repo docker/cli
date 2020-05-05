@@ -99,28 +99,20 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 }
 
 // PutManifest sends the manifest to a registry and returns the new digest
-func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error) {
-	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
-	if err != nil {
-		return digest.Digest(""), err
+func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (dgst digest.Digest, err error) {
+	putManifest := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+		manifestService, err := repo.Manifests(ctx)
+		if err != nil {
+			return false, err
+		}
+		_, opts, err := getManifestOptionsFromReference(ref)
+		if err != nil {
+			return false, err
+		}
+		dgst, err = manifestService.Put(ctx, manifest, opts...)
+		return dgst != "", err
 	}
-
-	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
-	if err != nil {
-		return digest.Digest(""), err
-	}
-
-	manifestService, err := repo.Manifests(ctx)
-	if err != nil {
-		return digest.Digest(""), err
-	}
-
-	_, opts, err := getManifestOptionsFromReference(ref)
-	if err != nil {
-		return digest.Digest(""), err
-	}
-
-	dgst, err := manifestService.Put(ctx, manifest, opts...)
+	err = c.iterateEndpoints(ctx, ref, "push", putManifest)
 	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
 }
 
@@ -138,26 +130,15 @@ func (c *client) GetTags(ctx context.Context, ref reference.Named) ([]string, er
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
+	httpTransport, err := c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
+	if err != nil {
+		if strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
+			return nil, ErrHTTPProto{OrigErr: err.Error()}
+		}
+	}
 	repoName, err := reference.WithName(repoEndpoint.Name())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse repo name from %s", ref)
-	}
-	httpTransport, err := c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
-	if err != nil {
-		if !strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
-			return nil, err
-		}
-		if !repoEndpoint.endpoint.TLSConfig.InsecureSkipVerify {
-			return nil, ErrHTTPProto{OrigErr: err.Error()}
-		}
-		// --insecure was set; fall back to plain HTTP
-		if url := repoEndpoint.endpoint.URL; url != nil && url.Scheme == "https" {
-			url.Scheme = "http"
-			httpTransport, err = c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 	return distributionclient.NewRepository(repoName, repoEndpoint.BaseURL(), httpTransport)
 }
@@ -180,7 +161,7 @@ func (c *client) GetManifest(ctx context.Context, ref reference.Named) (manifest
 		return result.Ref != nil, err
 	}
 
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	err := c.iterateEndpoints(ctx, ref, "pull", fetch)
 	return result, err
 }
 
@@ -193,7 +174,7 @@ func (c *client) GetManifestList(ctx context.Context, ref reference.Named) ([]ma
 		return len(result) > 0, err
 	}
 
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	err := c.iterateEndpoints(ctx, ref, "pull", fetch)
 	return result, err
 }
 
