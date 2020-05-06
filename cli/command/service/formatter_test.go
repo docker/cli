@@ -15,6 +15,13 @@ import (
 )
 
 func TestServiceContextWrite(t *testing.T) {
+	var (
+		// we need a pair of variables for setting the job parameters, because
+		// those parameters take pointers to uint64, which we can't make as a
+		// literal
+		varThree uint64 = 3
+		varTen   uint64 = 10
+	)
 	cases := []struct {
 		context  formatter.Context
 		expected string
@@ -38,6 +45,8 @@ func TestServiceContextWrite(t *testing.T) {
 01_baz              baz                 global              1/3                                        *:80->8080/tcp
 04_qux2             qux2                replicated          3/3 (max 2 per node)                       
 03_qux10            qux10               replicated          2/3 (max 1 per node)                       
+05_job1             zarp1               replicated job      2/3 (5/10 completed)                       
+06_job2             zarp2               global job          1/1 (3/4 completed)                        
 `,
 		},
 		{
@@ -46,6 +55,8 @@ func TestServiceContextWrite(t *testing.T) {
 01_baz
 04_qux2
 03_qux10
+05_job1
+06_job2
 `,
 		},
 		{
@@ -55,6 +66,8 @@ bar                 replicated
 baz                 global
 qux2                replicated
 qux10               replicated
+zarp1               replicated job
+zarp2               global job
 `,
 		},
 		{
@@ -64,6 +77,8 @@ bar
 baz
 qux2
 qux10
+zarp1
+zarp2
 `,
 		},
 		// Raw Format
@@ -77,6 +92,8 @@ qux10
 id: 01_baz
 id: 04_qux2
 id: 03_qux10
+id: 05_job1
+id: 06_job2
 `,
 		},
 		// Custom Format
@@ -86,6 +103,8 @@ id: 03_qux10
 baz
 qux2
 qux10
+zarp1
+zarp2
 `,
 		},
 	}
@@ -168,6 +187,37 @@ qux10
 				ServiceStatus: &swarm.ServiceStatus{
 					RunningTasks: 3,
 					DesiredTasks: 3,
+				},
+			},
+			{
+				ID: "05_job1",
+				Spec: swarm.ServiceSpec{
+					Annotations: swarm.Annotations{Name: "zarp1"},
+					Mode: swarm.ServiceMode{
+						ReplicatedJob: &swarm.ReplicatedJob{
+							MaxConcurrent:    &varThree,
+							TotalCompletions: &varTen,
+						},
+					},
+				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks:   2,
+					DesiredTasks:   3,
+					CompletedTasks: 5,
+				},
+			},
+			{
+				ID: "06_job2",
+				Spec: swarm.ServiceSpec{
+					Annotations: swarm.Annotations{Name: "zarp2"},
+					Mode: swarm.ServiceMode{
+						GlobalJob: &swarm.GlobalJob{},
+					},
+				},
+				ServiceStatus: &swarm.ServiceStatus{
+					RunningTasks:   1,
+					DesiredTasks:   1,
+					CompletedTasks: 3,
 				},
 			},
 		}

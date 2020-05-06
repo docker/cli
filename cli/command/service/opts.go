@@ -508,8 +508,9 @@ type serviceOptions struct {
 	resources resourceOptions
 	stopGrace opts.DurationOpt
 
-	replicas Uint64Opt
-	mode     string
+	replicas      Uint64Opt
+	mode          string
+	maxConcurrent Uint64Opt
 
 	restartPolicy  restartPolicyOptions
 	constraints    opts.ListOpts
@@ -554,18 +555,45 @@ func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 	switch options.mode {
 	case "global":
 		if options.replicas.Value() != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 
 		if options.maxReplicas > 0 {
-			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated mode")
+			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated or replicated-job mode")
+		}
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
 		}
 
 		serviceMode.Global = &swarm.GlobalService{}
 	case "replicated":
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
+		}
+
 		serviceMode.Replicated = &swarm.ReplicatedService{
 			Replicas: options.replicas.Value(),
 		}
+	case "replicated-job":
+		concurrent := options.maxConcurrent.Value()
+		if concurrent == nil {
+			concurrent = options.replicas.Value()
+		}
+		serviceMode.ReplicatedJob = &swarm.ReplicatedJob{
+			MaxConcurrent:    concurrent,
+			TotalCompletions: options.replicas.Value(),
+		}
+	case "global-job":
+		if options.maxReplicas > 0 {
+			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated or replicated-job mode")
+		}
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
+		}
+		if options.replicas.Value() != nil {
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+		}
+		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	default:
 		return serviceMode, errors.Errorf("Unknown mode: %s, only replicated and global supported", options.mode)
 	}
@@ -579,14 +607,13 @@ func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Dur
 	return nil
 }
 
-func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
-	var service swarm.ServiceSpec
-
+// makeEnv gets the environment variables from the command line options and
+// returns a slice of strings to use in the service spec when doing ToService
+func (options *serviceOptions) makeEnv() ([]string, error) {
 	envVariables, err := opts.ReadKVEnvStrings(options.envFile.GetAll(), options.env.GetAll())
 	if err != nil {
-		return service, err
+		return nil, err
 	}
-
 	currentEnv := make([]string, 0, len(envVariables))
 	for _, env := range envVariables { // need to process each var, in order
 		k := strings.SplitN(env, "=", 2)[0]
@@ -601,6 +628,24 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		currentEnv = append(currentEnv, env)
 	}
 
+	return currentEnv, nil
+}
+
+// ToService takes the set of flags passed to the command and converts them
+// into a service spec.
+//
+// Takes an API client as the second argument in order to resolve network names
+// from the flags into network IDs.
+//
+// Returns an error if any flags are invalid or contradictory.
+func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
+	var service swarm.ServiceSpec
+
+	currentEnv, err := options.makeEnv()
+	if err != nil {
+		return service, err
+	}
+
 	healthConfig, err := options.healthcheck.toHealthConfig()
 	if err != nil {
 		return service, err
@@ -609,6 +654,16 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	serviceMode, err := options.ToServiceMode()
 	if err != nil {
 		return service, err
+	}
+
+	updateConfig := options.update.updateConfig(flags)
+	rollbackConfig := options.rollback.rollbackConfig(flags)
+
+	// update and rollback configuration is not supported for jobs. If these
+	// flags are not set, then the values will be nil. If they are non-nil,
+	// then return an error.
+	if (serviceMode.ReplicatedJob != nil || serviceMode.GlobalJob != nil) && (updateConfig != nil || rollbackConfig != nil) {
+		return service, errors.Errorf("update and rollback configuration is not supported for jobs")
 	}
 
 	networks := convertNetworks(options.networks)
@@ -671,8 +726,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			LogDriver: options.logDriver.toLogDriver(),
 		},
 		Mode:           serviceMode,
-		UpdateConfig:   options.update.updateConfig(flags),
-		RollbackConfig: options.rollback.rollbackConfig(flags),
+		UpdateConfig:   updateConfig,
+		RollbackConfig: rollbackConfig,
 		EndpointSpec:   options.endpoint.ToEndpointSpec(),
 	}
 
@@ -769,6 +824,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
+	flags.Var(&opts.maxConcurrent, flagConcurrent, "Number of job tasks to run concurrently (default equal to --replicas)")
+	flags.SetAnnotation(flagConcurrent, "version", []string{"1.41"})
 	flags.Uint64Var(&opts.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
 	flags.SetAnnotation(flagMaxReplicas, "version", []string{"1.40"})
 
@@ -878,6 +935,7 @@ const (
 	flagLimitCPU                = "limit-cpu"
 	flagLimitMemory             = "limit-memory"
 	flagMaxReplicas             = "replicas-max-per-node"
+	flagConcurrent              = "max-concurrent"
 	flagMode                    = "mode"
 	flagMount                   = "mount"
 	flagMountRemove             = "mount-rm"

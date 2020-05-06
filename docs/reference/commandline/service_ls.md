@@ -39,14 +39,17 @@ On a manager node:
 ```bash
 $ docker service ls
 
-ID            NAME      MODE        REPLICAS    IMAGE
-c8wgl7q4ndfd  frontend  replicated  5/5         nginx:alpine
-dmu1ept4cxcf  redis     replicated  3/3         redis:3.0.6
-iwe3278osahj  mongo     global      7/7         mongo:3.3
+ID            NAME      MODE            REPLICAS             IMAGE
+c8wgl7q4ndfd  frontend  replicated      5/5                  nginx:alpine
+dmu1ept4cxcf  redis     replicated      3/3                  redis:3.0.6
+iwe3278osahj  mongo     global          7/7                  mongo:3.3
+hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest        
 ```
 
 The `REPLICAS` column shows both the *actual* and *desired* number of tasks for
-the service.
+the service. If the service is in `replicated-job` or `global-job`, it will
+additionally show the completion status of the job as completed tasks over
+total tasks the job will execute.
 
 ### Filtering
 
