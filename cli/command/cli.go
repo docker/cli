@@ -448,6 +448,7 @@ func (cli *DockerCli) DockerEndpoint() docker.Endpoint {
 }
 
 // Apply all the operation on the cli
+//这个方法就是去执行用户传过来的操作，是一个切片类型的DockerCliOption，DockerCliOption
 func (cli *DockerCli) Apply(ops ...DockerCliOption) error {
 	for _, op := range ops {
 		if err := op(cli); err != nil {
@@ -485,6 +486,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	// 这里的ops 是一个DockerCliOption类型的，为什么要这么写呢，我觉得其实就是把函数的功能更加的扩展了，支持实例化的时候直接添加一些原始的操作
 	// 所以下面会把这些操作添加到切片中
 	ops = append(defaultOps, ops...)
+	// 执行实例化时候的添加的操作，就是实例化时候传的函数。
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}
@@ -502,6 +504,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 			cli.err = stderr
 		}
 	}
+	// 这里的cli目前只是封装了，一些标准输入输出的一些信息，和执行实例化时候传的一些操作。
 	return cli, nil
 }
 
