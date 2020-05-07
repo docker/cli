@@ -1,4 +1,5 @@
 Client:
+ Context:    default
  Debug Mode: false
  Plugins:
   goodplugin: unit test is good (ACME Corp, 0.1.0)

@@ -24,6 +24,7 @@ type infoOptions struct {
 
 type clientInfo struct {
 	Debug    bool
+	Context  string
 	Plugins  []pluginmanager.Plugin
 	Warnings []string
 }
@@ -71,7 +72,8 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	info.ClientInfo = &clientInfo{
-		Debug: debug.IsEnabled(),
+		Context: dockerCli.CurrentContext(),
+		Debug:   debug.IsEnabled(),
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -112,6 +114,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 }
 
 func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
+	fmt.Fprintln(dockerCli.Out(), " Context:   ", info.Context)
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
 
 	if len(info.Plugins) > 0 {

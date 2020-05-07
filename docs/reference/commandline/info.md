@@ -47,6 +47,7 @@ information about the `devicemapper` storage driver is shown:
 ```bash
 $ docker info
 Client:
+ Context:    default
  Debug Mode: false
 
 Server:
@@ -106,6 +107,7 @@ storage driver and a node that is part of a 2-node swarm:
 ```bash
 $ docker -D info
 Client:
+ Context:    default
  Debug Mode: true
 
 Server:
@@ -205,6 +207,7 @@ Here is a sample output for a daemon running on Windows Server 2016:
 ```none
 E:\docker>docker info
 Client:
+ Context:    default
  Debug Mode: false
 
 Server:
