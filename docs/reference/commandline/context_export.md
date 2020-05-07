@@ -17,6 +17,7 @@ Options:
 
 ## Description
 
-Exports a context in a file that can then be used with `docker context import` (or with `kubectl` if `--kubeconfig` is set).
-Default output filename is `<CONTEXT>.dockercontext`, or `<CONTEXT>.kubeconfig` if `--kubeconfig` is set.
+Exports a context in a file that can then be used with `docker context import`
+(or with `kubectl` if `--kubeconfig` is set). Default output filename is
+`<CONTEXT>.dockercontext`, or `<CONTEXT>.kubeconfig` if `--kubeconfig` is set.
 To export to `STDOUT`, you can run `docker context export my-context -`.
