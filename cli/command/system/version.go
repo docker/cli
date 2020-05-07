@@ -32,6 +32,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Git commit:	{{.GitCommit}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
+ Context:	{{.Context}}
  Experimental:	{{.Experimental}}
 {{- end}}
 
@@ -80,6 +81,7 @@ type clientVersion struct {
 	Os                string
 	Arch              string
 	BuildTime         string `json:",omitempty"`
+	Context           string
 	Experimental      bool
 }
 
@@ -147,6 +149,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Os:                runtime.GOOS,
 			Arch:              runtime.GOARCH,
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
+			Context:           dockerCli.CurrentContext(),
 		},
 	}
 

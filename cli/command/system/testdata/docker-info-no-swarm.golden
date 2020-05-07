@@ -1,4 +1,5 @@
 Client:
+ Context:    default
  Debug Mode: true
 
 Server:

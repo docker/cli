@@ -268,8 +268,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info without swarm",
 			dockerInfo: info{
-				Info:       &sampleInfoNoSwarm,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden: "docker-info-no-swarm",
 			jsonGolden:   "docker-info-no-swarm",
@@ -279,6 +282,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
+					Context: "default",
 					Plugins: samplePluginsInfo,
 				},
 			},
@@ -290,8 +294,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 			doc: "info with swarm",
 			dockerInfo: info{
-				Info:       &infoWithSwarm,
-				ClientInfo: &clientInfo{Debug: false},
+				Info: &infoWithSwarm,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   false,
+				},
 			},
 			prettyGolden: "docker-info-with-swarm",
 			jsonGolden:   "docker-info-with-swarm",
@@ -299,8 +306,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info with legacy warnings",
 			dockerInfo: info{
-				Info:       &infoWithWarningsLinux,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &infoWithWarningsLinux,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
@@ -309,8 +319,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info with daemon warnings",
 			dockerInfo: info{
-				Info:       &sampleInfoDaemonWarnings,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &sampleInfoDaemonWarnings,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
