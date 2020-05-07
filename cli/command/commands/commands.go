@@ -38,7 +38,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		container.NewContainerCommand(dockerCli),
 		container.NewRunCommand(dockerCli),
 
-		// image
 		image.NewImageCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
 

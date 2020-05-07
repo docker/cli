@@ -7,6 +7,7 @@ type ClientOptions struct {
 }
 
 // NewClientOptions returns a new ClientOptions
+//构造函数
 func NewClientOptions() *ClientOptions {
 	return &ClientOptions{Common: NewCommonOptions()}
 }

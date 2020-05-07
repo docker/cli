@@ -24,14 +24,17 @@ import (
 var allowedAliases = map[string]struct{}{
 	"builder": {},
 }
-
+// 这个函数就是一些命令参数的解析
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
+		//opt 封装了一些基本信息，比如	Hosts，LogLevel等等
 		opts    *cliflags.ClientOptions
+		//https://godoc.org/github.com/spf13/pflag 和标准库flag差不多
 		flags   *pflag.FlagSet
+		//https://godoc.org/github.com/spf13/cobra 命令行库
 		helpCmd *cobra.Command
 	)
-
+	//参数解析的一些操作
 	cmd := &cobra.Command{
 		Use:              "docker [OPTIONS] COMMAND [ARG...]",
 		Short:            "A self-sufficient runtime for containers",
@@ -40,6 +43,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 		TraverseChildren: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
+				// 如果参数为0表示命令行没有传参数，直接返回参数列表
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
 			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
@@ -288,7 +292,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	//设置日志输的地址 os.stout
+	//设置日志输的地址
 	logrus.SetOutput(dockerCli.Err())
 
 	if err := runDocker(dockerCli); err != nil {
