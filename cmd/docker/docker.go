@@ -283,11 +283,7 @@ func runDocker(dockerCli *command.DockerCli) error {
 
 func main() {
 	//实例化一个实例
-	dockerCli, err := command.NewDockerCli(func(cli *command.DockerCli) error {
-		//伪代码，测试docker初始化添加操作。
-		fmt.Println("定义了一个假的操作")
-		return nil
-	})
+	dockerCli, err := command.NewDockerCli()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
