@@ -191,7 +191,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewCreateCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)
@@ -250,7 +250,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 				},
 			})
 			cmd := NewCreateCommand(cli)
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
 			assert.NilError(t, err)
@@ -298,7 +298,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		},
 	})
 	cmd := NewCreateCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()
 	assert.NilError(t, err)

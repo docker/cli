@@ -45,7 +45,7 @@ func TestStackPsErrors(t *testing.T) {
 			taskListFunc: tc.taskListFunc,
 		}), &orchestrator)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -169,7 +169,7 @@ func TestStackPs(t *testing.T) {
 			for key, value := range tc.flags {
 				cmd.Flags().Set(key, value)
 			}
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, cmd.Execute(), tc.expectedErr)

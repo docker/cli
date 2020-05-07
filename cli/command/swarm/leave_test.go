@@ -37,7 +37,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 				swarmLeaveFunc: tc.swarmLeaveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

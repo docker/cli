@@ -44,7 +44,7 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newKeyGenerateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

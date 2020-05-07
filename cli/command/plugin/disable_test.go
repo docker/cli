@@ -40,7 +40,7 @@ func TestPluginDisableErrors(t *testing.T) {
 				pluginDisableFunc: tc.pluginDisableFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

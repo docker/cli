@@ -43,7 +43,7 @@ func TestNodePromoteErrors(t *testing.T) {
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

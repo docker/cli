@@ -35,7 +35,7 @@ func TestNetworkListErrors(t *testing.T) {
 				networkListFunc: tc.networkListFunc,
 			}),
 		)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

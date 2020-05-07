@@ -68,7 +68,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
 				imageRemoveFunc: tc.imageRemoveFunc,
 			}))
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			cmd.SetArgs(tc.args)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
@@ -124,7 +124,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
 			cmd := NewRemoveCommand(cli)
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			cmd.SetArgs(tc.args)
 			assert.NilError(t, cmd.Execute())
 			assert.Check(t, is.Equal(tc.expectedStderr, cli.ErrBuffer().String()))

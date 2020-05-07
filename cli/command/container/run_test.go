@@ -66,7 +66,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewRunCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		err := cmd.Execute()
 		assert.Assert(t, err != nil)
 		assert.Assert(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))

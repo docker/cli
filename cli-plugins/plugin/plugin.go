@@ -128,7 +128,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 	}
 	opts, flags := cli.SetupPluginRootCommand(cmd)
 
-	cmd.SetOutput(dockerCli.Out())
+	cmd.SetOut(dockerCli.Out())
 
 	cmd.AddCommand(
 		plugin,
