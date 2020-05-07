@@ -41,6 +41,7 @@ func TestVersionAlign(t *testing.T) {
 			Os:                "linux",
 			Arch:              "amd64",
 			BuildTime:         "Wed May 30 22:21:05 2018",
+			Context:           "my-context",
 			Experimental:      true,
 		},
 		Server: &types.Version{},
