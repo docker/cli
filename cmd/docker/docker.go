@@ -59,7 +59,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	setupHelpCommand(dockerCli, cmd, helpCmd)
 	setHelpFunc(dockerCli, cmd)
 
-	cmd.SetOutput(dockerCli.Out())
+	cmd.SetOut(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
 	cli.DisableFlagsInUseLine(cmd)

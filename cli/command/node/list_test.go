@@ -47,7 +47,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 			infoFunc:     tc.infoFunc,
 		})
 		cmd := newListCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }

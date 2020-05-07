@@ -37,7 +37,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}))
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -95,7 +95,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
 		cmd := NewHistoryCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)

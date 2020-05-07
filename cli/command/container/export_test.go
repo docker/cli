@@ -21,7 +21,7 @@ func TestContainerExportOutputToFile(t *testing.T) {
 		},
 	})
 	cmd := NewExportCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"-o", dir.Join("foo"), "container"})
 	assert.NilError(t, cmd.Execute())
 
@@ -39,7 +39,7 @@ func TestContainerExportOutputToIrregularFile(t *testing.T) {
 		},
 	})
 	cmd := NewExportCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"-o", "/dev/random", "container"})
 
 	err := cmd.Execute()

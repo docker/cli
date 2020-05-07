@@ -50,7 +50,7 @@ func TestTrustRevokeCommandErrors(t *testing.T) {
 		cmd := newRevokeCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -131,7 +131,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			cli.SetNotaryClient(tc.notaryRepository)
 			cmd := newRevokeCommand(cli)
 			cmd.SetArgs(tc.args)
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			if tc.expectedErr != "" {
 				assert.ErrorContains(t, cmd.Execute(), tc.expectedErr)
 				return

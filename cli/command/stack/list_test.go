@@ -54,7 +54,7 @@ func TestListErrors(t *testing.T) {
 			serviceListFunc: tc.serviceListFunc,
 		}), &orchestrator)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}

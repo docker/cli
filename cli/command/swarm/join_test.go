@@ -54,7 +54,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 				infoFunc:      tc.infoFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

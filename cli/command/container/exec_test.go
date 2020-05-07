@@ -220,7 +220,7 @@ func TestNewExecCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
 		cmd := NewExecCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}

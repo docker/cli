@@ -118,7 +118,7 @@ func (cli *DockerCli) In() *streams.In {
 // ShowHelp shows the command help.
 func ShowHelp(err io.Writer) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		cmd.SetOutput(err)
+		cmd.SetOut(err)
 		cmd.HelpFunc()(cmd, args)
 		return nil
 	}

@@ -70,7 +70,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 		cmd := newSignCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -80,7 +80,7 @@ func TestTrustSignCommandOfflineErrors(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "client is offline")
 }
 
@@ -286,7 +286,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"ubuntu:latest"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 
 	err = cmd.Execute()
 	assert.Assert(t, err != nil)
@@ -303,7 +303,7 @@ func TestSignCommandLocalFlag(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "error contacting notary server: dial tcp: lookup reg-name.io")
 
 }

@@ -77,7 +77,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 	cli.SetManifestStore(store)
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
@@ -99,7 +99,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
@@ -137,7 +137,7 @@ func TestInspectcommandRemoteManifest(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()

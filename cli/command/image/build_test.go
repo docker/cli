@@ -130,7 +130,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	cmd := NewBuildCommand(test.NewFakeCli(&fakeClient{}))
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, "unable to prepare context")
 	assert.ErrorContains(t, err, "docker-build-git")
@@ -154,7 +154,7 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	client := test.NewFakeCli(&fakeClient{})
 	cmd := NewBuildCommand(client)
 	cmd.SetArgs([]string{buildDir})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err = cmd.Execute()
 	assert.NilError(t, err)
 }

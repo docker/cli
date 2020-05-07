@@ -19,7 +19,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 	for _, args := range testCases {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), expectedError)
 	}
 }
@@ -34,7 +34,7 @@ func TestCliNewTagCommand(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"image1", "image2"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	value, _ := cmd.Flags().GetBool("interspersed")
 	assert.Check(t, !value)

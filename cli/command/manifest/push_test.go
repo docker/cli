@@ -42,7 +42,7 @@ func TestManifestPushErrors(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newPushListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
