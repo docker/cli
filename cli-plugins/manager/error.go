@@ -25,6 +25,11 @@ func (e *pluginError) Cause() error {
 	return e.cause
 }
 
+// Unwrap provides compatibility for Go 1.13 error chains.
+func (e *pluginError) Unwrap() error {
+	return e.cause
+}
+
 // MarshalText marshalls the pluginError into a textual form.
 func (e *pluginError) MarshalText() (text []byte, err error) {
 	return []byte(e.cause.Error()), nil

@@ -80,7 +80,7 @@ func TestEmptyFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
-	assert.Equal(t, errors.Cause(err), io.EOF)
+	assert.Assert(t, errors.Is(err, io.EOF))
 	assert.ErrorContains(t, err, ConfigFileName)
 }
 
