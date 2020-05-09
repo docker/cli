@@ -489,8 +489,19 @@ func fromComposeConstraints(s []string) *latest.Constraints {
 
 func fromComposeResources(r composeTypes.Resources) latest.Resources {
 	return latest.Resources{
-		Limits:       fromComposeResourcesResource(r.Limits),
+		Limits:       fromComposeResourcesResourceLimit(r.Limits),
 		Reservations: fromComposeResourcesResource(r.Reservations),
+	}
+}
+
+// TODO create ResourceLimit type and support for limiting Pids on k8s
+func fromComposeResourcesResourceLimit(r *composeTypes.ResourceLimit) *latest.Resource {
+	if r == nil {
+		return nil
+	}
+	return &latest.Resource{
+		MemoryBytes: int64(r.MemoryBytes),
+		NanoCPUs:    r.NanoCPUs,
 	}
 }
 

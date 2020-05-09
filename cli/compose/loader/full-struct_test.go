@@ -84,9 +84,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Order:           "start-first",
 				},
 				Resources: types.Resources{
-					Limits: &types.Resource{
+					Limits: &types.ResourceLimit{
 						NanoCPUs:    "0.001",
 						MemoryBytes: 50 * 1024 * 1024,
+						Pids:        100,
 					},
 					Reservations: &types.Resource{
 						NanoCPUs:    "0.0001",
@@ -581,6 +582,7 @@ services:
         limits:
           cpus: "0.001"
           memory: "52428800"
+          pids: 100
         reservations:
           cpus: "0.0001"
           memory: "20971520"
@@ -1070,7 +1072,8 @@ func fullExampleJSON(workingDir string) string {
         "resources": {
           "limits": {
             "cpus": "0.001",
-            "memory": "52428800"
+            "memory": "52428800",
+            "pids": 100
           },
           "reservations": {
             "cpus": "0.0001",

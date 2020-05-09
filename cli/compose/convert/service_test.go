@@ -74,7 +74,7 @@ func TestConvertExtraHosts(t *testing.T) {
 
 func TestConvertResourcesFull(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.Resource{
+		Limits: &composetypes.ResourceLimit{
 			NanoCPUs:    "0.003",
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
@@ -101,7 +101,7 @@ func TestConvertResourcesFull(t *testing.T) {
 
 func TestConvertResourcesOnlyMemory(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.Resource{
+		Limits: &composetypes.ResourceLimit{
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
 		Reservations: &composetypes.Resource{

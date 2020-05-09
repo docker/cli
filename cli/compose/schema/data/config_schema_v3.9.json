@@ -392,7 +392,8 @@
               "type": "object",
               "properties": {
                 "cpus": {"type": "string"},
-                "memory": {"type": "string"}
+                "memory": {"type": "string"},
+                "pids": {"type": "integer"}
               },
               "additionalProperties": false
             },

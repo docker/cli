@@ -302,11 +302,19 @@ type UpdateConfig struct {
 
 // Resources the resource limits and reservations
 type Resources struct {
-	Limits       *Resource `yaml:",omitempty" json:"limits,omitempty"`
-	Reservations *Resource `yaml:",omitempty" json:"reservations,omitempty"`
+	Limits       *ResourceLimit `yaml:",omitempty" json:"limits,omitempty"`
+	Reservations *Resource      `yaml:",omitempty" json:"reservations,omitempty"`
 }
 
-// Resource is a resource to be limited or reserved
+// ResourceLimit is a resource to be limited
+type ResourceLimit struct {
+	// TODO: types to convert from units and ratios
+	NanoCPUs    string    `mapstructure:"cpus" yaml:"cpus,omitempty" json:"cpus,omitempty"`
+	MemoryBytes UnitBytes `mapstructure:"memory" yaml:"memory,omitempty" json:"memory,omitempty"`
+	Pids        int64     `mapstructure:"pids" yaml:"pids,omitempty" json:"pids,omitempty"`
+}
+
+// Resource is a resource to be reserved
 type Resource struct {
 	// TODO: types to convert from units and ratios
 	NanoCPUs         string            `mapstructure:"cpus" yaml:"cpus,omitempty" json:"cpus,omitempty"`
