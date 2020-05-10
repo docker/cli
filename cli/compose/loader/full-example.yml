@@ -13,6 +13,9 @@ services:
       cache_from:
         - foo
         - bar
+      extra_hosts:
+        - "ipv4.example.com:127.0.0.1"
+        - "ipv6.example.com:::1"
       labels: [FOO=BAR]
 
 

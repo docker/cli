@@ -39,7 +39,11 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				Target:     "foo",
 				Network:    "foo",
 				CacheFrom:  []string{"foo", "bar"},
-				Labels:     map[string]string{"FOO": "BAR"},
+				ExtraHosts: types.HostsList{
+					"ipv4.example.com:127.0.0.1",
+					"ipv6.example.com:::1",
+				},
+				Labels: map[string]string{"FOO": "BAR"},
 			},
 			CapAdd:       []string{"ALL"},
 			CapDrop:      []string{"NET_ADMIN", "SYS_ADMIN"},
@@ -526,6 +530,9 @@ services:
       cache_from:
       - foo
       - bar
+      extra_hosts:
+      - ipv4.example.com:127.0.0.1
+      - ipv6.example.com:::1
       network: foo
       target: foo
     cap_add:
@@ -997,6 +1004,10 @@ func fullExampleJSON(workingDir string) string {
         "cache_from": [
           "foo",
           "bar"
+        ],
+        "extra_hosts": [
+          "ipv4.example.com:127.0.0.1",
+          "ipv6.example.com:::1"
         ],
         "network": "foo",
         "target": "foo"
