@@ -174,7 +174,7 @@ ea09c3c82f6e        registry:latest   /srv/run.sh            2 weeks ago        
 You can use a filter to locate containers that exited with status of `137`
 meaning a `SIGKILL(9)` killed them.
 
-```none
+```bash
 $ docker ps -a --filter 'exited=137'
 
 CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS                       PORTS               NAMES

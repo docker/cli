@@ -384,14 +384,15 @@ contents of the `debug` file instead of looking for a `Dockerfile` and will use
 directory structure of the build context, regardless of how you refer to it on
 the command line.
 
-> **Note:**
-> `docker build` will return a `no such file or directory` error if the
+> **Note**
+>
+> `docker build` returns a `no such file or directory` error if the
 > file or directory does not exist in the uploaded context. This may
 > happen if there is no context, or if you specify a file that is
 > elsewhere on the Host system. The context is limited to the current
 > directory (and its children) for security reasons, and to ensure
 > repeatable builds on remote Docker hosts. This is also the reason why
-> `ADD ../file` will not work.
+> `ADD ../file` does not work.
 
 ### Use a custom parent cgroup (--cgroup-parent)
 
@@ -672,30 +673,47 @@ The `--squash` option has a number of known limitations:
 
 #### Prerequisites
 
-The example on this page is using experimental mode in Docker 1.13.
+The example on this page is using experimental mode in Docker 19.03.
 
-Experimental mode can be enabled by using the `--experimental` flag when starting the Docker daemon or setting `experimental: true` in the `daemon.json` configuration file.
+Experimental mode can be enabled by using the `--experimental` flag when starting
+the Docker daemon or setting `experimental: true` in the `daemon.json` configuration
+file.
 
-By default, experimental mode is disabled. To see the current configuration, use the `docker version` command.
+By default, experimental mode is disabled. To see the current configuration of
+the docker daemon, use the `docker version` command and check the `Experimental`
+line in the `Engine` section:
 
-```none
-Server:
- Version:      1.13.1
- API version:  1.26 (minimum version 1.12)
- Go version:   go1.7.5
- Git commit:   092cba3
- Built:        Wed Feb  8 06:35:24 2017
- OS/Arch:      linux/amd64
- Experimental: false
+```console
+Client: Docker Engine - Community
+ Version:           19.03.8
+ API version:       1.40
+ Go version:        go1.12.17
+ Git commit:        afacb8b
+ Built:             Wed Mar 11 01:21:11 2020
+ OS/Arch:           darwin/amd64
+ Experimental:      false
 
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.8
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.12.17
+  Git commit:       afacb8b
+  Built:            Wed Mar 11 01:29:16 2020
+  OS/Arch:          linux/amd64
+  Experimental:     true
  [...]
 ```
 
-To enable experimental mode, users need to restart the docker daemon with the experimental flag enabled.
+To enable experimental mode, users need to restart the docker daemon with the
+experimental flag enabled.
 
 #### Enable Docker experimental
 
-Experimental features are now included in the standard Docker binaries as of version 1.13.0. For enabling experimental features, you need to start the Docker daemon with `--experimental` flag. You can also enable the daemon flag via /etc/docker/daemon.json. e.g.
+Experimental features are now included in the standard Docker binaries as of
+version 1.13.0. For enabling experimental features, you need to start the
+Docker daemon with `--experimental` flag. You can also enable the daemon flag
+via `/etc/docker/daemon.json`. e.g.
 
 ```json
 {
@@ -731,7 +749,7 @@ $ docker build --squash -t test .
 [...]
 ```
 
-If everything is right, the history will look like this:
+If everything is right, the history looks like this:
 
 ```bash
 $ docker history test
@@ -747,6 +765,8 @@ IMAGE               CREATED             CREATED BY                              
 <missing>           7 weeks ago         /bin/sh -c #(nop) ADD file:47ca6e777c36a4cfff   1.113 MB
 ```
 
-We could find that all layer's name is `<missing>`, and there is a new layer with COMMENT `merge`.
+We could find that a layer's name is `<missing>`, and there is a new layer with
+COMMENT `merge`.
 
-Test the image, check for `/remove_me` being gone, make sure `hello\nworld` is in `/hello`, make sure the `HELLO` envvar's value is `world`.
+Test the image, check for `/remove_me` being gone, make sure `hello\nworld` is
+in `/hello`, make sure the `HELLO` environment variable's value is `world`.

@@ -67,7 +67,7 @@ $ docker secret create --label env=dev \
 eo7jnzguqgtpdah3cm5srfb97
 ```
 
-```none
+```bash
 $ docker secret inspect my_secret
 
 [
