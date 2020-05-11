@@ -46,7 +46,7 @@ Volume names must be unique among drivers. This means you cannot use the same
 volume name with two different drivers. If you attempt this `docker` returns an
 error:
 
-```none
+```console
 A volume named  "hello"  already exists with the "some-other" driver. Choose a different volume name.
 ```
 

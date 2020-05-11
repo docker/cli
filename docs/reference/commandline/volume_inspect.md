@@ -27,27 +27,39 @@ details of the format.
 ## Examples
 
 ```bash
-$ docker volume create
+$ docker volume create myvolume
 
-8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5
+myvolume
+```
 
-$ docker volume inspect 85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
+Use the `docker volume inspect` comment to inspect the configuration of the volume:
 
+```bash
+$ docker volume inspect myvolume
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "CreatedAt": "2020-04-19T11:00:21Z",
     "Driver": "local",
     "Labels": {},
     "Mountpoint": "/var/lib/docker/volumes/8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5/_data",
-    "Name": "8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5",
+    "Name": "myvolume",
     "Options": {},
     "Scope": "local"
   }
 ]
+```
+Use the `--format` flag to format the output using a Go template, for example,
+to print the `Mountpoint` property:
 
-$ docker volume inspect --format '{{ .Mountpoint }}' 8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5
+```bash
+$ docker volume inspect --format '{{ .Mountpoint }}' myvolume
 
-/var/lib/docker/volumes/8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5/_data
+/var/lib/docker/volumes/myvolume/_data
 ```
 
 ## Related commands
