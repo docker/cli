@@ -53,7 +53,11 @@ produce the same result:
 
 ```bash
 $ docker service inspect redis
+```
 
+The output is in JSON format, for example:
+
+```json
 [
   {
     "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
