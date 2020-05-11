@@ -16,7 +16,7 @@ func TestPluginError(t *testing.T) {
 	inner := fmt.Errorf("testing")
 	err = wrapAsPluginError(inner, "wrapping")
 	assert.Error(t, err, "wrapping: testing")
-	assert.Equal(t, inner, errors.Cause(err))
+	assert.Assert(t, errors.Is(err, inner))
 
 	actual, err := yaml.Marshal(err)
 	assert.NilError(t, err)
