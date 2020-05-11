@@ -437,7 +437,7 @@ variables. (Unlike environment variables, labels are not visible to processes
 running inside a container.) The following example illustrates a label-file
 format:
 
-```none
+```console
 com.example.label1="a label"
 
 # this is a comment

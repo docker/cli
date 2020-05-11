@@ -204,7 +204,7 @@ $ docker info --format '{{json .}}'
 
 Here is a sample output for a daemon running on Windows Server 2016:
 
-```none
+```console
 E:\docker>docker info
 Client:
  Context:    default

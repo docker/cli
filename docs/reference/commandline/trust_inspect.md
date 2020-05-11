@@ -31,6 +31,11 @@ following example prints trust information for the `alpine:latest` image:
 
 ```bash
 $ docker trust inspect alpine:latest
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine:latest",
@@ -76,6 +81,11 @@ commands, `docker trust inspect` includes a `Signers` key:
 
 ```bash
 $ docker trust inspect my-image:purple
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "my-image:purple",
@@ -158,7 +168,11 @@ However, if other tags are signed in the same image repository,
 
 ```bash
 $ docker trust inspect alpine:unsigned
+```
 
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine:unsigned",
@@ -192,7 +206,11 @@ signed tags in the repository:
 
 ```bash
 $ docker trust inspect alpine
+```
 
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine",
@@ -257,7 +275,11 @@ and reports the results in an ordered list:
 
 ```bash
 $ docker trust inspect alpine notary
+```
 
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine",

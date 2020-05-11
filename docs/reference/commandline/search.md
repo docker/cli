@@ -32,7 +32,7 @@ Search [Docker Hub](https://hub.docker.com) for images
 
 This example displays images with a name containing 'busybox':
 
-```none
+```bash
 $ docker search busybox
 
 NAME                             DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
