@@ -48,4 +48,15 @@ Options:
 ## Description
 
 Updates an existing `context`.
-See [context create](context_create.md)
+See [context create](context_create.md).
+
+## Examples
+
+### Update an existing context
+
+```bash
+$ docker context update \
+    --description "some description" \
+    --docker "host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file" \
+    my-context
+```

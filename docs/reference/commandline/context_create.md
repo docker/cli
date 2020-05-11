@@ -53,23 +53,30 @@ Options:
 Creates a new `context`. This allows you to quickly switch the cli
 configuration to connect to different clusters or single nodes.
 
+## Examples
+
+### Create a context with a docker and kubernetes endpoint
+
 To create a context from scratch provide the docker and, if required,
 kubernetes options. The example below creates the context `my-context`
 with a docker endpoint of `/var/run/docker.sock` and a kubernetes configuration
 sourced from the file `/home/me/my-kube-config`:
 
 ```bash
-$ docker context create my-context \
-      --docker host=/var/run/docker.sock \
-      --kubernetes config-file=/home/me/my-kube-config
+$ docker context create \
+    --docker host=unix:///var/run/docker.sock \
+    --kubernetes config-file=/home/me/my-kube-config \
+    my-context 
 ```
+
+### Create a context based on an existing context
 
 Use the `--from=<context-name>` option to create a new context from
 an existing context. The example below creates a new context named `my-context`
 from the existing context `existing-context`:
 
 ```bash
-$ docker context create my-context --from existing-context
+$ docker context create --from existing-context my-context 
 ```
 
 If the `--from` option is not set, the `context` is created from the current context:
@@ -92,9 +99,10 @@ the existing context `existing-context` and a kubernetes configuration sourced
 from the file `/home/me/my-kube-config`:
 
 ```bash
-$ docker context create my-context \
-      --docker from=existing-context \
-      --kubernetes config-file=/home/me/my-kube-config
+$ docker context create \
+    --docker from=existing-context \
+    --kubernetes config-file=/home/me/my-kube-config \
+    my-context
 ```
 
 To source only the `kubernetes` configuration from an existing context use the
@@ -103,10 +111,13 @@ context named `my-context` using the kuberentes configuration from the existing
 context `existing-context` and a docker endpoint of `/var/run/docker.sock`:
 
 ```bash
-$ docker context create my-context \
-      --docker host=/var/run/docker.sock \
-      --kubernetes from=existing-context
+$ docker context create \
+    --docker host=unix:///var/run/docker.sock \
+    --kubernetes from=existing-context \
+    my-context
 ```
 
 Docker and Kubernetes endpoints configurations, as well as default stack
-orchestrator and description can be modified with `docker context update`
+orchestrator and description can be modified with `docker context update`.
+
+Refer to the [`docker context update` reference](context_update.md) for details.
