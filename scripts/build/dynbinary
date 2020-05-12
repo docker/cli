@@ -9,6 +9,16 @@ source ./scripts/build/.variables
 
 echo "Building dynamically linked $TARGET"
 export CGO_ENABLED=1
-go build -o "${TARGET}" -tags pkcs11 --ldflags "${LDFLAGS}" -buildmode=pie "${SOURCE}"
+case "$(go env GOARCH)" in
+        mips*|ppc64)
+                # pie build mode is not supported on mips architectures
+                GO_BUILDMODE=""
+                ;;
+        *)
+                GO_BUILDMODE="-buildmode=pie"
+                ;;
+esac
+
+go build -o "${TARGET}" -tags pkcs11 --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
 
 ln -sf "$(basename "${TARGET}")" build/docker
