@@ -21,6 +21,7 @@ type connectOptions struct {
 	aliases      []string
 	linklocalips []string
 	driverOpts   []string
+	priority     int
 }
 
 func newConnectCommand(dockerCli command.Cli) *cobra.Command {
@@ -46,6 +47,7 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringSliceVar(&options.aliases, "alias", []string{}, "Add network-scoped alias for the container")
 	flags.StringSliceVar(&options.linklocalips, "link-local-ip", []string{}, "Add a link-local address for the container")
 	flags.StringSliceVar(&options.driverOpts, "driver-opt", []string{}, "driver options for the network")
+	flags.IntVar(&options.priority, "priority", 0, "Set network priority (default 0)")
 	return cmd
 }
 
@@ -65,6 +67,7 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 		Links:      options.links.GetAll(),
 		Aliases:    options.aliases,
 		DriverOpts: driverOpts,
+		Priority:   options.priority,
 	}
 
 	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)

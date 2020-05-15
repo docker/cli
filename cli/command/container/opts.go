@@ -804,6 +804,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 			LinkLocalIPs: ep.LinkLocalIPs,
 		}
 	}
+	epConfig.Priority = ep.Priority
 	return epConfig, nil
 }
 
