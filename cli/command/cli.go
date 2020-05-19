@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/docker/cli/cli/config"
@@ -140,12 +139,9 @@ func (cli *DockerCli) loadConfigFile() {
 	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
 }
 
-var fetchServerInfo sync.Once
-
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
-	fetchServerInfo.Do(cli.initializeFromClient)
 	return cli.serverInfo
 }
 
@@ -280,6 +276,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return err
 		}
 	}
+	cli.initializeFromClient()
 	return nil
 }
 
