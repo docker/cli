@@ -25,25 +25,26 @@ const (
 func RunDeploy(dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Config) error {
 	ctx := context.Background()
 
-	if err := validateResolveImageFlag(dockerCli, &opts); err != nil {
+	if err := validateResolveImageFlag(&opts); err != nil {
 		return err
-	}
-
-	return deployCompose(ctx, dockerCli, opts, cfg)
-}
-
-// validateResolveImageFlag validates the opts.resolveImage command line option
-// and also turns image resolution off if the version is older than 1.30
-func validateResolveImageFlag(dockerCli command.Cli, opts *options.Deploy) error {
-	if opts.ResolveImage != ResolveImageAlways && opts.ResolveImage != ResolveImageChanged && opts.ResolveImage != ResolveImageNever {
-		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
 	}
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
 	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
 		opts.ResolveImage = ResolveImageNever
 	}
-	return nil
+
+	return deployCompose(ctx, dockerCli, opts, cfg)
+}
+
+// validateResolveImageFlag validates the opts.resolveImage command line option
+func validateResolveImageFlag(opts *options.Deploy) error {
+	switch opts.ResolveImage {
+	case ResolveImageAlways, ResolveImageChanged, ResolveImageNever:
+		return nil
+	default:
+		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
+	}
 }
 
 // checkDaemonIsSwarmManager does an Info API call to verify that the daemon is
