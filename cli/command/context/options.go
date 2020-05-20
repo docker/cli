@@ -186,12 +186,7 @@ func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*ku
 			return &res, nil
 		}
 
-		// fallback to env-based kubeconfig
-		kubeconfig := os.Getenv("KUBECONFIG")
-		if kubeconfig == "" {
-			kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-		}
-		ep, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
+		ep, err := kubernetes.FromKubeConfig("", "", "")
 		if err != nil {
 			return nil, err
 		}
