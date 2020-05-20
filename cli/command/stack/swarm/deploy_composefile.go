@@ -77,11 +77,7 @@ func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) ma
 	return serviceNetworks
 }
 
-func validateExternalNetworks(
-	ctx context.Context,
-	client dockerclient.NetworkAPIClient,
-	externalNetworks []string,
-) error {
+func validateExternalNetworks(ctx context.Context, client dockerclient.NetworkAPIClient, externalNetworks []string) error {
 	for _, networkName := range externalNetworks {
 		if !container.NetworkMode(networkName).IsUserDefined() {
 			// Networks that are not user defined always exist on all nodes as
@@ -101,11 +97,7 @@ func validateExternalNetworks(
 	return nil
 }
 
-func createSecrets(
-	ctx context.Context,
-	dockerCli command.Cli,
-	secrets []swarm.SecretSpec,
-) error {
+func createSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.SecretSpec) error {
 	client := dockerCli.Client()
 
 	for _, secretSpec := range secrets {
@@ -129,11 +121,7 @@ func createSecrets(
 	return nil
 }
 
-func createConfigs(
-	ctx context.Context,
-	dockerCli command.Cli,
-	configs []swarm.ConfigSpec,
-) error {
+func createConfigs(ctx context.Context, dockerCli command.Cli, configs []swarm.ConfigSpec) error {
 	client := dockerCli.Client()
 
 	for _, configSpec := range configs {
@@ -157,12 +145,7 @@ func createConfigs(
 	return nil
 }
 
-func createNetworks(
-	ctx context.Context,
-	dockerCli command.Cli,
-	namespace convert.Namespace,
-	networks map[string]types.NetworkCreate,
-) error {
+func createNetworks(ctx context.Context, dockerCli command.Cli, namespace convert.Namespace, networks map[string]types.NetworkCreate) error {
 	client := dockerCli.Client()
 
 	existingNetworks, err := getStackNetworks(ctx, client, namespace.Name())
@@ -193,14 +176,7 @@ func createNetworks(
 }
 
 // nolint: gocyclo
-func deployServices(
-	ctx context.Context,
-	dockerCli command.Cli,
-	services map[string]swarm.ServiceSpec,
-	namespace convert.Namespace,
-	sendAuth bool,
-	resolveImage string,
-) error {
+func deployServices(ctx context.Context, dockerCli command.Cli, services map[string]swarm.ServiceSpec, namespace convert.Namespace, sendAuth bool, resolveImage string) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
 
@@ -264,13 +240,7 @@ func deployServices(
 			// TODO move this to API client?
 			serviceSpec.TaskTemplate.ForceUpdate = service.Spec.TaskTemplate.ForceUpdate
 
-			response, err := apiClient.ServiceUpdate(
-				ctx,
-				service.ID,
-				service.Version,
-				serviceSpec,
-				updateOpts,
-			)
+			response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, serviceSpec, updateOpts)
 			if err != nil {
 				return errors.Wrapf(err, "failed to update service %s", name)
 			}
