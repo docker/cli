@@ -148,7 +148,9 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 // ClientInfo returns the client details for the cli
 func (cli *DockerCli) ClientInfo() ClientInfo {
 	if cli.clientInfo == nil {
-		_ = cli.loadClientInfo()
+		if err := cli.loadClientInfo(); err != nil {
+			panic(err)
+		}
 	}
 	return *cli.clientInfo
 }
@@ -277,6 +279,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		}
 	}
 	cli.initializeFromClient()
+
+	if err := cli.loadClientInfo(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
