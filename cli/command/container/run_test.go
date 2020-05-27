@@ -9,13 +9,14 @@ import (
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRunLabel(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ string) (container.ContainerCreateCreatedBody, error) {
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.ContainerCreateCreatedBody, error) {
 			return container.ContainerCreateCreatedBody{
 				ID: "id",
 			}, nil
@@ -58,6 +59,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
+				platform *specs.Platform,
 				containerName string,
 			) (container.ContainerCreateCreatedBody, error) {
 				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
