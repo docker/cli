@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedSince}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
 	namesHeader      = "NAMES"
 	commandHeader    = "COMMAND"
-	runningForHeader = "CREATED"
+	runningForHeader = "RUNNING"
 	mountsHeader     = "MOUNTS"
 	localVolumes     = "LOCAL VOLUMES"
 	networksHeader   = "NETWORKS"
@@ -94,6 +94,7 @@ func NewContainerContext() *ContainerContext {
 		"Image":        ImageHeader,
 		"Command":      commandHeader,
 		"CreatedAt":    CreatedAtHeader,
+		"CreatedSince": CreatedSinceHeader,
 		"RunningFor":   runningForHeader,
 		"Ports":        PortsHeader,
 		"State":        StateHeader,
@@ -181,14 +182,24 @@ func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
 }
 
-// RunningFor returns a human-readable representation of the duration for which
-// the container has been running.
+// CreatedSince returns a human-readable representation of the duration since the
+// container has been created.
 //
 // Note that this duration is calculated on the client, and as such is influenced
 // by clock skew between the client and the daemon.
-func (c *ContainerContext) RunningFor() string {
+func (c *ContainerContext) CreatedSince() string {
 	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+}
+
+// RunningFor returns a human-readable representation of the duration for which
+// the container has been running.
+func (c *ContainerContext) RunningFor() string {
+	if !strings.HasPrefix(c.c.Status, "Up") {
+		return ""
+	}
+
+	return strings.TrimPrefix(c.c.Status, "Up ")
 }
 
 // Ports returns a comma-separated string representing open ports of the container
