@@ -18,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/google/go-cmp/cmp"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -116,6 +117,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
+				platform *specs.Platform,
 				containerName string,
 			) (container.ContainerCreateCreatedBody, error) {
 				defer func() { c.ResponseCounter++ }()
@@ -184,6 +186,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
+				platform *specs.Platform,
 				containerName string,
 			) (container.ContainerCreateCreatedBody, error) {
 				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
@@ -244,6 +247,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
+					platform *specs.Platform,
 					containerName string,
 				) (container.ContainerCreateCreatedBody, error) {
 					return container.ContainerCreateCreatedBody{}, nil
@@ -280,6 +284,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		createContainerFunc: func(config *container.Config,
 			hostConfig *container.HostConfig,
 			networkingConfig *network.NetworkingConfig,
+			platform *specs.Platform,
 			containerName string,
 		) (container.ContainerCreateCreatedBody, error) {
 			sort.Strings(config.Env)

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type fakeClient struct {
@@ -18,6 +19,7 @@ type fakeClient struct {
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
+		platform *specs.Platform,
 		containerName string) (container.ContainerCreateCreatedBody, error)
 	containerStartFunc      func(container string, options types.ContainerStartOptions) error
 	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
@@ -69,10 +71,11 @@ func (f *fakeClient) ContainerCreate(
 	config *container.Config,
 	hostConfig *container.HostConfig,
 	networkingConfig *network.NetworkingConfig,
+	platform *specs.Platform,
 	containerName string,
 ) (container.ContainerCreateCreatedBody, error) {
 	if f.createContainerFunc != nil {
-		return f.createContainerFunc(config, hostConfig, networkingConfig, containerName)
+		return f.createContainerFunc(config, hostConfig, networkingConfig, platform, containerName)
 	}
 	return container.ContainerCreateCreatedBody{}, nil
 }
