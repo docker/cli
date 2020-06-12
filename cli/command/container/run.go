@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"runtime"
 	"strings"
 	"syscall"
@@ -280,9 +279,9 @@ func attachContainer(
 func reportError(stderr io.Writer, name string, str string, withHelp bool) {
 	str = strings.TrimSuffix(str, ".") + "."
 	if withHelp {
-		str += "\nSee '" + os.Args[0] + " " + name + " --help'."
+		str += "\nSee 'docker " + name + " --help'."
 	}
-	fmt.Fprintf(stderr, "%s: %s\n", os.Args[0], str)
+	fmt.Fprintln(stderr, "docker:", str)
 }
 
 // if container start fails with 'not found'/'no such' error, return 127
