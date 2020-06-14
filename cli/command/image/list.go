@@ -52,7 +52,7 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 
 func newListCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := *NewImagesCommand(dockerCli)
-	cmd.Aliases = []string{"images", "list"}
+	cmd.Aliases = []string{"list"}
 	cmd.Use = "ls [OPTIONS] [REPOSITORY[:TAG]]"
 	return &cmd
 }

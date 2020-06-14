@@ -92,7 +92,6 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 
 func TestNewListCommandAlias(t *testing.T) {
 	cmd := newListCommand(test.NewFakeCli(&fakeClient{}))
-	assert.Check(t, cmd.HasAlias("images"))
 	assert.Check(t, cmd.HasAlias("list"))
 	assert.Check(t, !cmd.HasAlias("other"))
 }
