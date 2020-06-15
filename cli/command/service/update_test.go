@@ -656,7 +656,7 @@ func TestUpdateLimitsReservations(t *testing.T) {
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{},
 			Resources: &swarm.ResourceRequirements{
-				Limits: &swarm.Resources{
+				Limits: &swarm.Limit{
 					NanoCPUs:    1000000000,
 					MemoryBytes: 104857600,
 				},

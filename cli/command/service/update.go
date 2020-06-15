@@ -312,7 +312,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 			task.Resources = &swarm.ResourceRequirements{}
 		}
 		if task.Resources.Limits == nil {
-			task.Resources.Limits = &swarm.Resources{}
+			task.Resources.Limits = &swarm.Limit{}
 		}
 		if task.Resources.Reservations == nil {
 			task.Resources.Reservations = &swarm.Resources{}
