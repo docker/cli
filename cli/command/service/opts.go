@@ -237,7 +237,7 @@ func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements,
 	}
 
 	return &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
 		},

@@ -87,7 +87,7 @@ func TestConvertResourcesFull(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			NanoCPUs:    3000000,
 			MemoryBytes: 300000000,
 		},
@@ -112,7 +112,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			MemoryBytes: 300000000,
 		},
 		Reservations: &swarm.Resources{

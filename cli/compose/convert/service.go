@@ -531,7 +531,7 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 				return nil, err
 			}
 		}
-		resources.Limits = &swarm.Resources{
+		resources.Limits = &swarm.Limit{
 			NanoCPUs:    cpus,
 			MemoryBytes: int64(source.Limits.MemoryBytes),
 		}
