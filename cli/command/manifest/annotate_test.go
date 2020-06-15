@@ -58,6 +58,7 @@ func TestManifestAnnotate(t *testing.T) {
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.Flags().Set("os", "freebsd")
 	cmd.Flags().Set("arch", "fake")
+	cmd.Flags().Set("os-version", "1")
 	cmd.Flags().Set("os-features", "feature1")
 	cmd.Flags().Set("variant", "v7")
 	expectedError = "manifest entry for image has unsupported os/arch combination"
