@@ -117,11 +117,11 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 	if err != nil {
 		return configFile, errors.Wrap(err, oldConfigfile)
 	}
-	confFile := filepath.Join(homedir, oldConfigfile)
-	if _, err := os.Stat(confFile); err != nil {
+	filename = filepath.Join(homedir, oldConfigfile)
+	if _, err := os.Stat(filename); err != nil {
 		return configFile, nil // missing file is not an error
 	}
-	file, err := os.Open(confFile)
+	file, err := os.Open(filename)
 	if err != nil {
 		return configFile, errors.Wrap(err, filename)
 	}
