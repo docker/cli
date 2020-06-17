@@ -39,36 +39,29 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 	}
 
 	var (
-		loggedIn        bool
-		regsToLogout    []string
+		regsToLogout    = []string{serverAddress}
 		hostnameAddress = serverAddress
-		regsToTry       = []string{serverAddress}
 	)
 	if !isDefaultRegistry {
 		hostnameAddress = registry.ConvertToHostname(serverAddress)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
-		regsToTry = append(regsToTry, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
-	}
-
-	// check if we're logged in based on the records in the config file
-	// which means it couldn't have user/pass cause they may be in the creds store
-	for _, s := range regsToTry {
-		if _, ok := dockerCli.ConfigFile().AuthConfigs[s]; ok {
-			loggedIn = true
-			regsToLogout = append(regsToLogout, s)
-		}
-	}
-
-	if !loggedIn {
-		fmt.Fprintf(dockerCli.Out(), "Not logged in to %s\n", hostnameAddress)
-		return nil
+		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
 	}
 
 	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
+	errs := make(map[string]error)
 	for _, r := range regsToLogout {
 		if err := dockerCli.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "WARNING: could not erase credentials: %v\n", err)
+			errs[r] = err
+		}
+	}
+
+	// if at least one removal succeeded, report success. Otherwise report errors
+	if len(errs) == len(regsToLogout) {
+		fmt.Fprintln(dockerCli.Err(), "WARNING: could not erase credentials:")
+		for k, v := range errs {
+			fmt.Fprintf(dockerCli.Err(), "%s: %s\n", k, v)
 		}
 	}
 
