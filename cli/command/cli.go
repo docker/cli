@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -36,6 +37,16 @@ import (
 	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
+)
+
+type contextNameSource int
+
+const (
+	contextFallbackToDockerHost contextNameSource = iota
+	contextFromFlag
+	contextFromEnv
+	contextFromConfigFile
+	contextDefault
 )
 
 // Streams is an interface which exposes the standard input and output streams
@@ -251,12 +262,25 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return ResolveDefaultContext(opts.Common, cli.ConfigFile(), cli.contextStoreConfig, cli.Err())
 		},
 	}
-	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
+	var contextSource contextNameSource
+	cli.currentContext, contextSource, err = resolveContextName(opts.Common, cli.configFile)
 	if err != nil {
 		return err
 	}
 	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
-	if err != nil {
+	if store.IsErrContextDoesNotExist(err) && contextSource == contextFromConfigFile {
+		if cli.client == nil {
+			// populate a client that always fails with "context not found"
+			// this is to defer the context not found error until API is really used to allow
+			// operations like `docker context use` or `docker context ls`
+			cli.client, err = client.NewClientWithOpts(client.WithDialContext(func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return nil, errors.Errorf("Current context %q is not found on the file system, please check your config file at %s", cli.configFile.CurrentContext, cli.configFile.Filename)
+			}))
+			if err != nil {
+				return err
+			}
+		}
+	} else if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
 	}
 
@@ -292,7 +316,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 			return ResolveDefaultContext(opts, configFile, storeConfig, ioutil.Discard)
 		},
 	}
-	contextName, err := resolveContextName(opts, configFile, store)
+	contextName, _, err := resolveContextName(opts, configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -530,30 +554,26 @@ func UserAgent() string {
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
 // - fallbacks to default HOST, uses TLS config from flags/env vars
-func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
+func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile) (string, contextNameSource, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
-		return "", errors.New("Conflicting options: either specify --host or --context, not both")
+		return "", contextDefault, errors.New("Conflicting options: either specify --host or --context, not both")
 	}
 	if opts.Context != "" {
-		return opts.Context, nil
+		return opts.Context, contextFromFlag, nil
 	}
 	if len(opts.Hosts) > 0 {
-		return DefaultContextName, nil
+		return DefaultContextName, contextFallbackToDockerHost, nil
 	}
 	if _, present := os.LookupEnv("DOCKER_HOST"); present {
-		return DefaultContextName, nil
+		return DefaultContextName, contextFallbackToDockerHost, nil
 	}
 	if ctxName, ok := os.LookupEnv("DOCKER_CONTEXT"); ok {
-		return ctxName, nil
+		return ctxName, contextFromEnv, nil
 	}
 	if config != nil && config.CurrentContext != "" {
-		_, err := contextstore.GetMetadata(config.CurrentContext)
-		if store.IsErrContextDoesNotExist(err) {
-			return "", errors.Errorf("Current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
-		}
-		return config.CurrentContext, err
+		return config.CurrentContext, contextFromConfigFile, nil
 	}
-	return DefaultContextName, nil
+	return DefaultContextName, contextDefault, nil
 }
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
