@@ -30,8 +30,8 @@ and enabled:
 ```bash
 $ docker plugin ls
 
-ID                  NAME                             TAG                 DESCRIPTION                ENABLED
-69553ca1d123        tiborvass/sample-volume-plugin   latest              A test plugin for Docker   true
+ID            NAME                                    DESCRIPTION                ENABLED
+69553ca1d123  tiborvass/sample-volume-plugin:latest   A test plugin for Docker   true
 ```
 
 To disable the plugin, use the following command:
@@ -43,8 +43,8 @@ tiborvass/sample-volume-plugin
 
 $ docker plugin ls
 
-ID                  NAME                             TAG                 DESCRIPTION                ENABLED
-69553ca1d123        tiborvass/sample-volume-plugin   latest              A test plugin for Docker   false
+ID            NAME                                    DESCRIPTION                ENABLED
+69553ca1d123  tiborvass/sample-volume-plugin:latest   A test plugin for Docker   false
 ```
 
 ## Related commands
