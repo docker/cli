@@ -26,11 +26,11 @@ end
 function __fish_print_docker_containers --description 'Print a list of docker containers' -a select
     switch $select
         case running
-            docker ps -a --no-trunc --filter status=running --format "{{.ID}}\t{{.Names}}" | tr ',' '\n'
+            docker ps -a --no-trunc --filter status=running --format "{{.Names}}\t{{.ID}}" | tr ',' '\n'
         case stopped
-            docker ps -a --no-trunc --filter status=exited --format "{{.ID}}\t{{.Names}}" | tr ',' '\n'
+            docker ps -a --no-trunc --filter status=exited --format "{{.Names}}\t{{.ID}}" | tr ',' '\n'
         case all
-            docker ps -a --no-trunc --format "{{.ID}}\t{{.Names}}" | tr ',' '\n'
+            docker ps -a --no-trunc --format "{{.Names}}\t{{.ID}}" | tr ',' '\n'
     end
 end
 
