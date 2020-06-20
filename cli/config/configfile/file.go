@@ -190,10 +190,10 @@ func (configFile *ConfigFile) Save() error {
 	if err != nil {
 		return err
 	}
+	defer os.Remove(temp.Name())
 	err = configFile.SaveToWriter(temp)
 	temp.Close()
 	if err != nil {
-		os.Remove(temp.Name())
 		return err
 	}
 	// Try copying the current config file (if any) ownership and permissions

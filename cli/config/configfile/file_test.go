@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -459,13 +460,43 @@ func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	configFile := New("test-save")
-	defer os.Remove("test-save")
-	err := configFile.Save()
+	err := New("").Save()
+	assert.ErrorContains(t, err, "empty filename")
+
+	configDir, err := ioutil.TempDir(".", "test-save")
 	assert.NilError(t, err)
-	cfg, err := ioutil.ReadFile("test-save")
+	defer os.RemoveAll(configDir)
+	defer os.Chmod(configDir, 0700)
+
+	// MkdirAll fails due to the parent directory being read-only.
+	err = os.Chmod(configDir, 0500) // read-only
+	assert.NilError(t, err)
+	configFile := New(filepath.Join(configDir, "foo", "test-save"))
+	err = configFile.Save()
+	assert.Check(t, os.IsPermission(err))
+
+	// Successfully write an empty config.
+	err = os.Chmod(configDir, 0700) // writeable again
+	assert.NilError(t, err)
+	configFile = New(filepath.Join(configDir, "test-save"))
+	err = configFile.Save()
+	assert.NilError(t, err)
+	cfg, err := ioutil.ReadFile(configFile.Filename)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+
+	// Create a permission denied error on the parent directory.
+	err = os.Chmod(configDir, 0500) // read-only
+	assert.NilError(t, err)
+	err = configFile.Save()
+	assert.Check(t, os.IsPermission(err))
+
+	// Ensure we didn't leave anything temp file behind in our configDir and
+	// still only have "test-save" in there.
+	files, err := ioutil.ReadDir(configDir)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(len(files), 1))
+	assert.Check(t, is.Equal(files[0].Name(), "test-save"))
 }
 
 func TestPluginConfig(t *testing.T) {
