@@ -4,3 +4,4 @@
 appveyor.yml
 build
 circle.yml
+/vndr.log
