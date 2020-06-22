@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
@@ -78,6 +79,13 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 						Timeout:     1,
 					},
 				},
+				Resources: &swarm.ResourceRequirements{
+					Limits: &swarm.Limit{
+						NanoCPUs:    100000000000,
+						MemoryBytes: 10490000,
+						Pids:        20,
+					},
+				},
 				Networks: []swarm.NetworkAttachmentConfig{
 					{
 						Target:  "5vpyomhb6ievnk0i0o60gcnei",
@@ -134,6 +142,11 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 		t.Fatal(err)
 	}
 	return b.String()
+}
+
+func TestPrettyPrint(t *testing.T) {
+	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
+	golden.Assert(t, s, "service-inspect-pretty.golden")
 }
 
 func TestPrettyPrintWithNoUpdateConfig(t *testing.T) {

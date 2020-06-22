@@ -283,6 +283,12 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		}
 	}
 
+	updateInt64 := func(flag string, field *int64) {
+		if flags.Changed(flag) {
+			*field, _ = flags.GetInt64(flag)
+		}
+	}
+
 	updateUint64 := func(flag string, field *uint64) {
 		if flags.Changed(flag) {
 			*field, _ = flags.GetUint64(flag)
@@ -339,10 +345,11 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 
 	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
 
-	if anyChanged(flags, flagLimitCPU, flagLimitMemory) {
+	if anyChanged(flags, flagLimitCPU, flagLimitMemory, flagLimitPids) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
 		updateInt64Value(flagLimitCPU, &task.Resources.Limits.NanoCPUs)
 		updateInt64Value(flagLimitMemory, &task.Resources.Limits.MemoryBytes)
+		updateInt64(flagLimitPids, &task.Resources.Limits.Pids)
 	}
 
 	if anyChanged(flags, flagReserveCPU, flagReserveMemory) {

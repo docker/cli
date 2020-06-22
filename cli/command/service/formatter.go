@@ -152,6 +152,9 @@ Resources:
 {{- if .ResourceLimitMemory }}
   Memory:	{{ .ResourceLimitMemory }}
 {{- end }}{{ end }}{{ end }}
+{{- if gt .ResourceLimitPids 0 }}
+  PIDs:		{{ .ResourceLimitPids }}
+{{- end }}
 {{- if .Networks }}
 Networks:
 {{- range $network := .Networks }} {{ $network }}{{ end }} {{ end }}
@@ -484,7 +487,7 @@ func (ctx *serviceInspectContext) HasResourceLimits() bool {
 	if ctx.Service.Spec.TaskTemplate.Resources == nil || ctx.Service.Spec.TaskTemplate.Resources.Limits == nil {
 		return false
 	}
-	return ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes > 0
+	return ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.Pids > 0
 }
 
 func (ctx *serviceInspectContext) ResourceLimitsNanoCPUs() float64 {
@@ -496,6 +499,10 @@ func (ctx *serviceInspectContext) ResourceLimitMemory() string {
 		return ""
 	}
 	return units.BytesSize(float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes))
+}
+
+func (ctx *serviceInspectContext) ResourceLimitPids() int64 {
+	return ctx.Service.Spec.TaskTemplate.Resources.Limits.Pids
 }
 
 func (ctx *serviceInspectContext) Networks() []string {

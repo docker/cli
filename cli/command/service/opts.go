@@ -225,6 +225,7 @@ func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConf
 type resourceOptions struct {
 	limitCPU            opts.NanoCPUs
 	limitMemBytes       opts.MemBytes
+	limitPids           int64
 	resCPU              opts.NanoCPUs
 	resMemBytes         opts.MemBytes
 	resGenericResources []string
@@ -240,6 +241,7 @@ func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements,
 		Limits: &swarm.Limit{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
+			Pids:        r.limitPids,
 		},
 		Reservations: &swarm.Resources{
 			NanoCPUs:         r.resCPU.Value(),
@@ -821,6 +823,9 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.Var(&opts.resources.limitMemBytes, flagLimitMemory, "Limit Memory")
 	flags.Var(&opts.resources.resCPU, flagReserveCPU, "Reserve CPUs")
 	flags.Var(&opts.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
+	flags.Int64Var(&opts.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
+	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
+	flags.SetAnnotation(flagLimitPids, "swarm", nil)
 
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
@@ -934,6 +939,7 @@ const (
 	flagLabelAdd                = "label-add"
 	flagLimitCPU                = "limit-cpu"
 	flagLimitMemory             = "limit-memory"
+	flagLimitPids               = "limit-pids"
 	flagMaxReplicas             = "replicas-max-per-node"
 	flagConcurrent              = "max-concurrent"
 	flagMode                    = "mode"

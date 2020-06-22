@@ -52,6 +52,7 @@ Options:
       --label-rm list                      Remove a label by its key
       --limit-cpu decimal                  Limit CPUs
       --limit-memory bytes                 Limit Memory
+      --limit-pids int                     Limit maximum number of processes (default 0 = unlimited)
       --log-driver string                  Logging driver for service
       --log-opt list                       Logging driver options
       --max-concurrent                     Number of job tasks to run at once (default equal to --replicas)

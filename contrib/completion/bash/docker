@@ -3677,6 +3677,7 @@ _docker_service_update_and_create() {
 		--isolation
 		--limit-cpu
 		--limit-memory
+		--limit-pids
 		--log-driver
 		--log-opt
 		--replicas

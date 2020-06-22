@@ -620,45 +620,53 @@ func TestUpdateIsolationValid(t *testing.T) {
 // TestUpdateLimitsReservations tests that limits and reservations are updated,
 // and that values are not updated are not reset to their default value
 func TestUpdateLimitsReservations(t *testing.T) {
-	spec := swarm.ServiceSpec{
-		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: &swarm.ContainerSpec{},
-		},
-	}
-
 	// test that updating works if the service did not previously
 	// have limits set (https://github.com/moby/moby/issues/38363)
-	flags := newUpdateCommand(nil).Flags()
-	err := flags.Set(flagLimitCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagLimitMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-
-	spec = swarm.ServiceSpec{
-		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: &swarm.ContainerSpec{},
-		},
-	}
+	t.Run("update limits from scratch", func(t *testing.T) {
+		spec := swarm.ServiceSpec{
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{},
+			},
+		}
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagLimitMemory, "200M")
+		assert.NilError(t, err)
+		err = flags.Set(flagLimitPids, "100")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+	})
 
 	// test that updating works if the service did not previously
 	// have reservations set (https://github.com/moby/moby/issues/38363)
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagReserveCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
+	t.Run("update reservations from scratch", func(t *testing.T) {
+		spec := swarm.ServiceSpec{
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{},
+			},
+		}
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagReserveCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveMemory, "200M")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+	})
 
-	spec = swarm.ServiceSpec{
+	spec := swarm.ServiceSpec{
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{},
 			Resources: &swarm.ResourceRequirements{
 				Limits: &swarm.Limit{
 					NanoCPUs:    1000000000,
 					MemoryBytes: 104857600,
+					Pids:        100,
 				},
 				Reservations: &swarm.Resources{
 					NanoCPUs:    1000000000,
@@ -668,29 +676,79 @@ func TestUpdateLimitsReservations(t *testing.T) {
 		},
 	}
 
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagLimitCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveCPU, "2")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	// Updating without flags set should not modify existing values
+	t.Run("update without flags set", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(1000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(1000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	})
 
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagLimitMemory, "200M")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	// Updating CPU limit/reservation should not affect memory limit/reservation
+	// and pids-limt
+	t.Run("update cpu limit and reservation", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveCPU, "2")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	})
+
+	// Updating Memory limit/reservation should not affect CPU limit/reservation
+	// and pids-limt
+	t.Run("update memory limit and reservation", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitMemory, "200M")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveMemory, "200M")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
+
+	// Updating PidsLimit should only modify PidsLimit, other values unchanged
+	t.Run("update pids limit", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitPids, "2")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(2)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
+
+	t.Run("update pids limit to default", func(t *testing.T) {
+		// Updating PidsLimit to 0 should work
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitPids, "0")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(0)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
 }
 
 func TestUpdateIsolationInvalid(t *testing.T) {
