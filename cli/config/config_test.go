@@ -385,6 +385,7 @@ func TestJSONWithCredentialHelpers(t *testing.T) {
 
 // Save it and make sure it shows up in new form
 func saveConfigAndValidateNewFormat(t *testing.T, config *configfile.ConfigFile, configDir string) string {
+	t.Helper()
 	assert.NilError(t, config.Save())
 
 	buf, err := ioutil.ReadFile(filepath.Join(configDir, ConfigFileName))
