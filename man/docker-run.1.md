@@ -178,7 +178,7 @@ division of CPU shares:
    Set the cgroup namespace mode for the container.
      **host**:    run the container in the host's cgroup namespace
      **private**: run the container in its own private cgroup namespace
-     **""**:      (unset) run the container in the host's cgroup namespace
+     **""**:      (unset) use the daemon's default configuration (**host** on cgroup v1, **private** on cgroup v2)
 
 **--cgroup-parent**=""
    Path to cgroups under which the cgroup for the container will be created. If the path is not absolute, the path is considered to be relative to the cgroups path of the init process. Cgroups will be created if they do not already exist.
