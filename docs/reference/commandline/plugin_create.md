@@ -38,8 +38,8 @@ plugin
 
 $ docker plugin ls
 
-ID                  NAME                TAG                 DESCRIPTION                  ENABLED
-672d8144ec02        plugin              latest              A sample plugin for Docker   false
+ID              NAME            DESCRIPTION                  ENABLED
+672d8144ec02    plugin:latest   A sample plugin for Docker   false
 ```
 
 The plugin can subsequently be enabled for local use or pushed to the public registry.
