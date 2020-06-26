@@ -352,7 +352,7 @@ func TestParseWithExpose(t *testing.T) {
 }
 
 func TestParseDevice(t *testing.T) {
-	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
+	skip.If(t, runtime.GOOS != "linux") // Windows and macOS validate server-side
 	valids := map[string]container.DeviceMapping{
 		"/dev/snd": {
 			PathOnHost:        "/dev/snd",
@@ -768,7 +768,7 @@ func TestParseEntryPoint(t *testing.T) {
 }
 
 func TestValidateDevice(t *testing.T) {
-	skip.If(t, runtime.GOOS == "windows") // Windows validates server-side
+	skip.If(t, runtime.GOOS != "linux") // Windows and macOS validate server-side
 	valid := []string{
 		"/home",
 		"/home:/home",
