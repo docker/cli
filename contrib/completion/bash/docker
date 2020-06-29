@@ -1604,6 +1604,10 @@ _docker_container_exec() {
 			__docker_nospace
 			return
 			;;
+		--env-file)
+			_filedir
+			return
+			;;
 		--user|-u)
 			__docker_complete_user_group
 			return
@@ -1615,7 +1619,7 @@ _docker_container_exec() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--detach -d --detach-keys --env -e --help --interactive -i --privileged -t --tty -u --user --workdir -w" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--detach -d --detach-keys --env -e --env-file --help --interactive -i --privileged -t --tty -u --user --workdir -w" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_running

@@ -15,6 +15,7 @@ Options:
   -d, --detach         Detached mode: run command in the background
       --detach-keys    Override the key sequence for detaching a container
   -e, --env=[]         Set environment variables
+      --env-file       Read in a file of environment variables
       --help           Print usage
   -i, --interactive    Keep STDIN open even if not attached
       --privileged     Give extended privileges to the command

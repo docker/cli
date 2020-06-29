@@ -750,6 +750,7 @@ __docker_container_subcommand() {
                 $opts_attach_exec_run_start \
                 "($help -d --detach)"{-d,--detach}"[Detached mode: leave the container running in the background]" \
                 "($help)*"{-e=,--env=}"[Set environment variables]:environment variable: " \
+                "($help)*--env-file=[Read environment variables from a file]:environment file:_files" \
                 "($help -i --interactive)"{-i,--interactive}"[Keep stdin open even if not attached]" \
                 "($help)--privileged[Give extended Linux capabilities to the command]" \
                 "($help -t --tty)"{-t,--tty}"[Allocate a pseudo-tty]" \
