@@ -19,7 +19,7 @@ To enable experimental features, start the Docker daemon with the
 
 ```json
 {
-    "experimental": true
+    "experimental": "enabled"
 }
 ```
 
