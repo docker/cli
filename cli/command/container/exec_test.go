@@ -3,6 +3,7 @@ package container
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/docker/cli/cli"
@@ -13,10 +14,12 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
 )
 
 func withDefaultOpts(options execOptions) execOptions {
 	options.env = opts.NewListOpts(opts.ValidateEnv)
+	options.envFile = opts.NewListOpts(nil)
 	if len(options.command) == 0 {
 		options.command = []string{"command"}
 	}
@@ -24,6 +27,13 @@ func withDefaultOpts(options execOptions) execOptions {
 }
 
 func TestParseExec(t *testing.T) {
+	content := `ONE=1
+TWO=2
+	`
+
+	tmpFile := fs.NewFile(t, t.Name(), fs.WithContent(content))
+	defer tmpFile.Remove()
+
 	testcases := []struct {
 		options    execOptions
 		configFile configfile.ConfigFile
@@ -102,12 +112,49 @@ func TestParseExec(t *testing.T) {
 				Detach:     true,
 			},
 		},
+		{
+			expected: types.ExecConfig{
+				Cmd:          []string{"command"},
+				AttachStdout: true,
+				AttachStderr: true,
+				Env:          []string{"ONE=1", "TWO=2"},
+			},
+			options: func() execOptions {
+				o := withDefaultOpts(execOptions{})
+				o.envFile.Set(tmpFile.Path())
+				return o
+			}(),
+		},
+		{
+			expected: types.ExecConfig{
+				Cmd:          []string{"command"},
+				AttachStdout: true,
+				AttachStderr: true,
+				Env:          []string{"ONE=1", "TWO=2", "ONE=override"},
+			},
+			options: func() execOptions {
+				o := withDefaultOpts(execOptions{})
+				o.envFile.Set(tmpFile.Path())
+				o.env.Set("ONE=override")
+				return o
+			}(),
+		},
 	}
 
 	for _, testcase := range testcases {
-		execConfig := parseExec(testcase.options, &testcase.configFile)
+		execConfig, err := parseExec(testcase.options, &testcase.configFile)
+		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(testcase.expected, *execConfig))
 	}
+}
+
+func TestParseExecNoSuchFile(t *testing.T) {
+	execOpts := withDefaultOpts(execOptions{})
+	execOpts.envFile.Set("no-such-env-file")
+	execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
+	assert.ErrorContains(t, err, "no-such-env-file")
+	assert.Check(t, os.IsNotExist(err))
+	assert.Check(t, execConfig == nil)
 }
 
 func TestRunExec(t *testing.T) {
