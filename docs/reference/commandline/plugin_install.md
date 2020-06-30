@@ -49,8 +49,8 @@ After the plugin is installed, it appears in the list of plugins:
 ```bash
 $ docker plugin ls
 
-ID                  NAME                  TAG                 DESCRIPTION                ENABLED
-69553ca1d123        vieux/sshfs           latest              sshFS plugin for Docker    true
+ID             NAME                  DESCRIPTION                ENABLED
+69553ca1d123   vieux/sshfs:latest    sshFS plugin for Docker    true
 ```
 
 ## Related commands
