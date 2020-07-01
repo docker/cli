@@ -64,12 +64,8 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 	return flags, copts
 }
 
-func parseMustError(t *testing.T, args string) {
-	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " ")) //nolint:dogsled
-	assert.ErrorContains(t, err, "", args)
-}
-
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
+	t.Helper()
 	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
 	assert.NilError(t, err)
 	return config, hostConfig
@@ -88,32 +84,102 @@ func TestParseRunLinks(t *testing.T) {
 }
 
 func TestParseRunAttach(t *testing.T) {
-	if config, _ := mustParse(t, "-a stdin"); !config.AttachStdin || config.AttachStdout || config.AttachStderr {
-		t.Fatalf("Error parsing attach flags. Expect only Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
+	tests := []struct {
+		input    string
+		expected container.Config
+	}{
+		{
+			input: "",
+			expected: container.Config{
+				AttachStdout: true,
+				AttachStderr: true,
+			},
+		},
+		{
+			input: "-i",
+			expected: container.Config{
+				AttachStdin:  true,
+				AttachStdout: true,
+				AttachStderr: true,
+			},
+		},
+		{
+			input: "-a stdin",
+			expected: container.Config{
+				AttachStdin: true,
+			},
+		},
+		{
+			input: "-a stdin -a stdout",
+			expected: container.Config{
+				AttachStdin:  true,
+				AttachStdout: true,
+			},
+		},
+		{
+			input: "-a stdin -a stdout -a stderr",
+			expected: container.Config{
+				AttachStdin:  true,
+				AttachStdout: true,
+				AttachStderr: true,
+			},
+		},
 	}
-	if config, _ := mustParse(t, "-a stdin -a stdout"); !config.AttachStdin || !config.AttachStdout || config.AttachStderr {
-		t.Fatalf("Error parsing attach flags. Expect only Stdin and Stdout enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
-	}
-	if config, _ := mustParse(t, "-a stdin -a stdout -a stderr"); !config.AttachStdin || !config.AttachStdout || !config.AttachStderr {
-		t.Fatalf("Error parsing attach flags. Expect all attach enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
-	}
-	if config, _ := mustParse(t, ""); config.AttachStdin || !config.AttachStdout || !config.AttachStderr {
-		t.Fatalf("Error parsing attach flags. Expect Stdin disabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
-	}
-	if config, _ := mustParse(t, "-i"); !config.AttachStdin || !config.AttachStdout || !config.AttachStderr {
-		t.Fatalf("Error parsing attach flags. Expect Stdin enabled. Received: in: %v, out: %v, err: %v", config.AttachStdin, config.AttachStdout, config.AttachStderr)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			config, _ := mustParse(t, tc.input)
+			assert.Equal(t, config.AttachStdin, tc.expected.AttachStdin)
+			assert.Equal(t, config.AttachStdout, tc.expected.AttachStdout)
+			assert.Equal(t, config.AttachStderr, tc.expected.AttachStderr)
+		})
 	}
 }
 
 func TestParseRunWithInvalidArgs(t *testing.T) {
-	parseMustError(t, "-a")
-	parseMustError(t, "-a invalid")
-	parseMustError(t, "-a invalid -a stdout")
-	parseMustError(t, "-a stdout -a stderr -d")
-	parseMustError(t, "-a stdin -d")
-	parseMustError(t, "-a stdout -d")
-	parseMustError(t, "-a stderr -d")
-	parseMustError(t, "-d --rm")
+	tests := []struct {
+		args  []string
+		error string
+	}{
+		{
+			args:  []string{"-a", "ubuntu", "bash"},
+			error: `invalid argument "ubuntu" for "-a, --attach" flag: valid streams are STDIN, STDOUT and STDERR`,
+		},
+		{
+			args:  []string{"-a", "invalid", "ubuntu", "bash"},
+			error: `invalid argument "invalid" for "-a, --attach" flag: valid streams are STDIN, STDOUT and STDERR`,
+		},
+		{
+			args:  []string{"-a", "invalid", "-a", "stdout", "ubuntu", "bash"},
+			error: `invalid argument "invalid" for "-a, --attach" flag: valid streams are STDIN, STDOUT and STDERR`,
+		},
+		{
+			args:  []string{"-a", "stdout", "-a", "stderr", "-z", "ubuntu", "bash"},
+			error: `unknown shorthand flag: 'z' in -z`,
+		},
+		{
+			args:  []string{"-a", "stdin", "-z", "ubuntu", "bash"},
+			error: `unknown shorthand flag: 'z' in -z`,
+		},
+		{
+			args:  []string{"-a", "stdout", "-z", "ubuntu", "bash"},
+			error: `unknown shorthand flag: 'z' in -z`,
+		},
+		{
+			args:  []string{"-a", "stderr", "-z", "ubuntu", "bash"},
+			error: `unknown shorthand flag: 'z' in -z`,
+		},
+		{
+			args:  []string{"-z", "--rm", "ubuntu", "bash"},
+			error: `unknown shorthand flag: 'z' in -z`,
+		},
+	}
+	flags, _ := setupRunFlags()
+	for _, tc := range tests {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			assert.Error(t, flags.Parse(tc.args), tc.error)
+		})
+	}
 }
 
 // nolint: gocyclo
