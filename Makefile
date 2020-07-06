@@ -64,8 +64,9 @@ dynbinary: ## build dynamically linked binary
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor
-	bash -c 'vndr |& grep -v -i clone'
+	bash -c 'vndr |& grep -v -i clone | tee ./vndr.log'
 	scripts/validate/check-git-diff vendor
+	scripts/validate/check-all-packages-vendored
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
