@@ -87,24 +87,26 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 
 	ctx := context.Background()
 
-	for _, testcase := range testcases {
-		t.Logf("Testing image %q", testcase.image)
-		spec := map[string]swarm.ServiceSpec{
-			"myservice": {
-				TaskTemplate: swarm.TaskSpec{
-					ContainerSpec: &swarm.ContainerSpec{
-						Image: testcase.image,
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.image, func(t *testing.T) {
+			spec := map[string]swarm.ServiceSpec{
+				"myservice": {
+					TaskTemplate: swarm.TaskSpec{
+						ContainerSpec: &swarm.ContainerSpec{
+							Image: tc.image,
+						},
 					},
 				},
-			},
-		}
-		err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
-		assert.NilError(t, err)
-		assert.Check(t, is.Equal(receivedOptions.QueryRegistry, testcase.expectedQueryRegistry))
-		assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, testcase.expectedImage))
-		assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, testcase.expectedForceUpdate))
+			}
+			err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(receivedOptions.QueryRegistry, tc.expectedQueryRegistry))
+			assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, tc.expectedImage))
+			assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, tc.expectedForceUpdate))
 
-		receivedService = swarm.ServiceSpec{}
-		receivedOptions = types.ServiceUpdateOptions{}
+			receivedService = swarm.ServiceSpec{}
+			receivedOptions = types.ServiceUpdateOptions{}
+		})
 	}
 }
