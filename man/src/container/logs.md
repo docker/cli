@@ -27,6 +27,9 @@ The `docker container logs --details` command will add on extra attributes, such
 environment variables and labels, provided to `--log-opt` when creating the
 container.
 
+The --no-stdout and --no-stderr options can be used to suppress output from the
+container's stdout or stderr streams.
+
 In order to retrieve logs before a specific point in time, run:
 
 ```bash

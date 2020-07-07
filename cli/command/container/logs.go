@@ -18,6 +18,8 @@ type logsOptions struct {
 	timestamps bool
 	details    bool
 	tail       string
+	noStdout   bool
+	noStderr   bool
 
 	container string
 }
@@ -44,6 +46,8 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
 	flags.StringVar(&opts.tail, "tail", "all", "Number of lines to show from the end of the logs")
+	flags.BoolVar(&opts.noStdout, "no-stdout", false, "Suppress messages from stream \"stdout\".")
+	flags.BoolVar(&opts.noStderr, "no-stderr", false, "Suppress messages from stream \"stderr\".")
 	return cmd
 }
 
@@ -56,8 +60,8 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	}
 
 	options := types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
+		ShowStdout: !opts.noStdout,
+		ShowStderr: !opts.noStderr,
 		Since:      opts.since,
 		Until:      opts.until,
 		Timestamps: opts.timestamps,
