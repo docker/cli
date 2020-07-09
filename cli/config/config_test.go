@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/env"
@@ -89,8 +87,7 @@ func TestEmptyFile(t *testing.T) {
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
-	assert.Assert(t, errors.Is(err, io.EOF))
-	assert.ErrorContains(t, err, ConfigFileName)
+	assert.NilError(t, err)
 }
 
 func TestEmptyJSON(t *testing.T) {
