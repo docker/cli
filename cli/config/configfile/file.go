@@ -209,9 +209,15 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		return errors.Wrap(err, "error closing temp file")
 	}
 
+	// Handle situation where the configfile is a symlink
+	cfgFile := configFile.Filename
+	if f, err := os.Readlink(cfgFile); err == nil {
+		cfgFile = f
+	}
+
 	// Try copying the current config file (if any) ownership and permissions
-	copyFilePermissions(configFile.Filename, temp.Name())
-	return os.Rename(temp.Name(), configFile.Filename)
+	copyFilePermissions(cfgFile, temp.Name())
+	return os.Rename(temp.Name(), cfgFile)
 }
 
 // ParseProxyConfig computes proxy configuration by retrieving the config for the provided host and

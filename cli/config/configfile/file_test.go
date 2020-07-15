@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
 	"gotest.tools/v3/golden"
 )
 
@@ -464,6 +465,33 @@ func TestSave(t *testing.T) {
 	err := configFile.Save()
 	assert.NilError(t, err)
 	cfg, err := ioutil.ReadFile("test-save")
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+}
+
+func TestSaveWithSymlink(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(), fs.WithFile("real-config.json", `{}`))
+	defer dir.Remove()
+
+	symLink := dir.Join("config.json")
+	realFile := dir.Join("real-config.json")
+	err := os.Symlink(realFile, symLink)
+	assert.NilError(t, err)
+
+	configFile := New(symLink)
+
+	err = configFile.Save()
+	assert.NilError(t, err)
+
+	fi, err := os.Lstat(symLink)
+	assert.NilError(t, err)
+	assert.Assert(t, fi.Mode()&os.ModeSymlink != 0, "expected %s to be a symlink", symLink)
+
+	cfg, err := ioutil.ReadFile(symLink)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+
+	cfg, err = ioutil.ReadFile(realFile)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
 }
