@@ -4,13 +4,13 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:18.09-git'}]
+    docker: [{image: 'docker:19.03-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.3
+          version: 19.03.8
           reusable: true
           exclusive: false
       - run:
@@ -39,14 +39,14 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:18.09-git'}]
+    docker: [{image: 'docker:19.03-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     parallelism: 3
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.3
+          version: 19.03.8
           reusable: true
           exclusive: false
       - run:
@@ -75,13 +75,13 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:18.09-git'}]
+    docker: [{image: 'docker:19.03-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.3
+          version: 19.03.8
           reusable: true
           exclusive: false
       - run:
@@ -122,13 +122,13 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:18.09-git'}]
+    docker: [{image: 'docker:19.03-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.3
+          version: 19.03.8
           reusable: true
           exclusive: false
       - run:
