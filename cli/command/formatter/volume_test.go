@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
@@ -46,7 +47,7 @@ func TestVolumeContext(t *testing.T) {
 		ctx = c.volumeCtx
 		v := c.call()
 		if strings.Contains(v, ",") {
-			compareMultipleValues(t, v, c.expValue)
+			test.CompareMultipleValues(t, v, c.expValue)
 		} else if v != c.expValue {
 			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
 		}

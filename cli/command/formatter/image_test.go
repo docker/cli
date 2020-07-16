@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
@@ -24,63 +25,69 @@ func TestImageContext(t *testing.T) {
 		expValue string
 		call     func() string
 	}{
-		{imageContext{
-			i:     types.ImageSummary{ID: imageID},
-			trunc: true,
-		}, stringid.TruncateID(imageID), ctx.ID},
-		{imageContext{
-			i:     types.ImageSummary{ID: imageID},
-			trunc: false,
-		}, imageID, ctx.ID},
-		{imageContext{
-			i:     types.ImageSummary{Size: 10, VirtualSize: 10},
-			trunc: true,
-		}, "10B", ctx.Size},
-		{imageContext{
-			i:     types.ImageSummary{Created: unix},
-			trunc: true,
-		}, time.Unix(unix, 0).String(), ctx.CreatedAt},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: true},
+			expValue: stringid.TruncateID(imageID),
+			call:     ctx.ID,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: false},
+			expValue: imageID,
+			call:     ctx.ID,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Size: 10, VirtualSize: 10}, trunc: true},
+			expValue: "10B",
+			call:     ctx.Size,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
+			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
+		},
 		// FIXME
 		// {imageContext{
 		// 	i:     types.ImageSummary{Created: unix},
 		// 	trunc: true,
 		// }, units.HumanDuration(time.Unix(unix, 0)), createdSinceHeader, ctx.CreatedSince},
-		{imageContext{
-			i:    types.ImageSummary{},
-			repo: "busybox",
-		}, "busybox", ctx.Repository},
-		{imageContext{
-			i:   types.ImageSummary{},
-			tag: "latest",
-		}, "latest", ctx.Tag},
-		{imageContext{
-			i:      types.ImageSummary{},
-			digest: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a",
-		}, "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a", ctx.Digest},
 		{
-			imageContext{
-				i: types.ImageSummary{Containers: 10},
-			}, "10", ctx.Containers,
+			imageCtx: imageContext{i: types.ImageSummary{}, repo: "busybox"},
+			expValue: "busybox",
+			call:     ctx.Repository,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{VirtualSize: 10000},
-			}, "10kB", ctx.VirtualSize,
+			imageCtx: imageContext{i: types.ImageSummary{}, tag: "latest"},
+			expValue: "latest",
+			call:     ctx.Tag,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{SharedSize: 10000},
-			}, "10kB", ctx.SharedSize,
+			imageCtx: imageContext{i: types.ImageSummary{}, digest: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a"},
+			expValue: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a",
+			call:     ctx.Digest,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000},
-			}, "15kB", ctx.UniqueSize,
+			imageCtx: imageContext{i: types.ImageSummary{Containers: 10}},
+			expValue: "10",
+			call:     ctx.Containers,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{Created: zeroTime},
-			}, "", ctx.CreatedSince,
+			imageCtx: imageContext{i: types.ImageSummary{VirtualSize: 10000}},
+			expValue: "10kB",
+			call:     ctx.VirtualSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 10000}},
+			expValue: "10kB",
+			call:     ctx.SharedSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000}},
+			expValue: "15kB",
+			call:     ctx.UniqueSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Created: zeroTime}},
+			expValue: "",
+			call:     ctx.CreatedSince,
 		},
 	}
 
@@ -88,7 +95,7 @@ func TestImageContext(t *testing.T) {
 		ctx = c.imageCtx
 		v := c.call()
 		if strings.Contains(v, ",") {
-			compareMultipleValues(t, v, c.expValue)
+			test.CompareMultipleValues(t, v, c.expValue)
 		} else {
 			assert.Check(t, is.Equal(c.expValue, v))
 		}

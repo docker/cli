@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
@@ -90,7 +91,7 @@ func TestContainerPsContext(t *testing.T) {
 		ctx = ContainerContext{c: c.container, trunc: c.trunc}
 		v := c.call()
 		if strings.Contains(v, ",") {
-			compareMultipleValues(t, v, c.expValue)
+			test.CompareMultipleValues(t, v, c.expValue)
 		} else if v != c.expValue {
 			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
 		}
