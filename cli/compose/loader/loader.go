@@ -17,7 +17,7 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"
-	shellwords "github.com/mattn/go-shellwords"
+	"github.com/google/shlex"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -853,7 +853,7 @@ func transformMappingOrList(mappingOrList interface{}, sep string, allowNil bool
 
 var transformShellCommand TransformerFunc = func(value interface{}) (interface{}, error) {
 	if str, ok := value.(string); ok {
-		return shellwords.Parse(str)
+		return shlex.Split(str)
 	}
 	return value, nil
 }
