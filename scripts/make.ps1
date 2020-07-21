@@ -51,6 +51,7 @@ param(
     [Parameter(Mandatory=$False)][switch]$Noisy,
     [Parameter(Mandatory=$False)][switch]$ForceBuildAll,
     [Parameter(Mandatory=$False)][switch]$NoOpt,
+    [Parameter(Mandatory=$False)][string]$CommitSuffix,
     [Parameter(Mandatory=$False)][switch]$TestUnit,
     [Parameter(Mandatory=$False)][switch]$All
 )
