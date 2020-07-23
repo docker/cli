@@ -293,6 +293,14 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	if info.ProductLicense != "" {
 		fmt.Fprintln(dockerCli.Out(), " Product License:", info.ProductLicense)
 	}
+
+	if info.DefaultAddressPools != nil && len(info.DefaultAddressPools) > 0 {
+		fmt.Fprintln(dockerCli.Out(), " Default Address Pools:")
+		for _, pool := range info.DefaultAddressPools {
+			fmt.Fprintf(dockerCli.Out(), "   Base: %s, Size: %d\n", pool.Base, pool.Size)
+		}
+	}
+
 	fmt.Fprint(dockerCli.Out(), "\n")
 
 	printServerWarnings(dockerCli, info)
