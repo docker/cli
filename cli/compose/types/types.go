@@ -23,7 +23,6 @@ var UnsupportedProperties = []string{
 	"restart",
 	"security_opt",
 	"shm_size",
-	"ulimits",
 	"userns_mode",
 }
 
