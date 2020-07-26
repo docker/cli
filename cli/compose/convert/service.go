@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 )
 
@@ -147,6 +148,7 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 				Sysctls:         service.Sysctls,
+				Ulimits:         convertUlimits(service.Ulimits),
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -675,4 +677,26 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 		return nil, errors.Errorf("invalid credential spec: spec specifies config %v, but no such config can be found", swarmCredSpec.Config)
 	}
 	return &swarmCredSpec, nil
+}
+
+func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units.Ulimit {
+	ulimits := make([]*units.Ulimit, 0, len(origUlimits))
+
+	for name, u := range origUlimits {
+		ulimit := &units.Ulimit{
+			Name: name,
+		}
+
+		if u.Single != 0 {
+			ulimit.Soft = int64(u.Single)
+			ulimit.Hard = int64(u.Single)
+		} else {
+			ulimit.Soft = int64(u.Soft)
+			ulimit.Hard = int64(u.Hard)
+		}
+
+		ulimits = append(ulimits, ulimit)
+	}
+
+	return ulimits
 }
