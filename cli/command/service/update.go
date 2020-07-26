@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	units "github.com/docker/go-units"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -100,6 +101,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
 	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
 	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
+	flags.Var(options.ulimits, flagUlimitAdd, "Add or update a ulimit option")
+	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
+	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
+	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -344,6 +349,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	}
 
 	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
+	task.ContainerSpec.Ulimits = updateUlimits(flags, task.ContainerSpec.Ulimits)
 
 	if anyChanged(flags, flagLimitCPU, flagLimitMemory, flagLimitPids) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
@@ -696,6 +702,24 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 			(*field)[key] = value
 		}
 	}
+}
+
+func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimit {
+	newUlimits := []*units.Ulimit{}
+
+	toRemove := buildToRemoveSet(flags, flagUlimitRemove)
+	for _, ulimit := range ulimits {
+		if _, exists := toRemove[ulimit.Name]; !exists {
+			newUlimits = append(newUlimits, ulimit)
+		}
+	}
+
+	if flags.Changed(flagUlimitAdd) {
+		toAdd := flags.Lookup(flagUlimitAdd).Value.(*opts.UlimitOpt).GetList()
+		newUlimits = append(newUlimits, toAdd...)
+	}
+
+	return newUlimits
 }
 
 func updateEnvironment(flags *pflag.FlagSet, field *[]string) {

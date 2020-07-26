@@ -506,6 +506,7 @@ type serviceOptions struct {
 	dnsOption       opts.ListOpts
 	hosts           opts.ListOpts
 	sysctls         opts.ListOpts
+	ulimits         *opts.UlimitOpt
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -549,6 +550,7 @@ func newServiceOptions() *serviceOptions {
 		dnsSearch:       opts.NewListOpts(opts.ValidateDNSSearch),
 		hosts:           opts.NewListOpts(opts.ValidateExtraHost),
 		sysctls:         opts.NewListOpts(nil),
+		ulimits:         opts.NewUlimitOpt(nil),
 	}
 }
 
@@ -716,6 +718,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
+				Ulimits:         options.ulimits.GetList(),
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -1001,6 +1004,9 @@ const (
 	flagConfigAdd               = "config-add"
 	flagConfigRemove            = "config-rm"
 	flagIsolation               = "isolation"
+	flagUlimit                  = "ulimit"
+	flagUlimitAdd               = "ulimit-add"
+	flagUlimitRemove            = "ulimit-rm"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
