@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/go-units"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -1538,6 +1539,123 @@ func TestUpdateCaps(t *testing.T) {
 
 			assert.DeepEqual(t, tc.spec.CapabilityAdd, tc.expectedAdd)
 			assert.DeepEqual(t, tc.spec.CapabilityDrop, tc.expectedDrop)
+		})
+	}
+}
+
+func TestUpdateUlimits(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		name     string
+		spec     []*units.Ulimit
+		rm       []string
+		add      []string
+		expected []*units.Ulimit
+	}{
+		{
+			name: "from scratch",
+			add:  []string{"nofile=512:1024", "core=1024:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "append new",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			add: []string{"core=1024:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove and append new should append",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm:  []string{"nofile=512:1024"},
+			add: []string{"nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "update existing",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 2048, Soft: 1024},
+			},
+			add: []string{"nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "update existing twice",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 2048, Soft: 1024},
+			},
+			add: []string{"nofile=256:512", "nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove all",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm:       []string{"nofile=512:1024", "core=1024:1024"},
+			expected: nil,
+		},
+		{
+			name: "remove by key",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm: []string{"core"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove by key and different value",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm: []string{"core=1234:5678"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			svc := swarm.ServiceSpec{
+				TaskTemplate: swarm.TaskSpec{
+					ContainerSpec: &swarm.ContainerSpec{Ulimits: tc.spec},
+				},
+			}
+			flags := newUpdateCommand(nil).Flags()
+			for _, v := range tc.add {
+				assert.NilError(t, flags.Set(flagUlimitAdd, v))
+			}
+			for _, v := range tc.rm {
+				assert.NilError(t, flags.Set(flagUlimitRemove, v))
+			}
+			err := updateService(ctx, &fakeClient{}, flags, &svc)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, svc.TaskTemplate.ContainerSpec.Ulimits, tc.expected)
 		})
 	}
 }

@@ -74,6 +74,7 @@ Options:
       --stop-signal string                 Signal to stop the container
       --sysctl list                        Sysctl options
   -t, --tty                                Allocate a pseudo-TTY
+      --ulimit ulimit                      Ulimit options (default [])
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h) (default 0s)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback") (default "pause")
       --update-max-failure-ratio float     Failure rate to tolerate during an update (default 0)

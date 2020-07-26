@@ -508,6 +508,7 @@ type serviceOptions struct {
 	sysctls         opts.ListOpts
 	capAdd          opts.ListOpts
 	capDrop         opts.ListOpts
+	ulimits         opts.UlimitOpt
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -553,6 +554,7 @@ func newServiceOptions() *serviceOptions {
 		sysctls:         opts.NewListOpts(nil),
 		capAdd:          opts.NewListOpts(nil),
 		capDrop:         opts.NewListOpts(nil),
+		ulimits:         *opts.NewUlimitOpt(nil),
 	}
 }
 
@@ -724,6 +726,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
+				Ulimits:         options.ulimits.GetList(),
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -1015,6 +1018,9 @@ const (
 	flagIsolation               = "isolation"
 	flagCapAdd                  = "cap-add"
 	flagCapDrop                 = "cap-drop"
+	flagUlimit                  = "ulimit"
+	flagUlimitAdd               = "ulimit-add"
+	flagUlimitRemove            = "ulimit-rm"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {

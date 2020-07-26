@@ -3754,6 +3754,7 @@ _docker_service_update_and_create() {
 			--publish -p
 			--secret
 			--sysctl
+			--ulimit
 		"
 
 		case "$prev" in
@@ -3806,6 +3807,8 @@ _docker_service_update_and_create() {
 			--secret-rm
 			--sysctl-add
 			--sysctl-rm
+			--ulimit-add
+			--ulimit-rm
 		"
 
 		boolean_options="$boolean_options

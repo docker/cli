@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	units "github.com/docker/go-units"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -100,6 +101,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
 	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
 	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
+	flags.Var(&options.ulimits, flagUlimitAdd, "Add or update a ulimit option")
+	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
+	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
+	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -344,6 +349,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	}
 
 	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
+	task.ContainerSpec.Ulimits = updateUlimits(flags, task.ContainerSpec.Ulimits)
 
 	if anyChanged(flags, flagLimitCPU, flagLimitMemory, flagLimitPids) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
@@ -698,6 +704,35 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 			(*field)[key] = value
 		}
 	}
+}
+
+func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimit {
+	newUlimits := make(map[string]*units.Ulimit)
+
+	for _, ulimit := range ulimits {
+		newUlimits[ulimit.Name] = ulimit
+	}
+	if flags.Changed(flagUlimitRemove) {
+		values := flags.Lookup(flagUlimitRemove).Value.(*opts.ListOpts).GetAll()
+		for key := range opts.ConvertKVStringsToMap(values) {
+			delete(newUlimits, key)
+		}
+	}
+
+	if flags.Changed(flagUlimitAdd) {
+		for _, ulimit := range flags.Lookup(flagUlimitAdd).Value.(*opts.UlimitOpt).GetList() {
+			newUlimits[ulimit.Name] = ulimit
+		}
+	}
+
+	var limits []*units.Ulimit
+	for _, ulimit := range newUlimits {
+		limits = append(limits, ulimit)
+	}
+	sort.SliceStable(limits, func(i, j int) bool {
+		return limits[i].Name < limits[j].Name
+	})
+	return limits
 }
 
 func updateEnvironment(flags *pflag.FlagSet, field *[]string) {

@@ -111,6 +111,11 @@ SysCtls:
 {{- range $k, $v := .ContainerSysCtls }}
  {{ $k }}{{if $v }}: {{ $v }}{{ end }}
 {{- end }}{{ end }}
+{{- if .ContainerUlimits }}
+Ulimits:
+{{- range $k, $v := .ContainerUlimits }}
+ {{ $k }}: {{ $v }}
+{{- end }}{{ end }}
 {{- if .ContainerMounts }}
 Mounts:
 {{- end }}
@@ -465,6 +470,20 @@ func (ctx *serviceInspectContext) ContainerSysCtls() map[string]string {
 
 func (ctx *serviceInspectContext) HasContainerSysCtls() bool {
 	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Sysctls) > 0
+}
+
+func (ctx *serviceInspectContext) ContainerUlimits() map[string]string {
+	ulimits := map[string]string{}
+
+	for _, u := range ctx.Service.Spec.TaskTemplate.ContainerSpec.Ulimits {
+		ulimits[u.Name] = fmt.Sprintf("%d:%d", u.Soft, u.Hard)
+	}
+
+	return ulimits
+}
+
+func (ctx *serviceInspectContext) HasContainerUlimits() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Ulimits) > 0
 }
 
 func (ctx *serviceInspectContext) HasResources() bool {
