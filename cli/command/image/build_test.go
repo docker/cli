@@ -187,7 +187,7 @@ func TestParseSecret(t *testing.T) {
 		value       string
 		errExpected bool
 		errMatch    string
-		filesource  *secretsprovider.FileSource
+		source      *secretsprovider.Source
 	}
 	var testcases = []testcase{
 		{
@@ -206,23 +206,32 @@ func TestParseSecret(t *testing.T) {
 			errExpected: true,
 			errMatch:    "unexpected key",
 		}, {
-			value:      "src=somefile",
-			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+			value:  "src=somefile",
+			source: &secretsprovider.Source{FilePath: "somefile"},
 		}, {
-			value:      "source=somefile",
-			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+			value:  "source=somefile",
+			source: &secretsprovider.Source{FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret",
-			filesource: &secretsprovider.FileSource{ID: "mysecret"},
+			value:  "id=mysecret",
+			source: &secretsprovider.Source{ID: "mysecret"},
 		}, {
-			value:      "id=mysecret,src=somefile",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+			value:  "id=mysecret,src=somefile",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret,source=somefile,type=file",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+			value:  "id=mysecret,source=somefile,type=file",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret,src=somefile,src=othersecretfile",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "othersecretfile"},
+			value:  "id=mysecret,src=somefile,src=othersecretfile",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "othersecretfile"},
+		}, {
+			value:  "id=mysecret,src=somefile,env=SECRET",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile", Env: "SECRET"},
+		}, {
+			value:  "type=file",
+			source: &secretsprovider.Source{},
+		}, {
+			value:  "type=env",
+			source: &secretsprovider.Source{},
 		}, {
 			value:       "type=invalid",
 			errExpected: true,
@@ -237,7 +246,7 @@ func TestParseSecret(t *testing.T) {
 			if tc.errMatch != "" {
 				assert.ErrorContains(t, err, tc.errMatch)
 			}
-			assert.DeepEqual(t, secret, tc.filesource)
+			assert.DeepEqual(t, secret, tc.source)
 		})
 	}
 }
