@@ -11,9 +11,11 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/gdamore/tcell"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +24,7 @@ type statsOptions struct {
 	all        bool
 	noStream   bool
 	noTrunc    bool
+	tcell      bool
 	format     string
 	containers []string
 }
@@ -44,6 +47,7 @@ func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&opts.noStream, "no-stream", false, "Disable streaming stats and only pull the first result")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
+	flags.BoolVar(&opts.tcell, "tcell", false, "Use tcell to print. Use 'q' to stop displaying then 'Ctrl^C' to quit.")
 	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
 	return cmd
 }
@@ -200,8 +204,54 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		Output: dockerCli.Out(),
 		Format: NewStatsFormat(format, daemonOSType),
 	}
+
+	if opts.tcell {
+		tc := dockerCli.Tcell()
+
+		if tc == nil {
+			fmt.Fprintf(dockerCli.Out(), "tc is nil, there was a problem during its initialization.\n")
+
+			return nil
+		}
+
+		tc.Init()
+		statsCtx.Output = tc
+
+		// Goroutine used to check event.
+		go func(tc *streams.Tcell) {
+			for {
+				screen := tc.Screen()
+				event := screen.PollEvent()
+
+				/*
+				 * This snippet was highly inspired by:
+				 * https://github.com/gdamore/tcell/blob/master/_demos/unicode.go#L173
+				 */
+				switch event := event.(type) {
+				case *tcell.EventKey:
+					/*
+					 * If user presses 'q' we finish the screen and terminate the
+					 * goroutine.
+					 */
+					if event.Key() == tcell.KeyRune && event.Rune() == 'q' {
+						screen.Fini()
+
+						return
+					}
+				case *tcell.EventResize:
+					/*
+					 * If a resize event is received (because user resized the windows)
+					 * we need to update value of width.
+					 */
+					width, _ := event.Size()
+
+					tc.Resize(width)
+				}
+			}
+		}(tc)
+	}
 	cleanScreen := func() {
-		if !opts.noStream {
+		if !opts.noStream && !opts.tcell {
 			fmt.Fprint(dockerCli.Out(), "\033[2J")
 			fmt.Fprint(dockerCli.Out(), "\033[H")
 		}
@@ -211,7 +261,17 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	for range ticker.C {
-		cleanScreen()
+		/*
+		 * If tcell option is not used we will clear screen by using Ctrl^L escape
+		 * sequence.
+		 * Otherwise we need to use specific Tcell function to effectively display
+		 * things.
+		 */
+		if !opts.tcell {
+			cleanScreen()
+		} else {
+			dockerCli.Tcell().Display()
+		}
 		ccstats := []StatsEntry{}
 		cStats.mu.Lock()
 		for _, c := range cStats.cs {

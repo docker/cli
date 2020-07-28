@@ -49,6 +49,7 @@ type Streams interface {
 type Cli interface {
 	Client() client.APIClient
 	Out() *streams.Out
+	Tcell() *streams.Tcell
 	Err() io.Writer
 	In() *streams.In
 	SetIn(in *streams.In)
@@ -73,6 +74,7 @@ type DockerCli struct {
 	configFile         *configfile.ConfigFile
 	in                 *streams.In
 	out                *streams.Out
+	tcell              *streams.Tcell
 	err                io.Writer
 	client             client.APIClient
 	serverInfo         ServerInfo
@@ -97,6 +99,11 @@ func (cli *DockerCli) Client() client.APIClient {
 // Out returns the writer used for stdout
 func (cli *DockerCli) Out() *streams.Out {
 	return cli.out
+}
+
+// Tcell returns the writer used for printing with tcell.
+func (cli *DockerCli) Tcell() *streams.Tcell {
+	return cli.tcell
 }
 
 // Err returns the writer used for stderr
@@ -488,7 +495,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}
-	if cli.out == nil || cli.in == nil || cli.err == nil {
+	if cli.out == nil || cli.in == nil || cli.err == nil || cli.tcell == nil {
 		stdin, stdout, stderr := term.StdStreams()
 		if cli.in == nil {
 			cli.in = streams.NewIn(stdin)
@@ -498,6 +505,9 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 		}
 		if cli.err == nil {
 			cli.err = stderr
+		}
+		if cli.tcell == nil {
+			cli.tcell = streams.NewTcell()
 		}
 	}
 	return cli, nil
