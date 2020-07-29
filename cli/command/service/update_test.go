@@ -1310,3 +1310,74 @@ func TestUpdateCredSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCaps(t *testing.T) {
+	tests := []struct {
+		// name is the name of the testcase
+		name string
+		// flagAdd is the value passed to --cap-add
+		flagAdd []string
+		// flagDrop is the value passed to --cap-drop
+		flagDrop []string
+		// spec is the original ContainerSpec, before being updated
+		spec *swarm.ContainerSpec
+		// expectedAdd is the set of requested caps the ContainerSpec should have once updated
+		expectedAdd []string
+		// expectedDrop is the set of dropped caps the ContainerSpec should have once updated
+		expectedDrop []string
+	}{
+		{
+			name:         "Add new caps",
+			flagAdd:      []string{"NET_ADMIN"},
+			flagDrop:     []string{},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{"NET_ADMIN"},
+			expectedDrop: []string{},
+		},
+		{
+			name:         "Drop new caps",
+			flagAdd:      []string{},
+			flagDrop:     []string{"CAP_MKNOD"},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{},
+			expectedDrop: []string{"CAP_MKNOD"},
+		},
+		{
+			name:     "Add a previously dropped cap",
+			flagAdd:  []string{"NET_ADMIN"},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityDrop: []string{"NET_ADMIN"},
+			},
+			expectedAdd:  []string{"NET_ADMIN"},
+			expectedDrop: []string{},
+		},
+		{
+			name:     "Drop a previously requested cap",
+			flagAdd:  []string{},
+			flagDrop: []string{"CAP_MKNOD"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"CAP_MKNOD"},
+			},
+			expectedAdd:  []string{},
+			expectedDrop: []string{"CAP_MKNOD"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, cap := range tc.flagAdd {
+				flags.Set(flagCapAdd, cap)
+			}
+			for _, cap := range tc.flagDrop {
+				flags.Set(flagCapDrop, cap)
+			}
+
+			updateCapabilities(flags, tc.spec)
+
+			assert.DeepEqual(t, tc.spec.CapabilityAdd, tc.expectedAdd)
+			assert.DeepEqual(t, tc.spec.CapabilityDrop, tc.expectedDrop)
+		})
+	}
+}

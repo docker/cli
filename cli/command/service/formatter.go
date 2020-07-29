@@ -97,6 +97,15 @@ ContainerSpec:
 {{- if .ContainerUser }}
  User: {{ .ContainerUser }}
 {{- end }}
+{{- if .HasCapabilities }}
+Capabilities:
+{{- if .HasCapabilityAdd }}
+ Add: {{ .CapabilityAdd }}
+{{- end }}
+{{- if .HasCapabilityDrop }}
+ Drop: {{ .CapabilityDrop }}
+{{- end }}
+{{- end }}
 {{- if .ContainerSysCtls }}
 SysCtls:
 {{- range $k, $v := .ContainerSysCtls }}
@@ -527,6 +536,26 @@ func (ctx *serviceInspectContext) EndpointMode() string {
 
 func (ctx *serviceInspectContext) Ports() []swarm.PortConfig {
 	return ctx.Service.Endpoint.Ports
+}
+
+func (ctx *serviceInspectContext) HasCapabilities() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd) > 0 || len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop) > 0
+}
+
+func (ctx *serviceInspectContext) HasCapabilityAdd() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd) > 0
+}
+
+func (ctx *serviceInspectContext) HasCapabilityDrop() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop) > 0
+}
+
+func (ctx *serviceInspectContext) CapabilityAdd() string {
+	return strings.Join(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd, ", ")
+}
+
+func (ctx *serviceInspectContext) CapabilityDrop() string {
+	return strings.Join(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop, ", ")
 }
 
 const (

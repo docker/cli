@@ -505,6 +505,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	}
 
 	updateString(flagStopSignal, &cspec.StopSignal)
+	updateCapabilities(flags, cspec)
 
 	return nil
 }
@@ -1349,5 +1350,43 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 		}
 
 		containerSpec.Privileges.CredentialSpec = credSpec
+	}
+}
+
+func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
+	var addToRemove, dropToRemove map[string]struct{}
+	capAdd := containerSpec.CapabilityAdd
+	capDrop := containerSpec.CapabilityDrop
+
+	// First add the capabilities passed to --cap-add to the list of requested caps
+	if flags.Changed(flagCapAdd) {
+		caps := flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll()
+		capAdd = append(capAdd, caps...)
+
+		dropToRemove = buildToRemoveSet(flags, flagCapAdd)
+	}
+
+	// And add the capabilities passed to --cap-drop to the list of dropped caps
+	if flags.Changed(flagCapDrop) {
+		caps := flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll()
+		capDrop = append(capDrop, caps...)
+
+		addToRemove = buildToRemoveSet(flags, flagCapDrop)
+	}
+
+	// Then take care of removing caps passed to --cap-drop from the list of requested caps
+	containerSpec.CapabilityAdd = make([]string, 0, len(capAdd))
+	for _, cap := range capAdd {
+		if _, exists := addToRemove[cap]; !exists {
+			containerSpec.CapabilityAdd = append(containerSpec.CapabilityAdd, cap)
+		}
+	}
+
+	// And remove the caps passed to --cap-add from the list of caps to drop
+	containerSpec.CapabilityDrop = make([]string, 0, len(capDrop))
+	for _, cap := range capDrop {
+		if _, exists := dropToRemove[cap]; !exists {
+			containerSpec.CapabilityDrop = append(containerSpec.CapabilityDrop, cap)
+		}
 	}
 }
