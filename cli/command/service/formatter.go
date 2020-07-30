@@ -502,6 +502,9 @@ func (ctx *serviceInspectContext) ResourceLimitMemory() string {
 }
 
 func (ctx *serviceInspectContext) ResourceLimitPids() int64 {
+	if ctx.Service.Spec.TaskTemplate.Resources == nil || ctx.Service.Spec.TaskTemplate.Resources.Limits == nil {
+		return 0
+	}
 	return ctx.Service.Spec.TaskTemplate.Resources.Limits.Pids
 }
 
