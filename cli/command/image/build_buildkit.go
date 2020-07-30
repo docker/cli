@@ -34,6 +34,7 @@ import (
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/pkg/errors"
 	fsutiltypes "github.com/tonistiigi/fsutil/types"
+	"github.com/tonistiigi/go-rosetta"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -222,7 +223,9 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	if strings.EqualFold(options.platform, "local") {
-		options.platform = platforms.DefaultString()
+		p := platforms.DefaultSpec()
+		p.Architecture = rosetta.NativeArch() // current binary architecture might be emulated
+		options.platform = platforms.Format(p)
 	}
 
 	eg.Go(func() error {

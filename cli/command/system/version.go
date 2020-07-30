@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/tonistiigi/go-rosetta"
 	kubernetesClient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -125,6 +126,14 @@ func reformatDate(buildTime string) string {
 	return buildTime
 }
 
+func arch() string {
+	arch := runtime.GOARCH
+	if rosetta.Enabled() {
+		arch += " (rosetta)"
+	}
+	return arch
+}
+
 func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	var err error
 	tmpl, err := newVersionTemplate(opts.format)
@@ -147,7 +156,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			GitCommit:         version.GitCommit,
 			BuildTime:         reformatDate(version.BuildTime),
 			Os:                runtime.GOOS,
-			Arch:              runtime.GOARCH,
+			Arch:              arch(),
 			Experimental:      dockerCli.ClientInfo().HasExperimental,
 			Context:           dockerCli.CurrentContext(),
 		},
