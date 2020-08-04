@@ -34,27 +34,58 @@ func TestUpdateServiceArgs(t *testing.T) {
 
 func TestUpdateLabels(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("label-add", "toadd=newlabel")
-	flags.Set("label-rm", "toremove")
+	flags.Set("label-add", "add-beats-remove=value")
+	flags.Set("label-add", "to-add=value")
+	flags.Set("label-add", "to-update=new-value")
+	flags.Set("label-add", "to-replace=new-value")
+	flags.Set("label-rm", "add-beats-remove")
+	flags.Set("label-rm", "to-remove")
+	flags.Set("label-rm", "to-replace")
+	flags.Set("label-rm", "no-such-label")
 
 	labels := map[string]string{
-		"toremove": "thelabeltoremove",
-		"tokeep":   "value",
+		"to-keep":    "value",
+		"to-remove":  "value",
+		"to-replace": "value",
+		"to-update":  "value",
 	}
 
 	updateLabels(flags, &labels)
-	assert.Check(t, is.Len(labels, 2))
-	assert.Check(t, is.Equal("value", labels["tokeep"]))
-	assert.Check(t, is.Equal("newlabel", labels["toadd"]))
+	assert.DeepEqual(t, labels, map[string]string{
+		"add-beats-remove": "value",
+		"to-add":           "value",
+		"to-keep":          "value",
+		"to-replace":       "new-value",
+		"to-update":        "new-value",
+	})
 }
 
-func TestUpdateLabelsRemoveALabelThatDoesNotExist(t *testing.T) {
+func TestUpdateContainerLabels(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("label-rm", "dne")
+	flags.Set("container-label-add", "add-beats-remove=value")
+	flags.Set("container-label-add", "to-add=value")
+	flags.Set("container-label-add", "to-update=new-value")
+	flags.Set("container-label-add", "to-replace=new-value")
+	flags.Set("container-label-rm", "add-beats-remove")
+	flags.Set("container-label-rm", "to-remove")
+	flags.Set("container-label-rm", "to-replace")
+	flags.Set("container-label-rm", "no-such-label")
 
-	labels := map[string]string{"foo": "theoldlabel"}
-	updateLabels(flags, &labels)
-	assert.Check(t, is.Len(labels, 1))
+	labels := map[string]string{
+		"to-keep":    "value",
+		"to-remove":  "value",
+		"to-replace": "value",
+		"to-update":  "value",
+	}
+
+	updateContainerLabels(flags, &labels)
+	assert.DeepEqual(t, labels, map[string]string{
+		"add-beats-remove": "value",
+		"to-add":           "value",
+		"to-keep":          "value",
+		"to-replace":       "new-value",
+		"to-update":        "new-value",
+	})
 }
 
 func TestUpdatePlacementConstraints(t *testing.T) {
@@ -115,14 +146,15 @@ func TestUpdateEnvironment(t *testing.T) {
 
 func TestUpdateEnvironmentWithDuplicateValues(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("env-add", "foo=newenv")
-	flags.Set("env-add", "foo=dupe")
 	flags.Set("env-rm", "foo")
+	flags.Set("env-add", "foo=first")
+	flags.Set("env-add", "foo=second")
 
 	envs := []string{"foo=value"}
 
 	updateEnvironment(flags, &envs)
-	assert.Check(t, is.Len(envs, 0))
+	assert.Check(t, is.Len(envs, 1))
+	assert.Equal(t, envs[0], "foo=second")
 }
 
 func TestUpdateEnvironmentWithDuplicateKeys(t *testing.T) {
