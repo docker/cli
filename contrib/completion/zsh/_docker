@@ -792,7 +792,7 @@ __docker_container_subcommand() {
                 "($help -f --follow)"{-f,--follow}"[Follow log output]" \
                 "($help -s --since)"{-s=,--since=}"[Show logs since this timestamp]:timestamp: " \
                 "($help -t --timestamps)"{-t,--timestamps}"[Show timestamps]" \
-                "($help)--tail=[Output the last K lines]:lines:(1 10 20 50 all)" \
+                "($help -n --tail)"{-n=,--tail=}"[Number of lines to show from the end of the logs]:lines:(1 10 20 50 all)" \
                 "($help -)*:containers:__docker_complete_containers" && ret=0
             ;;
         (ls|list)
@@ -2038,7 +2038,7 @@ __docker_service_subcommand() {
                 "($help)--no-task-ids[Do not include task IDs]" \
                 "($help)--no-trunc[Do not truncate output]" \
                 "($help)--since=[Show logs since timestamp]:timestamp: " \
-                "($help)--tail=[Number of lines to show from the end of the logs]:lines:(1 10 20 50 all)" \
+                "($help -n --tail)"{-n=,--tail=}"[Number of lines to show from the end of the logs]:lines:(1 10 20 50 all)" \
                 "($help -t --timestamps)"{-t,--timestamps}"[Show timestamps]" \
                 "($help -)1:service:__docker_complete_services" && ret=0
             ;;

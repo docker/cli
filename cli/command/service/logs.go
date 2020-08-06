@@ -63,7 +63,7 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
 	flags.SetAnnotation("details", "version", []string{"1.30"})
-	flags.StringVar(&opts.tail, "tail", "all", "Number of lines to show from the end of the logs")
+	flags.StringVarP(&opts.tail, "tail", "n", "all", "Number of lines to show from the end of the logs")
 	return cmd
 }
 

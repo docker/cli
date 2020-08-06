@@ -1672,17 +1672,17 @@ _docker_container_kill() {
 
 _docker_container_logs() {
 	case "$prev" in
-		--since|--tail|--until)
+		--since|--tail|-n|--until)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--details --follow -f --help --since --tail --timestamps -t --until" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--details --follow -f --help --since --tail -n --timestamps -t --until" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--since|--tail|--until')
+			local counter=$(__docker_pos_first_nonflag '--since|--tail|-n|--until')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_containers_all
 			fi
@@ -3526,17 +3526,17 @@ _docker_service_inspect() {
 
 _docker_service_logs() {
 	case "$prev" in
-		--since|--tail)
+		--since|--tail|-n)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--details --follow -f --help --no-resolve --no-task-ids --no-trunc --raw --since --tail --timestamps -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--details --follow -f --help --no-resolve --no-task-ids --no-trunc --raw --since --tail -n --timestamps -t" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--since|--tail')
+			local counter=$(__docker_pos_first_nonflag '--since|--tail|-n')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_services_and_tasks
 			fi
