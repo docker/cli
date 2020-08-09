@@ -1894,6 +1894,7 @@ _docker_container_run_and_create() {
 		--env -e
 		--env-file
 		--expose
+		--gpus
 		--group-add
 		--health-cmd
 		--health-interval

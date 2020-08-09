@@ -624,7 +624,8 @@ __docker_container_subcommand() {
         "($help)--entrypoint=[Overwrite the default entrypoint of the image]:entry point: "
         "($help)*--env-file=[Read environment variables from a file]:environment file:_files"
         "($help)*--expose=[Expose a port from the container without publishing it]: "
-        "($help)*--group=[Set one or more supplementary user groups for the container]:group:_groups"
+        "($help)*--gpus=[GPU devices to add to the container ('all' to pass all GPUs)]:device: "
+        "($help)*--group-add=[Set one or more supplementary user groups for the container]:group:_groups"
         "($help -h --hostname)"{-h=,--hostname=}"[Container host name]:hostname:_hosts"
         "($help -i --interactive)"{-i,--interactive}"[Keep stdin open even if not attached]"
         "($help)--init[Run an init inside the container that forwards signals and reaps processes]"
@@ -2015,6 +2016,7 @@ __docker_service_subcommand() {
                 "($help)*--dns-option=[Set DNS options]:DNS option: " \
                 "($help)*--dns-search=[Set custom DNS search domains]:DNS search: " \
                 "($help)*--env-file=[Read environment variables from a file]:environment file:_files" \
+                "($help)*--group=[Set one or more supplementary user groups for the container]:group: _groups " \
                 "($help)--mode=[Service Mode]:mode:(global replicated)" \
                 "($help)--name=[Service name]:name: " \
                 "($help)*--placement-pref=[Add a placement preference]:pref:__docker_service_complete_placement_pref" \
