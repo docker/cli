@@ -31,6 +31,7 @@ defs=
 [ -n "$GITCOMMIT" ]    && defs+=( "-D DOCKER_COMMIT=\"$GITCOMMIT\"")
 
 makeres() {
+	# shellcheck disable=SC2086
 	"$WINDRES" \
 		-i "$RESOURCES/$1" \
 		-o "$3" \
