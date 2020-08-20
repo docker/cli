@@ -1,7 +1,8 @@
+.circleci
 .dockerignore
 .git
+.github
 .gitignore
 appveyor.yml
 build
-circle.yml
 /vndr.log
