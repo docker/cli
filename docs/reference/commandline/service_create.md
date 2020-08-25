@@ -12,6 +12,8 @@ Usage:  docker service create [OPTIONS] IMAGE [COMMAND] [ARG...]
 Create a new service
 
 Options:
+      --cap-add list                       Add Linux capabilities
+      --cap-drop list                      Drop Linux capabilities
       --config config                      Specify configurations to expose to the service
       --constraint list                    Placement constraints
       --container-label list               Container labels

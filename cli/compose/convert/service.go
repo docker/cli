@@ -117,6 +117,8 @@ func Service(
 		}
 	}
 
+	capAdd, capDrop := opts.EffectiveCapAddCapDrop(service.CapAdd, service.CapDrop)
+
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   name,
@@ -147,8 +149,8 @@ func Service(
 				Isolation:       container.Isolation(service.Isolation),
 				Init:            service.Init,
 				Sysctls:         service.Sysctls,
-				CapabilityAdd:   service.CapAdd,
-				CapabilityDrop:  service.CapDrop,
+				CapabilityAdd:   capAdd,
+				CapabilityDrop:  capDrop,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,

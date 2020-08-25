@@ -505,7 +505,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	}
 
 	updateString(flagStopSignal, &cspec.StopSignal)
-	updateCapabilities(flags, cspec)
+
+	if anyChanged(flags, flagCapAdd, flagCapDrop) {
+		updateCapabilities(flags, cspec)
+	}
 
 	return nil
 }
@@ -1351,40 +1354,71 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 	}
 }
 
+// updateCapabilities calculates the list of capabilities to "drop" and to "add"
+// after applying the capabilities passed through `--cap-add` and `--cap-drop`
+// to the existing list of added/dropped capabilities in the service spec.
+//
+// Adding capabilities takes precedence over "dropping" the same capability, so
+// if both `--cap-add` and `--cap-drop` are specifying the same capability, the
+// `--cap-drop` is ignored.
+//
+// Capabilities to "drop" are removed from the existing list of "added"
+// capabilities, and vice-versa (capabilities to "add" are removed from the existing
+// list of capabilities to "drop").
+//
+// Capabilities are normalized, sorted, and duplicates are removed to prevent
+// service tasks from being updated if no changes are made. If a list has the "ALL"
+// capability set, then any other capability is removed from that list.
 func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
-	var addToRemove, dropToRemove map[string]struct{}
-	capAdd := containerSpec.CapabilityAdd
-	capDrop := containerSpec.CapabilityDrop
+	var (
+		toAdd, toDrop map[string]bool
 
-	// First add the capabilities passed to --cap-add to the list of requested caps
+		capDrop = opts.CapabilitiesMap(containerSpec.CapabilityDrop)
+		capAdd  = opts.CapabilitiesMap(containerSpec.CapabilityAdd)
+	)
 	if flags.Changed(flagCapAdd) {
-		caps := flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll()
-		capAdd = append(capAdd, caps...)
-
-		dropToRemove = buildToRemoveSet(flags, flagCapAdd)
+		toAdd = opts.CapabilitiesMap(flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll())
 	}
-
-	// And add the capabilities passed to --cap-drop to the list of dropped caps
 	if flags.Changed(flagCapDrop) {
-		caps := flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll()
-		capDrop = append(capDrop, caps...)
-
-		addToRemove = buildToRemoveSet(flags, flagCapDrop)
+		toDrop = opts.CapabilitiesMap(flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll())
 	}
 
-	// Then take care of removing caps passed to --cap-drop from the list of requested caps
-	containerSpec.CapabilityAdd = make([]string, 0, len(capAdd))
-	for _, cap := range capAdd {
-		if _, exists := addToRemove[cap]; !exists {
-			containerSpec.CapabilityAdd = append(containerSpec.CapabilityAdd, cap)
+	// First remove the capabilities to "drop" from the service's exiting
+	// list of capabilities to "add". If a capability is both added and dropped
+	// on update, then "adding" takes precedence.
+	for c := range toDrop {
+		if !toAdd[c] {
+			delete(capAdd, c)
+			capDrop[c] = true
 		}
 	}
 
-	// And remove the caps passed to --cap-add from the list of caps to drop
-	containerSpec.CapabilityDrop = make([]string, 0, len(capDrop))
-	for _, cap := range capDrop {
-		if _, exists := dropToRemove[cap]; !exists {
-			containerSpec.CapabilityDrop = append(containerSpec.CapabilityDrop, cap)
-		}
+	// And remove the capabilities we're "adding" from the service's existing
+	// list of capabilities to "drop".
+	//
+	// "Adding" capabilities takes precedence over "dropping" them, so if a
+	// capability is set both as "add" and "drop", remove the capability from
+	// the service's list of dropped capabilities (if present).
+	for c := range toAdd {
+		delete(capDrop, c)
+		capAdd[c] = true
 	}
+
+	// Now that the service's existing lists are updated, apply the new
+	// capabilities to add/drop to both lists. Sort the lists to prevent
+	// unneeded updates to service-tasks.
+	containerSpec.CapabilityDrop = capsList(capDrop)
+	containerSpec.CapabilityAdd = capsList(capAdd)
+}
+
+func capsList(caps map[string]bool) []string {
+	if caps[opts.AllCapabilities] {
+		return []string{opts.AllCapabilities}
+	}
+	var out []string
+	for c := range caps {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
 }

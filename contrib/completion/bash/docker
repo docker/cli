@@ -3672,6 +3672,8 @@ _docker_service_update() {
 # and `docker service update`
 _docker_service_update_and_create() {
 	local options_with_args="
+		--cap-add
+		--cap-drop
 		--endpoint-mode
 		--entrypoint
 		--health-cmd
@@ -3830,6 +3832,14 @@ _docker_service_update_and_create() {
 	esac
 
 	case "$prev" in
+		--cap-add)
+			__docker_complete_capabilities_addable
+			return
+			;;
+		--cap-drop)
+			__docker_complete_capabilities_droppable
+			return
+			;;
 		--config|--config-add|--config-rm)
 			__docker_complete_configs
 			return
