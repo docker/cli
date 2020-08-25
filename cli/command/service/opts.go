@@ -689,6 +689,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
+	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetAll(), options.capDrop.GetAll())
+
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
@@ -720,8 +722,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
-				CapabilityAdd:   options.capAdd.GetAll(),
-				CapabilityDrop:  options.capDrop.GetAll(),
+				CapabilityAdd:   capAdd,
+				CapabilityDrop:  capDrop,
 			},
 			Networks:      networks,
 			Resources:     resources,
