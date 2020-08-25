@@ -1369,6 +1369,37 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 // Capabilities are normalized, sorted, and duplicates are removed to prevent
 // service tasks from being updated if no changes are made. If a list has the "ALL"
 // capability set, then any other capability is removed from that list.
+//
+// Adding/removing capabilities when updating a service is handled as a tri-state;
+//
+// - if the capability was previously "dropped", then remove it from "CapabilityDrop",
+//   but NOT added to "CapabilityAdd". However, if the capability was not yet in
+//   the service's "CapabilityDrop", then it's simply added to the service's "CapabilityAdd"
+// - likewise, if the capability was previously "added", then it's removed from
+//   "CapabilityAdd", but NOT added to "CapabilityDrop". If the capability was
+//   not yet in the service's "CapabilityAdd", then simply add it to the service's
+//   "CapabilityDrop".
+//
+// In other words, given a service with the following:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// | CAP_SOME_CAP   |               |
+//
+// When updating the service, and applying `--cap-add CAP_SOME_CAP`, the previously
+// dropped capability is removed:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// |                |               |
+//
+// After updating the service a second time, applying `--cap-add CAP_SOME_CAP`,
+// capability is now added:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// |                | CAP_SOME_CAP  |
+//
 func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
 	var (
 		toAdd, toDrop map[string]bool
@@ -1386,10 +1417,20 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 	// First remove the capabilities to "drop" from the service's exiting
 	// list of capabilities to "add". If a capability is both added and dropped
 	// on update, then "adding" takes precedence.
+	//
+	// Dropping a capability when updating a service is considered a tri-state;
+	//
+	// - if the capability was previously "added", then remove it from
+	//   "CapabilityAdd", and do NOT add it to "CapabilityDrop"
+	// - if the capability was not yet in the service's "CapabilityAdd",
+	//   then simply add it to the service's "CapabilityDrop"
 	for c := range toDrop {
 		if !toAdd[c] {
-			delete(capAdd, c)
-			capDrop[c] = true
+			if capAdd[c] {
+				delete(capAdd, c)
+			} else {
+				capDrop[c] = true
+			}
 		}
 	}
 
@@ -1399,9 +1440,19 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 	// "Adding" capabilities takes precedence over "dropping" them, so if a
 	// capability is set both as "add" and "drop", remove the capability from
 	// the service's list of dropped capabilities (if present).
+	//
+	// Adding a capability when updating a service is considered a tri-state;
+	//
+	// - if the capability was previously "dropped", then remove it from
+	//   "CapabilityDrop", and do NOT add it to "CapabilityAdd"
+	// - if the capability was not yet in the service's "CapabilityDrop",
+	//   then simply add it to the service's "CapabilityAdd"
 	for c := range toAdd {
-		delete(capDrop, c)
-		capAdd[c] = true
+		if capDrop[c] {
+			delete(capDrop, c)
+		} else {
+			capAdd[c] = true
+		}
 	}
 
 	// Now that the service's existing lists are updated, apply the new

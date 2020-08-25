@@ -1427,7 +1427,7 @@ func TestUpdateCaps(t *testing.T) {
 			spec: &swarm.ContainerSpec{
 				CapabilityDrop: []string{"CAP_NET_ADMIN"},
 			},
-			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedAdd:  nil,
 			expectedDrop: nil,
 		},
 		{
@@ -1437,8 +1437,8 @@ func TestUpdateCaps(t *testing.T) {
 			spec: &swarm.ContainerSpec{
 				CapabilityAdd: []string{"CAP_NET_ADMIN"},
 			},
-			expectedDrop: []string{"CAP_NET_ADMIN"},
 			expectedAdd:  []string{"CAP_CHOWN"},
+			expectedDrop: nil,
 		},
 		{
 			name:    "Add caps to service that has ALL caps has no effect",
@@ -1447,6 +1447,16 @@ func TestUpdateCaps(t *testing.T) {
 				CapabilityAdd: []string{"ALL"},
 			},
 			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop ALL caps, then add new caps to service that has ALL caps",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL"},
+			},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
 			expectedDrop: nil,
 		},
 		{
@@ -1488,7 +1498,7 @@ func TestUpdateCaps(t *testing.T) {
 				CapabilityDrop: []string{"CAP_CHOWN"},
 			},
 			expectedAdd:  []string{"ALL"},
-			expectedDrop: []string{"CAP_CHOWN", "CAP_NET_ADMIN", "CAP_SYS_ADMIN"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
 		},
 		{
 			name:     "Drop all, and add all",
