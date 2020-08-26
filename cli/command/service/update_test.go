@@ -1522,6 +1522,50 @@ func TestUpdateCaps(t *testing.T) {
 			expectedAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
 			expectedDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
 		},
+		{
+			name:     "Reset capabilities",
+			flagAdd:  []string{"RESET"},
+			flagDrop: []string{"RESET"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  nil,
+			expectedDrop: nil,
+		},
+		{
+			name:     "Reset capabilities, and update after",
+			flagAdd:  []string{"RESET", "CAP_ADD_ONE", "CAP_FOO"},
+			flagDrop: []string{"RESET", "CAP_DROP_ONE", "CAP_FOO"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"CAP_ADD_ONE", "CAP_FOO"},
+			expectedDrop: []string{"CAP_DROP_ONE"},
+		},
+		{
+			name:     "Reset capabilities, and add ALL",
+			flagAdd:  []string{"RESET", "ALL"},
+			flagDrop: []string{"RESET", "ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Add ALL and RESET",
+			flagAdd:  []string{"ALL", "RESET"},
+			flagDrop: []string{"ALL", "RESET"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
 	}
 
 	for _, tc := range tests {
