@@ -8,6 +8,10 @@ import (
 const (
 	// AllCapabilities is a special value to add or drop all capabilities
 	AllCapabilities = "ALL"
+
+	// ResetCapabilities is a special value to reset capabilities when updating.
+	// This value should only be used when updating, not used on "create".
+	ResetCapabilities = "RESET"
 )
 
 // NormalizeCapability normalizes a capability by upper-casing, trimming white space
@@ -19,7 +23,7 @@ const (
 // handled by the daemon.
 func NormalizeCapability(cap string) string {
 	cap = strings.ToUpper(strings.TrimSpace(cap))
-	if cap == AllCapabilities {
+	if cap == AllCapabilities || cap == ResetCapabilities {
 		return cap
 	}
 	if !strings.HasPrefix(cap, "CAP_") {
@@ -44,6 +48,9 @@ func CapabilitiesMap(caps []string) map[string]bool {
 // lists are removed from the list of capabilities to drop. The special "ALL"
 // capability is also taken into account.
 //
+// Note that the special "RESET" value is only used when updating an existing
+// service, and will be ignored.
+//
 // Duplicates are removed, and the resulting lists are sorted.
 func EffectiveCapAddCapDrop(add, drop []string) (capAdd, capDrop []string) {
 	var (
@@ -64,11 +71,15 @@ func EffectiveCapAddCapDrop(add, drop []string) (capAdd, capDrop []string) {
 			// Adding a capability takes precedence, so skip dropping
 			continue
 		}
-		capDrop = append(capDrop, c)
+		if c != ResetCapabilities {
+			capDrop = append(capDrop, c)
+		}
 	}
 
 	for c := range addCaps {
-		capAdd = append(capAdd, c)
+		if c != ResetCapabilities {
+			capAdd = append(capAdd, c)
+		}
 	}
 
 	sort.Strings(capAdd)
