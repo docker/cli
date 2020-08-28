@@ -11,8 +11,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"vbom.ml/util/sortorder"
 )
 
 // ReexecEnvvar is the name of an ennvar which is set to the command
