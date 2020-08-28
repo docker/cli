@@ -59,7 +59,6 @@ func TestVolumeContextWrite(t *testing.T) {
 		context  Context
 		expected string
 	}{
-
 		// Errors
 		{
 			Context{Format: "{{InvalidFunction}}"},
@@ -74,9 +73,9 @@ func TestVolumeContextWrite(t *testing.T) {
 		// Table format
 		{
 			Context{Format: NewVolumeFormat("table", false)},
-			`DRIVER              VOLUME NAME
-foo                 foobar_baz
-bar                 foobar_bar
+			`DRIVER    VOLUME NAME
+foo       foobar_baz
+bar       foobar_bar
 `,
 		},
 		{
@@ -125,19 +124,23 @@ foobar_bar
 		},
 	}
 
-	for _, testcase := range cases {
-		volumes := []*types.Volume{
-			{Name: "foobar_baz", Driver: "foo"},
-			{Name: "foobar_bar", Driver: "bar"},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := VolumeWrite(testcase.context, volumes)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	volumes := []*types.Volume{
+		{Name: "foobar_baz", Driver: "foo"},
+		{Name: "foobar_bar", Driver: "bar"},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := VolumeWrite(tc.context, volumes)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

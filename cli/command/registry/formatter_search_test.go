@@ -148,19 +148,24 @@ result2 5
 		},
 	}
 
-	for _, testcase := range cases {
-		results := []registrytypes.SearchResult{
-			{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-			{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := SearchWrite(testcase.context, results)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, testcase.expected))
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
+	results := []registrytypes.SearchResult{
+		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
+		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			err := SearchWrite(tc.context, results)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

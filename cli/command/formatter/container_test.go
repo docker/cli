@@ -141,16 +141,16 @@ func TestContainerContextWrite(t *testing.T) {
 		// Table Format
 		{
 			Context{Format: NewContainerFormat("table", false, true)},
-			`CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES               SIZE
-containerID1        ubuntu              ""                  24 hours ago                                                foobar_baz          0B
-containerID2        ubuntu              ""                  24 hours ago                                                foobar_bar          0B
+			`CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES        SIZE
+containerID1   ubuntu    ""        24 hours ago                       foobar_baz   0B
+containerID2   ubuntu    ""        24 hours ago                       foobar_bar   0B
 `,
 		},
 		{
 			Context{Format: NewContainerFormat("table", false, false)},
-			`CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-containerID1        ubuntu              ""                  24 hours ago                                                foobar_baz
-containerID2        ubuntu              ""                  24 hours ago                                                foobar_bar
+			`CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES
+containerID1   ubuntu    ""        24 hours ago                       foobar_baz
+containerID2   ubuntu    ""        24 hours ago                       foobar_bar
 `,
 		},
 		{
@@ -248,19 +248,24 @@ size: 0B
 		},
 	}
 
-	for _, testcase := range cases {
-		containers := []types.Container{
-			{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
-			{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := ContainerWrite(testcase.context, containers)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	containers := []types.Container{
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := ContainerWrite(tc.context, containers)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
+
 	}
 }
 
@@ -268,7 +273,7 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 	out := bytes.NewBufferString("")
 	containers := []types.Container{}
 
-	contexts := []struct {
+	cases := []struct {
 		context  Context
 		expected string
 	}{
@@ -305,23 +310,26 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 				Format: "table {{.Image}}\t{{.Size}}",
 				Output: out,
 			},
-			"IMAGE               SIZE\n",
+			"IMAGE     SIZE\n",
 		},
 		{
 			Context{
 				Format: NewContainerFormat("table {{.Image}}\t{{.Size}}", false, true),
 				Output: out,
 			},
-			"IMAGE               SIZE\n",
+			"IMAGE     SIZE\n",
 		},
 	}
 
-	for _, context := range contexts {
-		err := ContainerWrite(context.context, containers)
-		assert.NilError(t, err)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			err := ContainerWrite(tc.context, containers)
+			assert.NilError(t, err)
+			assert.Equal(t, out.String(), tc.expected)
+			// Clean buffer
+			out.Reset()
+		})
 	}
 }
 
