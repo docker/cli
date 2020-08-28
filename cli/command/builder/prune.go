@@ -46,6 +46,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused build cache, not just dangling ones")
+	flags.BoolVarP(&options.dryRun, "dry-run", "n", false, "Display builder prune report without removing anything")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=24h')")
 	flags.Var(&options.keepStorage, "keep-storage", "Amount of disk space to keep for cache")
 
@@ -60,6 +61,7 @@ const (
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := options.filter.Value()
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
+	pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
 
 	warning := normalWarning
 	if options.all {

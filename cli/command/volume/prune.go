@@ -58,6 +58,7 @@ Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+	pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
 
 	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
