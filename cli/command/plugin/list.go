@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"vbom.ml/util/sortorder"
 )
 
 type listOptions struct {
