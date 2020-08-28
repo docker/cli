@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/fvbommel/sortorder"
 	"github.com/theupdateframework/notary/client"
-	"vbom.ml/util/sortorder"
 )
 
 func prettyPrintTrustInfo(cli command.Cli, remote string) error {
