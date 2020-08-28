@@ -103,9 +103,9 @@ func (cs *Stats) GetStatistics() StatsEntry {
 func NewStatsFormat(source, osType string) formatter.Format {
 	if source == formatter.TableFormatKey {
 		if osType == winOSType {
-			return formatter.Format(winDefaultStatsTableFormat)
+			return winDefaultStatsTableFormat
 		}
-		return formatter.Format(defaultStatsTableFormat)
+		return defaultStatsTableFormat
 	}
 	return formatter.Format(source)
 }

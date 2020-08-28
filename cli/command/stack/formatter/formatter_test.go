@@ -27,7 +27,7 @@ func TestStackContextWrite(t *testing.T) {
 		},
 		// Table format
 		{
-			formatter.Context{Format: formatter.Format(SwarmStackTableFormat)},
+			formatter.Context{Format: SwarmStackTableFormat},
 			`NAME                SERVICES            ORCHESTRATOR
 baz                 2                   orchestrator1
 bar                 1                   orchestrator2
@@ -35,7 +35,7 @@ bar                 1                   orchestrator2
 		},
 		// Kubernetes table format adds Namespace column
 		{
-			formatter.Context{Format: formatter.Format(KubernetesStackTableFormat)},
+			formatter.Context{Format: KubernetesStackTableFormat},
 			`NAME                SERVICES            ORCHESTRATOR        NAMESPACE
 baz                 2                   orchestrator1       namespace1
 bar                 1                   orchestrator2       namespace2
