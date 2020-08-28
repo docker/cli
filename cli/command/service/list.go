@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"vbom.ml/util/sortorder"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -14,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
 
