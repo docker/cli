@@ -71,7 +71,7 @@ func (c *Context) parseFormat() (*template.Template, error) {
 
 func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
 	if c.Format.IsTable() {
-		t := tabwriter.NewWriter(c.Output, 20, 1, 3, ' ', 0)
+		t := tabwriter.NewWriter(c.Output, 10, 1, 3, ' ', 0)
 		buffer := bytes.NewBufferString("")
 		tmpl.Funcs(templates.HeaderFunctions).Execute(buffer, subContext.FullHeader())
 		buffer.WriteTo(t)

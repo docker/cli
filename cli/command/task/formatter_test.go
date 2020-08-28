@@ -59,27 +59,31 @@ foobar_bar foo2
 		},
 	}
 
-	for _, testcase := range cases {
-		tasks := []swarm.Task{
-			{ID: "taskID1"},
-			{ID: "taskID2"},
-		}
-		names := map[string]string{
-			"taskID1": "foobar_baz",
-			"taskID2": "foobar_bar",
-		}
-		nodes := map[string]string{
-			"taskID1": "foo1",
-			"taskID2": "foo2",
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := FormatWrite(testcase.context, tasks, names, nodes)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	tasks := []swarm.Task{
+		{ID: "taskID1"},
+		{ID: "taskID2"},
+	}
+	names := map[string]string{
+		"taskID1": "foobar_baz",
+		"taskID2": "foobar_bar",
+	}
+	nodes := map[string]string{
+		"taskID1": "foo1",
+		"taskID2": "foo2",
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := FormatWrite(tc.context, tasks, names, nodes); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
