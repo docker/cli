@@ -6,7 +6,6 @@
 
 # Overridable env vars
 DOCKER_CLI_MOUNTS ?= -v "$(CURDIR)":/go/src/github.com/docker/cli
-DOCKER_CLI_SHELL ?= ash
 DOCKER_CLI_CONTAINER_NAME ?=
 DOCKER_CLI_GO_BUILD_CACHE ?= y
 
@@ -102,7 +101,7 @@ plugins-osx: build_cross_image ## build the example CLI plugins for macOS
 dev: build_docker_image ## start a build container in interactive mode for in-container development
 	$(DOCKER_RUN) -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		$(DEV_DOCKER_IMAGE_NAME) $(DOCKER_CLI_SHELL)
+		$(DEV_DOCKER_IMAGE_NAME)
 
 shell: dev ## alias for dev
 
