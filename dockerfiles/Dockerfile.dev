@@ -1,33 +1,37 @@
 ARG GO_VERSION=1.13.15
 
-FROM    golang:${GO_VERSION}-alpine
+FROM golang:${GO_VERSION}-alpine AS golang
+ENV  CGO_ENABLED=0
 
-RUN     apk add --no-cache bash build-base ca-certificates coreutils curl git
+FROM golang AS esc
+ARG ESC_VERSION=v0.2.0
+RUN GO111MODULE=on go get github.com/mjibson/esc@${ESC_VERSION}
 
-# v0.1.1
-ARG     VNDR_SHA=85886e1ac99b8d96590e6e0d9f075dc7a711d132
-RUN     go get -d github.com/LK4D4/vndr && \
-        cd /go/src/github.com/LK4D4/vndr && \
-        git checkout -q "$VNDR_SHA" && \
-        go build -v -o /usr/bin/vndr . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+FROM golang AS gotestsum
+ARG GOTESTSUM_VERSION=0.4.0
+ADD https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz gotestsum.tar.gz
+RUN tar -xf gotestsum.tar.gz gotestsum -C /go/bin
 
-# v0.2.0
-ARG     ESC_SHA=0ea7db170df78dcddf3e223365f444163147fe89
-RUN     go get -d github.com/mjibson/esc && \
-        cd /go/src/github.com/mjibson/esc && \
-        git checkout -q "$ESC_SHA" && \
-        go build -v -o /usr/bin/esc . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+FROM golang AS vndr
+ARG VNDR_VERSION=v0.1.1
+RUN GO111MODULE=on go get github.com/LK4D4/vndr@${VNDR_VERSION}
 
-ARG     GOTESTSUM_VERSION=0.4.0
-RUN     curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz && \
-        tar -xf gotestsum.tar.gz gotestsum -C /usr/bin && \
-        rm gotestsum.tar.gz
+FROM golang AS dev
+RUN  apk add --no-cache \
+    bash \
+    build-base \
+    ca-certificates \
+    coreutils \
+    curl \
+    git
 
-ENV     CGO_ENABLED=0 \
-        PATH=$PATH:/go/src/github.com/docker/cli/build \
-        DISABLE_WARN_OUTSIDE_CONTAINER=1
+CMD sh
+ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
+ENV PATH=$PATH:/go/src/github.com/docker/cli/build
+
+COPY --from=esc       /go/bin/* /go/bin/
+COPY --from=vndr      /go/bin/* /go/bin/
+COPY --from=gotestsum /go/bin/* /go/bin/
+
 WORKDIR /go/src/github.com/docker/cli
-CMD     sh
-COPY    . .
+COPY . .
