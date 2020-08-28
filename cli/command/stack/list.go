@@ -60,7 +60,7 @@ func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orche
 }
 
 func format(dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator, stacks []*formatter.Stack) error {
-	format := opts.Format
+	format := formatter.Format(opts.Format)
 	if format == "" || format == formatter.TableFormatKey {
 		format = formatter.SwarmStackTableFormat
 		if orchestrator.HasKubernetes() {
@@ -69,7 +69,7 @@ func format(dockerCli command.Cli, opts options.List, orchestrator command.Orche
 	}
 	stackCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.Format(format),
+		Format: format,
 	}
 	sort.Slice(stacks, func(i, j int) bool {
 		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name) ||
