@@ -8,9 +8,8 @@ ARG ESC_VERSION=v0.2.0
 RUN GO111MODULE=on go get github.com/mjibson/esc@${ESC_VERSION}
 
 FROM golang AS gotestsum
-ARG GOTESTSUM_VERSION=0.4.0
-ADD https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz gotestsum.tar.gz
-RUN tar -xf gotestsum.tar.gz gotestsum -C /go/bin
+ARG GOTESTSUM_VERSION=v0.4.0
+RUN GO111MODULE=on go get gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
 FROM golang AS vndr
 ARG VNDR_VERSION=v0.1.1
