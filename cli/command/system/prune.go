@@ -70,7 +70,6 @@ Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	// TODO version this once "until" filter is supported for volumes
-	fmt.Printf("hello world\n")
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
