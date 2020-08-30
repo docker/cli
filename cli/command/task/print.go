@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/docker/api/types/swarm"
-	"vbom.ml/util/sortorder"
+	"github.com/fvbommel/sortorder"
 )
 
 type tasksSortable []swarm.Task

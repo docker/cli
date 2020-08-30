@@ -31,6 +31,7 @@ type fakeClient struct {
 	containerListFunc       func(types.ContainerListOptions) ([]types.Container, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options types.ResizeOptions) error
+	containerRemoveFunc     func(ctx context.Context, container string, options types.ContainerRemoveOptions) error
 	Version                 string
 }
 
@@ -78,6 +79,13 @@ func (f *fakeClient) ContainerCreate(
 		return f.createContainerFunc(config, hostConfig, networkingConfig, platform, containerName)
 	}
 	return container.ContainerCreateCreatedBody{}, nil
+}
+
+func (f *fakeClient) ContainerRemove(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
+	if f.containerRemoveFunc != nil {
+		return f.containerRemoveFunc(ctx, container, options)
+	}
+	return nil
 }
 
 func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {

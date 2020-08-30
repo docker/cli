@@ -15,8 +15,8 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
+	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
-	"vbom.ml/util/sortorder"
 )
 
 const serviceInspectPrettyTemplate formatter.Format = `

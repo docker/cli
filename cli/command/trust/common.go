@@ -10,11 +10,11 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/fvbommel/sortorder"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
-	"vbom.ml/util/sortorder"
 )
 
 // trustTagKey represents a unique signed tag and hex-encoded hash pair

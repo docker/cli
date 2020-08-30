@@ -640,6 +640,12 @@ func updatePlacementPreferences(flags *pflag.FlagSet, placement *swarm.Placement
 }
 
 func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
+	if *field != nil && flags.Changed(flagContainerLabelRemove) {
+		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetAll()
+		for _, label := range toRemove {
+			delete(*field, label)
+		}
+	}
 	if flags.Changed(flagContainerLabelAdd) {
 		if *field == nil {
 			*field = map[string]string{}
@@ -650,16 +656,15 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 			(*field)[key] = value
 		}
 	}
+}
 
-	if *field != nil && flags.Changed(flagContainerLabelRemove) {
-		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetAll()
+func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
+	if *field != nil && flags.Changed(flagLabelRemove) {
+		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
 		for _, label := range toRemove {
 			delete(*field, label)
 		}
 	}
-}
-
-func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 	if flags.Changed(flagLabelAdd) {
 		if *field == nil {
 			*field = map[string]string{}
@@ -668,13 +673,6 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
 		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
-		}
-	}
-
-	if *field != nil && flags.Changed(flagLabelRemove) {
-		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
-		for _, label := range toRemove {
-			delete(*field, label)
 		}
 	}
 }
@@ -699,6 +697,9 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 }
 
 func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
+	toRemove := buildToRemoveSet(flags, flagEnvRemove)
+	*field = removeItems(*field, toRemove, envKey)
+
 	if flags.Changed(flagEnvAdd) {
 		envSet := map[string]string{}
 		for _, v := range *field {
@@ -715,9 +716,6 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 			*field = append(*field, v)
 		}
 	}
-
-	toRemove := buildToRemoveSet(flags, flagEnvRemove)
-	*field = removeItems(*field, toRemove, envKey)
 }
 
 func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {

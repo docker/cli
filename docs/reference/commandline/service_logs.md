@@ -18,7 +18,7 @@ Options:
       --no-task-ids    Do not include task IDs in output
       --no-trunc        Do not truncate output
       --since string   Show logs since timestamp
-      --tail string    Number of lines to show from the end of the logs (default "all")
+  -n, --tail string    Number of lines to show from the end of the logs (default "all")
   -t, --timestamps     Show timestamps
 ```
 

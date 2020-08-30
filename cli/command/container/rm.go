@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -61,6 +62,10 @@ func runRm(dockerCli command.Cli, opts *rmOptions) error {
 
 	for _, name := range opts.containers {
 		if err := <-errChan; err != nil {
+			if opts.force && errdefs.IsNotFound(err) {
+				fmt.Fprintln(dockerCli.Err(), err)
+				continue
+			}
 			errs = append(errs, err.Error())
 			continue
 		}

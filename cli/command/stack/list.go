@@ -9,8 +9,8 @@ import (
 	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"vbom.ml/util/sortorder"
 )
 
 func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {

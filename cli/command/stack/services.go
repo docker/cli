@@ -13,9 +13,9 @@ import (
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
 	swarmtypes "github.com/docker/docker/api/types/swarm"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"vbom.ml/util/sortorder"
 )
 
 func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {

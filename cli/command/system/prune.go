@@ -16,8 +16,8 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-units"
+	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"vbom.ml/util/sortorder"
 )
 
 type pruneOptions struct {

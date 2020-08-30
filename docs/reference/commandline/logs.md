@@ -17,7 +17,7 @@ Options:
       --help           Print usage
       --since string   Show logs since timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)
       --until string   Show logs before timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)
-      --tail string    Number of lines to show from the end of the logs (default "all")
+  -n, --tail string    Number of lines to show from the end of the logs (default "all")
   -t, --timestamps     Show timestamps
 ```
 
