@@ -460,10 +460,10 @@ func TestPrintSignerInfoSortOrder(t *testing.T) {
 		"signer1-foo":  {"A"},
 	}
 
-	expected := `SIGNER              KEYS
-signer1-foo         A
-signer2-foo         B
-signer10-foo        C
+	expected := `SIGNER         KEYS
+signer1-foo    A
+signer2-foo    B
+signer10-foo   C
 `
 	buf := new(bytes.Buffer)
 	assert.NilError(t, printSignerInfo(buf, roleToKeyIDs))

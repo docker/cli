@@ -40,13 +40,13 @@ func TestServiceContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewListFormat("table", false)},
-			`ID                  NAME                MODE                REPLICAS               IMAGE               PORTS
-02_bar              bar                 replicated          2/4                                        *:80->8090/udp
-01_baz              baz                 global              1/3                                        *:80->8080/tcp
-04_qux2             qux2                replicated          3/3 (max 2 per node)                       
-03_qux10            qux10               replicated          2/3 (max 1 per node)                       
-05_job1             zarp1               replicated job      2/3 (5/10 completed)                       
-06_job2             zarp2               global job          1/1 (3/4 completed)                        
+			`ID         NAME      MODE             REPLICAS               IMAGE     PORTS
+02_bar     bar       replicated       2/4                              *:80->8090/udp
+01_baz     baz       global           1/3                              *:80->8080/tcp
+04_qux2    qux2      replicated       3/3 (max 2 per node)             
+03_qux10   qux10     replicated       2/3 (max 1 per node)             
+05_job1    zarp1     replicated job   2/3 (5/10 completed)             
+06_job2    zarp2     global job       1/1 (3/4 completed)              
 `,
 		},
 		{
@@ -61,13 +61,13 @@ func TestServiceContextWrite(t *testing.T) {
 		},
 		{
 			formatter.Context{Format: NewListFormat("table {{.Name}}\t{{.Mode}}", false)},
-			`NAME                MODE
-bar                 replicated
-baz                 global
-qux2                replicated
-qux10               replicated
-zarp1               replicated job
-zarp2               global job
+			`NAME      MODE
+bar       replicated
+baz       global
+qux2      replicated
+qux10     replicated
+zarp1     replicated job
+zarp2     global job
 `,
 		},
 		{
@@ -109,126 +109,130 @@ zarp2
 		},
 	}
 
-	for _, testcase := range cases {
-		services := []swarm.Service{
-			{
-				ID: "01_baz",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "baz"},
-					Mode: swarm.ServiceMode{
-						Global: &swarm.GlobalService{},
-					},
-				},
-				Endpoint: swarm.Endpoint{
-					Ports: []swarm.PortConfig{
-						{
-							PublishMode:   "ingress",
-							PublishedPort: 80,
-							TargetPort:    8080,
-							Protocol:      "tcp",
-						},
-					},
-				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks: 1,
-					DesiredTasks: 3,
+	services := []swarm.Service{
+		{
+			ID: "01_baz",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "baz"},
+				Mode: swarm.ServiceMode{
+					Global: &swarm.GlobalService{},
 				},
 			},
-			{
-				ID: "02_bar",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "bar"},
-					Mode: swarm.ServiceMode{
-						Replicated: &swarm.ReplicatedService{},
+			Endpoint: swarm.Endpoint{
+				Ports: []swarm.PortConfig{
+					{
+						PublishMode:   "ingress",
+						PublishedPort: 80,
+						TargetPort:    8080,
+						Protocol:      "tcp",
 					},
-				},
-				Endpoint: swarm.Endpoint{
-					Ports: []swarm.PortConfig{
-						{
-							PublishMode:   "ingress",
-							PublishedPort: 80,
-							TargetPort:    8090,
-							Protocol:      "udp",
-						},
-					},
-				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks: 2,
-					DesiredTasks: 4,
 				},
 			},
-			{
-				ID: "03_qux10",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "qux10"},
-					Mode: swarm.ServiceMode{
-						Replicated: &swarm.ReplicatedService{},
-					},
-					TaskTemplate: swarm.TaskSpec{
-						Placement: &swarm.Placement{MaxReplicas: 1},
-					},
-				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks: 2,
-					DesiredTasks: 3,
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 1,
+				DesiredTasks: 3,
+			},
+		},
+		{
+			ID: "02_bar",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "bar"},
+				Mode: swarm.ServiceMode{
+					Replicated: &swarm.ReplicatedService{},
 				},
 			},
-			{
-				ID: "04_qux2",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "qux2"},
-					Mode: swarm.ServiceMode{
-						Replicated: &swarm.ReplicatedService{},
+			Endpoint: swarm.Endpoint{
+				Ports: []swarm.PortConfig{
+					{
+						PublishMode:   "ingress",
+						PublishedPort: 80,
+						TargetPort:    8090,
+						Protocol:      "udp",
 					},
-					TaskTemplate: swarm.TaskSpec{
-						Placement: &swarm.Placement{MaxReplicas: 2},
-					},
-				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks: 3,
-					DesiredTasks: 3,
 				},
 			},
-			{
-				ID: "05_job1",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "zarp1"},
-					Mode: swarm.ServiceMode{
-						ReplicatedJob: &swarm.ReplicatedJob{
-							MaxConcurrent:    &varThree,
-							TotalCompletions: &varTen,
-						},
-					},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 2,
+				DesiredTasks: 4,
+			},
+		},
+		{
+			ID: "03_qux10",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "qux10"},
+				Mode: swarm.ServiceMode{
+					Replicated: &swarm.ReplicatedService{},
 				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks:   2,
-					DesiredTasks:   3,
-					CompletedTasks: 5,
+				TaskTemplate: swarm.TaskSpec{
+					Placement: &swarm.Placement{MaxReplicas: 1},
 				},
 			},
-			{
-				ID: "06_job2",
-				Spec: swarm.ServiceSpec{
-					Annotations: swarm.Annotations{Name: "zarp2"},
-					Mode: swarm.ServiceMode{
-						GlobalJob: &swarm.GlobalJob{},
-					},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 2,
+				DesiredTasks: 3,
+			},
+		},
+		{
+			ID: "04_qux2",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "qux2"},
+				Mode: swarm.ServiceMode{
+					Replicated: &swarm.ReplicatedService{},
 				},
-				ServiceStatus: &swarm.ServiceStatus{
-					RunningTasks:   1,
-					DesiredTasks:   1,
-					CompletedTasks: 3,
+				TaskTemplate: swarm.TaskSpec{
+					Placement: &swarm.Placement{MaxReplicas: 2},
 				},
 			},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := ListFormatWrite(testcase.context, services)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks: 3,
+				DesiredTasks: 3,
+			},
+		},
+		{
+			ID: "05_job1",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "zarp1"},
+				Mode: swarm.ServiceMode{
+					ReplicatedJob: &swarm.ReplicatedJob{
+						MaxConcurrent:    &varThree,
+						TotalCompletions: &varTen,
+					},
+				},
+			},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks:   2,
+				DesiredTasks:   3,
+				CompletedTasks: 5,
+			},
+		},
+		{
+			ID: "06_job2",
+			Spec: swarm.ServiceSpec{
+				Annotations: swarm.Annotations{Name: "zarp2"},
+				Mode: swarm.ServiceMode{
+					GlobalJob: &swarm.GlobalJob{},
+				},
+			},
+			ServiceStatus: &swarm.ServiceStatus{
+				RunningTasks:   1,
+				DesiredTasks:   1,
+				CompletedTasks: 3,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := ListFormatWrite(tc.context, services); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
