@@ -77,7 +77,7 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 			return readCloser, types.ContainerPathStat{}, err
 		},
 	}
-	options := copyOptions{source: "container:/path", destination: destDir.Path()}
+	options := copyOptions{source: "container:/path", destination: destDir.Path(), quiet: true}
 	cli := test.NewFakeCli(fakeClient)
 	err := runCopy(cli, options)
 	assert.NilError(t, err)
