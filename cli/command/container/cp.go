@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/system"
+	units "github.com/docker/go-units"
+	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +24,7 @@ type copyOptions struct {
 	destination string
 	followLink  bool
 	copyUIDGID  bool
+	quiet       bool
 }
 
 type copyDirection int
@@ -34,9 +38,36 @@ const (
 type cpConfig struct {
 	followLink bool
 	copyUIDGID bool
+	quiet      bool
 	sourcePath string
 	destPath   string
 	container  string
+}
+
+// copyProgressPrinter wraps io.ReadCloser to print progress information when
+// copying files to/from a container.
+type copyProgressPrinter struct {
+	io.ReadCloser
+	toContainer bool
+	total       *float64
+	writer      io.Writer
+}
+
+func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
+	n, err := pt.ReadCloser.Read(p)
+	*pt.total += float64(n)
+
+	if err == nil {
+		fmt.Fprint(pt.writer, aec.Restore)
+		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
+		if pt.toContainer {
+			fmt.Fprintln(pt.writer, "Copying to container - "+units.HumanSize(*pt.total))
+		} else {
+			fmt.Fprintln(pt.writer, "Copying from container - "+units.HumanSize(*pt.total))
+		}
+	}
+
+	return n, err
 }
 
 // NewCopyCommand creates a new `docker cp` command
@@ -64,6 +95,10 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			opts.source = args[0]
 			opts.destination = args[1]
+			if !cmd.Flag("quiet").Changed {
+				// User did not specify "quiet" flag; suppress output if no terminal is attached
+				opts.quiet = !dockerCli.Out().IsTerminal()
+			}
 			return runCopy(dockerCli, opts)
 		},
 	}
@@ -71,6 +106,7 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbol link in SRC_PATH")
 	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
+	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
 	return cmd
 }
 
@@ -81,6 +117,7 @@ func runCopy(dockerCli command.Cli, opts copyOptions) error {
 	copyConfig := cpConfig{
 		followLink: opts.followLink,
 		copyUIDGID: opts.copyUIDGID,
+		quiet:      opts.quiet,
 		sourcePath: srcPath,
 		destPath:   destPath,
 	}
@@ -171,12 +208,34 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		RebaseName: rebaseName,
 	}
 
+	var copiedSize float64
+	if !copyConfig.quiet {
+		content = &copyProgressPrinter{
+			ReadCloser:  content,
+			toContainer: false,
+			writer:      dockerCli.Err(),
+			total:       &copiedSize,
+		}
+	}
+
 	preArchive := content
 	if len(srcInfo.RebaseName) != 0 {
 		_, srcBase := archive.SplitPathDirEntry(srcInfo.Path)
 		preArchive = archive.RebaseArchiveEntries(content, srcBase, srcInfo.RebaseName)
 	}
-	return archive.CopyTo(preArchive, srcInfo, dstPath)
+
+	if copyConfig.quiet {
+		return archive.CopyTo(preArchive, srcInfo, dstPath)
+	}
+
+	fmt.Fprint(dockerCli.Err(), aec.Save)
+	fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
+	res := archive.CopyTo(preArchive, srcInfo, dstPath)
+	fmt.Fprint(dockerCli.Err(), aec.Restore)
+	fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
+	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", dstPath)
+
+	return res
 }
 
 // In order to get the copy behavior right, we need to know information
@@ -229,8 +288,9 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	}
 
 	var (
-		content         io.Reader
+		content         io.ReadCloser
 		resolvedDstPath string
+		copiedSize      float64
 	)
 
 	if srcPath == "-" {
@@ -272,13 +332,33 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 
 		resolvedDstPath = dstDir
 		content = preparedArchive
+		if !copyConfig.quiet {
+			content = &copyProgressPrinter{
+				ReadCloser:  content,
+				toContainer: true,
+				writer:      dockerCli.Err(),
+				total:       &copiedSize,
+			}
+		}
 	}
 
 	options := types.CopyToContainerOptions{
 		AllowOverwriteDirWithFile: false,
 		CopyUIDGID:                copyConfig.copyUIDGID,
 	}
-	return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+
+	if copyConfig.quiet {
+		return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+	}
+
+	fmt.Fprint(dockerCli.Err(), aec.Save)
+	fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
+	res := client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+	fmt.Fprint(dockerCli.Err(), aec.Restore)
+	fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
+	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+
+	return res
 }
 
 // We use `:` as a delimiter between CONTAINER and PATH, but `:` could also be
