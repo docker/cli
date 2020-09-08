@@ -6,7 +6,6 @@
 
 # Overridable env vars
 DOCKER_CLI_MOUNTS ?= -v "$(CURDIR)":/go/src/github.com/docker/cli
-DOCKER_CLI_SHELL ?= ash
 DOCKER_CLI_CONTAINER_NAME ?=
 DOCKER_CLI_GO_BUILD_CACHE ?= y
 
@@ -101,8 +100,8 @@ plugins-osx: build_cross_image ## build the example CLI plugins for macOS
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
 	$(DOCKER_RUN) -it \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		$(DEV_DOCKER_IMAGE_NAME) $(DOCKER_CLI_SHELL)
+		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		$(DEV_DOCKER_IMAGE_NAME)
 
 shell: dev ## alias for dev
 
@@ -146,15 +145,15 @@ test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ss
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build_e2e_image # run experimental e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
+	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build_e2e_image # run non-experimental e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) $(E2E_IMAGE_NAME)
+	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) $(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build_e2e_image # run experimental SSH-connection helper e2e tests
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
+	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
 
 .PHONY: help
 help: ## print this help
