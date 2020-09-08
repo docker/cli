@@ -13,6 +13,8 @@ Update a service
 
 Options:
       --args command                       Service command args
+      --cap-add list                       Add Linux capabilities
+      --cap-drop list                      Drop Linux capabilities
       --config-add config                  Add or update a config file on a service
       --config-rm list                     Remove a configuration file
       --constraint-add list                Add or update a placement constraint

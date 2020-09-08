@@ -1961,6 +1961,8 @@ __docker_service_subcommand() {
 
     opts_help=("(: -)--help[Print usage]")
     opts_create_update=(
+        "($help)*--cap-add=[Add Linux capabilities]:capability: "
+        "($help)*--cap-drop=[Drop Linux capabilities]:capability: "
         "($help)*--constraint=[Placement constraints]:constraint: "
         "($help)--endpoint-mode=[Placement constraints]:mode:(dnsrr vip)"
         "($help)*"{-e=,--env=}"[Set environment variables]:env: "

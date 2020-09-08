@@ -1342,3 +1342,202 @@ func TestUpdateCredSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCaps(t *testing.T) {
+	tests := []struct {
+		// name is the name of the testcase
+		name string
+		// flagAdd is the value passed to --cap-add
+		flagAdd []string
+		// flagDrop is the value passed to --cap-drop
+		flagDrop []string
+		// spec is the original ContainerSpec, before being updated
+		spec *swarm.ContainerSpec
+		// expectedAdd is the set of requested caps the ContainerSpec should have once updated
+		expectedAdd []string
+		// expectedDrop is the set of dropped caps the ContainerSpec should have once updated
+		expectedDrop []string
+	}{
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "Empty spec, no updates",
+			spec: &swarm.ContainerSpec{},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "No updates",
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name:     "Empty updates",
+			flagAdd:  []string{},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name:     "Normalize cap-add only",
+			flagAdd:  []string{},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "Normalize cap-drop only",
+			spec: &swarm.ContainerSpec{
+				CapabilityDrop: []string{"ALL", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			},
+			expectedDrop: []string{"ALL"},
+		},
+		{
+			name:         "Add new caps",
+			flagAdd:      []string{"CAP_NET_ADMIN"},
+			flagDrop:     []string{},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:         "Drop new caps",
+			flagAdd:      []string{},
+			flagDrop:     []string{"CAP_NET_ADMIN"},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  nil,
+			expectedDrop: []string{"CAP_NET_ADMIN"},
+		},
+		{
+			name:     "Add a previously dropped cap",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityDrop: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  nil,
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop a previously requested cap, and add a new one",
+			flagAdd:  []string{"CAP_CHOWN"},
+			flagDrop: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_CHOWN"},
+			expectedDrop: nil,
+		},
+		{
+			name:    "Add caps to service that has ALL caps has no effect",
+			flagAdd: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop ALL caps, then add new caps to service that has ALL caps",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL"},
+			},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:         "Add takes precedence on empty spec",
+			flagAdd:      []string{"CAP_NET_ADMIN"},
+			flagDrop:     []string{"CAP_NET_ADMIN"},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Add takes precedence on existing spec",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop all, and add new caps",
+			flagAdd:  []string{"CAP_CHOWN"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN", "CAP_MOUNT"},
+				CapabilityDrop: []string{"CAP_NET_ADMIN", "CAP_MOUNT"},
+			},
+			expectedAdd:  []string{"CAP_CHOWN", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"ALL"},
+		},
+		{
+			name:     "Add all caps",
+			flagAdd:  []string{"ALL"},
+			flagDrop: []string{"CAP_NET_ADMIN", "CAP_SYS_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			name:     "Drop all, and add all",
+			flagAdd:  []string{"ALL"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: []string{"CAP_CHOWN"},
+		},
+		{
+			name:     "Caps are normalized and sorted",
+			flagAdd:  []string{"bbb", "aaa", "cAp_bBb", "cAp_aAa"},
+			flagDrop: []string{"zzz", "yyy", "cAp_yYy", "cAp_yYy"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"ccc", "CAP_DDD"},
+				CapabilityDrop: []string{"www", "CAP_XXX"},
+			},
+			expectedAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+			expectedDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, c := range tc.flagAdd {
+				_ = flags.Set(flagCapAdd, c)
+			}
+			for _, c := range tc.flagDrop {
+				_ = flags.Set(flagCapDrop, c)
+			}
+
+			updateCapabilities(flags, tc.spec)
+
+			assert.DeepEqual(t, tc.spec.CapabilityAdd, tc.expectedAdd)
+			assert.DeepEqual(t, tc.spec.CapabilityDrop, tc.expectedDrop)
+		})
+	}
+}

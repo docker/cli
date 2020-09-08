@@ -506,6 +506,8 @@ type serviceOptions struct {
 	dnsOption       opts.ListOpts
 	hosts           opts.ListOpts
 	sysctls         opts.ListOpts
+	capAdd          opts.ListOpts
+	capDrop         opts.ListOpts
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -549,6 +551,8 @@ func newServiceOptions() *serviceOptions {
 		dnsSearch:       opts.NewListOpts(opts.ValidateDNSSearch),
 		hosts:           opts.NewListOpts(opts.ValidateExtraHost),
 		sysctls:         opts.NewListOpts(nil),
+		capAdd:          opts.NewListOpts(nil),
+		capDrop:         opts.NewListOpts(nil),
 	}
 }
 
@@ -685,6 +689,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
+	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetAll(), options.capDrop.GetAll())
+
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
@@ -716,6 +722,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
+				CapabilityAdd:   capAdd,
+				CapabilityDrop:  capDrop,
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -818,6 +826,10 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.StringVar(&opts.hostname, flagHostname, "", "Container hostname")
 	flags.SetAnnotation(flagHostname, "version", []string{"1.25"})
 	flags.Var(&opts.entrypoint, flagEntrypoint, "Overwrite the default ENTRYPOINT of the image")
+	flags.Var(&opts.capAdd, flagCapAdd, "Add Linux capabilities")
+	flags.SetAnnotation(flagCapAdd, "version", []string{"1.41"})
+	flags.Var(&opts.capDrop, flagCapDrop, "Drop Linux capabilities")
+	flags.SetAnnotation(flagCapDrop, "version", []string{"1.41"})
 
 	flags.Var(&opts.resources.limitCPU, flagLimitCPU, "Limit CPUs")
 	flags.Var(&opts.resources.limitMemBytes, flagLimitMemory, "Limit Memory")
@@ -1001,6 +1013,8 @@ const (
 	flagConfigAdd               = "config-add"
 	flagConfigRemove            = "config-rm"
 	flagIsolation               = "isolation"
+	flagCapAdd                  = "cap-add"
+	flagCapDrop                 = "cap-drop"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
