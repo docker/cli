@@ -91,6 +91,8 @@ Options:
       --sysctl-add list                    Add or update a Sysctl option
       --sysctl-rm list                     Remove a Sysctl option
   -t, --tty                                Allocate a pseudo-TTY
+      --ulimit-add ulimit                  Add or update a ulimit option (default [])
+      --ulimit-rm list                     Remove a ulimit option
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback")
       --update-max-failure-ratio float     Failure rate to tolerate during an update
