@@ -1409,9 +1409,17 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 	)
 	if flags.Changed(flagCapAdd) {
 		toAdd = opts.CapabilitiesMap(flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll())
+		if toAdd[opts.ResetCapabilities] {
+			capAdd = make(map[string]bool)
+			delete(toAdd, opts.ResetCapabilities)
+		}
 	}
 	if flags.Changed(flagCapDrop) {
 		toDrop = opts.CapabilitiesMap(flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll())
+		if toDrop[opts.ResetCapabilities] {
+			capDrop = make(map[string]bool)
+			delete(toDrop, opts.ResetCapabilities)
+		}
 	}
 
 	// First remove the capabilities to "drop" from the service's exiting
