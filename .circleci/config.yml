@@ -10,7 +10,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.8
+          version: 19.03.12
           reusable: true
           exclusive: false
       - run:
@@ -46,7 +46,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.8
+          version: 19.03.12
           reusable: true
           exclusive: false
       - run:
@@ -81,7 +81,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.8
+          version: 19.03.12
           reusable: true
           exclusive: false
       - run:
@@ -128,7 +128,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.8
+          version: 19.03.12
           reusable: true
           exclusive: false
       - run:
