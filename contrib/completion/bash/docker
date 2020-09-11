@@ -1149,6 +1149,36 @@ __docker_complete_stack_orchestrator_options() {
 	return 1
 }
 
+__docker_complete_ulimits() {
+	local limits="
+		as
+		chroot
+		core
+		cpu
+		data
+		fsize
+		locks
+		maxlogins
+		maxsyslogins
+		memlock
+		msgqueue
+		nice
+		nofile
+		nproc
+		priority
+		rss
+		rtprio
+		sigpending
+		stack
+	"
+	if [ "$1" = "--rm" ] ; then
+		COMPREPLY=( $( compgen -W "$limits" -- "$cur" ) )
+	else
+		COMPREPLY=( $( compgen -W "$limits" -S = -- "$cur" ) )
+		__docker_nospace
+	fi
+}
+
 __docker_complete_user_group() {
 	if [[ $cur == *:* ]] ; then
 		COMPREPLY=( $(compgen -g -- "${cur#*:}") )
@@ -2148,6 +2178,10 @@ _docker_container_run_and_create() {
 			__docker_nospace
 			return
 			;;
+		--ulimit)
+			__docker_complete_ulimits
+			return
+			;;
 		--user|-u)
 			__docker_complete_user_group
 			return
@@ -2634,6 +2668,10 @@ _docker_daemon() {
 			_filedir
 			return
 			;;
+		--default-ulimit)
+			__docker_complete_ulimits
+			return
+			;;
 		--exec-root|--data-root)
 			_filedir -d
 			return
@@ -2895,6 +2933,10 @@ _docker_image_build() {
 
 			local targets="$( sed -n 's/^FROM .\+ AS \(.\+\)/\1/p' "$dockerfile" 2>/dev/null )"
 			COMPREPLY=( $( compgen -W "$targets" -- "$cur" ) )
+			return
+			;;
+		--ulimit)
+			__docker_complete_ulimits
 			return
 			;;
 		$(__docker_to_extglob "$options_with_args") )
@@ -3912,6 +3954,14 @@ _docker_service_update_and_create() {
 			;;
 		--update-failure-action)
 			COMPREPLY=( $( compgen -W "continue pause rollback" -- "$cur" ) )
+			return
+			;;
+		--ulimit|--ulimit-add)
+			__docker_complete_ulimits
+			return
+			;;
+		--ulimit-rm)
+			__docker_complete_ulimits --rm
 			return
 			;;
 		--update-order|--rollback-order)
