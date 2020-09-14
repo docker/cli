@@ -666,7 +666,7 @@ the [*Public Repositories*](https://docs.docker.com/engine/tutorials/dockerrepos
   instructions.
 - Optionally a name can be given to a new build stage by adding `AS name` to the
   `FROM` instruction. The name can be used in subsequent `FROM` and
-  `COPY --from=<name|index>` instructions to refer to the image built in this stage.
+  `COPY --from=<name>` instructions to refer to the image built in this stage.
 - The `tag` or `digest` values are optional. If you omit either of them, the
   builder assumes a `latest` tag by default. The builder returns an error if it
   cannot find the `tag` value.
@@ -1276,11 +1276,11 @@ COPY test.txt /absoluteDir/
 
 When copying files or directories that contain special characters (such as `[`
 and `]`), you need to escape those paths following the Golang rules to prevent
-them from being treated as a matching pattern. For example, to add a file
+them from being treated as a matching pattern. For example, to copy a file
 named `arr[0].txt`, use the following;
 
 ```dockerfile
-ADD arr[[]0].txt /mydir/
+COPY arr[[]0].txt /mydir/
 ```
 
 All new files and directories are created with a UID and GID of 0, unless the
@@ -1311,12 +1311,11 @@ no lookup and does not depend on container root filesystem content.
 > If you build using STDIN (`docker build - < somefile`), there is no
 > build context, so `COPY` can't be used.
 
-Optionally `COPY` accepts a flag `--from=<name|index>` that can be used to set
+Optionally `COPY` accepts a flag `--from=<name>` that can be used to set
 the source location to a previous build stage (created with `FROM .. AS <name>`)
-that will be used instead of a build context sent by the user. The flag also
-accepts a numeric index assigned for all previous build stages started with
-`FROM` instruction. In case a build stage with a specified name can't be found an
-image with the same name is attempted to be used instead.
+that will be used instead of a build context sent by the user. In case a build
+stage with a specified name can't be found an image with the same name is
+attempted to be used instead.
 
 `COPY` obeys the following rules:
 
