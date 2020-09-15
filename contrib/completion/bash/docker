@@ -4128,6 +4128,7 @@ _docker_manifest() {
 		create
 		inspect
 		push
+		rm
 	"
 	__docker_subcommands "$subcommands" && return
 
@@ -4222,6 +4223,17 @@ _docker_manifest_push() {
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_images --force-tag --id
 			fi
+			;;
+	esac
+}
+
+_docker_network_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__docker_complete_images --force-tag --id
 			;;
 	esac
 }
