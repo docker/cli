@@ -7,7 +7,6 @@ import (
 	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/docker/docker/errdefs"
 	digest "github.com/opencontainers/go-digest"
+	"github.com/pkg/errors"
 )
 
 // Store provides a context store for easily remembering endpoints configuration
@@ -295,6 +295,19 @@ func Import(name string, s Writer, reader io.Reader) error {
 	}
 }
 
+func isValidFilePath(p string) error {
+	if p != metaFile && !strings.HasPrefix(p, "tls/") {
+		return errors.New("unexpected context file")
+	}
+	if path.Clean(p) != p {
+		return errors.New("unexpected path format")
+	}
+	if strings.Contains(p, `\`) {
+		return errors.New(`unexpected '\' in path`)
+	}
+	return nil
+}
+
 func importTar(name string, s Writer, reader io.Reader) error {
 	tr := tar.NewReader(&LimitedReader{R: reader, N: maxAllowedFileSizeToImport})
 	tlsData := ContextTLSData{
@@ -309,9 +322,12 @@ func importTar(name string, s Writer, reader io.Reader) error {
 		if err != nil {
 			return err
 		}
-		if hdr.Typeflag == tar.TypeDir {
+		if hdr.Typeflag != tar.TypeReg {
 			// skip this entry, only taking files into account
 			continue
+		}
+		if err := isValidFilePath(hdr.Name); err != nil {
+			return errors.Wrap(err, hdr.Name)
 		}
 		if hdr.Name == metaFile {
 			data, err := ioutil.ReadAll(tr)
@@ -358,9 +374,12 @@ func importZip(name string, s Writer, reader io.Reader) error {
 	var importedMetaFile bool
 	for _, zf := range zr.File {
 		fi := zf.FileInfo()
-		if fi.IsDir() {
-			// skip this entry, only taking files into account
+		if !fi.Mode().IsRegular() {
+			// skip this entry, only taking regular files into account
 			continue
+		}
+		if err := isValidFilePath(zf.Name); err != nil {
+			return errors.Wrap(err, zf.Name)
 		}
 		if zf.Name == metaFile {
 			f, err := zf.Open()

@@ -29,3 +29,19 @@ func TestConfigModification(t *testing.T) {
 	assert.Equal(t, &testEP2{}, cfgCopy.endpointTypes["ep1"]())
 	assert.Equal(t, &testEP3{}, cfgCopy.endpointTypes["ep2"]())
 }
+
+func TestValidFilePaths(t *testing.T) {
+	paths := map[string]bool{
+		"tls/_/../../something":        false,
+		"tls/../../something":          false,
+		"../../something":              false,
+		"/tls/absolute/unix/path":      false,
+		`C:\tls\absolute\windows\path`: false,
+		"C:/tls/absolute/windows/path": false,
+		"tls/kubernetes/key.pem":       true,
+	}
+	for p, expectedValid := range paths {
+		err := isValidFilePath(p)
+		assert.Equal(t, err == nil, expectedValid, "%q should report valid as: %v", p, expectedValid)
+	}
+}
