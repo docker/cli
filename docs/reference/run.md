@@ -1307,8 +1307,10 @@ The next table shows the capabilities which are not granted by default and may b
 | Capability Key        | Capability Description                                                                                                         |
 |:----------------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | AUDIT_CONTROL         | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules.                |
-| AUDIT_READ            | Allow reading audit messages from the kernel.                                                                                  |
-| BLOCK_SUSPEND         | Employ features that can block system suspend.                                                                                 |
+| AUDIT_READ            | Allow reading the audit log via multicast netlink socket.                                                                      |
+| BLOCK_SUSPEND         | Allow preventing system suspends.                                                                                              |
+| BPF                   | Allow creating BPF maps, loading BPF Type Format (BTF) data, retrieve JITed code of BPF programs, and more.                    |
+| CHECKPOINT_RESTORE    | Allow checkpoint/restore related operations.  Introduced in kernel 5.9.                                                        |
 | DAC_READ_SEARCH       | Bypass file read permission checks and directory read and execute permission checks.                                           |
 | IPC_LOCK              | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                                       |
 | IPC_OWNER             | Bypass permission checks for operations on System V IPC objects.                                                               |
@@ -1318,6 +1320,7 @@ The next table shows the capabilities which are not granted by default and may b
 | MAC_OVERRIDE          | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                                |
 | NET_ADMIN             | Perform various network-related operations.                                                                                    |
 | NET_BROADCAST         | Make socket broadcasts, and listen to multicasts.                                                                              |
+| PERFMON               | Allow system performance and observability privileged operations using perf_events, i915_perf and other kernel subsystems      |
 | SYS_ADMIN             | Perform a range of system administration operations.                                                                           |
 | SYS_BOOT              | Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution.                                             |
 | SYS_MODULE            | Load and unload kernel modules.                                                                                                |
