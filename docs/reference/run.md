@@ -1307,6 +1307,7 @@ The next table shows the capabilities which are not granted by default and may b
 | Capability Key  | Capability Description                                                                                          |
 |:----------------|:----------------------------------------------------------------------------------------------------------------|
 | AUDIT_CONTROL   | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules. |
+| AUDIT_READ      | Allow reading audit messages from the kernel.                                                                   |
 | BLOCK_SUSPEND   | Employ features that can block system suspend.                                                                  |
 | DAC_READ_SEARCH | Bypass file read permission checks and directory read and execute permission checks.                            |
 | IPC_LOCK        | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                        |
