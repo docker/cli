@@ -1332,11 +1332,19 @@ The next table shows the capabilities which are not granted by default and may b
 
 Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html)
 
-Both flags support the value `ALL`, so if the
-operator wants to have all capabilities but `MKNOD` they could use:
+Both flags support the value `ALL`, so to allow a container to use all capabilities
+except for `MKNOD`:
 
 ```bash
 $ docker run --cap-add=ALL --cap-drop=MKNOD ...
+```
+
+The `--cap-add` and `--cap-drop` flags accept capabilities to be specified with
+a `CAP_` prefix. The following examples are therefore equivalent:
+
+```bash
+$ docker run --cap-add=SYS_ADMIN ...
+$ docker run --cap-add=CAP_SYS_ADMIN ...
 ```
 
 For interacting with the network stack, instead of using `--privileged` they
