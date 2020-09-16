@@ -222,7 +222,10 @@ __docker_run_all_capabilities() {
     local -a capabilities_addable capabilities_droppable all_capabilities
     capabilities_addable=(
         "AUDIT_CONTROL:Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules."
+        "AUDIT_READ:Allow reading audit messages from the kernel."
         "BLOCK_SUSPEND:Employ features that can block system suspend."
+        "BPF:Allow creating BPF maps, loading BPF Type Format (BTF) data, retrieve JITed code of BPF programs, and more."
+        "CHECKPOINT_RESTORE:Allow checkpoint/restore related operations."
         "DAC_READ_SEARCH:Bypass file read permission checks and directory read and execute permission checks."
         "IPC_LOCK:Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2))."
         "IPC_OWNER:Bypass permission checks for operations on System V IPC objects."
@@ -232,6 +235,7 @@ __docker_run_all_capabilities() {
         "MAC_OVERRIDE:Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM)."
         "NET_ADMIN:Perform various network-related operations."
         "NET_BROADCAST:Make socket broadcasts, and listen to multicasts."
+        "PERFMON:Allow system performance and observability privileged operations using perf_events, i915_perf and other kernel subsystems."
         "SYSLOG:Perform privileged syslog(2) operations."
         "SYS_ADMIN:Perform a range of system administration operations."
         "SYS_BOOT:Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution."
