@@ -1331,7 +1331,8 @@ The next table shows the capabilities which are not granted by default and may b
 | SYSLOG                | Perform privileged syslog(2) operations.                                                                                       |
 | WAKE_ALARM            | Trigger something that will wake up the system.                                                                                |
 
-Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html),
+and in the [Linux kernel source code](https://github.com/torvalds/linux/blob/124ea650d3072b005457faed69909221c2905a1f/include/uapi/linux/capability.h).
 
 Both flags support the value `ALL`, so to allow a container to use all capabilities
 except for `MKNOD`:
