@@ -4281,7 +4281,7 @@ _docker_manifest_push() {
 	esac
 }
 
-_docker_network_rm() {
+_docker_manifest_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
