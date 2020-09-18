@@ -1129,7 +1129,7 @@ type hostMapping struct {
 // were added, as the specification mentions that in case multiple entries for a
 // host exist, the first entry should be used (by default).
 //
-// Note that, even though unsupported by the the CLI, the service specs format
+// Note that, even though unsupported by the CLI, the service specs format
 // allow entries with both a _canonical_ hostname, and one or more aliases
 // in an entry (IP-address canonical_hostname [alias ...])
 //
