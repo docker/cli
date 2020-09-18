@@ -1103,7 +1103,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 		// flags are the flags we'll be setting
 		flags []flagVal
 		// oldConfigs are the configs that would already be on the service
-		// it is a slice of strings corresponding to the the key of
+		// it is a slice of strings corresponding to the key of
 		// cannedConfigRefs
 		oldConfigs []string
 		// oldCredSpec is the credentialSpec being carried over from the old
