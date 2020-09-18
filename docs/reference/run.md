@@ -1287,56 +1287,65 @@ options which are allowed by default and can be dropped.
 
 | Capability Key   | Capability Description                                                                                                        |
 |:-----------------|:------------------------------------------------------------------------------------------------------------------------------|
-| SETPCAP          | Modify process capabilities.                                                                                                  |
-| MKNOD            | Create special files using mknod(2).                                                                                          |
 | AUDIT_WRITE      | Write records to kernel auditing log.                                                                                         |
 | CHOWN            | Make arbitrary changes to file UIDs and GIDs (see chown(2)).                                                                  |
-| NET_RAW          | Use RAW and PACKET sockets.                                                                                                   |
 | DAC_OVERRIDE     | Bypass file read, write, and execute permission checks.                                                                       |
 | FOWNER           | Bypass permission checks on operations that normally require the file system UID of the process to match the UID of the file. |
 | FSETID           | Don't clear set-user-ID and set-group-ID permission bits when a file is modified.                                             |
 | KILL             | Bypass permission checks for sending signals.                                                                                 |
-| SETGID           | Make arbitrary manipulations of process GIDs and supplementary GID list.                                                      |
-| SETUID           | Make arbitrary manipulations of process UIDs.                                                                                 |
+| MKNOD            | Create special files using mknod(2).                                                                                          |
 | NET_BIND_SERVICE | Bind a socket to internet domain privileged ports (port numbers less than 1024).                                              |
-| SYS_CHROOT       | Use chroot(2), change root directory.                                                                                         |
+| NET_RAW          | Use RAW and PACKET sockets.                                                                                                   |
 | SETFCAP          | Set file capabilities.                                                                                                        |
+| SETGID           | Make arbitrary manipulations of process GIDs and supplementary GID list.                                                      |
+| SETPCAP          | Modify process capabilities.                                                                                                  |
+| SETUID           | Make arbitrary manipulations of process UIDs.                                                                                 |
+| SYS_CHROOT       | Use chroot(2), change root directory.                                                                                         |
 
 The next table shows the capabilities which are not granted by default and may be added.
 
 | Capability Key  | Capability Description                                                                                          |
 |:----------------|:----------------------------------------------------------------------------------------------------------------|
-| SYS_MODULE      | Load and unload kernel modules.                                                                                 |
-| SYS_RAWIO       | Perform I/O port operations (iopl(2) and ioperm(2)).                                                            |
-| SYS_PACCT       | Use acct(2), switch process accounting on or off.                                                               |
-| SYS_ADMIN       | Perform a range of system administration operations.                                                            |
-| SYS_NICE        | Raise process nice value (nice(2), setpriority(2)) and change the nice value for arbitrary processes.           |
-| SYS_RESOURCE    | Override resource Limits.                                                                                       |
-| SYS_TIME        | Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.                      |
-| SYS_TTY_CONFIG  | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                             |
 | AUDIT_CONTROL   | Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules. |
+| AUDIT_READ      | Allow reading audit messages from the kernel.                                                                   |
+| BLOCK_SUSPEND   | Employ features that can block system suspend.                                                                  |
+| DAC_READ_SEARCH | Bypass file read permission checks and directory read and execute permission checks.                            |
+| IPC_LOCK        | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                        |
+| IPC_OWNER       | Bypass permission checks for operations on System V IPC objects.                                                |
+| LEASE           | Establish leases on arbitrary files (see fcntl(2)).                                                             |
+| LINUX_IMMUTABLE | Set the FS_APPEND_FL and FS_IMMUTABLE_FL i-node flags.                                                          |
 | MAC_ADMIN       | Allow MAC configuration or state changes. Implemented for the Smack LSM.                                        |
 | MAC_OVERRIDE    | Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).                 |
 | NET_ADMIN       | Perform various network-related operations.                                                                     |
-| SYSLOG          | Perform privileged syslog(2) operations.                                                                        |
-| DAC_READ_SEARCH | Bypass file read permission checks and directory read and execute permission checks.                            |
-| LINUX_IMMUTABLE | Set the FS_APPEND_FL and FS_IMMUTABLE_FL i-node flags.                                                          |
 | NET_BROADCAST   | Make socket broadcasts, and listen to multicasts.                                                               |
-| IPC_LOCK        | Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).                                                        |
-| IPC_OWNER       | Bypass permission checks for operations on System V IPC objects.                                                |
-| SYS_PTRACE      | Trace arbitrary processes using ptrace(2).                                                                      |
+| SYS_ADMIN       | Perform a range of system administration operations.                                                            |
 | SYS_BOOT        | Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution.                              |
-| LEASE           | Establish leases on arbitrary files (see fcntl(2)).                                                             |
+| SYS_MODULE      | Load and unload kernel modules.                                                                                 |
+| SYS_NICE        | Raise process nice value (nice(2), setpriority(2)) and change the nice value for arbitrary processes.           |
+| SYS_PACCT       | Use acct(2), switch process accounting on or off.                                                               |
+| SYS_PTRACE      | Trace arbitrary processes using ptrace(2).                                                                      |
+| SYS_RAWIO       | Perform I/O port operations (iopl(2) and ioperm(2)).                                                            |
+| SYS_RESOURCE    | Override resource Limits.                                                                                       |
+| SYS_TIME        | Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.                      |
+| SYS_TTY_CONFIG  | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                             |
+| SYSLOG          | Perform privileged syslog(2) operations.                                                                        |
 | WAKE_ALARM      | Trigger something that will wake up the system.                                                                 |
-| BLOCK_SUSPEND   | Employ features that can block system suspend.                                                                  |
 
 Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html)
 
-Both flags support the value `ALL`, so if the
-operator wants to have all capabilities but `MKNOD` they could use:
+Both flags support the value `ALL`, so to allow a container to use all capabilities
+except for `MKNOD`:
 
 ```bash
 $ docker run --cap-add=ALL --cap-drop=MKNOD ...
+```
+
+The `--cap-add` and `--cap-drop` flags accept capabilities to be specified with
+a `CAP_` prefix. The following examples are therefore equivalent:
+
+```bash
+$ docker run --cap-add=SYS_ADMIN ...
+$ docker run --cap-add=CAP_SYS_ADMIN ...
 ```
 
 For interacting with the network stack, instead of using `--privileged` they
