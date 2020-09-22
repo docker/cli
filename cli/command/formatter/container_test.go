@@ -477,7 +477,18 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			Image:   "ubuntu",
 			Created: unix,
 			State:   container.StateRunning,
-
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"bridge": {
+						IPAddress:         netip.MustParseAddr("172.17.0.1"),
+						GlobalIPv6Address: netip.MustParseAddr("ff02::1"),
+					},
+					"my-net": {
+						IPAddress:         netip.MustParseAddr("172.18.0.1"),
+						GlobalIPv6Address: netip.MustParseAddr("ff02::2"),
+					},
+				},
+			},
 			ImageManifestDescriptor: &ocispec.Descriptor{Platform: &ocispec.Platform{Architecture: "amd64", OS: "linux"}},
 		},
 		{
@@ -497,6 +508,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"CreatedAt":    expectedCreated,
 			"HealthStatus": "",
 			"ID":           "containerID1",
+			"IPAddresses":  []any{},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
@@ -515,12 +527,18 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"CreatedAt":    expectedCreated,
 			"HealthStatus": "",
 			"ID":           "containerID2",
+			"IPAddresses": []any{
+				map[string]any{"IP": "172.17.0.1", "Network": "bridge"},
+				map[string]any{"IP": "ff02::1", "Network": "bridge"},
+				map[string]any{"IP": "172.18.0.1", "Network": "my-net"},
+				map[string]any{"IP": "ff02::2", "Network": "my-net"},
+			},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
 			"Mounts":       "",
 			"Names":        "foobar_bar",
-			"Networks":     "",
+			"Networks":     "bridge,my-net",
 			"Platform":     map[string]any{"architecture": "amd64", "os": "linux"},
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
@@ -533,6 +551,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"CreatedAt":    expectedCreated,
 			"HealthStatus": "",
 			"ID":           "containerID3",
+			"IPAddresses":  []any{},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
@@ -605,8 +624,8 @@ func TestContainerContextIPAddresses(t *testing.T) {
 	out := bytes.NewBufferString("")
 	err := ContainerWrite(Context{Format: "{{.IPAddresses}}", Output: out}, containers)
 	assert.NilError(t, err)
-	assert.Equal(t, out.String(), `[one:192.168.1.2 two:192.168.178.2]
-[one:192.168.1.3 two:192.168.178.3]
+	assert.Equal(t, out.String(), `[one/192.168.1.2 two/192.168.178.2]
+[one/192.168.1.3 two/192.168.178.3]
 `)
 }
 
