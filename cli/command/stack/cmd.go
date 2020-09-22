@@ -33,6 +33,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newPsCommand(dockerCli),
 		newRemoveCommand(dockerCli),
 		newServicesCommand(dockerCli),
+		newConfigCommand(dockerCli),
 	)
 	flags := cmd.PersistentFlags()
 	flags.String("orchestrator", "", "Orchestrator to use (swarm|all)")

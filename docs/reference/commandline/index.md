@@ -152,13 +152,14 @@ read the [`dockerd`](dockerd.md) reference page.
 
 ### Swarm stack commands
 
-| Command                             | Description                                    |
-|:------------------------------------|:-----------------------------------------------|
-| [stack deploy](stack_deploy.md)     | Deploy a new stack or update an existing stack |
-| [stack ls](stack_ls.md)             | List stacks in the swarm                       |
-| [stack ps](stack_ps.md)             | List the tasks in the stack                    |
-| [stack rm](stack_rm.md)             | Remove the stack from the swarm                |
-| [stack services](stack_services.md) | List the services in the stack                 |
+| Command                             | Description                                             |
+|:------------------------------------|:--------------------------------------------------------|
+| [stack deploy](stack_deploy.md)     | Deploy a new stack or update an existing stack          |
+| [stack ls](stack_ls.md)             | List stacks in the swarm                                |
+| [stack ps](stack_ps.md)             | List the tasks in the stack                             |
+| [stack rm](stack_rm.md)             | Remove the stack from the swarm                         |
+| [stack services](stack_services.md) | List the services in the stack                          |
+| [stack config](stack_config.md)     | Output the Compose file after merges and interpolations |
 
 ### Plugin commands
 
