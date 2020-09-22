@@ -65,6 +65,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newPsCommand(dockerCli, &opts),
 		newRemoveCommand(dockerCli, &opts),
 		newServicesCommand(dockerCli, &opts),
+		newConfigCommand(dockerCli),
 	)
 	flags := cmd.PersistentFlags()
 	flags.String("kubeconfig", "", "Kubernetes config file")

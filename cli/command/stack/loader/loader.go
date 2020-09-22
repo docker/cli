@@ -19,7 +19,7 @@ import (
 
 // LoadComposefile parse the composefile specified in the cli and returns its Config and version.
 func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, error) {
-	configDetails, err := getConfigDetails(opts.Composefiles, dockerCli.In())
+	configDetails, err := GetConfigDetails(opts.Composefiles, dockerCli.In())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,8 @@ func propertyWarnings(properties map[string]string) string {
 	return strings.Join(msgs, "\n\n")
 }
 
-func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
+// GetConfigDetails parse the composefiles specified in the cli and returns their ConfigDetails
+func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {
