@@ -347,6 +347,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Command":      "\"\"",
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID1",
+			"IPAddresses":  "[]", // FIXME: currently creates: []interface {}{}
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
@@ -363,6 +364,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Command":      "\"\"",
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID2",
+			"IPAddresses":  "[]", // FIXME: currently creates: []interface {}{}
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
