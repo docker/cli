@@ -316,8 +316,12 @@ func hideFlagIf(f *pflag.Flag, condition func(string) bool, annotation string) {
 	if f.Hidden {
 		return
 	}
-	if values, ok := f.Annotations[annotation]; ok && len(values) > 0 {
-		if condition(values[0]) {
+	var val string
+	if values, ok := f.Annotations[annotation]; ok {
+		if len(values) > 0 {
+			val = values[0]
+		}
+		if condition(val) {
 			f.Hidden = true
 		}
 	}
