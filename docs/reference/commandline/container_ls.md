@@ -455,6 +455,6 @@ Show the IP-addresses that containers have:
 $ docker ps --format "table {{.ID}}\\t{{join .IPAddresses \", \"}}"
 
 CONTAINER ID   IP ADDRESSES
-c0cf2877da71   bridge:172.17.0.3
-17e7d1910fc0   bridge:172.17.0.2, mynetwork:172.19.0.2
+c0cf2877da71   bridge/172.17.0.3
+17e7d1910fc0   bridge/172.17.0.2, mynetwork/172.19.0.2
 ```

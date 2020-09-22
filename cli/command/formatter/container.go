@@ -4,8 +4,10 @@
 package formatter
 
 import (
+	"cmp"
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -38,6 +40,16 @@ type Platform struct {
 
 func (p Platform) String() string {
 	return platforms.FormatAll(p.Platform)
+}
+
+// NetworkIP describes an IP-address and the network it's associated with.
+type NetworkIP struct {
+	Network string `json:"Network,omitempty"`
+	IP      string `json:"IP"`
+}
+
+func (p NetworkIP) String() string {
+	return p.Network + "/" + p.IP
 }
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -346,19 +358,30 @@ func (c *ContainerContext) Networks() string {
 // IPAddresses returns the list of IP-addresses assigned to the container
 // IP-addresses are prefixed with the name of the network, separated with a colon.
 // For example: "bridge:192.168.1.10"
-func (c *ContainerContext) IPAddresses() []string {
-	ipAddresses := []string{}
-	if c.c.NetworkSettings == nil {
-		return ipAddresses
+func (c *ContainerContext) IPAddresses() []NetworkIP {
+	if c.c.NetworkSettings == nil || len(c.c.NetworkSettings.Networks) == 0 {
+		return []NetworkIP{}
 	}
+	ipAddresses := make([]NetworkIP, 0, len(c.c.NetworkSettings.Networks))
 	for name, nw := range c.c.NetworkSettings.Networks {
 		if nw.IPAddress != "" {
-			ipAddresses = append(ipAddresses, name+":"+nw.IPAddress)
+			ipAddresses = append(ipAddresses, NetworkIP{
+				Network: name,
+				IP:      nw.IPAddress,
+			})
 		}
 		if nw.GlobalIPv6Address != "" {
-			ipAddresses = append(ipAddresses, name+":"+nw.GlobalIPv6Address)
+			ipAddresses = append(ipAddresses, NetworkIP{
+				Network: name,
+				IP:      nw.GlobalIPv6Address,
+			})
 		}
 	}
+
+	slices.SortFunc(ipAddresses, func(a, b NetworkIP) int {
+		return cmp.Compare(a.String(), b.String())
+	})
+
 	return ipAddresses
 }
 
