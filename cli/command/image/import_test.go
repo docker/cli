@@ -81,6 +81,14 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		},
 		{
 			name: "change",
+			args: []string{"--change", "ENV DEBUG=true", "-"},
+			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+				assert.Check(t, is.Equal("ENV DEBUG=true", options.Changes[0]))
+				return ioutil.NopCloser(strings.NewReader("")), nil
+			},
+		},
+		{
+			name: "change legacy syntax",
 			args: []string{"--change", "ENV DEBUG true", "-"},
 			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal("ENV DEBUG true", options.Changes[0]))
