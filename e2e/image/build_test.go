@@ -116,8 +116,8 @@ func TestBuildIidFileSquash(t *testing.T) {
 	buildDir := fs.NewDir(t, "test-iidfile-squash-build",
 		fs.WithFile("Dockerfile", fmt.Sprintf(`
 	FROM %s
-	ENV FOO FOO
-	ENV BAR BAR
+	ENV FOO=FOO
+	ENV BAR=BAR
 	RUN touch /fiip
 	RUN touch /foop`, fixtures.AlpineImage)),
 	)
