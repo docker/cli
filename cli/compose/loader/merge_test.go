@@ -1017,6 +1017,59 @@ func TestLoadMultipleNetworks(t *testing.T) {
 	}, config)
 }
 
+func TestLoadMultipleServiceCommands(t *testing.T) {
+	base := map[string]interface{}{
+		"version": "3.7",
+		"services": map[string]interface{}{
+			"foo": map[string]interface{}{
+				"image":   "baz",
+				"command": "foo bar",
+			},
+		},
+		"volumes":  map[string]interface{}{},
+		"networks": map[string]interface{}{},
+		"secrets":  map[string]interface{}{},
+		"configs":  map[string]interface{}{},
+	}
+	override := map[string]interface{}{
+		"version": "3.7",
+		"services": map[string]interface{}{
+			"foo": map[string]interface{}{
+				"image":   "baz",
+				"command": "foo baz",
+			},
+		},
+		"volumes":  map[string]interface{}{},
+		"networks": map[string]interface{}{},
+		"secrets":  map[string]interface{}{},
+		"configs":  map[string]interface{}{},
+	}
+	configDetails := types.ConfigDetails{
+		ConfigFiles: []types.ConfigFile{
+			{Filename: "base.yml", Config: base},
+			{Filename: "override.yml", Config: override},
+		},
+	}
+	config, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, &types.Config{
+		Filename: "base.yml",
+		Version:  "3.7",
+		Services: []types.ServiceConfig{
+			{
+				Name:        "foo",
+				Image:       "baz",
+				Command:     types.ShellCommand{"foo", "baz"},
+				Environment: types.MappingWithEquals{},
+			},
+		},
+		Volumes:  map[string]types.VolumeConfig{},
+		Secrets:  map[string]types.SecretConfig{},
+		Configs:  map[string]types.ConfigObjConfig{},
+		Networks: map[string]types.NetworkConfig{},
+	}, config)
+}
+
 func TestLoadMultipleServiceVolumes(t *testing.T) {
 	base := map[string]interface{}{
 		"version": "3.7",
