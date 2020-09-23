@@ -73,7 +73,7 @@ $ docker inspect -f "{{ .Config.Env }}" c3f279d17e0a
 
 [HOME=/ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin]
 
-$ docker commit --change "ENV DEBUG true" c3f279d17e0a  svendowideit/testimage:version3
+$ docker commit --change "ENV DEBUG=true" c3f279d17e0a  svendowideit/testimage:version3
 
 f5283438590d
 
