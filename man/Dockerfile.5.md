@@ -201,7 +201,7 @@ A Dockerfile is similar to a Makefile.
   from the resulting image. Use `docker inspect` to inspect these values, and
   change them using `docker run --env <key>=<value>`.
 
-  Note that setting "`ENV DEBIAN_FRONTEND noninteractive`" may cause
+  Note that setting "`ENV DEBIAN_FRONTEND=noninteractive`" may cause
   unintended consequences, because it will persist when the container is run
   interactively, as with the following command: `docker run -t -i image bash`
 
@@ -388,7 +388,7 @@ A Dockerfile is similar to a Makefile.
   ```
   1 FROM ubuntu
   2 ARG CONT_IMG_VER
-  3 ENV CONT_IMG_VER v1.0.0
+  3 ENV CONT_IMG_VER=v1.0.0
   4 RUN echo $CONT_IMG_VER
   ```
   Then, assume this image is built with this command:
@@ -408,7 +408,7 @@ A Dockerfile is similar to a Makefile.
   ```
   1 FROM ubuntu
   2 ARG CONT_IMG_VER
-  3 ENV CONT_IMG_VER ${CONT_IMG_VER:-v1.0.0}
+  3 ENV CONT_IMG_VER=${CONT_IMG_VER:-v1.0.0}
   4 RUN echo $CONT_IMG_VER
   ```
 
