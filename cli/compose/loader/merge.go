@@ -59,6 +59,7 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 			reflect.TypeOf([]types.ServiceConfigObjConfig{}): mergeSlice(toServiceConfigObjConfigsMap, toSServiceConfigObjConfigsSlice),
 			reflect.TypeOf(&types.UlimitsConfig{}):           mergeUlimitsConfig,
 			reflect.TypeOf([]types.ServiceVolumeConfig{}):    mergeSlice(toServiceVolumeConfigsMap, toServiceVolumeConfigsSlice),
+			reflect.TypeOf(types.ShellCommand{}):             mergeShellCommand,
 			reflect.TypeOf(&types.ServiceNetworkConfig{}):    mergeServiceNetworkConfig,
 		},
 	}
@@ -235,9 +236,9 @@ func mergeUlimitsConfig(dst, src reflect.Value) error {
 }
 
 //nolint: unparam
-func mergeServiceVolumeConfig(dst, src reflect.Value) error {
-	if dst.Elem().FieldByName("target").String() == src.Elem().FieldByName("target").String() {
-		dst.Set(src.Elem())
+func mergeShellCommand(dst, src reflect.Value) error {
+	if src.Len() != 0 {
+		dst.Set(src)
 	}
 	return nil
 }
