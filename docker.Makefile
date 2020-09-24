@@ -23,6 +23,9 @@ endif
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS -e GOOS -e GOARCH -e GOARM -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION)
 
+# Some Dockerfiles use features that are only supported with BuildKit enabled
+export DOCKER_BUILDKIT=1
+
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
 build_docker_image:
