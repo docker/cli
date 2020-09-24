@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/context/store"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,7 @@ func newUseCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunUse set the current Docker context
 func RunUse(dockerCli command.Cli, name string) error {
-	if err := validateContextName(name); err != nil && name != "default" {
+	if err := store.ValidateContextName(name); err != nil && name != "default" {
 		return err
 	}
 	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil && name != "default" {
