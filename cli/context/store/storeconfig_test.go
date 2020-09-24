@@ -45,3 +45,16 @@ func TestValidFilePaths(t *testing.T) {
 		assert.Equal(t, err == nil, expectedValid, "%q should report valid as: %v", p, expectedValid)
 	}
 }
+
+func TestValidateContextName(t *testing.T) {
+	names := map[string]bool{
+		"../../invalid/escape": false,
+		"/invalid/absolute":    false,
+		`\invalid\windows`:     false,
+		"validname":            true,
+	}
+	for n, expectedValid := range names {
+		err := ValidateContextName(n)
+		assert.Equal(t, err == nil, expectedValid, "%q should report valid as: %v", n, expectedValid)
+	}
+}

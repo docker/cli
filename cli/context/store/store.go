@@ -13,12 +13,17 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/docker/docker/errdefs"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
+
+const restrictedNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.+-]+$"
+
+var restrictedNameRegEx = regexp.MustCompile(restrictedNamePattern)
 
 // Store provides a context store for easily remembering endpoints configuration
 type Store interface {
@@ -182,6 +187,20 @@ func (s *store) GetStorageInfo(contextName string) StorageInfo {
 		MetadataPath: s.meta.contextDir(dir),
 		TLSPath:      s.tls.contextDir(dir),
 	}
+}
+
+// ValidateContextName checks a context name is valid.
+func ValidateContextName(name string) error {
+	if name == "" {
+		return errors.New("context name cannot be empty")
+	}
+	if name == "default" {
+		return errors.New(`"default" is a reserved context name`)
+	}
+	if !restrictedNameRegEx.MatchString(name) {
+		return fmt.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
+	}
+	return nil
 }
 
 // Export exports an existing namespace into an opaque data stream
@@ -426,6 +445,9 @@ func parseMetadata(data []byte, name string) (Metadata, error) {
 	var meta Metadata
 	if err := json.Unmarshal(data, &meta); err != nil {
 		return meta, err
+	}
+	if err := ValidateContextName(name); err != nil {
+		return Metadata{}, err
 	}
 	meta.Name = name
 	return meta, nil
