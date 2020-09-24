@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh "E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
                     IMAGE_TAG=clie2e${BUILD_NUMBER} \
-                    DOCKER_BUILDKIT=1 make -f docker.Makefile test-e2e-non-experimental"
+                    make -f docker.Makefile test-e2e-non-experimental"
             }
         }
         stage("e2e (non-experimental) - 18.09 engine") {
@@ -26,21 +26,21 @@ pipeline {
                 sh "E2E_ENGINE_VERSION=18.09-dind \
                   E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
                   IMAGE_TAG=clie2e${BUILD_NUMBER} \
-                  DOCKER_BUILDKIT=1 make -f docker.Makefile test-e2e-non-experimental"
+                  make -f docker.Makefile test-e2e-non-experimental"
             }
         }
         stage("e2e (experimental)") {
             steps {
                 sh "E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
                     IMAGE_TAG=clie2e${BUILD_NUMBER} \
-                    DOCKER_BUILDKIT=1 make -f docker.Makefile test-e2e-experimental"
+                    make -f docker.Makefile test-e2e-experimental"
             }
         }
         stage("e2e (ssh connhelper)") {
             steps {
                 sh "E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
                     IMAGE_TAG=clie2e${BUILD_NUMBER} \
-                    DOCKER_BUILDKIT=1 make -f docker.Makefile test-e2e-connhelper-ssh"
+                    make -f docker.Makefile test-e2e-connhelper-ssh"
             }
         }
     }
