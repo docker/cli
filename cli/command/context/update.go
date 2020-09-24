@@ -68,7 +68,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunUpdate updates a Docker context
 func RunUpdate(cli command.Cli, o *UpdateOptions) error {
-	if err := validateContextName(o.Name); err != nil {
+	if err := store.ValidateContextName(o.Name); err != nil {
 		return err
 	}
 	s := cli.ContextStore()

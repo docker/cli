@@ -137,7 +137,7 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 }
 
 func checkContextNameForCreation(s store.Reader, name string) error {
-	if err := validateContextName(name); err != nil {
+	if err := store.ValidateContextName(name); err != nil {
 		return err
 	}
 	if _, err := s.GetMetadata(name); !store.IsErrContextDoesNotExist(err) {
