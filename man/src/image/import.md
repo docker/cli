@@ -36,7 +36,7 @@ Import to docker via pipe and stdin:
 ## Apply specified Dockerfile instructions while importing the image
 This example sets the docker image ENV variable DEBUG to true by default.
 
-    # tar -c . | docker image import -c="ENV DEBUG true" - exampleimagedir
+    # tar -c . | docker image import -c="ENV DEBUG=true" - exampleimagedir
 
 ## When the daemon supports multiple operating systems
 If the daemon supports multiple operating systems, and the image being imported

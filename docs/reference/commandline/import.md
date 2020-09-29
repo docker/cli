@@ -72,7 +72,7 @@ $ sudo tar -c . | docker import - exampleimagedir
 ### Import from a local directory with new configurations
 
 ```bash
-$ sudo tar -c . | docker import --change "ENV DEBUG true" - exampleimagedir
+$ sudo tar -c . | docker import --change "ENV DEBUG=true" - exampleimagedir
 ```
 
 Note the `sudo` in this example – you must preserve
