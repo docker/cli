@@ -466,7 +466,27 @@ func TestSave(t *testing.T) {
 	assert.NilError(t, err)
 	cfg, err := ioutil.ReadFile("test-save")
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+	assert.Equal(t, string(cfg), `{
+	"auths": {}
+}`)
+}
+
+func TestSaveCustomHTTPHeaders(t *testing.T) {
+	configFile := New(t.Name())
+	defer os.Remove(t.Name())
+	configFile.HTTPHeaders["CUSTOM-HEADER"] = "custom-value"
+	configFile.HTTPHeaders["User-Agent"] = "user-agent 1"
+	configFile.HTTPHeaders["user-agent"] = "user-agent 2"
+	err := configFile.Save()
+	assert.NilError(t, err)
+	cfg, err := ioutil.ReadFile(t.Name())
+	assert.NilError(t, err)
+	assert.Equal(t, string(cfg), `{
+	"auths": {},
+	"HttpHeaders": {
+		"CUSTOM-HEADER": "custom-value"
+	}
+}`)
 }
 
 func TestSaveWithSymlink(t *testing.T) {
