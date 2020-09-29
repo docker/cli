@@ -308,9 +308,9 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	if err != nil {
 		return nil, err
 	}
-	customHeaders := configFile.HTTPHeaders
-	if customHeaders == nil {
-		customHeaders = map[string]string{}
+	customHeaders := make(map[string]string, len(configFile.HTTPHeaders))
+	for k, v := range configFile.HTTPHeaders {
+		customHeaders[k] = v
 	}
 	customHeaders["User-Agent"] = UserAgent()
 	clientOpts = append(clientOpts, client.WithHTTPHeaders(customHeaders))

@@ -45,6 +45,7 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	}
 	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
 	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
+	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
 }
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
