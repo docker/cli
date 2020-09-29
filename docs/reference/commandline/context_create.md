@@ -66,7 +66,7 @@ sourced from the file `/home/me/my-kube-config`:
 $ docker context create \
     --docker host=unix:///var/run/docker.sock \
     --kubernetes config-file=/home/me/my-kube-config \
-    my-context 
+    my-context
 ```
 
 ### Create a context based on an existing context
@@ -76,7 +76,7 @@ an existing context. The example below creates a new context named `my-context`
 from the existing context `existing-context`:
 
 ```bash
-$ docker context create --from existing-context my-context 
+$ docker context create --from existing-context my-context
 ```
 
 If the `--from` option is not set, the `context` is created from the current context:
