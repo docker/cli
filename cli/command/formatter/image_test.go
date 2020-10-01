@@ -102,6 +102,23 @@ func TestImageContext(t *testing.T) {
 			assert.Check(t, is.Equal(c.expValue, v))
 		}
 	}
+
+	caseTime := []struct {
+		imageCtx     imageContext
+		expValueTime time.Time
+		callTime     func() time.Time
+	}{
+		{
+			imageCtx:     imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
+			expValueTime: time.Unix(unix, 0), callTime: ctx.CreatedAt,
+		},
+	}
+
+	for _, c := range caseTime {
+		ctx = c.imageCtx
+		v := c.callTime()
+		assert.Check(t, is.Equal(c.expValueTime, v))
+	}
 }
 
 func TestImageContextWrite(t *testing.T) {
