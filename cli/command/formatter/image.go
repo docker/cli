@@ -243,8 +243,8 @@ func (c *imageContext) CreatedSince() string {
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
-func (c *imageContext) CreatedAt() string {
-	return time.Unix(c.i.Created, 0).String()
+func (c *imageContext) CreatedAt() time.Time {
+	return time.Unix(c.i.Created, 0)
 }
 
 func (c *imageContext) Size() string {
