@@ -21,9 +21,11 @@ func TestImageContext(t *testing.T) {
 
 	var ctx imageContext
 	cases := []struct {
-		imageCtx imageContext
-		expValue time.Time
-		call     func() time.Time
+		imageCtx     imageContext
+		expValue     string
+		call         func() string
+		expValueTime time.Time
+		callTime     func() time.Time
 	}{
 		{
 			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: true},
@@ -41,8 +43,8 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.Size,
 		},
 		{
-			imageCtx: imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
-			expValue: time.Unix(unix, 0), call: ctx.CreatedAt,
+			imageCtx:     imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
+			expValueTime: time.Unix(unix, 0), callTime: ctx.CreatedAt,
 		},
 		// FIXME
 		// {imageContext{
