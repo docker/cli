@@ -22,8 +22,8 @@ func TestImageContext(t *testing.T) {
 	var ctx imageContext
 	cases := []struct {
 		imageCtx imageContext
-		expValue string
-		call     func() string
+		expValue time.Time
+		call     func() time.Time
 	}{
 		{
 			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: true},
