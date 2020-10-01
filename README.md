@@ -1,16 +1,16 @@
 [![build status](https://circleci.com/gh/docker/cli.svg?style=shield)](https://circleci.com/gh/docker/cli/tree/master)
 [![Build Status](https://ci.docker.com/public/job/cli/job/master/badge/icon)](https://ci.docker.com/public/job/cli/job/master)
 
-docker/cli
+Docker/CLI
 ==========
-
+## About
 This repository is the home of the cli used in the Docker CE and
 Docker EE products.
 
 Development
 ===========
 
-`docker/cli` is developed using Docker.
+`Docker/CLI` is developed using Docker.
 
 Build a linux binary:
 
@@ -60,11 +60,11 @@ United States and other governments.
 
 It is your responsibility to ensure that your use and/or transfer does not
 violate applicable laws.
-
+#### More
 For more information, please see https://www.bis.doc.gov
 
 Licensing
 =========
-docker/cli is licensed under the Apache License, Version 2.0. See
+Docker/CLI is licensed under the Apache License, Version 2.0. See
 [LICENSE](https://github.com/docker/docker/blob/master/LICENSE) for the full
 license text.
