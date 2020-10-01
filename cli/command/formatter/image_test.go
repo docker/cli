@@ -42,7 +42,7 @@ func TestImageContext(t *testing.T) {
 		},
 		{
 			imageCtx: imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
-			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
+			expValue: time.Unix(unix, 0), call: ctx.CreatedAt,
 		},
 		// FIXME
 		// {imageContext{
