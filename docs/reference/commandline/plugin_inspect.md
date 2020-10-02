@@ -7,7 +7,7 @@ keywords: "plugin, inspect"
 # plugin inspect
 
 ```markdown
-Usage:	docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
+Usage:  docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
 
 Display detailed information on one or more plugins
 

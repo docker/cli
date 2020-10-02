@@ -7,7 +7,7 @@ keywords: "volume, prune, delete"
 # volume prune
 
 ```markdown
-Usage:	docker volume prune [OPTIONS]
+Usage:  docker volume prune [OPTIONS]
 
 Remove all unused local volumes
 

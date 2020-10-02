@@ -7,7 +7,7 @@ keywords: "network, create"
 # network create
 
 ```markdown
-Usage:	docker network create [OPTIONS] NETWORK
+Usage:  docker network create [OPTIONS] NETWORK
 
 Create a network
 

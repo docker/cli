@@ -7,7 +7,7 @@ keywords: "service, rollback"
 # service rollback
 
 ```markdown
-Usage:	docker service rollback SERVICE
+Usage:  docker service rollback SERVICE
 
 Revert changes to a service's configuration
 

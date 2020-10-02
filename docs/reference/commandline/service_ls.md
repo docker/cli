@@ -7,7 +7,7 @@ keywords: "service, ls"
 # service ls
 
 ```Markdown
-Usage:	docker service ls [OPTIONS]
+Usage:  docker service ls [OPTIONS]
 
 List services
 

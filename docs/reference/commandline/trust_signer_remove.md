@@ -7,7 +7,7 @@ keywords: "signer, notary, trust"
 # trust signer remove
 
 ```markdown
-Usage:	docker trust signer remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]
+Usage:  docker trust signer remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]
 
 Remove a signer
 

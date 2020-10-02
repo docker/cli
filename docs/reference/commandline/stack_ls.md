@@ -7,7 +7,7 @@ keywords: "stack, ls"
 # stack ls
 
 ```markdown
-Usage:	docker stack ls [OPTIONS]
+Usage:  docker stack ls [OPTIONS]
 
 List stacks
 

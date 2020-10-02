@@ -7,7 +7,7 @@ keywords: "service, rm"
 # service rm
 
 ```Markdown
-Usage:	docker service rm SERVICE [SERVICE...]
+Usage:  docker service rm SERVICE [SERVICE...]
 
 Remove one or more services
 

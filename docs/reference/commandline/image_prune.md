@@ -7,7 +7,7 @@ keywords: "image, prune, delete, remove"
 # image prune
 
 ```markdown
-Usage:	docker image prune [OPTIONS]
+Usage:  docker image prune [OPTIONS]
 
 Remove unused images
 

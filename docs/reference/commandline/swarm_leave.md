@@ -7,7 +7,7 @@ keywords: "swarm, leave"
 # swarm leave
 
 ```markdown
-Usage:	docker swarm leave [OPTIONS]
+Usage:  docker swarm leave [OPTIONS]
 
 Leave the swarm
 
