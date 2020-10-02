@@ -1,5 +1,5 @@
 
-Usage:	docker stack deploy [OPTIONS] STACK
+Usage:  docker stack deploy [OPTIONS] STACK
 
 Deploy a new stack or update an existing stack
 
