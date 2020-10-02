@@ -66,7 +66,6 @@ by the `docker` command line:
 
 * `DOCKER_API_VERSION` The API version to use (e.g. `1.19`)
 * `DOCKER_CONFIG` The location of your client configuration files.
-* `DOCKER_CLI_EXPERIMENTAL` Enable experimental features for the cli (e.g. `enabled` or `disabled`)
 * `DOCKER_HOST` Daemon socket to connect to.
 * `DOCKER_STACK_ORCHESTRATOR` Configure the default orchestrator to use when using `docker stack` management commands.
 * `DOCKER_CONTENT_TRUST` When set Docker uses notary to sign and verify images.
@@ -317,27 +316,8 @@ Following is a sample `config.json` file:
 ### Experimental features
 
 Experimental features provide early access to future product functionality.
-These features are intended only for testing and feedback as they may change
-between releases without warning or can be removed entirely from a future
-release.
-
-> Experimental features must not be used in production environments.
-{: .warning }
-
-To enable experimental features, edit the `config.json` file and set
-`experimental` to `enabled`. The example below enables experimental features
-in a `config.json` file that already enables a debug feature.
-
-```json
-{
-  "experimental": "enabled",
-  "debug": true
-}
-```
-
-You can also enable experimental features from the Docker Desktop menu. See the
-[Docker Desktop Getting Started page](https://docs.docker.com/docker-for-mac#experimental-features)
-for more information.
+These features are intended for testing and feedback, and they may change
+between releases without warning or can be removed from a future release.
 
 ### Notary
 

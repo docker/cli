@@ -18,11 +18,10 @@ type Factory struct {
 	coreClientSet corev1.CoreV1Interface
 	appsClientSet appsv1beta2.AppsV1beta2Interface
 	clientSet     *kubeclient.Clientset
-	experimental  bool
 }
 
 // NewFactory creates a kubernetes client factory
-func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclient.Clientset, experimental bool) (*Factory, error) {
+func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclient.Clientset) (*Factory, error) {
 	coreClientSet, err := corev1.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -39,7 +38,6 @@ func NewFactory(namespace string, config *restclient.Config, clientSet *kubeclie
 		coreClientSet: coreClientSet,
 		appsClientSet: appsClientSet,
 		clientSet:     clientSet,
-		experimental:  experimental,
 	}, nil
 }
 
@@ -85,7 +83,7 @@ func (s *Factory) DaemonSets() typesappsv1beta2.DaemonSetInterface {
 
 // Stacks returns a client for Docker's Stack on Kubernetes
 func (s *Factory) Stacks(allNamespaces bool) (StackClient, error) {
-	version, err := kubernetes.GetStackAPIVersion(s.clientSet.Discovery(), s.experimental)
+	version, err := kubernetes.GetStackAPIVersion(s.clientSet.Discovery())
 	if err != nil {
 		return nil, err
 	}

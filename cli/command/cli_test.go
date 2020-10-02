@@ -167,25 +167,24 @@ func TestInitializeFromClient(t *testing.T) {
 	}
 }
 
+// The CLI no longer disables/hides experimental CLI features, however, we need
+// to verify that existing configuration files do not break
 func TestExperimentalCLI(t *testing.T) {
 	defaultVersion := "v1.55"
 
 	var testcases = []struct {
-		doc                     string
-		configfile              string
-		expectedExperimentalCLI bool
+		doc        string
+		configfile string
 	}{
 		{
-			doc:                     "default",
-			configfile:              `{}`,
-			expectedExperimentalCLI: false,
+			doc:        "default",
+			configfile: `{}`,
 		},
 		{
 			doc: "experimental",
 			configfile: `{
 	"experimental": "enabled"
 }`,
-			expectedExperimentalCLI: true,
 		},
 	}
 
@@ -205,7 +204,8 @@ func TestExperimentalCLI(t *testing.T) {
 			cliconfig.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
-			assert.Check(t, is.Equal(testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental))
+			// For backward-compatibility, HasExperimental will always be "true"
+			assert.Check(t, is.Equal(true, cli.ClientInfo().HasExperimental))
 		})
 	}
 }
