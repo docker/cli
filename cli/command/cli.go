@@ -152,16 +152,6 @@ func (cli *DockerCli) ClientInfo() ClientInfo {
 }
 
 func (cli *DockerCli) loadClientInfo() error {
-	var experimentalValue string
-	// Environment variable always overrides configuration
-	if experimentalValue = os.Getenv("DOCKER_CLI_EXPERIMENTAL"); experimentalValue == "" {
-		experimentalValue = cli.ConfigFile().Experimental
-	}
-	hasExperimental, err := isEnabled(experimentalValue)
-	if err != nil {
-		return errors.Wrap(err, "Experimental field")
-	}
-
 	var v string
 	if cli.client != nil {
 		v = cli.client.ClientVersion()
@@ -170,7 +160,7 @@ func (cli *DockerCli) loadClientInfo() error {
 	}
 	cli.clientInfo = &ClientInfo{
 		DefaultVersion:  v,
-		HasExperimental: hasExperimental,
+		HasExperimental: true,
 	}
 	return nil
 }
@@ -358,17 +348,6 @@ func resolveDefaultDockerEndpoint(opts *cliflags.CommonOptions) (docker.Endpoint
 	}, nil
 }
 
-func isEnabled(value string) (bool, error) {
-	switch value {
-	case "enabled":
-		return true, nil
-	case "", "disabled":
-		return false, nil
-	default:
-		return false, errors.Errorf("%q is not valid, should be either enabled or disabled", value)
-	}
-}
-
 func (cli *DockerCli) initializeFromClient() {
 	ctx := context.Background()
 	if strings.HasPrefix(cli.DockerEndpoint().Host, "tcp://") {
@@ -471,6 +450,8 @@ type ServerInfo struct {
 
 // ClientInfo stores details about the supported features of the client
 type ClientInfo struct {
+	// Deprecated: experimental CLI features always enabled. This field is kept
+	// for backward-compatibility, and is always "true".
 	HasExperimental bool
 	DefaultVersion  string
 }

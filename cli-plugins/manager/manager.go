@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -28,16 +27,6 @@ func (e errPluginNotFound) NotFound() {}
 
 func (e errPluginNotFound) Error() string {
 	return "Error: No such CLI plugin: " + string(e)
-}
-
-type errPluginRequireExperimental string
-
-// Note: errPluginRequireExperimental implements notFound so that the plugin
-// is skipped when listing the plugins.
-func (e errPluginRequireExperimental) NotFound() {}
-
-func (e errPluginRequireExperimental) Error() string {
-	return fmt.Sprintf("plugin candidate %q: requires experimental CLI", string(e))
 }
 
 type notFound interface{ NotFound() }
@@ -133,7 +122,7 @@ func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error
 			continue
 		}
 		c := &candidate{paths[0]}
-		p, err := newPlugin(c, rootcmd, dockerCli.ClientInfo().HasExperimental)
+		p, err := newPlugin(c, rootcmd)
 		if err != nil {
 			return nil, err
 		}
@@ -181,19 +170,12 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		}
 
 		c := &candidate{path: path}
-		plugin, err := newPlugin(c, rootcmd, dockerCli.ClientInfo().HasExperimental)
+		plugin, err := newPlugin(c, rootcmd)
 		if err != nil {
 			return nil, err
 		}
 		if plugin.Err != nil {
 			// TODO: why are we not returning plugin.Err?
-
-			err := plugin.Err.(*pluginError).Cause()
-			// if an experimental plugin was invoked directly while experimental mode is off
-			// provide a more useful error message than "not found".
-			if err, ok := err.(errPluginRequireExperimental); ok {
-				return nil, err
-			}
 			return nil, errPluginNotFound(name)
 		}
 		cmd := exec.Command(plugin.Path, args...)

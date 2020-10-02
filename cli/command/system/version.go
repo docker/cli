@@ -2,9 +2,9 @@ package system
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 	"sort"
+	"strconv"
 	"text/tabwriter"
 	"text/template"
 	"time"
@@ -83,7 +83,7 @@ type clientVersion struct {
 	Arch              string
 	BuildTime         string `json:",omitempty"`
 	Context           string
-	Experimental      bool
+	Experimental      bool `json:",omitempty"` // Deprecated: experimental CLI features always enabled. This field is kept for backward-compatibility, and is always "true"
 }
 
 type kubernetesVersion struct {
@@ -157,7 +157,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			BuildTime:         reformatDate(version.BuildTime),
 			Os:                runtime.GOOS,
 			Arch:              arch(),
-			Experimental:      dockerCli.ClientInfo().HasExperimental,
+			Experimental:      true,
 			Context:           dockerCli.CurrentContext(),
 		},
 	}
@@ -199,7 +199,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 					"Os":            sv.Os,
 					"Arch":          sv.Arch,
 					"BuildTime":     reformatDate(vd.Server.BuildTime),
-					"Experimental":  fmt.Sprintf("%t", sv.Experimental),
+					"Experimental":  strconv.FormatBool(sv.Experimental),
 				},
 			})
 		}
@@ -274,13 +274,13 @@ func getKubernetesVersion(dockerCli command.Cli, kubeConfig string) *kubernetesV
 		logrus.Debugf("failed to get Kubernetes client: %s", err)
 		return &version
 	}
-	version.StackAPI = getStackVersion(kubeClient, dockerCli.ClientInfo().HasExperimental)
+	version.StackAPI = getStackVersion(kubeClient)
 	version.Kubernetes = getKubernetesServerVersion(kubeClient)
 	return &version
 }
 
-func getStackVersion(client *kubernetesClient.Clientset, experimental bool) string {
-	apiVersion, err := kubernetes.GetStackAPIVersion(client, experimental)
+func getStackVersion(client *kubernetesClient.Clientset) string {
+	apiVersion, err := kubernetes.GetStackAPIVersion(client)
 	if err != nil {
 		logrus.Debugf("failed to get Stack API version: %s", err)
 		return "Unknown"
