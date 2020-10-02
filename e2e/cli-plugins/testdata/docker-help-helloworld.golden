@@ -1,5 +1,5 @@
 
-Usage:	docker helloworld [OPTIONS] COMMAND
+Usage:  docker helloworld [OPTIONS] COMMAND
 
 A basic Hello World plugin for tests
 

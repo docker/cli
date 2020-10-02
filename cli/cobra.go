@@ -282,8 +282,8 @@ func invalidPluginReason(cmd *cobra.Command) string {
 
 var usageTemplate = `Usage:
 
-{{- if not .HasSubCommands}}	{{.UseLine}}{{end}}
-{{- if .HasSubCommands}}	{{ .CommandPath}}{{- if .HasAvailableFlags}} [OPTIONS]{{end}} COMMAND{{end}}
+{{- if not .HasSubCommands}}  {{.UseLine}}{{end}}
+{{- if .HasSubCommands}}  {{ .CommandPath}}{{- if .HasAvailableFlags}} [OPTIONS]{{end}} COMMAND{{end}}
 
 {{if ne .Long ""}}{{ .Long | trim }}{{ else }}{{ .Short | trim }}{{end}}
 

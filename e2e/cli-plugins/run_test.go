@@ -49,7 +49,7 @@ func TestNonexistingHelp(t *testing.T) {
 		// This should actually be the whole docker help
 		// output, so spot check instead having of a golden
 		// with everything in, which will change too frequently.
-		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Out: "Usage:  docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
 		Err: icmd.None,
 	})
 	// Short -h should be the same, modulo the deprecation message
@@ -101,7 +101,7 @@ func TestBadHelp(t *testing.T) {
 		// This should be literally the whole docker help
 		// output, so spot check instead of a golden with
 		// everything in which will change all the time.
-		Out: "Usage:	docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
+		Out: "Usage:  docker [OPTIONS] COMMAND\n\nA self-sufficient runtime for containers",
 		Err: icmd.None,
 	})
 	// Short -h should be the same, modulo the deprecation message
