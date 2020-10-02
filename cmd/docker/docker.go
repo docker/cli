@@ -336,12 +336,11 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	var (
-		buildKitDisabled   = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return !v }
-		buildKitEnabled    = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return v }
-		notExperimental    = func(_ string) bool { return !details.ServerInfo().HasExperimental }
-		notExperimentalCLI = func(_ string) bool { return !details.ClientInfo().HasExperimental }
-		notOSType          = func(v string) bool { return v != details.ServerInfo().OSType }
-		versionOlderThan   = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
+		buildKitDisabled = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return !v }
+		buildKitEnabled  = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return v }
+		notExperimental  = func(_ string) bool { return !details.ServerInfo().HasExperimental }
+		notOSType        = func(v string) bool { return v != details.ServerInfo().OSType }
+		versionOlderThan = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
 	)
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -359,7 +358,6 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 		hideFlagIf(f, buildKitDisabled, "buildkit")
 		hideFlagIf(f, buildKitEnabled, "no-buildkit")
 		hideFlagIf(f, notExperimental, "experimental")
-		hideFlagIf(f, notExperimentalCLI, "experimentalCLI")
 		hideFlagIf(f, notOSType, "ostype")
 		hideFlagIf(f, versionOlderThan, "version")
 	})
@@ -368,7 +366,6 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 		hideSubcommandIf(subcmd, buildKitDisabled, "buildkit")
 		hideSubcommandIf(subcmd, buildKitEnabled, "no-buildkit")
 		hideSubcommandIf(subcmd, notExperimental, "experimental")
-		hideSubcommandIf(subcmd, notExperimentalCLI, "experimentalCLI")
 		hideSubcommandIf(subcmd, notOSType, "ostype")
 		hideSubcommandIf(subcmd, versionOlderThan, "version")
 	}
@@ -417,9 +414,6 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 		if _, ok := f.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker daemon with experimental features enabled`, f.Name))
 		}
-		if _, ok := f.Annotations["experimentalCLI"]; ok && !details.ClientInfo().HasExperimental {
-			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker cli with experimental cli features enabled`, f.Name))
-		}
 		// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
 	})
 	if len(errs) > 0 {
@@ -440,9 +434,6 @@ func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 		}
 		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
-		}
-		if _, ok := curr.Annotations["experimentalCLI"]; ok && !details.ClientInfo().HasExperimental {
-			return fmt.Errorf("%s is only supported on a Docker cli with experimental cli features enabled", cmd.CommandPath())
 		}
 	}
 	return nil

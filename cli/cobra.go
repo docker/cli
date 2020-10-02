@@ -35,6 +35,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("vendorAndVersion", vendorAndVersion)
 	cobra.AddTemplateFunc("invalidPluginReason", invalidPluginReason)
 	cobra.AddTemplateFunc("isPlugin", isPlugin)
+	cobra.AddTemplateFunc("isExperimental", isExperimental)
 	cobra.AddTemplateFunc("decoratedName", decoratedName)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
@@ -191,6 +192,19 @@ var helpCommand = &cobra.Command{
 	},
 }
 
+func isExperimental(cmd *cobra.Command) bool {
+	if _, ok := cmd.Annotations["experimentalCLI"]; ok {
+		return true
+	}
+	var experimental bool
+	cmd.VisitParents(func(cmd *cobra.Command) {
+		if _, ok := cmd.Annotations["experimentalCLI"]; ok {
+			experimental = true
+		}
+	})
+	return experimental
+}
+
 func isPlugin(cmd *cobra.Command) bool {
 	return cmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true"
 }
@@ -286,7 +300,16 @@ var usageTemplate = `Usage:
 {{- if .HasSubCommands}}	{{ .CommandPath}}{{- if .HasAvailableFlags}} [OPTIONS]{{end}} COMMAND{{end}}
 
 {{if ne .Long ""}}{{ .Long | trim }}{{ else }}{{ .Short | trim }}{{end}}
+{{- if isExperimental .}}
 
+EXPERIMENTAL:
+  {{.CommandPath}} is an experimental feature.
+  Experimental features provide early access to product functionality. These
+  features may change between releases without warning, or can be removed from a
+  future release. Learn more about experimental features in our documentation:
+  https://docs.docker.com/go/experimental/
+
+{{- end}}
 {{- if gt .Aliases 0}}
 
 Aliases:

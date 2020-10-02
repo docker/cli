@@ -101,6 +101,5 @@ func main() {
 			SchemaVersion: "0.1.0",
 			Vendor:        "Docker Inc.",
 			Version:       "testing",
-			Experimental:  os.Getenv("HELLO_EXPERIMENTAL") != "",
 		})
 }
