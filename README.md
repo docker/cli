@@ -68,3 +68,6 @@ Licensing
 docker/cli is licensed under the Apache License, Version 2.0. See
 [LICENSE](https://github.com/docker/docker/blob/master/LICENSE) for the full
 license text.
+
+For more information :
+https://docs.ansible.com/
