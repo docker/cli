@@ -2,6 +2,8 @@
 title: "Use the Docker command line"
 description: "Docker's CLI command description and usage"
 keywords: "Docker, Docker documentation, CLI, command line"
+redirect_from:
+  - /go/experimental/
 ---
 
 <!-- This file is maintained within the docker/cli GitHub
