@@ -7,7 +7,7 @@ keywords: ["secret, rm"]
 # secret rm
 
 ```Markdown
-Usage:	docker secret rm SECRET [SECRET...]
+Usage:  docker secret rm SECRET [SECRET...]
 
 Remove one or more secrets
 

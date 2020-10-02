@@ -7,7 +7,7 @@ keywords: container, prune, delete, remove
 # container prune
 
 ```markdown
-Usage:	docker container prune [OPTIONS]
+Usage:  docker container prune [OPTIONS]
 
 Remove all stopped containers
 

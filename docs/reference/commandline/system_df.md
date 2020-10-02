@@ -7,7 +7,7 @@ keywords: "system, data, usage, disk"
 # system df
 
 ```markdown
-Usage:	docker system df [OPTIONS]
+Usage:  docker system df [OPTIONS]
 
 Show docker filesystem usage
 
