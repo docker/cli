@@ -3,6 +3,7 @@ title: "Use the Docker command line"
 description: "Docker's CLI command description and usage"
 keywords: "Docker, Docker documentation, CLI, command line"
 redirect_from:
+  - /go/experimental/
   - /engine/reference/commandline/engine/
   - /engine/reference/commandline/engine_activate/
   - /engine/reference/commandline/engine_check/
