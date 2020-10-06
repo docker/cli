@@ -79,7 +79,7 @@ dockerd - Enable daemon mode
 
 # DESCRIPTION
 **dockerd** is used for starting the Docker daemon (i.e., to command the daemon
-to manage images, containers etc).  So **dockerd** is a server, as a daemon.
+to manage images, containers etc). So **dockerd** is a server, as a daemon.
 
 To run the Docker daemon you can specify **dockerd**.
 You can check the daemon options using **dockerd --help**.
@@ -90,9 +90,9 @@ following format.
 
 # OPTIONS
 
-**--add-runtime**=[]
+**--add-runtime** []
   Runtimes can be registered with the daemon either via the
-configuration file or using the `--add-runtime` command line argument.
+configuration file or using the **--add-runtime** command line argument.
 
   The following is an example adding 2 runtimes via the configuration:
 
@@ -121,7 +121,7 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 
   **Note**: defining runtime arguments via the command line is not supported.
 
-**--allow-nondistributable-artifacts**=[]
+**--allow-nondistributable-artifacts** []
   Push nondistributable artifacts to the specified registries.
 
   List can contain elements with CIDR notation to specify a whole subnet.
@@ -135,122 +135,122 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
   artifacts to private registries and ensure that you are in compliance with
   any terms that cover redistributing nondistributable artifacts.
 
-**--api-cors-header**=""
+**--api-cors-header** ""
   Set CORS headers in the Engine API. Default is cors disabled. Give urls like
   "http://foo, http://bar, ...". Give "*" to allow all.
 
-**--authorization-plugin**=""
-  Set authorization plugins to load
+**--authorization-plugin** ""
+  Set authorization plugins to load.
 
-**-b**, **--bridge**=""
+**-b**, **--bridge** ""
   Attach containers to a pre\-existing network bridge; use 'none' to disable
-  container networking
+  container networking.
 
-**--bip**=""
+**--bip** ""
   Use the provided CIDR notation address for the dynamically created bridge
-  (docker0); Mutually exclusive of \-b
+  (docker0); Mutually exclusive of \-b.
 
-**--cgroup-parent**=""
+**--cgroup-parent** ""
   Set parent cgroup for all containers. Default is "/docker" for fs cgroup
   driver and "system.slice" for systemd cgroup driver.
 
-**--cluster-store**=""
-  URL of the distributed storage backend
+**--cluster-store** ""
+  URL of the distributed storage backend.
 
-**--cluster-advertise**=""
+**--cluster-advertise** ""
   Specifies the 'host:port' or `interface:port` combination that this
   particular daemon instance should use when advertising itself to the cluster.
   The daemon is reached through this value.
 
-**--cluster-store-opt**=""
+**--cluster-store-opt** ""
   Specifies options for the Key/Value store.
 
-**--config-file**="/etc/docker/daemon.json"
+**--config-file** "*/etc/docker/daemon.json*"
   Specifies the JSON file path to load the configuration from.
 
-**--containerd**=""
+**--containerd** ""
   Path to containerd socket.
 
-**--data-root**=""
+**--data-root** ""
   Path to the directory used to store persisted Docker data such as
   configuration for resources, swarm cluster state, and filesystem data for
   images, containers, and local volumes. Default is `/var/lib/docker`.
 
-**-D**, **--debug**=*true*|*false*
-  Enable debug mode. Default is false.
+**-D**, **--debug** *true*|*false*
+  Enable debug mode. Default is *false*.
 
-**--default-cgroupns-mode**="**host**|**private**"
+**--default-cgroupns-mode** "**host**|**private**"
   Set the default cgroup namespace mode for newly created containers. The argument
   can either be **host** or **private**. If unset, this defaults to `host` on cgroup v1,
 `private` on cgroup v2.
 
-**--default-gateway**=""
+**--default-gateway** ""
   IPv4 address of the container default gateway; this address must be part of
-  the bridge subnet (which is defined by \-b or \--bip)
+  the bridge subnet (which is defined by \-b or \--bip).
 
-**--default-gateway-v6**=""
-  IPv6 address of the container default gateway
+**--default-gateway-v6** ""
+  IPv6 address of the container default gateway.
 
-**--default-address-pool**=""
+**--default-address-pool** ""
   Default address pool from which IPAM driver selects a subnet for the networks.
   Example: base=172.30.0.0/16,size=24 will set the default
-  address pools for the selected scope networks to {172.30.[0-255].0/24}
+  address pools for the selected scope networks to {172.30.[0-255].0/24}.
 
-**--default-runtime**="runc"
+**--default-runtime** "*runc*"
   Set default runtime if there're more than one specified by `--add-runtime`.
 
-**--default-ipc-mode**="**private**|**shareable**"
+**--default-ipc-mode** "**private**|**shareable**"
   Set the default IPC mode for newly created containers. The argument
   can either be **private** or **shareable**.
 
-**--default-shm-size**=*64MiB*
+**--default-shm-size** *64MiB*
   Set the daemon-wide default shm size for containers. Default is `64MiB`.
 
-**--default-ulimit**=[]
+**--default-ulimit** []
   Default ulimits for containers.
 
-**--dns**=""
-  Force Docker to use specific DNS servers
+**--dns** ""
+  Force Docker to use specific DNS servers.
 
-**--dns-opt**=""
+**--dns-opt** ""
   DNS options to use.
 
-**--dns-search**=[]
+**--dns-search** []
   DNS search domains to use.
 
-**--exec-opt**=[]
+**--exec-opt** []
   Set runtime execution options. See RUNTIME EXECUTION OPTIONS.
 
-**--exec-root**=""
+**--exec-root** ""
   Path to use as the root of the Docker execution state files. Default is
   `/var/run/docker`.
 
-**--experimental**=""
+**--experimental** ""
   Enable the daemon experimental features.
 
-**--fixed-cidr**=""
+**--fixed-cidr** ""
   IPv4 subnet for fixed IPs (e.g., 10.20.0.0/16); this subnet must be nested in
   the bridge subnet (which is defined by \-b or \-\-bip).
 
-**--fixed-cidr-v6**=""
-  IPv6 subnet for global IPv6 addresses (e.g., 2a00:1450::/64)
+**--fixed-cidr-v6** ""
+  IPv6 subnet for global IPv6 addresses (e.g., 2a00:1450::/64).
 
-**-G**, **--group**=""
+**-G**, **--group** ""
   Group to assign the unix socket specified by -H when running in daemon mode.
   use '' (the empty string) to disable setting of a group. Default is `docker`.
 
-**-H**, **--host**=[*unix:///var/run/docker.sock*]: tcp://[host:port] to bind or
+**-H**, **--host** [*unix:///var/run/docker.sock*]: tcp://[host:port] to bind or
 unix://[/path/to/socket] to use.
   The socket(s) to bind to in daemon mode specified using one or more
   tcp://host:port, unix:///path/to/socket, fd://* or fd://socketfd.
 
 **--help**
-  Print usage statement
+  Print usage statement.
 
-**--icc**=*true*|*false*
+**--icc** *true*|*false*
   Allow unrestricted inter\-container and Docker daemon host communication. If
   disabled, containers can still be linked together using the **--link** option
-  (see **docker-run(1)**). Default is true.
+  (see **docker-run(1)**). Default is *true*.
 
 **--init**
   Run an init process inside containers for signal forwarding and process
@@ -259,7 +259,7 @@ unix://[/path/to/socket] to use.
 **--init-path**
   Path to the docker-init binary.
 
-**--insecure-registry**=[]
+**--insecure-registry** []
   Enable insecure registry communication, i.e., enable un-encrypted and/or
   untrusted communication.
 
@@ -273,73 +273,73 @@ unix://[/path/to/socket] to use.
   CA to their system's list of trusted CAs instead of using
   `--insecure-registry`.
 
-**--ip**=""
+**--ip** ""
   Default IP address to use when binding container ports. Default is `0.0.0.0`.
 
-**--ip-forward**=*true*|*false*
-  Enables IP forwarding on the Docker host. The default is `true`. This flag
+**--ip-forward** *true*|*false*
+  Enables IP forwarding on the Docker host. The default is *true*. This flag
   interacts with the IP forwarding setting on your host system's kernel. If
   your system has IP forwarding disabled, this setting enables it. If your
-  system has IP forwarding enabled, setting this flag to `--ip-forward=false`
+  system has IP forwarding enabled, setting this flag to `--ip-forward false`
   has no effect.
 
   This setting will also enable IPv6 forwarding if you have both
-  `--ip-forward=true` and `--fixed-cidr-v6` set. Note that this may reject
+  `--ip-forward true` and `--fixed-cidr-v6` set. Note that this may reject
   Router Advertisements and interfere with the host's existing IPv6
   configuration. For more information, please consult the documentation about
   "Advanced Networking - IPv6".
 
-**--ip-masq**=*true*|*false*
-  Enable IP masquerading for bridge's IP range. Default is true.
+**--ip-masq** *true*|*false*
+  Enable IP masquerading for bridge's IP range. Default is *true*.
 
-**--iptables**=*true*|*false*
-  Enable Docker's addition of iptables rules. Default is true.
+**--iptables** *true*|*false*
+  Enable Docker's addition of iptables rules. Default is *true*.
 
-**--ipv6**=*true*|*false*
-  Enable IPv6 support. Default is false. Docker will create an IPv6-enabled
+**--ipv6** *true*|*false*
+  Enable IPv6 support. Default is *false*. Docker will create an IPv6-enabled
   bridge with address fe80::1 which will allow you to create IPv6-enabled
   containers. Use together with `--fixed-cidr-v6` to provide globally routable
   IPv6 addresses. IPv6 forwarding will be enabled if not used with
-  `--ip-forward=false`. This may collide with your host's current IPv6
+  `--ip-forward false`. This may collide with your host's current IPv6
   settings. For more information please consult the documentation about
   "Advanced Networking - IPv6".
 
-**--isolation**="*default*"
+**--isolation** "*default*"
    Isolation specifies the type of isolation technology used by containers.
    Note that the default on Windows server is `process`, and the default on
    Windows client is `hyperv`. Linux only supports `default`.
 
-**-l**, **--log-level**="*debug*|*info*|*warn*|*error*|*fatal*"
+**-l**, **--log-level** "*debug*|*info*|*warn*|*error*|*fatal*"
   Set the logging level. Default is `info`.
 
-**--label**="[]"
-  Set key=value labels to the daemon (displayed in `docker info`)
+**--label** "[]"
+  Set key=value labels to the daemon (displayed in `docker info`).
 
-**--live-restore**=*false*
+**--live-restore** *true*|*false*
   Enable live restore of running containers when the daemon starts so that they
   are not restarted. This option is applicable only for docker daemon running
   on Linux host.
 
-**--log-driver**="*json-file*|*syslog*|*journald*|*gelf*|*fluentd*|*awslogs*|*splunk*|*etwlogs*|*gcplogs*|*none*"
+**--log-driver** "*json-file*|*syslog*|*journald*|*gelf*|*fluentd*|*awslogs*|*splunk*|*etwlogs*|*gcplogs*|*none*"
   Default driver for container logs. Default is `json-file`.
   **Warning**: `docker logs` command works only for `json-file` logging driver.
 
-**--log-opt**=[]
+**--log-opt** []
   Logging driver specific options.
 
-**--mtu**=*0*
+**--mtu** *0*
   Set the containers network mtu. Default is `0`.
 
-**--max-concurrent-downloads**=*3*
+**--max-concurrent-downloads** *3*
   Set the max concurrent downloads for each pull. Default is `3`.
 
-**--max-concurrent-uploads**=*5*
+**--max-concurrent-uploads** *5*
   Set the max concurrent uploads for each push. Default is `5`.
 
-**--max-download-attempts**=*5*
+**--max-download-attempts** *5*
   Set the max download attempts for each pull. Default is `5`.
 
-**--node-generic-resources**=*[]*
+**--node-generic-resources** []
   Advertise user-defined resource. Default is `[]`.
   Use this if your swarm cluster has some nodes with custom
   resources (e.g: NVIDIA GPU, SSD, ...) and you need your services to land on
@@ -348,63 +348,63 @@ unix://[/path/to/socket] to use.
   --node-generic-resources "NVIDIA-GPU=UUID2"`
 
 
-**-p**, **--pidfile**=""
-  Path to use for daemon PID file. Default is `/var/run/docker.pid`
+**-p**, **--pidfile** ""
+  Path to use for daemon PID file. Default is `/var/run/docker.pid`.
 
 **--raw-logs**
   Output daemon logs in full timestamp format without ANSI coloring. If this
   flag is not set, the daemon outputs condensed, colorized logs if a terminal
   is detected, or full ("raw") output otherwise.
 
-**--registry-mirror**=*<scheme>://<host>*
+**--registry-mirror** *<scheme>://<host>*
   Prepend a registry mirror to be used for image pulls. May be specified
   multiple times.
 
-**-s**, **--storage-driver**=""
+**-s**, **--storage-driver** ""
   Force the Docker runtime to use a specific storage driver.
 
-**--seccomp-profile**=""
+**--seccomp-profile** ""
   Path to seccomp profile.
 
-**--selinux-enabled**=*true*|*false*
-  Enable selinux support. Default is false.
+**--selinux-enabled** *true*|*false*
+  Enable selinux support. Default is *false*.
 
-**--shutdown-timeout**=*15*
+**--shutdown-timeout** *15*
   Set the shutdown timeout value in seconds. Default is `15`.
 
-**--storage-opt**=[]
+**--storage-opt** []
   Set storage driver options. See STORAGE DRIVER OPTIONS.
 
-**--swarm-default-advertise-addr**=*IP|INTERFACE*
+**--swarm-default-advertise-addr** *IP|INTERFACE*
   Set default address or interface for swarm to advertise as its
   externally-reachable address to other cluster members. This can be a
   hostname, an IP address, or an interface such as `eth0`. A port cannot be
   specified with this option.
 
-**--tls**=*true*|*false*
-  Use TLS; implied by --tlsverify. Default is false.
+**--tls** *true*|*false*
+  Use TLS; implied by `--tlsverify`. Default is *false*.
 
-**--tlscacert**=*~/.docker/ca.pem*
+**--tlscacert** *~/.docker/ca.pem*
   Trust certs signed only by this CA.
 
-**--tlscert**=*~/.docker/cert.pem*
+**--tlscert** *~/.docker/cert.pem*
   Path to TLS certificate file.
 
-**--tlskey**=*~/.docker/key.pem*
+**--tlskey** *~/.docker/key.pem*
   Path to TLS key file.
 
-**--tlsverify**=*true*|*false*
+**--tlsverify** *true*|*false*
   Use TLS and verify the remote (daemon: verify client, client: verify daemon).
-  Default is false.
+  Default is *false*.
 
-**--userland-proxy**=*true*|*false*
+**--userland-proxy** *true*|*false*
   Rely on a userland proxy implementation for inter-container and
-  outside-to-container loopback communications. Default is true.
+  outside-to-container loopback communications. Default is *true*.
 
-**--userland-proxy-path**=""
+**--userland-proxy-path** ""
   Path to the userland proxy binary.
 
-**--userns-remap**=*default*|*uid:gid*|*user:group*|*user*|*uid*
+**--userns-remap** *default*|*uid:gid*|*user:group*|*user*|*uid*
   Enable user namespaces for containers on the daemon. Specifying "default"
   will cause a new user and group to be created to handle UID and GID range
   remapping for the user namespace mappings used for contained processes.
@@ -415,7 +415,7 @@ unix://[/path/to/socket] to use.
 # STORAGE DRIVER OPTIONS
 
 Docker uses storage backends (known as "graphdrivers" in the Docker
-internals) to create writable containers from images.  Many of these
+internals) to create writable containers from images. Many of these
 backends use operating system level technologies and can be
 configured.
 
@@ -425,12 +425,12 @@ Options for *devicemapper* are prefixed with *dm*, options for *zfs*
 start with *zfs* and options for *btrfs* start with *btrfs*.
 
 Specifically for devicemapper, the default is a "loopback" model which
-requires no pre-configuration, but is extremely inefficient.  Do not
+requires no pre-configuration, but is extremely inefficient. Do not
 use it in production.
 
 To make the best use of Docker with the devicemapper backend, you must
-have a recent version of LVM.  Use `lvm` to create a thin pool; for
-more information see `man lvmthin`.  Then, use `--storage-opt
+have a recent version of LVM. Use `lvm` to create a thin pool; for
+more information see `man lvmthin`. Then, use `--storage-opt
 dm.thinpooldev` to tell the Docker engine to use that pool for
 allocating images and container snapshots.
 
@@ -493,7 +493,7 @@ Sets the percentage of the passed in block device to use for metadata storage.
 ##### dm.thinp_autoextend_threshold
 
 Sets the value of the percentage of space used before `lvm` attempts to
-autoextend the available space [100 = disabled]
+autoextend the available space [100 = disabled].
 
 ###### Example:
 
@@ -503,7 +503,7 @@ autoextend the available space [100 = disabled]
 ##### dm.thinp_autoextend_percent
 
 Sets the value percentage value to increase the thin pool by when `lvm`
-attempts to autoextend the available space [100 = disabled]
+attempts to autoextend the available space [100 = disabled].
 
 ###### Example:
 
@@ -633,11 +633,11 @@ discussion of the advantages.
 (Deprecated, use `dm.thinpooldev`)
 
 Specifies a custom blockdevice to use for metadata for a Docker-managed thin
-pool.  See `dm.datadev` for why this is deprecated.
+pool. See `dm.datadev` for why this is deprecated.
 
 #### dm.blocksize
 
-Specifies a custom blocksize to use for the thin pool.  The default
+Specifies a custom blocksize to use for the thin pool. The default
 blocksize is 64K.
 
 Example use: `dockerd --storage-opt dm.blocksize=512K`
@@ -658,7 +658,7 @@ Example use: `dockerd --storage-opt dm.blkdiscard=false`
 #### dm.override_udev_sync_check
 
 By default, the devicemapper backend attempts to synchronize with the `udev`
-device manager for the Linux kernel.  This option allows disabling that
+device manager for the Linux kernel. This option allows disabling that
 synchronization, to continue even though the configuration may be buggy.
 
 To view the `udev` sync support of a Docker daemon that is using the
@@ -709,7 +709,7 @@ recover from the error. You can create free space by deleting some images and
 containers from tge thin pool. You can also add more storage to the thin pool.
 
 To add more space to an LVM (logical volume management) thin pool, just add
-more storage to the  group container thin pool; this should automatically
+more storage to the group container thin pool; this should automatically
 resolve any errors. If your configuration uses loop devices, then stop the
 Engine daemon, grow the size of loop files and restart the daemon to resolve
 the issue.
@@ -721,7 +721,7 @@ Example use:: `dockerd --storage-opt dm.min_free_space=10%`
 Specifies the maximum number of retries XFS should attempt to complete IO when
 ENOSPC (no space) error is returned by underlying storage device.
 
-By default XFS retries infinitely for IO to finish and this can result in
+By default, XFS retries infinitely for IO to finish and this can result in
 unkillable process. To change this behavior one can set xfs_nospace_max_retries
 to say 0 and XFS will not retry IO after getting ENOSPC and will shutdown
 filesystem.
@@ -753,18 +753,18 @@ corresponding levels when output by dockerd.
 Example use:
 
     $ sudo dockerd \
-	      --log-level debug \
+          --log-level debug \
           --storage-opt dm.libdm_log_level=7
 
 ## ZFS options
 
 #### zfs.fsname
 
-Set zfs filesystem under which docker will create its own datasets.  By default
+Set zfs filesystem under which docker will create its own datasets. By default,
 docker will pick up the zfs filesystem where docker graph (`/var/lib/docker`)
 is located.
 
-Example use: `dockerd -s zfs --storage-opt zfs.fsname=zroot/docker`
+Example use: `dockerd -s zfs --storage-opt zfs.fsname=zroot/docker`.
 
 ## Btrfs options
 
@@ -779,24 +779,24 @@ Example use: `docker daemon -s btrfs --storage-opt btrfs.min_space=10G`
 
 # CLUSTER STORE OPTIONS
 
-The daemon uses libkv to advertise the node within the cluster.  Some Key/Value
+The daemon uses libkv to advertise the node within the cluster. Some Key/Value
 backends support mutual TLS, and the client TLS settings used by the daemon can
 be configured using the **--cluster-store-opt** flag, specifying the paths to
 PEM encoded files.
 
 #### kv.cacertfile
 
-Specifies the path to a local file with PEM encoded CA certificates to trust
+Specifies the path to a local file with PEM encoded CA certificates to trust.
 
 #### kv.certfile
 
-Specifies the path to a local file with a PEM encoded certificate.  This
+Specifies the path to a local file with a PEM encoded certificate. This
 certificate is used as the client cert for communication with the Key/Value
 store.
 
 #### kv.keyfile
 
-Specifies the path to a local file with a PEM encoded private key.  This
+Specifies the path to a local file with a PEM encoded private key. This
 private key is used as the client key for communication with the Key/Value
 store.
 
