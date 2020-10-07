@@ -31,7 +31,11 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("%s", cfg)
+			_, err = fmt.Fprintf(dockerCli.Out(), "%s", cfg)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
