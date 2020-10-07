@@ -17,94 +17,90 @@ func TestConfigWithEmptyComposeFile(t *testing.T) {
 	assert.ErrorContains(t, cmd.Execute(), `Please specify a Compose file`)
 }
 
-func TestConfigMergeUsingInterpolation(t *testing.T) {
-
-	firstConfig := []byte(`
-version: "3.7"
+var configMergeTests = []struct {
+	name              string
+	skipInterpolation bool
+	first             string
+	second            string
+	merged            string
+}{
+	{
+		name:              "With Interpolation",
+		skipInterpolation: false,
+		first: `version: "3.7"
 services:
   foo:
     image: busybox:latest
     command: cat file1.txt
-`)
-	secondConfig := []byte(`
-version: "3.7"
+`,
+		second: `version: "3.7"
 services:
   foo:
     image: busybox:${VERSION}
     command: cat file2.txt
-`)
-
-	firstConfigData, err := loader.ParseYAML(firstConfig)
-	assert.NilError(t, err)
-	secondConfigData, err := loader.ParseYAML(secondConfig)
-	assert.NilError(t, err)
-
-	env := map[string]string{
-		"VERSION": "1.0",
-	}
-
-	cfg, err := outputConfig(composetypes.ConfigDetails{
-		ConfigFiles: []composetypes.ConfigFile{
-			{Config: firstConfigData, Filename: "firstConfig"},
-			{Config: secondConfigData, Filename: "secondConfig"},
-		},
-		Environment: env,
-	}, false)
-	assert.NilError(t, err)
-
-	var mergedConfig = `version: "3.7"
+`,
+		merged: `version: "3.7"
 services:
   foo:
     command:
     - cat
     - file2.txt
     image: busybox:1.0
-`
-	assert.Equal(t, cfg, mergedConfig)
-}
-
-func TestConfigMergeSkipInterpolation(t *testing.T) {
-
-	firstConfig := []byte(`
-version: "3.7"
+`,
+	},
+	{
+		name:              "Without Interpolation",
+		skipInterpolation: true,
+		first: `version: "3.7"
 services:
   foo:
     image: busybox:latest
     command: cat file1.txt
-`)
-	secondConfig := []byte(`
-version: "3.7"
+`,
+		second: `version: "3.7"
 services:
   foo:
     image: busybox:${VERSION}
     command: cat file2.txt
-`)
-
-	firstConfigData, err := loader.ParseYAML(firstConfig)
-	assert.NilError(t, err)
-	secondConfigData, err := loader.ParseYAML(secondConfig)
-	assert.NilError(t, err)
-
-	env := map[string]string{
-		"VERSION": "1.0",
-	}
-
-	cfg, err := outputConfig(composetypes.ConfigDetails{
-		ConfigFiles: []composetypes.ConfigFile{
-			{Config: firstConfigData, Filename: "firstConfig"},
-			{Config: secondConfigData, Filename: "secondConfig"},
-		},
-		Environment: env,
-	}, true)
-	assert.NilError(t, err)
-
-	var mergedConfig = `version: "3.7"
+`,
+		merged: `version: "3.7"
 services:
   foo:
     command:
     - cat
     - file2.txt
     image: busybox:${VERSION}
-`
-	assert.Equal(t, cfg, mergedConfig)
+`,
+	},
+}
+
+func TestConfigMergeInterpolation(t *testing.T) {
+
+	for _, tt := range configMergeTests {
+		t.Run(tt.name, func(t *testing.T) {
+			firstConfig := []byte(tt.first)
+			secondConfig := []byte(tt.second)
+
+			firstConfigData, err := loader.ParseYAML(firstConfig)
+			assert.NilError(t, err)
+			secondConfigData, err := loader.ParseYAML(secondConfig)
+			assert.NilError(t, err)
+
+			env := map[string]string{
+				"VERSION": "1.0",
+			}
+
+			cfg, err := outputConfig(composetypes.ConfigDetails{
+				ConfigFiles: []composetypes.ConfigFile{
+					{Config: firstConfigData, Filename: "firstConfig"},
+					{Config: secondConfigData, Filename: "secondConfig"},
+				},
+				Environment: env,
+			}, tt.skipInterpolation)
+			assert.NilError(t, err)
+
+			assert.Equal(t, cfg, tt.merged)
+		})
+	}
+
 }
