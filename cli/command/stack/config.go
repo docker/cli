@@ -17,10 +17,9 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 	var opts options.Config
 
 	cmd := &cobra.Command{
-		Use:     "config [OPTIONS]",
-		Aliases: []string{"cfg"},
-		Short:   "Outputs the final config file, after doing merges and interpolations",
-		Args:    cli.NoArgs,
+		Use:   "config [OPTIONS]",
+		Short: "Outputs the final config file, after doing merges and interpolations",
+		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			configDetails, err := loader.GetConfigDetails(opts.Composefiles, dockerCli.In())
 			if err != nil {
