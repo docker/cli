@@ -26,7 +26,7 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 				return err
 			}
 
-			cfg, err := OutputConfig(configDetails, opts.SkipInterpolation)
+			cfg, err := outputConfig(configDetails, opts.SkipInterpolation)
 			if err != nil {
 				return err
 			}
@@ -47,8 +47,8 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// OutputConfig returns the merged and interpolated config file
-func OutputConfig(configFiles composetypes.ConfigDetails, skipInterpolation bool) (string, error) {
+// outputConfig returns the merged and interpolated config file
+func outputConfig(configFiles composetypes.ConfigDetails, skipInterpolation bool) (string, error) {
 	optsFunc := func(options *composeLoader.Options) {
 		options.SkipInterpolation = skipInterpolation
 	}

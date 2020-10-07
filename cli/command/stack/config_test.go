@@ -43,7 +43,7 @@ services:
 		"VERSION": "1.0",
 	}
 
-	cfg, err := OutputConfig(composetypes.ConfigDetails{
+	cfg, err := outputConfig(composetypes.ConfigDetails{
 		ConfigFiles: []composetypes.ConfigFile{
 			{Config: firstConfigData, Filename: "firstConfig"},
 			{Config: secondConfigData, Filename: "secondConfig"},
@@ -89,7 +89,7 @@ services:
 		"VERSION": "1.0",
 	}
 
-	cfg, err := OutputConfig(composetypes.ConfigDetails{
+	cfg, err := outputConfig(composetypes.ConfigDetails{
 		ConfigFiles: []composetypes.ConfigFile{
 			{Config: firstConfigData, Filename: "firstConfig"},
 			{Config: secondConfigData, Filename: "secondConfig"},
