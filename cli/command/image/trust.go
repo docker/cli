@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"sort"
+	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
@@ -344,6 +345,8 @@ func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canon
 // AuthResolver returns an auth resolver function from a command.Cli
 func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
+		index.Name = strings.ToLower(index.Name)
+
 		return command.ResolveAuthConfig(ctx, cli, index)
 	}
 }
