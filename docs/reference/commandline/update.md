@@ -81,7 +81,7 @@ the container before updating kernel memory.
 
 > **Note**
 >
-> The `--kernel-memory` option has been deprecated since Docker 20.03.
+> The `--kernel-memory` option has been deprecated since Docker 20.10.
 
 For example, if you started a container with this command:
 
