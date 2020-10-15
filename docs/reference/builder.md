@@ -1737,8 +1737,10 @@ USER <UID>[:<GID>]
 ```
 
 The `USER` instruction sets the user name (or UID) and optionally the user
-group (or GID) to use when running the image and for any `RUN`, `CMD` and
-`ENTRYPOINT` instructions that follow it in the `Dockerfile`.
+group (or GID) for any `RUN` instructions that follow it in the `Dockerfile`.
+The last `USER` instruction in the `Dockerfile` determines the user to use for
+running the image, in other words for the `CMD` and `ENTRYPOINT` instructions.
+The last `USER` instruction also determines the default user for `docker exec`.
 
 > Note that when specifying a group for the user, the user will have _only_ the
 > specified group membership. Any other configured group memberships will be ignored.
