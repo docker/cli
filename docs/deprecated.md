@@ -50,28 +50,28 @@ The table below provides an overview of the current status of deprecated feature
 
 Status     | Feature                                                                                                                            | Deprecated | Remove
 -----------|------------------------------------------------------------------------------------------------------------------------------------|------------|------------
-Deprecated | [Configuration options for experimental CLI features](#configuration-options-for-experimental-cli-features)                        | v19.03     | v20.03
-Deprecated | [Pushing and pulling with image manifest v2 schema 1](#pushing-and-pulling-with-image-manifest-v2-schema-1)                        | v19.03     | v20.03
-Deprecated | [`docker engine` subcommands](#docker-engine-subcommands)                                                                          | v19.03     | v20.03
-Deprecated | [Top-level `docker deploy` subcommand (experimental)](#top-level-docker-deploy-subcommand-experimental)                            | v19.03     | v20.03
-Deprecated | [`docker stack deploy` using "dab" files (experimental)](#docker-stack-deploy-using-dab-files-experimental)                        | v19.03     | v20.03
+Deprecated | [Configuration options for experimental CLI features](#configuration-options-for-experimental-cli-features)                        | v19.03     | v20.10
+Deprecated | [Pushing and pulling with image manifest v2 schema 1](#pushing-and-pulling-with-image-manifest-v2-schema-1)                        | v19.03     | v20.10
+Deprecated | [`docker engine` subcommands](#docker-engine-subcommands)                                                                          | v19.03     | v20.10
+Deprecated | [Top-level `docker deploy` subcommand (experimental)](#top-level-docker-deploy-subcommand-experimental)                            | v19.03     | v20.10
+Deprecated | [`docker stack deploy` using "dab" files (experimental)](#docker-stack-deploy-using-dab-files-experimental)                        | v19.03     | v20.10
 Deprecated | [AuFS storage driver](#aufs-storage-driver)                                                                                        | v19.03     | -
 Deprecated | [Legacy "overlay" storage driver](#legacy-overlay-storage-driver)                                                                  | v18.09     | -
 Deprecated | [Device mapper storage driver](#device-mapper-storage-driver)                                                                      | v18.09     | -
-Deprecated | [Reserved namespaces in engine labels](#reserved-namespaces-in-engine-labels)                                                      | v18.06     | v20.03
+Deprecated | [Use of reserved namespaces in engine labels](#use-of-reserved-namespaces-in-engine-labels)                                        | v18.06     | v20.10
 Removed    | [`--disable-legacy-registry` override daemon option](#--disable-legacy-registry-override-daemon-option)                            | v17.12     | v19.03
 Removed    | [Interacting with V1 registries](#interacting-with-v1-registries)                                                                  | v17.06     | v17.12
 Removed    | [Asynchronous `service create` and `service update` as default](#asynchronous-service-create-and-service-update-as-default)        | v17.05     | v17.10
 Removed    | [`-g` and `--graph` flags on `dockerd`](#-g-and---graph-flags-on-dockerd)                                                          | v17.05     | -
 Deprecated | [Top-level network properties in NetworkSettings](#top-level-network-properties-in-networksettings)                                | v1.13      | v17.12
-Deprecated | [`filter` param for `/images/json` endpoint](#filter-param-for-imagesjson-endpoint)                                                | v1.13      | v17.12
+Deprecated | [`filter` param for `/images/json` endpoint](#filter-param-for-imagesjson-endpoint)                                                | v1.13      | v20.10
 Removed    | [`repository:shortid` image references](#repositoryshortid-image-references)                                                       | v1.13      | v17.12
 Removed    | [`docker daemon` subcommand](#docker-daemon-subcommand)                                                                            | v1.13      | v17.12
 Removed    | [Duplicate keys with conflicting values in engine labels](#duplicate-keys-with-conflicting-values-in-engine-labels)                | v1.13      | v17.12
 Deprecated | [`MAINTAINER` in Dockerfile](#maintainer-in-dockerfile)                                                                            | v1.13      | -
 Deprecated | [API calls without a version](#api-calls-without-a-version)                                                                        | v1.13      | v17.12
 Removed    | [Backing filesystem without `d_type` support for overlay/overlay2](#backing-filesystem-without-d_type-support-for-overlayoverlay2) | v1.13      | v17.12
-Deprecated | [`--automated` and `--stars` flags on `docker search`](#--automated-and---stars-flags-on-docker-search)                            | v1.12      | v17.09
+Deprecated | [`--automated` and `--stars` flags on `docker search`](#--automated-and---stars-flags-on-docker-search)                            | v1.12      | v20.10
 Deprecated | [`-h` shorthand for `--help`](#-h-shorthand-for---help)                                                                            | v1.12      | v17.09
 Removed    | [`-e` and `--email` flags on `docker login`](#-e-and---email-flags-on-docker-login)                                                | v1.11      | v17.06
 Deprecated | [Separator (`:`) of `--security-opt` flag on `docker run`](#separator--of---security-opt-flag-on-docker-run)                       | v1.11      | v17.06
@@ -98,7 +98,7 @@ enabled by default, and these configuration options will no longer be functional
 
 **Deprecated in Release: v19.03**
 
-**Target For Removal In Release: v20.03**
+**Target For Removal In Release: v20.10**
 
 The image manifest
 [v2 schema 1](https://github.com/docker/distribution/blob/fda42e5ef908bdba722d435ff1f330d40dfcd56c/docs/spec/manifest-v2-1.md)
@@ -112,7 +112,7 @@ If the registry you are using still supports v2 schema 1, urge their administrat
 
 **Deprecated in Release: v19.03**
 
-**Target For Removal In Release: v20.03**
+**Target For Removal In Release: v20.10**
 
 The `docker engine activate`, `docker engine check`, and `docker engine update`
 provided an alternative installation method to upgrade Docker Community engines
@@ -128,7 +128,7 @@ standard package  managers.
 
 **Deprecated in Release: v19.03**
 
-**Target For Removal In Release: v20.03**
+**Target For Removal In Release: v20.10**
 
 The top-level `docker deploy` command (using the "Docker Application Bundle"
 (.dab) file format was introduced as an experimental feature in Docker 1.13 /
@@ -140,7 +140,7 @@ subcommand.
 
 **Deprecated in Release: v19.03**
 
-**Target For Removal In Release: v20.03**
+**Target For Removal In Release: v20.10**
 
 With no development being done on this feature, and no active use of the file
 format, support for the DAB file format and the top-level docker deploy command
@@ -199,15 +199,17 @@ either on kernel 4.x, or have support for multiple lowerdirs backported), there
 is no reason to continue maintenance of the `devicemapper` storage driver.
 
 
-### Reserved namespaces in engine labels
+### Use of reserved namespaces in engine labels
 
 **Deprecated in Release: v18.06**
+
+**Target For Removal In Release: v20.10**
 
 The namespaces `com.docker.*`, `io.docker.*`, and `org.dockerproject.*` in engine labels
 were always documented to be reserved, but there was never any enforcement.
 
 Usage of these namespaces will now cause a warning in the engine logs to discourage their
-use, and will error instead in v20.03 and above.
+use, and will error instead in v20.10 and above.
 
 
 ### `--disable-legacy-registry` override daemon option
@@ -289,7 +291,7 @@ information.
 ### `filter` param for `/images/json` endpoint
 **Deprecated In Release: [v1.13.0](https://github.com/docker/docker/releases/tag/v1.13.0)**
 
-**Target For Removal In Release: v17.12**
+**Target For Removal In Release: v20.10**
 
 The `filter` param to filter the list of image by reference (name or name:tag) is now implemented as a regular filter, named `reference`.
 
@@ -354,7 +356,7 @@ further information.
 
 **Deprecated in Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)**
 
-**Target For Removal In Release: v17.09**
+**Target For Removal In Release: v20.10**
 
 The `docker search --automated` and `docker search --stars` options are deprecated.
 Use `docker search --filter=is-automated=...` and `docker search --filter=stars=...` instead.
