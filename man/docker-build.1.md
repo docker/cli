@@ -1,6 +1,5 @@
-% DOCKER(1) Docker User Manuals
-% Docker Community
-% JUNE 2014
+% "DOCKER" "1" "JUNE 2014" "Docker Community" "Docker User Manuals"
+
 # NAME
 docker-build - Build an image from a Dockerfile
 

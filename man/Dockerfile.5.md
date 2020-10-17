@@ -1,6 +1,5 @@
-% DOCKERFILE(5) Docker User Manuals
-% Zac Dover
-% May 2014
+% "DOCKERFILE" "5" "MAY 2014" "Docker Community" "Docker User Manuals"
+
 # NAME
 
 Dockerfile - automate the steps of creating a Docker image
