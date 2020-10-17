@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	"github.com/moby/buildkit/util/appcontext"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -197,6 +198,11 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) 
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		// override SIGTERM handler so we let the plugin shut down first
+		<-appcontext.Context().Done()
+	}()
 
 	if err := plugincmd.Run(); err != nil {
 		statusCode := 1
