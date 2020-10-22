@@ -650,13 +650,13 @@ $ docker run busybox /bin/sh -c 'exit 3'; echo $?
 
 ## Clean up (--rm)
 
-By default a container's file system persists even after the container
-exits. This makes debugging a lot easier (since you can inspect the
-final state) and you retain all your data by default. But if you are
+By default a container's file system persists after the container
+exits. This makes debugging easier (since you can inspect the
+final state), and you retain your data by default. But if you're
 running short-term **foreground** processes, these container file
-systems can really pile up. If instead you'd like Docker to
-**automatically clean up the container and remove the file system when
-the container exits**, you can add the `--rm` flag:
+systems can pile up. Docker can **automatically clean up the 
+container and remove the file system when the container exits**, 
+if you add the `--rm` flag:
 
     --rm=false: Automatically remove the container when it exits
 
