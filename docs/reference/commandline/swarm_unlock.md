@@ -7,7 +7,7 @@ keywords: "swarm, unlock"
 # swarm unlock
 
 ```markdown
-Usage:	docker swarm unlock
+Usage:  docker swarm unlock
 
 Unlock swarm
 

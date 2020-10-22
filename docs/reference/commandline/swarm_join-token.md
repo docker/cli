@@ -7,7 +7,7 @@ keywords: "swarm, join-token"
 # swarm join-token
 
 ```markdown
-Usage:	docker swarm join-token [OPTIONS] (worker|manager)
+Usage:  docker swarm join-token [OPTIONS] (worker|manager)
 
 Manage join tokens
 

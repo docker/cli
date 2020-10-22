@@ -7,7 +7,7 @@ keywords: "stack, services"
 # stack services
 
 ```markdown
-Usage:	docker stack services [OPTIONS] STACK
+Usage:  docker stack services [OPTIONS] STACK
 
 List the services in the stack
 

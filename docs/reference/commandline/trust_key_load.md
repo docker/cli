@@ -7,7 +7,7 @@ keywords: "key, notary, trust"
 # trust key load
 
 ```markdown
-Usage:	docker trust key load [OPTIONS] KEYFILE
+Usage:  docker trust key load [OPTIONS] KEYFILE
 
 Load a private key file for signing
 

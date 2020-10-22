@@ -7,7 +7,7 @@ keywords: "system, prune, delete, remove"
 # system prune
 
 ```markdown
-Usage:	docker system prune [OPTIONS]
+Usage:  docker system prune [OPTIONS]
 
 Remove unused data
 

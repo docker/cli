@@ -7,7 +7,7 @@ keywords: ["secret, ls"]
 # secret ls
 
 ```Markdown
-Usage:	docker secret ls [OPTIONS]
+Usage:  docker secret ls [OPTIONS]
 
 List secrets
 

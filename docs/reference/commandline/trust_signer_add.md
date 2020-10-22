@@ -7,7 +7,7 @@ keywords: "signer, notary, trust"
 # trust signer add
 
 ```markdown
-Usage:	docker trust signer add [OPTIONS] NAME REPOSITORY [REPOSITORY...]
+Usage:  docker trust signer add [OPTIONS] NAME REPOSITORY [REPOSITORY...]
 
 Add a signer
 

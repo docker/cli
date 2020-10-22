@@ -7,7 +7,7 @@ keywords: "swarm, ca"
 # swarm ca
 
 ```markdown
-Usage:	docker swarm ca [OPTIONS]
+Usage:  docker swarm ca [OPTIONS]
 
 Manage root CA
 

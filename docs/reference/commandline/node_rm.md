@@ -7,7 +7,7 @@ keywords: "node, remove"
 # node rm
 
 ```markdown
-Usage:	docker node rm [OPTIONS] NODE [NODE...]
+Usage:  docker node rm [OPTIONS] NODE [NODE...]
 
 Remove one or more nodes from the swarm
 

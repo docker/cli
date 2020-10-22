@@ -7,7 +7,7 @@ keywords: ["secret, create"]
 # secret create
 
 ```Markdown
-Usage:	docker secret create [OPTIONS] SECRET [file|-]
+Usage:  docker secret create [OPTIONS] SECRET [file|-]
 
 Create a secret from a file or STDIN as content
 

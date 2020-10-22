@@ -7,7 +7,7 @@ keywords: "swarm, unlock-key"
 # swarm unlock-key
 
 ```markdown
-Usage:	docker swarm unlock-key [OPTIONS]
+Usage:  docker swarm unlock-key [OPTIONS]
 
 Manage the unlock key
 

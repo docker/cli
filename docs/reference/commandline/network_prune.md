@@ -7,7 +7,7 @@ keywords: "network, prune, delete"
 # network prune
 
 ```markdown
-Usage:	docker network prune [OPTIONS]
+Usage:  docker network prune [OPTIONS]
 
 Remove all unused networks
 
