@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO111MODULE=on go get gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
 FROM golang AS vndr
-ARG VNDR_VERSION=v0.1.1
+ARG VNDR_VERSION=v0.1.2
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
