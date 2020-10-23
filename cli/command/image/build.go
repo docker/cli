@@ -246,7 +246,11 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	)
 
 	if options.stream {
-		return errors.New("Experimental flag --stream was removed, enable BuildKit instead with DOCKER_BUILDKIT=1")
+		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The experimental --stream flag has been removed and the build context
+            will be sent non-streaming. Enable BuildKit instead with DOCKER_BUILDKIT=1
+            to stream build context, see https://docs.docker.com/go/buildkit/
+
+`)
 	}
 
 	if options.dockerfileFromStdin() {
