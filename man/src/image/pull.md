@@ -111,7 +111,7 @@ pull the above image by digest, run the following command:
 Digest can also be used in the `FROM` of a Dockerfile, for example:
 
     FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-    MAINTAINER some maintainer <maintainer@example.com>
+    LABEL maintainer="some maintainer <maintainer@example.com>"
 
 > **Note**: Using this feature "pins" an image to a specific version in time.
 > Docker will therefore not pull updated versions of an image, which may include 
