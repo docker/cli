@@ -1396,10 +1396,7 @@ drwxrwxr-x 1 1000 1000   4096 Dec  4 06:11 .git
 ```
 
 The default seccomp profile will adjust to the selected capabilities, in order to allow
-use of facilities allowed by the capabilities, so you should not have to adjust this,
-since Docker 1.12. In Docker 1.10 and 1.11 this did not happen and it may be necessary
-to use a custom seccomp profile or use `--security-opt seccomp=unconfined` when adding
-capabilities.
+use of facilities allowed by the capabilities, so you should not have to adjust this.
 
 ## Logging drivers (--log-driver)
 

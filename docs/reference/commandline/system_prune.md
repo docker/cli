@@ -97,15 +97,6 @@ deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
 Total reclaimed space: 13.5 MB
 ```
 
-> **Note**
->
-> The `--volumes` option was added in Docker 17.06.1. Older versions of Docker
-> prune volumes by default, along with other Docker objects. On older versions,
-> run `docker container prune`, `docker network prune`, and `docker image prune`
-> separately to remove unused containers, networks, and images, without removing
-> volumes.
-
-
 ### Filtering
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
