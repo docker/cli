@@ -715,10 +715,9 @@ experimental flag enabled.
 
 #### Enable Docker experimental
 
-Experimental features are now included in the standard Docker binaries as of
-version 1.13.0. For enabling experimental features, you need to start the
-Docker daemon with `--experimental` flag. You can also enable the daemon flag
-via `/etc/docker/daemon.json`. e.g.
+To enable experimental features, you need to start the Docker daemon with
+`--experimental` flag. You can also enable the daemon flag via
+`/etc/docker/daemon.json`, for example:
 
 ```json
 {
