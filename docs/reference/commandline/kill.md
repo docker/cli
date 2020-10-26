@@ -13,7 +13,7 @@ Kill one or more running containers
 
 Options:
       --help            Print usage
-  -s, --signal string   Signal to send to the container (default "KILL")
+  -s, --signal string   Signal to send to the container (default "SIGKILL")
 ```
 
 ## Description
