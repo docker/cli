@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -30,11 +29,10 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runLogout(dockerCli command.Cli, serverAddress string) error {
-	ctx := context.Background()
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
-		serverAddress = command.ElectAuthServer(ctx, dockerCli)
+		serverAddress = registry.IndexServer
 		isDefaultRegistry = true
 	}
 
