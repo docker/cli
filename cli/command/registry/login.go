@@ -102,18 +102,17 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 		return err
 	}
 	var (
-		serverAddress string
-		authServer    = command.ElectAuthServer(ctx, dockerCli)
+		serverAddress = registry.IndexServer
+		err           error
+		authConfig    *types.AuthConfig
+		response      registrytypes.AuthenticateOKBody
 	)
 	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
 		serverAddress = opts.serverAddress
-	} else {
-		serverAddress = authServer
 	}
 
-	var response registrytypes.AuthenticateOKBody
-	isDefaultRegistry := serverAddress == authServer
-	authConfig, err := command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	isDefaultRegistry := serverAddress == registry.IndexServer
+	authConfig, err = command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if authConfig == nil {
 		authConfig = &types.AuthConfig{}
 	}
