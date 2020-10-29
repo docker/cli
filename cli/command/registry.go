@@ -93,17 +93,18 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 	if !isDefaultRegistry {
 		serverAddress = registry.ConvertToHostname(serverAddress)
 	}
-	var authconfig configtypes.AuthConfig
+	var authconfig = configtypes.AuthConfig{}
 	var err error
 	if checkCredStore {
 		authconfig, err = cli.ConfigFile().GetAuthConfig(serverAddress)
-	} else {
-		authconfig = configtypes.AuthConfig{}
+		if err != nil {
+			return nil, err
+		}
 	}
 	authconfig.ServerAddress = serverAddress
 	authconfig.IdentityToken = ""
 	res := types.AuthConfig(authconfig)
-	return &res, err
+	return &res, nil
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed
