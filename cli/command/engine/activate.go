@@ -37,18 +37,12 @@ func newActivateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Activate Enterprise Edition",
 		Long: `Activate Enterprise Edition.
 
-With this command you may apply an existing Docker enterprise license, or
-interactively download one from Docker. In the interactive exchange, you can
-sign up for a new trial, or download an existing license. If you are
-currently running a Community Edition engine, the daemon will be updated to
-the Enterprise Edition Docker engine with additional capabilities and long
-term support.
+Use this command to apply a Docker enterprise license. Use the '--license' 
+flag to specify the location of a previously downloaded license file.  
+This flag is required to activate a license.
 
 For more information about different Docker Enterprise license types visit
-https://www.docker.com/licenses
-
-For non-interactive scriptable deployments, download your license from
-https://hub.docker.com/ then specify the file with the '--license' flag.
+https://www.mirantis.com/support/enterprise-support-options/
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runActivate(dockerCli, options)
