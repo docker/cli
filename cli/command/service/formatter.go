@@ -134,6 +134,7 @@ Configs:
 {{- if .Secrets }}
 Secrets:
 {{- range $secret := .Secrets }}
+ ID:	{{$secret.ID}}
  Target:	{{$secret.File.Name}}
   Source:	{{$secret.SecretName}}
 {{- end }}{{ end }}
