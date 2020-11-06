@@ -4,15 +4,6 @@ description: "The history command description and usage"
 keywords: "docker, image, history"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # history
 
 ```markdown
@@ -25,7 +16,7 @@ Options:
       --help            Print usage
   -H, --human           Print sizes and dates in human readable format (default true)
       --no-trunc        Don't truncate output
-  -q, --quiet           Only show numeric IDs
+  -q, --quiet           Only show image IDs
 ```
 
 
@@ -77,7 +68,8 @@ output the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `CreatedSince` entries separated by a colon for the `busybox` image:
+`ID` and `CreatedSince` entries separated by a colon (`:`) for the `busybox`
+image:
 
 ```bash
 $ docker history --format "{{.ID}}: {{.CreatedSince}}" busybox

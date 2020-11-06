@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestSecretRemoveErrors(t *testing.T) {
@@ -36,7 +36,7 @@ func TestSecretRemoveErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -72,7 +72,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	})
 
 	cmd := newSecretRemoveCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs(names)
 	assert.Error(t, cmd.Execute(), "error removing secret: foo")
 	assert.Check(t, is.DeepEqual(names, removedSecrets))

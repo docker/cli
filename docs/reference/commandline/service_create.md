@@ -4,15 +4,6 @@ description: "The service create command description and usage"
 keywords: "service, create"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # service create
 
 ```Markdown
@@ -21,6 +12,8 @@ Usage:  docker service create [OPTIONS] IMAGE [COMMAND] [ARG...]
 Create a new service
 
 Options:
+      --cap-add list                       Add Linux capabilities
+      --cap-drop list                      Drop Linux capabilities
       --config config                      Specify configurations to expose to the service
       --constraint list                    Placement constraints
       --container-label list               Container labels
@@ -48,9 +41,11 @@ Options:
   -l, --label list                         Service labels
       --limit-cpu decimal                  Limit CPUs
       --limit-memory bytes                 Limit Memory
+      --limit-pids int                     Limit maximum number of processes (default 0 = unlimited)
       --log-driver string                  Logging driver for service
       --log-opt list                       Logging driver options
-      --mode string                        Service mode (replicated or global) (default "replicated")
+      --max-concurrent                     Number of job tasks to run at once (default equal to --replicas)
+      --mode string                        Service mode (replicated, global, replicated-job, or global-job) (default "replicated")
       --mount mount                        Attach a filesystem mount to the service
       --name string                        Service name
       --network network                    Network attachments
@@ -79,6 +74,7 @@ Options:
       --stop-signal string                 Signal to stop the container
       --sysctl list                        Sysctl options
   -t, --tty                                Allocate a pseudo-TTY
+      --ulimit ulimit                      Ulimit options (default [])
       --update-delay duration              Delay between updates (ns|us|ms|s|m|h) (default 0s)
       --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback") (default "pause")
       --update-max-failure-ratio float     Failure rate to tolerate during an update (default 0)
@@ -92,8 +88,14 @@ Options:
 
 ## Description
 
-Creates a service as described by the specified parameters. You must run this
-command on a manager node.
+Creates a service as described by the specified parameters.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -197,11 +199,40 @@ $ docker service create --name redis \
 
 To grant a service access to multiple secrets, use multiple `--secret` flags.
 
-Secrets are located in `/run/secrets` in the container.  If no target is
-specified, the name of the secret will be used as the in memory file in the
-container.  If a target is specified, that will be the filename.  In the
-example above, two files will be created: `/run/secrets/ssh` and
+Secrets are located in `/run/secrets` in the container if no target is specified.
+If no target is specified, the name of the secret is used as the in memory file
+in the container. If a target is specified, that is used as the filename. In the
+example above, two files are created: `/run/secrets/ssh` and
 `/run/secrets/app` for each of the secret targets specified.
+
+### Create a service with configs
+
+Use the `--config` flag to give a container access to a
+[config](config_create.md).
+
+Create a service with a config. The config will be mounted into `redis-config`,
+be owned by the user who runs the command inside the container (often `root`),
+and have file mode `0444` or world-readable. You can specify the `uid` and `gid`
+as numerical IDs or names. When using names, the provided group/user names must
+pre-exist in the container. The `mode` is specified as a 4-number sequence such
+as `0755`.
+
+```bash
+$ docker service create --name=redis --config redis-conf redis:3.0.6
+```
+
+Create a service with a config and specify the target location and file mode:
+
+```bash
+$ docker service create --name redis \
+  --config source=redis-conf,target=/etc/redis/redis.conf,mode=0400 redis:3.0.6
+```
+
+To grant a service access to multiple configs, use multiple `--config` flags.
+
+Configs are located in `/` in the container if no target is specified. If no
+target is specified, the name of the config is used as the name of the file in
+the container. If a target is specified, that is used as the filename.
 
 ### Create a service with a rolling update policy
 
@@ -266,7 +297,7 @@ $ docker service create \
 ```
 
 For more information about labels, refer to [apply custom
-metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
+metadata](https://docs.docker.com/config/labels-custom-metadata/).
 
 ### Add bind mounts, volumes or memory filesystems
 
@@ -304,7 +335,7 @@ your web server containers when they start. To update the website, you just
 update the named volume.
 
 For more information about named volumes, see
-[Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/).
+[Data Volumes](https://docs.docker.com/storage/volumes/).
 
 The following table describes options which apply to both bind mounts and named
 volumes in a service:
@@ -319,14 +350,14 @@ volumes in a service:
     <td><b>type</b></td>
     <td></td>
     <td>
-      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.
+      <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.</p>
       <ul>
         <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
         into the container.</li> <li><tt>bind</tt>:
         bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
         <li><tt>npipe</tt>: mounts named pipe from the host into the container (Windows containers only).</li>
-      </ul></p>
+      </ul>
     </td>
   </tr>
   <tr>
@@ -366,11 +397,11 @@ volumes in a service:
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
       is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
-      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.
+      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.</p>
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
-      </ul></p>
+      </ul>
     </td>
   </tr>
 </table>
@@ -394,14 +425,13 @@ The following options can only be used for bind mounts (`type=bind`):
   <tr>
     <td><b>consistency</b></td>
     <td>
-      <p>The consistency requirements for the mount; one of
-         <ul>
-           <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
-           <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
-           <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
-           <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
-        </ul>
-     </p>
+      <p>The consistency requirements for the mount; one of </p>
+      <ul>
+       <li><tt>default</tt>: Equivalent to <tt>consistent</tt>.</li>
+       <li><tt>consistent</tt>: Full consistency.  The container runtime and the host maintain an identical view of the mount at all times.</li>
+       <li><tt>cached</tt>: The host's view of the mount is authoritative.  There may be delays before updates made on the host are visible within a container.</li>
+       <li><tt>delegated</tt>: The container runtime's view of the mount is authoritative.  There may be delays before updates made in a container are visible on the host.</li>
+      </ul>
     </td>
   </tr>
   <tr>
@@ -425,7 +455,7 @@ The following options can only be used for bind mounts (`type=bind`):
 
 Bind propagation refers to whether or not mounts created within a given
 bind mount or named volume can be propagated to replicas of that mount. Consider
-a mount point `/mnt`, which is also mounted on `/tmp`. The propation settings
+a mount point `/mnt`, which is also mounted on `/tmp`. The propagation settings
 control whether a mount on `/tmp/a` would also be available on `/mnt/a`. Each
 propagation setting has a recursive counterpoint. In the case of recursion,
 consider that `/tmp/a` is also mounted as `/foo`. The propagation settings
@@ -483,7 +513,7 @@ The following options can only be used for named volumes (`type=volume`):
       creation. For example,
       <tt>volume-label=mylabel=hello-world,my-other-label=hello-mars</tt>. For more
       information about labels, refer to
-      <a href="https://docs.docker.com/engine/userguide/labels-custom-metadata/">apply custom metadata</a>.
+      <a href="https://docs.docker.com/config/labels-custom-metadata/">apply custom metadata</a>.
     </td>
   </tr>
   <tr>
@@ -635,48 +665,25 @@ $ docker service create \
 ### Specify service constraints (--constraint)
 
 You can limit the set of nodes where a task can be scheduled by defining
-constraint expressions. Multiple constraints find nodes that satisfy every
+constraint expressions. Constraint expressions can either use a _match_ (`==`)
+or _exclude_ (`!=`) rule. Multiple constraints find nodes that satisfy every
 expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
-
-<table>
-  <tr>
-    <th>node attribute</th>
-    <th>matches</th>
-    <th>example</th>
-  </tr>
-  <tr>
-    <td><tt>node.id</tt></td>
-    <td>Node ID</td>
-    <td><tt>node.id==2ivku8v2gvtg4</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.hostname</tt></td>
-    <td>Node hostname</td>
-    <td><tt>node.hostname!=node-2</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.role</tt></td>
-    <td>Node role</td>
-    <td><tt>node.role==manager</tt></td>
-  </tr>
-  <tr>
-    <td><tt>node.labels</tt></td>
-    <td>user defined node labels</td>
-    <td><tt>node.labels.security==high</tt></td>
-  </tr>
-  <tr>
-    <td><tt>engine.labels</tt></td>
-    <td>Docker Engine's labels</td>
-    <td><tt>engine.labels.operatingsystem==ubuntu 14.04</tt></td>
-  </tr>
-</table>
+node attribute       | matches                        | example
+---------------------|--------------------------------|-----------------------------------------------
+`node.id`            | Node ID                        | `node.id==2ivku8v2gvtg4`
+`node.hostname`      | Node hostname                  | `node.hostname!=node-2`
+`node.role`          | Node role (`manager`/`worker`) | `node.role==manager`
+`node.platform.os`   | Node operating system          | `node.platform.os==windows`
+`node.platform.arch` | Node architecture              | `node.platform.arch==x86_64`
+`node.labels`        | User-defined node labels       | `node.labels.security==high`
+`engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-14.04`
 
 
-`engine.labels` apply to Docker Engine labels like operating system,
-drivers, etc. Swarm administrators add `node.labels` for operational purposes by
-using the [`docker node update`](node_update.md) command.
+`engine.labels` apply to Docker Engine labels like operating system, drivers,
+etc. Swarm administrators add `node.labels` for operational purposes by using
+the [`docker node update`](node_update.md) command.
 
 For example, the following limits tasks for the redis service to nodes where the
 node type label equals queue:
@@ -684,8 +691,43 @@ node type label equals queue:
 ```bash
 $ docker service create \
   --name redis_2 \
-  --constraint 'node.labels.type == queue' \
+  --constraint node.platform.os==linux \
+  --constraint node.labels.type==queue \
   redis:3.0.6
+```
+
+If the service constraints exclude all nodes in the cluster, a message is printed
+that no suitable node is found, but the scheduler will start a reconciliation
+loop and deploy the service once a suitable node becomes available.
+
+In the example below, no node satisfying the constraint was found, causing the
+service to not reconcile with the desired state:
+
+```bash
+$ docker service create \
+  --name web \
+  --constraint node.labels.region==east \
+  nginx:alpine
+
+lx1wrhhpmbbu0wuk0ybws30bc
+overall progress: 0 out of 1 tasks
+1/1: no suitable node (scheduling constraints not satisfied on 5 nodes)
+
+$ docker service ls
+ID                  NAME     MODE         REPLICAS   IMAGE               PORTS
+b6lww17hrr4e        web      replicated   0/1        nginx:alpine
+```
+
+After adding the `region=east` label to a node in the cluster, the service
+reconciles, and the desired number of replicas are deployed:
+
+```bash
+$ docker node update --label-add region=east yswe2dm4c5fdgtsrli1e8ya5l
+yswe2dm4c5fdgtsrli1e8ya5l
+
+$ docker service ls
+ID                  NAME     MODE         REPLICAS   IMAGE               PORTS
+b6lww17hrr4e        web      replicated   1/1        nginx:alpine
 ```
 
 ### Specify service placement preferences (--placement-pref)
@@ -698,7 +740,7 @@ of datacenters or availability zones. The example below illustrates this:
 $ docker service create \
   --replicas 9 \
   --name redis_2 \
-  --placement-pref 'spread=node.labels.datacenter' \
+  --placement-pref spread=node.labels.datacenter \
   redis:3.0.6
 ```
 
@@ -759,6 +801,74 @@ appends a new placement preference after all existing placement preferences.
 `--placement-pref-rm` removes an existing placement preference that matches the
 argument.
 
+### Specify memory requirements and constraints for a service (--reserve-memory and --limit-memory)
+
+If your service needs a minimum amount of memory in order to run correctly,
+you can use `--reserve-memory` to specify that the service should only be
+scheduled on a node with this much memory available to reserve. If no node is
+available that meets the criteria, the task is not scheduled, but remains in a
+pending state.
+
+The following example requires that 4GB of memory be available and reservable
+on a given node before scheduling the service to run on that node.
+
+```bash
+$ docker service create --reserve-memory=4GB --name=too-big nginx:alpine
+```
+
+The managers won't schedule a set of containers on a single node whose combined
+reservations exceed the memory available on that node.
+
+After a task is scheduled and running, `--reserve-memory` does not enforce a
+memory limit. Use `--limit-memory` to ensure that a task uses no more than a
+given amount of memory on a node. This example limits the amount of memory used
+by the task to 4GB. The task will be scheduled even if each of your nodes has
+only 2GB of memory, because `--limit-memory` is an upper limit.
+
+```bash
+$ docker service create --limit-memory=4GB --name=too-big nginx:alpine
+```
+
+Using `--reserve-memory` and `--limit-memory` does not guarantee that Docker
+will not use more memory on your host than you want. For instance, you could
+create many services, the sum of whose memory usage could exhaust the available
+memory.
+
+You can prevent this scenario from exhausting the available memory by taking
+into account other (non-containerized) software running on the host as well. If
+`--reserve-memory` is greater than or equal to `--limit-memory`, Docker won't
+schedule a service on a host that doesn't have enough memory. `--limit-memory`
+will limit the service's memory to stay within that limit, so if every service
+has a memory-reservation and limit set, Docker services will be less likely to
+saturate the host. Other non-service containers or applications running directly
+on the Docker host could still exhaust memory.
+
+There is a downside to this approach. Reserving memory also means that you may
+not make optimum use of the memory available on the node. Consider a service
+that under normal circumstances uses 100MB of memory, but depending on load can
+"peak" at 500MB. Reserving 500MB for that service (to guarantee can have 500MB
+for those "peaks") results in 400MB of memory being wasted most of the time.
+
+In short, you can take a more conservative or more flexible approach:
+
+- **Conservative**: reserve 500MB, and limit to 500MB. Basically you're now
+  treating the service containers as VMs, and you may be losing a big advantage
+  containers, which is greater density of services per host.
+
+- **Flexible**: limit to 500MB in the assumption that if the service requires
+  more than 500MB, it is malfunctioning. Reserve something between the 100MB
+  "normal" requirement and the 500MB "peak" requirement". This assumes that when
+  this service is at "peak", other services or non-container workloads probably
+  won't be.
+
+The approach you take depends heavily on the memory-usage patterns of your
+workloads. You should test under normal and peak conditions before settling
+on an approach.
+
+On Linux, you can also limit a service's overall memory footprint on a given
+host at the level of the host operating system, using `cgroups` or other
+relevant operating system tools.
+
 ### Specify maximum replicas per node (--replicas-max-per-node)
 
 Use the `--replicas-max-per-node` flag to set the maximum number of replica tasks that can run on a node.
@@ -811,9 +921,9 @@ $ docker service create \
 The swarm extends my-network to each node running the service.
 
 Containers on the same network can access each other using
-[service discovery](https://docs.docker.com/engine/swarm/networking/#use-swarm-mode-service-discovery).
+[service discovery](https://docs.docker.com/network/overlay/#container-discovery).
 
-Long form syntax of `--network` allows to specify list of aliases and driver options:  
+Long form syntax of `--network` allows to specify list of aliases and driver options:
 `--network name=my-network,alias=web1,driver-opt=field1=value1`
 
 ### Publish service ports externally to the swarm (-p, --publish)
@@ -821,7 +931,7 @@ Long form syntax of `--network` allows to specify list of aliases and driver opt
 You can publish service ports to make them available externally to the swarm
 using the `--publish` flag. The `--publish` flag can take two different styles
 of arguments. The short version is positional, and allows you to specify the
-published port and target port separated by a colon.
+published port and target port separated by a colon (`:`).
 
 ```bash
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
@@ -965,9 +1075,10 @@ In this example, we are going to set the template of the created containers base
 service's name, the node's ID and hostname where it sits.
 
 ```bash
-$ docker service create --name hosttempl \
-                        --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
-                         busybox top
+$ docker service create \
+    --name hosttempl \
+    --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
+    busybox top
 
 va8ew30grofhjoychbr6iot8c
 
@@ -1002,11 +1113,72 @@ You can narrow the kind of nodes your task can land on through the using the
 `--generic-resource` flag (if the nodes advertise these resources):
 
 ```bash
-$ docker service create --name cuda \
-                        --generic-resource "NVIDIA-GPU=2" \
-                        --generic-resource "SSD=1" \
-                        nvidia/cuda
+$ docker service create \
+    --name cuda \
+    --generic-resource "NVIDIA-GPU=2" \
+    --generic-resource "SSD=1" \
+    nvidia/cuda
 ```
+
+### Running as a job
+
+Jobs are a special kind of service designed to run an operation to completion
+and then stop, as opposed to running long-running daemons. When a Task
+belonging to a job exits successfully (return value 0), the Task is marked as
+"Completed", and is not run again.
+
+Jobs are started by using one of two modes, `replicated-job` or `global-job`
+
+```bash
+$ docker service create --name myjob \
+                        --mode replicated-job \
+                        bash "true"
+```
+
+This command will run one Task, which will, using the `bash` image, execute the
+command `true`, which will return 0 and then exit.
+
+Though Jobs are ultimately a different kind of service, they a couple of
+caveats compared to other services:
+
+- None of the update or rollback configuration options are valid.  Jobs can be
+  updated, but cannot be rolled out or rolled back, making these configuration
+  options moot.
+- Jobs are never restarted on reaching the `Complete` state. This means that
+  for jobs, setting `--restart-condition` to `any` is the same as setting it to
+  `on-failure`.
+
+Jobs are available in both replicated and global modes.
+
+#### Replicated Jobs
+
+A replicated job is like a replicated service. Setting the `--replicas` flag
+will specify total number of iterations of a job to execute.
+
+By default, all replicas of a replicated job will launch at once. To control
+the total number of replicas that are executing simultaneously at any one time,
+the `--max-concurrent` flag can be used:
+
+```bash
+$ docker service create --name mythrottledjob \
+                        --mode replicated-job \
+                        --replicas 10 \
+                        --max-concurrent 2 \
+                        bash "true"
+```
+
+The above command will execute 10 Tasks in total, but only 2 of them will be
+run at any given time.
+
+#### Global Jobs
+
+Global jobs are like global services, in that a Task is executed once on each node
+matching placement constraints. Global jobs are represented by the mode `global-job`.
+
+Note that after a Global job is created, any new Nodes added to the cluster
+will have a Task from that job started on them. The Global Job does not as a
+whole have a "done" state, except insofar as every Node meeting the job's
+constraints has a Completed task.
 
 ## Related commands
 

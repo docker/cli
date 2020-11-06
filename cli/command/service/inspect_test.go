@@ -11,8 +11,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
@@ -43,6 +44,12 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 				Labels: map[string]string{"com.label": "foo"},
 			},
 			TaskTemplate: swarm.TaskSpec{
+				LogDriver: &swarm.Driver{
+					Name: "driver",
+					Options: map[string]string{
+						"max-file": "5",
+					},
+				},
 				ContainerSpec: &swarm.ContainerSpec{
 					Image: "foo/bar@sha256:this_is_a_test",
 					Configs: []*swarm.ConfigReference{
@@ -70,6 +77,13 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 						Retries:     3,
 						StartPeriod: 2,
 						Timeout:     1,
+					},
+				},
+				Resources: &swarm.ResourceRequirements{
+					Limits: &swarm.Limit{
+						NanoCPUs:    100000000000,
+						MemoryBytes: 10490000,
+						Pids:        20,
 					},
 				},
 				Networks: []swarm.NetworkAttachmentConfig{
@@ -130,6 +144,11 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 	return b.String()
 }
 
+func TestPrettyPrint(t *testing.T) {
+	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
+	golden.Assert(t, s, "service-inspect-pretty.golden")
+}
+
 func TestPrettyPrintWithNoUpdateConfig(t *testing.T) {
 	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
 	if strings.Contains(s, "UpdateStatus") {
@@ -163,7 +182,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 
 func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
 	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
-
+	assert.Check(t, is.Contains(s, "Log Driver:"), "Pretty print missing Log Driver")
 	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
 	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")
 	assert.Check(t, is.Contains(s, "Healthcheck:"), "Pretty print missing healthcheck")

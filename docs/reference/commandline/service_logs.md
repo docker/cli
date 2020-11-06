@@ -4,15 +4,6 @@ description: "The service logs command description and usage"
 keywords: "service, task, logs"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # service logs
 
 ```Markdown
@@ -27,7 +18,7 @@ Options:
       --no-task-ids    Do not include task IDs in output
       --no-trunc        Do not truncate output
       --since string   Show logs since timestamp
-      --tail string    Number of lines to show from the end of the logs (default "all")
+  -n, --tail string    Number of lines to show from the end of the logs (default "all")
   -t, --timestamps     Show timestamps
 ```
 
@@ -35,16 +26,25 @@ Options:
 
 The `docker service logs` command batch-retrieves logs present at the time of execution.
 
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
+
 The `docker service logs` command can be used with either the name or ID of a
 service, or with the ID of a task. If a service is passed, it will display logs
 for all of the containers in that service. If a task is passed, it will only
 display logs from that particular task.
 
-> **Note**: This command is only functional for services that are started with
+> **Note**
+>
+> This command is only functional for services that are started with
 > the `json-file` or `journald` logging driver.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/engine/admin/logging/overview/).
+[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
 
 The `docker service logs --follow` command will continue streaming the new output from
 the service's `STDOUT` and `STDERR`.

@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
 	"github.com/google/go-cmp/cmp"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type fakeRef struct {
@@ -93,6 +93,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
 			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
 			if testcase.expectedErr != "" {

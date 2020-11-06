@@ -1,14 +1,42 @@
-id: id_baz
-name: baz
-mode: global
-replicas: 2/4
-image: 
-ports: *:80->8080/tcp
-
-id: id_bar
+id: 02_bar
 name: bar
 mode: replicated
 replicas: 2/4
 image: 
+ports: *:80->8090/udp
+
+id: 01_baz
+name: baz
+mode: global
+replicas: 1/3
+image: 
 ports: *:80->8080/tcp
+
+id: 04_qux2
+name: qux2
+mode: replicated
+replicas: 3/3 (max 2 per node)
+image: 
+ports: 
+
+id: 03_qux10
+name: qux10
+mode: replicated
+replicas: 2/3 (max 1 per node)
+image: 
+ports: 
+
+id: 05_job1
+name: zarp1
+mode: replicated job
+replicas: 2/3 (5/10 completed)
+image: 
+ports: 
+
+id: 06_job2
+name: zarp2
+mode: global job
+replicas: 1/1 (3/4 completed)
+image: 
+ports: 
 

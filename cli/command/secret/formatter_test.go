@@ -7,8 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
 )
 
 func TestSecretContextFormatWrite(t *testing.T) {
@@ -30,9 +29,9 @@ func TestSecretContextFormatWrite(t *testing.T) {
 		},
 		// Table format
 		{formatter.Context{Format: NewFormat("table", false)},
-			`ID                  NAME                DRIVER              CREATED                  UPDATED
-1                   passwords                               Less than a second ago   Less than a second ago
-2                   id_rsa                                  Less than a second ago   Less than a second ago
+			`ID        NAME        DRIVER    CREATED                  UPDATED
+1         passwords             Less than a second ago   Less than a second ago
+2         id_rsa                Less than a second ago   Less than a second ago
 `},
 		{formatter.Context{Format: NewFormat("table {{.Name}}", true)},
 			`NAME
@@ -53,13 +52,17 @@ id_rsa
 			Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
 			Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "id_rsa"}}},
 	}
-	for _, testcase := range cases {
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		if err := FormatWrite(testcase.context, secrets); err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := FormatWrite(tc.context, secrets); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }

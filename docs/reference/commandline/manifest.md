@@ -4,15 +4,6 @@ description: "The manifest command description and usage"
 keywords: "docker, manifest"
 ---
 
-<!-- This file is maintained within the docker/cli Github
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 ```markdown
 Usage:  docker manifest COMMAND
 
@@ -43,13 +34,13 @@ more (ideally more than one) image names. It can then be used in the same way as
 an image name in `docker pull` and `docker run` commands, for example.
 
 Ideally a manifest list is created from images that are identical in function for
-different os/arch combinations. For this reason, manifest lists are often referred to as
-"multi-arch images". However, a user could create a manifest list that points
+different os/arch combinations. For this reason, manifest lists are often referred
+to as "multi-arch images". However, a user could create a manifest list that points
 to two images -- one for windows on amd64, and one for darwin on amd64.
 
 ### manifest inspect
 
-```
+```bash
 manifest inspect --help
 
 Usage:  docker manifest inspect [OPTIONS] [MANIFEST_LIST] MANIFEST
@@ -62,7 +53,7 @@ Options:
   -v, --verbose    Output additional info including layers and platform
 ```
 
-### manifest create 
+### manifest create
 
 ```bash
 Usage:  docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]
@@ -76,6 +67,7 @@ Options:
 ```
 
 ### manifest annotate
+
 ```bash
 Usage:  docker manifest annotate [OPTIONS] MANIFEST_LIST MANIFEST
 
@@ -85,12 +77,14 @@ Options:
       --arch string               Set architecture
       --help                      Print usage
       --os string                 Set operating system
+      --os-version string         Set operating system version
       --os-features stringSlice   Set operating system feature
       --variant string            Set architecture variant
 
 ```
 
 ### manifest push
+
 ```bash
 Usage:  docker manifest push [OPTIONS] MANIFEST_LIST
 
@@ -104,12 +98,21 @@ Options:
 
 ### Working with insecure registries
 
-The manifest command interacts solely with a Docker registry. Because of this, it has no way to query the engine for the list of allowed insecure registries. To allow the CLI to interact with an insecure registry, some `docker manifest` commands have an `--insecure` flag. For each transaction, such as a `create`, which queries a registry, the `--insecure` flag must be specified. This flag tells the CLI that this registry call may ignore security concerns like missing or self-signed certificates. Likewise, on a `manifest push` to an insecure registry, the `--insecure` flag must be specified. If this is not used with an insecure registry, the manifest command fails to find a registry that meets the default requirements.
+The manifest command interacts solely with a Docker registry. Because of this,
+it has no way to query the engine for the list of allowed insecure registries.
+To allow the CLI to interact with an insecure registry, some `docker manifest`
+commands have an `--insecure` flag. For each transaction, such as a `create`,
+which queries a registry, the `--insecure` flag must be specified. This flag
+tells the CLI that this registry call may ignore security concerns like missing
+or self-signed certificates. Likewise, on a `manifest push` to an insecure
+registry, the `--insecure` flag must be specified. If this is not used with an
+insecure registry, the manifest command fails to find a registry that meets the
+default requirements.
 
 ## Examples
 
 ### Inspect an image's manifest object
- 
+
 ```bash
 $ docker manifest inspect hello-world
 {
@@ -136,7 +139,7 @@ The `docker manifest inspect` command takes an optional `--verbose` flag
 that gives you the image's name (Ref), and architecture and os (Platform).
 
 Just as with other docker commands that take image names, you can refer to an image with or
-without a tag, or by digest (e.g. hello-world@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f).
+without a tag, or by digest (e.g. `hello-world@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f`).
 
 Here is an example of inspecting an image's manifest with the `--verbose` flag:
 
@@ -170,17 +173,19 @@ $ docker manifest inspect --verbose hello-world
 
 ### Create and push a manifest list
 
-To create a manifest list, you first `create` the manifest list locally by specifying the constituent images you would
-like to have included in your manifest list. Keep in mind that this is pushed to a registry, so if you want to push
-to a registry other than the docker registry, you need to create your manifest list with the registry name or IP and port.
+To create a manifest list, you first `create` the manifest list locally by
+specifying the constituent images you would like to have included in your
+manifest list. Keep in mind that this is pushed to a registry, so if you want to
+push to a registry other than the docker registry, you need to create your
+manifest list with the registry name or IP and port.
 This is similar to tagging an image and pushing it to a foreign registry.
 
 After you have created your local copy of the manifest list, you may optionally
-`annotate` it. Annotations allowed are the architecture and operating system (overriding the image's current values),
-os features, and an architecture variant. 
+`annotate` it. Annotations allowed are the architecture and operating system
+(overriding the image's current values), os features, and an architecture variant.
 
-Finally, you need to `push` your manifest list to the desired registry. Below are descriptions of these three commands,
-and an example putting them all together.
+Finally, you need to `push` your manifest list to the desired registry. Below are
+descriptions of these three commands, and an example putting them all together.
 
 ```bash
 $ docker manifest create 45.55.81.106:5000/coolapp:v1 \
@@ -188,6 +193,7 @@ $ docker manifest create 45.55.81.106:5000/coolapp:v1 \
     45.55.81.106:5000/coolapp-arm-linux:v1 \
     45.55.81.106:5000/coolapp-amd64-linux:v1 \
     45.55.81.106:5000/coolapp-amd64-windows:v1
+
 Created manifest list 45.55.81.106:5000/coolapp:v1
 ```
 
@@ -255,9 +261,10 @@ $ docker manifest inspect coolapp:v1
 
 ### Push to an insecure registry
 
-Here is an example of creating and pushing a manifest list using a known insecure registry.
+Here is an example of creating and pushing a manifest list using a known
+insecure registry.
 
-```
+```bash
 $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1.0 \
     myprivateregistry.mycompany.com/repo/image-linux-ppc64le:1.0 \
     myprivateregistry.mycompany.com/repo/image-linux-s390x:1.0 \
@@ -265,10 +272,14 @@ $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1
     myprivateregistry.mycompany.com/repo/image-linux-armhf:1.0 \
     myprivateregistry.mycompany.com/repo/image-windows-amd64:1.0 \
     myprivateregistry.mycompany.com/repo/image-linux-amd64:1.0
-```
-```
+
 $ docker manifest push --insecure myprivateregistry.mycompany.com/repo/image:tag
 ```
 
-Note that the `--insecure` flag is not required to annotate a manifest list, since annotations are to a locally-stored copy of a manifest list. You may also skip the `--insecure` flag if you are performing a `docker manifest inspect` on a locally-stored manifest list. Be sure to keep in mind that locally-stored manifest lists are never used by the engine on a `docker pull`.
-
+> **Note**
+>
+> The `--insecure` flag is not required to annotate a manifest list,
+> since annotations are to a locally-stored copy of a manifest list. You may also
+> skip the `--insecure` flag if you are performing a `docker manifest inspect`
+> on a locally-stored manifest list. Be sure to keep in mind that locally-stored
+> manifest lists are never used by the engine on a `docker pull`.

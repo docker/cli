@@ -2,15 +2,17 @@ package configfile
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/golden"
 )
 
 func TestEncodeAuth(t *testing.T) {
@@ -380,6 +382,41 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
+func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
+	configFile := New("test-load")
+	defer os.Remove("test-load")
+
+	want := types.AuthConfig{
+		Username: "user",
+		Password: "pass",
+	}
+
+	for _, tc := range []types.AuthConfig{
+		want,
+		{
+			Auth: encodeAuth(&want),
+		},
+	} {
+		cf := ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"example.com/foo": tc,
+			},
+		}
+
+		b, err := json.Marshal(cf)
+		assert.NilError(t, err)
+
+		err = configFile.LoadFromReader(bytes.NewReader(b))
+		assert.NilError(t, err)
+
+		got, err := configFile.GetAuthConfig("example.com/foo")
+		assert.NilError(t, err)
+
+		assert.Check(t, is.DeepEqual(want.Username, got.Username))
+		assert.Check(t, is.DeepEqual(want.Password, got.Password))
+	}
+}
+
 func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -428,6 +465,53 @@ func TestSave(t *testing.T) {
 	err := configFile.Save()
 	assert.NilError(t, err)
 	cfg, err := ioutil.ReadFile("test-save")
+	assert.NilError(t, err)
+	assert.Equal(t, string(cfg), `{
+	"auths": {}
+}`)
+}
+
+func TestSaveCustomHTTPHeaders(t *testing.T) {
+	configFile := New(t.Name())
+	defer os.Remove(t.Name())
+	configFile.HTTPHeaders["CUSTOM-HEADER"] = "custom-value"
+	configFile.HTTPHeaders["User-Agent"] = "user-agent 1"
+	configFile.HTTPHeaders["user-agent"] = "user-agent 2"
+	err := configFile.Save()
+	assert.NilError(t, err)
+	cfg, err := ioutil.ReadFile(t.Name())
+	assert.NilError(t, err)
+	assert.Equal(t, string(cfg), `{
+	"auths": {},
+	"HttpHeaders": {
+		"CUSTOM-HEADER": "custom-value"
+	}
+}`)
+}
+
+func TestSaveWithSymlink(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(), fs.WithFile("real-config.json", `{}`))
+	defer dir.Remove()
+
+	symLink := dir.Join("config.json")
+	realFile := dir.Join("real-config.json")
+	err := os.Symlink(realFile, symLink)
+	assert.NilError(t, err)
+
+	configFile := New(symLink)
+
+	err = configFile.Save()
+	assert.NilError(t, err)
+
+	fi, err := os.Lstat(symLink)
+	assert.NilError(t, err)
+	assert.Assert(t, fi.Mode()&os.ModeSymlink != 0, "expected %s to be a symlink", symLink)
+
+	cfg, err := ioutil.ReadFile(symLink)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+
+	cfg, err = ioutil.ReadFile(realFile)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
 }

@@ -4,15 +4,6 @@ description: "The stack ps command description and usage"
 keywords: "stack, ps"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # stack ps
 
 ```markdown
@@ -34,8 +25,14 @@ Options:
 
 ## Description
 
-Lists the tasks that are running as part of the specified stack. This
-command has to be run targeting a manager node.
+Lists the tasks that are running as part of the specified stack.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -106,7 +103,7 @@ tz6j82jnwrx7        voting_db.1           postgres:9.4                          
 
 #### desired-state
 
-The `desired-state` filter can take the values `running`, `shutdown`, or `accepted`.
+The `desired-state` filter can take the values `running`, `shutdown`, `ready` or `accepted`.
 
 ```bash
 $ docker stack ps -f "desired-state=running" voting
@@ -143,7 +140,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Image` entries separated by a colon for all tasks:
+`Name` and `Image` entries separated by a colon (`:`) for all tasks:
 
 ```bash
 $ docker stack ps --format "{{.Name}}: {{.Image}}" voting

@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRollback(t *testing.T) {
@@ -49,7 +49,7 @@ func TestRollback(t *testing.T) {
 		cmd := newRollbackCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.NilError(t, cmd.Execute())
 		assert.Check(t, is.Equal(strings.TrimSpace(cli.ErrBuffer().String()), tc.expectedDockerCliErr))
 	}
@@ -98,7 +98,7 @@ func TestRollbackWithErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

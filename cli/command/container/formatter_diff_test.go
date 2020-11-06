@@ -7,8 +7,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
 )
 
 func TestDiffContextFormatWrite(t *testing.T) {
@@ -19,10 +18,10 @@ func TestDiffContextFormatWrite(t *testing.T) {
 	}{
 		{
 			formatter.Context{Format: NewDiffFormat("table")},
-			`CHANGE TYPE         PATH
-C                   /var/log/app.log
-A                   /usr/app/app.js
-D                   /usr/app/old_app.js
+			`CHANGE TYPE   PATH
+C             /var/log/app.log
+A             /usr/app/app.js
+D             /usr/app/old_app.js
 `,
 		},
 		{
@@ -48,14 +47,17 @@ D: /usr/app/old_app.js
 		{Kind: archive.ChangeDelete, Path: "/usr/app/old_app.js"},
 	}
 
-	for _, testcase := range cases {
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := DiffFormatWrite(testcase.context, diffs)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			out := bytes.NewBufferString("")
+			tc.context.Output = out
+			err := DiffFormatWrite(tc.context, diffs)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }

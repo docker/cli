@@ -4,15 +4,6 @@ description: "The key generate command description and usage"
 keywords: "key, notary, trust"
 ---
 
-<!-- This file is maintained within the docker/cli Github
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # trust key generate
 
 ```markdown
@@ -43,7 +34,6 @@ Repeat passphrase for new alice key with ID 17acf3c:
 Successfully generated and loaded private key. Corresponding public key available: alice.pub
 $ ls
 alice.pub
-
 ```
 
 The private signing key is encrypted by the passphrase and loaded into the docker trust keystore.
@@ -63,5 +53,4 @@ Repeat passphrase for new alice key with ID 17acf3c:
 Successfully generated and loaded private key. Corresponding public key available: alice.pub
 $ ls /foo
 alice.pub
-
 ```

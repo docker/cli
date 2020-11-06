@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestVolumeRemoveErrors(t *testing.T) {
@@ -32,7 +32,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 				volumeRemoveFunc: tc.volumeRemoveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

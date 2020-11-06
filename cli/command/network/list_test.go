@@ -11,9 +11,9 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestNetworkListErrors(t *testing.T) {
@@ -35,7 +35,7 @@ func TestNetworkListErrors(t *testing.T) {
 				networkListFunc: tc.networkListFunc,
 			}),
 		)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

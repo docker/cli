@@ -156,6 +156,9 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// Start a short-lived goroutine to retrieve the initial list of
 		// containers.
 		getContainerList()
+		
+		// make sure each container get at least one valid stat data
+		waitFirst.Wait()
 	} else {
 		// Artificially send creation events for the containers we were asked to
 		// monitor (same code path than we use when monitoring all containers).
@@ -170,9 +173,9 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// We don't expect any asynchronous errors: closeChan can be closed.
 		close(closeChan)
 
-		// Do a quick pause to detect any error with the provided list of
-		// container names.
-		time.Sleep(1500 * time.Millisecond)
+		// make sure each container get at least one valid stat data
+		waitFirst.Wait()
+		
 		var errs []string
 		cStats.mu.Lock()
 		for _, c := range cStats.cs {
@@ -186,8 +189,6 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		}
 	}
 
-	// before print to screen, make sure each container get at least one valid stat data
-	waitFirst.Wait()
 	format := opts.format
 	if len(format) == 0 {
 		if len(dockerCli.ConfigFile().StatsFormat) > 0 {
@@ -208,7 +209,9 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	}
 
 	var err error
-	for range time.Tick(500 * time.Millisecond) {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	for range ticker.C {
 		cleanScreen()
 		ccstats := []StatsEntry{}
 		cStats.mu.Lock()

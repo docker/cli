@@ -10,7 +10,7 @@ import (
 	"github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -56,16 +56,16 @@ func TestCreateChildResourcesV1Beta1(t *testing.T) {
 		secrets))
 	c, err := configs.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, c.ObjectMeta, "test", v1beta1.SchemeGroupVersion.String())
+	checkOwnerReferences(t, c.ObjectMeta, v1beta1.SchemeGroupVersion.String())
 	s, err := secrets.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, s.ObjectMeta, "test", v1beta1.SchemeGroupVersion.String())
+	checkOwnerReferences(t, s.ObjectMeta, v1beta1.SchemeGroupVersion.String())
 }
 
-func checkOwnerReferences(t *testing.T, objMeta metav1.ObjectMeta, stackName, stackVersion string) {
+func checkOwnerReferences(t *testing.T, objMeta metav1.ObjectMeta, stackVersion string) {
 	t.Helper()
 	assert.Equal(t, len(objMeta.OwnerReferences), 1)
-	assert.Equal(t, objMeta.OwnerReferences[0].Name, stackName)
+	assert.Equal(t, objMeta.OwnerReferences[0].Name, "test")
 	assert.Equal(t, objMeta.OwnerReferences[0].Kind, "Stack")
 	assert.Equal(t, objMeta.OwnerReferences[0].APIVersion, stackVersion)
 }
@@ -82,10 +82,10 @@ func TestCreateChildResourcesV1Beta2(t *testing.T) {
 		secrets))
 	c, err := configs.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, c.ObjectMeta, "test", v1beta2.SchemeGroupVersion.String())
+	checkOwnerReferences(t, c.ObjectMeta, v1beta2.SchemeGroupVersion.String())
 	s, err := secrets.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, s.ObjectMeta, "test", v1beta2.SchemeGroupVersion.String())
+	checkOwnerReferences(t, s.ObjectMeta, v1beta2.SchemeGroupVersion.String())
 }
 
 func TestCreateChildResourcesV1Alpha3(t *testing.T) {
@@ -100,10 +100,10 @@ func TestCreateChildResourcesV1Alpha3(t *testing.T) {
 		secrets))
 	c, err := configs.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, c.ObjectMeta, "test", v1alpha3.SchemeGroupVersion.String())
+	checkOwnerReferences(t, c.ObjectMeta, v1alpha3.SchemeGroupVersion.String())
 	s, err := secrets.Get("test", metav1.GetOptions{})
 	assert.NilError(t, err)
-	checkOwnerReferences(t, s.ObjectMeta, "test", v1alpha3.SchemeGroupVersion.String())
+	checkOwnerReferences(t, s.ObjectMeta, v1alpha3.SchemeGroupVersion.String())
 }
 
 func TestCreateChildResourcesWithStackCreationErrorV1Beta1(t *testing.T) {

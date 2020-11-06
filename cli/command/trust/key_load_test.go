@@ -16,9 +16,9 @@ import (
 	"github.com/theupdateframework/notary/storage"
 	"github.com/theupdateframework/notary/trustmanager"
 	tufutils "github.com/theupdateframework/notary/tuf/utils"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 func TestTrustKeyLoadErrors(t *testing.T) {
@@ -65,7 +65,7 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newKeyLoadCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		assert.Check(t, is.Contains(cli.OutBuffer().String(), tc.expectedOutput))
 	}
@@ -117,6 +117,7 @@ var testKeys = map[string][]byte{
 func TestLoadKeyFromPath(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
+		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
 			testLoadKeyFromPath(t, keyID, keyBytes)
 		})
@@ -172,6 +173,7 @@ func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) 
 func TestLoadKeyTooPermissive(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
+		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
 			testLoadKeyTooPermissive(t, keyBytes)
 		})

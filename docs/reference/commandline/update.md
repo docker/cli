@@ -4,15 +4,6 @@ description: "The update command description and usage"
 keywords: "resources, update, dynamically"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 ## update
 
 ```markdown
@@ -52,8 +43,10 @@ options on a running or a stopped container. On kernel version older than
 4.6, you can only update `--kernel-memory` on a stopped container or on
 a running container with kernel memory initialized.
 
-> **Warning**: The `docker update` and `docker container update` commands are
-> not supported for Windows containers.
+> **Warning**
+>
+> The `docker update` and `docker container update` commands are not supported
+> for Windows containers.
 {: .warning }
 
 ## Examples
@@ -85,6 +78,10 @@ option. On kernel version older than 4.6, this option can be updated on a
 running container only if the container was started with `--kernel-memory`.
 If the container was started *without* `--kernel-memory` you need to stop
 the container before updating kernel memory.
+
+> **Note**
+>
+> The `--kernel-memory` option has been deprecated since Docker 20.10.
 
 For example, if you started a container with this command:
 

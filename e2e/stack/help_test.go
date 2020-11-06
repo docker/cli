@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"gotest.tools/golden"
-	"gotest.tools/icmd"
+	"gotest.tools/v3/golden"
+	"gotest.tools/v3/icmd"
 )
 
 func TestStackDeployHelp(t *testing.T) {

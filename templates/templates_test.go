@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 // GitHub #32120
@@ -65,6 +65,8 @@ func TestParseTruncateFunction(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		testCase := testCase
+
 		tm, err := Parse(testCase.template)
 		assert.NilError(t, err)
 

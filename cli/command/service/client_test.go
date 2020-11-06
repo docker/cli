@@ -3,11 +3,10 @@ package service
 import (
 	"context"
 
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
 )
 
 type fakeClient struct {
@@ -18,9 +17,13 @@ type fakeClient struct {
 	taskListFunc              func(context.Context, types.TaskListOptions) ([]swarm.Task, error)
 	infoFunc                  func(ctx context.Context) (types.Info, error)
 	networkInspectFunc        func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error)
+	nodeListFunc              func(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error)
 }
 
 func (f *fakeClient) NodeList(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+	if f.nodeListFunc != nil {
+		return f.nodeListFunc(ctx, options)
+	}
 	return nil, nil
 }
 
@@ -70,8 +73,5 @@ func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, optio
 }
 
 func newService(id string, name string) swarm.Service {
-	return swarm.Service{
-		ID:   id,
-		Spec: swarm.ServiceSpec{Annotations: swarm.Annotations{Name: name}},
-	}
+	return *Service(ServiceID(id), ServiceName(name))
 }

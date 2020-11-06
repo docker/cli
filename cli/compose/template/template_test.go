@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 var defaults = map[string]string{
@@ -275,6 +275,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			actual := ExtractVariables(tc.dict, defaultPattern)
 			assert.Check(t, is.DeepEqual(actual, tc.expected))

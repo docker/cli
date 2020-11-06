@@ -27,4 +27,4 @@ variable set to "true", you can create a new image based on that
 container by first getting the container's ID with `docker ps` and
 then running:
 
-    $ docker container commit -c="ENV DEBUG true" 98bd7fc99854 debug-image
+    $ docker container commit -c="ENV DEBUG=true" 98bd7fc99854 debug-image

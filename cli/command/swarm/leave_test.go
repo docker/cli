@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestSwarmLeaveErrors(t *testing.T) {
@@ -37,7 +37,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 				swarmLeaveFunc: tc.swarmLeaveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

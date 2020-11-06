@@ -4,19 +4,10 @@ description: "The service ls command description and usage"
 keywords: "service, ls"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # service ls
 
 ```Markdown
-Usage:	docker service ls [OPTIONS]
+Usage:  docker service ls [OPTIONS]
 
 List services
 
@@ -32,8 +23,14 @@ Options:
 
 ## Description
 
-This command when run targeting a manager, lists services are running in the
-swarm.
+This command lists services are running in the swarm.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -42,14 +39,17 @@ On a manager node:
 ```bash
 $ docker service ls
 
-ID            NAME      MODE        REPLICAS    IMAGE
-c8wgl7q4ndfd  frontend  replicated  5/5         nginx:alpine
-dmu1ept4cxcf  redis     replicated  3/3         redis:3.0.6
-iwe3278osahj  mongo     global      7/7         mongo:3.3
+ID            NAME      MODE            REPLICAS             IMAGE
+c8wgl7q4ndfd  frontend  replicated      5/5                  nginx:alpine
+dmu1ept4cxcf  redis     replicated      3/3                  redis:3.0.6
+iwe3278osahj  mongo     global          7/7                  mongo:3.3
+hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest        
 ```
 
 The `REPLICAS` column shows both the *actual* and *desired* number of tasks for
-the service.
+the service. If the service is in `replicated-job` or `global-job`, it will
+additionally show the completion status of the job as completed tasks over
+total tasks the job will execute.
 
 ### Filtering
 
@@ -144,7 +144,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID`, `Mode`, and `Replicas` entries separated by a colon for all services:
+`ID`, `Mode`, and `Replicas` entries separated by a colon (`:`) for all services:
 
 ```bash
 $ docker service ls --format "{{.ID}}: {{.Mode}} {{.Replicas}}"

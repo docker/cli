@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestInstallErrors(t *testing.T) {
@@ -58,7 +58,7 @@ func TestInstallErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
 		cmd := newInstallCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -100,7 +100,7 @@ func TestInstallContentTrustErrors(t *testing.T) {
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := newInstallCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

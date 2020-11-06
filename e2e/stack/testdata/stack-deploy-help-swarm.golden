@@ -1,5 +1,5 @@
 
-Usage:	docker stack deploy [OPTIONS] STACK
+Usage:  docker stack deploy [OPTIONS] STACK
 
 Deploy a new stack or update an existing stack
 
@@ -7,7 +7,6 @@ Aliases:
   deploy, up
 
 Options:
-      --bundle-file string     Path to a Distributed Application Bundle file
   -c, --compose-file strings   Path to a Compose file, or "-" to read
                                from stdin
       --orchestrator string    Orchestrator to use (swarm|kubernetes|all)

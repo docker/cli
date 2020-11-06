@@ -12,8 +12,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"github.com/docker/go-units"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestUpdateServiceArgs(t *testing.T) {
@@ -28,33 +29,64 @@ func TestUpdateServiceArgs(t *testing.T) {
 	cspec := spec.TaskTemplate.ContainerSpec
 	cspec.Args = []string{"old", "args"}
 
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.DeepEqual([]string{"the", "new args"}, cspec.Args))
 }
 
 func TestUpdateLabels(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("label-add", "toadd=newlabel")
-	flags.Set("label-rm", "toremove")
+	flags.Set("label-add", "add-beats-remove=value")
+	flags.Set("label-add", "to-add=value")
+	flags.Set("label-add", "to-update=new-value")
+	flags.Set("label-add", "to-replace=new-value")
+	flags.Set("label-rm", "add-beats-remove")
+	flags.Set("label-rm", "to-remove")
+	flags.Set("label-rm", "to-replace")
+	flags.Set("label-rm", "no-such-label")
 
 	labels := map[string]string{
-		"toremove": "thelabeltoremove",
-		"tokeep":   "value",
+		"to-keep":    "value",
+		"to-remove":  "value",
+		"to-replace": "value",
+		"to-update":  "value",
 	}
 
 	updateLabels(flags, &labels)
-	assert.Check(t, is.Len(labels, 2))
-	assert.Check(t, is.Equal("value", labels["tokeep"]))
-	assert.Check(t, is.Equal("newlabel", labels["toadd"]))
+	assert.DeepEqual(t, labels, map[string]string{
+		"add-beats-remove": "value",
+		"to-add":           "value",
+		"to-keep":          "value",
+		"to-replace":       "new-value",
+		"to-update":        "new-value",
+	})
 }
 
-func TestUpdateLabelsRemoveALabelThatDoesNotExist(t *testing.T) {
+func TestUpdateContainerLabels(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("label-rm", "dne")
+	flags.Set("container-label-add", "add-beats-remove=value")
+	flags.Set("container-label-add", "to-add=value")
+	flags.Set("container-label-add", "to-update=new-value")
+	flags.Set("container-label-add", "to-replace=new-value")
+	flags.Set("container-label-rm", "add-beats-remove")
+	flags.Set("container-label-rm", "to-remove")
+	flags.Set("container-label-rm", "to-replace")
+	flags.Set("container-label-rm", "no-such-label")
 
-	labels := map[string]string{"foo": "theoldlabel"}
-	updateLabels(flags, &labels)
-	assert.Check(t, is.Len(labels, 1))
+	labels := map[string]string{
+		"to-keep":    "value",
+		"to-remove":  "value",
+		"to-replace": "value",
+		"to-update":  "value",
+	}
+
+	updateContainerLabels(flags, &labels)
+	assert.DeepEqual(t, labels, map[string]string{
+		"add-beats-remove": "value",
+		"to-add":           "value",
+		"to-keep":          "value",
+		"to-replace":       "new-value",
+		"to-update":        "new-value",
+	})
 }
 
 func TestUpdatePlacementConstraints(t *testing.T) {
@@ -115,14 +147,15 @@ func TestUpdateEnvironment(t *testing.T) {
 
 func TestUpdateEnvironmentWithDuplicateValues(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
-	flags.Set("env-add", "foo=newenv")
-	flags.Set("env-add", "foo=dupe")
 	flags.Set("env-rm", "foo")
+	flags.Set("env-add", "foo=first")
+	flags.Set("env-add", "foo=second")
 
 	envs := []string{"foo=value"}
 
 	updateEnvironment(flags, &envs)
-	assert.Check(t, is.Len(envs, 0))
+	assert.Check(t, is.Len(envs, 1))
+	assert.Equal(t, envs[0], "foo=second")
 }
 
 func TestUpdateEnvironmentWithDuplicateKeys(t *testing.T) {
@@ -358,15 +391,19 @@ func TestUpdateHosts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("host-add", "example.net:2.2.2.2")
 	flags.Set("host-add", "ipv6.net:2001:db8:abc8::1")
+	// adding the special "host-gateway" target should work
+	flags.Set("host-add", "host.docker.internal:host-gateway")
 	// remove with ipv6 should work
 	flags.Set("host-rm", "example.net:2001:db8:abc8::1")
 	// just hostname should work as well
 	flags.Set("host-rm", "example.net")
+	// removing the special "host-gateway" target should work
+	flags.Set("host-rm", "gateway.docker.internal:host-gateway")
 	// bad format error
 	assert.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
-	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net"}
-	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net"}
+	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net", "gateway.docker.internal:host-gateway"}
+	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net", "host-gateway host.docker.internal"}
 
 	err := updateHosts(flags, &hosts)
 	assert.NilError(t, err)
@@ -532,18 +569,18 @@ func TestUpdateReadOnly(t *testing.T) {
 	// Update with --read-only=true, changed to true
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("read-only", "true")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, cspec.ReadOnly)
 
 	// Update without --read-only, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, cspec.ReadOnly)
 
 	// Update with --read-only=false, changed to false
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("read-only", "false")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, !cspec.ReadOnly)
 }
 
@@ -558,18 +595,18 @@ func TestUpdateInit(t *testing.T) {
 	// Update with --init=true
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("init", "true")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(true, *cspec.Init))
 
 	// Update without --init, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(true, *cspec.Init))
 
 	// Update with --init=false
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("init", "false")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal(false, *cspec.Init))
 }
 
@@ -584,18 +621,18 @@ func TestUpdateStopSignal(t *testing.T) {
 	// Update with --stop-signal=SIGUSR1
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("stop-signal", "SIGUSR1")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGUSR1", cspec.StopSignal))
 
 	// Update without --stop-signal, no change
 	flags = newUpdateCommand(nil).Flags()
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGUSR1", cspec.StopSignal))
 
 	// Update with --stop-signal=SIGWINCH
 	flags = newUpdateCommand(nil).Flags()
 	flags.Set("stop-signal", "SIGWINCH")
-	updateService(nil, nil, flags, spec)
+	updateService(context.TODO(), nil, flags, spec)
 	assert.Check(t, is.Equal("SIGWINCH", cspec.StopSignal))
 }
 
@@ -616,45 +653,53 @@ func TestUpdateIsolationValid(t *testing.T) {
 // TestUpdateLimitsReservations tests that limits and reservations are updated,
 // and that values are not updated are not reset to their default value
 func TestUpdateLimitsReservations(t *testing.T) {
-	spec := swarm.ServiceSpec{
-		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: &swarm.ContainerSpec{},
-		},
-	}
-
 	// test that updating works if the service did not previously
 	// have limits set (https://github.com/moby/moby/issues/38363)
-	flags := newUpdateCommand(nil).Flags()
-	err := flags.Set(flagLimitCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagLimitMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-
-	spec = swarm.ServiceSpec{
-		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: &swarm.ContainerSpec{},
-		},
-	}
+	t.Run("update limits from scratch", func(t *testing.T) {
+		spec := swarm.ServiceSpec{
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{},
+			},
+		}
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagLimitMemory, "200M")
+		assert.NilError(t, err)
+		err = flags.Set(flagLimitPids, "100")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+	})
 
 	// test that updating works if the service did not previously
 	// have reservations set (https://github.com/moby/moby/issues/38363)
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagReserveCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
+	t.Run("update reservations from scratch", func(t *testing.T) {
+		spec := swarm.ServiceSpec{
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{},
+			},
+		}
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagReserveCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveMemory, "200M")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+	})
 
-	spec = swarm.ServiceSpec{
+	spec := swarm.ServiceSpec{
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{},
 			Resources: &swarm.ResourceRequirements{
-				Limits: &swarm.Resources{
+				Limits: &swarm.Limit{
 					NanoCPUs:    1000000000,
 					MemoryBytes: 104857600,
+					Pids:        100,
 				},
 				Reservations: &swarm.Resources{
 					NanoCPUs:    1000000000,
@@ -664,29 +709,79 @@ func TestUpdateLimitsReservations(t *testing.T) {
 		},
 	}
 
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagLimitCPU, "2")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveCPU, "2")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	// Updating without flags set should not modify existing values
+	t.Run("update without flags set", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(1000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(1000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	})
 
-	flags = newUpdateCommand(nil).Flags()
-	err = flags.Set(flagLimitMemory, "200M")
-	assert.NilError(t, err)
-	err = flags.Set(flagReserveMemory, "200M")
-	assert.NilError(t, err)
-	err = updateService(context.Background(), nil, flags, &spec)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
-	assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	// Updating CPU limit/reservation should not affect memory limit/reservation
+	// and pids-limt
+	t.Run("update cpu limit and reservation", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitCPU, "2")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveCPU, "2")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(104857600)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(104857600)))
+	})
+
+	// Updating Memory limit/reservation should not affect CPU limit/reservation
+	// and pids-limt
+	t.Run("update memory limit and reservation", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitMemory, "200M")
+		assert.NilError(t, err)
+		err = flags.Set(flagReserveMemory, "200M")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(100)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
+
+	// Updating PidsLimit should only modify PidsLimit, other values unchanged
+	t.Run("update pids limit", func(t *testing.T) {
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitPids, "2")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(2)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
+
+	t.Run("update pids limit to default", func(t *testing.T) {
+		// Updating PidsLimit to 0 should work
+		flags := newUpdateCommand(nil).Flags()
+		err := flags.Set(flagLimitPids, "0")
+		assert.NilError(t, err)
+		err = updateService(context.Background(), nil, flags, &spec)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.MemoryBytes, int64(209715200)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Limits.Pids, int64(0)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.NanoCPUs, int64(2000000000)))
+		assert.Check(t, is.Equal(spec.TaskTemplate.Resources.Reservations.MemoryBytes, int64(209715200)))
+	})
 }
 
 func TestUpdateIsolationInvalid(t *testing.T) {
@@ -1008,7 +1103,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 		// flags are the flags we'll be setting
 		flags []flagVal
 		// oldConfigs are the configs that would already be on the service
-		// it is a slice of strings corresponding to the the key of
+		// it is a slice of strings corresponding to the key of
 		// cannedConfigRefs
 		oldConfigs []string
 		// oldCredSpec is the credentialSpec being carried over from the old
@@ -1245,6 +1340,366 @@ func TestUpdateCredSpec(t *testing.T) {
 
 			assert.Assert(t, tc.spec.Privileges != nil)
 			assert.DeepEqual(t, tc.spec.Privileges.CredentialSpec, tc.expected)
+		})
+	}
+}
+
+func TestUpdateCaps(t *testing.T) {
+	tests := []struct {
+		// name is the name of the testcase
+		name string
+		// flagAdd is the value passed to --cap-add
+		flagAdd []string
+		// flagDrop is the value passed to --cap-drop
+		flagDrop []string
+		// spec is the original ContainerSpec, before being updated
+		spec *swarm.ContainerSpec
+		// expectedAdd is the set of requested caps the ContainerSpec should have once updated
+		expectedAdd []string
+		// expectedDrop is the set of dropped caps the ContainerSpec should have once updated
+		expectedDrop []string
+	}{
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "Empty spec, no updates",
+			spec: &swarm.ContainerSpec{},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "No updates",
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name:     "Empty updates",
+			flagAdd:  []string{},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name:     "Normalize cap-add only",
+			flagAdd:  []string{},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			// Note that this won't be run as updateCapabilities is gated by anyChanged(flags, flagCapAdd, flagCapDrop)
+			name: "Normalize cap-drop only",
+			spec: &swarm.ContainerSpec{
+				CapabilityDrop: []string{"ALL", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			},
+			expectedDrop: []string{"ALL"},
+		},
+		{
+			name:         "Add new caps",
+			flagAdd:      []string{"CAP_NET_ADMIN"},
+			flagDrop:     []string{},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:         "Drop new caps",
+			flagAdd:      []string{},
+			flagDrop:     []string{"CAP_NET_ADMIN"},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  nil,
+			expectedDrop: []string{"CAP_NET_ADMIN"},
+		},
+		{
+			name:     "Add a previously dropped cap",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{},
+			spec: &swarm.ContainerSpec{
+				CapabilityDrop: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  nil,
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop a previously requested cap, and add a new one",
+			flagAdd:  []string{"CAP_CHOWN"},
+			flagDrop: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_CHOWN"},
+			expectedDrop: nil,
+		},
+		{
+			name:    "Add caps to service that has ALL caps has no effect",
+			flagAdd: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop ALL caps, then add new caps to service that has ALL caps",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd: []string{"ALL"},
+			},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:         "Add takes precedence on empty spec",
+			flagAdd:      []string{"CAP_NET_ADMIN"},
+			flagDrop:     []string{"CAP_NET_ADMIN"},
+			spec:         &swarm.ContainerSpec{},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Add takes precedence on existing spec",
+			flagAdd:  []string{"CAP_NET_ADMIN"},
+			flagDrop: []string{"CAP_NET_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_NET_ADMIN"},
+			},
+			expectedAdd:  []string{"CAP_NET_ADMIN"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Drop all, and add new caps",
+			flagAdd:  []string{"CAP_CHOWN"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN", "CAP_MOUNT"},
+				CapabilityDrop: []string{"CAP_NET_ADMIN", "CAP_MOUNT"},
+			},
+			expectedAdd:  []string{"CAP_CHOWN", "CAP_MOUNT", "CAP_NET_ADMIN"},
+			expectedDrop: []string{"ALL"},
+		},
+		{
+			name:     "Add all caps",
+			flagAdd:  []string{"ALL"},
+			flagDrop: []string{"CAP_NET_ADMIN", "CAP_SYS_ADMIN"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: []string{"CAP_CHOWN", "CAP_SYS_ADMIN"},
+		},
+		{
+			name:     "Drop all, and add all",
+			flagAdd:  []string{"ALL"},
+			flagDrop: []string{"ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_NET_ADMIN"},
+				CapabilityDrop: []string{"CAP_CHOWN"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: []string{"CAP_CHOWN"},
+		},
+		{
+			name:     "Caps are normalized and sorted",
+			flagAdd:  []string{"bbb", "aaa", "cAp_bBb", "cAp_aAa"},
+			flagDrop: []string{"zzz", "yyy", "cAp_yYy", "cAp_yYy"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"ccc", "CAP_DDD"},
+				CapabilityDrop: []string{"www", "CAP_XXX"},
+			},
+			expectedAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+			expectedDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+		},
+		{
+			name:     "Reset capabilities",
+			flagAdd:  []string{"RESET"},
+			flagDrop: []string{"RESET"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  nil,
+			expectedDrop: nil,
+		},
+		{
+			name:     "Reset capabilities, and update after",
+			flagAdd:  []string{"RESET", "CAP_ADD_ONE", "CAP_FOO"},
+			flagDrop: []string{"RESET", "CAP_DROP_ONE", "CAP_FOO"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"CAP_ADD_ONE", "CAP_FOO"},
+			expectedDrop: []string{"CAP_DROP_ONE"},
+		},
+		{
+			name:     "Reset capabilities, and add ALL",
+			flagAdd:  []string{"RESET", "ALL"},
+			flagDrop: []string{"RESET", "ALL"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+		{
+			name:     "Add ALL and RESET",
+			flagAdd:  []string{"ALL", "RESET"},
+			flagDrop: []string{"ALL", "RESET"},
+			spec: &swarm.ContainerSpec{
+				CapabilityAdd:  []string{"CAP_AAA", "CAP_BBB", "CAP_CCC", "CAP_DDD"},
+				CapabilityDrop: []string{"CAP_WWW", "CAP_XXX", "CAP_YYY", "CAP_ZZZ"},
+			},
+			expectedAdd:  []string{"ALL"},
+			expectedDrop: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, c := range tc.flagAdd {
+				_ = flags.Set(flagCapAdd, c)
+			}
+			for _, c := range tc.flagDrop {
+				_ = flags.Set(flagCapDrop, c)
+			}
+
+			updateCapabilities(flags, tc.spec)
+
+			assert.DeepEqual(t, tc.spec.CapabilityAdd, tc.expectedAdd)
+			assert.DeepEqual(t, tc.spec.CapabilityDrop, tc.expectedDrop)
+		})
+	}
+}
+
+func TestUpdateUlimits(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		name     string
+		spec     []*units.Ulimit
+		rm       []string
+		add      []string
+		expected []*units.Ulimit
+	}{
+		{
+			name: "from scratch",
+			add:  []string{"nofile=512:1024", "core=1024:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "append new",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			add: []string{"core=1024:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove and append new should append",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm:  []string{"nofile=512:1024"},
+			add: []string{"nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "update existing",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 2048, Soft: 1024},
+			},
+			add: []string{"nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "update existing twice",
+			spec: []*units.Ulimit{
+				{Name: "nofile", Hard: 2048, Soft: 1024},
+			},
+			add: []string{"nofile=256:512", "nofile=512:1024"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove all",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm:       []string{"nofile=512:1024", "core=1024:1024"},
+			expected: nil,
+		},
+		{
+			name: "remove by key",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm: []string{"core"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+		{
+			name: "remove by key and different value",
+			spec: []*units.Ulimit{
+				{Name: "core", Hard: 1024, Soft: 1024},
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+			rm: []string{"core=1234:5678"},
+			expected: []*units.Ulimit{
+				{Name: "nofile", Hard: 1024, Soft: 512},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			svc := swarm.ServiceSpec{
+				TaskTemplate: swarm.TaskSpec{
+					ContainerSpec: &swarm.ContainerSpec{Ulimits: tc.spec},
+				},
+			}
+			flags := newUpdateCommand(nil).Flags()
+			for _, v := range tc.add {
+				assert.NilError(t, flags.Set(flagUlimitAdd, v))
+			}
+			for _, v := range tc.rm {
+				assert.NilError(t, flags.Set(flagUlimitRemove, v))
+			}
+			err := updateService(ctx, &fakeClient{}, flags, &svc)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, svc.TaskTemplate.ContainerSpec.Ulimits, tc.expected)
 		})
 	}
 }

@@ -16,9 +16,9 @@ import (
 	digest "github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func newTempManifestStore(t *testing.T) (store.Store, func()) {
@@ -77,7 +77,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 	cli.SetManifestStore(store)
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
@@ -99,7 +99,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
@@ -137,7 +137,7 @@ func TestInspectcommandRemoteManifest(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()

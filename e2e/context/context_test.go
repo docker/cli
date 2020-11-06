@@ -3,8 +3,8 @@ package context
 import (
 	"testing"
 
-	"gotest.tools/golden"
-	"gotest.tools/icmd"
+	"gotest.tools/v3/golden"
+	"gotest.tools/v3/icmd"
 )
 
 func TestContextList(t *testing.T) {

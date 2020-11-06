@@ -23,6 +23,7 @@ func generateManPages(opts *options) error {
 		Title:   "DOCKER",
 		Section: "1",
 		Source:  "Docker Community",
+		Manual:  "Docker User Manuals",
 	}
 
 	// If SOURCE_DATE_EPOCH is set, in order to allow reproducible package

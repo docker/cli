@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestManifestCreateErrors(t *testing.T) {
@@ -33,7 +33,7 @@ func TestManifestCreateErrors(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newCreateListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -58,7 +58,7 @@ func TestManifestCreateAmend(t *testing.T) {
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.1"})
 	cmd.Flags().Set("amend", "true")
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err = cmd.Execute()
 	assert.NilError(t, err)
 
@@ -87,7 +87,7 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err = cmd.Execute()
 	assert.Error(t, err, "refusing to amend an existing manifest list with no --amend flag")
 }
@@ -110,7 +110,7 @@ func TestManifestCreateNoManifest(t *testing.T) {
 
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err := cmd.Execute()
 	assert.Error(t, err, "No such image: example.com/alpine:3.0")
 }

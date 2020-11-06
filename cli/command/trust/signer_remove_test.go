@@ -8,8 +8,8 @@ import (
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestTrustSignerRemoveErrors(t *testing.T) {
@@ -32,7 +32,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		cmd := newSignerRemoveCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 	testCasesWithOutput := []struct {
@@ -61,7 +61,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 		cmd := newSignerRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.Execute()
 		assert.Check(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
 	}

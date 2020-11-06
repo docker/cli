@@ -7,8 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
 )
 
 func TestConfigContextFormatWrite(t *testing.T) {
@@ -30,9 +29,9 @@ func TestConfigContextFormatWrite(t *testing.T) {
 		},
 		// Table format
 		{formatter.Context{Format: NewFormat("table", false)},
-			`ID                  NAME                CREATED                  UPDATED
-1                   passwords           Less than a second ago   Less than a second ago
-2                   id_rsa              Less than a second ago   Less than a second ago
+			`ID        NAME        CREATED                  UPDATED
+1         passwords   Less than a second ago   Less than a second ago
+2         id_rsa      Less than a second ago   Less than a second ago
 `},
 		{formatter.Context{Format: NewFormat("table {{.Name}}", true)},
 			`NAME
@@ -53,13 +52,16 @@ id_rsa
 			Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
 			Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "id_rsa"}}},
 	}
-	for _, testcase := range cases {
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		if err := FormatWrite(testcase.context, configs); err != nil {
-			assert.ErrorContains(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			if err := FormatWrite(tc.context, configs); err != nil {
+				assert.ErrorContains(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }

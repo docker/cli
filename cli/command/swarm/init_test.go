@@ -9,8 +9,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/golden"
 )
 
 func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
@@ -73,7 +73,7 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }

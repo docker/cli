@@ -4,15 +4,6 @@ description: "The network ls command description and usage"
 keywords: "network, list, user-defined"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # docker network ls
 
 ```markdown
@@ -192,7 +183,7 @@ The following filter matches all user defined networks:
 ```bash
 $ docker network ls --filter type=custom
 NETWORK ID          NAME                DRIVER       SCOPE
-95e74588f40d        foo                 bridge       local  
+95e74588f40d        foo                 bridge       local
 63d1ff1f77b0        dev                 bridge       local
 ```
 
@@ -230,7 +221,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Driver` entries separated by a colon for all networks:
+`ID` and `Driver` entries separated by a colon (`:`) for all networks:
 
 ```bash
 $ docker network ls --format "{{.ID}}: {{.Driver}}"

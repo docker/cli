@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/skip"
 )
 
 type historyCase struct {
@@ -52,6 +52,7 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
+	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
 	dateStr := "2009-11-10T23:00:00Z"
 	var ctx historyContext
 	cases := []historyCase{
@@ -186,20 +187,20 @@ func TestHistoryContext_Table(t *testing.T) {
 		{ID: "imageID4", Created: unixTime, CreatedBy: "/bin/bash grep", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 	}
 	// nolint: lll
-	expectedNoTrunc := `IMAGE               CREATED             CREATED BY                                                                                                                     SIZE                COMMENT
-imageID1            24 hours ago        /bin/bash ls && npm i && npm run test && karma -c karma.conf.js start && npm start && more commands here && the list goes on   183MB               Hi
-imageID2            24 hours ago        /bin/bash echo                                                                                                                 183MB               Hi
-imageID3            24 hours ago        /bin/bash ls                                                                                                                   183MB               Hi
-imageID4            24 hours ago        /bin/bash grep                                                                                                                 183MB               Hi
+	expectedNoTrunc := `IMAGE      CREATED        CREATED BY                                                                                                                     SIZE      COMMENT
+imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && karma -c karma.conf.js start && npm start && more commands here && the list goes on   183MB     Hi
+imageID2   24 hours ago   /bin/bash echo                                                                                                                 183MB     Hi
+imageID3   24 hours ago   /bin/bash ls                                                                                                                   183MB     Hi
+imageID4   24 hours ago   /bin/bash grep                                                                                                                 183MB     Hi
 `
-	expectedTrunc := `IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
-imageID1            24 hours ago        /bin/bash ls && npm i && npm run test && kar…   183MB               Hi
-imageID2            24 hours ago        /bin/bash echo                                  183MB               Hi
-imageID3            24 hours ago        /bin/bash ls                                    183MB               Hi
-imageID4            24 hours ago        /bin/bash grep                                  183MB               Hi
+	expectedTrunc := `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
+imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && kar…   183MB     Hi
+imageID2   24 hours ago   /bin/bash echo                                  183MB     Hi
+imageID3   24 hours ago   /bin/bash ls                                    183MB     Hi
+imageID4   24 hours ago   /bin/bash grep                                  183MB     Hi
 `
 
-	contexts := []struct {
+	cases := []struct {
 		context  formatter.Context
 		expected string
 	}{
@@ -219,10 +220,14 @@ imageID4            24 hours ago        /bin/bash grep                          
 		},
 	}
 
-	for _, context := range contexts {
-		HistoryWrite(context.context, true, histories)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			err := HistoryWrite(tc.context, true, histories)
+			assert.NilError(t, err)
+			assert.Equal(t, out.String(), tc.expected)
+			// Clean buffer
+			out.Reset()
+		})
 	}
 }

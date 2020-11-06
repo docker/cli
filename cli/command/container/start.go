@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http/httputil"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/docker/pkg/term"
+	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -98,10 +97,7 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 		}
 
 		resp, errAttach := dockerCli.Client().ContainerAttach(ctx, c.ID, options)
-		if errAttach != nil && errAttach != httputil.ErrPersistEOF {
-			// ContainerAttach return an ErrPersistEOF (connection closed)
-			// means server met an error and already put it in Hijacked connection,
-			// we would keep the error and read the detailed error message from hijacked connection
+		if errAttach != nil {
 			return errAttach
 		}
 		defer resp.Close()
@@ -154,7 +150,7 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 			}
 		}
 		if attachErr := <-cErr; attachErr != nil {
-			if _, ok := err.(term.EscapeError); ok {
+			if _, ok := attachErr.(term.EscapeError); ok {
 				// The user entered the detach escape sequence.
 				return nil
 			}

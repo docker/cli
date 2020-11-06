@@ -225,6 +225,7 @@ func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConf
 type resourceOptions struct {
 	limitCPU            opts.NanoCPUs
 	limitMemBytes       opts.MemBytes
+	limitPids           int64
 	resCPU              opts.NanoCPUs
 	resMemBytes         opts.MemBytes
 	resGenericResources []string
@@ -237,9 +238,10 @@ func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements,
 	}
 
 	return &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
+			Pids:        r.limitPids,
 		},
 		Reservations: &swarm.Resources{
 			NanoCPUs:         r.resCPU.Value(),
@@ -504,12 +506,16 @@ type serviceOptions struct {
 	dnsOption       opts.ListOpts
 	hosts           opts.ListOpts
 	sysctls         opts.ListOpts
+	capAdd          opts.ListOpts
+	capDrop         opts.ListOpts
+	ulimits         opts.UlimitOpt
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
 
-	replicas Uint64Opt
-	mode     string
+	replicas      Uint64Opt
+	mode          string
+	maxConcurrent Uint64Opt
 
 	restartPolicy  restartPolicyOptions
 	constraints    opts.ListOpts
@@ -546,6 +552,9 @@ func newServiceOptions() *serviceOptions {
 		dnsSearch:       opts.NewListOpts(opts.ValidateDNSSearch),
 		hosts:           opts.NewListOpts(opts.ValidateExtraHost),
 		sysctls:         opts.NewListOpts(nil),
+		capAdd:          opts.NewListOpts(nil),
+		capDrop:         opts.NewListOpts(nil),
+		ulimits:         *opts.NewUlimitOpt(nil),
 	}
 }
 
@@ -554,18 +563,45 @@ func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 	switch options.mode {
 	case "global":
 		if options.replicas.Value() != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 
 		if options.maxReplicas > 0 {
-			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated mode")
+			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated or replicated-job mode")
+		}
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
 		}
 
 		serviceMode.Global = &swarm.GlobalService{}
 	case "replicated":
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
+		}
+
 		serviceMode.Replicated = &swarm.ReplicatedService{
 			Replicas: options.replicas.Value(),
 		}
+	case "replicated-job":
+		concurrent := options.maxConcurrent.Value()
+		if concurrent == nil {
+			concurrent = options.replicas.Value()
+		}
+		serviceMode.ReplicatedJob = &swarm.ReplicatedJob{
+			MaxConcurrent:    concurrent,
+			TotalCompletions: options.replicas.Value(),
+		}
+	case "global-job":
+		if options.maxReplicas > 0 {
+			return serviceMode, errors.New("replicas-max-per-node can only be used with replicated or replicated-job mode")
+		}
+		if options.maxConcurrent.Value() != nil {
+			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
+		}
+		if options.replicas.Value() != nil {
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+		}
+		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	default:
 		return serviceMode, errors.Errorf("Unknown mode: %s, only replicated and global supported", options.mode)
 	}
@@ -579,14 +615,13 @@ func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Dur
 	return nil
 }
 
-func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
-	var service swarm.ServiceSpec
-
+// makeEnv gets the environment variables from the command line options and
+// returns a slice of strings to use in the service spec when doing ToService
+func (options *serviceOptions) makeEnv() ([]string, error) {
 	envVariables, err := opts.ReadKVEnvStrings(options.envFile.GetAll(), options.env.GetAll())
 	if err != nil {
-		return service, err
+		return nil, err
 	}
-
 	currentEnv := make([]string, 0, len(envVariables))
 	for _, env := range envVariables { // need to process each var, in order
 		k := strings.SplitN(env, "=", 2)[0]
@@ -601,6 +636,24 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		currentEnv = append(currentEnv, env)
 	}
 
+	return currentEnv, nil
+}
+
+// ToService takes the set of flags passed to the command and converts them
+// into a service spec.
+//
+// Takes an API client as the second argument in order to resolve network names
+// from the flags into network IDs.
+//
+// Returns an error if any flags are invalid or contradictory.
+func (options *serviceOptions) ToService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet) (swarm.ServiceSpec, error) {
+	var service swarm.ServiceSpec
+
+	currentEnv, err := options.makeEnv()
+	if err != nil {
+		return service, err
+	}
+
 	healthConfig, err := options.healthcheck.toHealthConfig()
 	if err != nil {
 		return service, err
@@ -609,6 +662,16 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	serviceMode, err := options.ToServiceMode()
 	if err != nil {
 		return service, err
+	}
+
+	updateConfig := options.update.updateConfig(flags)
+	rollbackConfig := options.rollback.rollbackConfig(flags)
+
+	// update and rollback configuration is not supported for jobs. If these
+	// flags are not set, then the values will be nil. If they are non-nil,
+	// then return an error.
+	if (serviceMode.ReplicatedJob != nil || serviceMode.GlobalJob != nil) && (updateConfig != nil || rollbackConfig != nil) {
+		return service, errors.Errorf("update and rollback configuration is not supported for jobs")
 	}
 
 	networks := convertNetworks(options.networks)
@@ -627,6 +690,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	if err != nil {
 		return service, err
 	}
+
+	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetAll(), options.capDrop.GetAll())
 
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
@@ -659,6 +724,9 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
 				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
+				CapabilityAdd:   capAdd,
+				CapabilityDrop:  capDrop,
+				Ulimits:         options.ulimits.GetList(),
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -671,8 +739,8 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			LogDriver: options.logDriver.toLogDriver(),
 		},
 		Mode:           serviceMode,
-		UpdateConfig:   options.update.updateConfig(flags),
-		RollbackConfig: options.rollback.rollbackConfig(flags),
+		UpdateConfig:   updateConfig,
+		RollbackConfig: rollbackConfig,
 		EndpointSpec:   options.endpoint.ToEndpointSpec(),
 	}
 
@@ -761,14 +829,23 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.StringVar(&opts.hostname, flagHostname, "", "Container hostname")
 	flags.SetAnnotation(flagHostname, "version", []string{"1.25"})
 	flags.Var(&opts.entrypoint, flagEntrypoint, "Overwrite the default ENTRYPOINT of the image")
+	flags.Var(&opts.capAdd, flagCapAdd, "Add Linux capabilities")
+	flags.SetAnnotation(flagCapAdd, "version", []string{"1.41"})
+	flags.Var(&opts.capDrop, flagCapDrop, "Drop Linux capabilities")
+	flags.SetAnnotation(flagCapDrop, "version", []string{"1.41"})
 
 	flags.Var(&opts.resources.limitCPU, flagLimitCPU, "Limit CPUs")
 	flags.Var(&opts.resources.limitMemBytes, flagLimitMemory, "Limit Memory")
 	flags.Var(&opts.resources.resCPU, flagReserveCPU, "Reserve CPUs")
 	flags.Var(&opts.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
+	flags.Int64Var(&opts.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
+	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
+	flags.SetAnnotation(flagLimitPids, "swarm", nil)
 
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
+	flags.Var(&opts.maxConcurrent, flagConcurrent, "Number of job tasks to run concurrently (default equal to --replicas)")
+	flags.SetAnnotation(flagConcurrent, "version", []string{"1.41"})
 	flags.Uint64Var(&opts.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
 	flags.SetAnnotation(flagMaxReplicas, "version", []string{"1.40"})
 
@@ -877,7 +954,9 @@ const (
 	flagLabelAdd                = "label-add"
 	flagLimitCPU                = "limit-cpu"
 	flagLimitMemory             = "limit-memory"
+	flagLimitPids               = "limit-pids"
 	flagMaxReplicas             = "replicas-max-per-node"
+	flagConcurrent              = "max-concurrent"
 	flagMode                    = "mode"
 	flagMount                   = "mount"
 	flagMountRemove             = "mount-rm"
@@ -937,6 +1016,11 @@ const (
 	flagConfigAdd               = "config-add"
 	flagConfigRemove            = "config-rm"
 	flagIsolation               = "isolation"
+	flagCapAdd                  = "cap-add"
+	flagCapDrop                 = "cap-drop"
+	flagUlimit                  = "ulimit"
+	flagUlimitAdd               = "ulimit-add"
+	flagUlimitRemove            = "ulimit-rm"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {

@@ -4,19 +4,10 @@ description: "Remove unused data"
 keywords: "system, prune, delete, remove"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # system prune
 
 ```markdown
-Usage:	docker system prune [OPTIONS]
+Usage:  docker system prune [OPTIONS]
 
 Remove unused data
 
@@ -106,13 +97,6 @@ deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
 Total reclaimed space: 13.5 MB
 ```
 
-> **Note**: The `--volumes` option was added in Docker 17.06.1. Older versions
-> of Docker prune volumes by default, along with other Docker objects. On older
-> versions, run `docker container prune`, `docker network prune`, and
-> `docker image prune` separately to remove unused containers, networks, and
-> images, without removing volumes.
-
-
 ### Filtering
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
@@ -147,7 +131,7 @@ containers, images, networks, and volumes without the specified labels.
 * [volume inspect](volume_inspect.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)
 * [system df](system_df.md)
 * [container prune](container_prune.md)
 * [image prune](image_prune.md)

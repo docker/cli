@@ -22,11 +22,8 @@
 	# subsystem maintainers accountable. If ownership is unclear, they are the de facto owners.
 
 		people = [
-			"aaronlehmann",
 			"albers",
 			"cpuguy83",
-			"dnephin",
-			"justincormack",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -34,14 +31,6 @@
 			"tonistiigi",
 			"vdemeester",
 			"vieux",
-		]
-
-	[Org."Docs maintainers"]
-
-	# TODO Describe the docs maintainers role.
-
-		people = [
-			"thajeztah"
 		]
 
 	[Org.Curators]
@@ -61,6 +50,21 @@
 			"thajeztah"
 		]
 
+	[Org.Alumni]
+
+	# This list contains maintainers that are no longer active on the project.
+	# It is thanks to these people that the project has become what it is today.
+	# Thank you!
+
+		people = [
+			# Before becoming a maintainer, Daniel Nephin was a core contributor
+ 			# to "Fig" (now known as Docker Compose). As a maintainer for both the
+ 			# Engine and Docker CLI, Daniel contributed many features, among which
+ 			# the `docker stack` commands, allowing users to deploy their Docker
+ 			# Compose projects as a Swarm service.
+ 			"dnephin",
+		]
+
 [people]
 
 # A reference list of all people associated with the project.
@@ -68,11 +72,6 @@
 # in the people section.
 
 	# ADD YOURSELF HERE IN ALPHABETICAL ORDER
-
-	[people.aaronlehmann]
-	Name = "Aaron Lehmann"
-	Email = "aaron.lehmann@docker.com"
-	GitHub = "aaronlehmann"
 
 	[people.albers]
 	Name = "Harald Albers"
@@ -88,11 +87,6 @@
 	Name = "Daniel Nephin"
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
-
-	[people.justincormack]
-	Name = "Justin Cormack"
-	Email = "justin.cormack@docker.com"
-	GitHub = "justincormack"
 
 	[people.programmerq]
 	Name = "Jeff Anderson"

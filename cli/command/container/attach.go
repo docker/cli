@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/http/httputil"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -103,10 +102,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	}
 
 	resp, errAttach := client.ContainerAttach(ctx, opts.container, options)
-	if errAttach != nil && errAttach != httputil.ErrPersistEOF {
-		// ContainerAttach returns an ErrPersistEOF (connection closed)
-		// means server met an error and put it in Hijacked connection
-		// keep the error and read detailed error message from hijacked connection later
+	if errAttach != nil {
 		return errAttach
 	}
 	defer resp.Close()
@@ -140,10 +136,6 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 
 	if err := streamer.stream(ctx); err != nil {
 		return err
-	}
-
-	if errAttach != nil {
-		return errAttach
 	}
 
 	return getExitStatus(errC, resultC)

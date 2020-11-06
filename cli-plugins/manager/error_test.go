@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestPluginError(t *testing.T) {
@@ -16,7 +16,7 @@ func TestPluginError(t *testing.T) {
 	inner := fmt.Errorf("testing")
 	err = wrapAsPluginError(inner, "wrapping")
 	assert.Error(t, err, "wrapping: testing")
-	assert.Equal(t, inner, errors.Cause(err))
+	assert.Assert(t, errors.Is(err, inner))
 
 	actual, err := yaml.Marshal(err)
 	assert.NilError(t, err)

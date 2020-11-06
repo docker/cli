@@ -11,9 +11,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 // helper function that base64 decodes a string and ignores the error
@@ -65,6 +65,7 @@ var sampleInfoNoSwarm = types.Info{
 	NEventsListener:    0,
 	KernelVersion:      "4.4.0-87-generic",
 	OperatingSystem:    "Ubuntu 16.04.3 LTS",
+	OSVersion:          "",
 	OSType:             "linux",
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",
@@ -123,6 +124,12 @@ var sampleInfoNoSwarm = types.Info{
 		Expected: "949e6fa",
 	},
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
+	DefaultAddressPools: []types.NetworkAddressPool{
+		{
+			Base: "10.123.0.0/16",
+			Size: 24,
+		},
+	},
 }
 
 var sampleSwarmInfo = swarm.Info{
@@ -267,8 +274,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info without swarm",
 			dockerInfo: info{
-				Info:       &sampleInfoNoSwarm,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &sampleInfoNoSwarm,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden: "docker-info-no-swarm",
 			jsonGolden:   "docker-info-no-swarm",
@@ -278,6 +288,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
+					Context: "default",
 					Plugins: samplePluginsInfo,
 				},
 			},
@@ -289,8 +300,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 			doc: "info with swarm",
 			dockerInfo: info{
-				Info:       &infoWithSwarm,
-				ClientInfo: &clientInfo{Debug: false},
+				Info: &infoWithSwarm,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   false,
+				},
 			},
 			prettyGolden: "docker-info-with-swarm",
 			jsonGolden:   "docker-info-with-swarm",
@@ -298,8 +312,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info with legacy warnings",
 			dockerInfo: info{
-				Info:       &infoWithWarningsLinux,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &infoWithWarningsLinux,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
@@ -308,8 +325,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 		{
 			doc: "info with daemon warnings",
 			dockerInfo: info{
-				Info:       &sampleInfoDaemonWarnings,
-				ClientInfo: &clientInfo{Debug: true},
+				Info: &sampleInfoDaemonWarnings,
+				ClientInfo: &clientInfo{
+					Context: "default",
+					Debug:   true,
+				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
 			warningsGolden: "docker-info-warnings",
@@ -376,6 +396,11 @@ func TestFormatInfo(t *testing.T) {
 			doc:           "syntax",
 			template:      "{{}",
 			expectedError: `Status: Template parsing error: template: :1: unexpected "}" in command, Code: 64`,
+		},
+		{
+			doc:           "syntax",
+			template:      "{{.badString}}",
+			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.info`,
 		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestSearchContext(t *testing.T) {
@@ -148,91 +148,24 @@ result2 5
 		},
 	}
 
-	for _, testcase := range cases {
-		results := []registrytypes.SearchResult{
-			{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-			{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := SearchWrite(testcase.context, results, false, 0)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, testcase.expected))
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
-	}
-}
-
-func TestSearchContextWriteAutomated(t *testing.T) {
-	cases := []struct {
-		context  formatter.Context
-		expected string
-	}{
-
-		// Table format
-		{
-			formatter.Context{Format: NewSearchFormat("table")},
-			`NAME                DESCRIPTION         STARS               OFFICIAL            AUTOMATED
-result2             Not official        5                                       [OK]
-`,
-		},
-		{
-			formatter.Context{Format: NewSearchFormat("table {{.Name}}")},
-			`NAME
-result2
-`,
-		},
+	results := []registrytypes.SearchResult{
+		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
+		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
 	}
 
-	for _, testcase := range cases {
-		results := []registrytypes.SearchResult{
-			{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-			{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := SearchWrite(testcase.context, results, true, 0)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, testcase.expected))
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
-	}
-}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
 
-func TestSearchContextWriteStars(t *testing.T) {
-	cases := []struct {
-		context  formatter.Context
-		expected string
-	}{
-
-		// Table format
-		{
-			formatter.Context{Format: NewSearchFormat("table")},
-			string(golden.Get(t, "search-context-write-stars-table.golden")),
-		},
-		{
-			formatter.Context{Format: NewSearchFormat("table {{.Name}}")},
-			`NAME
-result1
-`,
-		},
-	}
-
-	for _, testcase := range cases {
-		results := []registrytypes.SearchResult{
-			{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-			{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := SearchWrite(testcase.context, results, false, 6)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, testcase.expected))
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
+			err := SearchWrite(tc.context, results)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
@@ -247,7 +180,7 @@ func TestSearchContextWriteJSON(t *testing.T) {
 	}
 
 	out := bytes.NewBufferString("")
-	err := SearchWrite(formatter.Context{Format: "{{json .}}", Output: out}, results, false, 0)
+	err := SearchWrite(formatter.Context{Format: "{{json .}}", Output: out}, results)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +200,7 @@ func TestSearchContextWriteJSONField(t *testing.T) {
 		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
 	}
 	out := bytes.NewBufferString("")
-	err := SearchWrite(formatter.Context{Format: "{{json .Name}}", Output: out}, results, false, 0)
+	err := SearchWrite(formatter.Context{Format: "{{json .Name}}", Output: out}, results)
 	if err != nil {
 		t.Fatal(err)
 	}

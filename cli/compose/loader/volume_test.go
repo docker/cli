@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestParseVolumeAnonymousVolume(t *testing.T) {
@@ -162,6 +162,8 @@ func TestParseVolumeWindowsNamedPipe(t *testing.T) {
 
 func TestIsFilePath(t *testing.T) {
 	assert.Check(t, !isFilePath("a界"))
+	assert.Check(t, !isFilePath("1"))
+	assert.Check(t, !isFilePath("c"))
 }
 
 // Preserve the test cases for VolumeSplitN

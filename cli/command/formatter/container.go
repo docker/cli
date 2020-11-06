@@ -44,6 +44,7 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 image: {{.Image}}
 command: {{.Command}}
 created_at: {{.CreatedAt}}
+state: {{- pad .State 1 0}}
 status: {{- pad .Status 1 0}}
 names: {{.Names}}
 labels: {{- pad .Labels 1 0}}
@@ -61,24 +62,32 @@ ports: {{- pad .Ports 1 0}}
 func ContainerWrite(ctx Context, containers []types.Container) error {
 	render := func(format func(subContext SubContext) error) error {
 		for _, container := range containers {
-			err := format(&containerContext{trunc: ctx.Trunc, c: container})
+			err := format(&ContainerContext{trunc: ctx.Trunc, c: container})
 			if err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-	return ctx.Write(newContainerContext(), render)
+	return ctx.Write(NewContainerContext(), render)
 }
 
-type containerContext struct {
+// ContainerContext is a struct used for rendering a list of containers in a Go template.
+type ContainerContext struct {
 	HeaderContext
 	trunc bool
 	c     types.Container
+
+	// FieldsUsed is used in the pre-processing step to detect which fields are
+	// used in the template. It's currently only used to detect use of the .Size
+	// field which (if used) automatically sets the '--size' option when making
+	// the API call.
+	FieldsUsed map[string]interface{}
 }
 
-func newContainerContext() *containerContext {
-	containerCtx := containerContext{}
+// NewContainerContext creates a new context for rendering containers
+func NewContainerContext() *ContainerContext {
+	containerCtx := ContainerContext{}
 	containerCtx.Header = SubHeaderContext{
 		"ID":           ContainerIDHeader,
 		"Names":        namesHeader,
@@ -87,6 +96,7 @@ func newContainerContext() *containerContext {
 		"CreatedAt":    CreatedAtHeader,
 		"RunningFor":   runningForHeader,
 		"Ports":        PortsHeader,
+		"State":        StateHeader,
 		"Status":       StatusHeader,
 		"Size":         SizeHeader,
 		"Labels":       LabelsHeader,
@@ -97,18 +107,24 @@ func newContainerContext() *containerContext {
 	return &containerCtx
 }
 
-func (c *containerContext) MarshalJSON() ([]byte, error) {
+// MarshalJSON makes ContainerContext implement json.Marshaler
+func (c *ContainerContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *containerContext) ID() string {
+// ID returns the container's ID as a string. Depending on the `--no-trunc`
+// option being set, the full or truncated ID is returned.
+func (c *ContainerContext) ID() string {
 	if c.trunc {
 		return stringid.TruncateID(c.c.ID)
 	}
 	return c.c.ID
 }
 
-func (c *containerContext) Names() string {
+// Names returns a comma-separated string of the container's names, with their
+// slash (/) prefix stripped. Additional names for the container (related to the
+// legacy `--link` feature) are omitted.
+func (c *ContainerContext) Names() string {
 	names := stripNamePrefix(c.c.Names)
 	if c.trunc {
 		for _, name := range names {
@@ -121,7 +137,9 @@ func (c *containerContext) Names() string {
 	return strings.Join(names, ",")
 }
 
-func (c *containerContext) Image() string {
+// Image returns the container's image reference. If the trunc option is set,
+// the image's registry digest can be included.
+func (c *ContainerContext) Image() string {
 	if c.c.Image == "" {
 		return "<no image>"
 	}
@@ -148,7 +166,9 @@ func (c *containerContext) Image() string {
 	return c.c.Image
 }
 
-func (c *containerContext) Command() string {
+// Command returns's the container's command. If the trunc option is set, the
+// returned command is truncated (ellipsized).
+func (c *ContainerContext) Command() string {
 	command := c.c.Command
 	if c.trunc {
 		command = Ellipsis(command, 20)
@@ -156,24 +176,46 @@ func (c *containerContext) Command() string {
 	return strconv.Quote(command)
 }
 
-func (c *containerContext) CreatedAt() string {
+// CreatedAt returns the "Created" date/time of the container as a unix timestamp.
+func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
 }
 
-func (c *containerContext) RunningFor() string {
+// RunningFor returns a human-readable representation of the duration for which
+// the container has been running.
+//
+// Note that this duration is calculated on the client, and as such is influenced
+// by clock skew between the client and the daemon.
+func (c *ContainerContext) RunningFor() string {
 	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
-func (c *containerContext) Ports() string {
+// Ports returns a comma-separated string representing open ports of the container
+// e.g. "0.0.0.0:80->9090/tcp, 9988/tcp"
+// it's used by command 'docker ps'
+// Both published and exposed ports are included.
+func (c *ContainerContext) Ports() string {
 	return DisplayablePorts(c.c.Ports)
 }
 
-func (c *containerContext) Status() string {
+// State returns the container's current state (e.g. "running" or "paused")
+func (c *ContainerContext) State() string {
+	return c.c.State
+}
+
+// Status returns the container's status in a human readable form (for example,
+// "Up 24 hours" or "Exited (0) 8 days ago")
+func (c *ContainerContext) Status() string {
 	return c.c.Status
 }
 
-func (c *containerContext) Size() string {
+// Size returns the container's size and virtual size (e.g. "2B (virtual 21.5MB)")
+func (c *ContainerContext) Size() string {
+	if c.FieldsUsed == nil {
+		c.FieldsUsed = map[string]interface{}{}
+	}
+	c.FieldsUsed["Size"] = struct{}{}
 	srw := units.HumanSizeWithPrecision(float64(c.c.SizeRw), 3)
 	sv := units.HumanSizeWithPrecision(float64(c.c.SizeRootFs), 3)
 
@@ -184,7 +226,8 @@ func (c *containerContext) Size() string {
 	return sf
 }
 
-func (c *containerContext) Labels() string {
+// Labels returns a comma-separated string of labels present on the container.
+func (c *ContainerContext) Labels() string {
 	if c.c.Labels == nil {
 		return ""
 	}
@@ -196,14 +239,18 @@ func (c *containerContext) Labels() string {
 	return strings.Join(joinLabels, ",")
 }
 
-func (c *containerContext) Label(name string) string {
+// Label returns the value of the label with the given name or an empty string
+// if the given label does not exist.
+func (c *ContainerContext) Label(name string) string {
 	if c.c.Labels == nil {
 		return ""
 	}
 	return c.c.Labels[name]
 }
 
-func (c *containerContext) Mounts() string {
+// Mounts returns a comma-separated string of mount names present on the container.
+// If the trunc option is set, names can be truncated (ellipsized).
+func (c *ContainerContext) Mounts() string {
 	var name string
 	var mounts []string
 	for _, m := range c.c.Mounts {
@@ -220,7 +267,8 @@ func (c *containerContext) Mounts() string {
 	return strings.Join(mounts, ",")
 }
 
-func (c *containerContext) LocalVolumes() string {
+// LocalVolumes returns the number of volumes using the "local" volume driver.
+func (c *ContainerContext) LocalVolumes() string {
 	count := 0
 	for _, m := range c.c.Mounts {
 		if m.Driver == "local" {
@@ -231,7 +279,9 @@ func (c *containerContext) LocalVolumes() string {
 	return fmt.Sprintf("%d", count)
 }
 
-func (c *containerContext) Networks() string {
+// Networks returns a comma-separated string of networks that the container is
+// attached to.
+func (c *ContainerContext) Networks() string {
 	if c.c.NetworkSettings == nil {
 		return ""
 	}

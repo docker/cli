@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +36,7 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.rmVolumes, "volumes", "v", false, "Remove the volumes associated with the container")
+	flags.BoolVarP(&opts.rmVolumes, "volumes", "v", false, "Remove anonymous volumes associated with the container")
 	flags.BoolVarP(&opts.rmLink, "link", "l", false, "Remove the specified link")
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force the removal of a running container (uses SIGKILL)")
 	return cmd
@@ -61,6 +62,10 @@ func runRm(dockerCli command.Cli, opts *rmOptions) error {
 
 	for _, name := range opts.containers {
 		if err := <-errChan; err != nil {
+			if opts.force && errdefs.IsNotFound(err) {
+				fmt.Fprintln(dockerCli.Err(), err)
+				continue
+			}
 			errs = append(errs, err.Error())
 			continue
 		}

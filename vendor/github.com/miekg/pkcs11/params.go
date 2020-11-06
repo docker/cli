@@ -42,19 +42,21 @@ type GCMParams struct {
 // NewGCMParams returns a pointer to AES-GCM parameters that can be used with the CKM_AES_GCM mechanism.
 // The Free() method must be called after the operation is complete.
 //
-// *NOTE*
-// Some HSMs, like CloudHSM, will ignore the IV you pass in and write their
+// Note that some HSMs, like CloudHSM, will ignore the IV you pass in and write their
 // own. As a result, to support all libraries, memory is not freed
 // automatically, so that after the EncryptInit/Encrypt operation the HSM's IV
 // can be read back out. It is up to the caller to ensure that Free() is called
 // on the GCMParams object at an appropriate time, which is after
+//
 // Encrypt/Decrypt. As an example:
 //
-// gcmParams := pkcs11.NewGCMParams(make([]byte, 12), nil, 128)
-// p.ctx.EncryptInit(session, []*pkcs11.Mechanism{pkcs11.NewMechanism(pkcs11.CKM_AES_GCM, gcmParams)}, aesObjHandle)
-// ct, _ := p.ctx.Encrypt(session, pt)
-// iv := gcmParams.IV()
-// gcmParams.Free()
+//    gcmParams := pkcs11.NewGCMParams(make([]byte, 12), nil, 128)
+//    p.ctx.EncryptInit(session, []*pkcs11.Mechanism{pkcs11.NewMechanism(pkcs11.CKM_AES_GCM, gcmParams)},
+//			aesObjHandle)
+//    ct, _ := p.ctx.Encrypt(session, pt)
+//    iv := gcmParams.IV()
+//    gcmParams.Free()
+//
 func NewGCMParams(iv, aad []byte, tagSize int) *GCMParams {
 	return &GCMParams{
 		iv:      iv,
@@ -112,7 +114,7 @@ func (p *GCMParams) Free() {
 	p.arena = nil
 }
 
-// NewPSSParams creates a CK_RSA_PKCS_PSS_PARAMS structure and returns it as a byte array for use with the CKM_RSA_PKCS_PSS mechanism
+// NewPSSParams creates a CK_RSA_PKCS_PSS_PARAMS structure and returns it as a byte array for use with the CKM_RSA_PKCS_PSS mechanism.
 func NewPSSParams(hashAlg, mgf, saltLength uint) []byte {
 	p := C.CK_RSA_PKCS_PSS_PARAMS{
 		hashAlg: C.CK_MECHANISM_TYPE(hashAlg),
@@ -122,7 +124,7 @@ func NewPSSParams(hashAlg, mgf, saltLength uint) []byte {
 	return C.GoBytes(unsafe.Pointer(&p), C.int(unsafe.Sizeof(p)))
 }
 
-// OAEPParams can be passed to NewMechanism to implement CKM_RSA_PKCS_OAEP
+// OAEPParams can be passed to NewMechanism to implement CKM_RSA_PKCS_OAEP.
 type OAEPParams struct {
 	HashAlg    uint
 	MGF        uint
@@ -130,7 +132,7 @@ type OAEPParams struct {
 	SourceData []byte
 }
 
-// NewOAEPParams creates a CK_RSA_PKCS_OAEP_PARAMS structure suitable for use with the CKM_RSA_PKCS_OAEP mechanism
+// NewOAEPParams creates a CK_RSA_PKCS_OAEP_PARAMS structure suitable for use with the CKM_RSA_PKCS_OAEP mechanism.
 func NewOAEPParams(hashAlg, mgf, sourceType uint, sourceData []byte) *OAEPParams {
 	return &OAEPParams{
 		HashAlg:    hashAlg,
@@ -154,14 +156,14 @@ func cOAEPParams(p *OAEPParams, arena arena) ([]byte, arena) {
 	return C.GoBytes(unsafe.Pointer(&params), C.int(unsafe.Sizeof(params))), arena
 }
 
-// ECDH1DeriveParams can be passed to NewMechanism to implement CK_ECDH1_DERIVE_PARAMS
+// ECDH1DeriveParams can be passed to NewMechanism to implement CK_ECDH1_DERIVE_PARAMS.
 type ECDH1DeriveParams struct {
 	KDF           uint
 	SharedData    []byte
 	PublicKeyData []byte
 }
 
-// NewECDH1DeriveParams creates a CK_ECDH1_DERIVE_PARAMS structure suitable for use with the CKM_ECDH1_DERIVE mechanism
+// NewECDH1DeriveParams creates a CK_ECDH1_DERIVE_PARAMS structure suitable for use with the CKM_ECDH1_DERIVE mechanism.
 func NewECDH1DeriveParams(kdf uint, sharedData []byte, publicKeyData []byte) *ECDH1DeriveParams {
 	return &ECDH1DeriveParams{
 		KDF:           kdf,

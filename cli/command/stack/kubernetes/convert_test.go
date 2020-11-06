@@ -11,8 +11,8 @@ import (
 	"github.com/docker/compose-on-kubernetes/api/compose/v1alpha3"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta1"
 	"github.com/docker/compose-on-kubernetes/api/compose/v1beta2"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -195,6 +195,7 @@ func TestHandlePullSecret(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
@@ -222,6 +223,7 @@ func TestHandlePullPolicy(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
@@ -271,6 +273,7 @@ func TestHandleInternalServiceType(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			res, err := fromComposeServiceConfig(composetypes.ServiceConfig{
 				Name:  "test",

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -69,6 +70,7 @@ type containerOptions struct {
 	pidMode            string
 	utsMode            string
 	usernsMode         string
+	cgroupnsMode       string
 	publishAll         bool
 	stdin              bool
 	tty                bool
@@ -197,6 +199,12 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.BoolVar(&copts.privileged, "privileged", false, "Give extended privileges to this container")
 	flags.Var(&copts.securityOpt, "security-opt", "Security Options")
 	flags.StringVar(&copts.usernsMode, "userns", "", "User namespace to use")
+	flags.StringVar(&copts.cgroupnsMode, "cgroupns", "", `Cgroup namespace to use (host|private)
+'host':    Run the container in the Docker host's cgroup namespace
+'private': Run the container in its own private cgroup namespace
+'':        Use the cgroup namespace as configured by the
+           default-cgroupns-mode option on the daemon (default)`)
+	flags.SetAnnotation("cgroupns", "version", []string{"1.41"})
 
 	// Network and port publishing flag
 	flags.Var(&copts.extraHosts, "add-host", "Add a custom host-to-IP mapping (host:ip)")
@@ -378,23 +386,20 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	}
 
 	publishOpts := copts.publish.GetAll()
-	var ports map[nat.Port]struct{}
-	var portBindings map[nat.Port][]nat.PortBinding
+	var (
+		ports         map[nat.Port]struct{}
+		portBindings  map[nat.Port][]nat.PortBinding
+		convertedOpts []string
+	)
 
-	ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
-
-	// If simple port parsing fails try to parse as long format
+	convertedOpts, err = convertToStandardNotation(publishOpts)
 	if err != nil {
-		publishOpts, err = parsePortOpts(publishOpts)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
 
-		ports, portBindings, err = nat.ParsePortSpecs(publishOpts)
-
-		if err != nil {
-			return nil, err
-		}
+	ports, portBindings, err = nat.ParsePortSpecs(convertedOpts)
+	if err != nil {
+		return nil, err
 	}
 
 	// Merge in exposed ports to the map of published ports
@@ -402,10 +407,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if strings.Contains(e, ":") {
 			return nil, errors.Errorf("invalid port format for --expose: %s", e)
 		}
-		//support two formats for expose, original format <portnum>/[<proto>] or <startport-endport>/[<proto>]
+		// support two formats for expose, original format <portnum>/[<proto>]
+		// or <startport-endport>/[<proto>]
 		proto, port := nat.SplitProtoPort(e)
-		//parse the start and end port and create a sequence of ports to expose
-		//if expose a port, the start and end port are the same
+		// parse the start and end port and create a sequence of ports to expose
+		// if expose a port, the start and end port are the same
 		start, end, err := nat.ParsePortRange(port)
 		if err != nil {
 			return nil, errors.Errorf("invalid range format for --expose: %s, error: %s", e, err)
@@ -468,6 +474,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	usernsMode := container.UsernsMode(copts.usernsMode)
 	if !usernsMode.Valid() {
 		return nil, errors.Errorf("--userns: invalid USER mode")
+	}
+
+	cgroupnsMode := container.CgroupnsMode(copts.cgroupnsMode)
+	if !cgroupnsMode.Valid() {
+		return nil, errors.Errorf("--cgroupns: invalid CGROUP mode")
 	}
 
 	restartPolicy, err := opts.ParseRestartPolicy(copts.restartPolicy)
@@ -621,6 +632,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		PidMode:        pidMode,
 		UTSMode:        utsMode,
 		UsernsMode:     usernsMode,
+		CgroupnsMode:   cgroupnsMode,
 		CapAdd:         strslice.StrSlice(copts.capAdd.GetAll()),
 		CapDrop:        strslice.StrSlice(copts.capDrop.GetAll()),
 		GroupAdd:       copts.groupAdd.GetAll(),
@@ -685,6 +697,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 	)
 
 	for i, n := range copts.netMode.Value() {
+		n := n
 		if container.NetworkMode(n.Target).IsUserDefined() {
 			hasUserDefined = true
 		} else {
@@ -707,6 +720,15 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		if _, ok := endpoints[n.Target]; ok {
 			return nil, errdefs.InvalidParameter(errors.Errorf("network %q is specified multiple times", n.Target))
 		}
+
+		// For backward compatibility: if no custom options are provided for the network,
+		// and only a single network is specified, omit the endpoint-configuration
+		// on the client (the daemon will still create it when creating the container)
+		if i == 0 && len(copts.netMode.Value()) == 1 {
+			if ep == nil || reflect.DeepEqual(*ep, networktypes.EndpointSettings{}) {
+				continue
+			}
+		}
 		endpoints[n.Target] = ep
 	}
 	if hasUserDefined && hasNonUserDefined {
@@ -724,6 +746,12 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if len(n.Links) > 0 && copts.links.Len() > 0 {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --link and per-network links"))
 	}
+	if n.IPv4Address != "" && copts.ipv4Address != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip and per-network IPv4 address"))
+	}
+	if n.IPv6Address != "" && copts.ipv6Address != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
+	}
 	if copts.aliases.Len() > 0 {
 		n.Aliases = make([]string, copts.aliases.Len())
 		copy(n.Aliases, copts.aliases.GetAll())
@@ -732,10 +760,12 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetAll())
 	}
-
-	// TODO add IPv4/IPv6 options to the csv notation for --network, and error-out in case of conflicting options
-	n.IPv4Address = copts.ipv4Address
-	n.IPv6Address = copts.ipv6Address
+	if copts.ipv4Address != "" {
+		n.IPv4Address = copts.ipv4Address
+	}
+	if copts.ipv6Address != "" {
+		n.IPv6Address = copts.ipv6Address
+	}
 
 	// TODO should linkLocalIPs be added to the _first_ network only, or to _all_ networks? (should this be a per-network option as well?)
 	if copts.linkLocalIPs.Len() > 0 {
@@ -777,19 +807,23 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 	return epConfig, nil
 }
 
-func parsePortOpts(publishOpts []string) ([]string, error) {
+func convertToStandardNotation(ports []string) ([]string, error) {
 	optsList := []string{}
-	for _, publish := range publishOpts {
-		params := map[string]string{"protocol": "tcp"}
-		for _, param := range strings.Split(publish, ",") {
-			opt := strings.Split(param, "=")
-			if len(opt) < 2 {
-				return optsList, errors.Errorf("invalid publish opts format (should be name=value but got '%s')", param)
-			}
+	for _, publish := range ports {
+		if strings.Contains(publish, "=") {
+			params := map[string]string{"protocol": "tcp"}
+			for _, param := range strings.Split(publish, ",") {
+				opt := strings.Split(param, "=")
+				if len(opt) < 2 {
+					return optsList, errors.Errorf("invalid publish opts format (should be name=value but got '%s')", param)
+				}
 
-			params[opt[0]] = opt[1]
+				params[opt[0]] = opt[1]
+			}
+			optsList = append(optsList, fmt.Sprintf("%s:%s/%s", params["published"], params["target"], params["protocol"]))
+		} else {
+			optsList = append(optsList, publish)
 		}
-		optsList = append(optsList, fmt.Sprintf("%s:%s/%s", params["target"], params["published"], params["protocol"]))
 	}
 	return optsList, nil
 }

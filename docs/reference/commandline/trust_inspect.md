@@ -4,15 +4,6 @@ description: "The inspect command description and usage"
 keywords: "inspect, notary, trust"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # trust inspect
 
 ```markdown
@@ -40,6 +31,11 @@ following example prints trust information for the `alpine:latest` image:
 
 ```bash
 $ docker trust inspect alpine:latest
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine:latest",
@@ -85,6 +81,11 @@ commands, `docker trust inspect` includes a `Signers` key:
 
 ```bash
 $ docker trust inspect my-image:purple
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "my-image:purple",
@@ -158,6 +159,7 @@ display any signed tags.
 
 ```bash
 $ docker trust inspect unsigned-img
+
 No signatures or cannot access unsigned-img
 ```
 
@@ -166,6 +168,11 @@ However, if other tags are signed in the same image repository,
 
 ```bash
 $ docker trust inspect alpine:unsigned
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
     "Name": "alpine:unsigned",
@@ -174,17 +181,17 @@ $ docker trust inspect alpine:unsigned
       {
         "Name": "Repository",
         "Keys": [
-            {
-                "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
-            }
+          {
+            "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
+          }
         ]
       },
       {
         "Name": "Root",
         "Keys": [
-            {
-                "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
-            }
+          {
+            "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
+          }
         ]
       }
     ]
@@ -199,59 +206,64 @@ signed tags in the repository:
 
 ```bash
 $ docker trust inspect alpine
+```
+
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "alpine",
-        "SignedTags": [
-            {
-                "SignedTag": "3.5",
-                "Digest": "b007a354427e1880de9cdba533e8e57382b7f2853a68a478a17d447b302c219c",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "3.6",
-                "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "edge",
-                "Digest": "23e7d843e63a3eee29b6b8cfcd10e23dd1ef28f47251a985606a31040bf8e096",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "latest",
-                "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            }
-        ],
-        "Signers": [],
-        "AdministrativeKeys": [
-            {
-                "Name": "Repository",
-                "Keys": [
-                    {
-                        "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
-                    }
-                ]
-            },
-            {
-                "Name": "Root",
-                "Keys": [
-                    {
-                        "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
-                    }
-                ]
-            }
+  {
+    "Name": "alpine",
+    "SignedTags": [
+      {
+        "SignedTag": "3.5",
+        "Digest": "b007a354427e1880de9cdba533e8e57382b7f2853a68a478a17d447b302c219c",
+        "Signers": [
+          "Repo Admin"
         ]
-    }
+      },
+      {
+        "SignedTag": "3.6",
+        "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
+        "Signers": [
+          "Repo Admin"
+        ]
+      },
+      {
+        "SignedTag": "edge",
+        "Digest": "23e7d843e63a3eee29b6b8cfcd10e23dd1ef28f47251a985606a31040bf8e096",
+        "Signers": [
+          "Repo Admin"
+        ]
+      },
+      {
+        "SignedTag": "latest",
+        "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
+        "Signers": [
+          "Repo Admin"
+        ]
+      }
+    ],
+    "Signers": [],
+    "AdministrativeKeys": [
+      {
+        "Name": "Repository",
+        "Keys": [
+          {
+            "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
+          }
+        ]
+      },
+      {
+        "Name": "Root",
+        "Keys": [
+          {
+            "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
+          }
+        ]
+      }
+    ]
+  }
 ]
 ```
 
@@ -263,104 +275,109 @@ and reports the results in an ordered list:
 
 ```bash
 $ docker trust inspect alpine notary
+```
+
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "alpine",
-        "SignedTags": [
-            {
-                "SignedTag": "3.5",
-                "Digest": "b007a354427e1880de9cdba533e8e57382b7f2853a68a478a17d447b302c219c",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "3.6",
-                "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "edge",
-                "Digest": "23e7d843e63a3eee29b6b8cfcd10e23dd1ef28f47251a985606a31040bf8e096",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "integ-test-base",
-                "Digest": "3952dc48dcc4136ccdde37fbef7e250346538a55a0366e3fccc683336377e372",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "latest",
-                "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            }
-        ],
-        "Signers": [],
-        "AdministrativeKeys": [
-            {
-                "Name": "Repository",
-                "Keys": [
-                    {
-                        "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
-                    }
-                ]
-            },
-            {
-                "Name": "Root",
-                "Keys": [
-                    {
-                        "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
-                    }
-                ]
-            }
+  {
+    "Name": "alpine",
+    "SignedTags": [
+      {
+        "SignedTag": "3.5",
+        "Digest": "b007a354427e1880de9cdba533e8e57382b7f2853a68a478a17d447b302c219c",
+        "Signers": [
+          "Repo Admin"
         ]
-    },
-    {
-        "Name": "notary",
-        "SignedTags": [
-            {
-                "SignedTag": "server",
-                "Digest": "71f64ab718a3331dee103bc5afc6bc492914738ce37c2d2f127a8133714ecf5c",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            },
-            {
-                "SignedTag": "signer",
-                "Digest": "a6122d79b1e74f70b5dd933b18a6d1f99329a4728011079f06b245205f158fe8",
-                "Signers": [
-                    "Repo Admin"
-                ]
-            }
-        ],
-        "Signers": [],
-        "AdministrativeKeys": [
-            {
-                "Name": "Root",
-                "Keys": [
-                    {
-                        "ID": "8cdcdef5bd039f4ab5a029126951b5985eebf57cabdcdc4d21f5b3be8bb4ce92"
-                    }
-                ]
-            },
-            {
-                "Name": "Repository",
-                "Keys": [
-                    {
-                        "ID": "85bfd031017722f950d480a721f845a2944db26a3dc084040a70f1b0d9bbb3df"
-                    }
-                ]
-            }
+      },
+      {
+        "SignedTag": "3.6",
+        "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
+        "Signers": [
+          "Repo Admin"
         ]
-    }
+      },
+      {
+        "SignedTag": "edge",
+        "Digest": "23e7d843e63a3eee29b6b8cfcd10e23dd1ef28f47251a985606a31040bf8e096",
+        "Signers": [
+          "Repo Admin"
+        ]
+      },
+      {
+        "SignedTag": "integ-test-base",
+        "Digest": "3952dc48dcc4136ccdde37fbef7e250346538a55a0366e3fccc683336377e372",
+        "Signers": [
+          "Repo Admin"
+        ]
+      },
+      {
+        "SignedTag": "latest",
+        "Digest": "d6bfc3baf615dc9618209a8d607ba2a8103d9c8a405b3bd8741d88b4bef36478",
+        "Signers": [
+          "Repo Admin"
+        ]
+      }
+    ],
+    "Signers": [],
+    "AdministrativeKeys": [
+      {
+        "Name": "Repository",
+        "Keys": [
+          {
+            "ID": "5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd"
+          }
+        ]
+      },
+      {
+        "Name": "Root",
+        "Keys": [
+          {
+            "ID": "a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "notary",
+    "SignedTags": [
+      {
+        "SignedTag": "server",
+        "Digest": "71f64ab718a3331dee103bc5afc6bc492914738ce37c2d2f127a8133714ecf5c",
+        "Signers": [
+          "Repo Admin"
+        ]
+      },
+      {
+        "SignedTag": "signer",
+        "Digest": "a6122d79b1e74f70b5dd933b18a6d1f99329a4728011079f06b245205f158fe8",
+        "Signers": [
+          "Repo Admin"
+        ]
+      }
+    ],
+    "Signers": [],
+    "AdministrativeKeys": [
+      {
+        "Name": "Root",
+        "Keys": [
+          {
+            "ID": "8cdcdef5bd039f4ab5a029126951b5985eebf57cabdcdc4d21f5b3be8bb4ce92"
+          }
+        ]
+      },
+      {
+        "Name": "Repository",
+        "Keys": [
+          {
+            "ID": "85bfd031017722f950d480a721f845a2944db26a3dc084040a70f1b0d9bbb3df"
+          }
+        ]
+      }
+    ]
+  }
 ]
 ```
 
@@ -378,8 +395,8 @@ SIGNED TAG          DIGEST                                                      
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
 
 Administrative keys for alpine:latest:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 The `SIGNED TAG` is the signed image tag with a unique content-addressable
@@ -395,6 +412,7 @@ and specify their `KEYS`:
 
 ```bash
 $ docker trust inspect --pretty my-image:purple
+
 SIGNED TAG          DIGEST                                                              SIGNERS
 purple              941d3dba358621ce3c41ef67b47cf80f701ff80cdf46b5cc86587eaebfe45557    alice, bob, carol
 
@@ -406,8 +424,8 @@ bob                 034370bcbd77, 82a66673242c
 carol               b6f9f8e1aab0
 
 Administrative keys for my-image:
-Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
-Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
+Repository Key: 27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
+Root Key:       40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```
 
 However, if other tags are signed in the same image repository,
@@ -420,14 +438,15 @@ No signatures for alpine:unsigned
 
 
 Administrative keys for alpine:unsigned:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 ### Get details about signatures for all image tags in a repository
 
 ```bash
 $ docker trust inspect --pretty alpine
+
 SIGNED TAG          DIGEST                                                             SIGNERS
 2.6                 9ace551613070689a12857d62c30ef0daa9a376107ec0fff0e34786cedb3399b   (Repo Admin)
 2.7                 9f08005dff552038f0ad2f46b8e65ff3d25641747d3912e3ea8da6785046561a   (Repo Admin)
@@ -441,14 +460,15 @@ edge                79d50d15bd7ea48ea00cf3dd343b0e740c1afaa8e899bee475236ef338e1
 latest              1072e499f3f655a032e88542330cf75b02e7bdf673278f701d7ba61629ee3ebe   (Repo Admin)
 
 Administrative keys for alpine:
-Repository Key:	5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
-Root Key:	a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
+Repository Key: 5a46c9aaa82ff150bb7305a2d17d0c521c2d784246807b2dc611f436a69041fd
+Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 ```
 
 Here's an example with signers that are set up by `docker trust` commands:
 
 ```bash
 $ docker trust inspect --pretty my-image
+
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
@@ -465,6 +485,6 @@ bob                 034370bcbd77, 82a66673242c
 carol               b6f9f8e1aab0
 
 Administrative keys for my-image:
-Repository Key:	27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
-Root Key:	40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
+Repository Key: 27df2c8187e7543345c2e0bf3a1262e0bc63a72754e9a7395eac3f747ec23a44
+Root Key:       40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 ```

@@ -1,16 +1,14 @@
 package idresolver
 
 import (
+	"context"
 	"testing"
 
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	// Import builders to get the builder function as package function
-	"context"
-
-	. "github.com/docker/cli/internal/test/builders"
 	"github.com/pkg/errors"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestResolveError(t *testing.T) {

@@ -10,11 +10,11 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/fs"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
@@ -116,8 +116,8 @@ func TestBuildIidFileSquash(t *testing.T) {
 	buildDir := fs.NewDir(t, "test-iidfile-squash-build",
 		fs.WithFile("Dockerfile", fmt.Sprintf(`
 	FROM %s
-	ENV FOO FOO
-	ENV BAR BAR
+	ENV FOO=FOO
+	ENV BAR=BAR
 	RUN touch /fiip
 	RUN touch /foop`, fixtures.AlpineImage)),
 	)

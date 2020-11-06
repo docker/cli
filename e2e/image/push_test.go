@@ -10,11 +10,11 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/golden"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/golden"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 const (
@@ -30,12 +30,30 @@ const (
 	privkey4 = "./testdata/notary/delgkey4.key"
 )
 
+func TestPushAllTags(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
+	_ = createImage(t, "push-all-tags", "latest", "v1", "v1.0", "v1.0.1")
+	result := icmd.RunCmd(icmd.Command("docker", "push", "--all-tags", registryPrefix+"/push-all-tags"))
+
+	result.Assert(t, icmd.Success)
+	golden.Assert(t, result.Stderr(), "push-with-content-trust-err.golden")
+	output.Assert(t, result.Stdout(), map[int]func(string) error{
+		0:  output.Equals("The push refers to repository [registry:5000/push-all-tags]"),
+		1:  output.Equals("5bef08742407: Preparing"),
+		3:  output.Equals("latest: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		6:  output.Equals("v1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		9:  output.Equals("v1.0: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		12: output.Equals("v1.0.1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+	})
+}
+
 func TestPushWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
-	image := createImage(t, registryPrefix, "trust-push", "latest")
+	image := createImage(t, "trust-push", "latest")
 
 	result := icmd.RunCmd(icmd.Command("docker", "push", image),
 		fixtures.WithConfig(dir.Path()),
@@ -55,12 +73,20 @@ func TestPushWithContentTrust(t *testing.T) {
 	})
 }
 
+func TestPushQuietErrors(t *testing.T) {
+	result := icmd.RunCmd(icmd.Command("docker", "push", "--quiet", "nosuchimage"))
+	result.Assert(t, icmd.Expected{
+		ExitCode: 1,
+		Err:      "An image does not exist locally with the tag: nosuchimage",
+	})
+}
+
 func TestPushWithContentTrustUnreachableServer(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
-	image := createImage(t, registryPrefix, "trust-push-unreachable", "latest")
+	image := createImage(t, "trust-push-unreachable", "latest")
 
 	result := icmd.RunCmd(icmd.Command("docker", "push", image),
 		fixtures.WithConfig(dir.Path()),
@@ -78,7 +104,7 @@ func TestPushWithContentTrustExistingTag(t *testing.T) {
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
-	image := createImage(t, registryPrefix, "trust-push-existing", "latest")
+	image := createImage(t, "trust-push-existing", "latest")
 
 	result := icmd.RunCmd(icmd.Command("docker", "push", image))
 	result.Assert(t, icmd.Success)
@@ -289,13 +315,17 @@ func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
 	})
 }
 
-func createImage(t *testing.T, registryPrefix, repo, tag string) string {
-	image := fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tag)
+func createImage(t *testing.T, repo string, tags ...string) string {
 	icmd.RunCommand("docker", "pull", fixtures.AlpineImage).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, image).Assert(t, icmd.Success)
-	return image
+
+	for _, tag := range tags {
+		image := fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tag)
+		icmd.RunCommand("docker", "tag", fixtures.AlpineImage, image).Assert(t, icmd.Success)
+	}
+	return fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tags[0])
 }
 
+//nolint: unparam
 func withNotaryPassphrase(pwd string) func(*icmd.Cmd) {
 	return func(c *icmd.Cmd) {
 		c.Env = append(c.Env, []string{

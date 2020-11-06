@@ -4,15 +4,6 @@ description: "The tag command description and usage"
 keywords: "tag, name, image"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # tag
 
 ```markdown
@@ -40,7 +31,7 @@ digits, underscores, periods and dashes. A tag name may not start with a
 period or a dash and may contain a maximum of 128 characters.
 
 You can group your images together using names and tags, and then upload them
-to [*Share Images via Repositories*](https://docs.docker.com/engine/tutorials/dockerrepos/#/contributing-to-docker-hub).
+to [*Share images on Docker Hub*](https://docs.docker.com/get-started/part3/).
 
 ## Examples
 

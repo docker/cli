@@ -31,7 +31,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.mode, flagMode, "replicated", "Service mode (replicated or global)")
+	flags.StringVar(&opts.mode, flagMode, "replicated", "Service mode (replicated, global, replicated-job, or global-job)")
 	flags.StringVar(&opts.name, flagName, "", "Service name")
 
 	addServiceFlags(flags, opts, buildServiceDefaultFlagMapping())
@@ -64,6 +64,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
 	flags.Var(&opts.sysctls, flagSysCtl, "Sysctl options")
 	flags.SetAnnotation(flagSysCtl, "version", []string{"1.40"})
+	flags.Var(&opts.ulimits, flagUlimit, "Ulimit options")
+	flags.SetAnnotation(flagUlimit, "version", []string{"1.41"})
 
 	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestRequiresNoArgs(t *testing.T) {
@@ -119,7 +119,7 @@ func runTestCases(t *testing.T, testCases []testCase) {
 	for _, tc := range testCases {
 		cmd := newDummyCommand(tc.validateFunc)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)

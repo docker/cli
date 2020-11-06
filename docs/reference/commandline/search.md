@@ -4,15 +4,6 @@ description: "The search command description and usage"
 keywords: "search, hub, images"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # search
 
 ```markdown
@@ -35,22 +26,17 @@ Options:
 
 Search [Docker Hub](https://hub.docker.com) for images
 
-See [*Find Public Images on Docker Hub*](https://docs.docker.com/engine/tutorials/dockerrepos/#searching-for-images) for
-more details on finding shared images from the command line.
-
-> **Note**: Search queries return a maximum of 25 results.
-
 ## Examples
 
 ### Search images by name
 
 This example displays images with a name containing 'busybox':
 
-```none
+```bash
 $ docker search busybox
 
 NAME                             DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
-busybox                          Busybox base image.                             316       [OK]       
+busybox                          Busybox base image.                             316       [OK]
 progrium/busybox                                                                 50                   [OK]
 radial/busyboxplus               Full-chain, Internet enabled, busybox made...   8                    [OK]
 odise/busybox-python                                                             2                    [OK]
@@ -83,9 +69,9 @@ This example displays images with a name containing 'busybox',
 at least 3 stars and the description isn't truncated in the output:
 
 ```bash
-$ docker search --stars=3 --no-trunc busybox
+$ docker search --filter=stars=3 --no-trunc busybox
 NAME                 DESCRIPTION                                                                               STARS     OFFICIAL   AUTOMATED
-busybox              Busybox base image.                                                                       325       [OK]       
+busybox              Busybox base image.                                                                       325       [OK]
 progrium/busybox                                                                                               50                   [OK]
 radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Comes in git and cURL flavors.   8                    [OK]
 ```
@@ -98,13 +84,13 @@ be in the range between 1 and 100. The default value of `--limit` is 25.
 ### Filtering
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g. `--filter is-automated=true --filter stars=3`)
 
 The currently supported filters are:
 
-* stars (int - number of stars the image has)
-* is-automated (boolean - true or false) - is the image automated or not
-* is-official (boolean - true or false) - is the image official or not
+- stars (int - number of stars the image has)
+- is-automated (boolean - true or false) - is the image automated or not
+- is-official (boolean - true or false) - is the image official or not
 
 #### stars
 
@@ -115,7 +101,7 @@ least 3 stars:
 $ docker search --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
-busybox              Busybox base image.                             325       [OK]       
+busybox              Busybox base image.                             325       [OK]
 progrium/busybox                                                     50                   [OK]
 radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8                    [OK]
 ```
@@ -126,7 +112,7 @@ This example displays images with a name containing 'busybox'
 and are automated builds:
 
 ```bash
-$ docker search --filter is-automated busybox
+$ docker search --filter is-automated=true busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
 progrium/busybox                                                     50                   [OK]
@@ -139,7 +125,7 @@ This example displays images with a name containing 'busybox', at least
 3 stars and are official builds:
 
 ```bash
-$ docker search --filter "is-official=true" --filter "stars=3" busybox
+$ docker search --filter is-official=true --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
 progrium/busybox                                                     50                   [OK]
@@ -166,10 +152,9 @@ output the data exactly as the template declares. If you use the
 `table` directive, column headers are included as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `StarCount` entries separated by a colon for all images:
+`Name` and `StarCount` entries separated by a colon (`:`) for all images:
 
 ```bash
-{% raw %}
 $ docker search --format "{{.Name}}: {{.StarCount}}" nginx
 
 nginx: 5441
@@ -182,21 +167,18 @@ bitnami/nginx: 23
 evild/alpine-nginx: 14
 million12/nginx: 9
 maxexcloo/nginx: 7
-{% endraw %}
 ```
 
 This example outputs a table format:
 
 ```bash
-{% raw %}
 $ docker search --format "table {{.Name}}\t{{.IsAutomated}}\t{{.IsOfficial}}" nginx
 
 NAME                                     AUTOMATED           OFFICIAL
 nginx                                                        [OK]
-jwilder/nginx-proxy                      [OK]                
-richarvey/nginx-php-fpm                  [OK]                
-jrcs/letsencrypt-nginx-proxy-companion   [OK]                
-million12/nginx-php                      [OK]                
-webdevops/php-nginx                      [OK]                
-{% endraw %}
+jwilder/nginx-proxy                      [OK]
+richarvey/nginx-php-fpm                  [OK]
+jrcs/letsencrypt-nginx-proxy-companion   [OK]
+million12/nginx-php                      [OK]
+webdevops/php-nginx                      [OK]
 ```

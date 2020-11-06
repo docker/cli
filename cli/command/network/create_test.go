@@ -10,8 +10,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNetworkCreateErrors(t *testing.T) {
@@ -137,7 +137,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			assert.NilError(t, cmd.Flags().Set(key, value))
 		}
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 
 	}

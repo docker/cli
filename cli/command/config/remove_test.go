@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestConfigRemoveErrors(t *testing.T) {
@@ -36,7 +36,7 @@ func TestConfigRemoveErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -73,7 +73,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.Error(t, cmd.Execute(), "error removing config: foo")
 	assert.Check(t, is.DeepEqual(names, removedConfigs))
 }

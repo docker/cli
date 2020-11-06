@@ -7,12 +7,123 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
-	"gotest.tools/assert"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
+
+func TestContainerListBuildContainerListOptions(t *testing.T) {
+	filters := opts.NewFilterOpt()
+	assert.NilError(t, filters.Set("foo=bar"))
+	assert.NilError(t, filters.Set("baz=foo"))
+
+	contexts := []struct {
+		psOpts          *psOptions
+		expectedAll     bool
+		expectedSize    bool
+		expectedLimit   int
+		expectedFilters map[string]string
+	}{
+		{
+			psOpts: &psOptions{
+				all:    true,
+				size:   true,
+				last:   5,
+				filter: filters,
+			},
+			expectedAll:   true,
+			expectedSize:  true,
+			expectedLimit: 5,
+			expectedFilters: map[string]string{
+				"foo": "bar",
+				"baz": "foo",
+			},
+		},
+		{
+			psOpts: &psOptions{
+				all:     true,
+				size:    true,
+				last:    -1,
+				nLatest: true,
+			},
+			expectedAll:     true,
+			expectedSize:    true,
+			expectedLimit:   1,
+			expectedFilters: make(map[string]string),
+		},
+		{
+			psOpts: &psOptions{
+				all:    true,
+				size:   false,
+				last:   5,
+				filter: filters,
+				// With .Size, size should be true
+				format: "{{.Size}}",
+			},
+			expectedAll:   true,
+			expectedSize:  true,
+			expectedLimit: 5,
+			expectedFilters: map[string]string{
+				"foo": "bar",
+				"baz": "foo",
+			},
+		},
+		{
+			psOpts: &psOptions{
+				all:    true,
+				size:   false,
+				last:   5,
+				filter: filters,
+				// With .Size, size should be true
+				format: "{{.Size}} {{.CreatedAt}} {{upper .Networks}}",
+			},
+			expectedAll:   true,
+			expectedSize:  true,
+			expectedLimit: 5,
+			expectedFilters: map[string]string{
+				"foo": "bar",
+				"baz": "foo",
+			},
+		},
+		{
+			psOpts: &psOptions{
+				all:    true,
+				size:   false,
+				last:   5,
+				filter: filters,
+				// Without .Size, size should be false
+				format: "{{.CreatedAt}} {{.Networks}}",
+			},
+			expectedAll:   true,
+			expectedSize:  false,
+			expectedLimit: 5,
+			expectedFilters: map[string]string{
+				"foo": "bar",
+				"baz": "foo",
+			},
+		},
+	}
+
+	for _, c := range contexts {
+		options, err := buildContainerListOptions(c.psOpts)
+		assert.NilError(t, err)
+
+		assert.Check(t, is.Equal(c.expectedAll, options.All))
+		assert.Check(t, is.Equal(c.expectedSize, options.Size))
+		assert.Check(t, is.Equal(c.expectedLimit, options.Limit))
+		assert.Check(t, is.Equal(len(c.expectedFilters), options.Filters.Len()))
+
+		for k, v := range c.expectedFilters {
+			f := options.Filters
+			if !f.ExactMatch(k, v) {
+				t.Fatalf("Expected filter with key %s to be %s but got %s", k, v, f.Get(k))
+			}
+		}
+	}
+}
 
 func TestContainerListErrors(t *testing.T) {
 	testCases := []struct {
@@ -50,7 +161,7 @@ func TestContainerListErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

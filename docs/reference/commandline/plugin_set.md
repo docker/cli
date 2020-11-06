@@ -4,15 +4,6 @@ description: "the plugin set command description and usage"
 keywords: "plugin, set"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # plugin set
 
 ```markdown
@@ -41,45 +32,43 @@ by looking at the `Settable` field.
 
 Here is an extract of a plugin manifest:
 
-```
+```json
 {
-        "config": {
-            ...
-            "args": {
-                "name": "myargs",
-                "settable": ["value"],
-                "value": ["foo", "bar"]
-            },
-            "env": [
-                {
-                    "name": "DEBUG",
-                    "settable": ["value"],
-                    "value": "0"
-                },
-                {
-                    "name": "LOGGING",
-                    "value": "1"
-                }
-            ],
-	    "devices": [
-                {
-                    "name": "mydevice",
-                    "path": "/dev/foo",
-                    "settable": ["path"]
-                }
-            ],
-	    "mounts": [
-                {
-                    "destination": "/baz",
-                    "name": "mymount",
-                    "options": ["rbind"],
-                    "settable": ["source"],
-                    "source": "/foo",
-                    "type": "bind"
-                }
-            ],
-	    ...
-	 }
+  "config": {
+    "args": {
+      "name": "myargs",
+      "settable": ["value"],
+      "value": ["foo", "bar"]
+    },
+    "env": [
+      {
+        "name": "DEBUG",
+        "settable": ["value"],
+        "value": "0"
+      },
+      {
+        "name": "LOGGING",
+        "value": "1"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mydevice",
+        "path": "/dev/foo",
+        "settable": ["path"]
+      }
+    ],
+    "mounts": [
+      {
+        "destination": "/baz",
+        "name": "mymount",
+        "options": ["rbind"],
+        "settable": ["source"],
+        "source": "/foo",
+        "type": "bind"
+      }
+    ]
+  }
 }
 ```
 
@@ -120,7 +109,9 @@ $ docker plugin inspect -f '{{with $mount := index .Settings.Mounts 0}}{{$mount.
 /bar
 ```
 
-> **Note**: Since only `source` is settable in `mymount`,
+> **Note**
+>
+> Since only `source` is settable in `mymount`,
 > `docker plugins set mymount=/bar myplugin` would work too.
 
 ### Change a device path
@@ -140,7 +131,8 @@ $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$devi
 /dev/bar
 ```
 
-> **Note**: Since only `path` is settable in `mydevice`,
+> **Note**
+> Since only `path` is settable in `mydevice`,
 > `docker plugins set mydevice=/dev/bar myplugin` would work too.
 
 ### Change the source of the arguments

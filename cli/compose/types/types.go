@@ -9,8 +9,7 @@ import (
 // UnsupportedProperties not yet supported by this implementation of the compose file
 var UnsupportedProperties = []string{
 	"build",
-	"cap_add",
-	"cap_drop",
+	"cgroupns_mode",
 	"cgroup_parent",
 	"devices",
 	"domainname",
@@ -24,7 +23,6 @@ var UnsupportedProperties = []string{
 	"restart",
 	"security_opt",
 	"shm_size",
-	"ulimits",
 	"userns_mode",
 }
 
@@ -103,7 +101,7 @@ type Config struct {
 	Volumes  map[string]VolumeConfig    `yaml:",omitempty" json:"volumes,omitempty"`
 	Secrets  map[string]SecretConfig    `yaml:",omitempty" json:"secrets,omitempty"`
 	Configs  map[string]ConfigObjConfig `yaml:",omitempty" json:"configs,omitempty"`
-	Extras   map[string]interface{}     `yaml:",inline", json:"-"`
+	Extras   map[string]interface{}     `yaml:",inline" json:"-"`
 }
 
 // MarshalJSON makes Config implement json.Marshaler
@@ -159,6 +157,7 @@ type ServiceConfig struct {
 	Build           BuildConfig                      `yaml:",omitempty" json:"build,omitempty"`
 	CapAdd          []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty" json:"cap_add,omitempty"`
 	CapDrop         []string                         `mapstructure:"cap_drop" yaml:"cap_drop,omitempty" json:"cap_drop,omitempty"`
+	CgroupNSMode    string                           `mapstructure:"cgroupns_mode" yaml:"cgroupns_mode,omitempty" json:"cgroupns_mode,omitempty"`
 	CgroupParent    string                           `mapstructure:"cgroup_parent" yaml:"cgroup_parent,omitempty" json:"cgroup_parent,omitempty"`
 	Command         ShellCommand                     `yaml:",omitempty" json:"command,omitempty"`
 	Configs         []ServiceConfigObjConfig         `yaml:",omitempty" json:"configs,omitempty"`
@@ -219,6 +218,7 @@ type BuildConfig struct {
 	Args       MappingWithEquals `yaml:",omitempty" json:"args,omitempty"`
 	Labels     Labels            `yaml:",omitempty" json:"labels,omitempty"`
 	CacheFrom  StringList        `mapstructure:"cache_from" yaml:"cache_from,omitempty" json:"cache_from,omitempty"`
+	ExtraHosts HostsList         `mapstructure:"extra_hosts" yaml:"extra_hosts,omitempty" json:"extra_hosts,omitempty"`
 	Network    string            `yaml:",omitempty" json:"network,omitempty"`
 	Target     string            `yaml:",omitempty" json:"target,omitempty"`
 }
@@ -299,11 +299,19 @@ type UpdateConfig struct {
 
 // Resources the resource limits and reservations
 type Resources struct {
-	Limits       *Resource `yaml:",omitempty" json:"limits,omitempty"`
-	Reservations *Resource `yaml:",omitempty" json:"reservations,omitempty"`
+	Limits       *ResourceLimit `yaml:",omitempty" json:"limits,omitempty"`
+	Reservations *Resource      `yaml:",omitempty" json:"reservations,omitempty"`
 }
 
-// Resource is a resource to be limited or reserved
+// ResourceLimit is a resource to be limited
+type ResourceLimit struct {
+	// TODO: types to convert from units and ratios
+	NanoCPUs    string    `mapstructure:"cpus" yaml:"cpus,omitempty" json:"cpus,omitempty"`
+	MemoryBytes UnitBytes `mapstructure:"memory" yaml:"memory,omitempty" json:"memory,omitempty"`
+	Pids        int64     `mapstructure:"pids" yaml:"pids,omitempty" json:"pids,omitempty"`
+}
+
+// Resource is a resource to be reserved
 type Resource struct {
 	// TODO: types to convert from units and ratios
 	NanoCPUs         string            `mapstructure:"cpus" yaml:"cpus,omitempty" json:"cpus,omitempty"`

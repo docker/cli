@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/containerd/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
@@ -14,9 +15,11 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/versions"
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -233,13 +236,26 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 		return nil
 	}
 
+	var platform *specs.Platform
+	// Engine API version 1.41 first introduced the option to specify platform on
+	// create. It will produce an error if you try to set a platform on older API
+	// versions, so check the API version here to maintain backwards
+	// compatibility for CLI users.
+	if opts.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
+		p, err := platforms.Parse(opts.platform)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing specified platform")
+		}
+		platform = &p
+	}
+
 	if opts.pull == PullImageAlways {
 		if err := pullAndTagImage(); err != nil {
 			return nil, err
 		}
 	}
 
-	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
 		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
@@ -250,7 +266,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 			}
 
 			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, opts.name)
+			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
 			if retryErr != nil {
 				return nil, retryErr
 			}

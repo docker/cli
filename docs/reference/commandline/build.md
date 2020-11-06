@@ -4,15 +4,6 @@ description: "The build command description and usage"
 keywords: "build, docker, image"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # build
 
 ```markdown
@@ -47,8 +38,9 @@ Options:
                                 'host': use the Docker host network stack
                                 '<network-name>|<network-id>': connect to a user-defined network
       --no-cache                Do not use cache when building the image
+  -o, --output                  Output destination (format: type=local,dest=path)
       --pull                    Always attempt to pull a newer version of the image
-      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty). 
+      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty).
                                 Use plain to show container output
   -q, --quiet                   Suppress the build output and print image ID on success
       --rm                      Remove intermediate containers after a successful build (default true)
@@ -86,12 +78,13 @@ that succeeds, the directory is sent to the Docker daemon as the context.
 Local copy gives you the ability to access private repositories using local
 user credentials, VPN's, and so forth.
 
-> **Note:**
+> **Note**
+>
 > If the `URL` parameter contains a fragment the system will recursively clone
 > the repository and its submodules using a `git clone --recursive` command.
 
 Git URLs accept context configuration in their fragment section, separated by a
-colon `:`.  The first part represents the reference that Git will check out,
+colon (`:`).  The first part represents the reference that Git will check out,
 and can be either a branch, a tag, or a remote reference. The second part
 represents a subdirectory inside the repository that will be used as a build
 context.
@@ -117,6 +110,11 @@ Build Syntax Suffix             | Commit Used           | Build Context Used
 `myrepo.git#mytag:myfolder`     | `refs/tags/mytag`     | `/myfolder`
 `myrepo.git#mybranch:myfolder`  | `refs/heads/mybranch` | `/myfolder`
 
+> **Note**
+>
+> You cannot specify the build-context directory (`myfolder` in the examples above)
+> when using BuildKit as builder (`DOCKER_BUILDKIT=1`). Support for this feature
+> is tracked in [buildkit#1684](https://github.com/moby/buildkit/issues/1684).
 
 ### Tarball contexts
 
@@ -323,7 +321,16 @@ Successfully built 99cc1ad10469
 This example shows the use of the `.dockerignore` file to exclude the `.git`
 directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
-[creating a .dockerignore file](../builder.md#dockerignore-file)
+[creating a .dockerignore file](../builder.md#dockerignore-file).
+
+When using the [BuildKit backend](../builder.md#buildkit), `docker build` searches
+for a `.dockerignore` file relative to the Dockerfile name. For example, running
+`docker build -f myapp.Dockerfile .` will first look for an ignore file named
+`myapp.Dockerfile.dockerignore`. If such a file is not found, the `.dockerignore`
+file is used if present. Using a Dockerfile based `.dockerignore` is useful if a
+project contains multiple Dockerfiles that expect to ignore different sets of
+files.
+
 
 ### Tag an image (-t)
 
@@ -382,26 +389,27 @@ contents of the `debug` file instead of looking for a `Dockerfile` and will use
 directory structure of the build context, regardless of how you refer to it on
 the command line.
 
-> **Note:**
-> `docker build` will return a `no such file or directory` error if the
+> **Note**
+>
+> `docker build` returns a `no such file or directory` error if the
 > file or directory does not exist in the uploaded context. This may
 > happen if there is no context, or if you specify a file that is
 > elsewhere on the Host system. The context is limited to the current
 > directory (and its children) for security reasons, and to ensure
 > repeatable builds on remote Docker hosts. This is also the reason why
-> `ADD ../file` will not work.
+> `ADD ../file` does not work.
 
 ### Use a custom parent cgroup (--cgroup-parent)
 
 When `docker build` is run with the `--cgroup-parent` option the containers
-used in the build will be run with the [corresponding `docker run`
-flag](../run.md#specifying-custom-cgroups).
+used in the build will be run with the 
+[corresponding `docker run` flag](../run.md#specify-custom-cgroups).
 
 ### Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
-container to be started using those [`--ulimit`
-flag values](./run.md#set-ulimits-in-container-ulimit).
+container to be started using those 
+[`--ulimit` flag values](run.md#set-ulimits-in-container---ulimit).
 
 ### Set build-time variables (--build-arg)
 
@@ -421,7 +429,7 @@ $ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 --build-arg FTP_PRO
 This flag allows you to pass the build-time variables that are
 accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
-like `ENV` values do.   You must add `--build-arg` for each build argument.  
+like `ENV` values do.   You must add `--build-arg` for each build argument.
 
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
@@ -477,7 +485,7 @@ When building a Dockerfile with multiple build stages, `--target` can be used to
 specify an intermediate build stage by name as a final stage for the resulting
 image. Commands after the target stage will be skipped.
 
-```Dockerfile
+```dockerfile
 FROM debian AS build-env
 ...
 
@@ -488,6 +496,141 @@ FROM alpine AS production-env
 ```bash
 $ docker build -t mybuildimage --target build-env .
 ```
+
+### Custom build outputs
+
+By default, a local container image is created from the build result. The
+`--output` (or `-o`) flag allows you to override this behavior, and a specify a
+custom exporter. For example, custom exporters allow you to export the build
+artifacts as files on the local filesystem instead of a Docker image, which can
+be useful for generating local binaries, code generation etc.
+
+The value for `--output` is a CSV-formatted string defining the exporter type
+and options. Currently, `local` and `tar` exporters are supported. The `local`
+exporter writes the resulting build files to a directory on the client side. The
+`tar` exporter is similar but writes the files as a single tarball (`.tar`).
+
+If no type is specified, the value defaults to the output directory of the local
+exporter. Use a hyphen (`-`) to write the output tarball to standard output
+(`STDOUT`).
+
+The following example builds an image using the current directory (`.`) as build
+context, and exports the files to a directory named `out` in the current directory.
+If the directory does not exist, Docker creates the directory automatically:
+
+```bash
+$ docker build -o out .
+```
+
+The example above uses the short-hand syntax, omitting the `type` options, and
+thus uses the default (`local`) exporter. The example below shows the equivalent
+using the long-hand CSV syntax, specifying both `type` and `dest` (destination
+path):
+
+```bash
+$ docker build --output type=local,dest=out .
+```
+
+Use the `tar` type to export the files as a `.tar` archive:
+
+```bash
+$ docker build --output type=tar,dest=out.tar .
+```
+
+The example below shows the equivalent when using the short-hand syntax. In this
+case, `-` is specified as destination, which automatically selects the `tar` type,
+and writes the output tarball to standard output, which is then redirected to
+the `out.tar` file:
+
+```bash
+docker build -o - . > out.tar
+```
+
+The `--output` option exports all files from the target stage. A common pattern
+for exporting only specific files is to do multi-stage builds and to copy the
+desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
+
+The example `Dockerfile` below uses a separate stage to collect the
+build-artifacts for exporting:
+
+```dockerfile
+FROM golang AS build-stage
+RUN go get -u github.com/LK4D4/vndr
+
+FROM scratch AS export-stage
+COPY --from=build-stage /go/bin/vndr /
+```
+
+When building the Dockerfile with the `-o` option, only the files from the final
+stage are exported to the `out` directory, in this case, the `vndr` binary:
+
+```bash
+$ docker build -o out .
+
+[+] Building 2.3s (7/7) FINISHED
+ => [internal] load build definition from Dockerfile                                                                          0.1s
+ => => transferring dockerfile: 176B                                                                                          0.0s
+ => [internal] load .dockerignore                                                                                             0.0s
+ => => transferring context: 2B                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/golang:latest                                                              1.6s
+ => [build-stage 1/2] FROM docker.io/library/golang@sha256:2df96417dca0561bf1027742dcc5b446a18957cd28eba6aa79269f23f1846d3f   0.0s
+ => => resolve docker.io/library/golang@sha256:2df96417dca0561bf1027742dcc5b446a18957cd28eba6aa79269f23f1846d3f               0.0s
+ => CACHED [build-stage 2/2] RUN go get -u github.com/LK4D4/vndr                                                              0.0s
+ => [export-stage 1/1] COPY --from=build-stage /go/bin/vndr /                                                                 0.2s
+ => exporting to client                                                                                                       0.4s
+ => => copying files 10.30MB                                                                                                  0.3s
+
+$ ls ./out
+vndr
+```
+
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
+> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
+> plugin which provides more output type options.
+
+### Specifying external cache sources
+
+In addition to local build cache, the builder can reuse the cache generated from
+previous builds with the `--cache-from` flag pointing to an image in the registry.
+
+To use an image as a cache source, cache metadata needs to be written into the
+image on creation. This can be done by setting `--build-arg BUILDKIT_INLINE_CACHE=1`
+when building the image. After that, the built image can be used as a cache source
+for subsequent builds.
+
+Upon importing the cache, the builder will only pull the JSON metadata from the
+registry and determine possible cache hits based on that information. If there
+is a cache hit, the matched layers are pulled into the local environment.
+
+In addition to images, the cache can also be pulled from special cache manifests
+generated by [`buildx`](https://github.com/docker/buildx) or the BuildKit CLI
+(`buildctl`). These manifests (when built with the `type=registry` and `mode=max`
+options) allow pulling layer data for intermediate stages in multi-stage builds.
+
+The following example builds an image with inline-cache metadata and pushes it
+to a registry, then uses the image as a cache source on another machine:
+
+```bash
+$ docker build -t myname/myapp --build-arg BUILDKIT_INLINE_CACHE=1 .
+$ docker push myname/myapp
+```
+
+After pushing the image, the image is used as cache source on another machine.
+BuildKit automatically pulls the image from the registry if needed.
+
+```bash
+# on another machine
+$ docker build --cache-from myname/myapp .
+```
+
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
+> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
+> plugin. The previous builder has limited support for reusing cache from
+> pre-pulled images.
 
 ### Squash an image's layers (--squash) (experimental)
 
@@ -535,30 +678,46 @@ The `--squash` option has a number of known limitations:
 
 #### Prerequisites
 
-The example on this page is using experimental mode in Docker 1.13.
+The example on this page is using experimental mode in Docker 19.03.
 
-Experimental mode can be enabled by using the `--experimental` flag when starting the Docker daemon or setting `experimental: true` in the `daemon.json` configuration file.
+Experimental mode can be enabled by using the `--experimental` flag when starting
+the Docker daemon or setting `experimental: true` in the `daemon.json` configuration
+file.
 
-By default, experimental mode is disabled. To see the current configuration, use the `docker version` command.
+By default, experimental mode is disabled. To see the current configuration of
+the docker daemon, use the `docker version` command and check the `Experimental`
+line in the `Engine` section:
 
-```none
-Server:
- Version:      1.13.1
- API version:  1.26 (minimum version 1.12)
- Go version:   go1.7.5
- Git commit:   092cba3
- Built:        Wed Feb  8 06:35:24 2017
- OS/Arch:      linux/amd64
- Experimental: false
+```console
+Client: Docker Engine - Community
+ Version:           19.03.8
+ API version:       1.40
+ Go version:        go1.12.17
+ Git commit:        afacb8b
+ Built:             Wed Mar 11 01:21:11 2020
+ OS/Arch:           darwin/amd64
+ Experimental:      false
 
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.8
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.12.17
+  Git commit:       afacb8b
+  Built:            Wed Mar 11 01:29:16 2020
+  OS/Arch:          linux/amd64
+  Experimental:     true
  [...]
 ```
 
-To enable experimental mode, users need to restart the docker daemon with the experimental flag enabled.
+To enable experimental mode, users need to restart the docker daemon with the
+experimental flag enabled.
 
 #### Enable Docker experimental
 
-Experimental features are now included in the standard Docker binaries as of version 1.13.0. For enabling experimental features, you need to start the Docker daemon with `--experimental` flag. You can also enable the daemon flag via /etc/docker/daemon.json. e.g.
+To enable experimental features, you need to start the Docker daemon with
+`--experimental` flag. You can also enable the daemon flag via
+`/etc/docker/daemon.json`, for example:
 
 ```json
 {
@@ -577,12 +736,12 @@ true
 
 The following is an example of docker build with `--squash` argument
 
-```Dockerfile
+```dockerfile
 FROM busybox
 RUN echo hello > /hello
 RUN echo world >> /hello
 RUN touch remove_me /remove_me
-ENV HELLO world
+ENV HELLO=world
 RUN rm /remove_me
 ```
 
@@ -594,7 +753,7 @@ $ docker build --squash -t test .
 [...]
 ```
 
-If everything is right, the history will look like this:
+If everything is right, the history looks like this:
 
 ```bash
 $ docker history test
@@ -610,6 +769,8 @@ IMAGE               CREATED             CREATED BY                              
 <missing>           7 weeks ago         /bin/sh -c #(nop) ADD file:47ca6e777c36a4cfff   1.113 MB
 ```
 
-We could find that all layer's name is `<missing>`, and there is a new layer with COMMENT `merge`.
+We could find that a layer's name is `<missing>`, and there is a new layer with
+COMMENT `merge`.
 
-Test the image, check for `/remove_me` being gone, make sure `hello\nworld` is in `/hello`, make sure the `HELLO` envvar's value is `world`.
+Test the image, check for `/remove_me` being gone, make sure `hello\nworld` is
+in `/hello`, make sure the `HELLO` environment variable's value is `world`.

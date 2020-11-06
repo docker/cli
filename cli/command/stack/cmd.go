@@ -73,18 +73,6 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// NewTopLevelDeployCommand returns a command for `docker deploy`
-func NewTopLevelDeployCommand(dockerCli command.Cli) *cobra.Command {
-	cmd := newDeployCommand(dockerCli, nil)
-	// Remove the aliases at the top level
-	cmd.Aliases = []string{}
-	cmd.Annotations = map[string]string{
-		"experimental": "",
-		"version":      "1.25",
-	}
-	return cmd
-}
-
 func getOrchestrator(dockerCli command.Cli, cmd *cobra.Command) (command.Orchestrator, error) {
 	var orchestratorFlag string
 	if o, err := cmd.Flags().GetString("orchestrator"); err == nil {

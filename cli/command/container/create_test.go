@@ -18,10 +18,11 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/google/go-cmp/cmp"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/fs"
-	"gotest.tools/golden"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/golden"
 )
 
 func TestCIDFileNoOPWithNoFilename(t *testing.T) {
@@ -108,6 +109,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
+		c := c
 		pullCounter := 0
 
 		client := &fakeClient{
@@ -115,6 +117,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
+				platform *specs.Platform,
 				containerName string,
 			) (container.ContainerCreateCreatedBody, error) {
 				defer func() { c.ResponseCounter++ }()
@@ -178,10 +181,12 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		cli := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
+				platform *specs.Platform,
 				containerName string,
 			) (container.ContainerCreateCreatedBody, error) {
 				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
@@ -189,7 +194,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewCreateCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)
@@ -236,18 +241,20 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
+					platform *specs.Platform,
 					containerName string,
 				) (container.ContainerCreateCreatedBody, error) {
 					return container.ContainerCreateCreatedBody{}, nil
 				},
 			})
 			cmd := NewCreateCommand(cli)
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
 			assert.NilError(t, err)
@@ -277,6 +284,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		createContainerFunc: func(config *container.Config,
 			hostConfig *container.HostConfig,
 			networkingConfig *network.NetworkingConfig,
+			platform *specs.Platform,
 			containerName string,
 		) (container.ContainerCreateCreatedBody, error) {
 			sort.Strings(config.Env)
@@ -295,7 +303,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		},
 	})
 	cmd := NewCreateCommand(cli)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()
 	assert.NilError(t, err)

@@ -4,15 +4,6 @@ description: "The ps command description and usage"
 keywords: "container, running, list"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # ps
 
 ```markdown
@@ -74,6 +65,23 @@ $ docker ps -a
 `docker ps` groups exposed ports into a single range if possible. E.g., a
 container that exposes TCP ports `100, 101, 102` displays `100-102/tcp` in
 the `PORTS` column.
+
+### Show disk usage by container
+
+The `docker ps -s` command displays two different on-disk-sizes for each container:
+
+```bash
+$ docker ps -s
+
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE                                                                                      SIZE
+e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours           my_nginx     35.58 kB (virtual 109.2 MB)
+00c6131c5e30   telegraf:1.5   "/entrypoint.sh"         11 weeks ago   Up 11 weeks          my_telegraf  0 B (virtual 209.5 MB)
+```
+  * The "size" information shows the amount of data (on disk) that is used for the _writable_ layer of each container
+  * The "virtual size" is the total amount of disk-space used for the read-only _image_ data used by the container and the writable layer.
+
+For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
+
 
 ### Filtering
 
@@ -166,7 +174,7 @@ ea09c3c82f6e        registry:latest   /srv/run.sh            2 weeks ago        
 You can use a filter to locate containers that exited with status of `137`
 meaning a `SIGKILL(9)` killed them.
 
-```none
+```bash
 $ docker ps -a --filter 'exited=137'
 
 CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS                       PORTS               NAMES
@@ -303,10 +311,12 @@ a volume mounted in a specific path:
 
 ```bash
 $ docker ps --filter volume=remote-volume --format "table {{.ID}}\t{{.Mounts}}"
+
 CONTAINER ID        MOUNTS
 9c3527ed70ce        remote-volume
 
 $ docker ps --filter volume=/data --format "table {{.ID}}\t{{.Mounts}}"
+
 CONTAINER ID        MOUNTS
 9c3527ed70ce        remote-volume
 ```
@@ -397,7 +407,8 @@ Valid placeholders for the Go template are listed below:
 | `.CreatedAt`  | Time when the container was created.                                                            |
 | `.RunningFor` | Elapsed time since the container was started.                                                   |
 | `.Ports`      | Exposed ports.                                                                                  |
-| `.Status`     | Container status.                                                                               |
+| `.State`      | Container status (for example; "created", "running", "exited").                                 |
+| `.Status`     | Container status with details about duration and health-status.                                 |
 | `.Size`       | Container disk size.                                                                            |
 | `.Names`      | Container names.                                                                                |
 | `.Labels`     | All labels assigned to the container.                                                           |
@@ -410,7 +421,7 @@ exactly as the template declares or, when using the `table` directive, includes
 column headers as well.
 
 The following example uses a template without headers and outputs the `ID` and
-`Command` entries separated by a colon for all running containers:
+`Command` entries separated by a colon (`:`) for all running containers:
 
 ```bash
 $ docker ps --format "{{.ID}}: {{.Command}}"

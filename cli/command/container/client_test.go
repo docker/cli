@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type fakeClient struct {
@@ -18,6 +19,7 @@ type fakeClient struct {
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
+		platform *specs.Platform,
 		containerName string) (container.ContainerCreateCreatedBody, error)
 	containerStartFunc      func(container string, options types.ContainerStartOptions) error
 	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
@@ -29,6 +31,7 @@ type fakeClient struct {
 	containerListFunc       func(types.ContainerListOptions) ([]types.Container, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options types.ResizeOptions) error
+	containerRemoveFunc     func(ctx context.Context, container string, options types.ContainerRemoveOptions) error
 	Version                 string
 }
 
@@ -69,12 +72,20 @@ func (f *fakeClient) ContainerCreate(
 	config *container.Config,
 	hostConfig *container.HostConfig,
 	networkingConfig *network.NetworkingConfig,
+	platform *specs.Platform,
 	containerName string,
 ) (container.ContainerCreateCreatedBody, error) {
 	if f.createContainerFunc != nil {
-		return f.createContainerFunc(config, hostConfig, networkingConfig, containerName)
+		return f.createContainerFunc(config, hostConfig, networkingConfig, platform, containerName)
 	}
 	return container.ContainerCreateCreatedBody{}, nil
+}
+
+func (f *fakeClient) ContainerRemove(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
+	if f.containerRemoveFunc != nil {
+		return f.containerRemoveFunc(ctx, container, options)
+	}
+	return nil
 }
 
 func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {

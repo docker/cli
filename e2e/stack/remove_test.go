@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/environment"
-	"gotest.tools/golden"
-	"gotest.tools/icmd"
-	"gotest.tools/poll"
-	"gotest.tools/skip"
+	"gotest.tools/v3/golden"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/poll"
+	"gotest.tools/v3/skip"
 )
 
 var pollSettings = environment.DefaultPollSettings

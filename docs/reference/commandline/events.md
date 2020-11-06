@@ -4,15 +4,6 @@ description: "The events command description and usage"
 keywords: "events, container, report"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # events
 
 ```markdown
@@ -31,7 +22,12 @@ Options:
 ## Description
 
 Use `docker events` to get real-time events from the server. These events differ
-per Docker object type.
+per Docker object type. Different event types have different scopes. Local
+scoped events are only seen on the node they take place on, and swarm scoped
+events are seen on all managers.
+
+Only the last 1000 log events are returned. You can use filters to further limit
+the number of events returned.
 
 ### Object types
 
@@ -160,6 +156,9 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
+Only the last 1000 log events are returned. You can use filters to further limit
+the number of events returned.
+
 #### Filtering
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
@@ -199,7 +198,7 @@ format. Go's [text/template](http://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
+Lines. For information about JSON Lines, please refer to http://jsonlines.org/.
 
 ## Examples
 
@@ -223,7 +222,7 @@ $ docker stop test
 
 **Shell 1: (Again .. now showing events):**
 
-```none
+```console
 2017-01-05T00:35:58.859401177+08:00 container create 0fdb48addc82871eb34eb23a847cfd033dedd1a0a37bef2e6d9eb3870fc7ff37 (image=alpine:latest, name=test)
 2017-01-05T00:36:04.703631903+08:00 network connect e2e1f5ceda09d4300f3a846f0acfaa9a8bb0d89e775eb744c5acecd60e0529e2 (container=0fdb...ff37, name=bridge, type=bridge)
 2017-01-05T00:36:04.795031609+08:00 container start 0fdb...ff37 (image=alpine:latest, name=test)
@@ -402,12 +401,12 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-```none
-    $ docker events --format '{{json .}}'
+```bash
+$ docker events --format '{{json .}}'
 
-    {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
-    {"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
-    {"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
-    {"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
+{"Type":"network","Action":"connect","Actor":{"ID":"1b50a5bf755f6021dfa78e..
+{"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
+{"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 ```

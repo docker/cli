@@ -4,19 +4,10 @@ description: "The secret ls command description and usage"
 keywords: ["secret, ls"]
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # secret ls
 
 ```Markdown
-Usage:	docker secret ls [OPTIONS]
+Usage:  docker secret ls [OPTIONS]
 
 List secrets
 
@@ -36,6 +27,13 @@ Run this command on a manager node to list the secrets in the swarm.
 
 For detailed information about using secrets, refer to [manage sensitive data with Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
 
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
+
 ## Examples
 
 ```bash
@@ -54,9 +52,9 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-* [id](secret_ls.md#id) (secret's ID)
-* [label](secret_ls.md#label) (`label=<key>` or `label=<key>=<value>`)
-* [name](secret_ls.md#name) (secret's name)
+- [id](#id) (secret's ID)
+- [label](#label) (`label=<key>` or `label=<key>=<value>`)
+- [name](#name) (secret's name)
 
 #### id
 
@@ -128,7 +126,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Name` entries separated by a colon for all images:
+`ID` and `Name` entries separated by a colon (`:`) for all images:
 
 ```bash
 $ docker secret ls --format "{{.ID}}: {{.Name}}"

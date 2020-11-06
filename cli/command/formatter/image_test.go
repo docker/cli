@@ -7,15 +7,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestImageContext(t *testing.T) {
 	imageID := stringid.GenerateRandomID()
 	unix := time.Now().Unix()
+	zeroTime := int64(-62135596800)
 
 	var ctx imageContext
 	cases := []struct {
@@ -23,58 +25,69 @@ func TestImageContext(t *testing.T) {
 		expValue string
 		call     func() string
 	}{
-		{imageContext{
-			i:     types.ImageSummary{ID: imageID},
-			trunc: true,
-		}, stringid.TruncateID(imageID), ctx.ID},
-		{imageContext{
-			i:     types.ImageSummary{ID: imageID},
-			trunc: false,
-		}, imageID, ctx.ID},
-		{imageContext{
-			i:     types.ImageSummary{Size: 10, VirtualSize: 10},
-			trunc: true,
-		}, "10B", ctx.Size},
-		{imageContext{
-			i:     types.ImageSummary{Created: unix},
-			trunc: true,
-		}, time.Unix(unix, 0).String(), ctx.CreatedAt},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: true},
+			expValue: stringid.TruncateID(imageID),
+			call:     ctx.ID,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{ID: imageID}, trunc: false},
+			expValue: imageID,
+			call:     ctx.ID,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Size: 10, VirtualSize: 10}, trunc: true},
+			expValue: "10B",
+			call:     ctx.Size,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
+			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
+		},
 		// FIXME
 		// {imageContext{
 		// 	i:     types.ImageSummary{Created: unix},
 		// 	trunc: true,
 		// }, units.HumanDuration(time.Unix(unix, 0)), createdSinceHeader, ctx.CreatedSince},
-		{imageContext{
-			i:    types.ImageSummary{},
-			repo: "busybox",
-		}, "busybox", ctx.Repository},
-		{imageContext{
-			i:   types.ImageSummary{},
-			tag: "latest",
-		}, "latest", ctx.Tag},
-		{imageContext{
-			i:      types.ImageSummary{},
-			digest: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a",
-		}, "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a", ctx.Digest},
 		{
-			imageContext{
-				i: types.ImageSummary{Containers: 10},
-			}, "10", ctx.Containers,
+			imageCtx: imageContext{i: types.ImageSummary{}, repo: "busybox"},
+			expValue: "busybox",
+			call:     ctx.Repository,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{VirtualSize: 10000},
-			}, "10kB", ctx.VirtualSize,
+			imageCtx: imageContext{i: types.ImageSummary{}, tag: "latest"},
+			expValue: "latest",
+			call:     ctx.Tag,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{SharedSize: 10000},
-			}, "10kB", ctx.SharedSize,
+			imageCtx: imageContext{i: types.ImageSummary{}, digest: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a"},
+			expValue: "sha256:d149ab53f8718e987c3a3024bb8aa0e2caadf6c0328f1d9d850b2a2a67f2819a",
+			call:     ctx.Digest,
 		},
 		{
-			imageContext{
-				i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000},
-			}, "15kB", ctx.UniqueSize,
+			imageCtx: imageContext{i: types.ImageSummary{Containers: 10}},
+			expValue: "10",
+			call:     ctx.Containers,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{VirtualSize: 10000}},
+			expValue: "10kB",
+			call:     ctx.VirtualSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 10000}},
+			expValue: "10kB",
+			call:     ctx.SharedSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000}},
+			expValue: "15kB",
+			call:     ctx.UniqueSize,
+		},
+		{
+			imageCtx: imageContext{i: types.ImageSummary{Created: zeroTime}},
+			expValue: "",
+			call:     ctx.CreatedSince,
 		},
 	}
 
@@ -82,7 +95,7 @@ func TestImageContext(t *testing.T) {
 		ctx = c.imageCtx
 		v := c.call()
 		if strings.Contains(v, ",") {
-			compareMultipleValues(t, v, c.expValue)
+			test.CompareMultipleValues(t, v, c.expValue)
 		} else {
 			assert.Check(t, is.Equal(c.expValue, v))
 		}
@@ -91,7 +104,9 @@ func TestImageContext(t *testing.T) {
 
 func TestImageContextWrite(t *testing.T) {
 	unixTime := time.Now().AddDate(0, 0, -1).Unix()
+	zeroTime := int64(-62135596800)
 	expectedTime := time.Unix(unixTime, 0).String()
+	expectedZeroTime := time.Unix(zeroTime, 0).String()
 
 	cases := []struct {
 		context  ImageContext
@@ -123,10 +138,10 @@ func TestImageContextWrite(t *testing.T) {
 					Format: NewImageFormat("table", false, false),
 				},
 			},
-			`REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-image               tag1                imageID1            24 hours ago        0B
-image               tag2                imageID2            24 hours ago        0B
-<none>              <none>              imageID3            24 hours ago        0B
+			`REPOSITORY   TAG       IMAGE ID   CREATED        SIZE
+image        tag1      imageID1   24 hours ago   0B
+image        tag2      imageID2   N/A            0B
+<none>       <none>    imageID3   24 hours ago   0B
 `,
 		},
 		{
@@ -144,10 +159,10 @@ image               tag2                imageID2            24 hours ago        
 				},
 				Digest: true,
 			},
-			`REPOSITORY          DIGEST
-image               sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf
-image               <none>
-<none>              <none>
+			`REPOSITORY   DIGEST
+image        sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf
+image        <none>
+<none>       <none>
 `,
 		},
 		{
@@ -181,10 +196,10 @@ image               <none>
 				},
 				Digest: true,
 			},
-			`REPOSITORY          TAG                 DIGEST                                                                    IMAGE ID            CREATED             SIZE
-image               tag1                sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf   imageID1            24 hours ago        0B
-image               tag2                <none>                                                                    imageID2            24 hours ago        0B
-<none>              <none>              <none>                                                                    imageID3            24 hours ago        0B
+			`REPOSITORY   TAG       DIGEST                                                                    IMAGE ID   CREATED        SIZE
+image        tag1      sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf   imageID1   24 hours ago   0B
+image        tag2      <none>                                                                    imageID2   N/A            0B
+<none>       <none>    <none>                                                                    imageID3   24 hours ago   0B
 `,
 		},
 		{
@@ -221,7 +236,7 @@ image_id: imageID3
 created_at: %s
 virtual_size: 0B
 
-`, expectedTime, expectedTime, expectedTime),
+`, expectedTime, expectedZeroTime, expectedTime),
 		},
 		{
 			ImageContext{
@@ -251,7 +266,7 @@ image_id: imageID3
 created_at: %s
 virtual_size: 0B
 
-`, expectedTime, expectedTime, expectedTime),
+`, expectedTime, expectedZeroTime, expectedTime),
 		},
 		{
 			ImageContext{
@@ -284,20 +299,24 @@ image_id: imageID3
 		},
 	}
 
-	for _, testcase := range cases {
-		images := []types.ImageSummary{
-			{ID: "imageID1", RepoTags: []string{"image:tag1"}, RepoDigests: []string{"image@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf"}, Created: unixTime},
-			{ID: "imageID2", RepoTags: []string{"image:tag2"}, Created: unixTime},
-			{ID: "imageID3", RepoTags: []string{"<none>:<none>"}, RepoDigests: []string{"<none>@<none>"}, Created: unixTime},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := ImageWrite(testcase.context, images)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	images := []types.ImageSummary{
+		{ID: "imageID1", RepoTags: []string{"image:tag1"}, RepoDigests: []string{"image@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf"}, Created: unixTime},
+		{ID: "imageID2", RepoTags: []string{"image:tag2"}, Created: zeroTime},
+		{ID: "imageID3", RepoTags: []string{"<none>:<none>"}, RepoDigests: []string{"<none>@<none>"}, Created: unixTime},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := ImageWrite(tc.context, images)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
@@ -305,7 +324,7 @@ func TestImageContextWriteWithNoImage(t *testing.T) {
 	out := bytes.NewBufferString("")
 	images := []types.ImageSummary{}
 
-	contexts := []struct {
+	cases := []struct {
 		context  ImageContext
 		expected string
 	}{
@@ -343,14 +362,18 @@ func TestImageContextWriteWithNoImage(t *testing.T) {
 					Output: out,
 				},
 			},
-			"REPOSITORY          DIGEST\n",
+			"REPOSITORY   DIGEST\n",
 		},
 	}
 
-	for _, context := range contexts {
-		ImageWrite(context.context, images)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			err := ImageWrite(tc.context, images)
+			assert.NilError(t, err)
+			assert.Equal(t, out.String(), tc.expected)
+			// Clean buffer
+			out.Reset()
+		})
 	}
 }

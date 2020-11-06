@@ -4,15 +4,6 @@ description: "The volume create command description and usage"
 keywords: "volume, create"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # volume create
 
 ```markdown
@@ -55,7 +46,7 @@ Volume names must be unique among drivers. This means you cannot use the same
 volume name with two different drivers. If you attempt this `docker` returns an
 error:
 
-```none
+```console
 A volume named  "hello"  already exists with the "some-other" driver. Choose a different volume name.
 ```
 
@@ -122,4 +113,4 @@ $ docker volume create --driver local \
 * [volume ls](volume_ls.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)

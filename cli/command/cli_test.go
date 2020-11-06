@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"runtime"
 	"testing"
@@ -13,15 +14,14 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
-	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/env"
-	"gotest.tools/fs"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/env"
+	"gotest.tools/v3/fs"
 )
 
 func TestNewAPIClientFromFlags(t *testing.T) {
@@ -45,6 +45,7 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	}
 	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
 	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
+	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
 }
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
@@ -77,6 +78,24 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(customVersion, apiclient.ClientVersion()))
+}
+
+func TestNewAPIClientFromFlagsWithHttpProxyEnv(t *testing.T) {
+	defer env.Patch(t, "HTTP_PROXY", "http://proxy.acme.com:1234")()
+	defer env.Patch(t, "DOCKER_HOST", "tcp://docker.acme.com:2376")()
+
+	opts := &flags.CommonOptions{}
+	configFile := &configfile.ConfigFile{}
+	apiclient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+	transport, ok := apiclient.HTTPClient().Transport.(*http.Transport)
+	assert.Assert(t, ok)
+	assert.Assert(t, transport.Proxy != nil)
+	request, err := http.NewRequest(http.MethodGet, "tcp://docker.acme.com:2376", nil)
+	assert.NilError(t, err)
+	url, err := transport.Proxy(request)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("http://proxy.acme.com:1234", url.String()))
 }
 
 type fakeClient struct {
@@ -133,6 +152,7 @@ func TestInitializeFromClient(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			apiclient := &fakeClient{
 				pingFunc: testcase.pingFunc,
@@ -147,29 +167,29 @@ func TestInitializeFromClient(t *testing.T) {
 	}
 }
 
+// The CLI no longer disables/hides experimental CLI features, however, we need
+// to verify that existing configuration files do not break
 func TestExperimentalCLI(t *testing.T) {
 	defaultVersion := "v1.55"
 
 	var testcases = []struct {
-		doc                     string
-		configfile              string
-		expectedExperimentalCLI bool
+		doc        string
+		configfile string
 	}{
 		{
-			doc:                     "default",
-			configfile:              `{}`,
-			expectedExperimentalCLI: false,
+			doc:        "default",
+			configfile: `{}`,
 		},
 		{
 			doc: "experimental",
 			configfile: `{
 	"experimental": "enabled"
 }`,
-			expectedExperimentalCLI: true,
 		},
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
 			defer dir.Remove()
@@ -184,7 +204,8 @@ func TestExperimentalCLI(t *testing.T) {
 			cliconfig.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
-			assert.Check(t, is.Equal(testcase.expectedExperimentalCLI, cli.ClientInfo().HasExperimental))
+			// For backward-compatibility, HasExperimental will always be "true"
+			assert.Check(t, is.Equal(true, cli.ClientInfo().HasExperimental))
 		})
 	}
 }
@@ -223,6 +244,7 @@ func TestGetClientWithPassword(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			passRetriever := func(_, _ string, _ bool, attempts int) (passphrase string, giveup bool, err error) {
 				// Always return an invalid pass first to test iteration
@@ -259,7 +281,6 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	// Test default operations and also overriding default ones
 	cli, err := NewDockerCli(
 		WithContentTrust(true),
-		WithContainerizedClient(func(string) (clitypes.ContainerizedClient, error) { return nil, nil }),
 	)
 	assert.NilError(t, err)
 	// Check streams are initialized
@@ -267,19 +288,17 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	assert.Check(t, cli.Out() != nil)
 	assert.Check(t, cli.Err() != nil)
 	assert.Equal(t, cli.ContentTrustEnabled(), true)
-	client, err := cli.NewContainerizedEngineClient("")
-	assert.NilError(t, err)
-	assert.Equal(t, client, nil)
 
 	// Apply can modify a dockerCli after construction
 	inbuf := bytes.NewBuffer([]byte("input"))
 	outbuf := bytes.NewBuffer(nil)
 	errbuf := bytes.NewBuffer(nil)
-	cli.Apply(
+	err = cli.Apply(
 		WithInputStream(ioutil.NopCloser(inbuf)),
 		WithOutputStream(outbuf),
 		WithErrorStream(errbuf),
 	)
+	assert.NilError(t, err)
 	// Check input stream
 	inputStream, err := ioutil.ReadAll(cli.In())
 	assert.NilError(t, err)

@@ -3,10 +3,10 @@ package kubernetes
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/command/service"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/compose-on-kubernetes/api/labels"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,49 +19,45 @@ func TestReplicasConversionNeedsAService(t *testing.T) {
 		Items: []appsv1beta2.ReplicaSet{makeReplicaSet("unknown", 0, 0)},
 	}
 	services := apiv1.ServiceList{}
-	_, _, err := convertToServices(&replicas, &appsv1beta2.DaemonSetList{}, &services)
+	_, err := convertToServices(&replicas, &appsv1beta2.DaemonSetList{}, &services)
 	assert.ErrorContains(t, err, "could not find service")
 }
 
 func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 	testCases := []struct {
+		doc              string
 		replicas         *appsv1beta2.ReplicaSetList
 		services         *apiv1.ServiceList
 		expectedServices []swarm.Service
-		expectedListInfo map[string]service.ListInfo
 	}{
-		// Match replicas with headless stack services
 		{
-			&appsv1beta2.ReplicaSetList{
+			doc: "Match replicas with headless stack services",
+			replicas: &appsv1beta2.ReplicaSetList{
 				Items: []appsv1beta2.ReplicaSet{
 					makeReplicaSet("service1", 2, 5),
 					makeReplicaSet("service2", 3, 3),
 				},
 			},
-			&apiv1.ServiceList{
+			services: &apiv1.ServiceList{
 				Items: []apiv1.Service{
 					makeKubeService("service1", "stack", "uid1", apiv1.ServiceTypeClusterIP, nil),
 					makeKubeService("service2", "stack", "uid2", apiv1.ServiceTypeClusterIP, nil),
 					makeKubeService("service3", "other-stack", "uid2", apiv1.ServiceTypeClusterIP, nil),
 				},
 			},
-			[]swarm.Service{
-				makeSwarmService("stack_service1", "uid1", nil),
-				makeSwarmService("stack_service2", "uid2", nil),
-			},
-			map[string]service.ListInfo{
-				"uid1": {Mode: "replicated", Replicas: "2/5"},
-				"uid2": {Mode: "replicated", Replicas: "3/3"},
+			expectedServices: []swarm.Service{
+				makeSwarmService(t, "stack_service1", "uid1", ReplicatedService(5), ServiceStatus(5, 2)),
+				makeSwarmService(t, "stack_service2", "uid2", ReplicatedService(3), ServiceStatus(3, 3)),
 			},
 		},
-		// Headless service and LoadBalancer Service are tied to the same Swarm service
 		{
-			&appsv1beta2.ReplicaSetList{
+			doc: "Headless service and LoadBalancer Service are tied to the same Swarm service",
+			replicas: &appsv1beta2.ReplicaSetList{
 				Items: []appsv1beta2.ReplicaSet{
 					makeReplicaSet("service", 1, 1),
 				},
 			},
-			&apiv1.ServiceList{
+			services: &apiv1.ServiceList{
 				Items: []apiv1.Service{
 					makeKubeService("service", "stack", "uid1", apiv1.ServiceTypeClusterIP, nil),
 					makeKubeService("service-published", "stack", "uid2", apiv1.ServiceTypeLoadBalancer, []apiv1.ServicePort{
@@ -73,29 +69,27 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 					}),
 				},
 			},
-			[]swarm.Service{
-				makeSwarmService("stack_service", "uid1", []swarm.PortConfig{
-					{
+			expectedServices: []swarm.Service{
+				makeSwarmService(t, "stack_service", "uid1",
+					ReplicatedService(1),
+					ServiceStatus(1, 1),
+					withPort(swarm.PortConfig{
 						PublishMode:   swarm.PortConfigPublishModeIngress,
 						PublishedPort: 80,
 						TargetPort:    80,
 						Protocol:      swarm.PortConfigProtocolTCP,
-					},
-				}),
-			},
-			map[string]service.ListInfo{
-				"uid1": {Mode: "replicated", Replicas: "1/1"},
+					}),
+				),
 			},
 		},
-		// Headless service and NodePort Service are tied to the same Swarm service
-
 		{
-			&appsv1beta2.ReplicaSetList{
+			doc: "Headless service and NodePort Service are tied to the same Swarm service",
+			replicas: &appsv1beta2.ReplicaSetList{
 				Items: []appsv1beta2.ReplicaSet{
 					makeReplicaSet("service", 1, 1),
 				},
 			},
-			&apiv1.ServiceList{
+			services: &apiv1.ServiceList{
 				Items: []apiv1.Service{
 					makeKubeService("service", "stack", "uid1", apiv1.ServiceTypeClusterIP, nil),
 					makeKubeService("service-random-ports", "stack", "uid2", apiv1.ServiceTypeNodePort, []apiv1.ServicePort{
@@ -107,27 +101,28 @@ func TestKubernetesServiceToSwarmServiceConversion(t *testing.T) {
 					}),
 				},
 			},
-			[]swarm.Service{
-				makeSwarmService("stack_service", "uid1", []swarm.PortConfig{
-					{
+			expectedServices: []swarm.Service{
+				makeSwarmService(t, "stack_service", "uid1",
+					ReplicatedService(1),
+					ServiceStatus(1, 1),
+					withPort(swarm.PortConfig{
 						PublishMode:   swarm.PortConfigPublishModeHost,
 						PublishedPort: 35666,
 						TargetPort:    80,
 						Protocol:      swarm.PortConfigProtocolTCP,
-					},
-				}),
-			},
-			map[string]service.ListInfo{
-				"uid1": {Mode: "replicated", Replicas: "1/1"},
+					}),
+				),
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		swarmServices, listInfo, err := convertToServices(tc.replicas, &appsv1beta2.DaemonSetList{}, tc.services)
-		assert.NilError(t, err)
-		assert.DeepEqual(t, tc.expectedServices, swarmServices)
-		assert.DeepEqual(t, tc.expectedListInfo, listInfo)
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			swarmServices, err := convertToServices(tc.replicas, &appsv1beta2.DaemonSetList{}, tc.services)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, tc.expectedServices, swarmServices)
+		})
 	}
 }
 
@@ -172,21 +167,19 @@ func makeKubeService(service, stack, uid string, serviceType apiv1.ServiceType, 
 	}
 }
 
-func makeSwarmService(service, id string, ports []swarm.PortConfig) swarm.Service {
-	return swarm.Service{
-		ID: id,
-		Spec: swarm.ServiceSpec{
-			Annotations: swarm.Annotations{
-				Name: service,
-			},
-			TaskTemplate: swarm.TaskSpec{
-				ContainerSpec: &swarm.ContainerSpec{
-					Image: "image",
-				},
-			},
-		},
-		Endpoint: swarm.Endpoint{
-			Ports: ports,
-		},
+// TODO convertToServices currently doesn't set swarm.EndpointSpec.Ports
+func withPort(port swarm.PortConfig) func(*swarm.Service) {
+	return func(service *swarm.Service) {
+		if service.Endpoint.Ports == nil {
+			service.Endpoint.Ports = make([]swarm.PortConfig, 0)
+		}
+		service.Endpoint.Ports = append(service.Endpoint.Ports, port)
 	}
+}
+
+func makeSwarmService(t *testing.T, name, id string, opts ...func(*swarm.Service)) swarm.Service {
+	t.Helper()
+	options := []func(*swarm.Service){ServiceID(id), ServiceName(name), ServiceImage("image")}
+	options = append(options, opts...)
+	return *Service(options...)
 }

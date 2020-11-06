@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	yaml "gopkg.in/yaml.v2"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestMarshallConfig(t *testing.T) {
@@ -20,7 +20,7 @@ func TestMarshallConfig(t *testing.T) {
 	assert.Check(t, is.Equal(expected, string(actual)))
 
 	// Make sure the expected still
-	dict, err := ParseYAML([]byte("version: '3.7'\n" + expected))
+	dict, err := ParseYAML([]byte("version: '3.9'\n" + expected))
 	assert.NilError(t, err)
 	_, err = Load(buildConfigDetails(dict, map[string]string{}))
 	assert.NilError(t, err)

@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func newFakeRegistryClient() *fakeRegistryClient {
@@ -42,7 +42,7 @@ func TestManifestPushErrors(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newPushListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -18,9 +18,9 @@ import (
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
 	"github.com/theupdateframework/notary/tuf/data"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 const passwd = "password"
@@ -70,7 +70,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 		cmd := newSignCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -80,7 +80,7 @@ func TestTrustSignCommandOfflineErrors(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "client is offline")
 }
 
@@ -116,7 +116,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 	assert.Check(t, is.DeepEqual(rootKeyA.Public(), rootKeyB.Public()))
 
 	// Now also try with a delegation key
-	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, data.RoleName(trust.ReleasesRole))
+	releasesKey, err := getOrGenerateNotaryKey(notaryRepo, trust.ReleasesRole)
 	assert.NilError(t, err)
 	assert.Check(t, releasesKey != nil)
 
@@ -286,7 +286,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"ubuntu:latest"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 
 	err = cmd.Execute()
 	assert.Assert(t, err != nil)
@@ -303,7 +303,7 @@ func TestSignCommandLocalFlag(t *testing.T) {
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "error contacting notary server: dial tcp: lookup reg-name.io")
 
 }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestContainerStatsContext(t *testing.T) {
@@ -126,7 +126,7 @@ container2  --
 }
 
 func TestContainerStatsContextWriteWindows(t *testing.T) {
-	tt := []struct {
+	cases := []struct {
 		context  formatter.Context
 		expected string
 	}{
@@ -150,51 +150,54 @@ container2  --  --
 `,
 		},
 	}
+	stats := []StatsEntry{
+		{
+			Container:        "container1",
+			CPUPercentage:    20,
+			Memory:           20,
+			MemoryLimit:      20,
+			MemoryPercentage: 20,
+			NetworkRx:        20,
+			NetworkTx:        20,
+			BlockRead:        20,
+			BlockWrite:       20,
+			PidsCurrent:      2,
+			IsInvalid:        false,
+		},
+		{
+			Container:        "container2",
+			CPUPercentage:    30,
+			Memory:           30,
+			MemoryLimit:      30,
+			MemoryPercentage: 30,
+			NetworkRx:        30,
+			NetworkTx:        30,
+			BlockRead:        30,
+			BlockWrite:       30,
+			PidsCurrent:      3,
+			IsInvalid:        true,
+		},
+	}
 
-	for _, te := range tt {
-		stats := []StatsEntry{
-			{
-				Container:        "container1",
-				CPUPercentage:    20,
-				Memory:           20,
-				MemoryLimit:      20,
-				MemoryPercentage: 20,
-				NetworkRx:        20,
-				NetworkTx:        20,
-				BlockRead:        20,
-				BlockWrite:       20,
-				PidsCurrent:      2,
-				IsInvalid:        false,
-			},
-			{
-				Container:        "container2",
-				CPUPercentage:    30,
-				Memory:           30,
-				MemoryLimit:      30,
-				MemoryPercentage: 30,
-				NetworkRx:        30,
-				NetworkTx:        30,
-				BlockRead:        30,
-				BlockWrite:       30,
-				PidsCurrent:      3,
-				IsInvalid:        true,
-			},
-		}
-		var out bytes.Buffer
-		te.context.Output = &out
-		err := statsFormatWrite(te.context, stats, "windows", false)
-		if err != nil {
-			assert.Error(t, err, te.expected)
-		} else {
-			assert.Check(t, is.Equal(te.expected, out.String()))
-		}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := statsFormatWrite(tc.context, stats, "windows", false)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
 func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 	var out bytes.Buffer
 
-	contexts := []struct {
+	cases := []struct {
 		context  formatter.Context
 		expected string
 	}{
@@ -217,22 +220,26 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 				Format: "table {{.Container}}\t{{.CPUPerc}}",
 				Output: &out,
 			},
-			"CONTAINER           CPU %\n",
+			"CONTAINER   CPU %\n",
 		},
 	}
 
-	for _, context := range contexts {
-		statsFormatWrite(context.context, []StatsEntry{}, "linux", false)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			err := statsFormatWrite(tc.context, []StatsEntry{}, "linux", false)
+			assert.NilError(t, err)
+			assert.Equal(t, out.String(), tc.expected)
+			// Clean buffer
+			out.Reset()
+		})
 	}
 }
 
 func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 	var out bytes.Buffer
 
-	contexts := []struct {
+	cases := []struct {
 		context  formatter.Context
 		expected string
 	}{
@@ -248,22 +255,25 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 				Format: "table {{.Container}}\t{{.MemUsage}}",
 				Output: &out,
 			},
-			"CONTAINER           PRIV WORKING SET\n",
+			"CONTAINER   PRIV WORKING SET\n",
 		},
 		{
 			formatter.Context{
 				Format: "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}",
 				Output: &out,
 			},
-			"CONTAINER           CPU %               PRIV WORKING SET\n",
+			"CONTAINER   CPU %     PRIV WORKING SET\n",
 		},
 	}
 
-	for _, context := range contexts {
-		statsFormatWrite(context.context, []StatsEntry{}, "windows", false)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			err := statsFormatWrite(tc.context, []StatsEntry{}, "windows", false)
+			assert.NilError(t, err)
+			assert.Equal(t, out.String(), tc.expected)
+			out.Reset()
+		})
 	}
 }
 

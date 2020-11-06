@@ -1,6 +1,5 @@
-% CONFIG.JSON(5) Docker User Manuals
-% Docker Community
-% JANUARY 2016
+% "CONFIG.JSON" "5" "JANUARY 2016" "Docker Community" "Docker User Manuals"
+
 # NAME
 HOME/.docker/config.json - Default Docker configuration file
 

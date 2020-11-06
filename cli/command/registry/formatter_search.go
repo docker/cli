@@ -28,13 +28,9 @@ func NewSearchFormat(source string) formatter.Format {
 }
 
 // SearchWrite writes the context
-func SearchWrite(ctx formatter.Context, results []registry.SearchResult, auto bool, stars int) error {
+func SearchWrite(ctx formatter.Context, results []registry.SearchResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, result := range results {
-			// --automated and -s, --stars are deprecated since Docker 1.12
-			if (auto && !result.IsAutomated) || (stars > result.StarCount) {
-				continue
-			}
 			searchCtx := &searchContext{trunc: ctx.Trunc, s: result}
 			if err := format(searchCtx); err != nil {
 				return err

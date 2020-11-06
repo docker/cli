@@ -4,19 +4,10 @@ description: "The stack services command description and usage"
 keywords: "stack, services"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # stack services
 
 ```markdown
-Usage:	docker stack services [OPTIONS] STACK
+Usage:  docker stack services [OPTIONS] STACK
 
 List the services in the stack
 
@@ -32,8 +23,14 @@ Options:
 
 ## Description
 
-Lists the services that are running as part of the specified stack. This
-command has to be run targeting a manager node.
+Lists the services that are running as part of the specified stack.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -92,7 +89,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 Placeholder | Description
-------------|------------------------------------------------------------------------------------------
+------------|-------------------------------------------------------------------
 `.ID`       | Service ID
 `.Name`     | Service name
 `.Mode`     | Service mode (replicated, global)
@@ -104,7 +101,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID`, `Mode`, and `Replicas` entries separated by a colon for all services:
+`ID`, `Mode`, and `Replicas` entries separated by a colon (`:`) for all services:
 
 ```bash
 $ docker stack services --format "{{.ID}}: {{.Mode}} {{.Replicas}}"

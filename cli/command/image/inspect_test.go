@@ -7,9 +7,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestNewInspectCommandErrors(t *testing.T) {
@@ -26,7 +26,7 @@ func TestNewInspectCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -78,7 +78,7 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		imageInspectInvocationCount = 0
 		cli := test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc})
 		cmd := newInspectCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)

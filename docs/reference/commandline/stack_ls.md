@@ -4,19 +4,10 @@ description: "The stack ls command description and usage"
 keywords: "stack, ls"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # stack ls
 
 ```markdown
-Usage:	docker stack ls [OPTIONS]
+Usage:  docker stack ls [OPTIONS]
 
 List stacks
 
@@ -34,6 +25,13 @@ Options:
 ## Description
 
 Lists the stacks.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -65,7 +63,7 @@ the data exactly as the template declares or, when using the
 `table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
-`Name` and `Services` entries separated by a colon for all stacks:
+`Name` and `Services` entries separated by a colon (`:`) for all stacks:
 
 ```bash
 $ docker stack ls --format "{{.Name}}: {{.Services}}"

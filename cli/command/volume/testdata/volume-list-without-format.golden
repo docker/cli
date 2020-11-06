@@ -1,4 +1,4 @@
-DRIVER              VOLUME NAME
-local               baz
-bar                 foo
-local               volume
+DRIVER    VOLUME NAME
+local     baz
+bar       foo
+local     volume

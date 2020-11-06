@@ -13,8 +13,8 @@ import (
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/fileutils"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 const dockerfileContents = "FROM busybox"
@@ -24,12 +24,12 @@ var prepareEmpty = func(t *testing.T) (string, func()) {
 }
 
 var prepareNoFiles = func(t *testing.T) (string, func()) {
-	return createTestTempDir(t, "", "builder-context-test")
+	return createTestTempDir(t, "builder-context-test")
 }
 
 var prepareOneFile = func(t *testing.T) (string, func()) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 	return contextDir, cleanup
 }
 
@@ -42,7 +42,7 @@ func testValidateContextDirectory(t *testing.T, prepare func(t *testing.T) (stri
 }
 
 func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
 	_, _, err := GetContextFromLocalDir(contextDir, "")
@@ -50,7 +50,7 @@ func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
 	fakePath := filepath.Join(contextDir, "fake")
@@ -60,7 +60,7 @@ func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
 	fakePath := filepath.Join(contextDir, "fake")
@@ -70,10 +70,10 @@ func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
-	contextDir, dirCleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, dirCleanup := createTestTempDir(t, "builder-context-test")
 	defer dirCleanup()
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	chdirCleanup := chdir(t, contextDir)
 	defer chdirCleanup()
@@ -86,10 +86,10 @@ func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
 	assert.NilError(t, err)
@@ -99,11 +99,11 @@ func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirLocalFile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
-	testFilename := createTestTempFile(t, contextDir, "tmpTest", "test", 0777)
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	testFilename := createTestTempFile(t, contextDir, "tmpTest", "test")
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(testFilename, "")
 
@@ -121,13 +121,13 @@ func TestGetContextFromLocalDirLocalFile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
 	chdirCleanup := chdir(t, contextDir)
 	defer chdirCleanup()
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, DefaultDockerfileName)
 	assert.NilError(t, err)
@@ -173,10 +173,10 @@ func TestGetContextFromReaderString(t *testing.T) {
 }
 
 func TestGetContextFromReaderTar(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "", "builder-context-test")
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
 	defer cleanup()
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	tarStream, err := archive.Tar(contextDir, archive.Uncompressed)
 	assert.NilError(t, err)
@@ -241,17 +241,18 @@ func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
 // createTestTempDir creates a temporary directory for testing.
 // It returns the created path and a cleanup function which is meant to be used as deferred call.
 // When an error occurs, it terminates the test.
-func createTestTempDir(t *testing.T, dir, prefix string) (string, func()) {
-	path, err := ioutil.TempDir(dir, prefix)
+//nolint: unparam
+func createTestTempDir(t *testing.T, prefix string) (string, func()) {
+	path, err := ioutil.TempDir("", prefix)
 	assert.NilError(t, err)
 	return path, func() { assert.NilError(t, os.RemoveAll(path)) }
 }
 
 // createTestTempFile creates a temporary file within dir with specific contents and permissions.
 // When an error occurs, it terminates the test
-func createTestTempFile(t *testing.T, dir, filename, contents string, perm os.FileMode) string {
+func createTestTempFile(t *testing.T, dir, filename, contents string) string {
 	filePath := filepath.Join(dir, filename)
-	err := ioutil.WriteFile(filePath, []byte(contents), perm)
+	err := ioutil.WriteFile(filePath, []byte(contents), 0777)
 	assert.NilError(t, err)
 	return filePath
 }

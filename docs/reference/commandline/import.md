@@ -4,15 +4,6 @@ description: "The import command description and usage"
 keywords: "import, file, system, container"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # import
 
 ```markdown
@@ -69,7 +60,7 @@ $ docker import http://example.com/exampleimage.tgz
 - Import to docker from a local archive.
 
   ```bash
-    $ docker import /path/to/exampleimage.tgz
+  $ docker import /path/to/exampleimage.tgz
   ```
 
 ### Import from a local directory
@@ -81,7 +72,7 @@ $ sudo tar -c . | docker import - exampleimagedir
 ### Import from a local directory with new configurations
 
 ```bash
-$ sudo tar -c . | docker import --change "ENV DEBUG true" - exampleimagedir
+$ sudo tar -c . | docker import --change "ENV DEBUG=true" - exampleimagedir
 ```
 
 Note the `sudo` in this example – you must preserve
@@ -90,9 +81,12 @@ archiving with tar. If you are not root (or the sudo command) when you
 tar, then the ownerships might not get preserved.
 
 ## When the daemon supports multiple operating systems
+
 If the daemon supports multiple operating systems, and the image being imported
 does not match the default operating system, it may be necessary to add
 `--platform`. This would be necessary when importing a Linux image into a Windows
 daemon.
 
-    # docker import --platform=linux .\linuximage.tar
+```bash
+$ docker import --platform=linux .\linuximage.tar
+```

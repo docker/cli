@@ -4,15 +4,6 @@ description: "The export command description and usage"
 keywords: "export, file, system, container"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # export
 
 ```markdown
@@ -32,7 +23,7 @@ with the container. If a volume is mounted on top of an existing directory in
 the container, `docker export` will export the contents of the *underlying*
 directory, not the contents of the volume.
 
-Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/v17.03/engine/tutorials/dockervolumes/#backup-restore-or-migrate-data-volumes)
+Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/storage/volumes/#backup-restore-or-migrate-data-volumes)
 in the user guide for examples on exporting data in a volume.
 
 ## Examples

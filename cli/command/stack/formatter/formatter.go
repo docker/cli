@@ -8,9 +8,10 @@ import (
 
 const (
 	// KubernetesStackTableFormat is the default Kubernetes stack format
-	KubernetesStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}\t{{.Namespace}}"
+	KubernetesStackTableFormat formatter.Format = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}\t{{.Namespace}}"
+
 	// SwarmStackTableFormat is the default Swarm stack format
-	SwarmStackTableFormat = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
+	SwarmStackTableFormat formatter.Format = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
 
 	stackServicesHeader      = "SERVICES"
 	stackOrchestrastorHeader = "ORCHESTRATOR"

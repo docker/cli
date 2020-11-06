@@ -4,15 +4,6 @@ description: "the plugin create command description and usage"
 keywords: "plugin, create"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # plugin create
 
 ```markdown
@@ -47,8 +38,8 @@ plugin
 
 $ docker plugin ls
 
-ID                  NAME                TAG                 DESCRIPTION                  ENABLED
-672d8144ec02        plugin              latest              A sample plugin for Docker   false
+ID              NAME            DESCRIPTION                  ENABLED
+672d8144ec02    plugin:latest   A sample plugin for Docker   false
 ```
 
 The plugin can subsequently be enabled for local use or pushed to the public registry.

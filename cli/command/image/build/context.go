@@ -232,6 +232,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 // getWithStatusError does an http.Get() and returns an error if the
 // status code is 4xx or 5xx.
 func getWithStatusError(url string) (resp *http.Response, err error) {
+	// #nosec G107
 	if resp, err = http.Get(url); err != nil {
 		return nil, err
 	}
@@ -242,9 +243,9 @@ func getWithStatusError(url string) (resp *http.Response, err error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		return nil, errors.Wrapf(err, msg+": error reading body")
+		return nil, errors.Wrapf(err, "%s: error reading body", msg)
 	}
-	return nil, errors.Errorf(msg+": %s", bytes.TrimSpace(body))
+	return nil, errors.Errorf("%s: %s", msg, bytes.TrimSpace(body))
 }
 
 // GetContextFromLocalDir uses the given local directory as context for a
@@ -344,7 +345,6 @@ func getDockerfileRelPath(absContextDir, givenDockerfile string) (string, error)
 		absDockerfile, err = filepath.EvalSymlinks(absDockerfile)
 		if err != nil {
 			return "", errors.Errorf("unable to evaluate symlinks in Dockerfile path: %v", err)
-
 		}
 	}
 

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
@@ -21,7 +21,7 @@ func TestVersionWithoutServer(t *testing.T) {
 		},
 	})
 	cmd := NewVersionCommand(cli)
-	cmd.SetOutput(cli.Err())
+	cmd.SetOut(cli.Err())
 	assert.ErrorContains(t, cmd.Execute(), "no server")
 	out := cli.OutBuffer().String()
 	// TODO: use an assertion like e2e/image/build_test.go:assertBuildOutput()
@@ -41,6 +41,7 @@ func TestVersionAlign(t *testing.T) {
 			Os:                "linux",
 			Arch:              "amd64",
 			BuildTime:         "Wed May 30 22:21:05 2018",
+			Context:           "my-context",
 			Experimental:      true,
 		},
 		Server: &types.Version{},

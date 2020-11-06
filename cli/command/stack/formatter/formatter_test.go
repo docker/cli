@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
 )
 
 func TestStackContextWrite(t *testing.T) {
@@ -27,18 +26,18 @@ func TestStackContextWrite(t *testing.T) {
 		},
 		// Table format
 		{
-			formatter.Context{Format: formatter.Format(SwarmStackTableFormat)},
-			`NAME                SERVICES            ORCHESTRATOR
-baz                 2                   orchestrator1
-bar                 1                   orchestrator2
+			formatter.Context{Format: SwarmStackTableFormat},
+			`NAME      SERVICES   ORCHESTRATOR
+baz       2          orchestrator1
+bar       1          orchestrator2
 `,
 		},
 		// Kubernetes table format adds Namespace column
 		{
-			formatter.Context{Format: formatter.Format(KubernetesStackTableFormat)},
-			`NAME                SERVICES            ORCHESTRATOR        NAMESPACE
-baz                 2                   orchestrator1       namespace1
-bar                 1                   orchestrator2       namespace2
+			formatter.Context{Format: KubernetesStackTableFormat},
+			`NAME      SERVICES   ORCHESTRATOR    NAMESPACE
+baz       2          orchestrator1   namespace1
+bar       1          orchestrator2   namespace2
 `,
 		},
 		{
@@ -61,14 +60,17 @@ bar
 		{Name: "baz", Services: 2, Orchestrator: "orchestrator1", Namespace: "namespace1"},
 		{Name: "bar", Services: 1, Orchestrator: "orchestrator2", Namespace: "namespace2"},
 	}
-	for _, testcase := range cases {
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := StackWrite(testcase.context, stacks)
-		if err != nil {
-			assert.Check(t, is.ErrorContains(err, testcase.expected))
-		} else {
-			assert.Check(t, is.Equal(out.String(), testcase.expected))
-		}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := StackWrite(tc.context, stacks); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }

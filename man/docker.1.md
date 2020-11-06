@@ -1,6 +1,5 @@
-% DOCKER(1) Docker User Manuals
-% William Henry
-% APRIL 2014
+% "DOCKER" "1" "APRIL 2014" "Docker Community" "Docker User Manuals"
+
 # NAME
 docker \- Docker image and container command line interface
 

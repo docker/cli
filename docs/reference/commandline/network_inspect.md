@@ -4,15 +4,6 @@ description: "The network inspect command description and usage"
 keywords: "network, inspect, user-defined"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # network inspect
 
 ```markdown
@@ -56,52 +47,56 @@ template for each result. Go's
 [text/template](http://golang.org/pkg/text/template/) package describes all the
 details of the format.
 
-```none
+```bash
 $ sudo docker network inspect bridge
+```
 
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "bridge",
-        "Id": "b2b1a2cba717161d984383fd68218cf70bbbd17d328496885f7c921333228b0f",
-        "Created": "2016-10-19T04:33:30.360899459Z",
-        "Scope": "local",
-        "Driver": "bridge",
-        "IPAM": {
-            "Driver": "default",
-            "Config": [
-                {
-                    "Subnet": "172.17.42.1/16",
-                    "Gateway": "172.17.42.1"
-                }
-            ]
-        },
-        "Internal": false,
-        "Containers": {
-            "bda12f8922785d1f160be70736f26c1e331ab8aaf8ed8d56728508f2e2fd4727": {
-                "Name": "container2",
-                "EndpointID": "0aebb8fcd2b282abe1365979536f21ee4ceaf3ed56177c628eae9f706e00e019",
-                "MacAddress": "02:42:ac:11:00:02",
-                "IPv4Address": "172.17.0.2/16",
-                "IPv6Address": ""
-            },
-            "f2870c98fd504370fb86e59f32cd0753b1ac9b69b7d80566ffc7192a82b3ed27": {
-                "Name": "container1",
-                "EndpointID": "a00676d9c91a96bbe5bcfb34f705387a33d7cc365bac1a29e4e9728df92d10ad",
-                "MacAddress": "02:42:ac:11:00:01",
-                "IPv4Address": "172.17.0.1/16",
-                "IPv6Address": ""
-            }
-        },
-        "Options": {
-            "com.docker.network.bridge.default_bridge": "true",
-            "com.docker.network.bridge.enable_icc": "true",
-            "com.docker.network.bridge.enable_ip_masquerade": "true",
-            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
-            "com.docker.network.bridge.name": "docker0",
-            "com.docker.network.driver.mtu": "1500"
-        },
-        "Labels": {}
-    }
+  {
+    "Name": "bridge",
+    "Id": "b2b1a2cba717161d984383fd68218cf70bbbd17d328496885f7c921333228b0f",
+    "Created": "2016-10-19T04:33:30.360899459Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "IPAM": {
+      "Driver": "default",
+      "Config": [
+        {
+          "Subnet": "172.17.42.1/16",
+          "Gateway": "172.17.42.1"
+        }
+      ]
+    },
+    "Internal": false,
+    "Containers": {
+      "bda12f8922785d1f160be70736f26c1e331ab8aaf8ed8d56728508f2e2fd4727": {
+        "Name": "container2",
+        "EndpointID": "0aebb8fcd2b282abe1365979536f21ee4ceaf3ed56177c628eae9f706e00e019",
+        "MacAddress": "02:42:ac:11:00:02",
+        "IPv4Address": "172.17.0.2/16",
+        "IPv6Address": ""
+      },
+      "f2870c98fd504370fb86e59f32cd0753b1ac9b69b7d80566ffc7192a82b3ed27": {
+        "Name": "container1",
+        "EndpointID": "a00676d9c91a96bbe5bcfb34f705387a33d7cc365bac1a29e4e9728df92d10ad",
+        "MacAddress": "02:42:ac:11:00:01",
+        "IPv4Address": "172.17.0.1/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {
+      "com.docker.network.bridge.default_bridge": "true",
+      "com.docker.network.bridge.enable_icc": "true",
+      "com.docker.network.bridge.enable_ip_masquerade": "true",
+      "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+      "com.docker.network.bridge.name": "docker0",
+      "com.docker.network.driver.mtu": "1500"
+    },
+    "Labels": {}
+  }
 ]
 ```
 
@@ -115,29 +110,33 @@ $ docker network create simple-network
 69568e6336d8c96bbf57869030919f7c69524f71183b44d80948bd3927c87f6a
 ```
 
-```none
+```bash
 $ docker network inspect simple-network
+```
 
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "simple-network",
-        "Id": "69568e6336d8c96bbf57869030919f7c69524f71183b44d80948bd3927c87f6a",
-        "Created": "2016-10-19T04:33:30.360899459Z",
-        "Scope": "local",
-        "Driver": "bridge",
-        "IPAM": {
-            "Driver": "default",
-            "Config": [
-                {
-                    "Subnet": "172.22.0.0/16",
-                    "Gateway": "172.22.0.1"
-                }
-            ]
-        },
-        "Containers": {},
-        "Options": {},
-        "Labels": {}
-    }
+  {
+    "Name": "simple-network",
+    "Id": "69568e6336d8c96bbf57869030919f7c69524f71183b44d80948bd3927c87f6a",
+    "Created": "2016-10-19T04:33:30.360899459Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "IPAM": {
+      "Driver": "default",
+      "Config": [
+        {
+          "Subnet": "172.22.0.0/16",
+          "Gateway": "172.22.0.1"
+        }
+      ]
+    },
+    "Containers": {},
+    "Options": {},
+    "Labels": {}
+  }
 ]
 ```
 
@@ -147,57 +146,61 @@ For swarm mode overlay networks `network inspect` also shows the IP address and 
 of the peers. Peers are the nodes in the swarm cluster which have at least one task attached
 to the network. Node name is of the format `<hostname>-<unique ID>`.
 
-```none
+```bash
 $ docker network inspect ingress
+```
 
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "ingress",
-        "Id": "j0izitrut30h975vk4m1u5kk3",
-        "Created": "2016-11-08T06:49:59.803387552Z",
-        "Scope": "swarm",
-        "Driver": "overlay",
-        "EnableIPv6": false,
-        "IPAM": {
-            "Driver": "default",
-            "Options": null,
-            "Config": [
-                {
-                    "Subnet": "10.255.0.0/16",
-                    "Gateway": "10.255.0.1"
-                }
-            ]
-        },
-        "Internal": false,
-        "Attachable": false,
-        "Containers": {
-            "ingress-sbox": {
-                "Name": "ingress-endpoint",
-                "EndpointID": "40e002d27b7e5d75f60bc72199d8cae3344e1896abec5eddae9743755fe09115",
-                "MacAddress": "02:42:0a:ff:00:03",
-                "IPv4Address": "10.255.0.3/16",
-                "IPv6Address": ""
-            }
-        },
-        "Options": {
-            "com.docker.network.driver.overlay.vxlanid_list": "256"
-        },
-        "Labels": {},
-        "Peers": [
-            {
-                "Name": "net-1-1d22adfe4d5c",
-                "IP": "192.168.33.11"
-            },
-            {
-                "Name": "net-2-d55d838b34af",
-                "IP": "192.168.33.12"
-            },
-            {
-                "Name": "net-3-8473f8140bd9",
-                "IP": "192.168.33.13"
-            }
-        ]
-    }
+  {
+    "Name": "ingress",
+    "Id": "j0izitrut30h975vk4m1u5kk3",
+    "Created": "2016-11-08T06:49:59.803387552Z",
+    "Scope": "swarm",
+    "Driver": "overlay",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": null,
+      "Config": [
+        {
+          "Subnet": "10.255.0.0/16",
+          "Gateway": "10.255.0.1"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Containers": {
+      "ingress-sbox": {
+        "Name": "ingress-endpoint",
+        "EndpointID": "40e002d27b7e5d75f60bc72199d8cae3344e1896abec5eddae9743755fe09115",
+        "MacAddress": "02:42:0a:ff:00:03",
+        "IPv4Address": "10.255.0.3/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {
+      "com.docker.network.driver.overlay.vxlanid_list": "256"
+    },
+    "Labels": {},
+    "Peers": [
+      {
+        "Name": "net-1-1d22adfe4d5c",
+        "IP": "192.168.33.11"
+      },
+      {
+        "Name": "net-2-d55d838b34af",
+        "IP": "192.168.33.12"
+      },
+      {
+        "Name": "net-3-8473f8140bd9",
+        "IP": "192.168.33.13"
+      }
+    ]
+  }
 ]
 ```
 
@@ -212,87 +215,92 @@ attached to. service `s1` in this case has three replicas.
 
 ```bash
 $ docker network inspect --verbose ov1
+```
+
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "Name": "ov1",
-        "Id": "ybmyjvao9vtzy3oorxbssj13b",
-        "Created": "2017-03-13T17:04:39.776106792Z",
-        "Scope": "swarm",
-        "Driver": "overlay",
-        "EnableIPv6": false,
-        "IPAM": {
-            "Driver": "default",
-            "Options": null,
-            "Config": [
-                {
-                    "Subnet": "10.0.0.0/24",
-                    "Gateway": "10.0.0.1"
-                }
-            ]
-        },
-        "Internal": false,
-        "Attachable": false,
-        "Containers": {
-            "020403bd88a15f60747fd25d1ad5fa1272eb740e8a97fc547d8ad07b2f721c5e": {
-                "Name": "s1.1.pjn2ik0sfgkfzed3h0s00gs9o",
-                "EndpointID": "ad16946f416562d658f3bb30b9830d73ad91ccf6feae44411269cd0ff674714e",
-                "MacAddress": "02:42:0a:00:00:04",
-                "IPv4Address": "10.0.0.4/24",
-                "IPv6Address": ""
-            }
-        },
-        "Options": {
-            "com.docker.network.driver.overlay.vxlanid_list": "4097"
-        },
-        "Labels": {},
-        "Peers": [
-            {
-                "Name": "net-3-5d3cfd30a58c",
-                "IP": "192.168.33.13"
-            },
-            {
-                "Name": "net-1-6ecbc0040a73",
-                "IP": "192.168.33.11"
-            },
-            {
-                "Name": "net-2-fb80208efd75",
-                "IP": "192.168.33.12"
-            }
-        ],
-        "Services": {
-            "s1": {
-                "VIP": "10.0.0.2",
-                "Ports": [],
-                "LocalLBIndex": 257,
-                "Tasks": [
-                    {
-                        "Name": "s1.2.q4hcq2aiiml25ubtrtg4q1txt",
-                        "EndpointID": "040879b027e55fb658e8b60ae3b87c6cdac7d291e86a190a3b5ac6567b26511a",
-                        "EndpointIP": "10.0.0.5",
-                        "Info": {
-                            "Host IP": "192.168.33.11"
-                        }
-                    },
-                    {
-                        "Name": "s1.3.yawl4cgkp7imkfx469kn9j6lm",
-                        "EndpointID": "106edff9f120efe44068b834e1cddb5b39dd4a3af70211378b2f7a9e562bbad8",
-                        "EndpointIP": "10.0.0.3",
-                        "Info": {
-                            "Host IP": "192.168.33.12"
-                        }
-                    },
-                    {
-                        "Name": "s1.1.pjn2ik0sfgkfzed3h0s00gs9o",
-                        "EndpointID": "ad16946f416562d658f3bb30b9830d73ad91ccf6feae44411269cd0ff674714e",
-                        "EndpointIP": "10.0.0.4",
-                        "Info": {
-                            "Host IP": "192.168.33.13"
-                        }
-                    }
-                ]
-            }
+  {
+    "Name": "ov1",
+    "Id": "ybmyjvao9vtzy3oorxbssj13b",
+    "Created": "2017-03-13T17:04:39.776106792Z",
+    "Scope": "swarm",
+    "Driver": "overlay",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": null,
+      "Config": [
+        {
+          "Subnet": "10.0.0.0/24",
+          "Gateway": "10.0.0.1"
         }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Containers": {
+      "020403bd88a15f60747fd25d1ad5fa1272eb740e8a97fc547d8ad07b2f721c5e": {
+        "Name": "s1.1.pjn2ik0sfgkfzed3h0s00gs9o",
+        "EndpointID": "ad16946f416562d658f3bb30b9830d73ad91ccf6feae44411269cd0ff674714e",
+        "MacAddress": "02:42:0a:00:00:04",
+        "IPv4Address": "10.0.0.4/24",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {
+      "com.docker.network.driver.overlay.vxlanid_list": "4097"
+    },
+    "Labels": {},
+    "Peers": [
+      {
+        "Name": "net-3-5d3cfd30a58c",
+        "IP": "192.168.33.13"
+      },
+      {
+        "Name": "net-1-6ecbc0040a73",
+        "IP": "192.168.33.11"
+      },
+      {
+        "Name": "net-2-fb80208efd75",
+        "IP": "192.168.33.12"
+      }
+    ],
+    "Services": {
+      "s1": {
+        "VIP": "10.0.0.2",
+        "Ports": [],
+        "LocalLBIndex": 257,
+        "Tasks": [
+          {
+            "Name": "s1.2.q4hcq2aiiml25ubtrtg4q1txt",
+            "EndpointID": "040879b027e55fb658e8b60ae3b87c6cdac7d291e86a190a3b5ac6567b26511a",
+            "EndpointIP": "10.0.0.5",
+            "Info": {
+              "Host IP": "192.168.33.11"
+            }
+          },
+          {
+            "Name": "s1.3.yawl4cgkp7imkfx469kn9j6lm",
+            "EndpointID": "106edff9f120efe44068b834e1cddb5b39dd4a3af70211378b2f7a9e562bbad8",
+            "EndpointIP": "10.0.0.3",
+            "Info": {
+              "Host IP": "192.168.33.12"
+            }
+          },
+          {
+            "Name": "s1.1.pjn2ik0sfgkfzed3h0s00gs9o",
+            "EndpointID": "ad16946f416562d658f3bb30b9830d73ad91ccf6feae44411269cd0ff674714e",
+            "EndpointIP": "10.0.0.4",
+            "Info": {
+              "Host IP": "192.168.33.13"
+            }
+          }
+        ]
+      }
     }
+  }
 ]
 ```
 

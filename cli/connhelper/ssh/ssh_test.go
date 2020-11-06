@@ -3,8 +3,8 @@ package ssh
 import (
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestParseURL(t *testing.T) {
@@ -16,7 +16,7 @@ func TestParseURL(t *testing.T) {
 		{
 			url: "ssh://foo",
 			expectedArgs: []string{
-				"foo",
+				"--", "foo",
 			},
 		},
 		{
@@ -24,7 +24,7 @@ func TestParseURL(t *testing.T) {
 			expectedArgs: []string{
 				"-l", "me",
 				"-p", "10022",
-				"foo",
+				"--", "foo",
 			},
 		},
 		{
@@ -53,12 +53,14 @@ func TestParseURL(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		sp, err := ParseURL(tc.url)
-		if tc.expectedError == "" {
-			assert.NilError(t, err)
-			assert.Check(t, is.DeepEqual(tc.expectedArgs, sp.Args()))
-		} else {
-			assert.ErrorContains(t, err, tc.expectedError)
-		}
+		t.Run(tc.url, func(t *testing.T) {
+			sp, err := ParseURL(tc.url)
+			if tc.expectedError == "" {
+				assert.NilError(t, err)
+				assert.Check(t, is.DeepEqual(tc.expectedArgs, sp.Args()))
+			} else {
+				assert.ErrorContains(t, err, tc.expectedError)
+			}
+		})
 	}
 }

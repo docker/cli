@@ -4,15 +4,6 @@ description: "The service inspect command description and usage"
 keywords: "service, inspect"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # service inspect
 
 ```Markdown
@@ -28,14 +19,20 @@ Options:
 
 ## Description
 
-Inspects the specified service. This command has to be run targeting a manager
-node.
+Inspects the specified service.
 
 By default, this renders all results in a JSON array. If a format is specified,
 the given template will be executed for each result.
 
 Go's [text/template](http://golang.org/pkg/text/template/) package
 describes all the details of the format.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -54,47 +51,51 @@ dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
 Both `docker service inspect redis`, and `docker service inspect dmu1ept4cxcf`
 produce the same result:
 
-```none
+```bash
 $ docker service inspect redis
+```
 
+The output is in JSON format, for example:
+
+```json
 [
-    {
-        "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
-        "Version": {
-            "Index": 12
+  {
+    "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
+    "Version": {
+      "Index": 12
+    },
+    "CreatedAt": "2016-06-17T18:44:02.558012087Z",
+    "UpdatedAt": "2016-06-17T18:44:02.558012087Z",
+    "Spec": {
+      "Name": "redis",
+      "TaskTemplate": {
+        "ContainerSpec": {
+          "Image": "redis:3.0.6"
         },
-        "CreatedAt": "2016-06-17T18:44:02.558012087Z",
-        "UpdatedAt": "2016-06-17T18:44:02.558012087Z",
-        "Spec": {
-            "Name": "redis",
-            "TaskTemplate": {
-                "ContainerSpec": {
-                    "Image": "redis:3.0.6"
-                },
-                "Resources": {
-                    "Limits": {},
-                    "Reservations": {}
-                },
-                "RestartPolicy": {
-                    "Condition": "any",
-                    "MaxAttempts": 0
-                },
-                "Placement": {}
-            },
-            "Mode": {
-                "Replicated": {
-                    "Replicas": 1
-                }
-            },
-            "UpdateConfig": {},
-            "EndpointSpec": {
-                "Mode": "vip"
-            }
+        "Resources": {
+          "Limits": {},
+          "Reservations": {}
         },
-        "Endpoint": {
-            "Spec": {}
+        "RestartPolicy": {
+          "Condition": "any",
+          "MaxAttempts": 0
+        },
+        "Placement": {}
+      },
+      "Mode": {
+        "Replicated": {
+          "Replicas": 1
         }
+      },
+      "UpdateConfig": {},
+      "EndpointSpec": {
+        "Mode": "vip"
+      }
+    },
+    "Endpoint": {
+      "Spec": {}
     }
+  }
 ]
 ```
 
@@ -102,13 +103,13 @@ $ docker service inspect redis
 $ docker service inspect dmu1ept4cxcf
 
 [
-    {
-        "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
-        "Version": {
-            "Index": 12
-        },
-        ...
-    }
+  {
+    "ID": "dmu1ept4cxcfe8k8lhtux3ro3",
+    "Version": {
+      "Index": 12
+    },
+    ...
+  }
 ]
 ```
 
@@ -120,21 +121,21 @@ JSON output, by using the `--pretty` option:
 ```bash
 $ docker service inspect --pretty frontend
 
-ID:		c8wgl7q4ndfd52ni6qftkvnnp
-Name:		frontend
+ID:     c8wgl7q4ndfd52ni6qftkvnnp
+Name:   frontend
 Labels:
  - org.example.projectname=demo-app
-Service Mode:	REPLICATED
- Replicas:		5
+Service Mode:   REPLICATED
+ Replicas:      5
 Placement:
 UpdateConfig:
- Parallelism:	0
- On failure:	pause
- Max failure ratio:	0
+ Parallelism:   0
+ On failure:    pause
+ Max failure ratio: 0
 ContainerSpec:
- Image:		nginx:alpine
+ Image:     nginx:alpine
 Resources:
-Networks:	net1
+Networks:   net1
 Endpoint Mode:  vip
 Ports:
  PublishedPort = 4443

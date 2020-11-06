@@ -4,19 +4,10 @@ description: "The network create command description and usage"
 keywords: "network, create"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # network create
 
 ```markdown
-Usage:	docker network create [OPTIONS] NETWORK
+Usage:  docker network create [OPTIONS] NETWORK
 
 Create a network
 
@@ -39,7 +30,7 @@ Options:
                              network segment (default [])
       --scope value          Promote a network to swarm scope (value = [ local | swarm ])
       --config-only          Creates a configuration only network
-      --config-from          The name of the network from which copying the configuration
+      --config-from          The name of the network from which to copy the configuration
 ```
 
 ## Description
@@ -159,12 +150,12 @@ a single overlay network. Each of the subnetworks has 126 usable addresses.
 
 ```bash
 $ docker network create -d overlay \
-  --subnet=192.168.1.0/25 \
-  --subnet=192.170.2.0/25 \
-  --gateway=192.168.1.100 \
-  --gateway=192.170.2.100 \
-  --aux-address="my-router=192.168.1.5" --aux-address="my-switch=192.168.1.6" \
-  --aux-address="my-printer=192.170.1.5" --aux-address="my-nas=192.170.1.6" \
+  --subnet=192.168.10.0/25 \
+  --subnet=192.168.20.0/25 \
+  --gateway=192.168.10.100 \
+  --gateway=192.168.20.100 \
+  --aux-address="my-router=192.168.10.5" --aux-address="my-switch=192.168.10.6" \
+  --aux-address="my-printer=192.168.20.5" --aux-address="my-nas=192.168.20.6" \
   my-multihost-network
 ```
 
@@ -179,11 +170,12 @@ equivalent docker daemon flags used for docker0 bridge:
 
 | Option                                           | Equivalent  | Description                                           |
 |--------------------------------------------------|-------------|-------------------------------------------------------|
-| `com.docker.network.bridge.name`                 | -           | bridge name to be used when creating the Linux bridge |
+| `com.docker.network.bridge.name`                 | -           | Bridge name to be used when creating the Linux bridge |
 | `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq` | Enable IP masquerading                                |
 | `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        |
 | `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               |
 | `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        |
+| `com.docker.network.container_interface_prefix`  | -           | Set a custom prefix for container interfaces          |
 
 The following arguments can be passed to `docker network create` for any
 network driver, again with their approximate equivalents to `docker daemon`.

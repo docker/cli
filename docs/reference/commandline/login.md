@@ -4,15 +4,6 @@ description: "The login command description and usage"
 keywords: "registry, login, image"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # login
 
 ```markdown
@@ -31,6 +22,8 @@ Options:
 ## Description
 
 Login to a registry.
+
+## Examples
 
 ### Login to a self-hosted registry
 
@@ -60,7 +53,7 @@ $ cat ~/my_password.txt | docker login --username foo --password-stdin
 `docker login` requires user to use `sudo` or be `root`, except when:
 
 1.  connecting to a remote daemon, such as a `docker-machine` provisioned `docker engine`.
-2.  user is added to the `docker` group.  This will impact the security of your system; the `docker` group is `root` equivalent.  See [Docker Daemon Attack Surface](https://docs.docker.com/engine/security/security/#docker-daemon-attack-surface) for details.
+2.  user is added to the `docker` group.  This will impact the security of your system; the `docker` group is `root` equivalent.  See [Docker Daemon Attack Surface](https://docs.docker.com/engine/security/#docker-daemon-attack-surface) for details.
 
 You can log into any public or private repository for which you have
 credentials.  When you log in, the command stores credentials in
@@ -94,7 +87,7 @@ For example, to use `docker-credential-osxkeychain`:
 
 ```json
 {
-	"credsStore": "osxkeychain"
+  "credsStore": "osxkeychain"
 }
 ```
 
@@ -124,9 +117,9 @@ or an identity token.
 
 ```json
 {
-	"ServerURL": "https://index.docker.io/v1",
-	"Username": "david",
-	"Secret": "passw0rd1"
+  "ServerURL": "https://index.docker.io/v1",
+  "Username": "david",
+  "Secret": "passw0rd1"
 }
 ```
 
@@ -145,8 +138,8 @@ and password from this payload:
 
 ```json
 {
-	"Username": "david",
-	"Secret": "passw0rd1"
+  "Username": "david",
+  "Secret": "passw0rd1"
 }
 ```
 

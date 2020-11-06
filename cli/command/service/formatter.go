@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
+	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
 )
 
@@ -96,10 +97,24 @@ ContainerSpec:
 {{- if .ContainerUser }}
  User: {{ .ContainerUser }}
 {{- end }}
+{{- if .HasCapabilities }}
+Capabilities:
+{{- if .HasCapabilityAdd }}
+ Add: {{ .CapabilityAdd }}
+{{- end }}
+{{- if .HasCapabilityDrop }}
+ Drop: {{ .CapabilityDrop }}
+{{- end }}
+{{- end }}
 {{- if .ContainerSysCtls }}
 SysCtls:
 {{- range $k, $v := .ContainerSysCtls }}
  {{ $k }}{{if $v }}: {{ $v }}{{ end }}
+{{- end }}{{ end }}
+{{- if .ContainerUlimits }}
+Ulimits:
+{{- range $k, $v := .ContainerUlimits }}
+ {{ $k }}: {{ $v }}
 {{- end }}{{ end }}
 {{- if .ContainerMounts }}
 Mounts:
@@ -122,6 +137,17 @@ Secrets:
  Target:	{{$secret.File.Name}}
   Source:	{{$secret.SecretName}}
 {{- end }}{{ end }}
+{{- if .HasLogDriver }}
+Log Driver:
+{{- if .HasLogDriverName }}
+ Name:		{{ .LogDriverName }}
+{{- end }}
+{{- if .LogOpts }}
+ LogOpts:
+{{- range $k, $v := .LogOpts }}
+  {{ $k }}{{if $v }}:       {{ $v }}{{ end }}
+{{- end }}{{ end }}
+{{ end }}
 {{- if .HasResources }}
 Resources:
 {{- if .HasResourceReservations }}
@@ -140,6 +166,9 @@ Resources:
 {{- if .ResourceLimitMemory }}
   Memory:	{{ .ResourceLimitMemory }}
 {{- end }}{{ end }}{{ end }}
+{{- if gt .ResourceLimitPids 0 }}
+  PIDs:		{{ .ResourceLimitPids }}
+{{- end }}
 {{- if .Networks }}
 Networks:
 {{- range $network := .Networks }} {{ $network }}{{ end }} {{ end }}
@@ -235,6 +264,21 @@ func (ctx *serviceInspectContext) Name() string {
 
 func (ctx *serviceInspectContext) Labels() map[string]string {
 	return ctx.Service.Spec.Labels
+}
+
+func (ctx *serviceInspectContext) HasLogDriver() bool {
+	return ctx.Service.Spec.TaskTemplate.LogDriver != nil
+}
+
+func (ctx *serviceInspectContext) HasLogDriverName() bool {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Name != ""
+}
+func (ctx *serviceInspectContext) LogDriverName() string {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Name
+}
+
+func (ctx *serviceInspectContext) LogOpts() map[string]string {
+	return ctx.Service.Spec.TaskTemplate.LogDriver.Options
 }
 
 func (ctx *serviceInspectContext) Configs() []*swarm.ConfigReference {
@@ -428,6 +472,20 @@ func (ctx *serviceInspectContext) HasContainerSysCtls() bool {
 	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Sysctls) > 0
 }
 
+func (ctx *serviceInspectContext) ContainerUlimits() map[string]string {
+	ulimits := map[string]string{}
+
+	for _, u := range ctx.Service.Spec.TaskTemplate.ContainerSpec.Ulimits {
+		ulimits[u.Name] = fmt.Sprintf("%d:%d", u.Soft, u.Hard)
+	}
+
+	return ulimits
+}
+
+func (ctx *serviceInspectContext) HasContainerUlimits() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Ulimits) > 0
+}
+
 func (ctx *serviceInspectContext) HasResources() bool {
 	return ctx.Service.Spec.TaskTemplate.Resources != nil
 }
@@ -457,7 +515,7 @@ func (ctx *serviceInspectContext) HasResourceLimits() bool {
 	if ctx.Service.Spec.TaskTemplate.Resources == nil || ctx.Service.Spec.TaskTemplate.Resources.Limits == nil {
 		return false
 	}
-	return ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes > 0
+	return ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes > 0 || ctx.Service.Spec.TaskTemplate.Resources.Limits.Pids > 0
 }
 
 func (ctx *serviceInspectContext) ResourceLimitsNanoCPUs() float64 {
@@ -469,6 +527,13 @@ func (ctx *serviceInspectContext) ResourceLimitMemory() string {
 		return ""
 	}
 	return units.BytesSize(float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.MemoryBytes))
+}
+
+func (ctx *serviceInspectContext) ResourceLimitPids() int64 {
+	if ctx.Service.Spec.TaskTemplate.Resources == nil || ctx.Service.Spec.TaskTemplate.Resources.Limits == nil {
+		return 0
+	}
+	return ctx.Service.Spec.TaskTemplate.Resources.Limits.Pids
 }
 
 func (ctx *serviceInspectContext) Networks() []string {
@@ -493,6 +558,26 @@ func (ctx *serviceInspectContext) EndpointMode() string {
 
 func (ctx *serviceInspectContext) Ports() []swarm.PortConfig {
 	return ctx.Service.Endpoint.Ports
+}
+
+func (ctx *serviceInspectContext) HasCapabilities() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd) > 0 || len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop) > 0
+}
+
+func (ctx *serviceInspectContext) HasCapabilityAdd() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd) > 0
+}
+
+func (ctx *serviceInspectContext) HasCapabilityDrop() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop) > 0
+}
+
+func (ctx *serviceInspectContext) CapabilityAdd() string {
+	return strings.Join(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityAdd, ", ")
+}
+
+func (ctx *serviceInspectContext) CapabilityDrop() string {
+	return strings.Join(ctx.Service.Spec.TaskTemplate.ContainerSpec.CapabilityDrop, ", ")
 }
 
 const (
@@ -520,17 +605,14 @@ func NewListFormat(source string, quiet bool) formatter.Format {
 	return formatter.Format(source)
 }
 
-// ListInfo stores the information about mode and replicas to be used by template
-type ListInfo struct {
-	Mode     string
-	Replicas string
-}
-
 // ListFormatWrite writes the context
-func ListFormatWrite(ctx formatter.Context, services []swarm.Service, info map[string]ListInfo) error {
+func ListFormatWrite(ctx formatter.Context, services []swarm.Service) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
+		sort.Slice(services, func(i, j int) bool {
+			return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+		})
 		for _, service := range services {
-			serviceCtx := &serviceContext{service: service, mode: info[service.ID].Mode, replicas: info[service.ID].Replicas}
+			serviceCtx := &serviceContext{service: service}
 			if err := format(serviceCtx); err != nil {
 				return err
 			}
@@ -551,9 +633,7 @@ func ListFormatWrite(ctx formatter.Context, services []swarm.Service, info map[s
 
 type serviceContext struct {
 	formatter.HeaderContext
-	service  swarm.Service
-	mode     string
-	replicas string
+	service swarm.Service
 }
 
 func (c *serviceContext) MarshalJSON() ([]byte, error) {
@@ -569,11 +649,62 @@ func (c *serviceContext) Name() string {
 }
 
 func (c *serviceContext) Mode() string {
-	return c.mode
+	switch {
+	case c.service.Spec.Mode.Global != nil:
+		return "global"
+	case c.service.Spec.Mode.Replicated != nil:
+		return "replicated"
+	case c.service.Spec.Mode.ReplicatedJob != nil:
+		return "replicated job"
+	case c.service.Spec.Mode.GlobalJob != nil:
+		return "global job"
+	default:
+		return ""
+	}
 }
 
 func (c *serviceContext) Replicas() string {
-	return c.replicas
+	s := &c.service
+
+	var running, desired, completed uint64
+	if s.ServiceStatus != nil {
+		running = c.service.ServiceStatus.RunningTasks
+		desired = c.service.ServiceStatus.DesiredTasks
+		completed = c.service.ServiceStatus.CompletedTasks
+	}
+	// for jobs, we will not include the max per node, even if it is set. jobs
+	// include instead the progress of the job as a whole, in addition to the
+	// current running state. the system respects max per node, but if we
+	// included it in the list output, the lines for jobs would be entirely too
+	// long and make the UI look bad.
+	if s.Spec.Mode.ReplicatedJob != nil {
+		return fmt.Sprintf(
+			"%d/%d (%d/%d completed)",
+			running, desired, completed, *s.Spec.Mode.ReplicatedJob.TotalCompletions,
+		)
+	}
+	if s.Spec.Mode.GlobalJob != nil {
+		// for global jobs, we need to do a little math. desired tasks are only
+		// the tasks that have not yet actually reached the Completed state.
+		// Completed tasks have reached the completed state. the TOTAL number
+		// of tasks to run is the sum of the tasks desired to still complete,
+		// and the tasks actually completed.
+		return fmt.Sprintf(
+			"%d/%d (%d/%d completed)",
+			running, desired, completed, desired+completed,
+		)
+	}
+	if r := c.maxReplicas(); r > 0 {
+		return fmt.Sprintf("%d/%d (max %d per node)", running, desired, r)
+	}
+	return fmt.Sprintf("%d/%d", running, desired)
+}
+
+func (c *serviceContext) maxReplicas() uint64 {
+	if c.Mode() != "replicated" || c.service.Spec.TaskTemplate.Placement == nil {
+		return 0
+	}
+	return c.service.Spec.TaskTemplate.Placement.MaxReplicas
 }
 
 func (c *serviceContext) Image() string {

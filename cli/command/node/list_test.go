@@ -6,14 +6,13 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
@@ -48,7 +47,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 			infoFunc:     tc.infoFunc,
 		})
 		cmd := newListCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -1,6 +1,5 @@
-% DOCKER(8) Docker User Manuals
-% Shishir Mahajan
-% SEPTEMBER 2015
+% "DOCKERD" "8" "SEPTEMBER 2015" "Docker Community" "Docker User Manuals"
+
 # NAME
 dockerd - Enable daemon mode
 
@@ -20,6 +19,7 @@ dockerd - Enable daemon mode
 [**--containerd**[=*SOCKET-PATH*]]
 [**--data-root**[=*/var/lib/docker*]]
 [**-D**|**--debug**]
+[**--default-cgroupns-mode**[=*host*]]
 [**--default-gateway**[=*DEFAULT-GATEWAY*]]
 [**--default-gateway-v6**[=*DEFAULT-GATEWAY-V6*]]
 [**--default-address-pool**[=*DEFAULT-ADDRESS-POOL*]]
@@ -56,6 +56,7 @@ dockerd - Enable daemon mode
 [**--mtu**[=*0*]]
 [**--max-concurrent-downloads**[=*3*]]
 [**--max-concurrent-uploads**[=*5*]]
+[**--max-download-attempts**[=*5*]]
 [**--node-generic-resources**[=*[]*]]
 [**-p**|**--pidfile**[=*/var/run/docker.pid*]]
 [**--raw-logs**]
@@ -176,6 +177,11 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 
 **-D**, **--debug**=*true*|*false*
   Enable debug mode. Default is false.
+
+**--default-cgroupns-mode**="**host**|**private**"
+  Set the default cgroup namespace mode for newly created containers. The argument
+  can either be **host** or **private**. If unset, this defaults to `host` on cgroup v1,
+`private` on cgroup v2.
 
 **--default-gateway**=""
   IPv4 address of the container default gateway; this address must be part of
@@ -328,6 +334,9 @@ unix://[/path/to/socket] to use.
 
 **--max-concurrent-uploads**=*5*
   Set the max concurrent uploads for each push. Default is `5`.
+
+**--max-download-attempts**=*5*
+  Set the max download attempts for each pull. Default is `5`.
 
 **--node-generic-resources**=*[]*
   Advertise user-defined resource. Default is `[]`.
@@ -824,7 +833,8 @@ option is available.
 The `native.cgroupdriver` option specifies the management of the container's
 cgroups. You can only specify `cgroupfs` or `systemd`. If you specify
 `systemd` and it is not available, the system errors out. If you omit the
-`native.cgroupdriver` option,` cgroupfs` is used.
+`native.cgroupdriver` option,` cgroupfs` is used on cgroup v1 hosts, `systemd`
+is used on cgroup v2 hosts with systemd available.
 
 This example sets the `cgroupdriver` to `systemd`:
 

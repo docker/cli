@@ -9,8 +9,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNewSaveCommandErrors(t *testing.T) {
@@ -56,7 +56,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
 		cli.Out().SetIsTerminal(tc.isTerminal)
 		cmd := NewSaveCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -98,7 +98,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 		}))
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NilError(t, cmd.Execute())
 		if tc.deferredFunc != nil {

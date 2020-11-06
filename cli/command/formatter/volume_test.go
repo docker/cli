@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestVolumeContext(t *testing.T) {
@@ -46,7 +47,7 @@ func TestVolumeContext(t *testing.T) {
 		ctx = c.volumeCtx
 		v := c.call()
 		if strings.Contains(v, ",") {
-			compareMultipleValues(t, v, c.expValue)
+			test.CompareMultipleValues(t, v, c.expValue)
 		} else if v != c.expValue {
 			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
 		}
@@ -58,7 +59,6 @@ func TestVolumeContextWrite(t *testing.T) {
 		context  Context
 		expected string
 	}{
-
 		// Errors
 		{
 			Context{Format: "{{InvalidFunction}}"},
@@ -73,9 +73,9 @@ func TestVolumeContextWrite(t *testing.T) {
 		// Table format
 		{
 			Context{Format: NewVolumeFormat("table", false)},
-			`DRIVER              VOLUME NAME
-foo                 foobar_baz
-bar                 foobar_bar
+			`DRIVER    VOLUME NAME
+foo       foobar_baz
+bar       foobar_bar
 `,
 		},
 		{
@@ -124,19 +124,23 @@ foobar_bar
 		},
 	}
 
-	for _, testcase := range cases {
-		volumes := []*types.Volume{
-			{Name: "foobar_baz", Driver: "foo"},
-			{Name: "foobar_bar", Driver: "bar"},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := VolumeWrite(testcase.context, volumes)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	volumes := []*types.Volume{
+		{Name: "foobar_baz", Driver: "foo"},
+		{Name: "foobar_bar", Driver: "bar"},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := VolumeWrite(tc.context, volumes)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

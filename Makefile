@@ -64,8 +64,9 @@ dynbinary: ## build dynamically linked binary
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor
-	bash -c 'vndr |& grep -v -i clone'
+	bash -c 'vndr |& grep -v -i clone | tee ./vndr.log'
 	scripts/validate/check-git-diff vendor
+	scripts/validate/check-all-packages-vendored
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
@@ -91,7 +92,7 @@ help: ## print this help
 cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
 	go generate github.com/docker/cli/cli/compose/schema
 
-compose-jsonschema: cli/compose/schema/bindata.go
+compose-jsonschema: cli/compose/schema/bindata.go ## generate compose-file schemas
 	scripts/validate/check-git-diff cli/compose/schema/bindata.go
 
 .PHONY: ci-validate

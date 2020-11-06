@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +40,7 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display numeric IDs")
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display container IDs")
 	flags.BoolVarP(&options.size, "size", "s", false, "Display total file sizes")
 	flags.BoolVarP(&options.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
@@ -58,27 +59,6 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-// listOptionsProcessor is used to set any container list options which may only
-// be embedded in the format template.
-// This is passed directly into tmpl.Execute in order to allow the preprocessor
-// to set any list options that were not provided by flags (e.g. `.Size`).
-// It is using a `map[string]bool` so that unknown fields passed into the
-// template format do not cause errors. These errors will get picked up when
-// running through the actual template processor.
-type listOptionsProcessor map[string]bool
-
-// Size sets the size of the map when called by a template execution.
-func (o listOptionsProcessor) Size() bool {
-	o["size"] = true
-	return true
-}
-
-// Label is needed here as it allows the correct pre-processing
-// because Label() is a method with arguments
-func (o listOptionsProcessor) Label(name string) string {
-	return ""
-}
-
 func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, error) {
 	options := &types.ContainerListOptions{
 		All:     opts.all,
@@ -91,20 +71,32 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 		options.Limit = 1
 	}
 
-	tmpl, err := templates.Parse(opts.format)
+	options.Size = opts.size
+	if !options.Size && len(opts.format) > 0 {
+		// The --size option isn't set, but .Size may be used in the template.
+		// Parse and execute the given template to detect if the .Size field is
+		// used. If it is, then automatically enable the --size option. See #24696
+		//
+		// Only requesting container size information when needed is an optimization,
+		// because calculating the size is a costly operation.
+		tmpl, err := templates.NewParse("", opts.format)
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse template")
+		}
 
-	optionsProcessor := listOptionsProcessor{}
-	// This shouldn't error out but swallowing the error makes it harder
-	// to track down if preProcessor issues come up. Ref #24696
-	if err := tmpl.Execute(ioutil.Discard, optionsProcessor); err != nil {
-		return nil, err
+		optionsProcessor := formatter.NewContainerContext()
+
+		// This shouldn't error out but swallowing the error makes it harder
+		// to track down if preProcessor issues come up.
+		if err := tmpl.Execute(ioutil.Discard, optionsProcessor); err != nil {
+			return nil, errors.Wrap(err, "failed to execute template")
+		}
+
+		if _, ok := optionsProcessor.FieldsUsed["Size"]; ok {
+			options.Size = true
+		}
 	}
-	// At the moment all we need is to capture .Size for preprocessor
-	options.Size = opts.size || optionsProcessor["size"]
 
 	return options, nil
 }

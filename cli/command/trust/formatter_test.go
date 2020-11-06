@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestTrustTag(t *testing.T) {
@@ -110,28 +110,32 @@ func TestTrustTagContextWrite(t *testing.T) {
 			formatter.Context{
 				Format: NewTrustTagFormat(),
 			},
-			`SIGNED TAG          DIGEST              SIGNERS
-tag1                deadbeef            alice
-tag2                aaaaaaaa            alice, bob
-tag3                bbbbbbbb            
+			`SIGNED TAG   DIGEST     SIGNERS
+tag1         deadbeef   alice
+tag2         aaaaaaaa   alice, bob
+tag3         bbbbbbbb   
 `,
 		},
 	}
 
-	for _, testcase := range cases {
-		signedTags := []SignedTagInfo{
-			{Name: "tag1", Digest: "deadbeef", Signers: []string{"alice"}},
-			{Name: "tag2", Digest: "aaaaaaaa", Signers: []string{"alice", "bob"}},
-			{Name: "tag3", Digest: "bbbbbbbb", Signers: []string{}},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := TagWrite(testcase.context, signedTags)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	signedTags := []SignedTagInfo{
+		{Name: "tag1", Digest: "deadbeef", Signers: []string{"alice"}},
+		{Name: "tag2", Digest: "aaaaaaaa", Signers: []string{"alice", "bob"}},
+		{Name: "tag3", Digest: "bbbbbbbb", Signers: []string{}},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := TagWrite(tc.context, signedTags); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 
@@ -146,7 +150,7 @@ func TestTrustTagContextEmptyWrite(t *testing.T) {
 		formatter.Context{
 			Format: NewTrustTagFormat(),
 		},
-		`SIGNED TAG          DIGEST              SIGNERS
+		`SIGNED TAG   DIGEST    SIGNERS
 `,
 	}
 
@@ -166,7 +170,7 @@ func TestSignerInfoContextEmptyWrite(t *testing.T) {
 		formatter.Context{
 			Format: NewSignerInfoFormat(),
 		},
-		`SIGNER              KEYS
+		`SIGNER    KEYS
 `,
 	}
 	emptySignerInfo := []SignerInfo{}
@@ -203,10 +207,10 @@ func TestSignerInfoContextWrite(t *testing.T) {
 				Format: NewSignerInfoFormat(),
 				Trunc:  true,
 			},
-			`SIGNER              KEYS
-alice               key11, key12
-bob                 key21
-eve                 foobarbazqux, key31, key32
+			`SIGNER    KEYS
+alice     key11, key12
+bob       key21
+eve       foobarbazqux, key31, key32
 `,
 		},
 		// No truncation
@@ -214,27 +218,30 @@ eve                 foobarbazqux, key31, key32
 			formatter.Context{
 				Format: NewSignerInfoFormat(),
 			},
-			`SIGNER              KEYS
-alice               key11, key12
-bob                 key21
-eve                 foobarbazquxquux, key31, key32
+			`SIGNER    KEYS
+alice     key11, key12
+bob       key21
+eve       foobarbazquxquux, key31, key32
 `,
 		},
 	}
 
-	for _, testcase := range cases {
-		signerInfo := []SignerInfo{
-			{Name: "alice", Keys: []string{"key11", "key12"}},
-			{Name: "bob", Keys: []string{"key21"}},
-			{Name: "eve", Keys: []string{"key31", "key32", "foobarbazquxquux"}},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := SignerInfoWrite(testcase.context, signerInfo)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	signerInfo := []SignerInfo{
+		{Name: "alice", Keys: []string{"key11", "key12"}},
+		{Name: "bob", Keys: []string{"key21"}},
+		{Name: "eve", Keys: []string{"key31", "key32", "foobarbazquxquux"}},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			if err := SignerInfoWrite(tc.context, signerInfo); err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }

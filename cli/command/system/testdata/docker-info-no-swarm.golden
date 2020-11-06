@@ -1,4 +1,5 @@
 Client:
+ Context:    default
  Debug Mode: true
 
 Server:
@@ -51,4 +52,6 @@ Server:
  Insecure Registries:
   127.0.0.0/8
  Live Restore Enabled: false
+ Default Address Pools:
+   Base: 10.123.0.0/16, Size: 24
 

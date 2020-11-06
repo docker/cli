@@ -4,15 +4,6 @@ description: "the volume rm command description and usage"
 keywords: "volume, rm"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # volume rm
 
 ```markdown
@@ -35,8 +26,9 @@ Remove one or more volumes. You cannot remove a volume that is in use by a conta
 ## Examples
 
 ```bash
-  $ docker volume rm hello
-  hello
+$ docker volume rm hello
+
+hello
 ```
 
 ## Related commands
@@ -45,4 +37,4 @@ Remove one or more volumes. You cannot remove a volume that is in use by a conta
 * [volume inspect](volume_inspect.md)
 * [volume ls](volume_ls.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)

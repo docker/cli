@@ -4,19 +4,10 @@ description: "Remove unused local volumes"
 keywords: "volume, prune, delete"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # volume prune
 
 ```markdown
-Usage:	docker volume prune [OPTIONS]
+Usage:  docker volume prune [OPTIONS]
 
 Remove all unused local volumes
 
@@ -65,7 +56,7 @@ volumes without the specified labels.
 * [volume ls](volume_ls.md)
 * [volume inspect](volume_inspect.md)
 * [volume rm](volume_rm.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)
 * [system df](system_df.md)
 * [container prune](container_prune.md)
 * [image prune](image_prune.md)

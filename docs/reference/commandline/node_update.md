@@ -4,15 +4,6 @@ description: "The node update command description and usage"
 keywords: "resources, update, dynamically"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # update
 
 ```markdown
@@ -31,6 +22,13 @@ Options:
 ## Description
 
 Update metadata about a node, such as its availability, labels, or roles.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -62,7 +60,7 @@ $ docker node update --label-add type=queue worker1
 
 The labels you set for nodes using `docker node update` apply only to the node
 entity within the swarm. Do not confuse them with the docker daemon labels for
-[dockerd](https://docs.docker.com/engine/userguide/labels-custom-metadata/#daemon-labels).
+[dockerd](dockerd.md).
 
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).

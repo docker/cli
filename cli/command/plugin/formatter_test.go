@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestPluginContext(t *testing.T) {
@@ -70,9 +70,9 @@ func TestPluginContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewFormat("table", false)},
-			`ID                  NAME                DESCRIPTION         ENABLED
-pluginID1           foobar_baz          description 1       true
-pluginID2           foobar_bar          description 2       false
+			`ID          NAME         DESCRIPTION     ENABLED
+pluginID1   foobar_baz   description 1   true
+pluginID2   foobar_bar   description 2   false
 `,
 		},
 		{
@@ -125,19 +125,24 @@ foobar_bar
 		},
 	}
 
-	for _, testcase := range cases {
-		plugins := []*types.Plugin{
-			{ID: "pluginID1", Name: "foobar_baz", Config: types.PluginConfig{Description: "description 1"}, Enabled: true},
-			{ID: "pluginID2", Name: "foobar_bar", Config: types.PluginConfig{Description: "description 2"}, Enabled: false},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := FormatWrite(testcase.context, plugins)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	plugins := []*types.Plugin{
+		{ID: "pluginID1", Name: "foobar_baz", Config: types.PluginConfig{Description: "description 1"}, Enabled: true},
+		{ID: "pluginID2", Name: "foobar_bar", Config: types.PluginConfig{Description: "description 2"}, Enabled: false},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			err := FormatWrite(tc.context, plugins)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

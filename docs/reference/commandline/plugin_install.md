@@ -4,15 +4,6 @@ description: "the plugin install command description and usage"
 keywords: "plugin, install"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # plugin install
 
 ```markdown
@@ -58,8 +49,8 @@ After the plugin is installed, it appears in the list of plugins:
 ```bash
 $ docker plugin ls
 
-ID                  NAME                  TAG                 DESCRIPTION                ENABLED
-69553ca1d123        vieux/sshfs           latest              sshFS plugin for Docker    true
+ID             NAME                  DESCRIPTION                ENABLED
+69553ca1d123   vieux/sshfs:latest    sshFS plugin for Docker    true
 ```
 
 ## Related commands

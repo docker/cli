@@ -34,6 +34,7 @@ import (
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/pkg/errors"
 	fsutiltypes "github.com/tonistiigi/fsutil/types"
+	"github.com/tonistiigi/go-rosetta"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -156,7 +157,8 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 				}
 				w = f
 			}
-			s.Allow(filesync.NewFSSyncTarget(w))
+			output := func(map[string]string) (io.WriteCloser, error) { return w, nil }
+			s.Allow(filesync.NewFSSyncTarget(output))
 		}
 	}
 
@@ -221,7 +223,9 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	if strings.EqualFold(options.platform, "local") {
-		options.platform = platforms.DefaultString()
+		p := platforms.DefaultSpec()
+		p.Architecture = rosetta.NativeArch() // current binary architecture might be emulated
+		options.platform = platforms.Format(p)
 	}
 
 	eg.Go(func() error {
@@ -232,7 +236,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		buildOptions := imageBuildOptions(dockerCli, options)
 		buildOptions.Version = types.BuilderBuildKit
 		buildOptions.Dockerfile = dockerfileName
-		//buildOptions.AuthConfigs = authConfigs   // handled by session
+		// buildOptions.AuthConfigs = authConfigs   // handled by session
 		buildOptions.RemoteContext = remote
 		buildOptions.SessionID = s.ID()
 		buildOptions.BuildID = buildID
@@ -423,7 +427,7 @@ func (t *tracer) write(msg jsonmessage.JSONMessage) {
 }
 
 func parseSecretSpecs(sl []string) (session.Attachable, error) {
-	fs := make([]secretsprovider.FileSource, 0, len(sl))
+	fs := make([]secretsprovider.Source, 0, len(sl))
 	for _, v := range sl {
 		s, err := parseSecret(v)
 		if err != nil {
@@ -431,22 +435,23 @@ func parseSecretSpecs(sl []string) (session.Attachable, error) {
 		}
 		fs = append(fs, *s)
 	}
-	store, err := secretsprovider.NewFileStore(fs)
+	store, err := secretsprovider.NewStore(fs)
 	if err != nil {
 		return nil, err
 	}
 	return secretsprovider.NewSecretProvider(store), nil
 }
 
-func parseSecret(value string) (*secretsprovider.FileSource, error) {
+func parseSecret(value string) (*secretsprovider.Source, error) {
 	csvReader := csv.NewReader(strings.NewReader(value))
 	fields, err := csvReader.Read()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse csv secret")
 	}
 
-	fs := secretsprovider.FileSource{}
+	fs := secretsprovider.Source{}
 
+	var typ string
 	for _, field := range fields {
 		parts := strings.SplitN(field, "=", 2)
 		key := strings.ToLower(parts[0])
@@ -458,16 +463,23 @@ func parseSecret(value string) (*secretsprovider.FileSource, error) {
 		value := parts[1]
 		switch key {
 		case "type":
-			if value != "file" {
+			if value != "file" && value != "env" {
 				return nil, errors.Errorf("unsupported secret type %q", value)
 			}
+			typ = value
 		case "id":
 			fs.ID = value
 		case "source", "src":
 			fs.FilePath = value
+		case "env":
+			fs.Env = value
 		default:
 			return nil, errors.Errorf("unexpected key '%s' in '%s'", key, field)
 		}
+	}
+	if typ == "env" && fs.Env == "" {
+		fs.Env = fs.FilePath
+		fs.FilePath = ""
 	}
 	return &fs, nil
 }
@@ -475,16 +487,13 @@ func parseSecret(value string) (*secretsprovider.FileSource, error) {
 func parseSSHSpecs(sl []string) (session.Attachable, error) {
 	configs := make([]sshprovider.AgentConfig, 0, len(sl))
 	for _, v := range sl {
-		c, err := parseSSH(v)
-		if err != nil {
-			return nil, err
-		}
+		c := parseSSH(v)
 		configs = append(configs, *c)
 	}
 	return sshprovider.NewSSHAgentProvider(configs)
 }
 
-func parseSSH(value string) (*sshprovider.AgentConfig, error) {
+func parseSSH(value string) *sshprovider.AgentConfig {
 	parts := strings.SplitN(value, "=", 2)
 	cfg := sshprovider.AgentConfig{
 		ID: parts[0],
@@ -492,5 +501,5 @@ func parseSSH(value string) (*sshprovider.AgentConfig, error) {
 	if len(parts) > 1 {
 		cfg.Paths = strings.Split(parts[1], ",")
 	}
-	return &cfg, nil
+	return &cfg
 }

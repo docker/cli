@@ -24,6 +24,7 @@ type infoOptions struct {
 
 type clientInfo struct {
 	Debug    bool
+	Context  string
 	Plugins  []pluginmanager.Plugin
 	Warnings []string
 }
@@ -71,7 +72,8 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	info.ClientInfo = &clientInfo{
-		Debug: debug.IsEnabled(),
+		Context: dockerCli.CurrentContext(),
+		Debug:   debug.IsEnabled(),
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -88,9 +90,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	fmt.Fprintln(dockerCli.Out(), "Client:")
 	if info.ClientInfo != nil {
-		if err := prettyPrintClientInfo(dockerCli, *info.ClientInfo); err != nil {
-			info.ClientErrors = append(info.ClientErrors, err.Error())
-		}
+		prettyPrintClientInfo(dockerCli, *info.ClientInfo)
 	}
 	for _, err := range info.ClientErrors {
 		fmt.Fprintln(dockerCli.Out(), "ERROR:", err)
@@ -113,7 +113,8 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	return nil
 }
 
-func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
+func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
+	fmt.Fprintln(dockerCli.Out(), " Context:   ", info.Context)
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
 
 	if len(info.Plugins) > 0 {
@@ -134,8 +135,6 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) error {
 	if len(info.Warnings) > 0 {
 		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
 	}
-
-	return nil
 }
 
 // nolint: gocyclo
@@ -161,6 +160,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	}
 	fprintlnNonEmpty(dockerCli.Out(), " Logging Driver:", info.LoggingDriver)
 	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Driver:", info.CgroupDriver)
+	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Version:", info.CgroupVersion)
 
 	fmt.Fprintln(dockerCli.Out(), " Plugins:")
 	fmt.Fprintln(dockerCli.Out(), "  Volume:", strings.Join(info.Plugins.Volume, " "))
@@ -293,6 +293,14 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	if info.ProductLicense != "" {
 		fmt.Fprintln(dockerCli.Out(), " Product License:", info.ProductLicense)
 	}
+
+	if info.DefaultAddressPools != nil && len(info.DefaultAddressPools) > 0 {
+		fmt.Fprintln(dockerCli.Out(), " Default Address Pools:")
+		for _, pool := range info.DefaultAddressPools {
+			fmt.Fprintf(dockerCli.Out(), "   Base: %s, Size: %d\n", pool.Base, pool.Size)
+		}
+	}
+
 	fmt.Fprint(dockerCli.Out(), "\n")
 
 	printServerWarnings(dockerCli, info)

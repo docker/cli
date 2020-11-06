@@ -60,6 +60,8 @@ running container only if the container was started with **--kernel-memory**.
 If the container was started *without* **--kernel-memory** you need to stop
 the container before updating kernel memory.
 
+NOTE: The **--kernel-memory** option has been deprecated since Docker 20.10.
+
 For example, if you started a container with this command:
 
 ```bash

@@ -4,15 +4,6 @@ description: "The info command description and usage"
 keywords: "display, docker, information"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # info
 
 ```markdown
@@ -56,6 +47,7 @@ information about the `devicemapper` storage driver is shown:
 ```bash
 $ docker info
 Client:
+ Context:    default
  Debug Mode: false
 
 Server:
@@ -106,7 +98,7 @@ Server:
   myinsecurehost:5000
   127.0.0.0/8
 ```
- 
+
 ### Show debugging output
 
 Here is a sample output for a daemon running on Ubuntu, using the overlay2
@@ -115,6 +107,7 @@ storage driver and a node that is part of a 2-node swarm:
 ```bash
 $ docker -D info
 Client:
+ Context:    default
  Debug Mode: true
 
 Server:
@@ -211,9 +204,10 @@ $ docker info --format '{{json .}}'
 
 Here is a sample output for a daemon running on Windows Server 2016:
 
-```none
+```console
 E:\docker>docker info
 Client:
+ Context:    default
  Debug Mode: false
 
 Server:

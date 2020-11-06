@@ -4,15 +4,6 @@ description: "The kill command description and usage"
 keywords: "container, kill, signal"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # kill
 
 ```markdown
@@ -32,7 +23,9 @@ inside the container is sent `SIGKILL` signal (default), or the signal that is
 specified with the `--signal` option. You can kill a container using the
 container's ID, ID-prefix, or name.
 
-> **Note**: `ENTRYPOINT` and `CMD` in the *shell* form run as a subcommand of
+> **Note**
+>
+> `ENTRYPOINT` and `CMD` in the *shell* form run as a child process of
 > `/bin/sh -c`, which does not pass signals. This means that the executable is
 > not the container’s PID 1 and does not receive Unix signals.
 

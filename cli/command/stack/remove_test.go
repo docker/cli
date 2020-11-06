@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func fakeClientForRemoveStackTest(version string) *fakeClient {
@@ -44,7 +44,7 @@ func fakeClientForRemoveStackTest(version string) *fakeClient {
 func TestRemoveWithEmptyName(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}), &orchestrator)
 	cmd.SetArgs([]string{"good", "'   '", "alsogood"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }
@@ -155,7 +155,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 		},
 	}
 	cmd := newRemoveCommand(test.NewFakeCli(cli), &orchestrator)
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.Error(t, cmd.Execute(), "Failed to remove some resources from stack: foo")

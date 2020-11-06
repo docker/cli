@@ -11,9 +11,9 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/go-connections/tlsconfig"
-	"gotest.tools/assert"
-	"gotest.tools/env"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
+	"gotest.tools/v3/golden"
 )
 
 type endpoint struct {
@@ -40,11 +40,9 @@ func testDefaultMetadata() store.Metadata {
 }
 
 func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (store.Store, func()) {
-	//meta := testDefaultMetadata()
 	testDir, err := ioutil.TempDir("", t.Name())
 	assert.NilError(t, err)
-	//defer os.RemoveAll(testDir)
-	store := &ContextStoreWithDefault{
+	s := &ContextStoreWithDefault{
 		Store: store.New(testDir, testCfg),
 		Resolver: func() (*DefaultContext, error) {
 			return &DefaultContext{
@@ -53,8 +51,8 @@ func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (sto
 			}, nil
 		},
 	}
-	return store, func() {
-		os.RemoveAll(testDir)
+	return s, func() {
+		_ = os.RemoveAll(testDir)
 	}
 }
 

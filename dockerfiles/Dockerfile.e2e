@@ -1,31 +1,25 @@
-ARG GO_VERSION=1.12.5
-
-FROM docker/containerd-shim-process:a4d1531 AS containerd-shim-process
+ARG GO_VERSION=1.13.15
 
 # Use Debian based image as docker-compose requires glibc.
-FROM golang:${GO_VERSION}
+FROM golang:${GO_VERSION}-buster
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     openssl \
-    btrfs-tools \
-    libapparmor-dev \
-    libseccomp-dev \
-    iptables \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-ARG COMPOSE_VERSION=1.21.2
-RUN curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
+ARG COMPOSE_VERSION=1.25.1
+RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
 ARG NOTARY_VERSION=v0.6.1
-RUN curl -Ls https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary \
+RUN curl -fsSL https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 -o /usr/local/bin/notary \
     && chmod +x /usr/local/bin/notary
 
-ARG GOTESTSUM_VERSION=0.3.4
-RUN curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz \
+ARG GOTESTSUM_VERSION=0.4.0
+RUN curl -fsSL https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz \
     && tar -xf gotestsum.tar.gz gotestsum \
     && mv gotestsum /usr/local/bin/gotestsum \
     && rm gotestsum.tar.gz 
@@ -42,7 +36,10 @@ RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
 COPY . .
 ARG VERSION
 ARG GITCOMMIT
-ENV VERSION=${VERSION} GITCOMMIT=${GITCOMMIT}
+ENV VERSION=${VERSION}
+ENV GITCOMMIT=${GITCOMMIT}
+ENV DOCKER_BUILDKIT=1
+ENV COMPOSE_DOCKER_CLI_BUILD=1
 RUN ./scripts/build/binary
 RUN ./scripts/build/plugins e2e/cli-plugins/plugins/*
 

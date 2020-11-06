@@ -4,19 +4,10 @@ description: "Remove all stopped images"
 keywords: "image, prune, delete, remove"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # image prune
 
 ```markdown
-Usage:	docker image prune [OPTIONS]
+Usage:  docker image prune [OPTIONS]
 
 Remove unused images
 
@@ -199,7 +190,9 @@ This example removes images which have a maintainer label not set to `john`:
 $ docker image prune --filter="label!=maintainer=john"
 ```
 
-> **Note**: You are prompted for confirmation before the `prune` removes
+> **Note**
+>
+> You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
 > In addition, `docker image ls` does not support negative filtering, so it
 > difficult to predict what images will actually be removed.

@@ -7,7 +7,7 @@ keywords: "network, prune, delete"
 # network prune
 
 ```markdown
-Usage:	docker network prune [OPTIONS]
+Usage:  docker network prune [OPTIONS]
 
 Remove all unused networks
 
@@ -27,7 +27,7 @@ by any containers.
 ```bash
 $ docker network prune
 
-WARNING! This will remove all networks not used by at least one container.
+WARNING! This will remove all custom networks not used by at least one container.
 Are you sure you want to continue? [y/N] y
 Deleted Networks:
 n1
@@ -64,7 +64,7 @@ networks without the specified labels.
 The following removes networks created more than 5 minutes ago. Note that
 system networks such as `bridge`, `host`, and `none` will never be pruned:
 
-```none
+```bash
 $ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE
@@ -96,7 +96,7 @@ f949d337b1f5        none                null                local
 * [network ls](network_ls.md)
 * [network inspect](network_inspect.md)
 * [network rm](network_rm.md)
-* [Understand Docker container networks](https://docs.docker.com/engine/userguide/networking/)
+* [Understand Docker container networks](https://docs.docker.com/network/)
 * [system df](system_df.md)
 * [container prune](container_prune.md)
 * [image prune](image_prune.md)

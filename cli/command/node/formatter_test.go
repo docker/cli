@@ -12,8 +12,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNodeContext(t *testing.T) {
@@ -76,10 +76,10 @@ func TestNodeContextWrite(t *testing.T) {
 		// Table format
 		{
 			context: formatter.Context{Format: NewFormat("table", false)},
-			expected: `ID                  HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION
-nodeID1             foobar_baz          Foo                 Drain               Leader              18.03.0-ce
-nodeID2             foobar_bar          Bar                 Active              Reachable           1.2.3
-nodeID3             foobar_boo          Boo                 Active                                  ` + "\n", // (to preserve whitespace)
+			expected: `ID          HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+nodeID1     foobar_baz   Foo       Drain          Leader           18.03.0-ce
+nodeID2     foobar_bar   Bar       Active         Reachable        1.2.3
+nodeID3     foobar_boo   Boo       Active                          ` + "\n", // (to preserve whitespace)
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		{
@@ -110,19 +110,19 @@ foobar_boo
 		},
 		{
 			context: formatter.Context{Format: NewFormat("table {{.ID}}\t{{.Hostname}}\t{{.TLSStatus}}", false)},
-			expected: `ID                  HOSTNAME            TLS STATUS
-nodeID1             foobar_baz          Needs Rotation
-nodeID2             foobar_bar          Ready
-nodeID3             foobar_boo          Unknown
+			expected: `ID        HOSTNAME     TLS STATUS
+nodeID1   foobar_baz   Needs Rotation
+nodeID2   foobar_bar   Ready
+nodeID3   foobar_boo   Unknown
 `,
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		{ // no cluster TLS status info, TLS status for all nodes is unknown
 			context: formatter.Context{Format: NewFormat("table {{.ID}}\t{{.Hostname}}\t{{.TLSStatus}}", false)},
-			expected: `ID                  HOSTNAME            TLS STATUS
-nodeID1             foobar_baz          Unknown
-nodeID2             foobar_bar          Unknown
-nodeID3             foobar_boo          Unknown
+			expected: `ID        HOSTNAME     TLS STATUS
+nodeID1   foobar_baz   Unknown
+nodeID2   foobar_bar   Unknown
+nodeID3   foobar_boo   Unknown
 `,
 			clusterInfo: swarm.ClusterInfo{},
 		},
@@ -167,48 +167,53 @@ foobar_boo  Unknown
 		},
 	}
 
-	for _, testcase := range cases {
-		nodes := []swarm.Node{
-			{
-				ID: "nodeID1",
-				Description: swarm.NodeDescription{
-					Hostname: "foobar_baz",
-					TLSInfo:  swarm.TLSInfo{TrustRoot: "no"},
-					Engine:   swarm.EngineDescription{EngineVersion: "18.03.0-ce"},
-				},
-				Status:        swarm.NodeStatus{State: swarm.NodeState("foo")},
-				Spec:          swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")},
-				ManagerStatus: &swarm.ManagerStatus{Leader: true},
+	nodes := []swarm.Node{
+		{
+			ID: "nodeID1",
+			Description: swarm.NodeDescription{
+				Hostname: "foobar_baz",
+				TLSInfo:  swarm.TLSInfo{TrustRoot: "no"},
+				Engine:   swarm.EngineDescription{EngineVersion: "18.03.0-ce"},
 			},
-			{
-				ID: "nodeID2",
-				Description: swarm.NodeDescription{
-					Hostname: "foobar_bar",
-					TLSInfo:  swarm.TLSInfo{TrustRoot: "hi"},
-					Engine:   swarm.EngineDescription{EngineVersion: "1.2.3"},
-				},
-				Status: swarm.NodeStatus{State: swarm.NodeState("bar")},
-				Spec:   swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
-				ManagerStatus: &swarm.ManagerStatus{
-					Leader:       false,
-					Reachability: swarm.Reachability("Reachable"),
-				},
+			Status:        swarm.NodeStatus{State: swarm.NodeState("foo")},
+			Spec:          swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")},
+			ManagerStatus: &swarm.ManagerStatus{Leader: true},
+		},
+		{
+			ID: "nodeID2",
+			Description: swarm.NodeDescription{
+				Hostname: "foobar_bar",
+				TLSInfo:  swarm.TLSInfo{TrustRoot: "hi"},
+				Engine:   swarm.EngineDescription{EngineVersion: "1.2.3"},
 			},
-			{
-				ID:          "nodeID3",
-				Description: swarm.NodeDescription{Hostname: "foobar_boo"},
-				Status:      swarm.NodeStatus{State: swarm.NodeState("boo")},
-				Spec:        swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
+			Status: swarm.NodeStatus{State: swarm.NodeState("bar")},
+			Spec:   swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
+			ManagerStatus: &swarm.ManagerStatus{
+				Leader:       false,
+				Reachability: swarm.Reachability("Reachable"),
 			},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := FormatWrite(testcase.context, nodes, types.Info{Swarm: swarm.Info{Cluster: &testcase.clusterInfo}})
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+		},
+		{
+			ID:          "nodeID3",
+			Description: swarm.NodeDescription{Hostname: "foobar_boo"},
+			Status:      swarm.NodeStatus{State: swarm.NodeState("boo")},
+			Spec:        swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+
+			err := FormatWrite(tc.context, nodes, types.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

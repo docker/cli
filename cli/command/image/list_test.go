@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestNewImagesCommandErrors(t *testing.T) {
@@ -36,7 +36,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -82,7 +82,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
 		cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
 		cmd := NewImagesCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)
@@ -92,7 +92,6 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 
 func TestNewListCommandAlias(t *testing.T) {
 	cmd := newListCommand(test.NewFakeCli(&fakeClient{}))
-	assert.Check(t, cmd.HasAlias("images"))
 	assert.Check(t, cmd.HasAlias("list"))
 	assert.Check(t, !cmd.HasAlias("other"))
 }

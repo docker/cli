@@ -4,15 +4,6 @@ description: "The network disconnect command description and usage"
 keywords: "network, disconnect, user-defined"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # network disconnect
 
 ```markdown
@@ -33,7 +24,7 @@ disconnect it from the network.
 ## Examples
 
 ```bash
-  $ docker network disconnect multi-host-network container1
+$ docker network disconnect multi-host-network container1
 ```
 
 

@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/golden"
 )
 
 func TestNewLoadCommandErrors(t *testing.T) {
@@ -44,7 +44,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 		cli.In().SetIsTerminal(tc.isTerminalIn)
 		cmd := NewLoadCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -53,7 +53,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 func TestNewLoadCommandInvalidInput(t *testing.T) {
 	expectedError := "open *"
 	cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{}))
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	cmd.SetArgs([]string{"--input", "*"})
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, expectedError)
@@ -92,7 +92,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 		cmd := NewLoadCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)

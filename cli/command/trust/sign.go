@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -90,7 +91,17 @@ func runSignImage(cli command.Cli, options signOptions) error {
 				return err
 			}
 			fmt.Fprintf(cli.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
-			return image.TrustedPush(ctx, cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), requestPrivilege)
+
+			authConfig := command.ResolveAuthConfig(ctx, cli, imgRefAndAuth.RepoInfo().Index)
+			encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+			if err != nil {
+				return err
+			}
+			options := types.ImagePushOptions{
+				RegistryAuth:  encodedAuth,
+				PrivilegeFunc: requestPrivilege,
+			}
+			return image.TrustedPush(ctx, cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), options)
 		default:
 			return err
 		}

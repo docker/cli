@@ -4,19 +4,10 @@ description: "The swarm leave command description and usage"
 keywords: "swarm, leave"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # swarm leave
 
 ```markdown
-Usage:	docker swarm leave [OPTIONS]
+Usage:  docker swarm leave [OPTIONS]
 
 Leave the swarm
 
@@ -42,6 +33,7 @@ Consider the following swarm, as seen from the manager:
 
 ```bash
 $ docker node ls
+
 ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
 7ln70fl22uw2dvjn2ft53m3q5    worker2   Ready   Active
 dkp8vy1dq1kxleu9g4u78tlag    worker1   Ready   Active
@@ -52,6 +44,7 @@ To remove `worker2`, issue the following command from `worker2` itself:
 
 ```bash
 $ docker swarm leave
+
 Node left the default swarm.
 ```
 
@@ -66,7 +59,7 @@ command.
 * [node rm](node_rm.md)
 * [swarm init](swarm_init.md)
 * [swarm join](swarm_join.md)
-* [swarm join-token](swarm_join_token.md)
+* [swarm join-token](swarm_join-token.md)
 * [swarm unlock](swarm_unlock.md)
-* [swarm unlock-key](swarm_unlock_key.md)
+* [swarm unlock-key](swarm_unlock-key.md)
 * [swarm update](swarm_update.md)

@@ -24,18 +24,18 @@ const (
 )
 
 // GetStackAPIVersion returns the most appropriate stack API version installed.
-func GetStackAPIVersion(serverGroups discovery.ServerGroupsInterface, experimental bool) (StackVersion, error) {
+func GetStackAPIVersion(serverGroups discovery.ServerGroupsInterface) (StackVersion, error) {
 	groups, err := serverGroups.ServerGroups()
 	if err != nil {
 		return "", err
 	}
 
-	return getAPIVersion(groups, experimental)
+	return getAPIVersion(groups)
 }
 
-func getAPIVersion(groups *metav1.APIGroupList, experimental bool) (StackVersion, error) {
+func getAPIVersion(groups *metav1.APIGroupList) (StackVersion, error) {
 	switch {
-	case experimental && findVersion(apiv1alpha3.SchemeGroupVersion, groups.Groups):
+	case findVersion(apiv1alpha3.SchemeGroupVersion, groups.Groups):
 		return StackAPIV1Alpha3, nil
 	case findVersion(apiv1beta2.SchemeGroupVersion, groups.Groups):
 		return StackAPIV1Beta2, nil

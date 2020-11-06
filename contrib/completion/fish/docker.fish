@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
+        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
             return 1
         end
     end
@@ -33,6 +33,11 @@ function __fish_print_docker_containers --description 'Print a list of docker co
             docker ps -a --no-trunc --format "{{.ID}}\n{{.Names}}" | tr ',' '\n'
     end
 end
+
+function __fish_print_docker_networks --description 'Print a list of docker networks'
+    docker network ls --format "{{.ID}}\n{{.Name}}" | tr ',' '\n'
+end
+
 
 function __fish_docker_no_subcommand_trust --description 'Test if docker has yet to be given the trust subcommand'
     if __fish_seen_subcommand_from trust
@@ -178,6 +183,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l blkio-weight
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l blkio-weight-device -d 'Block IO weight (relative device weight)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cap-add -d 'Add Linux capabilities'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cap-drop -d 'Drop Linux capabilities'
+complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cgroupns -d 'Cgroup namespace mode to use'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cgroup-parent -d 'Optional parent cgroup for the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cidfile -d 'Write the container ID to the file'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l cpu-count -d 'CPU count (Windows only)'
@@ -305,7 +311,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l format -d '
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
-complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show numeric IDs'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s q -l quiet -d 'Only show image IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_print_docker_images)' -d "Image"
 
 # images
@@ -316,7 +322,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter 
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Pretty-print images using a Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l no-trunc -d "Don't truncate output"
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s q -l quiet -d 'Only show numeric IDs'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s q -l quiet -d 'Only show image IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # import
@@ -367,8 +373,23 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -s f -l follow -d
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -s t -l timestamps -d 'Show timestamps'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l since -d 'Show logs since timestamp'
-complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -l tail -d 'Output the specified number of lines at the end of logs (defaults to all logs)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -s n -l tail -d 'Output the specified number of lines at the end of logs (defaults to all logs)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from logs' -a '(__fish_print_docker_containers running)' -d "Container"
+
+# network
+complete -c docker -f -n '__fish_docker_no_subcommand' -a network -d 'Manage networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a connect -d 'Connect a container to a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a create -d 'Create a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a disconnect -d 'Disconnect a container from a network'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a inspect -d 'Display detailed information on one or more networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a ls -d 'List networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a prune -d 'Remove all unused networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -a rm -d 'Remove one or more networks'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_seen_subcommand_from network rm' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network connect' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network disconnect' -a '(__fish_print_docker_networks)' -d "Network"
+complete -c docker -A -f -n '__fish_seen_subcommand_from network inspect' -a '(__fish_print_docker_networks)' -d "Network"
 
 # port
 complete -c docker -f -n '__fish_docker_no_subcommand' -a port -d 'Lookup the public-facing port that is NAT-ed to PRIVATE_PORT'
@@ -388,7 +409,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l help -d 'Print u
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s l -l latest -d 'Show only the latest created container, include non-running ones.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s n -d 'Show n last created containers, include non-running ones.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l no-trunc -d "Don't truncate output"
-complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s q -l quiet -d 'Only display numeric IDs'
+complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s q -l quiet -d 'Only display container IDs'
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s s -l size -d 'Display total file sizes'
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l since -d 'Show only containers created since Id or Name, include non-running ones.'
 
@@ -419,7 +440,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a rm -d 'Remove one or m
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s f -l force -d 'Force the removal of a running container (uses SIGKILL)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s l -l link -d 'Remove the specified link and not the underlying container'
-complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s v -l volumes -d 'Remove the volumes associated with the container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s v -l volumes -d 'Remove anonymous volumes associated with the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -a '(__fish_print_docker_containers stopped)' -d "Container"
 complete -c docker -A -f -n '__fish_seen_subcommand_from rm' -s f -l force -a '(__fish_print_docker_containers all)' -d "Container"
 
@@ -438,6 +459,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s c -l cpu-shares
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l cap-add -d 'Add Linux capabilities'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l cap-drop -d 'Drop Linux capabilities'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l cidfile -d 'Write the container ID to the file'
+complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l cgroupns -d 'Cgroup namespace mode to use'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l cpuset -d 'CPUs in which to allow execution (0-3, 0,1)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s d -l detach -d 'Detached mode: run the container in the background and print the new container ID'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l device -d 'Add a host device to the container (e.g. --device=/dev/sdc:/dev/xvdc:rwm)'

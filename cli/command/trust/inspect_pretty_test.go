@@ -17,9 +17,9 @@ import (
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 	"github.com/theupdateframework/notary/tuf/utils"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 // TODO(n4ss): remove common tests with the regular inspect command
@@ -65,7 +65,7 @@ func TestTrustInspectPrettyCommandErrors(t *testing.T) {
 		cmd := newInspectCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.Flags().Set("pretty", "true")
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -77,7 +77,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -85,7 +85,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 }
 
@@ -95,7 +95,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -103,7 +103,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
 }
 
@@ -113,7 +113,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
@@ -123,7 +123,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
@@ -393,11 +393,6 @@ func TestGetSignerRolesWithKeyIDs(t *testing.T) {
 		"bob":   {"key71", "key72"},
 	}
 
-	var roleWithSigs []client.RoleWithSignatures
-	for _, role := range roles {
-		roleWithSig := client.RoleWithSignatures{Role: role, Signatures: nil}
-		roleWithSigs = append(roleWithSigs, roleWithSig)
-	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(roles)
 	assert.Check(t, is.DeepEqual(expectedSignerRoleToKeyIDs, signerRoleToKeyIDs))
 }
@@ -465,10 +460,10 @@ func TestPrintSignerInfoSortOrder(t *testing.T) {
 		"signer1-foo":  {"A"},
 	}
 
-	expected := `SIGNER              KEYS
-signer1-foo         A
-signer2-foo         B
-signer10-foo        C
+	expected := `SIGNER         KEYS
+signer1-foo    A
+signer2-foo    B
+signer10-foo   C
 `
 	buf := new(bytes.Buffer)
 	assert.NilError(t, printSignerInfo(buf, roleToKeyIDs))

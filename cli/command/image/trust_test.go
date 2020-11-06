@@ -10,20 +10,13 @@ import (
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
 )
 
-func unsetENV() {
-	os.Unsetenv("DOCKER_CONTENT_TRUST")
-	os.Unsetenv("DOCKER_CONTENT_TRUST_SERVER")
-}
-
 func TestENVTrustServer(t *testing.T) {
-	defer unsetENV()
+	defer env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "https://notary-test.com:5000"})()
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
-	if err := os.Setenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary-test.com:5000"); err != nil {
-		t.Fatal("Failed to set ENV variable")
-	}
 	output, err := trust.Server(indexInfo)
 	expectedStr := "https://notary-test.com:5000"
 	if err != nil || output != expectedStr {
@@ -32,11 +25,8 @@ func TestENVTrustServer(t *testing.T) {
 }
 
 func TestHTTPENVTrustServer(t *testing.T) {
-	defer unsetENV()
+	defer env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "http://notary-test.com:5000"})()
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
-	if err := os.Setenv("DOCKER_CONTENT_TRUST_SERVER", "http://notary-test.com:5000"); err != nil {
-		t.Fatal("Failed to set ENV variable")
-	}
 	_, err := trust.Server(indexInfo)
 	if err == nil {
 		t.Fatal("Expected error with invalid scheme")

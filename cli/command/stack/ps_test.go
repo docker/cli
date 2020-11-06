@@ -7,14 +7,13 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestStackPsErrors(t *testing.T) {
@@ -46,7 +45,7 @@ func TestStackPsErrors(t *testing.T) {
 			taskListFunc: tc.taskListFunc,
 		}), &orchestrator)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -170,7 +169,7 @@ func TestStackPs(t *testing.T) {
 			for key, value := range tc.flags {
 				cmd.Flags().Set(key, value)
 			}
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, cmd.Execute(), tc.expectedErr)

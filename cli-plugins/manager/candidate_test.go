@@ -7,15 +7,14 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
-	"gotest.tools/assert"
-	"gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/assert/cmp"
 )
 
 type fakeCandidate struct {
-	path              string
-	exec              bool
-	meta              string
-	allowExperimental bool
+	path string
+	exec bool
+	meta string
 }
 
 func (c *fakeCandidate) Path() string {
@@ -30,7 +29,7 @@ func (c *fakeCandidate) Metadata() ([]byte, error) {
 }
 
 func TestValidateCandidate(t *testing.T) {
-	var (
+	const (
 		goodPluginName = NamePrefix + "goodplugin"
 
 		builtinName  = NamePrefix + "builtin"
@@ -70,14 +69,12 @@ func TestValidateCandidate(t *testing.T) {
 		{name: "invalid schemaversion", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "xyzzy"}`}, invalid: `plugin SchemaVersion "xyzzy" is not valid`},
 		{name: "no vendor", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0"}`}, invalid: "plugin metadata does not define a vendor"},
 		{name: "empty vendor", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": ""}`}, invalid: "plugin metadata does not define a vendor"},
-		{name: "experimental required", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}, invalid: "requires experimental CLI"},
 		// This one should work
 		{name: "valid", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`}},
-		{name: "valid + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`, allowExperimental: true}},
-		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental, allowExperimental: true}},
+		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p, err := newPlugin(tc.c, fakeroot, tc.c.allowExperimental)
+			p, err := newPlugin(tc.c, fakeroot)
 			if tc.err != "" {
 				assert.ErrorContains(t, err, tc.err)
 			} else if tc.invalid != "" {

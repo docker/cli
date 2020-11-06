@@ -7,8 +7,8 @@ import (
 	"io"
 	"testing"
 
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 // For https://github.com/docker/cli/pull/1014#issuecomment-409308139

@@ -4,15 +4,6 @@ description: "The swarm update command description and usage"
 keywords: "swarm, update"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # swarm update
 
 ```markdown
@@ -33,7 +24,14 @@ Options:
 
 ## Description
 
-Updates a swarm with new parameter values. This command must target a manager node.
+Updates a swarm with new parameter values.
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -46,7 +44,7 @@ $ docker swarm update --cert-expiry 720h
 * [swarm ca](swarm_ca.md)
 * [swarm init](swarm_init.md)
 * [swarm join](swarm_join.md)
-* [swarm join-token](swarm_join_token.md)
+* [swarm join-token](swarm_join-token.md)
 * [swarm leave](swarm_leave.md)
 * [swarm unlock](swarm_unlock.md)
-* [swarm unlock-key](swarm_unlock_key.md)
+* [swarm unlock-key](swarm_unlock-key.md)

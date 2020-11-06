@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stringid"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNetworkContext(t *testing.T) {
@@ -90,9 +90,9 @@ func TestNetworkContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: NewFormat("table", false)},
-			`NETWORK ID          NAME                DRIVER              SCOPE
-networkID1          foobar_baz          foo                 local
-networkID2          foobar_bar          bar                 local
+			`NETWORK ID   NAME         DRIVER    SCOPE
+networkID1   foobar_baz   foo       local
+networkID2   foobar_bar   bar       local
 `,
 		},
 		{
@@ -155,19 +155,23 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	timestamp1, _ := time.Parse("2006-01-02", "2016-01-01")
 	timestamp2, _ := time.Parse("2006-01-02", "2017-01-01")
 
-	for _, testcase := range cases {
-		networks := []types.NetworkResource{
-			{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
-			{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
-		}
-		out := bytes.NewBufferString("")
-		testcase.context.Output = out
-		err := FormatWrite(testcase.context, networks)
-		if err != nil {
-			assert.Error(t, err, testcase.expected)
-		} else {
-			assert.Check(t, is.Equal(testcase.expected, out.String()))
-		}
+	networks := []types.NetworkResource{
+		{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
+		{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(string(tc.context.Format), func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := FormatWrite(tc.context, networks)
+			if err != nil {
+				assert.Error(t, err, tc.expected)
+			} else {
+				assert.Equal(t, out.String(), tc.expected)
+			}
+		})
 	}
 }
 

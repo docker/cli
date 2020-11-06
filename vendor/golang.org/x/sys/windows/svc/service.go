@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"unsafe"
 
+	"golang.org/x/sys/internal/unsafeheader"
 	"golang.org/x/sys/windows"
 )
 
@@ -49,6 +50,7 @@ const (
 	HardwareProfileChange = Cmd(windows.SERVICE_CONTROL_HARDWAREPROFILECHANGE)
 	PowerEvent            = Cmd(windows.SERVICE_CONTROL_POWEREVENT)
 	SessionChange         = Cmd(windows.SERVICE_CONTROL_SESSIONCHANGE)
+	PreShutdown           = Cmd(windows.SERVICE_CONTROL_PRESHUTDOWN)
 )
 
 // Accepted is used to describe commands accepted by the service.
@@ -64,6 +66,7 @@ const (
 	AcceptHardwareProfileChange = Accepted(windows.SERVICE_ACCEPT_HARDWAREPROFILECHANGE)
 	AcceptPowerEvent            = Accepted(windows.SERVICE_ACCEPT_POWEREVENT)
 	AcceptSessionChange         = Accepted(windows.SERVICE_ACCEPT_SESSIONCHANGE)
+	AcceptPreShutdown           = Accepted(windows.SERVICE_ACCEPT_PRESHUTDOWN)
 )
 
 // Status combines State and Accepted commands to fully describe running service.
@@ -72,6 +75,7 @@ type Status struct {
 	Accepts    Accepted
 	CheckPoint uint32 // used to report progress during a lengthy operation
 	WaitHint   uint32 // estimated time required for a pending operation, in milliseconds
+	ProcessId  uint32 // if the service is running, the process identifier of it, and otherwise zero
 }
 
 // ChangeRequest is sent to the service Handler to request service status change.
@@ -200,6 +204,9 @@ func (s *service) updateStatus(status *Status, ec *exitCode) error {
 	if status.Accepts&AcceptSessionChange != 0 {
 		t.ControlsAccepted |= windows.SERVICE_ACCEPT_SESSIONCHANGE
 	}
+	if status.Accepts&AcceptPreShutdown != 0 {
+		t.ControlsAccepted |= windows.SERVICE_ACCEPT_PRESHUTDOWN
+	}
 	if ec.errno == 0 {
 		t.Win32ExitCode = windows.NO_ERROR
 		t.ServiceSpecificExitCode = windows.NO_ERROR
@@ -223,10 +230,16 @@ const (
 func (s *service) run() {
 	s.goWaits.Wait()
 	s.h = windows.Handle(ssHandle)
-	argv := (*[100]*int16)(unsafe.Pointer(sArgv))[:sArgc]
+
+	var argv []*uint16
+	hdr := (*unsafeheader.Slice)(unsafe.Pointer(&argv))
+	hdr.Data = unsafe.Pointer(sArgv)
+	hdr.Len = int(sArgc)
+	hdr.Cap = int(sArgc)
+
 	args := make([]string, len(argv))
 	for i, a := range argv {
-		args[i] = syscall.UTF16ToString((*[1 << 20]uint16)(unsafe.Pointer(a))[:])
+		args[i] = windows.UTF16PtrToString(a)
 	}
 
 	cmdsToHandler := make(chan ChangeRequest)
@@ -328,7 +341,7 @@ func Run(name string, handler Handler) error {
 		}
 		s.c <- e
 		// Always return NO_ERROR (0) for now.
-		return 0
+		return windows.NO_ERROR
 	}
 
 	var svcmain uintptr

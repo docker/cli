@@ -4,19 +4,10 @@ description: "The system df command description and usage"
 keywords: "system, data, usage, disk"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # system df
 
 ```markdown
-Usage:	docker system df [OPTIONS]
+Usage:  docker system df [OPTIONS]
 
 Show docker filesystem usage
 
@@ -75,8 +66,9 @@ my-named-vol                                                       0            
 * `UNIQUE SIZE` is the amount of space that is only used by a given image
 * `SIZE` is the virtual size of the image, it is the sum of `SHARED SIZE` and `UNIQUE SIZE`
 
-> **Note**: Network information is not shown because it doesn't consume the disk
-> space.
+> **Note**
+>
+> Network information is not shown because it does not consume disk space.
 
 ## Performance
 
@@ -107,7 +99,7 @@ the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`Type` and `TotalCount` entries separated by a colon:
+`Type` and `TotalCount` entries separated by a colon (`:`):
 
 ```bash
 $ docker system df --format "{{.Type}}: {{.TotalCount}}"

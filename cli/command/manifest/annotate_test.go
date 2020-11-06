@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestManifestAnnotateError(t *testing.T) {
@@ -33,7 +33,7 @@ func TestManifestAnnotateError(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newAnnotateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -51,13 +51,14 @@ func TestManifestAnnotate(t *testing.T) {
 
 	cmd := newAnnotateCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/fake:0.0"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	expectedError := "manifest for image example.com/fake:0.0 does not exist"
 	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.Flags().Set("os", "freebsd")
 	cmd.Flags().Set("arch", "fake")
+	cmd.Flags().Set("os-version", "1")
 	cmd.Flags().Set("os-features", "feature1")
 	cmd.Flags().Set("variant", "v7")
 	expectedError = "manifest entry for image has unsupported os/arch combination"

@@ -5,11 +5,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
+	"gotest.tools/v3/assert"
 )
 
 func TestNodeUpdateErrors(t *testing.T) {
@@ -64,7 +63,7 @@ func TestNodeUpdateErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -10,9 +10,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestNewPullCommandErrors(t *testing.T) {
@@ -40,7 +40,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := NewPullCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -50,7 +50,6 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name        string
 		args        []string
-		flags       map[string]string
 		expectedTag string
 	}{
 		{
@@ -64,11 +63,8 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			expectedTag: "image:latest",
 		},
 		{
-			name: "simple-quiet",
-			args: []string{"image"},
-			flags: map[string]string{
-				"quiet": "true",
-			},
+			name:        "simple-quiet",
+			args:        []string{"--quiet", "image"},
 			expectedTag: "image:latest",
 		},
 	}
@@ -80,7 +76,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			},
 		})
 		cmd := NewPullCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)
@@ -122,7 +118,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewPullCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)

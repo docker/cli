@@ -10,7 +10,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.8",
+		Version:  "3.9",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -39,7 +39,11 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				Target:     "foo",
 				Network:    "foo",
 				CacheFrom:  []string{"foo", "bar"},
-				Labels:     map[string]string{"FOO": "BAR"},
+				ExtraHosts: types.HostsList{
+					"ipv4.example.com:127.0.0.1",
+					"ipv6.example.com:::1",
+				},
+				Labels: map[string]string{"FOO": "BAR"},
 			},
 			CapAdd:       []string{"ALL"},
 			CapDrop:      []string{"NET_ADMIN", "SYS_ADMIN"},
@@ -80,9 +84,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Order:           "start-first",
 				},
 				Resources: types.Resources{
-					Limits: &types.Resource{
+					Limits: &types.ResourceLimit{
 						NanoCPUs:    "0.001",
 						MemoryBytes: 50 * 1024 * 1024,
+						Pids:        100,
 					},
 					Reservations: &types.Resource{
 						NanoCPUs:    "0.0001",
@@ -144,6 +149,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			ExtraHosts: []string{
 				"somehost:162.242.195.82",
 				"otherhost:50.31.209.229",
+				"host.docker.internal:host-gateway",
 			},
 			Extras: map[string]interface{}{
 				"x-bar": "baz",
@@ -512,7 +518,7 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 }
 
 func fullExampleYAML(workingDir string) string {
-	return fmt.Sprintf(`version: "3.8"
+	return fmt.Sprintf(`version: "3.9"
 services:
   foo:
     build:
@@ -525,6 +531,9 @@ services:
       cache_from:
       - foo
       - bar
+      extra_hosts:
+      - ipv4.example.com:127.0.0.1
+      - ipv6.example.com:::1
       network: foo
       target: foo
     cap_add:
@@ -573,6 +582,7 @@ services:
         limits:
           cpus: "0.001"
           memory: "52428800"
+          pids: 100
         reservations:
           cpus: "0.0001"
           memory: "20971520"
@@ -626,6 +636,7 @@ services:
     extra_hosts:
     - somehost:162.242.195.82
     - otherhost:50.31.209.229
+    - host.docker.internal:host-gateway
     hostname: foo
     healthcheck:
       test:
@@ -996,6 +1007,10 @@ func fullExampleJSON(workingDir string) string {
           "foo",
           "bar"
         ],
+        "extra_hosts": [
+          "ipv4.example.com:127.0.0.1",
+          "ipv6.example.com:::1"
+        ],
         "network": "foo",
         "target": "foo"
       },
@@ -1057,7 +1072,8 @@ func fullExampleJSON(workingDir string) string {
         "resources": {
           "limits": {
             "cpus": "0.001",
-            "memory": "52428800"
+            "memory": "52428800",
+            "pids": 100
           },
           "reservations": {
             "cpus": "0.0001",
@@ -1135,7 +1151,8 @@ func fullExampleJSON(workingDir string) string {
       ],
       "extra_hosts": [
         "somehost:162.242.195.82",
-        "otherhost:50.31.209.229"
+        "otherhost:50.31.209.229",
+        "host.docker.internal:host-gateway"
       ],
       "hostname": "foo",
       "healthcheck": {
@@ -1397,7 +1414,7 @@ func fullExampleJSON(workingDir string) string {
       "working_dir": "/code"
     }
   },
-  "version": "3.8",
+  "version": "3.9",
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",

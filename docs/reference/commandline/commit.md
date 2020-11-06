@@ -4,15 +4,6 @@ description: "The commit command description and usage"
 keywords: "commit, file, changes"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # commit
 
 ```markdown
@@ -82,7 +73,7 @@ $ docker inspect -f "{{ .Config.Env }}" c3f279d17e0a
 
 [HOME=/ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin]
 
-$ docker commit --change "ENV DEBUG true" c3f279d17e0a  svendowideit/testimage:version3
+$ docker commit --change "ENV DEBUG=true" c3f279d17e0a  svendowideit/testimage:version3
 
 f5283438590d
 

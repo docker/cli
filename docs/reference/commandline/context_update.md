@@ -4,15 +4,6 @@ description: "The context update command description and usage"
 keywords: "context, update"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # context update
 
 ```markdown
@@ -57,4 +48,15 @@ Options:
 ## Description
 
 Updates an existing `context`.
-See [context create](context_create.md)
+See [context create](context_create.md).
+
+## Examples
+
+### Update an existing context
+
+```bash
+$ docker context update \
+    --description "some description" \
+    --docker "host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file" \
+    my-context
+```

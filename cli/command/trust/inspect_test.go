@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/theupdateframework/notary/client"
-	"gotest.tools/assert"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/golden"
 )
 
 func TestTrustInspectCommandErrors(t *testing.T) {
@@ -38,7 +38,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.Flags().Set("pretty", "true")
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -85,7 +85,7 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 			cli.SetNotaryClient(tc.notaryRepository)
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
-			cmd.SetOutput(ioutil.Discard)
+			cmd.SetOut(ioutil.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.err)
 			if tc.golden != "" {
 				golden.Assert(t, cli.OutBuffer().String(), tc.golden)

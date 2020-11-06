@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/store"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -193,4 +193,32 @@ func TestSaveLoadEKSConfig(t *testing.T) {
 	actualCfg, err := persistedCfg.ClientConfig()
 	assert.NilError(t, err)
 	assert.DeepEqual(t, expectedCfg.ExecProvider, actualCfg.ExecProvider)
+}
+
+func TestSaveLoadK3SConfig(t *testing.T) {
+	storeDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(storeDir)
+	store := store.New(storeDir, testStoreCfg)
+	cfg, err := clientcmd.LoadFromFile("testdata/k3s-kubeconfig")
+	assert.NilError(t, err)
+	clientCfg := clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})
+	expectedCfg, err := clientCfg.ClientConfig()
+	assert.NilError(t, err)
+	ep, err := FromKubeConfig("testdata/k3s-kubeconfig", "", "")
+	assert.NilError(t, err)
+	assert.NilError(t, save(store, ep, "k3s-context"))
+	persistedMetadata, err := store.GetMetadata("k3s-context")
+	assert.NilError(t, err)
+	persistedEPMeta := EndpointFromContext(persistedMetadata)
+	assert.Check(t, persistedEPMeta != nil)
+	persistedEP, err := persistedEPMeta.WithTLSData(store, "k3s-context")
+	assert.NilError(t, err)
+	persistedCfg := persistedEP.KubernetesConfig()
+	actualCfg, err := persistedCfg.ClientConfig()
+	assert.NilError(t, err)
+	assert.Check(t, len(actualCfg.Username) > 0)
+	assert.Check(t, len(actualCfg.Password) > 0)
+	assert.Equal(t, expectedCfg.Username, actualCfg.Username)
+	assert.Equal(t, expectedCfg.Password, actualCfg.Password)
 }

@@ -3,35 +3,38 @@
 
 package api
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-import google_protobuf4 "github.com/gogo/protobuf/types"
-import _ "github.com/docker/swarmkit/protobuf/plugin"
-
-import deepcopy "github.com/docker/swarmkit/api/deepcopy"
-
-import context "golang.org/x/net/context"
-import grpc "google.golang.org/grpc"
-
-import raftselector "github.com/docker/swarmkit/manager/raftselector"
-import codes "google.golang.org/grpc/codes"
-import status "google.golang.org/grpc/status"
-import metadata "google.golang.org/grpc/metadata"
-import peer "google.golang.org/grpc/peer"
-import rafttime "time"
-
-import strings "strings"
-import reflect "reflect"
-import sortkeys "github.com/gogo/protobuf/sortkeys"
-
-import io "io"
+import (
+	context "context"
+	fmt "fmt"
+	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
+	raftselector "github.com/docker/swarmkit/manager/raftselector"
+	_ "github.com/docker/swarmkit/protobuf/plugin"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
+	types "github.com/gogo/protobuf/types"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	metadata "google.golang.org/grpc/metadata"
+	peer "google.golang.org/grpc/peer"
+	status "google.golang.org/grpc/status"
+	io "io"
+	math "math"
+	reflect "reflect"
+	strings "strings"
+	rafttime "time"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type UpdateServiceRequest_Rollback int32
 
@@ -48,6 +51,7 @@ var UpdateServiceRequest_Rollback_name = map[int32]string{
 	0: "NONE",
 	1: "PREVIOUS",
 }
+
 var UpdateServiceRequest_Rollback_value = map[string]int32{
 	"NONE":     0,
 	"PREVIOUS": 1,
@@ -56,82 +60,277 @@ var UpdateServiceRequest_Rollback_value = map[string]int32{
 func (x UpdateServiceRequest_Rollback) String() string {
 	return proto.EnumName(UpdateServiceRequest_Rollback_name, int32(x))
 }
+
 func (UpdateServiceRequest_Rollback) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{18, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{18, 0}
 }
 
 type GetNodeRequest struct {
 	NodeID string `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
 }
 
-func (m *GetNodeRequest) Reset()                    { *m = GetNodeRequest{} }
-func (*GetNodeRequest) ProtoMessage()               {}
-func (*GetNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{0} }
+func (m *GetNodeRequest) Reset()      { *m = GetNodeRequest{} }
+func (*GetNodeRequest) ProtoMessage() {}
+func (*GetNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{0}
+}
+func (m *GetNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNodeRequest.Merge(m, src)
+}
+func (m *GetNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNodeRequest proto.InternalMessageInfo
 
 type GetNodeResponse struct {
-	Node *Node `protobuf:"bytes,1,opt,name=node" json:"node,omitempty"`
+	Node *Node `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
 }
 
-func (m *GetNodeResponse) Reset()                    { *m = GetNodeResponse{} }
-func (*GetNodeResponse) ProtoMessage()               {}
-func (*GetNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{1} }
+func (m *GetNodeResponse) Reset()      { *m = GetNodeResponse{} }
+func (*GetNodeResponse) ProtoMessage() {}
+func (*GetNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{1}
+}
+func (m *GetNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNodeResponse.Merge(m, src)
+}
+func (m *GetNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNodeResponse proto.InternalMessageInfo
 
 type ListNodesRequest struct {
-	Filters *ListNodesRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+	Filters *ListNodesRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
 }
 
-func (m *ListNodesRequest) Reset()                    { *m = ListNodesRequest{} }
-func (*ListNodesRequest) ProtoMessage()               {}
-func (*ListNodesRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{2} }
+func (m *ListNodesRequest) Reset()      { *m = ListNodesRequest{} }
+func (*ListNodesRequest) ProtoMessage() {}
+func (*ListNodesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{2}
+}
+func (m *ListNodesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNodesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNodesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNodesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNodesRequest.Merge(m, src)
+}
+func (m *ListNodesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNodesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNodesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNodesRequest proto.InternalMessageInfo
 
 type ListNodesRequest_Filters struct {
-	Names      []string `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes []string `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
+	Names      []string `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes []string `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
 	// Labels refers to engine labels, which are labels set by the user on the
 	// node and reported back to the managers
-	Labels map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Labels map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// NodeLabels are labels set on the node object on the managers.
-	NodeLabels  map[string]string     `protobuf:"bytes,7,rep,name=node_labels,json=nodeLabels" json:"node_labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Memberships []NodeSpec_Membership `protobuf:"varint,4,rep,name=memberships,enum=docker.swarmkit.v1.NodeSpec_Membership" json:"memberships,omitempty"`
-	Roles       []NodeRole            `protobuf:"varint,5,rep,name=roles,enum=docker.swarmkit.v1.NodeRole" json:"roles,omitempty"`
+	NodeLabels  map[string]string     `protobuf:"bytes,7,rep,name=node_labels,json=nodeLabels,proto3" json:"node_labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Memberships []NodeSpec_Membership `protobuf:"varint,4,rep,name=memberships,proto3,enum=docker.swarmkit.v1.NodeSpec_Membership" json:"memberships,omitempty"`
+	Roles       []NodeRole            `protobuf:"varint,5,rep,name=roles,proto3,enum=docker.swarmkit.v1.NodeRole" json:"roles,omitempty"`
 	// NamePrefixes matches all objects with the given prefixes
-	NamePrefixes []string `protobuf:"bytes,6,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	NamePrefixes []string `protobuf:"bytes,6,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 }
 
 func (m *ListNodesRequest_Filters) Reset()      { *m = ListNodesRequest_Filters{} }
 func (*ListNodesRequest_Filters) ProtoMessage() {}
 func (*ListNodesRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{2, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{2, 0}
 }
+func (m *ListNodesRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNodesRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNodesRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNodesRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNodesRequest_Filters.Merge(m, src)
+}
+func (m *ListNodesRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNodesRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNodesRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNodesRequest_Filters proto.InternalMessageInfo
 
 type ListNodesResponse struct {
-	Nodes []*Node `protobuf:"bytes,1,rep,name=nodes" json:"nodes,omitempty"`
+	Nodes []*Node `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 }
 
-func (m *ListNodesResponse) Reset()                    { *m = ListNodesResponse{} }
-func (*ListNodesResponse) ProtoMessage()               {}
-func (*ListNodesResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{3} }
+func (m *ListNodesResponse) Reset()      { *m = ListNodesResponse{} }
+func (*ListNodesResponse) ProtoMessage() {}
+func (*ListNodesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{3}
+}
+func (m *ListNodesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNodesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNodesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNodesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNodesResponse.Merge(m, src)
+}
+func (m *ListNodesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNodesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNodesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNodesResponse proto.InternalMessageInfo
 
 // UpdateNodeRequest requests an update to the specified node. This may be used
 // to request a new availability for a node, such as PAUSE. Invalid updates
 // will be denied and cause an error.
 type UpdateNodeRequest struct {
 	NodeID      string    `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	NodeVersion *Version  `protobuf:"bytes,2,opt,name=node_version,json=nodeVersion" json:"node_version,omitempty"`
-	Spec        *NodeSpec `protobuf:"bytes,3,opt,name=spec" json:"spec,omitempty"`
+	NodeVersion *Version  `protobuf:"bytes,2,opt,name=node_version,json=nodeVersion,proto3" json:"node_version,omitempty"`
+	Spec        *NodeSpec `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *UpdateNodeRequest) Reset()                    { *m = UpdateNodeRequest{} }
-func (*UpdateNodeRequest) ProtoMessage()               {}
-func (*UpdateNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{4} }
+func (m *UpdateNodeRequest) Reset()      { *m = UpdateNodeRequest{} }
+func (*UpdateNodeRequest) ProtoMessage() {}
+func (*UpdateNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{4}
+}
+func (m *UpdateNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateNodeRequest.Merge(m, src)
+}
+func (m *UpdateNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateNodeRequest proto.InternalMessageInfo
 
 type UpdateNodeResponse struct {
-	Node *Node `protobuf:"bytes,1,opt,name=node" json:"node,omitempty"`
+	Node *Node `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
 }
 
-func (m *UpdateNodeResponse) Reset()                    { *m = UpdateNodeResponse{} }
-func (*UpdateNodeResponse) ProtoMessage()               {}
-func (*UpdateNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{5} }
+func (m *UpdateNodeResponse) Reset()      { *m = UpdateNodeResponse{} }
+func (*UpdateNodeResponse) ProtoMessage() {}
+func (*UpdateNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{5}
+}
+func (m *UpdateNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateNodeResponse.Merge(m, src)
+}
+func (m *UpdateNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateNodeResponse proto.InternalMessageInfo
 
 // RemoveNodeRequest requests to delete the specified node from store.
 type RemoveNodeRequest struct {
@@ -139,66 +338,262 @@ type RemoveNodeRequest struct {
 	Force  bool   `protobuf:"varint,2,opt,name=force,proto3" json:"force,omitempty"`
 }
 
-func (m *RemoveNodeRequest) Reset()                    { *m = RemoveNodeRequest{} }
-func (*RemoveNodeRequest) ProtoMessage()               {}
-func (*RemoveNodeRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{6} }
+func (m *RemoveNodeRequest) Reset()      { *m = RemoveNodeRequest{} }
+func (*RemoveNodeRequest) ProtoMessage() {}
+func (*RemoveNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{6}
+}
+func (m *RemoveNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveNodeRequest.Merge(m, src)
+}
+func (m *RemoveNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveNodeRequest proto.InternalMessageInfo
 
 type RemoveNodeResponse struct {
 }
 
-func (m *RemoveNodeResponse) Reset()                    { *m = RemoveNodeResponse{} }
-func (*RemoveNodeResponse) ProtoMessage()               {}
-func (*RemoveNodeResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{7} }
+func (m *RemoveNodeResponse) Reset()      { *m = RemoveNodeResponse{} }
+func (*RemoveNodeResponse) ProtoMessage() {}
+func (*RemoveNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{7}
+}
+func (m *RemoveNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveNodeResponse.Merge(m, src)
+}
+func (m *RemoveNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveNodeResponse proto.InternalMessageInfo
 
 type GetTaskRequest struct {
 	TaskID string `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 }
 
-func (m *GetTaskRequest) Reset()                    { *m = GetTaskRequest{} }
-func (*GetTaskRequest) ProtoMessage()               {}
-func (*GetTaskRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{8} }
-
-type GetTaskResponse struct {
-	Task *Task `protobuf:"bytes,1,opt,name=task" json:"task,omitempty"`
+func (m *GetTaskRequest) Reset()      { *m = GetTaskRequest{} }
+func (*GetTaskRequest) ProtoMessage() {}
+func (*GetTaskRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{8}
+}
+func (m *GetTaskRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskRequest.Merge(m, src)
+}
+func (m *GetTaskRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskRequest.DiscardUnknown(m)
 }
 
-func (m *GetTaskResponse) Reset()                    { *m = GetTaskResponse{} }
-func (*GetTaskResponse) ProtoMessage()               {}
-func (*GetTaskResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{9} }
+var xxx_messageInfo_GetTaskRequest proto.InternalMessageInfo
+
+type GetTaskResponse struct {
+	Task *Task `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
+}
+
+func (m *GetTaskResponse) Reset()      { *m = GetTaskResponse{} }
+func (*GetTaskResponse) ProtoMessage() {}
+func (*GetTaskResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{9}
+}
+func (m *GetTaskResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskResponse.Merge(m, src)
+}
+func (m *GetTaskResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTaskResponse proto.InternalMessageInfo
 
 type RemoveTaskRequest struct {
 	TaskID string `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 }
 
-func (m *RemoveTaskRequest) Reset()                    { *m = RemoveTaskRequest{} }
-func (*RemoveTaskRequest) ProtoMessage()               {}
-func (*RemoveTaskRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{10} }
+func (m *RemoveTaskRequest) Reset()      { *m = RemoveTaskRequest{} }
+func (*RemoveTaskRequest) ProtoMessage() {}
+func (*RemoveTaskRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{10}
+}
+func (m *RemoveTaskRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveTaskRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveTaskRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveTaskRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveTaskRequest.Merge(m, src)
+}
+func (m *RemoveTaskRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveTaskRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveTaskRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveTaskRequest proto.InternalMessageInfo
 
 type RemoveTaskResponse struct {
 }
 
-func (m *RemoveTaskResponse) Reset()                    { *m = RemoveTaskResponse{} }
-func (*RemoveTaskResponse) ProtoMessage()               {}
-func (*RemoveTaskResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{11} }
-
-type ListTasksRequest struct {
-	Filters *ListTasksRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+func (m *RemoveTaskResponse) Reset()      { *m = RemoveTaskResponse{} }
+func (*RemoveTaskResponse) ProtoMessage() {}
+func (*RemoveTaskResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{11}
+}
+func (m *RemoveTaskResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveTaskResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveTaskResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveTaskResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveTaskResponse.Merge(m, src)
+}
+func (m *RemoveTaskResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveTaskResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveTaskResponse.DiscardUnknown(m)
 }
 
-func (m *ListTasksRequest) Reset()                    { *m = ListTasksRequest{} }
-func (*ListTasksRequest) ProtoMessage()               {}
-func (*ListTasksRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{12} }
+var xxx_messageInfo_RemoveTaskResponse proto.InternalMessageInfo
+
+type ListTasksRequest struct {
+	Filters *ListTasksRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
+}
+
+func (m *ListTasksRequest) Reset()      { *m = ListTasksRequest{} }
+func (*ListTasksRequest) ProtoMessage() {}
+func (*ListTasksRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{12}
+}
+func (m *ListTasksRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListTasksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListTasksRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListTasksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListTasksRequest.Merge(m, src)
+}
+func (m *ListTasksRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListTasksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListTasksRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListTasksRequest proto.InternalMessageInfo
 
 type ListTasksRequest_Filters struct {
-	Names         []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes    []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels        map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	ServiceIDs    []string          `protobuf:"bytes,4,rep,name=service_ids,json=serviceIds" json:"service_ids,omitempty"`
-	NodeIDs       []string          `protobuf:"bytes,5,rep,name=node_ids,json=nodeIds" json:"node_ids,omitempty"`
-	DesiredStates []TaskState       `protobuf:"varint,6,rep,name=desired_states,json=desiredStates,enum=docker.swarmkit.v1.TaskState" json:"desired_states,omitempty"`
+	Names         []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes    []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels        map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	ServiceIDs    []string          `protobuf:"bytes,4,rep,name=service_ids,json=serviceIds,proto3" json:"service_ids,omitempty"`
+	NodeIDs       []string          `protobuf:"bytes,5,rep,name=node_ids,json=nodeIds,proto3" json:"node_ids,omitempty"`
+	DesiredStates []TaskState       `protobuf:"varint,6,rep,name=desired_states,json=desiredStates,proto3,enum=docker.swarmkit.v1.TaskState" json:"desired_states,omitempty"`
 	// NamePrefixes matches all objects with the given prefixes
-	NamePrefixes []string `protobuf:"bytes,7,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
-	Runtimes     []string `protobuf:"bytes,9,rep,name=runtimes" json:"runtimes,omitempty"`
+	NamePrefixes []string `protobuf:"bytes,7,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
+	Runtimes     []string `protobuf:"bytes,9,rep,name=runtimes,proto3" json:"runtimes,omitempty"`
 	// UpToDate matches tasks that are consistent with the current
 	// service definition.
 	// Note: this is intended for internal status reporting rather
@@ -209,242 +604,1123 @@ type ListTasksRequest_Filters struct {
 func (m *ListTasksRequest_Filters) Reset()      { *m = ListTasksRequest_Filters{} }
 func (*ListTasksRequest_Filters) ProtoMessage() {}
 func (*ListTasksRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{12, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{12, 0}
 }
+func (m *ListTasksRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListTasksRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListTasksRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListTasksRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListTasksRequest_Filters.Merge(m, src)
+}
+func (m *ListTasksRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListTasksRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListTasksRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListTasksRequest_Filters proto.InternalMessageInfo
 
 type ListTasksResponse struct {
-	Tasks []*Task `protobuf:"bytes,1,rep,name=tasks" json:"tasks,omitempty"`
+	Tasks []*Task `protobuf:"bytes,1,rep,name=tasks,proto3" json:"tasks,omitempty"`
 }
 
-func (m *ListTasksResponse) Reset()                    { *m = ListTasksResponse{} }
-func (*ListTasksResponse) ProtoMessage()               {}
-func (*ListTasksResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{13} }
+func (m *ListTasksResponse) Reset()      { *m = ListTasksResponse{} }
+func (*ListTasksResponse) ProtoMessage() {}
+func (*ListTasksResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{13}
+}
+func (m *ListTasksResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListTasksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListTasksResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListTasksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListTasksResponse.Merge(m, src)
+}
+func (m *ListTasksResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListTasksResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListTasksResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListTasksResponse proto.InternalMessageInfo
 
 type CreateServiceRequest struct {
-	Spec *ServiceSpec `protobuf:"bytes,1,opt,name=spec" json:"spec,omitempty"`
+	Spec *ServiceSpec `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *CreateServiceRequest) Reset()                    { *m = CreateServiceRequest{} }
-func (*CreateServiceRequest) ProtoMessage()               {}
-func (*CreateServiceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{14} }
+func (m *CreateServiceRequest) Reset()      { *m = CreateServiceRequest{} }
+func (*CreateServiceRequest) ProtoMessage() {}
+func (*CreateServiceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{14}
+}
+func (m *CreateServiceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateServiceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateServiceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateServiceRequest.Merge(m, src)
+}
+func (m *CreateServiceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateServiceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateServiceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateServiceRequest proto.InternalMessageInfo
 
 type CreateServiceResponse struct {
-	Service *Service `protobuf:"bytes,1,opt,name=service" json:"service,omitempty"`
+	Service *Service `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
 }
 
-func (m *CreateServiceResponse) Reset()                    { *m = CreateServiceResponse{} }
-func (*CreateServiceResponse) ProtoMessage()               {}
-func (*CreateServiceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{15} }
+func (m *CreateServiceResponse) Reset()      { *m = CreateServiceResponse{} }
+func (*CreateServiceResponse) ProtoMessage() {}
+func (*CreateServiceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{15}
+}
+func (m *CreateServiceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateServiceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateServiceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateServiceResponse.Merge(m, src)
+}
+func (m *CreateServiceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateServiceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateServiceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateServiceResponse proto.InternalMessageInfo
 
 type GetServiceRequest struct {
 	ServiceID      string `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	InsertDefaults bool   `protobuf:"varint,2,opt,name=insert_defaults,json=insertDefaults,proto3" json:"insert_defaults,omitempty"`
 }
 
-func (m *GetServiceRequest) Reset()                    { *m = GetServiceRequest{} }
-func (*GetServiceRequest) ProtoMessage()               {}
-func (*GetServiceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{16} }
-
-type GetServiceResponse struct {
-	Service *Service `protobuf:"bytes,1,opt,name=service" json:"service,omitempty"`
+func (m *GetServiceRequest) Reset()      { *m = GetServiceRequest{} }
+func (*GetServiceRequest) ProtoMessage() {}
+func (*GetServiceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{16}
+}
+func (m *GetServiceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetServiceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetServiceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceRequest.Merge(m, src)
+}
+func (m *GetServiceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetServiceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceRequest.DiscardUnknown(m)
 }
 
-func (m *GetServiceResponse) Reset()                    { *m = GetServiceResponse{} }
-func (*GetServiceResponse) ProtoMessage()               {}
-func (*GetServiceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{17} }
+var xxx_messageInfo_GetServiceRequest proto.InternalMessageInfo
+
+type GetServiceResponse struct {
+	Service *Service `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+}
+
+func (m *GetServiceResponse) Reset()      { *m = GetServiceResponse{} }
+func (*GetServiceResponse) ProtoMessage() {}
+func (*GetServiceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{17}
+}
+func (m *GetServiceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetServiceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetServiceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceResponse.Merge(m, src)
+}
+func (m *GetServiceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetServiceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetServiceResponse proto.InternalMessageInfo
 
 type UpdateServiceRequest struct {
 	ServiceID      string       `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
-	ServiceVersion *Version     `protobuf:"bytes,2,opt,name=service_version,json=serviceVersion" json:"service_version,omitempty"`
-	Spec           *ServiceSpec `protobuf:"bytes,3,opt,name=spec" json:"spec,omitempty"`
+	ServiceVersion *Version     `protobuf:"bytes,2,opt,name=service_version,json=serviceVersion,proto3" json:"service_version,omitempty"`
+	Spec           *ServiceSpec `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
 	// Rollback may be set to PREVIOUS to request a rollback (the service's
 	// spec will be set to the value of its previous_spec field). In this
 	// case, the spec field of this request is ignored.
 	Rollback UpdateServiceRequest_Rollback `protobuf:"varint,4,opt,name=rollback,proto3,enum=docker.swarmkit.v1.UpdateServiceRequest_Rollback" json:"rollback,omitempty"`
 }
 
-func (m *UpdateServiceRequest) Reset()                    { *m = UpdateServiceRequest{} }
-func (*UpdateServiceRequest) ProtoMessage()               {}
-func (*UpdateServiceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{18} }
-
-type UpdateServiceResponse struct {
-	Service *Service `protobuf:"bytes,1,opt,name=service" json:"service,omitempty"`
+func (m *UpdateServiceRequest) Reset()      { *m = UpdateServiceRequest{} }
+func (*UpdateServiceRequest) ProtoMessage() {}
+func (*UpdateServiceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{18}
+}
+func (m *UpdateServiceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateServiceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateServiceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateServiceRequest.Merge(m, src)
+}
+func (m *UpdateServiceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateServiceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateServiceRequest.DiscardUnknown(m)
 }
 
-func (m *UpdateServiceResponse) Reset()                    { *m = UpdateServiceResponse{} }
-func (*UpdateServiceResponse) ProtoMessage()               {}
-func (*UpdateServiceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{19} }
+var xxx_messageInfo_UpdateServiceRequest proto.InternalMessageInfo
+
+type UpdateServiceResponse struct {
+	Service *Service `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+}
+
+func (m *UpdateServiceResponse) Reset()      { *m = UpdateServiceResponse{} }
+func (*UpdateServiceResponse) ProtoMessage() {}
+func (*UpdateServiceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{19}
+}
+func (m *UpdateServiceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateServiceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateServiceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateServiceResponse.Merge(m, src)
+}
+func (m *UpdateServiceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateServiceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateServiceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateServiceResponse proto.InternalMessageInfo
 
 type RemoveServiceRequest struct {
 	ServiceID string `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 }
 
-func (m *RemoveServiceRequest) Reset()                    { *m = RemoveServiceRequest{} }
-func (*RemoveServiceRequest) ProtoMessage()               {}
-func (*RemoveServiceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{20} }
+func (m *RemoveServiceRequest) Reset()      { *m = RemoveServiceRequest{} }
+func (*RemoveServiceRequest) ProtoMessage() {}
+func (*RemoveServiceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{20}
+}
+func (m *RemoveServiceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveServiceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveServiceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveServiceRequest.Merge(m, src)
+}
+func (m *RemoveServiceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveServiceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveServiceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveServiceRequest proto.InternalMessageInfo
 
 type RemoveServiceResponse struct {
 }
 
-func (m *RemoveServiceResponse) Reset()                    { *m = RemoveServiceResponse{} }
-func (*RemoveServiceResponse) ProtoMessage()               {}
-func (*RemoveServiceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{21} }
-
-type ListServicesRequest struct {
-	Filters *ListServicesRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+func (m *RemoveServiceResponse) Reset()      { *m = RemoveServiceResponse{} }
+func (*RemoveServiceResponse) ProtoMessage() {}
+func (*RemoveServiceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{21}
+}
+func (m *RemoveServiceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveServiceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveServiceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveServiceResponse.Merge(m, src)
+}
+func (m *RemoveServiceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveServiceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveServiceResponse.DiscardUnknown(m)
 }
 
-func (m *ListServicesRequest) Reset()                    { *m = ListServicesRequest{} }
-func (*ListServicesRequest) ProtoMessage()               {}
-func (*ListServicesRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{22} }
+var xxx_messageInfo_RemoveServiceResponse proto.InternalMessageInfo
+
+type ListServicesRequest struct {
+	Filters *ListServicesRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
+}
+
+func (m *ListServicesRequest) Reset()      { *m = ListServicesRequest{} }
+func (*ListServicesRequest) ProtoMessage() {}
+func (*ListServicesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{22}
+}
+func (m *ListServicesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServicesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServicesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServicesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServicesRequest.Merge(m, src)
+}
+func (m *ListServicesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServicesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServicesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServicesRequest proto.InternalMessageInfo
 
 type ListServicesRequest_Filters struct {
-	Names      []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Names      []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// NamePrefixes matches all objects with the given prefixes
-	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
-	Runtimes     []string `protobuf:"bytes,5,rep,name=runtimes" json:"runtimes,omitempty"`
+	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
+	Runtimes     []string `protobuf:"bytes,5,rep,name=runtimes,proto3" json:"runtimes,omitempty"`
 }
 
 func (m *ListServicesRequest_Filters) Reset()      { *m = ListServicesRequest_Filters{} }
 func (*ListServicesRequest_Filters) ProtoMessage() {}
 func (*ListServicesRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{22, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{22, 0}
 }
+func (m *ListServicesRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServicesRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServicesRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServicesRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServicesRequest_Filters.Merge(m, src)
+}
+func (m *ListServicesRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServicesRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServicesRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServicesRequest_Filters proto.InternalMessageInfo
 
 type ListServicesResponse struct {
-	Services []*Service `protobuf:"bytes,1,rep,name=services" json:"services,omitempty"`
+	Services []*Service `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
 }
 
-func (m *ListServicesResponse) Reset()                    { *m = ListServicesResponse{} }
-func (*ListServicesResponse) ProtoMessage()               {}
-func (*ListServicesResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{23} }
+func (m *ListServicesResponse) Reset()      { *m = ListServicesResponse{} }
+func (*ListServicesResponse) ProtoMessage() {}
+func (*ListServicesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{23}
+}
+func (m *ListServicesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServicesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServicesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServicesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServicesResponse.Merge(m, src)
+}
+func (m *ListServicesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServicesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServicesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServicesResponse proto.InternalMessageInfo
+
+// ListServiceStatusesRequest is a request to get the aggregate status of a
+// service by computing the number of running vs desired tasks. It includes
+// only a service ID.
+type ListServiceStatusesRequest struct {
+	// Services is a list of service IDs to get statuses for.
+	Services []string `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
+}
+
+func (m *ListServiceStatusesRequest) Reset()      { *m = ListServiceStatusesRequest{} }
+func (*ListServiceStatusesRequest) ProtoMessage() {}
+func (*ListServiceStatusesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{24}
+}
+func (m *ListServiceStatusesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServiceStatusesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServiceStatusesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServiceStatusesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServiceStatusesRequest.Merge(m, src)
+}
+func (m *ListServiceStatusesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServiceStatusesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServiceStatusesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServiceStatusesRequest proto.InternalMessageInfo
+
+// ListServiceStatusesResponse is a response containing the aggregate status of
+// a service, formed by computing the number of running vs desired tasks. The
+// values returned are only valid for the point in time at which the request is
+// made.
+type ListServiceStatusesResponse struct {
+	Statuses []*ListServiceStatusesResponse_ServiceStatus `protobuf:"bytes,1,rep,name=statuses,proto3" json:"statuses,omitempty"`
+}
+
+func (m *ListServiceStatusesResponse) Reset()      { *m = ListServiceStatusesResponse{} }
+func (*ListServiceStatusesResponse) ProtoMessage() {}
+func (*ListServiceStatusesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{25}
+}
+func (m *ListServiceStatusesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServiceStatusesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServiceStatusesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServiceStatusesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServiceStatusesResponse.Merge(m, src)
+}
+func (m *ListServiceStatusesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServiceStatusesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServiceStatusesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServiceStatusesResponse proto.InternalMessageInfo
+
+type ListServiceStatusesResponse_ServiceStatus struct {
+	// ServiceID is the ID of the service this status describes
+	ServiceID string `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// DesiredTasks is the number of tasks desired to be running according to the
+	// service definition at request time. It is a uint64 because that is what
+	// the replicas field on the service spec is
+	DesiredTasks uint64 `protobuf:"varint,2,opt,name=desired_tasks,json=desiredTasks,proto3" json:"desired_tasks,omitempty"`
+	// RunningTasks is the number of tasks currently in the Running state at
+	// request time. This may be larger than desired tasks if, for example, a
+	// service has been scaled down.
+	RunningTasks uint64 `protobuf:"varint,3,opt,name=running_tasks,json=runningTasks,proto3" json:"running_tasks,omitempty"`
+	// CompletedTasks is the number of tasks in state Completed, if this
+	// service is in mode ReplicatedJob or GlobalJob. This must be
+	// cross-referenced with the service type, because the default value of 0
+	// may mean that a service is not in a Job mode, or it may mean the Job has
+	// yet to complete any Tasks.
+	CompletedTasks uint64 `protobuf:"varint,4,opt,name=completed_tasks,json=completedTasks,proto3" json:"completed_tasks,omitempty"`
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) Reset() {
+	*m = ListServiceStatusesResponse_ServiceStatus{}
+}
+func (*ListServiceStatusesResponse_ServiceStatus) ProtoMessage() {}
+func (*ListServiceStatusesResponse_ServiceStatus) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{25, 0}
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListServiceStatusesResponse_ServiceStatus.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListServiceStatusesResponse_ServiceStatus.Merge(m, src)
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListServiceStatusesResponse_ServiceStatus.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListServiceStatusesResponse_ServiceStatus proto.InternalMessageInfo
 
 type CreateNetworkRequest struct {
-	Spec *NetworkSpec `protobuf:"bytes,1,opt,name=spec" json:"spec,omitempty"`
+	Spec *NetworkSpec `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *CreateNetworkRequest) Reset()                    { *m = CreateNetworkRequest{} }
-func (*CreateNetworkRequest) ProtoMessage()               {}
-func (*CreateNetworkRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{24} }
+func (m *CreateNetworkRequest) Reset()      { *m = CreateNetworkRequest{} }
+func (*CreateNetworkRequest) ProtoMessage() {}
+func (*CreateNetworkRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{26}
+}
+func (m *CreateNetworkRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateNetworkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateNetworkRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateNetworkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateNetworkRequest.Merge(m, src)
+}
+func (m *CreateNetworkRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateNetworkRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateNetworkRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateNetworkRequest proto.InternalMessageInfo
 
 type CreateNetworkResponse struct {
-	Network *Network `protobuf:"bytes,1,opt,name=network" json:"network,omitempty"`
+	Network *Network `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
 }
 
-func (m *CreateNetworkResponse) Reset()                    { *m = CreateNetworkResponse{} }
-func (*CreateNetworkResponse) ProtoMessage()               {}
-func (*CreateNetworkResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{25} }
+func (m *CreateNetworkResponse) Reset()      { *m = CreateNetworkResponse{} }
+func (*CreateNetworkResponse) ProtoMessage() {}
+func (*CreateNetworkResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{27}
+}
+func (m *CreateNetworkResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateNetworkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateNetworkResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateNetworkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateNetworkResponse.Merge(m, src)
+}
+func (m *CreateNetworkResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateNetworkResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateNetworkResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateNetworkResponse proto.InternalMessageInfo
 
 type GetNetworkRequest struct {
 	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	NetworkID string `protobuf:"bytes,2,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 }
 
-func (m *GetNetworkRequest) Reset()                    { *m = GetNetworkRequest{} }
-func (*GetNetworkRequest) ProtoMessage()               {}
-func (*GetNetworkRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{26} }
-
-type GetNetworkResponse struct {
-	Network *Network `protobuf:"bytes,1,opt,name=network" json:"network,omitempty"`
+func (m *GetNetworkRequest) Reset()      { *m = GetNetworkRequest{} }
+func (*GetNetworkRequest) ProtoMessage() {}
+func (*GetNetworkRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{28}
+}
+func (m *GetNetworkRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetNetworkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetNetworkRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetNetworkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNetworkRequest.Merge(m, src)
+}
+func (m *GetNetworkRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetNetworkRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNetworkRequest.DiscardUnknown(m)
 }
 
-func (m *GetNetworkResponse) Reset()                    { *m = GetNetworkResponse{} }
-func (*GetNetworkResponse) ProtoMessage()               {}
-func (*GetNetworkResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{27} }
+var xxx_messageInfo_GetNetworkRequest proto.InternalMessageInfo
+
+type GetNetworkResponse struct {
+	Network *Network `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
+}
+
+func (m *GetNetworkResponse) Reset()      { *m = GetNetworkResponse{} }
+func (*GetNetworkResponse) ProtoMessage() {}
+func (*GetNetworkResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{29}
+}
+func (m *GetNetworkResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetNetworkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetNetworkResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetNetworkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNetworkResponse.Merge(m, src)
+}
+func (m *GetNetworkResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetNetworkResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNetworkResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNetworkResponse proto.InternalMessageInfo
 
 type RemoveNetworkRequest struct {
 	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	NetworkID string `protobuf:"bytes,2,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
 }
 
-func (m *RemoveNetworkRequest) Reset()                    { *m = RemoveNetworkRequest{} }
-func (*RemoveNetworkRequest) ProtoMessage()               {}
-func (*RemoveNetworkRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{28} }
+func (m *RemoveNetworkRequest) Reset()      { *m = RemoveNetworkRequest{} }
+func (*RemoveNetworkRequest) ProtoMessage() {}
+func (*RemoveNetworkRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{30}
+}
+func (m *RemoveNetworkRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveNetworkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveNetworkRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveNetworkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveNetworkRequest.Merge(m, src)
+}
+func (m *RemoveNetworkRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveNetworkRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveNetworkRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveNetworkRequest proto.InternalMessageInfo
 
 type RemoveNetworkResponse struct {
 }
 
-func (m *RemoveNetworkResponse) Reset()                    { *m = RemoveNetworkResponse{} }
-func (*RemoveNetworkResponse) ProtoMessage()               {}
-func (*RemoveNetworkResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{29} }
-
-type ListNetworksRequest struct {
-	Filters *ListNetworksRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+func (m *RemoveNetworkResponse) Reset()      { *m = RemoveNetworkResponse{} }
+func (*RemoveNetworkResponse) ProtoMessage() {}
+func (*RemoveNetworkResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{31}
+}
+func (m *RemoveNetworkResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveNetworkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveNetworkResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveNetworkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveNetworkResponse.Merge(m, src)
+}
+func (m *RemoveNetworkResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveNetworkResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveNetworkResponse.DiscardUnknown(m)
 }
 
-func (m *ListNetworksRequest) Reset()                    { *m = ListNetworksRequest{} }
-func (*ListNetworksRequest) ProtoMessage()               {}
-func (*ListNetworksRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{30} }
+var xxx_messageInfo_RemoveNetworkResponse proto.InternalMessageInfo
+
+type ListNetworksRequest struct {
+	Filters *ListNetworksRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
+}
+
+func (m *ListNetworksRequest) Reset()      { *m = ListNetworksRequest{} }
+func (*ListNetworksRequest) ProtoMessage() {}
+func (*ListNetworksRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{32}
+}
+func (m *ListNetworksRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNetworksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNetworksRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNetworksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNetworksRequest.Merge(m, src)
+}
+func (m *ListNetworksRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNetworksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNetworksRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNetworksRequest proto.InternalMessageInfo
 
 type ListNetworksRequest_Filters struct {
-	Names      []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Names      []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// NamePrefixes matches all objects with the given prefixes
-	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 }
 
 func (m *ListNetworksRequest_Filters) Reset()      { *m = ListNetworksRequest_Filters{} }
 func (*ListNetworksRequest_Filters) ProtoMessage() {}
 func (*ListNetworksRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{30, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{32, 0}
 }
+func (m *ListNetworksRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNetworksRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNetworksRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNetworksRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNetworksRequest_Filters.Merge(m, src)
+}
+func (m *ListNetworksRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNetworksRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNetworksRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNetworksRequest_Filters proto.InternalMessageInfo
 
 type ListNetworksResponse struct {
-	Networks []*Network `protobuf:"bytes,1,rep,name=networks" json:"networks,omitempty"`
+	Networks []*Network `protobuf:"bytes,1,rep,name=networks,proto3" json:"networks,omitempty"`
 }
 
-func (m *ListNetworksResponse) Reset()                    { *m = ListNetworksResponse{} }
-func (*ListNetworksResponse) ProtoMessage()               {}
-func (*ListNetworksResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{31} }
+func (m *ListNetworksResponse) Reset()      { *m = ListNetworksResponse{} }
+func (*ListNetworksResponse) ProtoMessage() {}
+func (*ListNetworksResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{33}
+}
+func (m *ListNetworksResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListNetworksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListNetworksResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListNetworksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListNetworksResponse.Merge(m, src)
+}
+func (m *ListNetworksResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListNetworksResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListNetworksResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListNetworksResponse proto.InternalMessageInfo
 
 type GetClusterRequest struct {
 	ClusterID string `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
 }
 
-func (m *GetClusterRequest) Reset()                    { *m = GetClusterRequest{} }
-func (*GetClusterRequest) ProtoMessage()               {}
-func (*GetClusterRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{32} }
+func (m *GetClusterRequest) Reset()      { *m = GetClusterRequest{} }
+func (*GetClusterRequest) ProtoMessage() {}
+func (*GetClusterRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{34}
+}
+func (m *GetClusterRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetClusterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetClusterRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetClusterRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterRequest.Merge(m, src)
+}
+func (m *GetClusterRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetClusterRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetClusterRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetClusterRequest proto.InternalMessageInfo
 
 type GetClusterResponse struct {
-	Cluster *Cluster `protobuf:"bytes,1,opt,name=cluster" json:"cluster,omitempty"`
+	Cluster *Cluster `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
 }
 
-func (m *GetClusterResponse) Reset()                    { *m = GetClusterResponse{} }
-func (*GetClusterResponse) ProtoMessage()               {}
-func (*GetClusterResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{33} }
+func (m *GetClusterResponse) Reset()      { *m = GetClusterResponse{} }
+func (*GetClusterResponse) ProtoMessage() {}
+func (*GetClusterResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{35}
+}
+func (m *GetClusterResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetClusterResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetClusterResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetClusterResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterResponse.Merge(m, src)
+}
+func (m *GetClusterResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetClusterResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetClusterResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetClusterResponse proto.InternalMessageInfo
 
 type ListClustersRequest struct {
-	Filters *ListClustersRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+	Filters *ListClustersRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
 }
 
-func (m *ListClustersRequest) Reset()                    { *m = ListClustersRequest{} }
-func (*ListClustersRequest) ProtoMessage()               {}
-func (*ListClustersRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{34} }
+func (m *ListClustersRequest) Reset()      { *m = ListClustersRequest{} }
+func (*ListClustersRequest) ProtoMessage() {}
+func (*ListClustersRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{36}
+}
+func (m *ListClustersRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListClustersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListClustersRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListClustersRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListClustersRequest.Merge(m, src)
+}
+func (m *ListClustersRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListClustersRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListClustersRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListClustersRequest proto.InternalMessageInfo
 
 type ListClustersRequest_Filters struct {
-	Names      []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Names      []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels     map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// NamePrefixes matches all objects with the given prefixes
-	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	NamePrefixes []string `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 }
 
 func (m *ListClustersRequest_Filters) Reset()      { *m = ListClustersRequest_Filters{} }
 func (*ListClustersRequest_Filters) ProtoMessage() {}
 func (*ListClustersRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{34, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{36, 0}
 }
+func (m *ListClustersRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListClustersRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListClustersRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListClustersRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListClustersRequest_Filters.Merge(m, src)
+}
+func (m *ListClustersRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListClustersRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListClustersRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListClustersRequest_Filters proto.InternalMessageInfo
 
 type ListClustersResponse struct {
-	Clusters []*Cluster `protobuf:"bytes,1,rep,name=clusters" json:"clusters,omitempty"`
+	Clusters []*Cluster `protobuf:"bytes,1,rep,name=clusters,proto3" json:"clusters,omitempty"`
 }
 
-func (m *ListClustersResponse) Reset()                    { *m = ListClustersResponse{} }
-func (*ListClustersResponse) ProtoMessage()               {}
-func (*ListClustersResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{35} }
+func (m *ListClustersResponse) Reset()      { *m = ListClustersResponse{} }
+func (*ListClustersResponse) ProtoMessage() {}
+func (*ListClustersResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{37}
+}
+func (m *ListClustersResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListClustersResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListClustersResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListClustersResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListClustersResponse.Merge(m, src)
+}
+func (m *ListClustersResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListClustersResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListClustersResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListClustersResponse proto.InternalMessageInfo
 
 // KeyRotation tells UpdateCluster what items to rotate
 type KeyRotation struct {
@@ -456,130 +1732,464 @@ type KeyRotation struct {
 	ManagerUnlockKey bool `protobuf:"varint,3,opt,name=manager_unlock_key,json=managerUnlockKey,proto3" json:"manager_unlock_key,omitempty"`
 }
 
-func (m *KeyRotation) Reset()                    { *m = KeyRotation{} }
-func (*KeyRotation) ProtoMessage()               {}
-func (*KeyRotation) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{36} }
+func (m *KeyRotation) Reset()      { *m = KeyRotation{} }
+func (*KeyRotation) ProtoMessage() {}
+func (*KeyRotation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{38}
+}
+func (m *KeyRotation) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *KeyRotation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_KeyRotation.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *KeyRotation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyRotation.Merge(m, src)
+}
+func (m *KeyRotation) XXX_Size() int {
+	return m.Size()
+}
+func (m *KeyRotation) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyRotation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyRotation proto.InternalMessageInfo
 
 type UpdateClusterRequest struct {
 	// ClusterID is the cluster ID to update.
 	ClusterID string `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
 	// ClusterVersion is the version of the cluster being updated.
-	ClusterVersion *Version `protobuf:"bytes,2,opt,name=cluster_version,json=clusterVersion" json:"cluster_version,omitempty"`
+	ClusterVersion *Version `protobuf:"bytes,2,opt,name=cluster_version,json=clusterVersion,proto3" json:"cluster_version,omitempty"`
 	// Spec is the new spec to apply to the cluster.
-	Spec *ClusterSpec `protobuf:"bytes,3,opt,name=spec" json:"spec,omitempty"`
+	Spec *ClusterSpec `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
 	// Rotation contains flags for join token and unlock key rotation
-	Rotation KeyRotation `protobuf:"bytes,4,opt,name=rotation" json:"rotation"`
+	Rotation KeyRotation `protobuf:"bytes,4,opt,name=rotation,proto3" json:"rotation"`
 }
 
-func (m *UpdateClusterRequest) Reset()                    { *m = UpdateClusterRequest{} }
-func (*UpdateClusterRequest) ProtoMessage()               {}
-func (*UpdateClusterRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{37} }
+func (m *UpdateClusterRequest) Reset()      { *m = UpdateClusterRequest{} }
+func (*UpdateClusterRequest) ProtoMessage() {}
+func (*UpdateClusterRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{39}
+}
+func (m *UpdateClusterRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateClusterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateClusterRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateClusterRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateClusterRequest.Merge(m, src)
+}
+func (m *UpdateClusterRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateClusterRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateClusterRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateClusterRequest proto.InternalMessageInfo
 
 type UpdateClusterResponse struct {
-	Cluster *Cluster `protobuf:"bytes,1,opt,name=cluster" json:"cluster,omitempty"`
+	Cluster *Cluster `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
 }
 
-func (m *UpdateClusterResponse) Reset()                    { *m = UpdateClusterResponse{} }
-func (*UpdateClusterResponse) ProtoMessage()               {}
-func (*UpdateClusterResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{38} }
+func (m *UpdateClusterResponse) Reset()      { *m = UpdateClusterResponse{} }
+func (*UpdateClusterResponse) ProtoMessage() {}
+func (*UpdateClusterResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{40}
+}
+func (m *UpdateClusterResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateClusterResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateClusterResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateClusterResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateClusterResponse.Merge(m, src)
+}
+func (m *UpdateClusterResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateClusterResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateClusterResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateClusterResponse proto.InternalMessageInfo
 
 // GetSecretRequest is the request to get a `Secret` object given a secret id.
 type GetSecretRequest struct {
 	SecretID string `protobuf:"bytes,1,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`
 }
 
-func (m *GetSecretRequest) Reset()                    { *m = GetSecretRequest{} }
-func (*GetSecretRequest) ProtoMessage()               {}
-func (*GetSecretRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{39} }
+func (m *GetSecretRequest) Reset()      { *m = GetSecretRequest{} }
+func (*GetSecretRequest) ProtoMessage() {}
+func (*GetSecretRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{41}
+}
+func (m *GetSecretRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetSecretRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetSecretRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetSecretRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSecretRequest.Merge(m, src)
+}
+func (m *GetSecretRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetSecretRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSecretRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetSecretRequest proto.InternalMessageInfo
 
 // GetSecretResponse contains the Secret corresponding to the id in
 // `GetSecretRequest`, but the `Secret.Spec.Data` field in each `Secret`
 // object should be nil instead of actually containing the secret bytes.
 type GetSecretResponse struct {
-	Secret *Secret `protobuf:"bytes,1,opt,name=secret" json:"secret,omitempty"`
+	Secret *Secret `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
 }
 
-func (m *GetSecretResponse) Reset()                    { *m = GetSecretResponse{} }
-func (*GetSecretResponse) ProtoMessage()               {}
-func (*GetSecretResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{40} }
+func (m *GetSecretResponse) Reset()      { *m = GetSecretResponse{} }
+func (*GetSecretResponse) ProtoMessage() {}
+func (*GetSecretResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{42}
+}
+func (m *GetSecretResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetSecretResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetSecretResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetSecretResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSecretResponse.Merge(m, src)
+}
+func (m *GetSecretResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetSecretResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSecretResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetSecretResponse proto.InternalMessageInfo
 
 type UpdateSecretRequest struct {
 	// SecretID is the secret ID to update.
 	SecretID string `protobuf:"bytes,1,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`
 	// SecretVersion is the version of the secret being updated.
-	SecretVersion *Version `protobuf:"bytes,2,opt,name=secret_version,json=secretVersion" json:"secret_version,omitempty"`
+	SecretVersion *Version `protobuf:"bytes,2,opt,name=secret_version,json=secretVersion,proto3" json:"secret_version,omitempty"`
 	// Spec is the new spec to apply to the Secret
 	// Only some fields are allowed to be updated.
-	Spec *SecretSpec `protobuf:"bytes,3,opt,name=spec" json:"spec,omitempty"`
+	Spec *SecretSpec `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *UpdateSecretRequest) Reset()                    { *m = UpdateSecretRequest{} }
-func (*UpdateSecretRequest) ProtoMessage()               {}
-func (*UpdateSecretRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{41} }
+func (m *UpdateSecretRequest) Reset()      { *m = UpdateSecretRequest{} }
+func (*UpdateSecretRequest) ProtoMessage() {}
+func (*UpdateSecretRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{43}
+}
+func (m *UpdateSecretRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateSecretRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateSecretRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateSecretRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSecretRequest.Merge(m, src)
+}
+func (m *UpdateSecretRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateSecretRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSecretRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSecretRequest proto.InternalMessageInfo
 
 type UpdateSecretResponse struct {
-	Secret *Secret `protobuf:"bytes,1,opt,name=secret" json:"secret,omitempty"`
+	Secret *Secret `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
 }
 
-func (m *UpdateSecretResponse) Reset()                    { *m = UpdateSecretResponse{} }
-func (*UpdateSecretResponse) ProtoMessage()               {}
-func (*UpdateSecretResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{42} }
+func (m *UpdateSecretResponse) Reset()      { *m = UpdateSecretResponse{} }
+func (*UpdateSecretResponse) ProtoMessage() {}
+func (*UpdateSecretResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{44}
+}
+func (m *UpdateSecretResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateSecretResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateSecretResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateSecretResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSecretResponse.Merge(m, src)
+}
+func (m *UpdateSecretResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateSecretResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSecretResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSecretResponse proto.InternalMessageInfo
 
 // ListSecretRequest is the request to list all non-internal secrets in the secret store,
 // or all secrets filtered by (name or name prefix or id prefix) and labels.
 type ListSecretsRequest struct {
-	Filters *ListSecretsRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+	Filters *ListSecretsRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
 }
 
-func (m *ListSecretsRequest) Reset()                    { *m = ListSecretsRequest{} }
-func (*ListSecretsRequest) ProtoMessage()               {}
-func (*ListSecretsRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{43} }
+func (m *ListSecretsRequest) Reset()      { *m = ListSecretsRequest{} }
+func (*ListSecretsRequest) ProtoMessage() {}
+func (*ListSecretsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{45}
+}
+func (m *ListSecretsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListSecretsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListSecretsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListSecretsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListSecretsRequest.Merge(m, src)
+}
+func (m *ListSecretsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListSecretsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListSecretsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListSecretsRequest proto.InternalMessageInfo
 
 type ListSecretsRequest_Filters struct {
-	Names        []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	Names        []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 }
 
 func (m *ListSecretsRequest_Filters) Reset()      { *m = ListSecretsRequest_Filters{} }
 func (*ListSecretsRequest_Filters) ProtoMessage() {}
 func (*ListSecretsRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{43, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{45, 0}
 }
+func (m *ListSecretsRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListSecretsRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListSecretsRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListSecretsRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListSecretsRequest_Filters.Merge(m, src)
+}
+func (m *ListSecretsRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListSecretsRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListSecretsRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListSecretsRequest_Filters proto.InternalMessageInfo
 
 // ListSecretResponse contains a list of all the secrets that match the name or
 // name prefix filters provided in `ListSecretRequest`.  The `Secret.Spec.Data`
 // field in each `Secret` object should be nil instead of actually containing
 // the secret bytes.
 type ListSecretsResponse struct {
-	Secrets []*Secret `protobuf:"bytes,1,rep,name=secrets" json:"secrets,omitempty"`
+	Secrets []*Secret `protobuf:"bytes,1,rep,name=secrets,proto3" json:"secrets,omitempty"`
 }
 
-func (m *ListSecretsResponse) Reset()                    { *m = ListSecretsResponse{} }
-func (*ListSecretsResponse) ProtoMessage()               {}
-func (*ListSecretsResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{44} }
+func (m *ListSecretsResponse) Reset()      { *m = ListSecretsResponse{} }
+func (*ListSecretsResponse) ProtoMessage() {}
+func (*ListSecretsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{46}
+}
+func (m *ListSecretsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListSecretsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListSecretsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListSecretsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListSecretsResponse.Merge(m, src)
+}
+func (m *ListSecretsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListSecretsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListSecretsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListSecretsResponse proto.InternalMessageInfo
 
 // CreateSecretRequest specifies a new secret (it will not update an existing
 // secret) to create.
 type CreateSecretRequest struct {
-	Spec *SecretSpec `protobuf:"bytes,1,opt,name=spec" json:"spec,omitempty"`
+	Spec *SecretSpec `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *CreateSecretRequest) Reset()                    { *m = CreateSecretRequest{} }
-func (*CreateSecretRequest) ProtoMessage()               {}
-func (*CreateSecretRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{45} }
+func (m *CreateSecretRequest) Reset()      { *m = CreateSecretRequest{} }
+func (*CreateSecretRequest) ProtoMessage() {}
+func (*CreateSecretRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{47}
+}
+func (m *CreateSecretRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateSecretRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateSecretRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateSecretRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateSecretRequest.Merge(m, src)
+}
+func (m *CreateSecretRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateSecretRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateSecretRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateSecretRequest proto.InternalMessageInfo
 
 // CreateSecretResponse contains the newly created `Secret` corresponding to the
 // name in `CreateSecretRequest`.  The `Secret.Spec.Data` field should be nil instead
 // of actually containing the secret bytes.
 type CreateSecretResponse struct {
-	Secret *Secret `protobuf:"bytes,1,opt,name=secret" json:"secret,omitempty"`
+	Secret *Secret `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
 }
 
-func (m *CreateSecretResponse) Reset()                    { *m = CreateSecretResponse{} }
-func (*CreateSecretResponse) ProtoMessage()               {}
-func (*CreateSecretResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{46} }
+func (m *CreateSecretResponse) Reset()      { *m = CreateSecretResponse{} }
+func (*CreateSecretResponse) ProtoMessage() {}
+func (*CreateSecretResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{48}
+}
+func (m *CreateSecretResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateSecretResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateSecretResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateSecretResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateSecretResponse.Merge(m, src)
+}
+func (m *CreateSecretResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateSecretResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateSecretResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateSecretResponse proto.InternalMessageInfo
 
 // RemoveSecretRequest contains the ID of the secret that should be removed.  This
 // removes all versions of the secret.
@@ -587,112 +2197,418 @@ type RemoveSecretRequest struct {
 	SecretID string `protobuf:"bytes,1,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`
 }
 
-func (m *RemoveSecretRequest) Reset()                    { *m = RemoveSecretRequest{} }
-func (*RemoveSecretRequest) ProtoMessage()               {}
-func (*RemoveSecretRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{47} }
+func (m *RemoveSecretRequest) Reset()      { *m = RemoveSecretRequest{} }
+func (*RemoveSecretRequest) ProtoMessage() {}
+func (*RemoveSecretRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{49}
+}
+func (m *RemoveSecretRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveSecretRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveSecretRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveSecretRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveSecretRequest.Merge(m, src)
+}
+func (m *RemoveSecretRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveSecretRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveSecretRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveSecretRequest proto.InternalMessageInfo
 
 // RemoveSecretResponse is an empty object indicating the successful removal of
 // a secret.
 type RemoveSecretResponse struct {
 }
 
-func (m *RemoveSecretResponse) Reset()                    { *m = RemoveSecretResponse{} }
-func (*RemoveSecretResponse) ProtoMessage()               {}
-func (*RemoveSecretResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{48} }
+func (m *RemoveSecretResponse) Reset()      { *m = RemoveSecretResponse{} }
+func (*RemoveSecretResponse) ProtoMessage() {}
+func (*RemoveSecretResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{50}
+}
+func (m *RemoveSecretResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveSecretResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveSecretResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveSecretResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveSecretResponse.Merge(m, src)
+}
+func (m *RemoveSecretResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveSecretResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveSecretResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveSecretResponse proto.InternalMessageInfo
 
 // GetConfigRequest is the request to get a `Config` object given a config id.
 type GetConfigRequest struct {
 	ConfigID string `protobuf:"bytes,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`
 }
 
-func (m *GetConfigRequest) Reset()                    { *m = GetConfigRequest{} }
-func (*GetConfigRequest) ProtoMessage()               {}
-func (*GetConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{49} }
+func (m *GetConfigRequest) Reset()      { *m = GetConfigRequest{} }
+func (*GetConfigRequest) ProtoMessage() {}
+func (*GetConfigRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{51}
+}
+func (m *GetConfigRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetConfigRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetConfigRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetConfigRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetConfigRequest.Merge(m, src)
+}
+func (m *GetConfigRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetConfigRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetConfigRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetConfigRequest proto.InternalMessageInfo
 
 // GetConfigResponse contains the Config corresponding to the id in
 // `GetConfigRequest`.
 type GetConfigResponse struct {
-	Config *Config `protobuf:"bytes,1,opt,name=config" json:"config,omitempty"`
+	Config *Config `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 }
 
-func (m *GetConfigResponse) Reset()                    { *m = GetConfigResponse{} }
-func (*GetConfigResponse) ProtoMessage()               {}
-func (*GetConfigResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{50} }
+func (m *GetConfigResponse) Reset()      { *m = GetConfigResponse{} }
+func (*GetConfigResponse) ProtoMessage() {}
+func (*GetConfigResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{52}
+}
+func (m *GetConfigResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetConfigResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetConfigResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetConfigResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetConfigResponse.Merge(m, src)
+}
+func (m *GetConfigResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetConfigResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetConfigResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetConfigResponse proto.InternalMessageInfo
 
 type UpdateConfigRequest struct {
 	// ConfigID is the config ID to update.
 	ConfigID string `protobuf:"bytes,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`
 	// ConfigVersion is the version of the config being updated.
-	ConfigVersion *Version `protobuf:"bytes,2,opt,name=config_version,json=configVersion" json:"config_version,omitempty"`
+	ConfigVersion *Version `protobuf:"bytes,2,opt,name=config_version,json=configVersion,proto3" json:"config_version,omitempty"`
 	// Spec is the new spec to apply to the Config
 	// Only some fields are allowed to be updated.
-	Spec *ConfigSpec `protobuf:"bytes,3,opt,name=spec" json:"spec,omitempty"`
+	Spec *ConfigSpec `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *UpdateConfigRequest) Reset()                    { *m = UpdateConfigRequest{} }
-func (*UpdateConfigRequest) ProtoMessage()               {}
-func (*UpdateConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{51} }
+func (m *UpdateConfigRequest) Reset()      { *m = UpdateConfigRequest{} }
+func (*UpdateConfigRequest) ProtoMessage() {}
+func (*UpdateConfigRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{53}
+}
+func (m *UpdateConfigRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateConfigRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateConfigRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateConfigRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateConfigRequest.Merge(m, src)
+}
+func (m *UpdateConfigRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateConfigRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateConfigRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateConfigRequest proto.InternalMessageInfo
 
 type UpdateConfigResponse struct {
-	Config *Config `protobuf:"bytes,1,opt,name=config" json:"config,omitempty"`
+	Config *Config `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 }
 
-func (m *UpdateConfigResponse) Reset()                    { *m = UpdateConfigResponse{} }
-func (*UpdateConfigResponse) ProtoMessage()               {}
-func (*UpdateConfigResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{52} }
+func (m *UpdateConfigResponse) Reset()      { *m = UpdateConfigResponse{} }
+func (*UpdateConfigResponse) ProtoMessage() {}
+func (*UpdateConfigResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{54}
+}
+func (m *UpdateConfigResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateConfigResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateConfigResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateConfigResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateConfigResponse.Merge(m, src)
+}
+func (m *UpdateConfigResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateConfigResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateConfigResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateConfigResponse proto.InternalMessageInfo
 
 // ListConfigRequest is the request to list all configs in the config store,
 // or all configs filtered by (name or name prefix or id prefix) and labels.
 type ListConfigsRequest struct {
-	Filters *ListConfigsRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+	Filters *ListConfigsRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
 }
 
-func (m *ListConfigsRequest) Reset()                    { *m = ListConfigsRequest{} }
-func (*ListConfigsRequest) ProtoMessage()               {}
-func (*ListConfigsRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{53} }
+func (m *ListConfigsRequest) Reset()      { *m = ListConfigsRequest{} }
+func (*ListConfigsRequest) ProtoMessage() {}
+func (*ListConfigsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{55}
+}
+func (m *ListConfigsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListConfigsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListConfigsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListConfigsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListConfigsRequest.Merge(m, src)
+}
+func (m *ListConfigsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListConfigsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListConfigsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListConfigsRequest proto.InternalMessageInfo
 
 type ListConfigsRequest_Filters struct {
-	Names        []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	Names        []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 }
 
 func (m *ListConfigsRequest_Filters) Reset()      { *m = ListConfigsRequest_Filters{} }
 func (*ListConfigsRequest_Filters) ProtoMessage() {}
 func (*ListConfigsRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{53, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{55, 0}
 }
+func (m *ListConfigsRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListConfigsRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListConfigsRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListConfigsRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListConfigsRequest_Filters.Merge(m, src)
+}
+func (m *ListConfigsRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListConfigsRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListConfigsRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListConfigsRequest_Filters proto.InternalMessageInfo
 
 // ListConfigResponse contains a list of all the configs that match the name or
 // name prefix filters provided in `ListConfigRequest`.
 type ListConfigsResponse struct {
-	Configs []*Config `protobuf:"bytes,1,rep,name=configs" json:"configs,omitempty"`
+	Configs []*Config `protobuf:"bytes,1,rep,name=configs,proto3" json:"configs,omitempty"`
 }
 
-func (m *ListConfigsResponse) Reset()                    { *m = ListConfigsResponse{} }
-func (*ListConfigsResponse) ProtoMessage()               {}
-func (*ListConfigsResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{54} }
+func (m *ListConfigsResponse) Reset()      { *m = ListConfigsResponse{} }
+func (*ListConfigsResponse) ProtoMessage() {}
+func (*ListConfigsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{56}
+}
+func (m *ListConfigsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListConfigsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListConfigsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListConfigsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListConfigsResponse.Merge(m, src)
+}
+func (m *ListConfigsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListConfigsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListConfigsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListConfigsResponse proto.InternalMessageInfo
 
 // CreateConfigRequest specifies a new config (it will not update an existing
 // config) to create.
 type CreateConfigRequest struct {
-	Spec *ConfigSpec `protobuf:"bytes,1,opt,name=spec" json:"spec,omitempty"`
+	Spec *ConfigSpec `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
 }
 
-func (m *CreateConfigRequest) Reset()                    { *m = CreateConfigRequest{} }
-func (*CreateConfigRequest) ProtoMessage()               {}
-func (*CreateConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{55} }
+func (m *CreateConfigRequest) Reset()      { *m = CreateConfigRequest{} }
+func (*CreateConfigRequest) ProtoMessage() {}
+func (*CreateConfigRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{57}
+}
+func (m *CreateConfigRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateConfigRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateConfigRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateConfigRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateConfigRequest.Merge(m, src)
+}
+func (m *CreateConfigRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateConfigRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateConfigRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateConfigRequest proto.InternalMessageInfo
 
 // CreateConfigResponse contains the newly created `Config` corresponding to the
 // name in `CreateConfigRequest`.
 type CreateConfigResponse struct {
-	Config *Config `protobuf:"bytes,1,opt,name=config" json:"config,omitempty"`
+	Config *Config `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 }
 
-func (m *CreateConfigResponse) Reset()                    { *m = CreateConfigResponse{} }
-func (*CreateConfigResponse) ProtoMessage()               {}
-func (*CreateConfigResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{56} }
+func (m *CreateConfigResponse) Reset()      { *m = CreateConfigResponse{} }
+func (*CreateConfigResponse) ProtoMessage() {}
+func (*CreateConfigResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{58}
+}
+func (m *CreateConfigResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateConfigResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateConfigResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateConfigResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateConfigResponse.Merge(m, src)
+}
+func (m *CreateConfigResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateConfigResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateConfigResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateConfigResponse proto.InternalMessageInfo
 
 // RemoveConfigRequest contains the ID of the config that should be removed.  This
 // removes all versions of the config.
@@ -700,39 +2616,151 @@ type RemoveConfigRequest struct {
 	ConfigID string `protobuf:"bytes,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`
 }
 
-func (m *RemoveConfigRequest) Reset()                    { *m = RemoveConfigRequest{} }
-func (*RemoveConfigRequest) ProtoMessage()               {}
-func (*RemoveConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{57} }
+func (m *RemoveConfigRequest) Reset()      { *m = RemoveConfigRequest{} }
+func (*RemoveConfigRequest) ProtoMessage() {}
+func (*RemoveConfigRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{59}
+}
+func (m *RemoveConfigRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveConfigRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveConfigRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveConfigRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveConfigRequest.Merge(m, src)
+}
+func (m *RemoveConfigRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveConfigRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveConfigRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveConfigRequest proto.InternalMessageInfo
 
 // RemoveConfigResponse is an empty object indicating the successful removal of
 // a config.
 type RemoveConfigResponse struct {
 }
 
-func (m *RemoveConfigResponse) Reset()                    { *m = RemoveConfigResponse{} }
-func (*RemoveConfigResponse) ProtoMessage()               {}
-func (*RemoveConfigResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{58} }
+func (m *RemoveConfigResponse) Reset()      { *m = RemoveConfigResponse{} }
+func (*RemoveConfigResponse) ProtoMessage() {}
+func (*RemoveConfigResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{60}
+}
+func (m *RemoveConfigResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveConfigResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveConfigResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveConfigResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveConfigResponse.Merge(m, src)
+}
+func (m *RemoveConfigResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveConfigResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveConfigResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveConfigResponse proto.InternalMessageInfo
 
 // CreateExtensionRequest creates a new extension as specified by the provided
 // parameters
 type CreateExtensionRequest struct {
-	Annotations *Annotations `protobuf:"bytes,1,opt,name=annotations" json:"annotations,omitempty"`
+	Annotations *Annotations `protobuf:"bytes,1,opt,name=annotations,proto3" json:"annotations,omitempty"`
 	Description string       `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 }
 
-func (m *CreateExtensionRequest) Reset()                    { *m = CreateExtensionRequest{} }
-func (*CreateExtensionRequest) ProtoMessage()               {}
-func (*CreateExtensionRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{59} }
+func (m *CreateExtensionRequest) Reset()      { *m = CreateExtensionRequest{} }
+func (*CreateExtensionRequest) ProtoMessage() {}
+func (*CreateExtensionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{61}
+}
+func (m *CreateExtensionRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateExtensionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateExtensionRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateExtensionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateExtensionRequest.Merge(m, src)
+}
+func (m *CreateExtensionRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateExtensionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateExtensionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateExtensionRequest proto.InternalMessageInfo
 
 // CreateExtensionResponse contains the newly created `Extension` corresponding
 // to the parameters in the CreateExtensionRequest.
 type CreateExtensionResponse struct {
-	Extension *Extension `protobuf:"bytes,1,opt,name=extension" json:"extension,omitempty"`
+	Extension *Extension `protobuf:"bytes,1,opt,name=extension,proto3" json:"extension,omitempty"`
 }
 
-func (m *CreateExtensionResponse) Reset()                    { *m = CreateExtensionResponse{} }
-func (*CreateExtensionResponse) ProtoMessage()               {}
-func (*CreateExtensionResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{60} }
+func (m *CreateExtensionResponse) Reset()      { *m = CreateExtensionResponse{} }
+func (*CreateExtensionResponse) ProtoMessage() {}
+func (*CreateExtensionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{62}
+}
+func (m *CreateExtensionResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateExtensionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateExtensionResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateExtensionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateExtensionResponse.Merge(m, src)
+}
+func (m *CreateExtensionResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateExtensionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateExtensionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateExtensionResponse proto.InternalMessageInfo
 
 // RemoveExtensionRequest contains the ID of the extension that should be removed. This
 // removes all versions of the extension.
@@ -740,59 +2768,227 @@ type RemoveExtensionRequest struct {
 	ExtensionID string `protobuf:"bytes,1,opt,name=extension_id,json=extensionId,proto3" json:"extension_id,omitempty"`
 }
 
-func (m *RemoveExtensionRequest) Reset()                    { *m = RemoveExtensionRequest{} }
-func (*RemoveExtensionRequest) ProtoMessage()               {}
-func (*RemoveExtensionRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{61} }
+func (m *RemoveExtensionRequest) Reset()      { *m = RemoveExtensionRequest{} }
+func (*RemoveExtensionRequest) ProtoMessage() {}
+func (*RemoveExtensionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{63}
+}
+func (m *RemoveExtensionRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveExtensionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveExtensionRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveExtensionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveExtensionRequest.Merge(m, src)
+}
+func (m *RemoveExtensionRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveExtensionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveExtensionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveExtensionRequest proto.InternalMessageInfo
 
 // RemoveExtensionResponse is an empty object indicating the successful removal
 // of an extension.
 type RemoveExtensionResponse struct {
 }
 
-func (m *RemoveExtensionResponse) Reset()                    { *m = RemoveExtensionResponse{} }
-func (*RemoveExtensionResponse) ProtoMessage()               {}
-func (*RemoveExtensionResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{62} }
+func (m *RemoveExtensionResponse) Reset()      { *m = RemoveExtensionResponse{} }
+func (*RemoveExtensionResponse) ProtoMessage() {}
+func (*RemoveExtensionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{64}
+}
+func (m *RemoveExtensionResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveExtensionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveExtensionResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveExtensionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveExtensionResponse.Merge(m, src)
+}
+func (m *RemoveExtensionResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveExtensionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveExtensionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveExtensionResponse proto.InternalMessageInfo
 
 // GetResourceRequest is the request to get a Extension object given a extension id.
 type GetExtensionRequest struct {
 	ExtensionID string `protobuf:"bytes,1,opt,name=extension_id,json=extensionId,proto3" json:"extension_id,omitempty"`
 }
 
-func (m *GetExtensionRequest) Reset()                    { *m = GetExtensionRequest{} }
-func (*GetExtensionRequest) ProtoMessage()               {}
-func (*GetExtensionRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{63} }
+func (m *GetExtensionRequest) Reset()      { *m = GetExtensionRequest{} }
+func (*GetExtensionRequest) ProtoMessage() {}
+func (*GetExtensionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{65}
+}
+func (m *GetExtensionRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetExtensionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetExtensionRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetExtensionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetExtensionRequest.Merge(m, src)
+}
+func (m *GetExtensionRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetExtensionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetExtensionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetExtensionRequest proto.InternalMessageInfo
 
 // GetExtensionResponse contains the Extension corresponding to the id in
 // `GetExtensionRequest`.
 type GetExtensionResponse struct {
-	Extension *Extension `protobuf:"bytes,1,opt,name=extension" json:"extension,omitempty"`
+	Extension *Extension `protobuf:"bytes,1,opt,name=extension,proto3" json:"extension,omitempty"`
 }
 
-func (m *GetExtensionResponse) Reset()                    { *m = GetExtensionResponse{} }
-func (*GetExtensionResponse) ProtoMessage()               {}
-func (*GetExtensionResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{64} }
+func (m *GetExtensionResponse) Reset()      { *m = GetExtensionResponse{} }
+func (*GetExtensionResponse) ProtoMessage() {}
+func (*GetExtensionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{66}
+}
+func (m *GetExtensionResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetExtensionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetExtensionResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetExtensionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetExtensionResponse.Merge(m, src)
+}
+func (m *GetExtensionResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetExtensionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetExtensionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetExtensionResponse proto.InternalMessageInfo
 
 // CreateResourceRequest creates a new resource specified by the included
 // resource object. An existing resource will not be updated.
 type CreateResourceRequest struct {
-	Annotations *Annotations          `protobuf:"bytes,1,opt,name=annotations" json:"annotations,omitempty"`
-	Kind        string                `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Payload     *google_protobuf4.Any `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
+	Annotations *Annotations `protobuf:"bytes,1,opt,name=annotations,proto3" json:"annotations,omitempty"`
+	Kind        string       `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Payload     *types.Any   `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
 }
 
-func (m *CreateResourceRequest) Reset()                    { *m = CreateResourceRequest{} }
-func (*CreateResourceRequest) ProtoMessage()               {}
-func (*CreateResourceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{65} }
+func (m *CreateResourceRequest) Reset()      { *m = CreateResourceRequest{} }
+func (*CreateResourceRequest) ProtoMessage() {}
+func (*CreateResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{67}
+}
+func (m *CreateResourceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateResourceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateResourceRequest.Merge(m, src)
+}
+func (m *CreateResourceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateResourceRequest proto.InternalMessageInfo
 
 // CreateResourceResponse contains the newly created `Resource` corresponding
 // to the resource in the CreateResourceRequest.
 type CreateResourceResponse struct {
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 }
 
-func (m *CreateResourceResponse) Reset()                    { *m = CreateResourceResponse{} }
-func (*CreateResourceResponse) ProtoMessage()               {}
-func (*CreateResourceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{66} }
+func (m *CreateResourceResponse) Reset()      { *m = CreateResourceResponse{} }
+func (*CreateResourceResponse) ProtoMessage() {}
+func (*CreateResourceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{68}
+}
+func (m *CreateResourceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateResourceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateResourceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateResourceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateResourceResponse.Merge(m, src)
+}
+func (m *CreateResourceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateResourceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateResourceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateResourceResponse proto.InternalMessageInfo
 
 // RemoveResourceRequest contains the ID of the resource that should be removed. This
 // removes all versions of the resource.
@@ -800,102 +2996,355 @@ type RemoveResourceRequest struct {
 	ResourceID string `protobuf:"bytes,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
 }
 
-func (m *RemoveResourceRequest) Reset()                    { *m = RemoveResourceRequest{} }
-func (*RemoveResourceRequest) ProtoMessage()               {}
-func (*RemoveResourceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{67} }
+func (m *RemoveResourceRequest) Reset()      { *m = RemoveResourceRequest{} }
+func (*RemoveResourceRequest) ProtoMessage() {}
+func (*RemoveResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{69}
+}
+func (m *RemoveResourceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveResourceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveResourceRequest.Merge(m, src)
+}
+func (m *RemoveResourceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveResourceRequest proto.InternalMessageInfo
 
 // RemoveResourceResponse is an empty object indicating the successful removal
 // of a resource.
 type RemoveResourceResponse struct {
 }
 
-func (m *RemoveResourceResponse) Reset()                    { *m = RemoveResourceResponse{} }
-func (*RemoveResourceResponse) ProtoMessage()               {}
-func (*RemoveResourceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{68} }
+func (m *RemoveResourceResponse) Reset()      { *m = RemoveResourceResponse{} }
+func (*RemoveResourceResponse) ProtoMessage() {}
+func (*RemoveResourceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{70}
+}
+func (m *RemoveResourceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoveResourceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoveResourceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoveResourceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveResourceResponse.Merge(m, src)
+}
+func (m *RemoveResourceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoveResourceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveResourceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveResourceResponse proto.InternalMessageInfo
 
 // UpdateResourceRequest updates the resource specified by the given resource object.
 type UpdateResourceRequest struct {
 	ResourceID      string   `protobuf:"bytes,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
-	ResourceVersion *Version `protobuf:"bytes,2,opt,name=resource_version,json=resourceVersion" json:"resource_version,omitempty"`
+	ResourceVersion *Version `protobuf:"bytes,2,opt,name=resource_version,json=resourceVersion,proto3" json:"resource_version,omitempty"`
 	// Annotations describes the annotations to update. If the Annotations should
 	// be unchanged, then this field should be left empty. Note that the name of
 	// a Resource cannot be changed, only its labels.
-	Annotations *Annotations `protobuf:"bytes,3,opt,name=annotations" json:"annotations,omitempty"`
+	Annotations *Annotations `protobuf:"bytes,3,opt,name=annotations,proto3" json:"annotations,omitempty"`
 	// Payload describes the new payload of the resource. If the Payload should
 	// be unchanged, then this field should be left empty.
-	Payload *google_protobuf4.Any `protobuf:"bytes,4,opt,name=payload" json:"payload,omitempty"`
+	Payload *types.Any `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
 }
 
-func (m *UpdateResourceRequest) Reset()                    { *m = UpdateResourceRequest{} }
-func (*UpdateResourceRequest) ProtoMessage()               {}
-func (*UpdateResourceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{69} }
+func (m *UpdateResourceRequest) Reset()      { *m = UpdateResourceRequest{} }
+func (*UpdateResourceRequest) ProtoMessage() {}
+func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{71}
+}
+func (m *UpdateResourceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateResourceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateResourceRequest.Merge(m, src)
+}
+func (m *UpdateResourceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateResourceRequest proto.InternalMessageInfo
 
 type UpdateResourceResponse struct {
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 }
 
-func (m *UpdateResourceResponse) Reset()                    { *m = UpdateResourceResponse{} }
-func (*UpdateResourceResponse) ProtoMessage()               {}
-func (*UpdateResourceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{70} }
+func (m *UpdateResourceResponse) Reset()      { *m = UpdateResourceResponse{} }
+func (*UpdateResourceResponse) ProtoMessage() {}
+func (*UpdateResourceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{72}
+}
+func (m *UpdateResourceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateResourceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateResourceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateResourceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateResourceResponse.Merge(m, src)
+}
+func (m *UpdateResourceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateResourceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateResourceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateResourceResponse proto.InternalMessageInfo
 
 // GetResourceRequest is the request to get a Resource object given a resource id.
 type GetResourceRequest struct {
 	ResourceID string `protobuf:"bytes,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
 }
 
-func (m *GetResourceRequest) Reset()                    { *m = GetResourceRequest{} }
-func (*GetResourceRequest) ProtoMessage()               {}
-func (*GetResourceRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{71} }
+func (m *GetResourceRequest) Reset()      { *m = GetResourceRequest{} }
+func (*GetResourceRequest) ProtoMessage() {}
+func (*GetResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{73}
+}
+func (m *GetResourceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetResourceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetResourceRequest.Merge(m, src)
+}
+func (m *GetResourceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetResourceRequest proto.InternalMessageInfo
 
 // GetResourceResponse contains the Resource corresponding to the id in
 // `GetResourceRequest`.
 type GetResourceResponse struct {
-	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 }
 
-func (m *GetResourceResponse) Reset()                    { *m = GetResourceResponse{} }
-func (*GetResourceResponse) ProtoMessage()               {}
-func (*GetResourceResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{72} }
+func (m *GetResourceResponse) Reset()      { *m = GetResourceResponse{} }
+func (*GetResourceResponse) ProtoMessage() {}
+func (*GetResourceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{74}
+}
+func (m *GetResourceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetResourceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetResourceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetResourceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetResourceResponse.Merge(m, src)
+}
+func (m *GetResourceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetResourceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetResourceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetResourceResponse proto.InternalMessageInfo
 
 // ListResourcesRequest is the request to list all resources in the raft store,
 // or all resources filtered by (name or name prefix or id prefix), labels and extension.
 type ListResourcesRequest struct {
-	Filters *ListResourcesRequest_Filters `protobuf:"bytes,1,opt,name=filters" json:"filters,omitempty"`
+	Filters *ListResourcesRequest_Filters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
 }
 
-func (m *ListResourcesRequest) Reset()                    { *m = ListResourcesRequest{} }
-func (*ListResourcesRequest) ProtoMessage()               {}
-func (*ListResourcesRequest) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{73} }
+func (m *ListResourcesRequest) Reset()      { *m = ListResourcesRequest{} }
+func (*ListResourcesRequest) ProtoMessage() {}
+func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{75}
+}
+func (m *ListResourcesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListResourcesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListResourcesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListResourcesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListResourcesRequest.Merge(m, src)
+}
+func (m *ListResourcesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListResourcesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListResourcesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListResourcesRequest proto.InternalMessageInfo
 
 type ListResourcesRequest_Filters struct {
-	Names        []string          `protobuf:"bytes,1,rep,name=names" json:"names,omitempty"`
-	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes" json:"id_prefixes,omitempty"`
-	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes" json:"name_prefixes,omitempty"`
+	Names        []string          `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
+	IDPrefixes   []string          `protobuf:"bytes,2,rep,name=id_prefixes,json=idPrefixes,proto3" json:"id_prefixes,omitempty"`
+	Labels       map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	NamePrefixes []string          `protobuf:"bytes,4,rep,name=name_prefixes,json=namePrefixes,proto3" json:"name_prefixes,omitempty"`
 	Kind         string            `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
 }
 
 func (m *ListResourcesRequest_Filters) Reset()      { *m = ListResourcesRequest_Filters{} }
 func (*ListResourcesRequest_Filters) ProtoMessage() {}
 func (*ListResourcesRequest_Filters) Descriptor() ([]byte, []int) {
-	return fileDescriptorControl, []int{73, 0}
+	return fileDescriptor_b37401dd08bf8930, []int{75, 0}
 }
+func (m *ListResourcesRequest_Filters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListResourcesRequest_Filters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListResourcesRequest_Filters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListResourcesRequest_Filters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListResourcesRequest_Filters.Merge(m, src)
+}
+func (m *ListResourcesRequest_Filters) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListResourcesRequest_Filters) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListResourcesRequest_Filters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListResourcesRequest_Filters proto.InternalMessageInfo
 
 // ListResourcesResponse contains a list of all the resources that match the name or
 // name prefix filters provided in `ListResourcesRequest`.
 type ListResourcesResponse struct {
-	Resources []*Resource `protobuf:"bytes,1,rep,name=resources" json:"resources,omitempty"`
+	Resources []*Resource `protobuf:"bytes,1,rep,name=resources,proto3" json:"resources,omitempty"`
 }
 
-func (m *ListResourcesResponse) Reset()                    { *m = ListResourcesResponse{} }
-func (*ListResourcesResponse) ProtoMessage()               {}
-func (*ListResourcesResponse) Descriptor() ([]byte, []int) { return fileDescriptorControl, []int{74} }
+func (m *ListResourcesResponse) Reset()      { *m = ListResourcesResponse{} }
+func (*ListResourcesResponse) ProtoMessage() {}
+func (*ListResourcesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b37401dd08bf8930, []int{76}
+}
+func (m *ListResourcesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ListResourcesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ListResourcesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ListResourcesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListResourcesResponse.Merge(m, src)
+}
+func (m *ListResourcesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ListResourcesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListResourcesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListResourcesResponse proto.InternalMessageInfo
 
 func init() {
+	proto.RegisterEnum("docker.swarmkit.v1.UpdateServiceRequest_Rollback", UpdateServiceRequest_Rollback_name, UpdateServiceRequest_Rollback_value)
 	proto.RegisterType((*GetNodeRequest)(nil), "docker.swarmkit.v1.GetNodeRequest")
 	proto.RegisterType((*GetNodeResponse)(nil), "docker.swarmkit.v1.GetNodeResponse")
 	proto.RegisterType((*ListNodesRequest)(nil), "docker.swarmkit.v1.ListNodesRequest")
 	proto.RegisterType((*ListNodesRequest_Filters)(nil), "docker.swarmkit.v1.ListNodesRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListNodesRequest.Filters.LabelsEntry")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListNodesRequest.Filters.NodeLabelsEntry")
 	proto.RegisterType((*ListNodesResponse)(nil), "docker.swarmkit.v1.ListNodesResponse")
 	proto.RegisterType((*UpdateNodeRequest)(nil), "docker.swarmkit.v1.UpdateNodeRequest")
 	proto.RegisterType((*UpdateNodeResponse)(nil), "docker.swarmkit.v1.UpdateNodeResponse")
@@ -907,6 +3356,7 @@ func init() {
 	proto.RegisterType((*RemoveTaskResponse)(nil), "docker.swarmkit.v1.RemoveTaskResponse")
 	proto.RegisterType((*ListTasksRequest)(nil), "docker.swarmkit.v1.ListTasksRequest")
 	proto.RegisterType((*ListTasksRequest_Filters)(nil), "docker.swarmkit.v1.ListTasksRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListTasksRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListTasksResponse)(nil), "docker.swarmkit.v1.ListTasksResponse")
 	proto.RegisterType((*CreateServiceRequest)(nil), "docker.swarmkit.v1.CreateServiceRequest")
 	proto.RegisterType((*CreateServiceResponse)(nil), "docker.swarmkit.v1.CreateServiceResponse")
@@ -918,7 +3368,11 @@ func init() {
 	proto.RegisterType((*RemoveServiceResponse)(nil), "docker.swarmkit.v1.RemoveServiceResponse")
 	proto.RegisterType((*ListServicesRequest)(nil), "docker.swarmkit.v1.ListServicesRequest")
 	proto.RegisterType((*ListServicesRequest_Filters)(nil), "docker.swarmkit.v1.ListServicesRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListServicesRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListServicesResponse)(nil), "docker.swarmkit.v1.ListServicesResponse")
+	proto.RegisterType((*ListServiceStatusesRequest)(nil), "docker.swarmkit.v1.ListServiceStatusesRequest")
+	proto.RegisterType((*ListServiceStatusesResponse)(nil), "docker.swarmkit.v1.ListServiceStatusesResponse")
+	proto.RegisterType((*ListServiceStatusesResponse_ServiceStatus)(nil), "docker.swarmkit.v1.ListServiceStatusesResponse.ServiceStatus")
 	proto.RegisterType((*CreateNetworkRequest)(nil), "docker.swarmkit.v1.CreateNetworkRequest")
 	proto.RegisterType((*CreateNetworkResponse)(nil), "docker.swarmkit.v1.CreateNetworkResponse")
 	proto.RegisterType((*GetNetworkRequest)(nil), "docker.swarmkit.v1.GetNetworkRequest")
@@ -927,11 +3381,13 @@ func init() {
 	proto.RegisterType((*RemoveNetworkResponse)(nil), "docker.swarmkit.v1.RemoveNetworkResponse")
 	proto.RegisterType((*ListNetworksRequest)(nil), "docker.swarmkit.v1.ListNetworksRequest")
 	proto.RegisterType((*ListNetworksRequest_Filters)(nil), "docker.swarmkit.v1.ListNetworksRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListNetworksRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListNetworksResponse)(nil), "docker.swarmkit.v1.ListNetworksResponse")
 	proto.RegisterType((*GetClusterRequest)(nil), "docker.swarmkit.v1.GetClusterRequest")
 	proto.RegisterType((*GetClusterResponse)(nil), "docker.swarmkit.v1.GetClusterResponse")
 	proto.RegisterType((*ListClustersRequest)(nil), "docker.swarmkit.v1.ListClustersRequest")
 	proto.RegisterType((*ListClustersRequest_Filters)(nil), "docker.swarmkit.v1.ListClustersRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListClustersRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListClustersResponse)(nil), "docker.swarmkit.v1.ListClustersResponse")
 	proto.RegisterType((*KeyRotation)(nil), "docker.swarmkit.v1.KeyRotation")
 	proto.RegisterType((*UpdateClusterRequest)(nil), "docker.swarmkit.v1.UpdateClusterRequest")
@@ -942,6 +3398,7 @@ func init() {
 	proto.RegisterType((*UpdateSecretResponse)(nil), "docker.swarmkit.v1.UpdateSecretResponse")
 	proto.RegisterType((*ListSecretsRequest)(nil), "docker.swarmkit.v1.ListSecretsRequest")
 	proto.RegisterType((*ListSecretsRequest_Filters)(nil), "docker.swarmkit.v1.ListSecretsRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListSecretsRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListSecretsResponse)(nil), "docker.swarmkit.v1.ListSecretsResponse")
 	proto.RegisterType((*CreateSecretRequest)(nil), "docker.swarmkit.v1.CreateSecretRequest")
 	proto.RegisterType((*CreateSecretResponse)(nil), "docker.swarmkit.v1.CreateSecretResponse")
@@ -953,6 +3410,7 @@ func init() {
 	proto.RegisterType((*UpdateConfigResponse)(nil), "docker.swarmkit.v1.UpdateConfigResponse")
 	proto.RegisterType((*ListConfigsRequest)(nil), "docker.swarmkit.v1.ListConfigsRequest")
 	proto.RegisterType((*ListConfigsRequest_Filters)(nil), "docker.swarmkit.v1.ListConfigsRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListConfigsRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListConfigsResponse)(nil), "docker.swarmkit.v1.ListConfigsResponse")
 	proto.RegisterType((*CreateConfigRequest)(nil), "docker.swarmkit.v1.CreateConfigRequest")
 	proto.RegisterType((*CreateConfigResponse)(nil), "docker.swarmkit.v1.CreateConfigResponse")
@@ -974,8 +3432,190 @@ func init() {
 	proto.RegisterType((*GetResourceResponse)(nil), "docker.swarmkit.v1.GetResourceResponse")
 	proto.RegisterType((*ListResourcesRequest)(nil), "docker.swarmkit.v1.ListResourcesRequest")
 	proto.RegisterType((*ListResourcesRequest_Filters)(nil), "docker.swarmkit.v1.ListResourcesRequest.Filters")
+	proto.RegisterMapType((map[string]string)(nil), "docker.swarmkit.v1.ListResourcesRequest.Filters.LabelsEntry")
 	proto.RegisterType((*ListResourcesResponse)(nil), "docker.swarmkit.v1.ListResourcesResponse")
-	proto.RegisterEnum("docker.swarmkit.v1.UpdateServiceRequest_Rollback", UpdateServiceRequest_Rollback_name, UpdateServiceRequest_Rollback_value)
+}
+
+func init() {
+	proto.RegisterFile("github.com/docker/swarmkit/api/control.proto", fileDescriptor_b37401dd08bf8930)
+}
+
+var fileDescriptor_b37401dd08bf8930 = []byte{
+	// 2778 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x5a, 0xdb, 0x6f, 0x1b, 0x59,
+	0x19, 0x8f, 0x1d, 0x27, 0xb6, 0x3f, 0x27, 0x4e, 0x7a, 0x9a, 0xb6, 0x5e, 0xb7, 0x24, 0xd5, 0xf4,
+	0x12, 0xb7, 0x14, 0x7b, 0xd7, 0x65, 0xd9, 0xd2, 0xdd, 0x02, 0x4d, 0xd3, 0x8b, 0x7b, 0x49, 0xab,
+	0x49, 0x5a, 0xc1, 0x03, 0x8a, 0x1c, 0xfb, 0x24, 0x3b, 0xb5, 0x33, 0x63, 0x66, 0xc6, 0xdd, 0x46,
+	0x08, 0xc4, 0xa5, 0x88, 0x27, 0x24, 0x5e, 0x90, 0x10, 0x0f, 0x48, 0x3c, 0x21, 0x81, 0x84, 0x10,
+	0x4f, 0x3c, 0xf0, 0x07, 0x54, 0x3c, 0xed, 0xe3, 0x3e, 0x05, 0x36, 0x15, 0x12, 0x4f, 0xfc, 0x0b,
+	0xac, 0xce, 0x6d, 0x6e, 0x3e, 0x73, 0xf1, 0x45, 0xea, 0x3e, 0x25, 0x3e, 0xf3, 0xfb, 0x2e, 0xe7,
+	0xfb, 0xbe, 0xf9, 0x9d, 0x33, 0xdf, 0x39, 0x70, 0x65, 0x4f, 0xb3, 0x3f, 0xee, 0xef, 0x54, 0x5b,
+	0xc6, 0x7e, 0xad, 0x6d, 0xb4, 0x3a, 0xd8, 0xac, 0x59, 0x9f, 0x34, 0xcd, 0xfd, 0x8e, 0x66, 0xd7,
+	0x9a, 0x3d, 0xad, 0xd6, 0x32, 0x74, 0xdb, 0x34, 0xba, 0xd5, 0x9e, 0x69, 0xd8, 0x06, 0x42, 0x0c,
+	0x52, 0x15, 0x90, 0xea, 0x8b, 0xf7, 0xca, 0x97, 0x63, 0x34, 0x58, 0x3d, 0xdc, 0xb2, 0x98, 0x7c,
+	0x39, 0xce, 0x9a, 0xb1, 0xf3, 0x1c, 0xb7, 0x6c, 0x81, 0x8e, 0xd3, 0x6c, 0x1f, 0xf4, 0xb0, 0xc0,
+	0x2e, 0xed, 0x19, 0x7b, 0x06, 0xfd, 0xb7, 0x46, 0xfe, 0xe3, 0xa3, 0xef, 0xec, 0x19, 0xc6, 0x5e,
+	0x17, 0xd7, 0xe8, 0xaf, 0x9d, 0xfe, 0x6e, 0xad, 0xa9, 0x1f, 0xf0, 0x47, 0x1f, 0x44, 0x28, 0x77,
+	0xe0, 0xbd, 0x6e, 0x7f, 0x4f, 0xd3, 0xf9, 0x1f, 0x26, 0xa8, 0xbc, 0x0f, 0xc5, 0xbb, 0xd8, 0xde,
+	0x30, 0xda, 0x58, 0xc5, 0x3f, 0xe8, 0x63, 0xcb, 0x46, 0xe7, 0x20, 0xab, 0x1b, 0x6d, 0xbc, 0xad,
+	0xb5, 0x4b, 0xa9, 0xb3, 0xa9, 0x4a, 0x7e, 0x0d, 0x8e, 0x0e, 0x57, 0x66, 0x09, 0xa2, 0xb1, 0xae,
+	0xce, 0x92, 0x47, 0x8d, 0xb6, 0xf2, 0x6d, 0x58, 0x70, 0xc4, 0xac, 0x9e, 0xa1, 0x5b, 0x18, 0x5d,
+	0x81, 0x0c, 0x79, 0x48, 0x85, 0x0a, 0xf5, 0x52, 0x75, 0x30, 0xb8, 0x55, 0x8a, 0xa7, 0x28, 0xe5,
+	0xd5, 0x0c, 0x2c, 0x3e, 0xd4, 0x2c, 0xaa, 0xc2, 0x12, 0xa6, 0xef, 0x40, 0x76, 0x57, 0xeb, 0xda,
+	0xd8, 0xb4, 0xb8, 0x96, 0x2b, 0x32, 0x2d, 0x41, 0xb1, 0xea, 0x1d, 0x26, 0xa3, 0x0a, 0xe1, 0xf2,
+	0x1f, 0x33, 0x90, 0xe5, 0x83, 0x68, 0x09, 0x66, 0xf4, 0xe6, 0x3e, 0x26, 0x1a, 0xa7, 0x2b, 0x79,
+	0x95, 0xfd, 0x40, 0x35, 0x28, 0x68, 0xed, 0xed, 0x9e, 0x89, 0x77, 0xb5, 0x97, 0xd8, 0x2a, 0xa5,
+	0xc9, 0xb3, 0xb5, 0xe2, 0xd1, 0xe1, 0x0a, 0x34, 0xd6, 0x9f, 0xf0, 0x51, 0x15, 0xb4, 0xb6, 0xf8,
+	0x1f, 0x3d, 0x81, 0xd9, 0x6e, 0x73, 0x07, 0x77, 0xad, 0xd2, 0xf4, 0xd9, 0xe9, 0x4a, 0xa1, 0x7e,
+	0x6d, 0x18, 0xcf, 0xaa, 0x0f, 0xa9, 0xe8, 0x6d, 0xdd, 0x36, 0x0f, 0x54, 0xae, 0x07, 0x7d, 0x1f,
+	0x0a, 0x34, 0xce, 0x5c, 0x6d, 0x96, 0xaa, 0xfd, 0x68, 0x28, 0xb5, 0x64, 0xd0, 0xab, 0x1a, 0x74,
+	0x67, 0x00, 0x3d, 0x82, 0xc2, 0x3e, 0xde, 0xdf, 0xc1, 0xa6, 0xf5, 0xb1, 0xd6, 0xb3, 0x4a, 0x99,
+	0xb3, 0xd3, 0x95, 0x62, 0x7d, 0x35, 0x2c, 0x2b, 0x9b, 0x3d, 0xdc, 0xaa, 0x3e, 0x72, 0xf0, 0x6b,
+	0xe9, 0xc5, 0x29, 0xd5, 0x2b, 0x8f, 0xbe, 0x01, 0x33, 0xa6, 0xd1, 0xc5, 0x56, 0x69, 0x86, 0x2a,
+	0x3a, 0x13, 0x9a, 0x5e, 0xa3, 0x8b, 0xa9, 0x34, 0x83, 0xa3, 0x73, 0x30, 0x4f, 0x22, 0xee, 0x86,
+	0x7a, 0x96, 0xa6, 0x61, 0x8e, 0x0c, 0x8a, 0xe0, 0x96, 0xbf, 0x09, 0x05, 0xcf, 0x34, 0xd0, 0x22,
+	0x4c, 0x77, 0xf0, 0x01, 0xab, 0x3e, 0x95, 0xfc, 0x4b, 0x92, 0xf8, 0xa2, 0xd9, 0xed, 0xe3, 0x52,
+	0x9a, 0x8e, 0xb1, 0x1f, 0xd7, 0xd3, 0xd7, 0x52, 0xe5, 0x1b, 0xb0, 0x10, 0x88, 0xc2, 0x30, 0xe2,
+	0xca, 0x2d, 0x38, 0xe6, 0x89, 0x2e, 0xaf, 0xe4, 0x2a, 0xcc, 0x90, 0x40, 0xb2, 0x92, 0x89, 0x2a,
+	0x65, 0x06, 0x53, 0xfe, 0x94, 0x82, 0x63, 0x4f, 0x7b, 0xed, 0xa6, 0x8d, 0x87, 0x7d, 0x8f, 0xd0,
+	0xb7, 0x60, 0x8e, 0x82, 0x5e, 0x60, 0xd3, 0xd2, 0x0c, 0x9d, 0x3a, 0x58, 0xa8, 0x9f, 0x96, 0x59,
+	0x7c, 0xc6, 0x20, 0x2a, 0xad, 0x1a, 0xfe, 0x03, 0xbd, 0x0b, 0x19, 0xc2, 0x48, 0xa5, 0x69, 0x2a,
+	0x77, 0x26, 0x2a, 0xbd, 0x2a, 0x45, 0x2a, 0x6b, 0x80, 0xbc, 0xbe, 0x8e, 0xf4, 0xf2, 0x6e, 0xc0,
+	0x31, 0x15, 0xef, 0x1b, 0x2f, 0x86, 0x9f, 0xef, 0x12, 0xcc, 0xec, 0x1a, 0x66, 0x8b, 0x65, 0x22,
+	0xa7, 0xb2, 0x1f, 0xca, 0x12, 0x20, 0xaf, 0x3e, 0xe6, 0x13, 0xa7, 0xa6, 0xad, 0xa6, 0xd5, 0xf1,
+	0x98, 0xb0, 0x9b, 0x56, 0x27, 0x60, 0x82, 0x20, 0x88, 0x09, 0xf2, 0xc8, 0xa1, 0x26, 0x26, 0xe6,
+	0xce, 0x8e, 0x3c, 0x8c, 0x9a, 0x1d, 0xc5, 0x53, 0x94, 0x72, 0x4d, 0xcc, 0x6e, 0x68, 0xd3, 0xce,
+	0x3c, 0xbc, 0xd6, 0x95, 0x7f, 0x64, 0x18, 0xd5, 0x91, 0xc1, 0x11, 0xa8, 0xce, 0x2b, 0x36, 0x48,
+	0x75, 0xff, 0x9a, 0x7e, 0x7b, 0x54, 0x27, 0xf3, 0x4c, 0x4a, 0x75, 0x35, 0x28, 0x58, 0xd8, 0x7c,
+	0xa1, 0xb5, 0x48, 0x75, 0x30, 0x2e, 0xe2, 0x2e, 0x6c, 0xb2, 0xe1, 0xc6, 0xba, 0xa5, 0x02, 0x87,
+	0x34, 0xda, 0x16, 0xba, 0x08, 0x39, 0x5e, 0x4b, 0x8c, 0x70, 0xf2, 0x6b, 0x85, 0xa3, 0xc3, 0x95,
+	0x2c, 0x2b, 0x26, 0x4b, 0xcd, 0xb2, 0x6a, 0xb2, 0xd0, 0x3d, 0x28, 0xb6, 0xb1, 0xa5, 0x99, 0xb8,
+	0xbd, 0x6d, 0xd9, 0x4d, 0x9b, 0xd3, 0x4b, 0xb1, 0xfe, 0x95, 0xb0, 0x14, 0x6f, 0x12, 0x14, 0xe5,
+	0xa7, 0x79, 0x2e, 0x48, 0x47, 0x24, 0x3c, 0x95, 0x1d, 0xe4, 0x29, 0x54, 0x86, 0x9c, 0xd9, 0xd7,
+	0x6d, 0x8d, 0xc4, 0x38, 0x4f, 0x9f, 0x3b, 0xbf, 0xd1, 0x19, 0x80, 0x7e, 0x6f, 0xdb, 0x36, 0xb6,
+	0xc9, 0xbb, 0x55, 0xca, 0xd1, 0xf2, 0xce, 0xf5, 0x7b, 0x5b, 0xc6, 0x7a, 0xd3, 0xc6, 0x63, 0x30,
+	0x9c, 0xa0, 0x28, 0x1e, 0x6c, 0x97, 0xa2, 0x48, 0xcd, 0x45, 0x52, 0x14, 0x2d, 0x42, 0x06, 0x53,
+	0x1e, 0xc0, 0xd2, 0x2d, 0x13, 0x37, 0x6d, 0xcc, 0x03, 0x2e, 0xca, 0xf0, 0x2a, 0xe7, 0x0f, 0x56,
+	0x83, 0x2b, 0x32, 0x35, 0x5c, 0xc2, 0x43, 0x21, 0x1b, 0x70, 0x22, 0xa0, 0x8c, 0x7b, 0xf5, 0x3e,
+	0x64, 0x79, 0x12, 0xb9, 0xc2, 0xd3, 0x11, 0x0a, 0x55, 0x81, 0x55, 0x9e, 0xc3, 0xb1, 0xbb, 0xd8,
+	0x0e, 0x78, 0x76, 0x05, 0xc0, 0xad, 0x19, 0xfe, 0xce, 0xcd, 0x1f, 0x1d, 0xae, 0xe4, 0x9d, 0x92,
+	0x51, 0xf3, 0x4e, 0xc5, 0xa0, 0x55, 0x58, 0xd0, 0x74, 0x0b, 0x9b, 0xf6, 0x76, 0x1b, 0xef, 0x36,
+	0xfb, 0x5d, 0xdb, 0xe2, 0x0c, 0x53, 0x64, 0xc3, 0xeb, 0x7c, 0x54, 0x79, 0x00, 0xc8, 0x6b, 0x6b,
+	0x3c, 0xc7, 0xff, 0x96, 0x86, 0x25, 0x46, 0xa6, 0x63, 0x39, 0xbf, 0x0e, 0x0b, 0x02, 0x3d, 0xc4,
+	0x3a, 0x50, 0xe4, 0x32, 0x62, 0x29, 0xb8, 0xea, 0x5b, 0x0a, 0x92, 0xa5, 0x12, 0x3d, 0x82, 0x9c,
+	0x69, 0x74, 0xbb, 0x3b, 0xcd, 0x56, 0xa7, 0x94, 0x39, 0x9b, 0xaa, 0x14, 0xeb, 0xef, 0xc9, 0x04,
+	0x65, 0x93, 0xac, 0xaa, 0x5c, 0x50, 0x75, 0x54, 0x28, 0x0a, 0xe4, 0xc4, 0x28, 0xca, 0x41, 0x66,
+	0xe3, 0xf1, 0xc6, 0xed, 0xc5, 0x29, 0x34, 0x07, 0xb9, 0x27, 0xea, 0xed, 0x67, 0x8d, 0xc7, 0x4f,
+	0x37, 0x17, 0x53, 0xa4, 0x7a, 0x02, 0xea, 0xc6, 0x4b, 0xc2, 0x3a, 0x2c, 0x31, 0xd2, 0x1d, 0x27,
+	0x07, 0xca, 0x29, 0x38, 0x11, 0xd0, 0xc2, 0xd9, 0xfb, 0xd5, 0x34, 0x1c, 0x27, 0xef, 0x1f, 0x1f,
+	0x77, 0x08, 0xbc, 0x11, 0x24, 0xf0, 0x5a, 0x18, 0x4d, 0x06, 0x24, 0x07, 0x39, 0xfc, 0x0f, 0xe9,
+	0x89, 0x73, 0xf8, 0x66, 0x80, 0xc3, 0x3f, 0x1c, 0xd2, 0x39, 0x29, 0x8d, 0x0f, 0x70, 0x64, 0x26,
+	0x86, 0x23, 0x67, 0xfc, 0x1c, 0x39, 0x0e, 0x0b, 0x3e, 0x86, 0x25, 0xbf, 0xbb, 0xbc, 0x68, 0x3e,
+	0x80, 0x1c, 0x4f, 0xa2, 0xe0, 0xc2, 0xc8, 0xaa, 0x71, 0xc0, 0xca, 0x35, 0x28, 0x7b, 0x14, 0x92,
+	0x55, 0xa0, 0x6f, 0xb9, 0xd9, 0x2d, 0x07, 0xd4, 0xe6, 0x3d, 0x92, 0x7f, 0x4e, 0xc3, 0x69, 0xa9,
+	0x28, 0x77, 0xe9, 0x7b, 0x90, 0xb3, 0xf8, 0x18, 0x77, 0xe9, 0x46, 0x4c, 0xf4, 0x83, 0x2a, 0xaa,
+	0xbe, 0x71, 0xd5, 0x51, 0x57, 0xfe, 0x6b, 0x0a, 0xe6, 0x7d, 0xcf, 0x86, 0x64, 0x9a, 0x73, 0x20,
+	0x96, 0xbd, 0x6d, 0xb6, 0x7c, 0x90, 0x38, 0x67, 0xd4, 0x39, 0x3e, 0x48, 0xd7, 0x18, 0x02, 0x32,
+	0xfb, 0xba, 0xae, 0xe9, 0x7b, 0x1c, 0x34, 0xcd, 0x40, 0x7c, 0x90, 0x81, 0x56, 0x61, 0xa1, 0x65,
+	0xec, 0xf7, 0xba, 0xd8, 0x76, 0x74, 0x65, 0x28, 0xac, 0xe8, 0x0c, 0x6f, 0xf9, 0x57, 0x9e, 0x0d,
+	0x6c, 0x7f, 0x62, 0x98, 0x9d, 0x21, 0x56, 0x1e, 0x2e, 0x21, 0x5b, 0x79, 0x1c, 0x65, 0x2e, 0x77,
+	0xe8, 0x6c, 0x28, 0x8a, 0x3b, 0x84, 0x94, 0xc0, 0x2a, 0x4f, 0xe9, 0xca, 0x13, 0xf0, 0x0c, 0x41,
+	0x86, 0x54, 0x34, 0xaf, 0x4b, 0xfa, 0x3f, 0x09, 0x33, 0x97, 0x21, 0x61, 0x4e, 0xbb, 0x61, 0xe6,
+	0xb2, 0x24, 0xcc, 0x1c, 0xd0, 0x68, 0xf3, 0x45, 0x66, 0x42, 0x3e, 0x7e, 0x57, 0xf0, 0xdb, 0xc4,
+	0xdd, 0x74, 0x38, 0x2f, 0xe0, 0xa9, 0xf2, 0xdf, 0x34, 0xe3, 0x3c, 0x3e, 0x3e, 0x02, 0xe7, 0x05,
+	0x24, 0x07, 0x39, 0xef, 0x17, 0x6f, 0x91, 0xf3, 0x42, 0x9c, 0x1b, 0x99, 0xf3, 0x26, 0xc0, 0x6b,
+	0xae, 0x4b, 0x2e, 0xaf, 0xf1, 0x44, 0x45, 0xf2, 0x9a, 0xc8, 0x9c, 0x03, 0x56, 0x6e, 0xd2, 0x92,
+	0xbe, 0xd5, 0xed, 0x5b, 0x36, 0x36, 0x3d, 0x6b, 0x61, 0x8b, 0x8d, 0x04, 0x58, 0x82, 0xe3, 0x48,
+	0x5d, 0x70, 0x80, 0x53, 0xbe, 0x8e, 0x0a, 0xb7, 0x7c, 0x39, 0x24, 0xaa, 0x7c, 0x85, 0x94, 0xc0,
+	0x3a, 0xb5, 0xc4, 0x1f, 0x8c, 0x50, 0x4b, 0x01, 0xc9, 0x2f, 0x57, 0x2d, 0x85, 0x38, 0xf7, 0x36,
+	0x6b, 0xc9, 0x75, 0xc9, 0xad, 0x25, 0x9e, 0x8d, 0xc8, 0x5a, 0x12, 0xa9, 0x73, 0xc0, 0xca, 0x6f,
+	0x52, 0x50, 0x78, 0x80, 0x0f, 0x54, 0xc3, 0x6e, 0xda, 0x64, 0x8b, 0x79, 0x19, 0x8e, 0x91, 0x22,
+	0xc3, 0xe6, 0xf6, 0x73, 0x43, 0xd3, 0xb7, 0x6d, 0xa3, 0x83, 0x75, 0xea, 0x5a, 0x4e, 0x5d, 0x60,
+	0x0f, 0xee, 0x1b, 0x9a, 0xbe, 0x45, 0x86, 0xd1, 0x15, 0x40, 0xfb, 0x4d, 0xbd, 0xb9, 0xe7, 0x07,
+	0xb3, 0x4d, 0xf9, 0x22, 0x7f, 0x22, 0x45, 0xf7, 0xf5, 0xae, 0xd1, 0xea, 0x6c, 0x93, 0x59, 0x4f,
+	0xfb, 0xd0, 0x4f, 0xe9, 0x83, 0x07, 0xf8, 0x40, 0xf9, 0x99, 0xb3, 0xef, 0x1e, 0xa7, 0xce, 0xc9,
+	0xbe, 0x5b, 0xa0, 0x87, 0xd9, 0x77, 0x73, 0x99, 0x21, 0xf6, 0xdd, 0xdc, 0xba, 0x67, 0xdf, 0x7d,
+	0x93, 0xec, 0xbb, 0x59, 0x54, 0xe9, 0xba, 0x19, 0x22, 0xe8, 0x09, 0xfe, 0x5a, 0xe6, 0xf5, 0xe1,
+	0xca, 0x94, 0xea, 0x88, 0xb9, 0xfb, 0xe8, 0x09, 0xbd, 0xa8, 0x37, 0x60, 0x91, 0x7e, 0x19, 0xb5,
+	0x4c, 0x6c, 0x8b, 0x78, 0x5e, 0x82, 0xbc, 0x45, 0x07, 0xdc, 0x70, 0xce, 0x1d, 0x1d, 0xae, 0xe4,
+	0x18, 0xaa, 0xb1, 0x4e, 0x76, 0x45, 0xf4, 0xbf, 0xb6, 0x72, 0x97, 0x7f, 0xc4, 0x31, 0x71, 0xee,
+	0x4a, 0x1d, 0x66, 0x19, 0x80, 0x7b, 0x52, 0x96, 0xef, 0xcd, 0xa8, 0x0c, 0x47, 0x2a, 0x7f, 0x4f,
+	0xc1, 0x71, 0xf1, 0x81, 0x30, 0x9a, 0x2f, 0x68, 0x0d, 0x8a, 0x1c, 0x3a, 0x44, 0x5e, 0xe7, 0x99,
+	0x88, 0x48, 0x6b, 0xdd, 0x97, 0xd6, 0xe5, 0x70, 0xc7, 0x3d, 0xdb, 0x93, 0xfb, 0xee, 0xe7, 0xe0,
+	0xd8, 0x61, 0xf8, 0x4f, 0x1a, 0x10, 0xdb, 0x22, 0x92, 0x9f, 0x0e, 0x6d, 0xde, 0x0b, 0xd2, 0x66,
+	0x35, 0x7c, 0x6f, 0xe9, 0x15, 0x1c, 0x64, 0xcd, 0x57, 0x93, 0x67, 0x4d, 0x35, 0xc0, 0x9a, 0xd7,
+	0x87, 0xf3, 0xed, 0xad, 0x90, 0xe6, 0x03, 0xf1, 0x79, 0xc7, 0x3d, 0xe2, 0x29, 0xfb, 0x3a, 0xf9,
+	0x18, 0xa5, 0x43, 0x9c, 0x32, 0xa3, 0x72, 0x26, 0xa0, 0x4a, 0x03, 0x8e, 0x8b, 0xce, 0x88, 0xb7,
+	0x74, 0xeb, 0xbe, 0xbd, 0x6e, 0xe2, 0x5a, 0xf2, 0xab, 0x1a, 0xa3, 0x96, 0xbe, 0x03, 0xc7, 0xc5,
+	0xc7, 0xed, 0x88, 0x6f, 0xf7, 0x49, 0xf7, 0x23, 0xdb, 0xeb, 0x0d, 0x27, 0x8d, 0x5b, 0x86, 0xbe,
+	0xab, 0xed, 0x79, 0xd4, 0xb6, 0xe8, 0x40, 0x40, 0x2d, 0x43, 0x11, 0xb5, 0xec, 0xb1, 0x43, 0x1a,
+	0x42, 0xdc, 0x9d, 0x21, 0x03, 0x44, 0xcd, 0x90, 0xcb, 0x70, 0xa4, 0x87, 0x34, 0x46, 0xf5, 0x85,
+	0x90, 0x06, 0x87, 0x0e, 0x43, 0x1a, 0x4c, 0x64, 0x08, 0xd2, 0x60, 0x96, 0x65, 0xa4, 0x31, 0x81,
+	0x30, 0x08, 0xd2, 0x60, 0xc3, 0x23, 0x90, 0x86, 0x5f, 0xf0, 0xcb, 0x45, 0x1a, 0x72, 0xdf, 0xde,
+	0x26, 0x69, 0x38, 0x1e, 0xb9, 0xa4, 0xc1, 0x12, 0x11, 0x49, 0x1a, 0x3c, 0x67, 0x02, 0xea, 0x92,
+	0x86, 0xbf, 0x74, 0x13, 0x90, 0x86, 0xac, 0x96, 0xfc, 0xaa, 0xc6, 0xa8, 0x25, 0x87, 0x34, 0x46,
+	0x7e, 0xbb, 0x1d, 0xd2, 0xf0, 0x7b, 0xa3, 0xfc, 0x08, 0x4e, 0x32, 0x2f, 0x6f, 0xbf, 0xb4, 0xb1,
+	0x4e, 0xdf, 0x23, 0xae, 0xfc, 0x26, 0x14, 0x9a, 0xba, 0xce, 0x77, 0x38, 0x56, 0x54, 0x6f, 0xe0,
+	0xa6, 0x0b, 0x53, 0xbd, 0x32, 0xe8, 0x2c, 0x14, 0xda, 0xd8, 0x6a, 0x99, 0x5a, 0xcf, 0x16, 0xef,
+	0x70, 0x5e, 0xf5, 0x0e, 0x29, 0xcf, 0xe0, 0xd4, 0x80, 0x79, 0x1e, 0xa7, 0x0f, 0x21, 0x8f, 0xc5,
+	0x20, 0xb7, 0x2e, 0x3d, 0x4a, 0x70, 0x25, 0x5d, 0xbc, 0xf2, 0x10, 0x4e, 0xb2, 0xe9, 0x0e, 0x4c,
+	0xab, 0x0e, 0x73, 0x0e, 0xcc, 0x0d, 0xdb, 0xc2, 0xd1, 0xe1, 0x4a, 0xc1, 0xc1, 0x36, 0xd6, 0xd5,
+	0x82, 0x03, 0x6a, 0xb4, 0x95, 0x77, 0xe0, 0xd4, 0x80, 0x36, 0x1e, 0xbf, 0x06, 0x1c, 0xbf, 0x8b,
+	0xed, 0x89, 0x58, 0xd9, 0x84, 0x25, 0xbf, 0xaa, 0x49, 0x04, 0xe2, 0xf7, 0x29, 0xd1, 0xa6, 0x51,
+	0xb1, 0x65, 0xf4, 0x4d, 0xb7, 0x27, 0x3b, 0x81, 0xfc, 0x22, 0xc8, 0x74, 0x34, 0x9d, 0x37, 0x37,
+	0x54, 0xfa, 0x3f, 0xaa, 0x42, 0xb6, 0xd7, 0x3c, 0xe8, 0x1a, 0xcd, 0x36, 0x67, 0xde, 0xa5, 0x2a,
+	0xbb, 0x2a, 0x51, 0x15, 0x77, 0x1f, 0xaa, 0x37, 0xf5, 0x03, 0x55, 0x80, 0x14, 0x55, 0x14, 0xa0,
+	0xeb, 0x1f, 0x9f, 0xf7, 0x35, 0xc8, 0x99, 0x7c, 0x8c, 0x7b, 0x27, 0x3d, 0x53, 0x75, 0xe4, 0x1c,
+	0xb4, 0x72, 0x4f, 0x34, 0x53, 0x82, 0x73, 0xae, 0x41, 0x41, 0x80, 0xdc, 0xac, 0x50, 0x42, 0x14,
+	0xc8, 0xc6, 0xba, 0x0a, 0x02, 0xd2, 0x68, 0x2b, 0x25, 0x51, 0x47, 0x41, 0xef, 0x94, 0x9f, 0xa7,
+	0xc5, 0x9e, 0x7f, 0x5c, 0x23, 0xe8, 0x0e, 0x2c, 0x3a, 0x02, 0x43, 0xac, 0x77, 0x0b, 0x42, 0x48,
+	0xac, 0x78, 0x81, 0x8c, 0x4e, 0x8f, 0x90, 0x51, 0x4f, 0xf6, 0x32, 0x09, 0xb3, 0x17, 0x0c, 0xc2,
+	0xd8, 0xd9, 0xbb, 0x4d, 0x5b, 0x1e, 0x63, 0xa7, 0xee, 0x31, 0x7d, 0x33, 0x27, 0xe8, 0xd7, 0xff,
+	0xd3, 0xec, 0x9b, 0x5e, 0x3c, 0x72, 0x96, 0xf4, 0xfb, 0xc1, 0x25, 0xfd, 0xdd, 0xb0, 0x65, 0x33,
+	0x28, 0x3a, 0xb8, 0xa8, 0xff, 0x6e, 0xf2, 0x8b, 0xfa, 0x56, 0x60, 0x51, 0xff, 0x68, 0x58, 0xef,
+	0x46, 0x3f, 0x80, 0x10, 0x04, 0x31, 0xe3, 0x12, 0xc4, 0x38, 0x4b, 0xfd, 0x26, 0x9c, 0x08, 0xf8,
+	0xc9, 0x93, 0x7a, 0x1d, 0xf2, 0x22, 0x4d, 0x62, 0xb9, 0x8f, 0xce, 0xaa, 0x0b, 0xaf, 0xff, 0xf2,
+	0x3c, 0x64, 0x6f, 0xb1, 0xbb, 0x68, 0x48, 0x83, 0x2c, 0xbf, 0x4a, 0x85, 0x14, 0x99, 0xbc, 0xff,
+	0x7a, 0x56, 0xf9, 0x5c, 0x24, 0x86, 0x13, 0xc5, 0x89, 0x7f, 0xfe, 0xe5, 0x7f, 0xbf, 0x4d, 0x2f,
+	0xc0, 0x3c, 0x05, 0x7d, 0x8d, 0x37, 0x50, 0x90, 0x01, 0x79, 0xe7, 0xb6, 0x0b, 0x3a, 0x9f, 0xe4,
+	0xaa, 0x51, 0xf9, 0x42, 0x0c, 0x2a, 0xda, 0xa0, 0x09, 0xe0, 0x5e, 0x36, 0x41, 0x17, 0xc2, 0x8f,
+	0x16, 0xbd, 0x33, 0xbc, 0x18, 0x07, 0x8b, 0xb5, 0xe9, 0x5e, 0x26, 0x91, 0xdb, 0x1c, 0xb8, 0xbc,
+	0x22, 0xb7, 0x29, 0xb9, 0x93, 0x12, 0x62, 0x93, 0xe5, 0x70, 0xab, 0x69, 0x75, 0x42, 0x73, 0xe8,
+	0xb9, 0x4c, 0x12, 0x9a, 0x43, 0xdf, 0xb5, 0x91, 0xe8, 0x1c, 0xb2, 0x53, 0x98, 0xf3, 0x49, 0xae,
+	0x66, 0x84, 0xe7, 0xd0, 0x77, 0xa7, 0x20, 0x36, 0x9e, 0x74, 0x7a, 0x11, 0xf1, 0xf4, 0xce, 0xf0,
+	0x62, 0x1c, 0x2c, 0xd6, 0xa6, 0x7b, 0x4a, 0x2f, 0xb7, 0x39, 0x70, 0x63, 0x40, 0x6e, 0x73, 0xf0,
+	0xb0, 0x3f, 0xcc, 0xe6, 0x4b, 0x98, 0xf3, 0x9e, 0x30, 0xa2, 0xd5, 0x84, 0x47, 0xa6, 0xe5, 0x4a,
+	0x3c, 0x30, 0xda, 0xf2, 0x0f, 0x61, 0xde, 0x77, 0x9f, 0x02, 0x49, 0x35, 0xca, 0xee, 0x6f, 0x94,
+	0x2f, 0x25, 0x40, 0xc6, 0x1a, 0xf7, 0x1d, 0xc7, 0xcb, 0x8d, 0xcb, 0x2e, 0x00, 0xc8, 0x8d, 0x4b,
+	0xcf, 0xf6, 0x23, 0x8c, 0xfb, 0x4e, 0xdd, 0xe5, 0xc6, 0x65, 0xc7, 0xfb, 0x72, 0xe3, 0xf2, 0x23,
+	0xfc, 0x10, 0xe3, 0xbf, 0x4a, 0xf9, 0x4e, 0xf6, 0xc5, 0x21, 0x2c, 0xaa, 0x26, 0x3e, 0xad, 0x65,
+	0x9e, 0xd4, 0x86, 0x3c, 0xdd, 0x8d, 0x2e, 0x7a, 0x7e, 0xa2, 0x13, 0x5a, 0xf4, 0xfe, 0x53, 0xc0,
+	0xd0, 0xa2, 0x0f, 0x1e, 0xe9, 0x45, 0x17, 0xbd, 0x38, 0x7e, 0x0a, 0x2f, 0xfa, 0xc0, 0x99, 0x59,
+	0x78, 0xd1, 0x07, 0x4f, 0xb2, 0x62, 0x8b, 0x5e, 0x4c, 0x38, 0xa2, 0xe8, 0x03, 0x73, 0xbe, 0x94,
+	0x00, 0x99, 0xb0, 0xee, 0x22, 0x8d, 0xcb, 0x8e, 0x5d, 0xa3, 0xea, 0x2e, 0xa1, 0x71, 0x96, 0x67,
+	0xde, 0x7f, 0x0f, 0xcd, 0xb3, 0xff, 0x64, 0x23, 0x34, 0xcf, 0x81, 0xe6, 0x7f, 0x4c, 0x9e, 0xc5,
+	0xd1, 0x50, 0x78, 0x9e, 0x03, 0xe7, 0x59, 0xe1, 0x79, 0x0e, 0x9e, 0x32, 0xc5, 0xf2, 0x8b, 0x98,
+	0x70, 0x04, 0xbf, 0x04, 0xe6, 0x7c, 0x29, 0x01, 0x32, 0x76, 0xb1, 0x74, 0x0e, 0x25, 0xe4, 0x8b,
+	0x65, 0xf0, 0xc8, 0xa3, 0x7c, 0x21, 0x06, 0x15, 0x1b, 0x67, 0xef, 0x09, 0x80, 0x3c, 0xce, 0x92,
+	0xd3, 0x8d, 0x72, 0x25, 0x1e, 0x18, 0x6d, 0xb9, 0x0f, 0x05, 0x4f, 0x1f, 0x1b, 0x5d, 0x4c, 0xd6,
+	0x7a, 0x2f, 0xaf, 0xc6, 0xe2, 0x62, 0x27, 0xec, 0x6d, 0x53, 0xcb, 0x27, 0x2c, 0xe9, 0x89, 0x97,
+	0x2b, 0xf1, 0xc0, 0x58, 0xcb, 0xde, 0x96, 0xb4, 0xdc, 0xb2, 0xa4, 0xed, 0x5d, 0xae, 0xc4, 0x03,
+	0x93, 0x54, 0x15, 0x6b, 0x6a, 0x85, 0x56, 0x95, 0xaf, 0x6b, 0x16, 0x5a, 0x55, 0x81, 0xce, 0x58,
+	0x5c, 0x55, 0x71, 0x9b, 0x11, 0x55, 0xe5, 0x37, 0x5b, 0x89, 0x07, 0x26, 0xaa, 0x2a, 0xde, 0xe8,
+	0x0c, 0xaf, 0x2a, 0x7f, 0x6f, 0x36, 0xbc, 0xaa, 0x02, 0x1d, 0xd3, 0xd8, 0xaa, 0x8a, 0x9a, 0xb0,
+	0xa4, 0x69, 0x1a, 0x55, 0x55, 0x89, 0x43, 0xed, 0xed, 0x59, 0x46, 0x55, 0x55, 0x02, 0xcb, 0xd2,
+	0xf6, 0x67, 0xb8, 0x65, 0x6f, 0x2b, 0x4e, 0x6e, 0x59, 0xd2, 0xf7, 0x93, 0x5b, 0x96, 0x75, 0xf5,
+	0xc2, 0x2c, 0xff, 0x34, 0x05, 0x0b, 0x81, 0x8e, 0x28, 0xba, 0x1c, 0x1e, 0xc8, 0x01, 0x07, 0xbe,
+	0x9a, 0x08, 0x1b, 0xef, 0x43, 0xa0, 0xdf, 0x29, 0xf7, 0x41, 0xde, 0x62, 0x95, 0xfb, 0x10, 0xd6,
+	0x40, 0x0d, 0x2f, 0x76, 0x4f, 0xf7, 0x06, 0x85, 0x2d, 0xb9, 0x81, 0x2e, 0x51, 0x79, 0x35, 0x16,
+	0x17, 0x6d, 0xf6, 0xc7, 0x50, 0xf4, 0xf7, 0xb3, 0x50, 0xc4, 0xc2, 0x17, 0x34, 0x7e, 0x39, 0x09,
+	0x34, 0x76, 0x85, 0xf6, 0x75, 0x38, 0x50, 0x25, 0x69, 0xb3, 0x46, 0xbe, 0x42, 0x4b, 0xdb, 0x25,
+	0x11, 0x93, 0xf7, 0xb7, 0x62, 0x51, 0xc4, 0xee, 0x2e, 0xd1, 0xe4, 0xe5, 0x9d, 0xdd, 0x08, 0xfb,
+	0xfe, 0x66, 0x2b, 0x8a, 0xd8, 0xe0, 0x25, 0xb2, 0x1f, 0xd2, 0xbb, 0x95, 0xdb, 0x5f, 0x3b, 0xff,
+	0xfa, 0xf3, 0xe5, 0xa9, 0xcf, 0x3e, 0x5f, 0x9e, 0xfa, 0xc9, 0xd1, 0x72, 0xea, 0xf5, 0xd1, 0x72,
+	0xea, 0xd3, 0xa3, 0xe5, 0xd4, 0xbf, 0x8f, 0x96, 0x53, 0xbf, 0x7e, 0xb3, 0x3c, 0xf5, 0xe9, 0x9b,
+	0xe5, 0xa9, 0xcf, 0xde, 0x2c, 0x4f, 0xed, 0xcc, 0xd2, 0x4e, 0xe8, 0xd5, 0x2f, 0x02, 0x00, 0x00,
+	0xff, 0xff, 0xf1, 0x75, 0x17, 0x2e, 0xe0, 0x38, 0x00, 0x00,
 }
 
 type authenticatedWrapperControlServer struct {
@@ -1084,6 +3724,14 @@ func (p *authenticatedWrapperControlServer) RemoveService(ctx context.Context, r
 		return nil, err
 	}
 	return p.local.RemoveService(ctx, r)
+}
+
+func (p *authenticatedWrapperControlServer) ListServiceStatuses(ctx context.Context, r *ListServiceStatusesRequest) (*ListServiceStatusesResponse, error) {
+
+	if err := p.authorize(ctx, []string{"swarm-manager"}); err != nil {
+		return nil, err
+	}
+	return p.local.ListServiceStatuses(ctx, r)
 }
 
 func (p *authenticatedWrapperControlServer) GetNetwork(ctx context.Context, r *GetNetworkRequest) (*GetNetworkResponse, error) {
@@ -1316,7 +3964,7 @@ func (m *GetNodeResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Node != nil {
 		m.Node = &Node{}
-		deepcopy.Copy(m.Node, o.Node)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Node, o.Node)
 	}
 }
 
@@ -1335,7 +3983,7 @@ func (m *ListNodesRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListNodesRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -1410,7 +4058,7 @@ func (m *ListNodesResponse) CopyFrom(src interface{}) {
 		m.Nodes = make([]*Node, len(o.Nodes))
 		for i := range m.Nodes {
 			m.Nodes[i] = &Node{}
-			deepcopy.Copy(m.Nodes[i], o.Nodes[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Nodes[i], o.Nodes[i])
 		}
 	}
 
@@ -1431,11 +4079,11 @@ func (m *UpdateNodeRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.NodeVersion != nil {
 		m.NodeVersion = &Version{}
-		deepcopy.Copy(m.NodeVersion, o.NodeVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.NodeVersion, o.NodeVersion)
 	}
 	if o.Spec != nil {
 		m.Spec = &NodeSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -1454,7 +4102,7 @@ func (m *UpdateNodeResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Node != nil {
 		m.Node = &Node{}
-		deepcopy.Copy(m.Node, o.Node)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Node, o.Node)
 	}
 }
 
@@ -1513,7 +4161,7 @@ func (m *GetTaskResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Task != nil {
 		m.Task = &Task{}
-		deepcopy.Copy(m.Task, o.Task)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Task, o.Task)
 	}
 }
 
@@ -1557,7 +4205,7 @@ func (m *ListTasksRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListTasksRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -1635,7 +4283,7 @@ func (m *ListTasksResponse) CopyFrom(src interface{}) {
 		m.Tasks = make([]*Task, len(o.Tasks))
 		for i := range m.Tasks {
 			m.Tasks[i] = &Task{}
-			deepcopy.Copy(m.Tasks[i], o.Tasks[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Tasks[i], o.Tasks[i])
 		}
 	}
 
@@ -1656,7 +4304,7 @@ func (m *CreateServiceRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Spec != nil {
 		m.Spec = &ServiceSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -1675,7 +4323,7 @@ func (m *CreateServiceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Service != nil {
 		m.Service = &Service{}
-		deepcopy.Copy(m.Service, o.Service)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Service, o.Service)
 	}
 }
 
@@ -1709,7 +4357,7 @@ func (m *GetServiceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Service != nil {
 		m.Service = &Service{}
-		deepcopy.Copy(m.Service, o.Service)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Service, o.Service)
 	}
 }
 
@@ -1728,11 +4376,11 @@ func (m *UpdateServiceRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.ServiceVersion != nil {
 		m.ServiceVersion = &Version{}
-		deepcopy.Copy(m.ServiceVersion, o.ServiceVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.ServiceVersion, o.ServiceVersion)
 	}
 	if o.Spec != nil {
 		m.Spec = &ServiceSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -1751,7 +4399,7 @@ func (m *UpdateServiceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Service != nil {
 		m.Service = &Service{}
-		deepcopy.Copy(m.Service, o.Service)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Service, o.Service)
 	}
 }
 
@@ -1795,7 +4443,7 @@ func (m *ListServicesRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListServicesRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -1858,10 +4506,68 @@ func (m *ListServicesResponse) CopyFrom(src interface{}) {
 		m.Services = make([]*Service, len(o.Services))
 		for i := range m.Services {
 			m.Services[i] = &Service{}
-			deepcopy.Copy(m.Services[i], o.Services[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Services[i], o.Services[i])
 		}
 	}
 
+}
+
+func (m *ListServiceStatusesRequest) Copy() *ListServiceStatusesRequest {
+	if m == nil {
+		return nil
+	}
+	o := &ListServiceStatusesRequest{}
+	o.CopyFrom(m)
+	return o
+}
+
+func (m *ListServiceStatusesRequest) CopyFrom(src interface{}) {
+
+	o := src.(*ListServiceStatusesRequest)
+	*m = *o
+	if o.Services != nil {
+		m.Services = make([]string, len(o.Services))
+		copy(m.Services, o.Services)
+	}
+
+}
+
+func (m *ListServiceStatusesResponse) Copy() *ListServiceStatusesResponse {
+	if m == nil {
+		return nil
+	}
+	o := &ListServiceStatusesResponse{}
+	o.CopyFrom(m)
+	return o
+}
+
+func (m *ListServiceStatusesResponse) CopyFrom(src interface{}) {
+
+	o := src.(*ListServiceStatusesResponse)
+	*m = *o
+	if o.Statuses != nil {
+		m.Statuses = make([]*ListServiceStatusesResponse_ServiceStatus, len(o.Statuses))
+		for i := range m.Statuses {
+			m.Statuses[i] = &ListServiceStatusesResponse_ServiceStatus{}
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Statuses[i], o.Statuses[i])
+		}
+	}
+
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) Copy() *ListServiceStatusesResponse_ServiceStatus {
+	if m == nil {
+		return nil
+	}
+	o := &ListServiceStatusesResponse_ServiceStatus{}
+	o.CopyFrom(m)
+	return o
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) CopyFrom(src interface{}) {
+
+	o := src.(*ListServiceStatusesResponse_ServiceStatus)
+	*m = *o
 }
 
 func (m *CreateNetworkRequest) Copy() *CreateNetworkRequest {
@@ -1879,7 +4585,7 @@ func (m *CreateNetworkRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Spec != nil {
 		m.Spec = &NetworkSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -1898,7 +4604,7 @@ func (m *CreateNetworkResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Network != nil {
 		m.Network = &Network{}
-		deepcopy.Copy(m.Network, o.Network)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Network, o.Network)
 	}
 }
 
@@ -1932,7 +4638,7 @@ func (m *GetNetworkResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Network != nil {
 		m.Network = &Network{}
-		deepcopy.Copy(m.Network, o.Network)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Network, o.Network)
 	}
 }
 
@@ -1976,7 +4682,7 @@ func (m *ListNetworksRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListNetworksRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -2034,7 +4740,7 @@ func (m *ListNetworksResponse) CopyFrom(src interface{}) {
 		m.Networks = make([]*Network, len(o.Networks))
 		for i := range m.Networks {
 			m.Networks[i] = &Network{}
-			deepcopy.Copy(m.Networks[i], o.Networks[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Networks[i], o.Networks[i])
 		}
 	}
 
@@ -2070,7 +4776,7 @@ func (m *GetClusterResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Cluster != nil {
 		m.Cluster = &Cluster{}
-		deepcopy.Copy(m.Cluster, o.Cluster)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Cluster, o.Cluster)
 	}
 }
 
@@ -2089,7 +4795,7 @@ func (m *ListClustersRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListClustersRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -2147,7 +4853,7 @@ func (m *ListClustersResponse) CopyFrom(src interface{}) {
 		m.Clusters = make([]*Cluster, len(o.Clusters))
 		for i := range m.Clusters {
 			m.Clusters[i] = &Cluster{}
-			deepcopy.Copy(m.Clusters[i], o.Clusters[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Clusters[i], o.Clusters[i])
 		}
 	}
 
@@ -2183,13 +4889,13 @@ func (m *UpdateClusterRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.ClusterVersion != nil {
 		m.ClusterVersion = &Version{}
-		deepcopy.Copy(m.ClusterVersion, o.ClusterVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.ClusterVersion, o.ClusterVersion)
 	}
 	if o.Spec != nil {
 		m.Spec = &ClusterSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
-	deepcopy.Copy(&m.Rotation, &o.Rotation)
+	github_com_docker_swarmkit_api_deepcopy.Copy(&m.Rotation, &o.Rotation)
 }
 
 func (m *UpdateClusterResponse) Copy() *UpdateClusterResponse {
@@ -2207,7 +4913,7 @@ func (m *UpdateClusterResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Cluster != nil {
 		m.Cluster = &Cluster{}
-		deepcopy.Copy(m.Cluster, o.Cluster)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Cluster, o.Cluster)
 	}
 }
 
@@ -2241,7 +4947,7 @@ func (m *GetSecretResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Secret != nil {
 		m.Secret = &Secret{}
-		deepcopy.Copy(m.Secret, o.Secret)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Secret, o.Secret)
 	}
 }
 
@@ -2260,11 +4966,11 @@ func (m *UpdateSecretRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.SecretVersion != nil {
 		m.SecretVersion = &Version{}
-		deepcopy.Copy(m.SecretVersion, o.SecretVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.SecretVersion, o.SecretVersion)
 	}
 	if o.Spec != nil {
 		m.Spec = &SecretSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -2283,7 +4989,7 @@ func (m *UpdateSecretResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Secret != nil {
 		m.Secret = &Secret{}
-		deepcopy.Copy(m.Secret, o.Secret)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Secret, o.Secret)
 	}
 }
 
@@ -2302,7 +5008,7 @@ func (m *ListSecretsRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListSecretsRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -2360,7 +5066,7 @@ func (m *ListSecretsResponse) CopyFrom(src interface{}) {
 		m.Secrets = make([]*Secret, len(o.Secrets))
 		for i := range m.Secrets {
 			m.Secrets[i] = &Secret{}
-			deepcopy.Copy(m.Secrets[i], o.Secrets[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Secrets[i], o.Secrets[i])
 		}
 	}
 
@@ -2381,7 +5087,7 @@ func (m *CreateSecretRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Spec != nil {
 		m.Spec = &SecretSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -2400,7 +5106,7 @@ func (m *CreateSecretResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Secret != nil {
 		m.Secret = &Secret{}
-		deepcopy.Copy(m.Secret, o.Secret)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Secret, o.Secret)
 	}
 }
 
@@ -2459,7 +5165,7 @@ func (m *GetConfigResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Config != nil {
 		m.Config = &Config{}
-		deepcopy.Copy(m.Config, o.Config)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Config, o.Config)
 	}
 }
 
@@ -2478,11 +5184,11 @@ func (m *UpdateConfigRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.ConfigVersion != nil {
 		m.ConfigVersion = &Version{}
-		deepcopy.Copy(m.ConfigVersion, o.ConfigVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.ConfigVersion, o.ConfigVersion)
 	}
 	if o.Spec != nil {
 		m.Spec = &ConfigSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -2501,7 +5207,7 @@ func (m *UpdateConfigResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Config != nil {
 		m.Config = &Config{}
-		deepcopy.Copy(m.Config, o.Config)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Config, o.Config)
 	}
 }
 
@@ -2520,7 +5226,7 @@ func (m *ListConfigsRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListConfigsRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -2578,7 +5284,7 @@ func (m *ListConfigsResponse) CopyFrom(src interface{}) {
 		m.Configs = make([]*Config, len(o.Configs))
 		for i := range m.Configs {
 			m.Configs[i] = &Config{}
-			deepcopy.Copy(m.Configs[i], o.Configs[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Configs[i], o.Configs[i])
 		}
 	}
 
@@ -2599,7 +5305,7 @@ func (m *CreateConfigRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Spec != nil {
 		m.Spec = &ConfigSpec{}
-		deepcopy.Copy(m.Spec, o.Spec)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Spec, o.Spec)
 	}
 }
 
@@ -2618,7 +5324,7 @@ func (m *CreateConfigResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Config != nil {
 		m.Config = &Config{}
-		deepcopy.Copy(m.Config, o.Config)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Config, o.Config)
 	}
 }
 
@@ -2662,7 +5368,7 @@ func (m *CreateExtensionRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Annotations != nil {
 		m.Annotations = &Annotations{}
-		deepcopy.Copy(m.Annotations, o.Annotations)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Annotations, o.Annotations)
 	}
 }
 
@@ -2681,7 +5387,7 @@ func (m *CreateExtensionResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Extension != nil {
 		m.Extension = &Extension{}
-		deepcopy.Copy(m.Extension, o.Extension)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Extension, o.Extension)
 	}
 }
 
@@ -2740,7 +5446,7 @@ func (m *GetExtensionResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Extension != nil {
 		m.Extension = &Extension{}
-		deepcopy.Copy(m.Extension, o.Extension)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Extension, o.Extension)
 	}
 }
 
@@ -2759,11 +5465,11 @@ func (m *CreateResourceRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Annotations != nil {
 		m.Annotations = &Annotations{}
-		deepcopy.Copy(m.Annotations, o.Annotations)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Annotations, o.Annotations)
 	}
 	if o.Payload != nil {
-		m.Payload = &google_protobuf4.Any{}
-		deepcopy.Copy(m.Payload, o.Payload)
+		m.Payload = &types.Any{}
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Payload, o.Payload)
 	}
 }
 
@@ -2782,7 +5488,7 @@ func (m *CreateResourceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Resource != nil {
 		m.Resource = &Resource{}
-		deepcopy.Copy(m.Resource, o.Resource)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Resource, o.Resource)
 	}
 }
 
@@ -2826,15 +5532,15 @@ func (m *UpdateResourceRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.ResourceVersion != nil {
 		m.ResourceVersion = &Version{}
-		deepcopy.Copy(m.ResourceVersion, o.ResourceVersion)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.ResourceVersion, o.ResourceVersion)
 	}
 	if o.Annotations != nil {
 		m.Annotations = &Annotations{}
-		deepcopy.Copy(m.Annotations, o.Annotations)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Annotations, o.Annotations)
 	}
 	if o.Payload != nil {
-		m.Payload = &google_protobuf4.Any{}
-		deepcopy.Copy(m.Payload, o.Payload)
+		m.Payload = &types.Any{}
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Payload, o.Payload)
 	}
 }
 
@@ -2853,7 +5559,7 @@ func (m *UpdateResourceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Resource != nil {
 		m.Resource = &Resource{}
-		deepcopy.Copy(m.Resource, o.Resource)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Resource, o.Resource)
 	}
 }
 
@@ -2887,7 +5593,7 @@ func (m *GetResourceResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Resource != nil {
 		m.Resource = &Resource{}
-		deepcopy.Copy(m.Resource, o.Resource)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Resource, o.Resource)
 	}
 }
 
@@ -2906,7 +5612,7 @@ func (m *ListResourcesRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Filters != nil {
 		m.Filters = &ListResourcesRequest_Filters{}
-		deepcopy.Copy(m.Filters, o.Filters)
+		github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters, o.Filters)
 	}
 }
 
@@ -2964,7 +5670,7 @@ func (m *ListResourcesResponse) CopyFrom(src interface{}) {
 		m.Resources = make([]*Resource, len(o.Resources))
 		for i := range m.Resources {
 			m.Resources[i] = &Resource{}
-			deepcopy.Copy(m.Resources[i], o.Resources[i])
+			github_com_docker_swarmkit_api_deepcopy.Copy(m.Resources[i], o.Resources[i])
 		}
 	}
 
@@ -2978,8 +5684,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Control service
-
+// ControlClient is the client API for Control service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ControlClient interface {
 	GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
 	ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (*ListNodesResponse, error)
@@ -2993,6 +5700,13 @@ type ControlClient interface {
 	CreateService(ctx context.Context, in *CreateServiceRequest, opts ...grpc.CallOption) (*CreateServiceResponse, error)
 	UpdateService(ctx context.Context, in *UpdateServiceRequest, opts ...grpc.CallOption) (*UpdateServiceResponse, error)
 	RemoveService(ctx context.Context, in *RemoveServiceRequest, opts ...grpc.CallOption) (*RemoveServiceResponse, error)
+	// ListServiceStatuses returns a `ListServiceStatusesResponse` with the
+	// status of the requested services, formed by computing the number of
+	// running vs desired tasks. It is provided as a shortcut or helper method,
+	// which allows a client to avoid having to calculate this value by listing
+	// all Tasks. If any service requested does not exist, it will be returned
+	// but with empty status values.
+	ListServiceStatuses(ctx context.Context, in *ListServiceStatusesRequest, opts ...grpc.CallOption) (*ListServiceStatusesResponse, error)
 	GetNetwork(ctx context.Context, in *GetNetworkRequest, opts ...grpc.CallOption) (*GetNetworkResponse, error)
 	ListNetworks(ctx context.Context, in *ListNetworksRequest, opts ...grpc.CallOption) (*ListNetworksResponse, error)
 	CreateNetwork(ctx context.Context, in *CreateNetworkRequest, opts ...grpc.CallOption) (*CreateNetworkResponse, error)
@@ -3116,7 +5830,7 @@ func NewControlClient(cc *grpc.ClientConn) ControlClient {
 
 func (c *controlClient) GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error) {
 	out := new(GetNodeResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetNode", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3125,7 +5839,7 @@ func (c *controlClient) GetNode(ctx context.Context, in *GetNodeRequest, opts ..
 
 func (c *controlClient) ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (*ListNodesResponse, error) {
 	out := new(ListNodesResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListNodes", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListNodes", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3134,7 +5848,7 @@ func (c *controlClient) ListNodes(ctx context.Context, in *ListNodesRequest, opt
 
 func (c *controlClient) UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeResponse, error) {
 	out := new(UpdateNodeResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateNode", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3143,7 +5857,7 @@ func (c *controlClient) UpdateNode(ctx context.Context, in *UpdateNodeRequest, o
 
 func (c *controlClient) RemoveNode(ctx context.Context, in *RemoveNodeRequest, opts ...grpc.CallOption) (*RemoveNodeResponse, error) {
 	out := new(RemoveNodeResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveNode", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3152,7 +5866,7 @@ func (c *controlClient) RemoveNode(ctx context.Context, in *RemoveNodeRequest, o
 
 func (c *controlClient) GetTask(ctx context.Context, in *GetTaskRequest, opts ...grpc.CallOption) (*GetTaskResponse, error) {
 	out := new(GetTaskResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetTask", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetTask", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3161,7 +5875,7 @@ func (c *controlClient) GetTask(ctx context.Context, in *GetTaskRequest, opts ..
 
 func (c *controlClient) ListTasks(ctx context.Context, in *ListTasksRequest, opts ...grpc.CallOption) (*ListTasksResponse, error) {
 	out := new(ListTasksResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListTasks", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListTasks", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3170,7 +5884,7 @@ func (c *controlClient) ListTasks(ctx context.Context, in *ListTasksRequest, opt
 
 func (c *controlClient) RemoveTask(ctx context.Context, in *RemoveTaskRequest, opts ...grpc.CallOption) (*RemoveTaskResponse, error) {
 	out := new(RemoveTaskResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveTask", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveTask", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3179,7 +5893,7 @@ func (c *controlClient) RemoveTask(ctx context.Context, in *RemoveTaskRequest, o
 
 func (c *controlClient) GetService(ctx context.Context, in *GetServiceRequest, opts ...grpc.CallOption) (*GetServiceResponse, error) {
 	out := new(GetServiceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetService", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetService", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3188,7 +5902,7 @@ func (c *controlClient) GetService(ctx context.Context, in *GetServiceRequest, o
 
 func (c *controlClient) ListServices(ctx context.Context, in *ListServicesRequest, opts ...grpc.CallOption) (*ListServicesResponse, error) {
 	out := new(ListServicesResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListServices", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListServices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3197,7 +5911,7 @@ func (c *controlClient) ListServices(ctx context.Context, in *ListServicesReques
 
 func (c *controlClient) CreateService(ctx context.Context, in *CreateServiceRequest, opts ...grpc.CallOption) (*CreateServiceResponse, error) {
 	out := new(CreateServiceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateService", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateService", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3206,7 +5920,7 @@ func (c *controlClient) CreateService(ctx context.Context, in *CreateServiceRequ
 
 func (c *controlClient) UpdateService(ctx context.Context, in *UpdateServiceRequest, opts ...grpc.CallOption) (*UpdateServiceResponse, error) {
 	out := new(UpdateServiceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateService", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateService", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3215,7 +5929,16 @@ func (c *controlClient) UpdateService(ctx context.Context, in *UpdateServiceRequ
 
 func (c *controlClient) RemoveService(ctx context.Context, in *RemoveServiceRequest, opts ...grpc.CallOption) (*RemoveServiceResponse, error) {
 	out := new(RemoveServiceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveService", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveService", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controlClient) ListServiceStatuses(ctx context.Context, in *ListServiceStatusesRequest, opts ...grpc.CallOption) (*ListServiceStatusesResponse, error) {
+	out := new(ListServiceStatusesResponse)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListServiceStatuses", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3224,7 +5947,7 @@ func (c *controlClient) RemoveService(ctx context.Context, in *RemoveServiceRequ
 
 func (c *controlClient) GetNetwork(ctx context.Context, in *GetNetworkRequest, opts ...grpc.CallOption) (*GetNetworkResponse, error) {
 	out := new(GetNetworkResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetNetwork", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetNetwork", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3233,7 +5956,7 @@ func (c *controlClient) GetNetwork(ctx context.Context, in *GetNetworkRequest, o
 
 func (c *controlClient) ListNetworks(ctx context.Context, in *ListNetworksRequest, opts ...grpc.CallOption) (*ListNetworksResponse, error) {
 	out := new(ListNetworksResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListNetworks", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListNetworks", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3242,7 +5965,7 @@ func (c *controlClient) ListNetworks(ctx context.Context, in *ListNetworksReques
 
 func (c *controlClient) CreateNetwork(ctx context.Context, in *CreateNetworkRequest, opts ...grpc.CallOption) (*CreateNetworkResponse, error) {
 	out := new(CreateNetworkResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateNetwork", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateNetwork", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3251,7 +5974,7 @@ func (c *controlClient) CreateNetwork(ctx context.Context, in *CreateNetworkRequ
 
 func (c *controlClient) RemoveNetwork(ctx context.Context, in *RemoveNetworkRequest, opts ...grpc.CallOption) (*RemoveNetworkResponse, error) {
 	out := new(RemoveNetworkResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveNetwork", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveNetwork", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3260,7 +5983,7 @@ func (c *controlClient) RemoveNetwork(ctx context.Context, in *RemoveNetworkRequ
 
 func (c *controlClient) GetCluster(ctx context.Context, in *GetClusterRequest, opts ...grpc.CallOption) (*GetClusterResponse, error) {
 	out := new(GetClusterResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetCluster", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetCluster", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3269,7 +5992,7 @@ func (c *controlClient) GetCluster(ctx context.Context, in *GetClusterRequest, o
 
 func (c *controlClient) ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error) {
 	out := new(ListClustersResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListClusters", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListClusters", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3278,7 +6001,7 @@ func (c *controlClient) ListClusters(ctx context.Context, in *ListClustersReques
 
 func (c *controlClient) UpdateCluster(ctx context.Context, in *UpdateClusterRequest, opts ...grpc.CallOption) (*UpdateClusterResponse, error) {
 	out := new(UpdateClusterResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateCluster", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateCluster", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3287,7 +6010,7 @@ func (c *controlClient) UpdateCluster(ctx context.Context, in *UpdateClusterRequ
 
 func (c *controlClient) GetSecret(ctx context.Context, in *GetSecretRequest, opts ...grpc.CallOption) (*GetSecretResponse, error) {
 	out := new(GetSecretResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetSecret", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3296,7 +6019,7 @@ func (c *controlClient) GetSecret(ctx context.Context, in *GetSecretRequest, opt
 
 func (c *controlClient) UpdateSecret(ctx context.Context, in *UpdateSecretRequest, opts ...grpc.CallOption) (*UpdateSecretResponse, error) {
 	out := new(UpdateSecretResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateSecret", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3305,7 +6028,7 @@ func (c *controlClient) UpdateSecret(ctx context.Context, in *UpdateSecretReques
 
 func (c *controlClient) ListSecrets(ctx context.Context, in *ListSecretsRequest, opts ...grpc.CallOption) (*ListSecretsResponse, error) {
 	out := new(ListSecretsResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListSecrets", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListSecrets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3314,7 +6037,7 @@ func (c *controlClient) ListSecrets(ctx context.Context, in *ListSecretsRequest,
 
 func (c *controlClient) CreateSecret(ctx context.Context, in *CreateSecretRequest, opts ...grpc.CallOption) (*CreateSecretResponse, error) {
 	out := new(CreateSecretResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateSecret", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3323,7 +6046,7 @@ func (c *controlClient) CreateSecret(ctx context.Context, in *CreateSecretReques
 
 func (c *controlClient) RemoveSecret(ctx context.Context, in *RemoveSecretRequest, opts ...grpc.CallOption) (*RemoveSecretResponse, error) {
 	out := new(RemoveSecretResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveSecret", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3332,7 +6055,7 @@ func (c *controlClient) RemoveSecret(ctx context.Context, in *RemoveSecretReques
 
 func (c *controlClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
 	out := new(GetConfigResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetConfig", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3341,7 +6064,7 @@ func (c *controlClient) GetConfig(ctx context.Context, in *GetConfigRequest, opt
 
 func (c *controlClient) UpdateConfig(ctx context.Context, in *UpdateConfigRequest, opts ...grpc.CallOption) (*UpdateConfigResponse, error) {
 	out := new(UpdateConfigResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateConfig", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3350,7 +6073,7 @@ func (c *controlClient) UpdateConfig(ctx context.Context, in *UpdateConfigReques
 
 func (c *controlClient) ListConfigs(ctx context.Context, in *ListConfigsRequest, opts ...grpc.CallOption) (*ListConfigsResponse, error) {
 	out := new(ListConfigsResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListConfigs", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListConfigs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3359,7 +6082,7 @@ func (c *controlClient) ListConfigs(ctx context.Context, in *ListConfigsRequest,
 
 func (c *controlClient) CreateConfig(ctx context.Context, in *CreateConfigRequest, opts ...grpc.CallOption) (*CreateConfigResponse, error) {
 	out := new(CreateConfigResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateConfig", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3368,7 +6091,7 @@ func (c *controlClient) CreateConfig(ctx context.Context, in *CreateConfigReques
 
 func (c *controlClient) RemoveConfig(ctx context.Context, in *RemoveConfigRequest, opts ...grpc.CallOption) (*RemoveConfigResponse, error) {
 	out := new(RemoveConfigResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveConfig", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3377,7 +6100,7 @@ func (c *controlClient) RemoveConfig(ctx context.Context, in *RemoveConfigReques
 
 func (c *controlClient) GetExtension(ctx context.Context, in *GetExtensionRequest, opts ...grpc.CallOption) (*GetExtensionResponse, error) {
 	out := new(GetExtensionResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetExtension", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetExtension", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3386,7 +6109,7 @@ func (c *controlClient) GetExtension(ctx context.Context, in *GetExtensionReques
 
 func (c *controlClient) CreateExtension(ctx context.Context, in *CreateExtensionRequest, opts ...grpc.CallOption) (*CreateExtensionResponse, error) {
 	out := new(CreateExtensionResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateExtension", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateExtension", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3395,7 +6118,7 @@ func (c *controlClient) CreateExtension(ctx context.Context, in *CreateExtension
 
 func (c *controlClient) RemoveExtension(ctx context.Context, in *RemoveExtensionRequest, opts ...grpc.CallOption) (*RemoveExtensionResponse, error) {
 	out := new(RemoveExtensionResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveExtension", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveExtension", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3404,7 +6127,7 @@ func (c *controlClient) RemoveExtension(ctx context.Context, in *RemoveExtension
 
 func (c *controlClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error) {
 	out := new(GetResourceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetResource", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/GetResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3413,7 +6136,7 @@ func (c *controlClient) GetResource(ctx context.Context, in *GetResourceRequest,
 
 func (c *controlClient) UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error) {
 	out := new(UpdateResourceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateResource", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/UpdateResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3422,7 +6145,7 @@ func (c *controlClient) UpdateResource(ctx context.Context, in *UpdateResourceRe
 
 func (c *controlClient) ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error) {
 	out := new(ListResourcesResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListResources", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/ListResources", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3431,7 +6154,7 @@ func (c *controlClient) ListResources(ctx context.Context, in *ListResourcesRequ
 
 func (c *controlClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
 	out := new(CreateResourceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateResource", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3440,15 +6163,14 @@ func (c *controlClient) CreateResource(ctx context.Context, in *CreateResourceRe
 
 func (c *controlClient) RemoveResource(ctx context.Context, in *RemoveResourceRequest, opts ...grpc.CallOption) (*RemoveResourceResponse, error) {
 	out := new(RemoveResourceResponse)
-	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveResource", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/docker.swarmkit.v1.Control/RemoveResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Control service
-
+// ControlServer is the server API for Control service.
 type ControlServer interface {
 	GetNode(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
 	ListNodes(context.Context, *ListNodesRequest) (*ListNodesResponse, error)
@@ -3462,6 +6184,13 @@ type ControlServer interface {
 	CreateService(context.Context, *CreateServiceRequest) (*CreateServiceResponse, error)
 	UpdateService(context.Context, *UpdateServiceRequest) (*UpdateServiceResponse, error)
 	RemoveService(context.Context, *RemoveServiceRequest) (*RemoveServiceResponse, error)
+	// ListServiceStatuses returns a `ListServiceStatusesResponse` with the
+	// status of the requested services, formed by computing the number of
+	// running vs desired tasks. It is provided as a shortcut or helper method,
+	// which allows a client to avoid having to calculate this value by listing
+	// all Tasks. If any service requested does not exist, it will be returned
+	// but with empty status values.
+	ListServiceStatuses(context.Context, *ListServiceStatusesRequest) (*ListServiceStatusesResponse, error)
 	GetNetwork(context.Context, *GetNetworkRequest) (*GetNetworkResponse, error)
 	ListNetworks(context.Context, *ListNetworksRequest) (*ListNetworksResponse, error)
 	CreateNetwork(context.Context, *CreateNetworkRequest) (*CreateNetworkResponse, error)
@@ -3791,6 +6520,24 @@ func _Control_RemoveService_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ControlServer).RemoveService(ctx, req.(*RemoveServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Control_ListServiceStatuses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceStatusesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServer).ListServiceStatuses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/docker.swarmkit.v1.Control/ListServiceStatuses",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServer).ListServiceStatuses(ctx, req.(*ListServiceStatusesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4296,6 +7043,10 @@ var _Control_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveService",
 			Handler:    _Control_RemoveService_Handler,
+		},
+		{
+			MethodName: "ListServiceStatuses",
+			Handler:    _Control_ListServiceStatuses_Handler,
 		},
 		{
 			MethodName: "GetNetwork",
@@ -5427,6 +8178,108 @@ func (m *ListServicesResponse) MarshalTo(dAtA []byte) (int, error) {
 			}
 			i += n
 		}
+	}
+	return i, nil
+}
+
+func (m *ListServiceStatusesRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListServiceStatusesRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Services) > 0 {
+		for _, s := range m.Services {
+			dAtA[i] = 0xa
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				dAtA[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			dAtA[i] = uint8(l)
+			i++
+			i += copy(dAtA[i:], s)
+		}
+	}
+	return i, nil
+}
+
+func (m *ListServiceStatusesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListServiceStatusesResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Statuses) > 0 {
+		for _, msg := range m.Statuses {
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintControl(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.ServiceID) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintControl(dAtA, i, uint64(len(m.ServiceID)))
+		i += copy(dAtA[i:], m.ServiceID)
+	}
+	if m.DesiredTasks != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintControl(dAtA, i, uint64(m.DesiredTasks))
+	}
+	if m.RunningTasks != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintControl(dAtA, i, uint64(m.RunningTasks))
+	}
+	if m.CompletedTasks != 0 {
+		dAtA[i] = 0x20
+		i++
+		i = encodeVarintControl(dAtA, i, uint64(m.CompletedTasks))
 	}
 	return i, nil
 }
@@ -7819,6 +10672,41 @@ func (p *raftProxyControlServer) RemoveService(ctx context.Context, r *RemoveSer
 	return resp, err
 }
 
+func (p *raftProxyControlServer) ListServiceStatuses(ctx context.Context, r *ListServiceStatusesRequest) (*ListServiceStatusesResponse, error) {
+
+	conn, err := p.connSelector.LeaderConn(ctx)
+	if err != nil {
+		if err == raftselector.ErrIsLeader {
+			ctx, err = p.runCtxMods(ctx, p.localCtxMods)
+			if err != nil {
+				return nil, err
+			}
+			return p.local.ListServiceStatuses(ctx, r)
+		}
+		return nil, err
+	}
+	modCtx, err := p.runCtxMods(ctx, p.remoteCtxMods)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := NewControlClient(conn).ListServiceStatuses(modCtx, r)
+	if err != nil {
+		if !strings.Contains(err.Error(), "is closing") && !strings.Contains(err.Error(), "the connection is unavailable") && !strings.Contains(err.Error(), "connection error") {
+			return resp, err
+		}
+		conn, err := p.pollNewLeaderConn(ctx)
+		if err != nil {
+			if err == raftselector.ErrIsLeader {
+				return p.local.ListServiceStatuses(ctx, r)
+			}
+			return nil, err
+		}
+		return NewControlClient(conn).ListServiceStatuses(modCtx, r)
+	}
+	return resp, err
+}
+
 func (p *raftProxyControlServer) GetNetwork(ctx context.Context, r *GetNetworkRequest) (*GetNetworkResponse, error) {
 
 	conn, err := p.connSelector.LeaderConn(ctx)
@@ -8695,6 +11583,9 @@ func (p *raftProxyControlServer) RemoveResource(ctx context.Context, r *RemoveRe
 }
 
 func (m *GetNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.NodeID)
@@ -8705,6 +11596,9 @@ func (m *GetNodeRequest) Size() (n int) {
 }
 
 func (m *GetNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Node != nil {
@@ -8715,6 +11609,9 @@ func (m *GetNodeResponse) Size() (n int) {
 }
 
 func (m *ListNodesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -8725,6 +11622,9 @@ func (m *ListNodesRequest) Size() (n int) {
 }
 
 func (m *ListNodesRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -8775,6 +11675,9 @@ func (m *ListNodesRequest_Filters) Size() (n int) {
 }
 
 func (m *ListNodesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Nodes) > 0 {
@@ -8787,6 +11690,9 @@ func (m *ListNodesResponse) Size() (n int) {
 }
 
 func (m *UpdateNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.NodeID)
@@ -8805,6 +11711,9 @@ func (m *UpdateNodeRequest) Size() (n int) {
 }
 
 func (m *UpdateNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Node != nil {
@@ -8815,6 +11724,9 @@ func (m *UpdateNodeResponse) Size() (n int) {
 }
 
 func (m *RemoveNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.NodeID)
@@ -8828,12 +11740,18 @@ func (m *RemoveNodeRequest) Size() (n int) {
 }
 
 func (m *RemoveNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *GetTaskRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.TaskID)
@@ -8844,6 +11762,9 @@ func (m *GetTaskRequest) Size() (n int) {
 }
 
 func (m *GetTaskResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Task != nil {
@@ -8854,6 +11775,9 @@ func (m *GetTaskResponse) Size() (n int) {
 }
 
 func (m *RemoveTaskRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.TaskID)
@@ -8864,12 +11788,18 @@ func (m *RemoveTaskRequest) Size() (n int) {
 }
 
 func (m *RemoveTaskResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *ListTasksRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -8880,6 +11810,9 @@ func (m *ListTasksRequest) Size() (n int) {
 }
 
 func (m *ListTasksRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -8938,6 +11871,9 @@ func (m *ListTasksRequest_Filters) Size() (n int) {
 }
 
 func (m *ListTasksResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Tasks) > 0 {
@@ -8950,6 +11886,9 @@ func (m *ListTasksResponse) Size() (n int) {
 }
 
 func (m *CreateServiceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Spec != nil {
@@ -8960,6 +11899,9 @@ func (m *CreateServiceRequest) Size() (n int) {
 }
 
 func (m *CreateServiceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Service != nil {
@@ -8970,6 +11912,9 @@ func (m *CreateServiceResponse) Size() (n int) {
 }
 
 func (m *GetServiceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ServiceID)
@@ -8983,6 +11928,9 @@ func (m *GetServiceRequest) Size() (n int) {
 }
 
 func (m *GetServiceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Service != nil {
@@ -8993,6 +11941,9 @@ func (m *GetServiceResponse) Size() (n int) {
 }
 
 func (m *UpdateServiceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ServiceID)
@@ -9014,6 +11965,9 @@ func (m *UpdateServiceRequest) Size() (n int) {
 }
 
 func (m *UpdateServiceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Service != nil {
@@ -9024,6 +11978,9 @@ func (m *UpdateServiceResponse) Size() (n int) {
 }
 
 func (m *RemoveServiceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ServiceID)
@@ -9034,12 +11991,18 @@ func (m *RemoveServiceRequest) Size() (n int) {
 }
 
 func (m *RemoveServiceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *ListServicesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9050,6 +12013,9 @@ func (m *ListServicesRequest) Size() (n int) {
 }
 
 func (m *ListServicesRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9088,6 +12054,9 @@ func (m *ListServicesRequest_Filters) Size() (n int) {
 }
 
 func (m *ListServicesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Services) > 0 {
@@ -9099,7 +12068,62 @@ func (m *ListServicesResponse) Size() (n int) {
 	return n
 }
 
+func (m *ListServiceStatusesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Services) > 0 {
+		for _, s := range m.Services {
+			l = len(s)
+			n += 1 + l + sovControl(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ListServiceStatusesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Statuses) > 0 {
+		for _, e := range m.Statuses {
+			l = e.Size()
+			n += 1 + l + sovControl(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ListServiceStatusesResponse_ServiceStatus) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ServiceID)
+	if l > 0 {
+		n += 1 + l + sovControl(uint64(l))
+	}
+	if m.DesiredTasks != 0 {
+		n += 1 + sovControl(uint64(m.DesiredTasks))
+	}
+	if m.RunningTasks != 0 {
+		n += 1 + sovControl(uint64(m.RunningTasks))
+	}
+	if m.CompletedTasks != 0 {
+		n += 1 + sovControl(uint64(m.CompletedTasks))
+	}
+	return n
+}
+
 func (m *CreateNetworkRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Spec != nil {
@@ -9110,6 +12134,9 @@ func (m *CreateNetworkRequest) Size() (n int) {
 }
 
 func (m *CreateNetworkResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Network != nil {
@@ -9120,6 +12147,9 @@ func (m *CreateNetworkResponse) Size() (n int) {
 }
 
 func (m *GetNetworkRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -9134,6 +12164,9 @@ func (m *GetNetworkRequest) Size() (n int) {
 }
 
 func (m *GetNetworkResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Network != nil {
@@ -9144,6 +12177,9 @@ func (m *GetNetworkResponse) Size() (n int) {
 }
 
 func (m *RemoveNetworkRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -9158,12 +12194,18 @@ func (m *RemoveNetworkRequest) Size() (n int) {
 }
 
 func (m *RemoveNetworkResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *ListNetworksRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9174,6 +12216,9 @@ func (m *ListNetworksRequest) Size() (n int) {
 }
 
 func (m *ListNetworksRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9206,6 +12251,9 @@ func (m *ListNetworksRequest_Filters) Size() (n int) {
 }
 
 func (m *ListNetworksResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Networks) > 0 {
@@ -9218,6 +12266,9 @@ func (m *ListNetworksResponse) Size() (n int) {
 }
 
 func (m *GetClusterRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ClusterID)
@@ -9228,6 +12279,9 @@ func (m *GetClusterRequest) Size() (n int) {
 }
 
 func (m *GetClusterResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Cluster != nil {
@@ -9238,6 +12292,9 @@ func (m *GetClusterResponse) Size() (n int) {
 }
 
 func (m *ListClustersRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9248,6 +12305,9 @@ func (m *ListClustersRequest) Size() (n int) {
 }
 
 func (m *ListClustersRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9280,6 +12340,9 @@ func (m *ListClustersRequest_Filters) Size() (n int) {
 }
 
 func (m *ListClustersResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Clusters) > 0 {
@@ -9292,6 +12355,9 @@ func (m *ListClustersResponse) Size() (n int) {
 }
 
 func (m *KeyRotation) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.WorkerJoinToken {
@@ -9307,6 +12373,9 @@ func (m *KeyRotation) Size() (n int) {
 }
 
 func (m *UpdateClusterRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ClusterID)
@@ -9327,6 +12396,9 @@ func (m *UpdateClusterRequest) Size() (n int) {
 }
 
 func (m *UpdateClusterResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Cluster != nil {
@@ -9337,6 +12409,9 @@ func (m *UpdateClusterResponse) Size() (n int) {
 }
 
 func (m *GetSecretRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.SecretID)
@@ -9347,6 +12422,9 @@ func (m *GetSecretRequest) Size() (n int) {
 }
 
 func (m *GetSecretResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Secret != nil {
@@ -9357,6 +12435,9 @@ func (m *GetSecretResponse) Size() (n int) {
 }
 
 func (m *UpdateSecretRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.SecretID)
@@ -9375,6 +12456,9 @@ func (m *UpdateSecretRequest) Size() (n int) {
 }
 
 func (m *UpdateSecretResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Secret != nil {
@@ -9385,6 +12469,9 @@ func (m *UpdateSecretResponse) Size() (n int) {
 }
 
 func (m *ListSecretsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9395,6 +12482,9 @@ func (m *ListSecretsRequest) Size() (n int) {
 }
 
 func (m *ListSecretsRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9427,6 +12517,9 @@ func (m *ListSecretsRequest_Filters) Size() (n int) {
 }
 
 func (m *ListSecretsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Secrets) > 0 {
@@ -9439,6 +12532,9 @@ func (m *ListSecretsResponse) Size() (n int) {
 }
 
 func (m *CreateSecretRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Spec != nil {
@@ -9449,6 +12545,9 @@ func (m *CreateSecretRequest) Size() (n int) {
 }
 
 func (m *CreateSecretResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Secret != nil {
@@ -9459,6 +12558,9 @@ func (m *CreateSecretResponse) Size() (n int) {
 }
 
 func (m *RemoveSecretRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.SecretID)
@@ -9469,12 +12571,18 @@ func (m *RemoveSecretRequest) Size() (n int) {
 }
 
 func (m *RemoveSecretResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *GetConfigRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ConfigID)
@@ -9485,6 +12593,9 @@ func (m *GetConfigRequest) Size() (n int) {
 }
 
 func (m *GetConfigResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Config != nil {
@@ -9495,6 +12606,9 @@ func (m *GetConfigResponse) Size() (n int) {
 }
 
 func (m *UpdateConfigRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ConfigID)
@@ -9513,6 +12627,9 @@ func (m *UpdateConfigRequest) Size() (n int) {
 }
 
 func (m *UpdateConfigResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Config != nil {
@@ -9523,6 +12640,9 @@ func (m *UpdateConfigResponse) Size() (n int) {
 }
 
 func (m *ListConfigsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9533,6 +12653,9 @@ func (m *ListConfigsRequest) Size() (n int) {
 }
 
 func (m *ListConfigsRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9565,6 +12688,9 @@ func (m *ListConfigsRequest_Filters) Size() (n int) {
 }
 
 func (m *ListConfigsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Configs) > 0 {
@@ -9577,6 +12703,9 @@ func (m *ListConfigsResponse) Size() (n int) {
 }
 
 func (m *CreateConfigRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Spec != nil {
@@ -9587,6 +12716,9 @@ func (m *CreateConfigRequest) Size() (n int) {
 }
 
 func (m *CreateConfigResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Config != nil {
@@ -9597,6 +12729,9 @@ func (m *CreateConfigResponse) Size() (n int) {
 }
 
 func (m *RemoveConfigRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ConfigID)
@@ -9607,12 +12742,18 @@ func (m *RemoveConfigRequest) Size() (n int) {
 }
 
 func (m *RemoveConfigResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *CreateExtensionRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Annotations != nil {
@@ -9627,6 +12768,9 @@ func (m *CreateExtensionRequest) Size() (n int) {
 }
 
 func (m *CreateExtensionResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Extension != nil {
@@ -9637,6 +12781,9 @@ func (m *CreateExtensionResponse) Size() (n int) {
 }
 
 func (m *RemoveExtensionRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ExtensionID)
@@ -9647,12 +12794,18 @@ func (m *RemoveExtensionRequest) Size() (n int) {
 }
 
 func (m *RemoveExtensionResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *GetExtensionRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ExtensionID)
@@ -9663,6 +12816,9 @@ func (m *GetExtensionRequest) Size() (n int) {
 }
 
 func (m *GetExtensionResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Extension != nil {
@@ -9673,6 +12829,9 @@ func (m *GetExtensionResponse) Size() (n int) {
 }
 
 func (m *CreateResourceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Annotations != nil {
@@ -9691,6 +12850,9 @@ func (m *CreateResourceRequest) Size() (n int) {
 }
 
 func (m *CreateResourceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Resource != nil {
@@ -9701,6 +12863,9 @@ func (m *CreateResourceResponse) Size() (n int) {
 }
 
 func (m *RemoveResourceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ResourceID)
@@ -9711,12 +12876,18 @@ func (m *RemoveResourceRequest) Size() (n int) {
 }
 
 func (m *RemoveResourceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	return n
 }
 
 func (m *UpdateResourceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ResourceID)
@@ -9739,6 +12910,9 @@ func (m *UpdateResourceRequest) Size() (n int) {
 }
 
 func (m *UpdateResourceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Resource != nil {
@@ -9749,6 +12923,9 @@ func (m *UpdateResourceResponse) Size() (n int) {
 }
 
 func (m *GetResourceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ResourceID)
@@ -9759,6 +12936,9 @@ func (m *GetResourceRequest) Size() (n int) {
 }
 
 func (m *GetResourceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Resource != nil {
@@ -9769,6 +12949,9 @@ func (m *GetResourceResponse) Size() (n int) {
 }
 
 func (m *ListResourcesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Filters != nil {
@@ -9779,6 +12962,9 @@ func (m *ListResourcesRequest) Size() (n int) {
 }
 
 func (m *ListResourcesRequest_Filters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Names) > 0 {
@@ -9815,6 +13001,9 @@ func (m *ListResourcesRequest_Filters) Size() (n int) {
 }
 
 func (m *ListResourcesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Resources) > 0 {
@@ -9877,7 +13066,7 @@ func (this *ListNodesRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -9887,7 +13076,7 @@ func (this *ListNodesRequest_Filters) String() string {
 	for k, _ := range this.NodeLabels {
 		keysForNodeLabels = append(keysForNodeLabels, k)
 	}
-	sortkeys.Strings(keysForNodeLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForNodeLabels)
 	mapStringForNodeLabels := "map[string]string{"
 	for _, k := range keysForNodeLabels {
 		mapStringForNodeLabels += fmt.Sprintf("%v: %v,", k, this.NodeLabels[k])
@@ -10014,7 +13203,7 @@ func (this *ListTasksRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10145,7 +13334,7 @@ func (this *ListServicesRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10167,6 +13356,39 @@ func (this *ListServicesResponse) String() string {
 	}
 	s := strings.Join([]string{`&ListServicesResponse{`,
 		`Services:` + strings.Replace(fmt.Sprintf("%v", this.Services), "Service", "Service", 1) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ListServiceStatusesRequest) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ListServiceStatusesRequest{`,
+		`Services:` + fmt.Sprintf("%v", this.Services) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ListServiceStatusesResponse) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ListServiceStatusesResponse{`,
+		`Statuses:` + strings.Replace(fmt.Sprintf("%v", this.Statuses), "ListServiceStatusesResponse_ServiceStatus", "ListServiceStatusesResponse_ServiceStatus", 1) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ListServiceStatusesResponse_ServiceStatus) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ListServiceStatusesResponse_ServiceStatus{`,
+		`ServiceID:` + fmt.Sprintf("%v", this.ServiceID) + `,`,
+		`DesiredTasks:` + fmt.Sprintf("%v", this.DesiredTasks) + `,`,
+		`RunningTasks:` + fmt.Sprintf("%v", this.RunningTasks) + `,`,
+		`CompletedTasks:` + fmt.Sprintf("%v", this.CompletedTasks) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -10250,7 +13472,7 @@ func (this *ListNetworksRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10313,7 +13535,7 @@ func (this *ListClustersRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10433,7 +13655,7 @@ func (this *ListSecretsRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10557,7 +13779,7 @@ func (this *ListConfigsRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10688,7 +13910,7 @@ func (this *CreateResourceRequest) String() string {
 	s := strings.Join([]string{`&CreateResourceRequest{`,
 		`Annotations:` + strings.Replace(fmt.Sprintf("%v", this.Annotations), "Annotations", "Annotations", 1) + `,`,
 		`Kind:` + fmt.Sprintf("%v", this.Kind) + `,`,
-		`Payload:` + strings.Replace(fmt.Sprintf("%v", this.Payload), "Any", "google_protobuf4.Any", 1) + `,`,
+		`Payload:` + strings.Replace(fmt.Sprintf("%v", this.Payload), "Any", "types.Any", 1) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -10730,7 +13952,7 @@ func (this *UpdateResourceRequest) String() string {
 		`ResourceID:` + fmt.Sprintf("%v", this.ResourceID) + `,`,
 		`ResourceVersion:` + strings.Replace(fmt.Sprintf("%v", this.ResourceVersion), "Version", "Version", 1) + `,`,
 		`Annotations:` + strings.Replace(fmt.Sprintf("%v", this.Annotations), "Annotations", "Annotations", 1) + `,`,
-		`Payload:` + strings.Replace(fmt.Sprintf("%v", this.Payload), "Any", "google_protobuf4.Any", 1) + `,`,
+		`Payload:` + strings.Replace(fmt.Sprintf("%v", this.Payload), "Any", "types.Any", 1) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -10783,7 +14005,7 @@ func (this *ListResourcesRequest_Filters) String() string {
 	for k, _ := range this.Labels {
 		keysForLabels = append(keysForLabels, k)
 	}
-	sortkeys.Strings(keysForLabels)
+	github_com_gogo_protobuf_sortkeys.Strings(keysForLabels)
 	mapStringForLabels := "map[string]string{"
 	for _, k := range keysForLabels {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
@@ -10832,7 +14054,7 @@ func (m *GetNodeRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -10860,7 +14082,7 @@ func (m *GetNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -10870,6 +14092,9 @@ func (m *GetNodeRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -10882,6 +14107,9 @@ func (m *GetNodeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -10911,7 +14139,7 @@ func (m *GetNodeResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -10939,7 +14167,7 @@ func (m *GetNodeResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -10948,6 +14176,9 @@ func (m *GetNodeResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -10965,6 +14196,9 @@ func (m *GetNodeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -10994,7 +14228,7 @@ func (m *ListNodesRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11022,7 +14256,7 @@ func (m *ListNodesRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11031,6 +14265,9 @@ func (m *ListNodesRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11048,6 +14285,9 @@ func (m *ListNodesRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -11077,7 +14317,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11105,7 +14345,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11115,6 +14355,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11134,7 +14377,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11144,6 +14387,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11163,7 +14409,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11172,6 +14418,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11192,7 +14441,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11209,7 +14458,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11219,6 +14468,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -11235,7 +14487,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11245,6 +14497,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -11279,7 +14534,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= (NodeSpec_Membership(b) & 0x7F) << shift
+					v |= NodeSpec_Membership(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11296,7 +14551,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					packedLen |= (int(b) & 0x7F) << shift
+					packedLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11305,8 +14560,15 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					return ErrInvalidLengthControl
 				}
 				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthControl
+				}
 				if postIndex > l {
 					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				if elementCount != 0 && len(m.Memberships) == 0 {
+					m.Memberships = make([]NodeSpec_Membership, 0, elementCount)
 				}
 				for iNdEx < postIndex {
 					var v NodeSpec_Membership
@@ -11319,7 +14581,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						v |= (NodeSpec_Membership(b) & 0x7F) << shift
+						v |= NodeSpec_Membership(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11341,7 +14603,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= (NodeRole(b) & 0x7F) << shift
+					v |= NodeRole(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11358,7 +14620,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					packedLen |= (int(b) & 0x7F) << shift
+					packedLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11367,8 +14629,15 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					return ErrInvalidLengthControl
 				}
 				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthControl
+				}
 				if postIndex > l {
 					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				if elementCount != 0 && len(m.Roles) == 0 {
+					m.Roles = make([]NodeRole, 0, elementCount)
 				}
 				for iNdEx < postIndex {
 					var v NodeRole
@@ -11381,7 +14650,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						v |= (NodeRole(b) & 0x7F) << shift
+						v |= NodeRole(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11405,7 +14674,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11415,6 +14684,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11434,7 +14706,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11443,6 +14715,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11463,7 +14738,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -11480,7 +14755,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11490,6 +14765,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -11506,7 +14784,7 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -11516,6 +14794,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -11547,6 +14828,9 @@ func (m *ListNodesRequest_Filters) Unmarshal(dAtA []byte) error {
 			if skippy < 0 {
 				return ErrInvalidLengthControl
 			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthControl
+			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11574,7 +14858,7 @@ func (m *ListNodesResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11602,7 +14886,7 @@ func (m *ListNodesResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11611,6 +14895,9 @@ func (m *ListNodesResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11626,6 +14913,9 @@ func (m *ListNodesResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -11655,7 +14945,7 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11683,7 +14973,7 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11693,6 +14983,9 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11712,7 +15005,7 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11721,6 +15014,9 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11745,7 +15041,7 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11754,6 +15050,9 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11771,6 +15070,9 @@ func (m *UpdateNodeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -11800,7 +15102,7 @@ func (m *UpdateNodeResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11828,7 +15130,7 @@ func (m *UpdateNodeResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11837,6 +15139,9 @@ func (m *UpdateNodeResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11854,6 +15159,9 @@ func (m *UpdateNodeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -11883,7 +15191,7 @@ func (m *RemoveNodeRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -11911,7 +15219,7 @@ func (m *RemoveNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11921,6 +15229,9 @@ func (m *RemoveNodeRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -11940,7 +15251,7 @@ func (m *RemoveNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -11953,6 +15264,9 @@ func (m *RemoveNodeRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -11982,7 +15296,7 @@ func (m *RemoveNodeResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12003,6 +15317,9 @@ func (m *RemoveNodeResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12032,7 +15349,7 @@ func (m *GetTaskRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12060,7 +15377,7 @@ func (m *GetTaskRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12070,6 +15387,9 @@ func (m *GetTaskRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12082,6 +15402,9 @@ func (m *GetTaskRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12111,7 +15434,7 @@ func (m *GetTaskResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12139,7 +15462,7 @@ func (m *GetTaskResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12148,6 +15471,9 @@ func (m *GetTaskResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12165,6 +15491,9 @@ func (m *GetTaskResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12194,7 +15523,7 @@ func (m *RemoveTaskRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12222,7 +15551,7 @@ func (m *RemoveTaskRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12232,6 +15561,9 @@ func (m *RemoveTaskRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12244,6 +15576,9 @@ func (m *RemoveTaskRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12273,7 +15608,7 @@ func (m *RemoveTaskResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12294,6 +15629,9 @@ func (m *RemoveTaskResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12323,7 +15661,7 @@ func (m *ListTasksRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12351,7 +15689,7 @@ func (m *ListTasksRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12360,6 +15698,9 @@ func (m *ListTasksRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12377,6 +15718,9 @@ func (m *ListTasksRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12406,7 +15750,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12434,7 +15778,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12444,6 +15788,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12463,7 +15810,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12473,6 +15820,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12492,7 +15842,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12501,6 +15851,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12521,7 +15874,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -12538,7 +15891,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -12548,6 +15901,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -12564,7 +15920,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -12574,6 +15930,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -12610,7 +15969,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12620,6 +15979,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12639,7 +16001,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12649,6 +16011,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12666,7 +16031,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= (TaskState(b) & 0x7F) << shift
+					v |= TaskState(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -12683,7 +16048,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					packedLen |= (int(b) & 0x7F) << shift
+					packedLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -12692,8 +16057,15 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 					return ErrInvalidLengthControl
 				}
 				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthControl
+				}
 				if postIndex > l {
 					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				if elementCount != 0 && len(m.DesiredStates) == 0 {
+					m.DesiredStates = make([]TaskState, 0, elementCount)
 				}
 				for iNdEx < postIndex {
 					var v TaskState
@@ -12706,7 +16078,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						v |= (TaskState(b) & 0x7F) << shift
+						v |= TaskState(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -12730,7 +16102,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12740,6 +16112,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12759,7 +16134,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12779,7 +16154,7 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12789,6 +16164,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12801,6 +16179,9 @@ func (m *ListTasksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12830,7 +16211,7 @@ func (m *ListTasksResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12858,7 +16239,7 @@ func (m *ListTasksResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12867,6 +16248,9 @@ func (m *ListTasksResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12882,6 +16266,9 @@ func (m *ListTasksResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12911,7 +16298,7 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -12939,7 +16326,7 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -12948,6 +16335,9 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -12965,6 +16355,9 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -12994,7 +16387,7 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13022,7 +16415,7 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13031,6 +16424,9 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13048,6 +16444,9 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13077,7 +16476,7 @@ func (m *GetServiceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13105,7 +16504,7 @@ func (m *GetServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13115,6 +16514,9 @@ func (m *GetServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13134,7 +16536,7 @@ func (m *GetServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13147,6 +16549,9 @@ func (m *GetServiceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13176,7 +16581,7 @@ func (m *GetServiceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13204,7 +16609,7 @@ func (m *GetServiceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13213,6 +16618,9 @@ func (m *GetServiceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13230,6 +16638,9 @@ func (m *GetServiceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13259,7 +16670,7 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13287,7 +16698,7 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13297,6 +16708,9 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13316,7 +16730,7 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13325,6 +16739,9 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13349,7 +16766,7 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13358,6 +16775,9 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13382,7 +16802,7 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Rollback |= (UpdateServiceRequest_Rollback(b) & 0x7F) << shift
+				m.Rollback |= UpdateServiceRequest_Rollback(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13394,6 +16814,9 @@ func (m *UpdateServiceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13423,7 +16846,7 @@ func (m *UpdateServiceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13451,7 +16874,7 @@ func (m *UpdateServiceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13460,6 +16883,9 @@ func (m *UpdateServiceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13477,6 +16903,9 @@ func (m *UpdateServiceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13506,7 +16935,7 @@ func (m *RemoveServiceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13534,7 +16963,7 @@ func (m *RemoveServiceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13544,6 +16973,9 @@ func (m *RemoveServiceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13556,6 +16988,9 @@ func (m *RemoveServiceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13585,7 +17020,7 @@ func (m *RemoveServiceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13606,6 +17041,9 @@ func (m *RemoveServiceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13635,7 +17073,7 @@ func (m *ListServicesRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13663,7 +17101,7 @@ func (m *ListServicesRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13672,6 +17110,9 @@ func (m *ListServicesRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13689,6 +17130,9 @@ func (m *ListServicesRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -13718,7 +17162,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -13746,7 +17190,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13756,6 +17200,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13775,7 +17222,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13785,6 +17232,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13804,7 +17254,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13813,6 +17263,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13833,7 +17286,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -13850,7 +17303,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -13860,6 +17313,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -13876,7 +17332,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -13886,6 +17342,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -13922,7 +17381,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13932,6 +17391,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13951,7 +17413,7 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -13961,6 +17423,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -13973,6 +17438,9 @@ func (m *ListServicesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14002,7 +17470,7 @@ func (m *ListServicesResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14030,7 +17498,7 @@ func (m *ListServicesResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14039,6 +17507,9 @@ func (m *ListServicesResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14054,6 +17525,323 @@ func (m *ListServicesResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ListServiceStatusesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowControl
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ListServiceStatusesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ListServiceStatusesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Services", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthControl
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Services = append(m.Services, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipControl(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ListServiceStatusesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowControl
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ListServiceStatusesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ListServiceStatusesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Statuses", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthControl
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Statuses = append(m.Statuses, &ListServiceStatusesResponse_ServiceStatus{})
+			if err := m.Statuses[len(m.Statuses)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipControl(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ListServiceStatusesResponse_ServiceStatus) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowControl
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ServiceStatus: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ServiceStatus: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthControl
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ServiceID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DesiredTasks", wireType)
+			}
+			m.DesiredTasks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DesiredTasks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RunningTasks", wireType)
+			}
+			m.RunningTasks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RunningTasks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CompletedTasks", wireType)
+			}
+			m.CompletedTasks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowControl
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CompletedTasks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipControl(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14083,7 +17871,7 @@ func (m *CreateNetworkRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14111,7 +17899,7 @@ func (m *CreateNetworkRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14120,6 +17908,9 @@ func (m *CreateNetworkRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14137,6 +17928,9 @@ func (m *CreateNetworkRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14166,7 +17960,7 @@ func (m *CreateNetworkResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14194,7 +17988,7 @@ func (m *CreateNetworkResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14203,6 +17997,9 @@ func (m *CreateNetworkResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14220,6 +18017,9 @@ func (m *CreateNetworkResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14249,7 +18049,7 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14277,7 +18077,7 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14287,6 +18087,9 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14306,7 +18109,7 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14316,6 +18119,9 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14328,6 +18134,9 @@ func (m *GetNetworkRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14357,7 +18166,7 @@ func (m *GetNetworkResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14385,7 +18194,7 @@ func (m *GetNetworkResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14394,6 +18203,9 @@ func (m *GetNetworkResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14411,6 +18223,9 @@ func (m *GetNetworkResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14440,7 +18255,7 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14468,7 +18283,7 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14478,6 +18293,9 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14497,7 +18315,7 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14507,6 +18325,9 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14519,6 +18340,9 @@ func (m *RemoveNetworkRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14548,7 +18372,7 @@ func (m *RemoveNetworkResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14569,6 +18393,9 @@ func (m *RemoveNetworkResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14598,7 +18425,7 @@ func (m *ListNetworksRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14626,7 +18453,7 @@ func (m *ListNetworksRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14635,6 +18462,9 @@ func (m *ListNetworksRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14652,6 +18482,9 @@ func (m *ListNetworksRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14681,7 +18514,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14709,7 +18542,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14719,6 +18552,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14738,7 +18574,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14748,6 +18584,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14767,7 +18606,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14776,6 +18615,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14796,7 +18638,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -14813,7 +18655,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -14823,6 +18665,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -14839,7 +18684,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -14849,6 +18694,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -14885,7 +18733,7 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14895,6 +18743,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14907,6 +18758,9 @@ func (m *ListNetworksRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -14936,7 +18790,7 @@ func (m *ListNetworksResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -14964,7 +18818,7 @@ func (m *ListNetworksResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -14973,6 +18827,9 @@ func (m *ListNetworksResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -14988,6 +18845,9 @@ func (m *ListNetworksResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15017,7 +18877,7 @@ func (m *GetClusterRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15045,7 +18905,7 @@ func (m *GetClusterRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15055,6 +18915,9 @@ func (m *GetClusterRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15067,6 +18930,9 @@ func (m *GetClusterRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15096,7 +18962,7 @@ func (m *GetClusterResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15124,7 +18990,7 @@ func (m *GetClusterResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15133,6 +18999,9 @@ func (m *GetClusterResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15150,6 +19019,9 @@ func (m *GetClusterResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15179,7 +19051,7 @@ func (m *ListClustersRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15207,7 +19079,7 @@ func (m *ListClustersRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15216,6 +19088,9 @@ func (m *ListClustersRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15233,6 +19108,9 @@ func (m *ListClustersRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15262,7 +19140,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15290,7 +19168,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15300,6 +19178,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15319,7 +19200,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15329,6 +19210,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15348,7 +19232,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15357,6 +19241,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15377,7 +19264,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -15394,7 +19281,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -15404,6 +19291,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -15420,7 +19310,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -15430,6 +19320,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -15466,7 +19359,7 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15476,6 +19369,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15488,6 +19384,9 @@ func (m *ListClustersRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15517,7 +19416,7 @@ func (m *ListClustersResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15545,7 +19444,7 @@ func (m *ListClustersResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15554,6 +19453,9 @@ func (m *ListClustersResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15569,6 +19471,9 @@ func (m *ListClustersResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15598,7 +19503,7 @@ func (m *KeyRotation) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15626,7 +19531,7 @@ func (m *KeyRotation) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15646,7 +19551,7 @@ func (m *KeyRotation) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15666,7 +19571,7 @@ func (m *KeyRotation) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15679,6 +19584,9 @@ func (m *KeyRotation) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15708,7 +19616,7 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15736,7 +19644,7 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15746,6 +19654,9 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15765,7 +19676,7 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15774,6 +19685,9 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15798,7 +19712,7 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15807,6 +19721,9 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15831,7 +19748,7 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15840,6 +19757,9 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15854,6 +19774,9 @@ func (m *UpdateClusterRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15883,7 +19806,7 @@ func (m *UpdateClusterResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15911,7 +19834,7 @@ func (m *UpdateClusterResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -15920,6 +19843,9 @@ func (m *UpdateClusterResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -15937,6 +19863,9 @@ func (m *UpdateClusterResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -15966,7 +19895,7 @@ func (m *GetSecretRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -15994,7 +19923,7 @@ func (m *GetSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16004,6 +19933,9 @@ func (m *GetSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16016,6 +19948,9 @@ func (m *GetSecretRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16045,7 +19980,7 @@ func (m *GetSecretResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16073,7 +20008,7 @@ func (m *GetSecretResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16082,6 +20017,9 @@ func (m *GetSecretResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16099,6 +20037,9 @@ func (m *GetSecretResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16128,7 +20069,7 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16156,7 +20097,7 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16166,6 +20107,9 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16185,7 +20129,7 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16194,6 +20138,9 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16218,7 +20165,7 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16227,6 +20174,9 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16244,6 +20194,9 @@ func (m *UpdateSecretRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16273,7 +20226,7 @@ func (m *UpdateSecretResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16301,7 +20254,7 @@ func (m *UpdateSecretResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16310,6 +20263,9 @@ func (m *UpdateSecretResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16327,6 +20283,9 @@ func (m *UpdateSecretResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16356,7 +20315,7 @@ func (m *ListSecretsRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16384,7 +20343,7 @@ func (m *ListSecretsRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16393,6 +20352,9 @@ func (m *ListSecretsRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16410,6 +20372,9 @@ func (m *ListSecretsRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16439,7 +20404,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16467,7 +20432,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16477,6 +20442,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16496,7 +20464,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16506,6 +20474,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16525,7 +20496,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16534,6 +20505,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16554,7 +20528,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -16571,7 +20545,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -16581,6 +20555,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -16597,7 +20574,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -16607,6 +20584,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -16643,7 +20623,7 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16653,6 +20633,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16665,6 +20648,9 @@ func (m *ListSecretsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16694,7 +20680,7 @@ func (m *ListSecretsResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16722,7 +20708,7 @@ func (m *ListSecretsResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16731,6 +20717,9 @@ func (m *ListSecretsResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16746,6 +20735,9 @@ func (m *ListSecretsResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16775,7 +20767,7 @@ func (m *CreateSecretRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16803,7 +20795,7 @@ func (m *CreateSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16812,6 +20804,9 @@ func (m *CreateSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16829,6 +20824,9 @@ func (m *CreateSecretRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16858,7 +20856,7 @@ func (m *CreateSecretResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16886,7 +20884,7 @@ func (m *CreateSecretResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16895,6 +20893,9 @@ func (m *CreateSecretResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16912,6 +20913,9 @@ func (m *CreateSecretResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -16941,7 +20945,7 @@ func (m *RemoveSecretRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -16969,7 +20973,7 @@ func (m *RemoveSecretRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -16979,6 +20983,9 @@ func (m *RemoveSecretRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -16991,6 +20998,9 @@ func (m *RemoveSecretRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17020,7 +21030,7 @@ func (m *RemoveSecretResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17041,6 +21051,9 @@ func (m *RemoveSecretResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17070,7 +21083,7 @@ func (m *GetConfigRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17098,7 +21111,7 @@ func (m *GetConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17108,6 +21121,9 @@ func (m *GetConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17120,6 +21136,9 @@ func (m *GetConfigRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17149,7 +21168,7 @@ func (m *GetConfigResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17177,7 +21196,7 @@ func (m *GetConfigResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17186,6 +21205,9 @@ func (m *GetConfigResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17203,6 +21225,9 @@ func (m *GetConfigResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17232,7 +21257,7 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17260,7 +21285,7 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17270,6 +21295,9 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17289,7 +21317,7 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17298,6 +21326,9 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17322,7 +21353,7 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17331,6 +21362,9 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17348,6 +21382,9 @@ func (m *UpdateConfigRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17377,7 +21414,7 @@ func (m *UpdateConfigResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17405,7 +21442,7 @@ func (m *UpdateConfigResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17414,6 +21451,9 @@ func (m *UpdateConfigResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17431,6 +21471,9 @@ func (m *UpdateConfigResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17460,7 +21503,7 @@ func (m *ListConfigsRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17488,7 +21531,7 @@ func (m *ListConfigsRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17497,6 +21540,9 @@ func (m *ListConfigsRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17514,6 +21560,9 @@ func (m *ListConfigsRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17543,7 +21592,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17571,7 +21620,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17581,6 +21630,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17600,7 +21652,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17610,6 +21662,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17629,7 +21684,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17638,6 +21693,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17658,7 +21716,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -17675,7 +21733,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -17685,6 +21743,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -17701,7 +21762,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -17711,6 +21772,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -17747,7 +21811,7 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17757,6 +21821,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17769,6 +21836,9 @@ func (m *ListConfigsRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17798,7 +21868,7 @@ func (m *ListConfigsResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17826,7 +21896,7 @@ func (m *ListConfigsResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17835,6 +21905,9 @@ func (m *ListConfigsResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17850,6 +21923,9 @@ func (m *ListConfigsResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17879,7 +21955,7 @@ func (m *CreateConfigRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17907,7 +21983,7 @@ func (m *CreateConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17916,6 +21992,9 @@ func (m *CreateConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -17933,6 +22012,9 @@ func (m *CreateConfigRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -17962,7 +22044,7 @@ func (m *CreateConfigResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -17990,7 +22072,7 @@ func (m *CreateConfigResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -17999,6 +22081,9 @@ func (m *CreateConfigResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18016,6 +22101,9 @@ func (m *CreateConfigResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18045,7 +22133,7 @@ func (m *RemoveConfigRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18073,7 +22161,7 @@ func (m *RemoveConfigRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18083,6 +22171,9 @@ func (m *RemoveConfigRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18095,6 +22186,9 @@ func (m *RemoveConfigRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18124,7 +22218,7 @@ func (m *RemoveConfigResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18145,6 +22239,9 @@ func (m *RemoveConfigResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18174,7 +22271,7 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18202,7 +22299,7 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18211,6 +22308,9 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18235,7 +22335,7 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18245,6 +22345,9 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18257,6 +22360,9 @@ func (m *CreateExtensionRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18286,7 +22392,7 @@ func (m *CreateExtensionResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18314,7 +22420,7 @@ func (m *CreateExtensionResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18323,6 +22429,9 @@ func (m *CreateExtensionResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18340,6 +22449,9 @@ func (m *CreateExtensionResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18369,7 +22481,7 @@ func (m *RemoveExtensionRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18397,7 +22509,7 @@ func (m *RemoveExtensionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18407,6 +22519,9 @@ func (m *RemoveExtensionRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18419,6 +22534,9 @@ func (m *RemoveExtensionRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18448,7 +22566,7 @@ func (m *RemoveExtensionResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18469,6 +22587,9 @@ func (m *RemoveExtensionResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18498,7 +22619,7 @@ func (m *GetExtensionRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18526,7 +22647,7 @@ func (m *GetExtensionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18536,6 +22657,9 @@ func (m *GetExtensionRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18548,6 +22672,9 @@ func (m *GetExtensionRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18577,7 +22704,7 @@ func (m *GetExtensionResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18605,7 +22732,7 @@ func (m *GetExtensionResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18614,6 +22741,9 @@ func (m *GetExtensionResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18631,6 +22761,9 @@ func (m *GetExtensionResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18660,7 +22793,7 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18688,7 +22821,7 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18697,6 +22830,9 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18721,7 +22857,7 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18731,6 +22867,9 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18750,7 +22889,7 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18759,11 +22898,14 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Payload == nil {
-				m.Payload = &google_protobuf4.Any{}
+				m.Payload = &types.Any{}
 			}
 			if err := m.Payload.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -18776,6 +22918,9 @@ func (m *CreateResourceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18805,7 +22950,7 @@ func (m *CreateResourceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18833,7 +22978,7 @@ func (m *CreateResourceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18842,6 +22987,9 @@ func (m *CreateResourceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18859,6 +23007,9 @@ func (m *CreateResourceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18888,7 +23039,7 @@ func (m *RemoveResourceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18916,7 +23067,7 @@ func (m *RemoveResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -18926,6 +23077,9 @@ func (m *RemoveResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -18938,6 +23092,9 @@ func (m *RemoveResourceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -18967,7 +23124,7 @@ func (m *RemoveResourceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -18988,6 +23145,9 @@ func (m *RemoveResourceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19017,7 +23177,7 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19045,7 +23205,7 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19055,6 +23215,9 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19074,7 +23237,7 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19083,6 +23246,9 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19107,7 +23273,7 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19116,6 +23282,9 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19140,7 +23309,7 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19149,11 +23318,14 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Payload == nil {
-				m.Payload = &google_protobuf4.Any{}
+				m.Payload = &types.Any{}
 			}
 			if err := m.Payload.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -19166,6 +23338,9 @@ func (m *UpdateResourceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19195,7 +23370,7 @@ func (m *UpdateResourceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19223,7 +23398,7 @@ func (m *UpdateResourceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19232,6 +23407,9 @@ func (m *UpdateResourceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19249,6 +23427,9 @@ func (m *UpdateResourceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19278,7 +23459,7 @@ func (m *GetResourceRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19306,7 +23487,7 @@ func (m *GetResourceRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19316,6 +23497,9 @@ func (m *GetResourceRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19328,6 +23512,9 @@ func (m *GetResourceRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19357,7 +23544,7 @@ func (m *GetResourceResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19385,7 +23572,7 @@ func (m *GetResourceResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19394,6 +23581,9 @@ func (m *GetResourceResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19411,6 +23601,9 @@ func (m *GetResourceResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19440,7 +23633,7 @@ func (m *ListResourcesRequest) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19468,7 +23661,7 @@ func (m *ListResourcesRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19477,6 +23670,9 @@ func (m *ListResourcesRequest) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19494,6 +23690,9 @@ func (m *ListResourcesRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19523,7 +23722,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19551,7 +23750,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19561,6 +23760,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19580,7 +23782,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19590,6 +23792,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19609,7 +23814,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19618,6 +23823,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19638,7 +23846,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					wire |= (uint64(b) & 0x7F) << shift
+					wire |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -19655,7 +23863,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= (uint64(b) & 0x7F) << shift
+						stringLenmapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -19665,6 +23873,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapkey > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -19681,7 +23892,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= (uint64(b) & 0x7F) << shift
+						stringLenmapvalue |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -19691,6 +23902,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 						return ErrInvalidLengthControl
 					}
 					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthControl
+					}
 					if postStringIndexmapvalue > l {
 						return io.ErrUnexpectedEOF
 					}
@@ -19727,7 +23941,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19737,6 +23951,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19756,7 +23973,7 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19766,6 +23983,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19778,6 +23998,9 @@ func (m *ListResourcesRequest_Filters) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19807,7 +24030,7 @@ func (m *ListResourcesResponse) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -19835,7 +24058,7 @@ func (m *ListResourcesResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -19844,6 +24067,9 @@ func (m *ListResourcesResponse) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthControl
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthControl
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -19859,6 +24085,9 @@ func (m *ListResourcesResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthControl
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthControl
 			}
 			if (iNdEx + skippy) > l {
@@ -19927,8 +24156,11 @@ func skipControl(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthControl
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthControl
 			}
 			return iNdEx, nil
@@ -19959,6 +24191,9 @@ func skipControl(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthControl
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -19977,175 +24212,3 @@ var (
 	ErrInvalidLengthControl = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowControl   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("github.com/docker/swarmkit/api/control.proto", fileDescriptorControl) }
-
-var fileDescriptorControl = []byte{
-	// 2641 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x5a, 0xc9, 0x6f, 0x1b, 0xc9,
-	0xf5, 0x36, 0x29, 0x4a, 0x22, 0x1f, 0xb5, 0xb9, 0x2c, 0xdb, 0x1c, 0x8e, 0x7f, 0x92, 0xd1, 0xfe,
-	0xd9, 0xa6, 0x1d, 0x87, 0x9c, 0xa1, 0x33, 0x19, 0xc7, 0x33, 0x93, 0xc4, 0xb2, 0xbc, 0xd0, 0x8b,
-	0x6c, 0xb4, 0x6c, 0x23, 0x97, 0x40, 0x68, 0x91, 0x25, 0x4d, 0x9b, 0x54, 0x37, 0xd3, 0xdd, 0xf4,
-	0x58, 0x08, 0x12, 0x64, 0x71, 0xfe, 0x84, 0x00, 0x41, 0x0e, 0x01, 0x72, 0x0a, 0x90, 0x43, 0x0e,
-	0x39, 0xe5, 0x90, 0x3f, 0xc0, 0xc8, 0x29, 0xc7, 0x9c, 0x94, 0x8c, 0x80, 0x00, 0x39, 0xe5, 0x9a,
-	0x63, 0x82, 0xda, 0x7a, 0x29, 0x56, 0x2f, 0x5c, 0x00, 0xcf, 0x49, 0x62, 0xf5, 0xf7, 0xea, 0xbd,
-	0xaa, 0xf7, 0xd5, 0x57, 0xd5, 0xaf, 0x1a, 0xae, 0xed, 0x9b, 0xde, 0xe7, 0x83, 0xdd, 0x7a, 0xdb,
-	0x3e, 0x68, 0x74, 0xec, 0x76, 0x17, 0x3b, 0x0d, 0xf7, 0x0b, 0xc3, 0x39, 0xe8, 0x9a, 0x5e, 0xc3,
-	0xe8, 0x9b, 0x8d, 0xb6, 0x6d, 0x79, 0x8e, 0xdd, 0xab, 0xf7, 0x1d, 0xdb, 0xb3, 0x11, 0x62, 0x90,
-	0xba, 0x80, 0xd4, 0x5f, 0x7d, 0x58, 0xbd, 0x9a, 0xd2, 0x83, 0xdb, 0xc7, 0x6d, 0x97, 0xd9, 0x57,
-	0xd3, 0xbc, 0xd9, 0xbb, 0x2f, 0x71, 0xdb, 0x13, 0xe8, 0xb4, 0x9e, 0xbd, 0xc3, 0x3e, 0x16, 0xd8,
-	0xd5, 0x7d, 0x7b, 0xdf, 0xa6, 0xff, 0x36, 0xc8, 0x7f, 0xbc, 0xf5, 0xbd, 0x7d, 0xdb, 0xde, 0xef,
-	0xe1, 0x06, 0xfd, 0xb5, 0x3b, 0xd8, 0x6b, 0x18, 0xd6, 0x21, 0x7f, 0xf4, 0x71, 0x42, 0xe7, 0x3e,
-	0xbc, 0xdf, 0x1b, 0xec, 0x9b, 0x16, 0xff, 0xc3, 0x0c, 0xb5, 0x8f, 0x60, 0xe9, 0x1e, 0xf6, 0xb6,
-	0xec, 0x0e, 0xd6, 0xf1, 0x0f, 0x06, 0xd8, 0xf5, 0xd0, 0x05, 0x98, 0xb7, 0xec, 0x0e, 0xde, 0x31,
-	0x3b, 0x95, 0xdc, 0xf9, 0x5c, 0xad, 0xb4, 0x01, 0xc7, 0x47, 0xeb, 0x73, 0x04, 0xd1, 0xda, 0xd4,
-	0xe7, 0xc8, 0xa3, 0x56, 0x47, 0xfb, 0x0e, 0x2c, 0xfb, 0x66, 0x6e, 0xdf, 0xb6, 0x5c, 0x8c, 0xae,
-	0x41, 0x81, 0x3c, 0xa4, 0x46, 0xe5, 0x66, 0xa5, 0x3e, 0x3c, 0xb9, 0x75, 0x8a, 0xa7, 0x28, 0xed,
-	0xcd, 0x2c, 0xac, 0x3c, 0x32, 0x5d, 0xda, 0x85, 0x2b, 0x5c, 0xdf, 0x85, 0xf9, 0x3d, 0xb3, 0xe7,
-	0x61, 0xc7, 0xe5, 0xbd, 0x5c, 0x53, 0xf5, 0x22, 0x9b, 0xd5, 0xef, 0x32, 0x1b, 0x5d, 0x18, 0x57,
-	0x7f, 0x57, 0x80, 0x79, 0xde, 0x88, 0x56, 0x61, 0xd6, 0x32, 0x0e, 0x30, 0xe9, 0x71, 0xa6, 0x56,
-	0xd2, 0xd9, 0x0f, 0xd4, 0x80, 0xb2, 0xd9, 0xd9, 0xe9, 0x3b, 0x78, 0xcf, 0x7c, 0x8d, 0xdd, 0x4a,
-	0x9e, 0x3c, 0xdb, 0x58, 0x3a, 0x3e, 0x5a, 0x87, 0xd6, 0xe6, 0x53, 0xde, 0xaa, 0x83, 0xd9, 0x11,
-	0xff, 0xa3, 0xa7, 0x30, 0xd7, 0x33, 0x76, 0x71, 0xcf, 0xad, 0xcc, 0x9c, 0x9f, 0xa9, 0x95, 0x9b,
-	0x37, 0x46, 0x89, 0xac, 0xfe, 0x88, 0x9a, 0xde, 0xb1, 0x3c, 0xe7, 0x50, 0xe7, 0xfd, 0xa0, 0xc7,
-	0x50, 0x3e, 0xc0, 0x07, 0xbb, 0xd8, 0x71, 0x3f, 0x37, 0xfb, 0x6e, 0xa5, 0x70, 0x7e, 0xa6, 0xb6,
-	0xd4, 0xbc, 0x1c, 0x37, 0x6d, 0xdb, 0x7d, 0xdc, 0xae, 0x3f, 0xf6, 0xf1, 0x1b, 0xf9, 0x95, 0x13,
-	0x7a, 0xd8, 0x1e, 0x7d, 0x13, 0x66, 0x1d, 0xbb, 0x87, 0xdd, 0xca, 0x2c, 0xed, 0xe8, 0x5c, 0xec,
-	0xfc, 0xdb, 0x3d, 0x4c, 0xad, 0x19, 0x1c, 0x5d, 0x80, 0x45, 0x32, 0x25, 0xc1, 0x5c, 0xcc, 0xd1,
-	0x79, 0x5a, 0x20, 0x8d, 0xfe, 0xe8, 0xbf, 0x0f, 0x65, 0xca, 0x09, 0x3e, 0x05, 0xf3, 0x74, 0x0a,
-	0x3e, 0x1d, 0x69, 0x0a, 0x48, 0x63, 0x78, 0x1a, 0xc0, 0xf2, 0x1b, 0xaa, 0xdf, 0x82, 0x72, 0xe8,
-	0x11, 0x5a, 0x81, 0x99, 0x2e, 0x3e, 0x64, 0xec, 0xd3, 0xc9, 0xbf, 0x24, 0x89, 0xaf, 0x8c, 0xde,
-	0x00, 0x57, 0xf2, 0xb4, 0x8d, 0xfd, 0xb8, 0x99, 0xbf, 0x91, 0xab, 0x7e, 0x06, 0xcb, 0x52, 0xcf,
-	0xa3, 0x98, 0x6b, 0xb7, 0xe1, 0x64, 0x28, 0x62, 0xce, 0xe4, 0x3a, 0xcc, 0x92, 0xe0, 0x18, 0x65,
-	0x92, 0xa8, 0xcc, 0x60, 0xda, 0xef, 0x73, 0x70, 0xf2, 0x79, 0xbf, 0x63, 0x78, 0x78, 0xd4, 0x75,
-	0x84, 0xbe, 0x0d, 0x0b, 0x14, 0xf4, 0x0a, 0x3b, 0xae, 0x69, 0x5b, 0x34, 0xc0, 0x72, 0xf3, 0x7d,
-	0x95, 0xc7, 0x17, 0x0c, 0xa2, 0xd3, 0x4c, 0xf0, 0x1f, 0xe8, 0x03, 0x28, 0x10, 0x45, 0xaa, 0xcc,
-	0x50, 0xbb, 0x73, 0x49, 0xec, 0xd1, 0x29, 0x52, 0xdb, 0x00, 0x14, 0x8e, 0x75, 0xac, 0xc5, 0xbb,
-	0x05, 0x27, 0x75, 0x7c, 0x60, 0xbf, 0x1a, 0x7d, 0xbc, 0xab, 0x30, 0xbb, 0x67, 0x3b, 0x6d, 0x96,
-	0x89, 0xa2, 0xce, 0x7e, 0x68, 0xab, 0x80, 0xc2, 0xfd, 0xb1, 0x98, 0xb8, 0x34, 0x3d, 0x33, 0xdc,
-	0x6e, 0xc8, 0x85, 0x67, 0xb8, 0x5d, 0xc9, 0x05, 0x41, 0x10, 0x17, 0xe4, 0x91, 0x2f, 0x4d, 0xcc,
-	0x2c, 0x18, 0x1d, 0x79, 0x98, 0x34, 0x3a, 0x8a, 0xa7, 0x28, 0xed, 0x86, 0x18, 0xdd, 0xc8, 0xae,
-	0xfd, 0x71, 0x84, 0xbd, 0x6b, 0x7f, 0x2e, 0x30, 0xa9, 0x23, 0x8d, 0x63, 0x48, 0x5d, 0xd8, 0x6c,
-	0x58, 0xea, 0xfe, 0x3e, 0xf3, 0xee, 0xa4, 0x4e, 0x15, 0x99, 0x52, 0xea, 0x1a, 0x50, 0x76, 0xb1,
-	0xf3, 0xca, 0x6c, 0x13, 0x76, 0x30, 0xa9, 0xe3, 0x21, 0x6c, 0xb3, 0xe6, 0xd6, 0xa6, 0xab, 0x03,
-	0x87, 0xb4, 0x3a, 0x2e, 0xba, 0x04, 0x45, 0xce, 0x25, 0xa6, 0x67, 0xa5, 0x8d, 0xf2, 0xf1, 0xd1,
-	0xfa, 0x3c, 0x23, 0x93, 0xab, 0xcf, 0x33, 0x36, 0xb9, 0xe8, 0x3e, 0x2c, 0x75, 0xb0, 0x6b, 0x3a,
-	0xb8, 0xb3, 0xe3, 0x7a, 0x86, 0xc7, 0xd5, 0x6b, 0xa9, 0xf9, 0x7f, 0x71, 0x29, 0xde, 0x26, 0x28,
-	0x2a, 0x7f, 0x8b, 0xdc, 0x90, 0xb6, 0x28, 0x64, 0x70, 0x5e, 0x21, 0x83, 0xe7, 0x00, 0x06, 0xfd,
-	0x1d, 0xcf, 0xde, 0x21, 0xeb, 0xa7, 0x52, 0xa4, 0x14, 0x2e, 0x0e, 0xfa, 0xcf, 0xec, 0x4d, 0xc3,
-	0xc3, 0xa8, 0x0a, 0x45, 0x67, 0x60, 0x79, 0x26, 0xc9, 0x40, 0x89, 0x5a, 0xfb, 0xbf, 0x27, 0x50,
-	0x38, 0x21, 0x51, 0x7c, 0xb2, 0x03, 0x89, 0x22, 0x9c, 0x4b, 0x94, 0x28, 0x4a, 0x42, 0x06, 0xd3,
-	0x1e, 0xc2, 0xea, 0x6d, 0x07, 0x1b, 0x1e, 0xe6, 0x13, 0x2e, 0x68, 0x78, 0x9d, 0xeb, 0x07, 0xe3,
-	0xe0, 0xba, 0xaa, 0x1b, 0x6e, 0x11, 0x92, 0x90, 0x2d, 0x38, 0x2d, 0x75, 0xc6, 0xa3, 0xfa, 0x08,
-	0xe6, 0x79, 0x12, 0x79, 0x87, 0xef, 0x27, 0x74, 0xa8, 0x0b, 0xac, 0xf6, 0x12, 0x4e, 0xde, 0xc3,
-	0x9e, 0x14, 0xd9, 0x35, 0x80, 0x80, 0x33, 0x7c, 0xcd, 0x2d, 0x1e, 0x1f, 0xad, 0x97, 0x7c, 0xca,
-	0xe8, 0x25, 0x9f, 0x31, 0xe8, 0x32, 0x2c, 0x9b, 0x96, 0x8b, 0x1d, 0x6f, 0xa7, 0x83, 0xf7, 0x8c,
-	0x41, 0xcf, 0x73, 0xb9, 0xc2, 0x2c, 0xb1, 0xe6, 0x4d, 0xde, 0xaa, 0x3d, 0x04, 0x14, 0xf6, 0x35,
-	0x59, 0xe0, 0x7f, 0xcc, 0xc3, 0x2a, 0x13, 0xd3, 0x89, 0x82, 0xdf, 0x84, 0x65, 0x81, 0x1e, 0x61,
-	0x1f, 0x58, 0xe2, 0x36, 0x62, 0x2b, 0xb8, 0x1e, 0xd9, 0x0a, 0xb2, 0xa5, 0x12, 0x3d, 0x86, 0xa2,
-	0x63, 0xf7, 0x7a, 0xbb, 0x46, 0xbb, 0x5b, 0x29, 0x9c, 0xcf, 0xd5, 0x96, 0x9a, 0x1f, 0xaa, 0x0c,
-	0x55, 0x83, 0xac, 0xeb, 0xdc, 0x50, 0xf7, 0xbb, 0xd0, 0x34, 0x28, 0x8a, 0x56, 0x54, 0x84, 0xc2,
-	0xd6, 0x93, 0xad, 0x3b, 0x2b, 0x27, 0xd0, 0x02, 0x14, 0x9f, 0xea, 0x77, 0x5e, 0xb4, 0x9e, 0x3c,
-	0xdf, 0x5e, 0xc9, 0x11, 0xf6, 0x48, 0xdd, 0x4d, 0x96, 0x84, 0x4d, 0x58, 0x65, 0xa2, 0x3b, 0x49,
-	0x0e, 0xb4, 0xb3, 0x70, 0x5a, 0xea, 0x85, 0xab, 0xf7, 0x9b, 0x19, 0x38, 0x45, 0xd6, 0x1f, 0x6f,
-	0xf7, 0x05, 0xbc, 0x25, 0x0b, 0x78, 0x23, 0x4e, 0x26, 0x25, 0xcb, 0x61, 0x0d, 0xff, 0x6d, 0x7e,
-	0xea, 0x1a, 0xbe, 0x2d, 0x69, 0xf8, 0x27, 0x23, 0x06, 0xa7, 0x94, 0xf1, 0x21, 0x8d, 0x2c, 0x28,
-	0x34, 0x32, 0xac, 0x82, 0xb3, 0xd3, 0x53, 0xc1, 0x27, 0xb0, 0x1a, 0x0d, 0x97, 0x93, 0xe6, 0x63,
-	0x28, 0xf2, 0x24, 0x0a, 0x2d, 0x4c, 0x64, 0x8d, 0x0f, 0x0e, 0x14, 0x71, 0x0b, 0x7b, 0x5f, 0xd8,
-	0x4e, 0x77, 0x04, 0x45, 0xe4, 0x16, 0x2a, 0x45, 0xf4, 0x3b, 0x0b, 0x38, 0x6d, 0xb1, 0xa6, 0x24,
-	0x4e, 0x0b, 0x2b, 0x81, 0xd5, 0x9e, 0x53, 0x45, 0x94, 0x22, 0x43, 0x50, 0x20, 0x33, 0xcd, 0xe7,
-	0x8b, 0xfe, 0x4f, 0x48, 0xce, 0x6d, 0x08, 0xc9, 0xf3, 0x01, 0xc9, 0xb9, 0x2d, 0x21, 0x39, 0x07,
-	0xb4, 0x3a, 0x5c, 0xfc, 0xa6, 0x14, 0xe3, 0xf7, 0xc4, 0xba, 0x9b, 0x7a, 0x98, 0xfe, 0x5a, 0x94,
-	0x22, 0xd5, 0xfe, 0x95, 0x67, 0x6b, 0x91, 0xb7, 0x8f, 0xb1, 0x16, 0x25, 0xcb, 0xe1, 0xb5, 0xf8,
-	0x8b, 0x77, 0xb8, 0x16, 0x63, 0x82, 0x1b, 0x7b, 0x2d, 0x4e, 0x61, 0xbd, 0x05, 0x21, 0x05, 0xeb,
-	0x8d, 0x27, 0x2a, 0x71, 0xbd, 0x89, 0xcc, 0xf9, 0x60, 0xed, 0x16, 0xa5, 0xf4, 0xed, 0xde, 0xc0,
-	0xf5, 0xb0, 0x13, 0xd2, 0xe8, 0x36, 0x6b, 0x91, 0x34, 0x9a, 0xe3, 0x08, 0x2f, 0x38, 0xc0, 0xa7,
-	0xaf, 0xdf, 0x45, 0x40, 0x5f, 0x0e, 0x49, 0xa2, 0xaf, 0xb0, 0x12, 0x58, 0x9f, 0x4b, 0xfc, 0xc1,
-	0x18, 0x5c, 0x92, 0x2c, 0xbf, 0x5a, 0x5c, 0x8a, 0x09, 0xee, 0x5d, 0x72, 0x29, 0x08, 0x29, 0xe0,
-	0x12, 0xcf, 0x46, 0x22, 0x97, 0x44, 0xea, 0x7c, 0xb0, 0xf6, 0xcb, 0x1c, 0x94, 0x1f, 0xe2, 0x43,
-	0xdd, 0xf6, 0x0c, 0x8f, 0x1c, 0x7d, 0xae, 0xc2, 0x49, 0x42, 0x32, 0xec, 0xec, 0xbc, 0xb4, 0x4d,
-	0x6b, 0xc7, 0xb3, 0xbb, 0xd8, 0xa2, 0xa1, 0x15, 0xf5, 0x65, 0xf6, 0xe0, 0x81, 0x6d, 0x5a, 0xcf,
-	0x48, 0x33, 0xba, 0x06, 0xe8, 0xc0, 0xb0, 0x8c, 0xfd, 0x28, 0x98, 0x1d, 0x16, 0x57, 0xf8, 0x13,
-	0x25, 0x7a, 0x60, 0xf5, 0xec, 0x76, 0x77, 0x87, 0x8c, 0x7a, 0x26, 0x82, 0x7e, 0x4e, 0x1f, 0x3c,
-	0xc4, 0x87, 0xda, 0xcf, 0xfc, 0xf3, 0xe0, 0x24, 0x3c, 0x27, 0xe7, 0x41, 0x81, 0x1e, 0xe5, 0x3c,
-	0xc8, 0x6d, 0x46, 0x38, 0x0f, 0x72, 0xef, 0xa1, 0xf3, 0xe0, 0x2d, 0x72, 0x1e, 0x64, 0xb3, 0x4a,
-	0xcf, 0x83, 0x31, 0x86, 0xa1, 0xc9, 0xdf, 0x28, 0xbc, 0x3d, 0x5a, 0x3f, 0xa1, 0xfb, 0x66, 0xc1,
-	0xf9, 0x6e, 0x4a, 0x0b, 0xf5, 0x33, 0x58, 0xa1, 0x27, 0xf6, 0xb6, 0x83, 0x3d, 0x31, 0x9f, 0x57,
-	0xa0, 0xe4, 0xd2, 0x86, 0x60, 0x3a, 0x17, 0x8e, 0x8f, 0xd6, 0x8b, 0x0c, 0xd5, 0xda, 0x24, 0xfb,
-	0x3c, 0xfd, 0xaf, 0xa3, 0xdd, 0xe3, 0x2f, 0x17, 0xcc, 0x9c, 0x87, 0xd2, 0x84, 0x39, 0x06, 0xe0,
-	0x91, 0x54, 0xd5, 0x67, 0x06, 0x6a, 0xc3, 0x91, 0xda, 0x9f, 0x72, 0x70, 0x4a, 0x1c, 0x5c, 0xc7,
-	0x8b, 0x05, 0x6d, 0xc0, 0x12, 0x87, 0x8e, 0x90, 0xd7, 0x45, 0x66, 0x22, 0xd2, 0xda, 0x8c, 0xa4,
-	0x75, 0x2d, 0x3e, 0xf0, 0xd0, 0xf1, 0xe4, 0x41, 0xf0, 0x9a, 0x32, 0xf1, 0x34, 0xfc, 0x33, 0x0f,
-	0x88, 0x9d, 0xc4, 0xc8, 0x4f, 0x5f, 0x36, 0xef, 0xcb, 0xb2, 0x59, 0x8f, 0x3f, 0x71, 0x86, 0x0d,
-	0x87, 0x55, 0xf3, 0xcd, 0xf4, 0x55, 0x53, 0x97, 0x54, 0xf3, 0xe6, 0x68, 0xb1, 0xbd, 0x13, 0xd1,
-	0x7c, 0x28, 0x5e, 0x3b, 0x78, 0x44, 0x3c, 0x65, 0xdf, 0x20, 0x2f, 0x49, 0xb4, 0x89, 0x4b, 0x66,
-	0x52, 0xce, 0x04, 0x54, 0x6b, 0xc1, 0x29, 0xf1, 0xc6, 0x1e, 0xa6, 0x6e, 0x33, 0x72, 0xd6, 0xcd,
-	0xcc, 0xa5, 0x68, 0x57, 0x13, 0x70, 0xe9, 0xbb, 0x70, 0x4a, 0xbc, 0x74, 0x8d, 0xb9, 0xba, 0xcf,
-	0x04, 0x2f, 0x7f, 0xe1, 0x68, 0xb8, 0x68, 0xdc, 0xb6, 0xad, 0x3d, 0x73, 0x3f, 0xd4, 0x6d, 0x9b,
-	0x36, 0x48, 0xdd, 0x32, 0x14, 0xe9, 0x96, 0x3d, 0xf6, 0x45, 0x43, 0x98, 0x07, 0x23, 0x64, 0x80,
-	0xa4, 0x11, 0x72, 0x1b, 0x8e, 0x0c, 0x89, 0xc6, 0xb8, 0xb1, 0x10, 0xd1, 0xe0, 0xd0, 0x51, 0x44,
-	0x83, 0x99, 0x8c, 0x20, 0x1a, 0xcc, 0xb3, 0x4a, 0x34, 0xa6, 0x30, 0x0d, 0x42, 0x34, 0x58, 0xf3,
-	0x18, 0xa2, 0x11, 0x35, 0xfc, 0x6a, 0x89, 0x86, 0x3a, 0xb6, 0x77, 0x29, 0x1a, 0x7e, 0x44, 0x81,
-	0x68, 0xb0, 0x44, 0x24, 0x8a, 0x06, 0xcf, 0x99, 0x80, 0x06, 0xa2, 0x11, 0xa5, 0x6e, 0x06, 0xd1,
-	0x50, 0x71, 0x29, 0xda, 0xd5, 0x04, 0x5c, 0xf2, 0x45, 0x63, 0xec, 0xd5, 0xed, 0x8b, 0x46, 0x34,
-	0x1a, 0xed, 0x47, 0x70, 0x86, 0x45, 0x79, 0xe7, 0xb5, 0x87, 0x2d, 0xba, 0x8e, 0x78, 0xe7, 0xb7,
-	0xa0, 0x6c, 0x58, 0x16, 0x3f, 0xe1, 0xb8, 0x49, 0xb5, 0x81, 0x5b, 0x01, 0x4c, 0x0f, 0xdb, 0xa0,
-	0xf3, 0x50, 0xee, 0x60, 0xb7, 0xed, 0x98, 0x7d, 0x4f, 0xac, 0xe1, 0x92, 0x1e, 0x6e, 0xd2, 0x5e,
-	0xc0, 0xd9, 0x21, 0xf7, 0x7c, 0x9e, 0x3e, 0x81, 0x12, 0x16, 0x8d, 0xdc, 0xbb, 0xb2, 0xc4, 0x1d,
-	0x58, 0x06, 0x78, 0xed, 0x11, 0x9c, 0x61, 0xc3, 0x1d, 0x1a, 0x56, 0x13, 0x16, 0x7c, 0x58, 0x30,
-	0x6d, 0xcb, 0xc7, 0x47, 0xeb, 0x65, 0x1f, 0xdb, 0xda, 0xd4, 0xcb, 0x3e, 0xa8, 0xd5, 0xd1, 0xde,
-	0x83, 0xb3, 0x43, 0xbd, 0xf1, 0xf9, 0x6b, 0xc1, 0xa9, 0x7b, 0xd8, 0x9b, 0x8a, 0x97, 0x6d, 0x58,
-	0x8d, 0x76, 0x35, 0x8d, 0x89, 0xf8, 0x4d, 0x4e, 0x94, 0x69, 0x74, 0xec, 0xda, 0x03, 0x27, 0xa8,
-	0x15, 0x4e, 0x21, 0xbf, 0x08, 0x0a, 0x5d, 0xd3, 0xe2, 0xc5, 0x0d, 0x9d, 0xfe, 0x8f, 0xea, 0x30,
-	0xdf, 0x37, 0x0e, 0x7b, 0xb6, 0xd1, 0xe1, 0xca, 0xbb, 0x5a, 0x67, 0x57, 0xf8, 0x75, 0x71, 0x27,
-	0x5f, 0xbf, 0x65, 0x1d, 0xea, 0x02, 0xa4, 0xe9, 0x82, 0x80, 0x41, 0x7c, 0x7c, 0xdc, 0x37, 0xa0,
-	0xe8, 0xf0, 0x36, 0x1e, 0x9d, 0xf2, 0xae, 0xcf, 0xb7, 0xf3, 0xd1, 0xda, 0x7d, 0x51, 0x4c, 0x91,
-	0xc7, 0xdc, 0x80, 0xb2, 0x00, 0x05, 0x59, 0xa1, 0x82, 0x28, 0x90, 0xad, 0x4d, 0x1d, 0x04, 0xa4,
-	0xd5, 0xd1, 0x2a, 0x82, 0x47, 0x72, 0x74, 0xda, 0xcf, 0xf3, 0xe2, 0xcc, 0x3f, 0xa9, 0x13, 0x74,
-	0x17, 0x56, 0x7c, 0x83, 0x11, 0xf6, 0xbb, 0x65, 0x61, 0x24, 0x76, 0x3c, 0x29, 0xa3, 0x33, 0x63,
-	0x64, 0x34, 0x94, 0xbd, 0x42, 0xc6, 0xec, 0xc9, 0x93, 0x30, 0x71, 0xf6, 0xee, 0xd0, 0x92, 0xc7,
-	0xc4, 0xa9, 0x7b, 0x42, 0x57, 0xe6, 0x14, 0xe3, 0xfa, 0x6f, 0x9e, 0xbd, 0xd3, 0x8b, 0x47, 0xfe,
-	0x96, 0xfe, 0x40, 0xde, 0xd2, 0x3f, 0x88, 0xdb, 0x36, 0x65, 0xd3, 0xe1, 0x4d, 0xfd, 0xd7, 0xd3,
-	0xdf, 0xd4, 0x9f, 0x49, 0x9b, 0xfa, 0xa7, 0xa3, 0x46, 0x37, 0x7e, 0x61, 0x5c, 0x08, 0xc4, 0x6c,
-	0x20, 0x10, 0x93, 0x6c, 0xf5, 0xdb, 0x70, 0x5a, 0x8a, 0x93, 0x27, 0xf5, 0x26, 0x94, 0x44, 0x9a,
-	0xc4, 0x76, 0x9f, 0x9c, 0xd5, 0x00, 0xde, 0xfc, 0x8f, 0x06, 0xf3, 0xb7, 0xd9, 0x37, 0x52, 0xc8,
-	0x84, 0x79, 0xfe, 0x89, 0x0f, 0xd2, 0x54, 0xf6, 0xd1, 0xcf, 0x86, 0xaa, 0x17, 0x12, 0x31, 0x5c,
-	0x28, 0x4e, 0xff, 0xe5, 0x0f, 0xff, 0xfe, 0x55, 0x7e, 0x19, 0x16, 0x29, 0xe8, 0xeb, 0xbc, 0x80,
-	0x82, 0x6c, 0x28, 0xf9, 0x5f, 0x61, 0xa0, 0xff, 0xcf, 0xf2, 0x59, 0x49, 0xf5, 0x62, 0x0a, 0x2a,
-	0xd9, 0xa1, 0x03, 0x10, 0x7c, 0x04, 0x81, 0x2e, 0xc6, 0x5f, 0x79, 0x85, 0x47, 0x78, 0x29, 0x0d,
-	0x96, 0xea, 0x33, 0xf8, 0xc8, 0x41, 0xed, 0x73, 0xe8, 0xa3, 0x0a, 0xb5, 0x4f, 0xc5, 0xb7, 0x12,
-	0x31, 0x3e, 0x59, 0x0e, 0x9f, 0x19, 0x6e, 0x37, 0x36, 0x87, 0xa1, 0x8f, 0x1c, 0x62, 0x73, 0x18,
-	0xf9, 0x9c, 0x21, 0x39, 0x87, 0xf4, 0x9a, 0x3a, 0x3e, 0x87, 0xe1, 0x4f, 0x06, 0xe2, 0x73, 0x18,
-	0xb9, 0xeb, 0x4e, 0x9d, 0x4f, 0x3a, 0xbc, 0x84, 0xf9, 0x0c, 0x8f, 0xf0, 0x52, 0x1a, 0x2c, 0xd5,
-	0x67, 0x70, 0x7b, 0xac, 0xf6, 0x39, 0x74, 0x93, 0xad, 0xf6, 0x39, 0x7c, 0x09, 0x1d, 0xe7, 0xf3,
-	0x35, 0x2c, 0x84, 0x6f, 0xbe, 0xd0, 0xe5, 0x8c, 0x57, 0x79, 0xd5, 0x5a, 0x3a, 0x30, 0xd9, 0xf3,
-	0x0f, 0x61, 0x31, 0x72, 0xcf, 0x8f, 0x94, 0x3d, 0xaa, 0xbe, 0x2b, 0xa8, 0x5e, 0xc9, 0x80, 0x4c,
-	0x75, 0x1e, 0xb9, 0x26, 0x56, 0x3b, 0x57, 0x5d, 0x4c, 0xab, 0x9d, 0x2b, 0xef, 0x9c, 0x13, 0x9c,
-	0x47, 0x6e, 0x83, 0xd5, 0xce, 0x55, 0xd7, 0xce, 0x6a, 0xe7, 0xea, 0xab, 0xe5, 0x44, 0x92, 0xf1,
-	0x1b, 0x94, 0x58, 0x92, 0x45, 0x6f, 0xdd, 0x62, 0x49, 0x26, 0x5f, 0xa1, 0x25, 0x93, 0x4c, 0x5c,
-	0xf7, 0xc4, 0x93, 0x4c, 0xba, 0xa3, 0x8a, 0x27, 0x99, 0x7c, 0x73, 0x94, 0x4a, 0x32, 0x31, 0xe0,
-	0x04, 0x92, 0x49, 0x63, 0xbe, 0x92, 0x01, 0x99, 0x31, 0xcf, 0x89, 0xce, 0x55, 0xd7, 0x9c, 0x49,
-	0x79, 0xce, 0xe8, 0x9c, 0xe5, 0x99, 0xd7, 0xbb, 0x63, 0xf3, 0x1c, 0xbd, 0x49, 0x88, 0xcd, 0xb3,
-	0x54, 0x6c, 0x4f, 0xc9, 0xb3, 0xb8, 0x8a, 0x89, 0xcf, 0xb3, 0x74, 0x7f, 0x14, 0x9f, 0x67, 0xf9,
-	0x56, 0x27, 0x75, 0x3d, 0x8b, 0x01, 0x27, 0xac, 0x67, 0x69, 0xcc, 0x57, 0x32, 0x20, 0x53, 0x37,
-	0x27, 0xff, 0x12, 0x40, 0xbd, 0x39, 0xc9, 0x57, 0x0c, 0xd5, 0x8b, 0x29, 0xa8, 0xd4, 0x79, 0x0e,
-	0x57, 0xdc, 0xd5, 0xf3, 0xac, 0xb8, 0x4d, 0xa8, 0xd6, 0xd2, 0x81, 0xc9, 0x9e, 0x07, 0x50, 0x0e,
-	0xd5, 0x8d, 0xd1, 0xa5, 0x6c, 0xa5, 0xee, 0xea, 0xe5, 0x54, 0x5c, 0xea, 0x80, 0xc3, 0x65, 0x61,
-	0xf5, 0x80, 0x15, 0x35, 0xe8, 0x6a, 0x2d, 0x1d, 0x98, 0xea, 0x39, 0x5c, 0x02, 0x56, 0x7b, 0x56,
-	0x94, 0x99, 0xab, 0xb5, 0x74, 0x60, 0x16, 0x56, 0xb1, 0x22, 0x52, 0x2c, 0xab, 0x22, 0x55, 0xaa,
-	0x58, 0x56, 0x49, 0x95, 0xa8, 0x34, 0x56, 0x71, 0x9f, 0x09, 0xac, 0x8a, 0xba, 0xad, 0xa5, 0x03,
-	0x33, 0xb1, 0x8a, 0x17, 0x16, 0xe3, 0x59, 0x15, 0xad, 0x85, 0xc6, 0xb3, 0x4a, 0xaa, 0x50, 0xa6,
-	0xb2, 0x2a, 0x69, 0xc0, 0x8a, 0x22, 0x65, 0x12, 0xab, 0x32, 0x4f, 0x75, 0xb8, 0x46, 0x98, 0xc4,
-	0xaa, 0x0c, 0x9e, 0x95, 0xe5, 0xc6, 0x78, 0xcf, 0xe1, 0xd2, 0x97, 0xda, 0xb3, 0xa2, 0xce, 0xa6,
-	0xf6, 0xac, 0xaa, 0xa2, 0xc5, 0x79, 0xfe, 0x69, 0x0e, 0x96, 0xa5, 0x0a, 0x24, 0xba, 0x1a, 0x3f,
-	0x91, 0x43, 0x01, 0x7c, 0x2d, 0x13, 0x36, 0x3d, 0x06, 0xa9, 0xbe, 0xa8, 0x8e, 0x41, 0x5d, 0xd2,
-	0x54, 0xc7, 0x10, 0x57, 0xb0, 0x8c, 0x27, 0x7b, 0xa8, 0x5a, 0x82, 0xe2, 0xb6, 0x5c, 0xa9, 0x2a,
-	0x53, 0xbd, 0x9c, 0x8a, 0x4b, 0x76, 0xfb, 0x63, 0x58, 0x8a, 0xd6, 0x8f, 0x50, 0xc2, 0xc6, 0x27,
-	0x3b, 0xbf, 0x9a, 0x05, 0x9a, 0xba, 0x43, 0x47, 0x2a, 0x0a, 0xa8, 0x96, 0xb5, 0x38, 0xa2, 0xde,
-	0xa1, 0x95, 0xe5, 0x89, 0x84, 0xc1, 0x47, 0x4b, 0x9f, 0x28, 0xe1, 0x74, 0x97, 0x69, 0xf0, 0xea,
-	0x4a, 0x6a, 0x82, 0xff, 0x68, 0x71, 0x13, 0x25, 0x1c, 0xf0, 0x32, 0xf9, 0x8f, 0xa9, 0x95, 0xaa,
-	0xfd, 0x6f, 0x54, 0xde, 0x7e, 0xb9, 0x76, 0xe2, 0x6f, 0x5f, 0xae, 0x9d, 0xf8, 0xc9, 0xf1, 0x5a,
-	0xee, 0xed, 0xf1, 0x5a, 0xee, 0xaf, 0xc7, 0x6b, 0xb9, 0x7f, 0x1c, 0xaf, 0xe5, 0x76, 0xe7, 0x68,
-	0xb5, 0xf1, 0xfa, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x0e, 0xa1, 0x5f, 0x52, 0xdc, 0x36, 0x00,
-	0x00,
-}

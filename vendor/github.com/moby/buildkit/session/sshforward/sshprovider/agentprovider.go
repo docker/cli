@@ -114,7 +114,7 @@ func (sp *socketProvider) ForwardAgent(stream sshforward.SSH_ForwardAgentServer)
 
 	eg.Go(func() error {
 		defer s1.Close()
-		return sshforward.Copy(ctx, s2, stream)
+		return sshforward.Copy(ctx, s2, stream, nil)
 	})
 
 	return eg.Wait()
@@ -178,7 +178,7 @@ type sock struct {
 }
 
 type readOnlyAgent struct {
-	agent.Agent
+	agent.ExtendedAgent
 }
 
 func (a *readOnlyAgent) Add(_ agent.AddedKey) error {
@@ -195,4 +195,8 @@ func (a *readOnlyAgent) RemoveAll() error {
 
 func (a *readOnlyAgent) Lock(_ []byte) error {
 	return errors.Errorf("locking agent not allowed by buildkit")
+}
+
+func (a *readOnlyAgent) Extension(_ string, _ []byte) ([]byte, error) {
+	return nil, errors.Errorf("extensions not allowed by buildkit")
 }

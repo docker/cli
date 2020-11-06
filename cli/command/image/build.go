@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,7 +32,6 @@ import (
 	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -115,33 +113,64 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
+	// Wrap the global pre-run to handle non-BuildKit use of the --platform flag.
+	//
+	// We're doing it here so that we're only contacting the daemon when actually
+	// running the command, and not during initialization.
+	// TODO remove this hack once we no longer support the experimental use of --platform
+	rootFn := cmd.Root().PersistentPreRunE
+	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if ok, _ := command.BuildKitEnabled(dockerCli.ServerInfo()); !ok {
+			f := cmd.Flag("platform")
+			delete(f.Annotations, "buildkit")
+			f.Annotations["version"] = []string{"1.32"}
+			f.Annotations["experimental"] = nil
+		}
+		if rootFn != nil {
+			return rootFn(cmd, args)
+		}
+		return nil
+	}
+
 	flags := cmd.Flags()
 
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
 	flags.Var(options.ulimits, "ulimit", "Ulimit options")
+	flags.SetAnnotation("ulimit", "no-buildkit", nil)
 	flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
+	flags.SetAnnotation("memory", "no-buildkit", nil)
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+	flags.SetAnnotation("memory-swap", "no-buildkit", nil)
 	flags.Var(&options.shmSize, "shm-size", "Size of /dev/shm")
+	flags.SetAnnotation("shm-size", "no-buildkit", nil)
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
+	flags.SetAnnotation("cpu-shares", "no-buildkit", nil)
 	flags.Int64Var(&options.cpuPeriod, "cpu-period", 0, "Limit the CPU CFS (Completely Fair Scheduler) period")
+	flags.SetAnnotation("cpu-period", "no-buildkit", nil)
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit the CPU CFS (Completely Fair Scheduler) quota")
+	flags.SetAnnotation("cpu-quota", "no-buildkit", nil)
 	flags.StringVar(&options.cpuSetCpus, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)")
+	flags.SetAnnotation("cpuset-cpus", "no-buildkit", nil)
 	flags.StringVar(&options.cpuSetMems, "cpuset-mems", "", "MEMs in which to allow execution (0-3, 0,1)")
+	flags.SetAnnotation("cpuset-mems", "no-buildkit", nil)
 	flags.StringVar(&options.cgroupParent, "cgroup-parent", "", "Optional parent cgroup for the container")
+	flags.SetAnnotation("cgroup-parent", "no-buildkit", nil)
 	flags.StringVar(&options.isolation, "isolation", "", "Container isolation technology")
 	flags.Var(&options.labels, "label", "Set metadata for an image")
 	flags.BoolVar(&options.noCache, "no-cache", false, "Do not use cache when building the image")
 	flags.BoolVar(&options.rm, "rm", true, "Remove intermediate containers after a successful build")
+	flags.SetAnnotation("rm", "no-buildkit", nil)
 	flags.BoolVar(&options.forceRm, "force-rm", false, "Always remove intermediate containers")
+	flags.SetAnnotation("force-rm", "no-buildkit", nil)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the build output and print image ID on success")
 	flags.BoolVar(&options.pull, "pull", false, "Always attempt to pull a newer version of the image")
 	flags.StringSliceVar(&options.cacheFrom, "cache-from", []string{}, "Images to consider as cache sources")
 	flags.BoolVar(&options.compress, "compress", false, "Compress the build context using gzip")
 	flags.SetAnnotation("compress", "no-buildkit", nil)
-
 	flags.StringSliceVar(&options.securityOpt, "security-opt", []string{}, "Security options")
+	flags.SetAnnotation("security-opt", "no-buildkit", nil)
 	flags.StringVar(&options.networkMode, "network", "default", "Set the networking mode for the RUN instructions during build")
 	flags.SetAnnotation("network", "version", []string{"1.25"})
 	flags.Var(&options.extraHosts, "add-host", "Add a custom host-to-IP mapping (host:ip)")
@@ -151,23 +180,15 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
-	// Platform is not experimental when BuildKit is used
-	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
-	if err == nil && buildkitEnabled {
-		flags.SetAnnotation("platform", "version", []string{"1.38"})
-	} else {
-		flags.SetAnnotation("platform", "version", []string{"1.32"})
-		flags.SetAnnotation("platform", "experimental", nil)
-	}
+	flags.SetAnnotation("platform", "version", []string{"1.38"})
+	flags.SetAnnotation("platform", "buildkit", nil)
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
 	flags.SetAnnotation("squash", "version", []string{"1.25"})
 
 	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
-	flags.SetAnnotation("stream", "experimental", nil)
-	flags.SetAnnotation("stream", "version", []string{"1.31"})
-	flags.SetAnnotation("stream", "no-buildkit", nil)
+	flags.MarkHidden("stream")
 
 	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (auto, plain, tty). Use plain to show container output")
 	flags.SetAnnotation("progress", "buildkit", nil)
@@ -224,8 +245,12 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		remote        string
 	)
 
-	if options.compress && options.stream {
-		return errors.New("--compress conflicts with --stream options")
+	if options.stream {
+		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The experimental --stream flag has been removed and the build context
+            will be sent non-streaming. Enable BuildKit instead with DOCKER_BUILDKIT=1
+            to stream build context, see https://docs.docker.com/go/buildkit/
+
+`)
 	}
 
 	if options.dockerfileFromStdin() {
@@ -284,7 +309,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	}
 
 	// read from a directory into tar archive
-	if buildCtx == nil && !options.stream {
+	if buildCtx == nil {
 		excludes, err := build.ReadDockerignore(contextDir)
 		if err != nil {
 			return err
@@ -313,16 +338,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	// if streaming and Dockerfile was not from stdin then read from file
-	// to the same reader that is usually stdin
-	if options.stream && dockerfileCtx == nil {
-		dockerfileCtx, err = os.Open(relDockerfile)
-		if err != nil {
-			return errors.Wrapf(err, "failed to open %s", relDockerfile)
-		}
-		defer dockerfileCtx.Close()
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -367,36 +382,9 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildCtx = dockerfileCtx
 	}
 
-	s, err := trySession(dockerCli, contextDir, true)
-	if err != nil {
-		return err
-	}
-
 	var body io.Reader
-	if buildCtx != nil && !options.stream {
+	if buildCtx != nil {
 		body = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
-	}
-
-	// add context stream to the session
-	if options.stream && s != nil {
-		syncDone := make(chan error) // used to signal first progress reporting completed.
-		// progress would also send errors but don't need it here as errors
-		// are handled by session.Run() and ImageBuild()
-		if err := addDirToSession(s, contextDir, progressOutput, syncDone); err != nil {
-			return err
-		}
-
-		buf := newBufferedWriter(syncDone, buildBuff)
-		defer func() {
-			select {
-			case <-buf.flushed:
-			case <-ctx.Done():
-			}
-		}()
-		buildBuff = buf
-
-		remote = clientSessionRemote
-		body = buildCtx
 	}
 
 	configFile := dockerCli.ConfigFile()
@@ -410,20 +398,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	buildOptions.Dockerfile = relDockerfile
 	buildOptions.AuthConfigs = authConfigs
 	buildOptions.RemoteContext = remote
-
-	if s != nil {
-		go func() {
-			logrus.Debugf("running session: %v", s.ID())
-			dialSession := func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
-				return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
-			}
-			if err := s.Run(ctx, dialSession); err != nil {
-				logrus.Error(err)
-				cancel() // cancel progress context
-			}
-		}()
-		buildOptions.SessionID = s.ID()
-	}
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
 	if err != nil {
@@ -474,7 +448,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	// should be just the image ID and we'll print that to stdout.
 	if options.quiet {
 		imageID = fmt.Sprintf("%s", buildBuff)
-		fmt.Fprintf(dockerCli.Out(), imageID)
+		_, _ = fmt.Fprint(dockerCli.Out(), imageID)
 	}
 
 	if options.imageIDFile != "" {

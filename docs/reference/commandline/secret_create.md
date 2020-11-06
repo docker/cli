@@ -4,19 +4,10 @@ description: "The secret create command description and usage"
 keywords: ["secret, create"]
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # secret create
 
 ```Markdown
-Usage:	docker secret create [OPTIONS] SECRET [file|-]
+Usage:  docker secret create [OPTIONS] SECRET [file|-]
 
 Create a secret from a file or STDIN as content
 
@@ -27,9 +18,16 @@ Options:
 
 ## Description
 
-Creates a secret using standard input or from a file for the secret content. You must run this command on a manager node.
+Creates a secret using standard input or from a file for the secret content.
 
 For detailed information about using secrets, refer to [manage sensitive data with Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
+
+> **Note**
+>
+> This is a cluster management command, and must be executed on a swarm
+> manager node. To learn about managers and workers, refer to the
+> [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
+> documentation.
 
 ## Examples
 
@@ -69,7 +67,7 @@ $ docker secret create --label env=dev \
 eo7jnzguqgtpdah3cm5srfb97
 ```
 
-```none
+```bash
 $ docker secret inspect my_secret
 
 [

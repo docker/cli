@@ -14,8 +14,8 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestConvertRestartPolicyFromNone(t *testing.T) {
@@ -74,7 +74,7 @@ func TestConvertExtraHosts(t *testing.T) {
 
 func TestConvertResourcesFull(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.Resource{
+		Limits: &composetypes.ResourceLimit{
 			NanoCPUs:    "0.003",
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
@@ -87,7 +87,7 @@ func TestConvertResourcesFull(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			NanoCPUs:    3000000,
 			MemoryBytes: 300000000,
 		},
@@ -101,7 +101,7 @@ func TestConvertResourcesFull(t *testing.T) {
 
 func TestConvertResourcesOnlyMemory(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.Resource{
+		Limits: &composetypes.ResourceLimit{
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
 		Reservations: &composetypes.Resource{
@@ -112,7 +112,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := &swarm.ResourceRequirements{
-		Limits: &swarm.Resources{
+		Limits: &swarm.Limit{
 			MemoryBytes: 300000000,
 		},
 		Reservations: &swarm.Resources{
@@ -177,7 +177,7 @@ func TestConvertEndpointSpec(t *testing.T) {
 			Published: 80,
 		},
 	}
-	endpoint, err := convertEndpointSpec("vip", source)
+	endpoint := convertEndpointSpec("vip", source)
 
 	expected := swarm.EndpointSpec{
 		Mode: swarm.ResolutionMode(strings.ToLower("vip")),
@@ -195,7 +195,6 @@ func TestConvertEndpointSpec(t *testing.T) {
 		},
 	}
 
-	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, *endpoint))
 }
 
@@ -271,13 +270,11 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	}
 
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, []swarm.NetworkAttachmentConfig(configs)))
+	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
 func TestConvertDNSConfigEmpty(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nil, nil)
-
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nil, nil)
 	assert.Check(t, is.DeepEqual((*swarm.DNSConfig)(nil), dnsConfig))
 }
 
@@ -287,8 +284,7 @@ var (
 )
 
 func TestConvertDNSConfigAll(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nameservers, search)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      search,
@@ -296,8 +292,7 @@ func TestConvertDNSConfigAll(t *testing.T) {
 }
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nameservers, nil)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nameservers,
 		Search:      nil,
@@ -305,8 +300,7 @@ func TestConvertDNSConfigNameservers(t *testing.T) {
 }
 
 func TestConvertDNSConfigSearch(t *testing.T) {
-	dnsConfig, err := convertDNSConfig(nil, search)
-	assert.NilError(t, err)
+	dnsConfig := convertDNSConfig(nil, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
@@ -628,4 +622,57 @@ func TestConvertUpdateConfigParallelism(t *testing.T) {
 		Parallelism: &parallel,
 	})
 	assert.Check(t, is.Equal(parallel, updateConfig.Parallelism))
+}
+
+func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
+	tests := []struct {
+		title   string
+		in, out composetypes.ServiceConfig
+	}{
+		{
+			title: "default behavior",
+		},
+		{
+			title: "some values",
+			in: composetypes.ServiceConfig{
+				CapAdd:  []string{"SYS_NICE", "CAP_NET_ADMIN"},
+				CapDrop: []string{"CHOWN", "CAP_NET_ADMIN", "DAC_OVERRIDE", "CAP_FSETID", "CAP_FOWNER"},
+			},
+			out: composetypes.ServiceConfig{
+				CapAdd:  []string{"CAP_NET_ADMIN", "CAP_SYS_NICE"},
+				CapDrop: []string{"CAP_CHOWN", "CAP_DAC_OVERRIDE", "CAP_FOWNER", "CAP_FSETID"},
+			},
+		},
+		{
+			title: "adding ALL capabilities",
+			in: composetypes.ServiceConfig{
+				CapAdd:  []string{"ALL", "CAP_NET_ADMIN"},
+				CapDrop: []string{"CHOWN", "CAP_NET_ADMIN", "DAC_OVERRIDE", "CAP_FSETID", "CAP_FOWNER"},
+			},
+			out: composetypes.ServiceConfig{
+				CapAdd:  []string{"ALL"},
+				CapDrop: []string{"CAP_CHOWN", "CAP_DAC_OVERRIDE", "CAP_FOWNER", "CAP_FSETID", "CAP_NET_ADMIN"},
+			},
+		},
+		{
+			title: "dropping ALL capabilities",
+			in: composetypes.ServiceConfig{
+				CapAdd:  []string{"CHOWN", "CAP_NET_ADMIN", "DAC_OVERRIDE", "CAP_FSETID", "CAP_FOWNER"},
+				CapDrop: []string{"ALL", "CAP_NET_ADMIN", "CAP_FOO"},
+			},
+			out: composetypes.ServiceConfig{
+				CapAdd:  []string{"CAP_CHOWN", "CAP_DAC_OVERRIDE", "CAP_FOWNER", "CAP_FSETID", "CAP_NET_ADMIN"},
+				CapDrop: []string{"ALL"},
+			},
+		},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.title, func(t *testing.T) {
+			result, err := Service("1.41", Namespace{name: "foo"}, tc.in, nil, nil, nil, nil)
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityAdd, tc.out.CapAdd))
+			assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityDrop, tc.out.CapDrop))
+		})
+	}
 }

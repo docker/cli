@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sirupsen/logrus"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
@@ -582,7 +582,7 @@ volumes:
 
 func TestLoadWithInterpolationCastFull(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
-version: "3.4"
+version: "3.8"
 services:
   web:
     configs:
@@ -599,8 +599,13 @@ services:
       update_config:
         parallelism: $theint
         max_failure_ratio: $thefloat
+      rollback_config:
+        parallelism: $theint
+        max_failure_ratio: $thefloat
       restart_policy:
         max_attempts: $theint
+      placement:
+        max_replicas_per_node: $theint
     ports:
       - $theint
       - "34567"
@@ -649,7 +654,7 @@ networks:
 	assert.NilError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
-		Version:  "3.4",
+		Version:  "3.8",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",
@@ -675,8 +680,15 @@ networks:
 						Parallelism:     uint64Ptr(555),
 						MaxFailureRatio: 3.14,
 					},
+					RollbackConfig: &types.UpdateConfig{
+						Parallelism:     uint64Ptr(555),
+						MaxFailureRatio: 3.14,
+					},
 					RestartPolicy: &types.RestartPolicy{
 						MaxAttempts: uint64Ptr(555),
+					},
+					Placement: types.Placement{
+						MaxReplicas: 555,
 					},
 				},
 				Ports: []types.ServicePortConfig{
@@ -750,6 +762,38 @@ services:
 
 	unsupported := GetUnsupportedProperties(dict)
 	assert.Check(t, is.DeepEqual([]string{"build", "links", "pid"}, unsupported))
+}
+
+func TestDiscardEnvFileOption(t *testing.T) {
+	dict, err := ParseYAML([]byte(`version: "3"
+services:
+  web:
+    image: nginx
+    env_file:
+     - example1.env
+     - example2.env
+`))
+	expectedEnvironmentMap := types.MappingWithEquals{
+		"FOO": strPtr("foo_from_env_file"),
+		"BAZ": strPtr("baz_from_env_file"),
+		"BAR": strPtr("bar_from_env_file_2"), // Original value is overwritten by example2.env
+		"QUX": strPtr("quz_from_env_file_2"),
+	}
+	assert.NilError(t, err)
+	configDetails := buildConfigDetails(dict, nil)
+
+	// Default behavior keeps the `env_file` entries
+	configWithEnvFiles, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, configWithEnvFiles.Services[0].EnvFile, types.StringList{"example1.env",
+		"example2.env"})
+	assert.DeepEqual(t, configWithEnvFiles.Services[0].Environment, expectedEnvironmentMap)
+
+	// Custom behavior removes the `env_file` entries
+	configWithoutEnvFiles, err := Load(configDetails, WithDiscardEnvFiles)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, configWithoutEnvFiles.Services[0].EnvFile, types.StringList(nil))
+	assert.DeepEqual(t, configWithoutEnvFiles.Services[0].Environment, expectedEnvironmentMap)
 }
 
 func TestBuildProperties(t *testing.T) {
@@ -978,6 +1022,84 @@ services:
 	assert.Error(t, err, `invalid mount config for type "bind": field Source must not be empty`)
 }
 
+func TestLoadBindMountSourceIsWindowsAbsolute(t *testing.T) {
+	tests := []struct {
+		doc      string
+		yaml     string
+		expected types.ServiceVolumeConfig
+	}{
+		{
+			doc: "Z-drive lowercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: z:\
+        target: c:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `z:\`, Target: `c:\data`},
+		},
+		{
+			doc: "Z-drive uppercase",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\`, Target: `C:\data`},
+		},
+		{
+			doc: "Z-drive subdirectory",
+			yaml: `
+version: '3.3'
+
+services:
+  windows:
+    image: mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+    volumes:
+      - type: bind
+        source: Z:\some-dir
+        target: C:\data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `Z:\some-dir`, Target: `C:\data`},
+		},
+		{
+			doc: "forward-slashes",
+			yaml: `
+version: '3.3'
+
+services:
+  app:
+    image: app:latest
+    volumes:
+      - type: bind
+        source: /z/some-dir
+        target: /c/data
+`,
+			expected: types.ServiceVolumeConfig{Type: "bind", Source: `/z/some-dir`, Target: `/c/data`},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			config, err := loadYAML(tc.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+			assert.Check(t, is.DeepEqual(tc.expected, config.Services[0].Volumes[0]))
+		})
+	}
+}
+
 func TestLoadBindMountWithSource(t *testing.T) {
 	config, err := loadYAML(`
 version: "3.5"
@@ -1154,11 +1276,13 @@ services:
     extra_hosts:
       "zulu": "162.242.195.82"
       "alpha": "50.31.209.229"
+      "host.docker.internal": "host-gateway"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"alpha:50.31.209.229",
+		"host.docker.internal:host-gateway",
 		"zulu:162.242.195.82",
 	}
 
@@ -1176,6 +1300,7 @@ services:
       - "zulu:162.242.195.82"
       - "alpha:50.31.209.229"
       - "zulu:ff02::1"
+      - "host.docker.internal:host-gateway"
 `)
 	assert.NilError(t, err)
 
@@ -1183,6 +1308,7 @@ services:
 		"zulu:162.242.195.82",
 		"alpha:50.31.209.229",
 		"zulu:ff02::1",
+		"host.docker.internal:host-gateway",
 	}
 
 	assert.Assert(t, is.Len(config.Services, 1))
@@ -1466,6 +1592,7 @@ services:
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.doc, func(t *testing.T) {
 			config, err := loadYAML(testcase.yaml)
 			assert.NilError(t, err)

@@ -2,6 +2,12 @@
 title: "Use the Docker command line"
 description: "Docker's CLI command description and usage"
 keywords: "Docker, Docker documentation, CLI, command line"
+redirect_from:
+  - /go/experimental/
+  - /engine/reference/commandline/engine/
+  - /engine/reference/commandline/engine_activate/
+  - /engine/reference/commandline/engine_check/
+  - /engine/reference/commandline/engine_update/
 ---
 
 <!-- This file is maintained within the docker/cli GitHub
@@ -54,23 +60,15 @@ each `docker` command with `sudo`. To avoid having to use `sudo` with the
 For more information about installing Docker or `sudo` configuration, refer to
 the [installation](https://docs.docker.com/install/) instructions for your operating system.
 
-### Environment variables
+## Environment variables
 
 For easy reference, the following list of environment variables are supported
 by the `docker` command line:
 
 * `DOCKER_API_VERSION` The API version to use (e.g. `1.19`)
 * `DOCKER_CONFIG` The location of your client configuration files.
-* `DOCKER_CERT_PATH` The location of your authentication keys.
-* `DOCKER_CLI_EXPERIMENTAL` Enable experimental features for the cli (e.g. `enabled` or `disabled`)
-* `DOCKER_DRIVER` The graph driver to use.
 * `DOCKER_HOST` Daemon socket to connect to.
-* `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
-  unsuitable for Docker.
-* `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
 * `DOCKER_STACK_ORCHESTRATOR` Configure the default orchestrator to use when using `docker stack` management commands.
-* `DOCKER_TLS` When set Docker uses TLS.
-* `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
 * `DOCKER_CONTENT_TRUST` When set Docker uses notary to sign and verify images.
   Equates to `--disable-content-trust=false` for build, create, pull, push, run.
 * `DOCKER_CONTENT_TRUST_SERVER` The URL of the Notary server to use. This defaults
@@ -78,9 +76,16 @@ by the `docker` command line:
 * `DOCKER_HIDE_LEGACY_COMMANDS` When set, Docker hides "legacy" top-level commands (such as `docker rm`, and
   `docker pull`) in `docker help` output, and only `Management commands` per object-type (e.g., `docker container`) are
   printed. This may become the default in a future release, at which point this environment-variable is removed.
-* `DOCKER_TMPDIR` Location for temporary Docker files.
 * `DOCKER_CONTEXT` Specify the context to use (overrides DOCKER_HOST env var and default context set with "docker context use")
 * `DOCKER_DEFAULT_PLATFORM` Specify the default platform for the commands that take the `--platform` flag.
+
+#### Shared Environment variables
+
+These environment variables can be used both with the `docker` command line and
+`dockerd` command line:
+
+* `DOCKER_CERT_PATH` The location of your authentication keys.
+* `DOCKER_TLS_VERIFY` When set Docker uses TLS and verifies the remote.
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
@@ -96,28 +101,43 @@ variables.
 ### Configuration files
 
 By default, the Docker command line stores its configuration files in a
-directory called `.docker` within your `$HOME` directory. However, you can
-specify a different location via the `DOCKER_CONFIG` environment variable
-or the `--config` command line option. If both are specified, then the
-`--config` option overrides the `DOCKER_CONFIG` environment variable.
-For example:
-
-    docker --config ~/testconfigs/ ps
-
-Instructs Docker to use the configuration files in your `~/testconfigs/`
-directory when running the `ps` command.
+directory called `.docker` within your `$HOME` directory.
 
 Docker manages most of the files in the configuration directory
-and you should not modify them. However, you *can modify* the
+and you should not modify them. However, you *can* modify the
 `config.json` file to control certain aspects of how the `docker`
 command behaves.
 
-Currently, you can modify the `docker` command behavior using environment
+You can modify the `docker` command behavior using environment
 variables or command-line options. You can also use options within
-`config.json` to modify some of the same behavior. When using these
-mechanisms, you must keep in mind the order of precedence among them. Command
-line options override environment variables and environment variables override
-properties you specify in a `config.json` file.
+`config.json` to modify some of the same behavior. If an environment variable
+and the `--config` flag are set, the flag takes precedent over the environment
+variable. Command line options override environment variables and environment
+variables override properties you specify in a `config.json` file.
+
+
+### Change the `.docker` directory
+
+To specify a different directory, use the `DOCKER_CONFIG`
+environment variable or the `--config` command line option. If both are
+specified, then the `--config` option overrides the `DOCKER_CONFIG` environment
+variable. The example below overrides the `docker ps` command using a
+`config.json` file located in the `~/testconfigs/` directory.
+
+```bash
+$ docker --config ~/testconfigs/ ps
+```
+
+This flag only applies to whatever command is being ran. For persistent
+configuration, you can set the `DOCKER_CONFIG` environment variable in your
+shell (e.g. `~/.profile` or `~/.bashrc`). The example below sets the new
+directory to be `HOME/newdir/.docker`.
+
+```bash
+echo export DOCKER_CONFIG=$HOME/newdir/.docker > ~/.profile
+```
+
+### `config.json` properties
 
 The `config.json` file stores a JSON encoding of several properties:
 
@@ -206,6 +226,23 @@ running `docker stack` management commands. Valid values are `"swarm"`,
 `"kubernetes"`, and `"all"`. This property can be overridden with the
 `DOCKER_STACK_ORCHESTRATOR` environment variable, or the `--orchestrator` flag.
 
+The property `proxies` specifies proxy environment variables to be automatically
+set on containers, and set as `--build-arg` on containers used during `docker build`.
+A `"default"` set of proxies can be configured, and will be used for any docker
+daemon that the client connects to, or a configuration per host (docker daemon),
+for example, "https://docker-daemon1.example.com". The following properties can
+be set for each environment:
+
+* `httpProxy` (sets the value of `HTTP_PROXY` and `http_proxy`)
+* `httpsProxy` (sets the value of `HTTPS_PROXY` and `https_proxy`)
+* `ftpProxy` (sets the value of `FTP_PROXY` and `ftp_proxy`)
+* `noProxy` (sets the value of `NO_PROXY` and `no_proxy`)
+
+> **Warning**: Proxy settings may contain sensitive information (for example,
+> if the proxy requires authentication). Environment variables are stored as
+> plain text in the container's configuration, and as such can be inspected
+> through the remote API or committed to an image when using `docker commit`.
+
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
 using the `detachKeys` property. Specify a `<sequence>` value for the
@@ -260,10 +297,28 @@ Following is a sample `config.json` file:
       "anotheroption": "anothervalue",
       "athirdoption": "athirdvalue"
     }
+  },
+  "proxies": {
+    "default": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128",
+      "noProxy":    "http://user:pass@example.com:3128",
+      "ftpProxy":   "http://user:pass@example.com:3128"
+    },
+    "https://manager1.mycorp.example.com:2377": {
+      "httpProxy":  "http://user:pass@example.com:3128",
+      "httpsProxy": "http://user:pass@example.com:3128"
+    },
   }
 }
 {% endraw %}
 ```
+
+### Experimental features
+
+Experimental features provide early access to future product functionality.
+These features are intended for testing and feedback, and they may change
+between releases without warning or can be removed from a future release.
 
 ### Notary
 
@@ -333,7 +388,9 @@ Sometimes, multiple options can call for a more complex value string as for
 $ docker run -v /host:/container example/mysql
 ```
 
-> **Note**: Do not use the `-t` and `-a stderr` options together due to
+> **Note**
+>
+> Do not use the `-t` and `-a stderr` options together due to
 > limitations in the `pty` implementation. All `stderr` in `pty` mode
 > simply goes to `stdout`.
 

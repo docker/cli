@@ -4,15 +4,6 @@ description: "The network command description and usage"
 keywords: "network"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # network
 
 ```markdown
@@ -44,7 +35,7 @@ prune, connect, and disconnect networks.
 
 * [network create](network_create.md)
 * [network inspect](network_inspect.md)
-* [network list](network_list.md)
+* [network list](network_ls.md)
 * [network rm](network_rm.md)
 * [network prune](network_prune.md)
 * [network connect](network_connect.md)

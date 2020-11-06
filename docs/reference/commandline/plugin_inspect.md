@@ -4,19 +4,10 @@ description: "The plugin inspect command description and usage"
 keywords: "plugin, inspect"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # plugin inspect
 
 ```markdown
-Usage:	docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
+Usage:  docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
 
 Display detailed information on one or more plugins
 
@@ -32,10 +23,17 @@ in a JSON array.
 
 ## Examples
 
+### Inspect a plugin
 
-```none
+The following example example inspects the `tiborvass/sample-volume-plugin` plugin:
+
+```bash
 $ docker plugin inspect tiborvass/sample-volume-plugin:latest
+```
 
+Output is in JSON format (output below is formatted for readability):
+
+```json
 {
   "Id": "8c74c978c434745c3ade82f1bc0acf38d04990eaf494fa507c16d9f1daa99c21",
   "Name": "tiborvass/sample-volume-plugin:latest",
@@ -143,7 +141,6 @@ $ docker plugin inspect tiborvass/sample-volume-plugin:latest
 }
 ```
 
-(output formatted for readability)
 
 ### Formatting the output
 

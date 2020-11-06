@@ -1,6 +1,5 @@
-% DOCKER(1) Docker User Manuals
-% Docker Community
-% JUNE 2014
+% "DOCKER" "1" "JUNE 2014" "Docker Community" "Docker User Manuals"
+
 # NAME
 docker-run - Run a command in a new container
 
@@ -13,6 +12,7 @@ docker-run - Run a command in a new container
 [**--cpu-shares**[=*0*]]
 [**--cap-add**[=*[]*]]
 [**--cap-drop**[=*[]*]]
+[**--cgroupns**[=*[]*]]
 [**--cgroup-parent**[=*CGROUP-PATH*]]
 [**--cidfile**[=*CIDFILE*]]
 [**--cpu-count**[=*0*]]
@@ -172,6 +172,12 @@ division of CPU shares:
 
 **--cap-drop**=[]
    Drop Linux capabilities
+
+**--cgroupns**=""
+   Set the cgroup namespace mode for the container.
+     **host**:    run the container in the host's cgroup namespace
+     **private**: run the container in its own private cgroup namespace
+     **""**:      (unset) use the daemon's default configuration (**host** on cgroup v1, **private** on cgroup v2)
 
 **--cgroup-parent**=""
    Path to cgroups under which the cgroup for the container will be created. If the path is not absolute, the path is considered to be relative to the cgroups path of the init process. Cgroups will be created if they do not already exist.

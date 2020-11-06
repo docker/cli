@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestNewPushCommandErrors(t *testing.T) {
@@ -41,7 +41,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imagePushFunc: tc.imagePushFunc})
 		cmd := NewPushCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -49,23 +49,36 @@ func TestNewPushCommandErrors(t *testing.T) {
 
 func TestNewPushCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name string
-		args []string
+		name   string
+		args   []string
+		output string
 	}{
 		{
-			name: "simple",
+			name: "push",
 			args: []string{"image:tag"},
+		},
+		{
+			name: "push quiet",
+			args: []string{"--quiet", "image:tag"},
+			output: `docker.io/library/image:tag
+`,
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
-				return ioutil.NopCloser(strings.NewReader("")), nil
-			},
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
+					return ioutil.NopCloser(strings.NewReader("")), nil
+				},
+			})
+			cmd := NewPushCommand(cli)
+			cmd.SetOut(cli.OutBuffer())
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			if tc.output != "" {
+				assert.Equal(t, tc.output, cli.OutBuffer().String())
+			}
 		})
-		cmd := NewPushCommand(cli)
-		cmd.SetOutput(ioutil.Discard)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
 	}
 }

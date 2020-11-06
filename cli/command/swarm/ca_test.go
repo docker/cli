@@ -9,8 +9,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 const (
@@ -145,7 +145,7 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 				},
 			}))
 		assert.Check(t, cmd.Flags().Parse(testCase.args))
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), testCase.errorMsg)
 	}
 }
@@ -187,7 +187,7 @@ func TestUpdateSwarmSpecDefaultRotate(t *testing.T) {
 	})
 	cmd := newCACommand(cli)
 	cmd.SetArgs([]string{"--rotate", "--detach"})
-	cmd.SetOutput(cli.OutBuffer())
+	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()
@@ -218,7 +218,7 @@ func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
 		"--cert-expiry=3m"})
-	cmd.SetOutput(cli.OutBuffer())
+	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()
@@ -244,7 +244,7 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
-	cmd.SetOutput(cli.OutBuffer())
+	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()
@@ -282,7 +282,7 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
 		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
-	cmd.SetOutput(cli.OutBuffer())
+	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
 	expected := swarmSpecWithFullCAConfig()

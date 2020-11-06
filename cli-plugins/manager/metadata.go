@@ -10,7 +10,7 @@ const (
 	MetadataSubcommandName = "docker-cli-plugin-metadata"
 )
 
-// Metadata provided by the plugin. See docs/extend/cli_plugins.md for canonical information.
+// Metadata provided by the plugin.
 type Metadata struct {
 	// SchemaVersion describes the version of this struct. Mandatory, must be "0.1.0"
 	SchemaVersion string `json:",omitempty"`
@@ -23,6 +23,6 @@ type Metadata struct {
 	// URL is a pointer to the plugin's homepage.
 	URL string `json:",omitempty"`
 	// Experimental specifies whether the plugin is experimental.
-	// Experimental plugins are not displayed on non-experimental CLIs.
+	// Deprecated: experimental features are now always enabled in the CLI
 	Experimental bool `json:",omitempty"`
 }

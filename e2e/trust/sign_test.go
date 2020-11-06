@@ -6,11 +6,11 @@ import (
 
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/fs"
-	"gotest.tools/icmd"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/icmd"
+	"gotest.tools/v3/skip"
 )
 
 const (
@@ -31,7 +31,6 @@ func TestSignLocalImage(t *testing.T) {
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary)
 	result.Assert(t, icmd.Success)
 	assert.Check(t, is.Contains(result.Stdout(), fmt.Sprintf("v1: digest: sha256:%s", fixtures.AlpineSha)))
-
 }
 
 func TestSignWithLocalFlag(t *testing.T) {

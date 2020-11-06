@@ -5,6 +5,7 @@ Client:
  Git commit:        deadbeef
  Built:             Wed May 30 22:21:05 2018
  OS/Arch:           linux/amd64
+ Context:           my-context
  Experimental:      true
 
 Server: Docker Enterprise Edition (EE) 2.0

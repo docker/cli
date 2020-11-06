@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/internal/test"
-	"gotest.tools/assert"
-	"gotest.tools/env"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
 )
 
 func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func()) {
@@ -263,6 +263,7 @@ func TestCreateFromContext(t *testing.T) {
 	cli.SetCurrentContext("dummy")
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
@@ -339,6 +340,7 @@ func TestCreateFromCurrent(t *testing.T) {
 	cli.SetCurrentContext("original")
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{

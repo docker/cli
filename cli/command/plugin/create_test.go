@@ -9,9 +9,9 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
-	"gotest.tools/fs"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/fs"
 )
 
 func TestCreateErrors(t *testing.T) {
@@ -41,7 +41,7 @@ func TestCreateErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newCreateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -53,7 +53,7 @@ func TestCreateErrorOnFileAsContextDir(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpFile.Path()})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "context must be a directory")
 }
 
@@ -64,7 +64,7 @@ func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 
 	expectedErr := "config.json: no such file or directory"
 	if runtime.GOOS == "windows" {
@@ -82,7 +82,7 @@ func TestCreateErrorOnInvalidConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "invalid")
 }
 
@@ -100,7 +100,7 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "Error creating plugin")
 }
 

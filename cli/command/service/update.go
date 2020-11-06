@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
+	units "github.com/docker/go-units"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -100,6 +101,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
 	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
 	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
+	flags.Var(&options.ulimits, flagUlimitAdd, "Add or update a ulimit option")
+	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
+	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
+	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -283,6 +288,12 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		}
 	}
 
+	updateInt64 := func(flag string, field *int64) {
+		if flags.Changed(flag) {
+			*field, _ = flags.GetInt64(flag)
+		}
+	}
+
 	updateUint64 := func(flag string, field *uint64) {
 		if flags.Changed(flag) {
 			*field, _ = flags.GetUint64(flag)
@@ -312,7 +323,7 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 			task.Resources = &swarm.ResourceRequirements{}
 		}
 		if task.Resources.Limits == nil {
-			task.Resources.Limits = &swarm.Resources{}
+			task.Resources.Limits = &swarm.Limit{}
 		}
 		if task.Resources.Reservations == nil {
 			task.Resources.Reservations = &swarm.Resources{}
@@ -338,11 +349,13 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	}
 
 	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
+	task.ContainerSpec.Ulimits = updateUlimits(flags, task.ContainerSpec.Ulimits)
 
-	if anyChanged(flags, flagLimitCPU, flagLimitMemory) {
+	if anyChanged(flags, flagLimitCPU, flagLimitMemory, flagLimitPids) {
 		taskResources().Limits = spec.TaskTemplate.Resources.Limits
 		updateInt64Value(flagLimitCPU, &task.Resources.Limits.NanoCPUs)
 		updateInt64Value(flagLimitMemory, &task.Resources.Limits.MemoryBytes)
+		updateInt64(flagLimitPids, &task.Resources.Limits.Pids)
 	}
 
 	if anyChanged(flags, flagReserveCPU, flagReserveMemory) {
@@ -499,6 +512,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 
 	updateString(flagStopSignal, &cspec.StopSignal)
 
+	if anyChanged(flags, flagCapAdd, flagCapDrop) {
+		updateCapabilities(flags, cspec)
+	}
+
 	return nil
 }
 
@@ -633,6 +650,12 @@ func updatePlacementPreferences(flags *pflag.FlagSet, placement *swarm.Placement
 }
 
 func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
+	if *field != nil && flags.Changed(flagContainerLabelRemove) {
+		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetAll()
+		for _, label := range toRemove {
+			delete(*field, label)
+		}
+	}
 	if flags.Changed(flagContainerLabelAdd) {
 		if *field == nil {
 			*field = map[string]string{}
@@ -643,16 +666,15 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 			(*field)[key] = value
 		}
 	}
+}
 
-	if *field != nil && flags.Changed(flagContainerLabelRemove) {
-		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetAll()
+func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
+	if *field != nil && flags.Changed(flagLabelRemove) {
+		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
 		for _, label := range toRemove {
 			delete(*field, label)
 		}
 	}
-}
-
-func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 	if flags.Changed(flagLabelAdd) {
 		if *field == nil {
 			*field = map[string]string{}
@@ -661,13 +683,6 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
 		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
-		}
-	}
-
-	if *field != nil && flags.Changed(flagLabelRemove) {
-		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
-		for _, label := range toRemove {
-			delete(*field, label)
 		}
 	}
 }
@@ -691,7 +706,39 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 	}
 }
 
+func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimit {
+	newUlimits := make(map[string]*units.Ulimit)
+
+	for _, ulimit := range ulimits {
+		newUlimits[ulimit.Name] = ulimit
+	}
+	if flags.Changed(flagUlimitRemove) {
+		values := flags.Lookup(flagUlimitRemove).Value.(*opts.ListOpts).GetAll()
+		for key := range opts.ConvertKVStringsToMap(values) {
+			delete(newUlimits, key)
+		}
+	}
+
+	if flags.Changed(flagUlimitAdd) {
+		for _, ulimit := range flags.Lookup(flagUlimitAdd).Value.(*opts.UlimitOpt).GetList() {
+			newUlimits[ulimit.Name] = ulimit
+		}
+	}
+
+	var limits []*units.Ulimit
+	for _, ulimit := range newUlimits {
+		limits = append(limits, ulimit)
+	}
+	sort.SliceStable(limits, func(i, j int) bool {
+		return limits[i].Name < limits[j].Name
+	})
+	return limits
+}
+
 func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
+	toRemove := buildToRemoveSet(flags, flagEnvRemove)
+	*field = removeItems(*field, toRemove, envKey)
+
 	if flags.Changed(flagEnvAdd) {
 		envSet := map[string]string{}
 		for _, v := range *field {
@@ -708,9 +755,6 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 			*field = append(*field, v)
 		}
 	}
-
-	toRemove := buildToRemoveSet(flags, flagEnvRemove)
-	*field = removeItems(*field, toRemove, envKey)
 }
 
 func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {
@@ -1004,6 +1048,7 @@ func updatePorts(flags *pflag.FlagSet, portConfig *[]swarm.PortConfig) error {
 
 	// Build the current list of portConfig
 	for _, entry := range *portConfig {
+		entry := entry
 		if _, ok := portSet[portConfigToString(&entry)]; !ok {
 			portSet[portConfigToString(&entry)] = entry
 		}
@@ -1031,10 +1076,11 @@ portLoop:
 		ports := flags.Lookup(flagPublishAdd).Value.(*opts.PortOpt).Value()
 
 		for _, port := range ports {
+			port := port
 			if _, ok := portSet[portConfigToString(&port)]; ok {
 				continue
 			}
-			//portSet[portConfigToString(&port)] = port
+			// portSet[portConfigToString(&port)] = port
 			newPorts = append(newPorts, port)
 		}
 	}
@@ -1083,7 +1129,7 @@ type hostMapping struct {
 // were added, as the specification mentions that in case multiple entries for a
 // host exist, the first entry should be used (by default).
 //
-// Note that, even though unsupported by the the CLI, the service specs format
+// Note that, even though unsupported by the CLI, the service specs format
 // allow entries with both a _canonical_ hostname, and one or more aliases
 // in an entry (IP-address canonical_hostname [alias ...])
 //
@@ -1341,4 +1387,132 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 
 		containerSpec.Privileges.CredentialSpec = credSpec
 	}
+}
+
+// updateCapabilities calculates the list of capabilities to "drop" and to "add"
+// after applying the capabilities passed through `--cap-add` and `--cap-drop`
+// to the existing list of added/dropped capabilities in the service spec.
+//
+// Adding capabilities takes precedence over "dropping" the same capability, so
+// if both `--cap-add` and `--cap-drop` are specifying the same capability, the
+// `--cap-drop` is ignored.
+//
+// Capabilities to "drop" are removed from the existing list of "added"
+// capabilities, and vice-versa (capabilities to "add" are removed from the existing
+// list of capabilities to "drop").
+//
+// Capabilities are normalized, sorted, and duplicates are removed to prevent
+// service tasks from being updated if no changes are made. If a list has the "ALL"
+// capability set, then any other capability is removed from that list.
+//
+// Adding/removing capabilities when updating a service is handled as a tri-state;
+//
+// - if the capability was previously "dropped", then remove it from "CapabilityDrop",
+//   but NOT added to "CapabilityAdd". However, if the capability was not yet in
+//   the service's "CapabilityDrop", then it's simply added to the service's "CapabilityAdd"
+// - likewise, if the capability was previously "added", then it's removed from
+//   "CapabilityAdd", but NOT added to "CapabilityDrop". If the capability was
+//   not yet in the service's "CapabilityAdd", then simply add it to the service's
+//   "CapabilityDrop".
+//
+// In other words, given a service with the following:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// | CAP_SOME_CAP   |               |
+//
+// When updating the service, and applying `--cap-add CAP_SOME_CAP`, the previously
+// dropped capability is removed:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// |                |               |
+//
+// After updating the service a second time, applying `--cap-add CAP_SOME_CAP`,
+// capability is now added:
+//
+// | CapDrop        | CapAdd        |
+// | -------------- | ------------- |
+// |                | CAP_SOME_CAP  |
+//
+func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
+	var (
+		toAdd, toDrop map[string]bool
+
+		capDrop = opts.CapabilitiesMap(containerSpec.CapabilityDrop)
+		capAdd  = opts.CapabilitiesMap(containerSpec.CapabilityAdd)
+	)
+	if flags.Changed(flagCapAdd) {
+		toAdd = opts.CapabilitiesMap(flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll())
+		if toAdd[opts.ResetCapabilities] {
+			capAdd = make(map[string]bool)
+			delete(toAdd, opts.ResetCapabilities)
+		}
+	}
+	if flags.Changed(flagCapDrop) {
+		toDrop = opts.CapabilitiesMap(flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll())
+		if toDrop[opts.ResetCapabilities] {
+			capDrop = make(map[string]bool)
+			delete(toDrop, opts.ResetCapabilities)
+		}
+	}
+
+	// First remove the capabilities to "drop" from the service's exiting
+	// list of capabilities to "add". If a capability is both added and dropped
+	// on update, then "adding" takes precedence.
+	//
+	// Dropping a capability when updating a service is considered a tri-state;
+	//
+	// - if the capability was previously "added", then remove it from
+	//   "CapabilityAdd", and do NOT add it to "CapabilityDrop"
+	// - if the capability was not yet in the service's "CapabilityAdd",
+	//   then simply add it to the service's "CapabilityDrop"
+	for c := range toDrop {
+		if !toAdd[c] {
+			if capAdd[c] {
+				delete(capAdd, c)
+			} else {
+				capDrop[c] = true
+			}
+		}
+	}
+
+	// And remove the capabilities we're "adding" from the service's existing
+	// list of capabilities to "drop".
+	//
+	// "Adding" capabilities takes precedence over "dropping" them, so if a
+	// capability is set both as "add" and "drop", remove the capability from
+	// the service's list of dropped capabilities (if present).
+	//
+	// Adding a capability when updating a service is considered a tri-state;
+	//
+	// - if the capability was previously "dropped", then remove it from
+	//   "CapabilityDrop", and do NOT add it to "CapabilityAdd"
+	// - if the capability was not yet in the service's "CapabilityDrop",
+	//   then simply add it to the service's "CapabilityAdd"
+	for c := range toAdd {
+		if capDrop[c] {
+			delete(capDrop, c)
+		} else {
+			capAdd[c] = true
+		}
+	}
+
+	// Now that the service's existing lists are updated, apply the new
+	// capabilities to add/drop to both lists. Sort the lists to prevent
+	// unneeded updates to service-tasks.
+	containerSpec.CapabilityDrop = capsList(capDrop)
+	containerSpec.CapabilityAdd = capsList(capAdd)
+}
+
+func capsList(caps map[string]bool) []string {
+	if caps[opts.AllCapabilities] {
+		return []string{opts.AllCapabilities}
+	}
+	var out []string
+	for c := range caps {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
 }

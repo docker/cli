@@ -10,8 +10,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestCredentialSpecOpt(t *testing.T) {
@@ -202,9 +202,9 @@ func TestToServiceNetwork(t *testing.T) {
 	}
 
 	nwo := opts.NetworkOpt{}
-	nwo.Set("zzz-network")
-	nwo.Set("mmm-network")
-	nwo.Set("aaa-network")
+	assert.NilError(t, nwo.Set("zzz-network"))
+	assert.NilError(t, nwo.Set("mmm-network"))
+	assert.NilError(t, nwo.Set("aaa-network"))
 
 	o := newServiceOptions()
 	o.mode = "replicated"
@@ -215,6 +215,16 @@ func TestToServiceNetwork(t *testing.T) {
 	service, err := o.ToService(ctx, client, flags)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks))
+}
+
+func TestToServicePidsLimit(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	opt := newServiceOptions()
+	opt.mode = "replicated"
+	opt.resources.limitPids = 100
+	service, err := opt.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Equal(t, service.TaskTemplate.Resources.Limits.Pids, int64(100))
 }
 
 func TestToServiceUpdateRollback(t *testing.T) {
@@ -285,7 +295,7 @@ func TestToServiceMaxReplicasGlobalModeConflict(t *testing.T) {
 		maxReplicas: 1,
 	}
 	_, err := opt.ToServiceMode()
-	assert.Error(t, err, "replicas-max-per-node can only be used with replicated mode")
+	assert.Error(t, err, "replicas-max-per-node can only be used with replicated or replicated-job mode")
 }
 
 func TestToServiceSysCtls(t *testing.T) {

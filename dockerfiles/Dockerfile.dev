@@ -1,29 +1,46 @@
-FROM    golang:1.12.5-alpine
+# syntax=docker/dockerfile:1.1.7-experimental
+ARG GO_VERSION=1.13.15
 
-RUN     apk add -U git make bash coreutils ca-certificates curl
+FROM golang:${GO_VERSION}-alpine AS golang
+ENV  CGO_ENABLED=0
 
-ARG     VNDR_SHA=b177b583eb9d44bd5abfca3083a4aeb971b75861
-RUN     go get -d github.com/LK4D4/vndr && \
-        cd /go/src/github.com/LK4D4/vndr && \
-        git checkout -q "$VNDR_SHA" && \
-        go build -v -o /usr/bin/vndr . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+FROM golang AS esc
+ARG ESC_VERSION=v0.2.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=tmpfs,target=/go/src/ \
+    GO111MODULE=on go get github.com/mjibson/esc@${ESC_VERSION}
 
-ARG     ESC_SHA=58d9cde84f237ecdd89bd7f61c2de2853f4c5c6e
-RUN     go get -d github.com/mjibson/esc && \
-        cd /go/src/github.com/mjibson/esc && \
-        git checkout -q "$ESC_SHA" && \
-        go build -v -o /usr/bin/esc . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
+FROM golang AS gotestsum
+ARG GOTESTSUM_VERSION=v0.4.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=tmpfs,target=/go/src/ \
+    GO111MODULE=on go get gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
-ARG     GOTESTSUM_VERSION=0.3.4
-RUN     curl -Ls https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz -o gotestsum.tar.gz && \
-        tar -xf gotestsum.tar.gz gotestsum -C /usr/bin && \
-        rm gotestsum.tar.gz
+FROM golang AS vndr
+ARG VNDR_VERSION=v0.1.2
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=tmpfs,target=/go/src/ \
+    GO111MODULE=on go get github.com/LK4D4/vndr@${VNDR_VERSION}
 
-ENV     CGO_ENABLED=0 \
-        PATH=$PATH:/go/src/github.com/docker/cli/build \
-        DISABLE_WARN_OUTSIDE_CONTAINER=1
+FROM golang AS dev
+RUN  apk add --no-cache \
+    bash \
+    build-base \
+    ca-certificates \
+    coreutils \
+    curl \
+    git
+
+CMD bash
+ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
+ENV PATH=$PATH:/go/src/github.com/docker/cli/build
+
+COPY --from=esc       /go/bin/* /go/bin/
+COPY --from=vndr      /go/bin/* /go/bin/
+COPY --from=gotestsum /go/bin/* /go/bin/
+
 WORKDIR /go/src/github.com/docker/cli
-CMD     sh
-COPY    . .
+COPY . .

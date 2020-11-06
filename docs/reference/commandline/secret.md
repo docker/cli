@@ -4,15 +4,6 @@ description: "The secret command description and usage"
 keywords: "secret"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # secret
 
 ```markdown
@@ -41,5 +32,5 @@ Manage secrets.
 
 * [secret create](secret_create.md)
 * [secret inspect](secret_inspect.md)
-* [secret list](secret_list.md)
+* [secret list](secret_ls.md)
 * [secret rm](secret_rm.md)

@@ -14,8 +14,8 @@ import (
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustmanager"
 	tufutils "github.com/theupdateframework/notary/tuf/utils"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestTrustKeyGenerateErrors(t *testing.T) {
@@ -44,7 +44,7 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newKeyGenerateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

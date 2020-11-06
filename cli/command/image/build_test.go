@@ -19,12 +19,14 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
-	"gotest.tools/assert"
-	"gotest.tools/fs"
-	"gotest.tools/skip"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/env"
+	"gotest.tools/v3/fs"
+	"gotest.tools/v3/skip"
 )
 
 func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
 	fakeImageBuild := func(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
@@ -60,6 +62,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 }
 
 func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	skip.If(t, os.Getuid() != 0, "root is required to chown files")
 	fakeBuild := newFakeBuild()
 	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
@@ -90,6 +93,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 }
 
 func TestRunBuildDockerfileOutsideContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("data", "data file"))
 	defer dir.Remove()
@@ -122,10 +126,11 @@ COPY data /data
 // TODO: test "context selection" logic directly when runBuild is refactored
 // to support testing (ex: docker/cli#294)
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
-	cmd := NewBuildCommand(test.NewFakeCli(nil))
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	cmd := NewBuildCommand(test.NewFakeCli(&fakeClient{}))
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, "unable to prepare context")
 	assert.ErrorContains(t, err, "docker-build-git")
@@ -135,6 +140,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 // starting with `github.com` takes precedence over the `github.com` special
 // case.
 func TestRunBuildFromLocalGitHubDir(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	tmpDir, err := ioutil.TempDir("", "docker-build-from-local-dir-")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
@@ -148,12 +154,13 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	client := test.NewFakeCli(&fakeClient{})
 	cmd := NewBuildCommand(client)
 	cmd.SetArgs([]string{buildDir})
-	cmd.SetOutput(ioutil.Discard)
+	cmd.SetOut(ioutil.Discard)
 	err = cmd.Execute()
 	assert.NilError(t, err)
 }
 
 func TestRunBuildWithSymlinkedContext(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 	dockerfile := `
 FROM alpine:3.6
 RUN echo hello world
@@ -180,7 +187,7 @@ func TestParseSecret(t *testing.T) {
 		value       string
 		errExpected bool
 		errMatch    string
-		filesource  *secretsprovider.FileSource
+		source      *secretsprovider.Source
 	}
 	var testcases = []testcase{
 		{
@@ -199,23 +206,32 @@ func TestParseSecret(t *testing.T) {
 			errExpected: true,
 			errMatch:    "unexpected key",
 		}, {
-			value:      "src=somefile",
-			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+			value:  "src=somefile",
+			source: &secretsprovider.Source{FilePath: "somefile"},
 		}, {
-			value:      "source=somefile",
-			filesource: &secretsprovider.FileSource{FilePath: "somefile"},
+			value:  "source=somefile",
+			source: &secretsprovider.Source{FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret",
-			filesource: &secretsprovider.FileSource{ID: "mysecret"},
+			value:  "id=mysecret",
+			source: &secretsprovider.Source{ID: "mysecret"},
 		}, {
-			value:      "id=mysecret,src=somefile",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+			value:  "id=mysecret,src=somefile",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret,source=somefile,type=file",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "somefile"},
+			value:  "id=mysecret,source=somefile,type=file",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
 		}, {
-			value:      "id=mysecret,src=somefile,src=othersecretfile",
-			filesource: &secretsprovider.FileSource{ID: "mysecret", FilePath: "othersecretfile"},
+			value:  "id=mysecret,src=somefile,src=othersecretfile",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "othersecretfile"},
+		}, {
+			value:  "id=mysecret,src=somefile,env=SECRET",
+			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile", Env: "SECRET"},
+		}, {
+			value:  "type=file",
+			source: &secretsprovider.Source{},
+		}, {
+			value:  "type=env",
+			source: &secretsprovider.Source{},
 		}, {
 			value:       "type=invalid",
 			errExpected: true,
@@ -230,7 +246,7 @@ func TestParseSecret(t *testing.T) {
 			if tc.errMatch != "" {
 				assert.ErrorContains(t, err, tc.errMatch)
 			}
-			assert.DeepEqual(t, secret, tc.filesource)
+			assert.DeepEqual(t, secret, tc.source)
 		})
 	}
 }

@@ -4,15 +4,6 @@ description: "The swarm init command description and usage"
 keywords: "swarm, init"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # swarm init
 
 ```markdown
@@ -64,7 +55,7 @@ a new node to the swarm, the node joins as a worker or manager node based upon t
 to [swarm join](swarm_join.md).
 
 After you create the swarm, you can display or rotate the token using
-[swarm join-token](swarm_join_token.md).
+[swarm join-token](swarm_join-token.md).
 
 ### `--autolock`
 
@@ -149,12 +140,12 @@ the port is configured:
 
 ```bash
 docker info
-	...
-	ClusterID: 9vs5ygs0gguyyec4iqf2314c0
-	Managers: 1
-	Nodes: 1
-	Data Path Port: 7777
-	...
+...
+ClusterID: 9vs5ygs0gguyyec4iqf2314c0
+Managers: 1
+Nodes: 1
+Data Path Port: 7777
+...
 ```
 
 ### `--default-addr-pool`
@@ -198,8 +189,8 @@ by passing `--availability=drain` to `docker swarm init`.
 
 * [swarm ca](swarm_ca.md)
 * [swarm join](swarm_join.md)
-* [swarm join-token](swarm_join_token.md)
+* [swarm join-token](swarm_join-token.md)
 * [swarm leave](swarm_leave.md)
 * [swarm unlock](swarm_unlock.md)
-* [swarm unlock-key](swarm_unlock_key.md)
+* [swarm unlock-key](swarm_unlock-key.md)
 * [swarm update](swarm_update.md)

@@ -4,15 +4,6 @@ description: "The images command description and usage"
 keywords: "list, docker, images"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # images
 
 ```markdown
@@ -32,7 +23,7 @@ Options:
       --format string   Pretty-print images using a Go template
       --help            Print usage
       --no-trunc        Don't truncate output
-  -q, --quiet           Only show numeric IDs
+  -q, --quiet           Only show image IDs
 ```
 
 ## Description
@@ -193,8 +184,7 @@ dea752e4e117
 511136ea3c5a
 ```
 
-> **Note**: Docker warns you if any containers exist that are using these
-> untagged images.
+Docker warns you if any containers exist that are using these untagged images.
 
 
 #### Show images with a given label
@@ -318,7 +308,7 @@ output the data exactly as the template declares or, when using the
 `table` directive, will include column headers as well.
 
 The following example uses a template without headers and outputs the
-`ID` and `Repository` entries separated by a colon for all images:
+`ID` and `Repository` entries separated by a colon (`:`) for all images:
 
 ```bash
 $ docker images --format "{{.ID}}: {{.Repository}}"

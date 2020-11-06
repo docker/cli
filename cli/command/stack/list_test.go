@@ -6,13 +6,12 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
+	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
-	"gotest.tools/assert"
-	"gotest.tools/golden"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/golden"
 )
 
 var (
@@ -55,7 +54,7 @@ func TestListErrors(t *testing.T) {
 			serviceListFunc: tc.serviceListFunc,
 		}), &orchestrator)
 		cmd.SetArgs(tc.args)
-		cmd.SetOutput(ioutil.Discard)
+		cmd.SetOut(ioutil.Discard)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}

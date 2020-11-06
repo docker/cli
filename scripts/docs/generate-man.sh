@@ -4,7 +4,8 @@ set -eu -o pipefail
 
 mkdir -p ./man/man1
 
-go install ./vendor/github.com/cpuguy83/go-md2man
+# yay, go install creates a binary named "v2" ¯\_(ツ)_/¯
+go build -o "/go/bin/md2man" ./vendor/github.com/cpuguy83/go-md2man/v2
 
 # Generate man pages from cobra commands
 go build -o /tmp/gen-manpages github.com/docker/cli/man

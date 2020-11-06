@@ -4,15 +4,6 @@ description: "The volume inspect command description and usage"
 keywords: "volume, inspect"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
 # volume inspect
 
 ```markdown
@@ -36,20 +27,39 @@ details of the format.
 ## Examples
 
 ```bash
-$ docker volume create
-85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
-$ docker volume inspect 85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
+$ docker volume create myvolume
+
+myvolume
+```
+
+Use the `docker volume inspect` comment to inspect the configuration of the volume:
+
+```bash
+$ docker volume inspect myvolume
+```
+
+The output is in JSON format, for example:
+
+```json
 [
   {
-      "Name": "85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d",
-      "Driver": "local",
-      "Mountpoint": "/var/lib/docker/volumes/85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d/_data",
-      "Status": null
+    "CreatedAt": "2020-04-19T11:00:21Z",
+    "Driver": "local",
+    "Labels": {},
+    "Mountpoint": "/var/lib/docker/volumes/8140a838303144125b4f54653b47ede0486282c623c3551fbc7f390cdc3e9cf5/_data",
+    "Name": "myvolume",
+    "Options": {},
+    "Scope": "local"
   }
 ]
+```
+Use the `--format` flag to format the output using a Go template, for example,
+to print the `Mountpoint` property:
 
-$ docker volume inspect --format '{{ .Mountpoint }}' 85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d
-/var/lib/docker/volumes/85bffb0677236974f93955d8ecc4df55ef5070117b0e53333cc1b443777be24d/_data
+```bash
+$ docker volume inspect --format '{{ .Mountpoint }}' myvolume
+
+/var/lib/docker/volumes/myvolume/_data
 ```
 
 ## Related commands
@@ -58,4 +68,4 @@ $ docker volume inspect --format '{{ .Mountpoint }}' 85bffb0677236974f93955d8ecc
 * [volume ls](volume_ls.md)
 * [volume rm](volume_rm.md)
 * [volume prune](volume_prune.md)
-* [Understand Data Volumes](https://docs.docker.com/engine/tutorials/dockervolumes/)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)
