@@ -2646,6 +2646,8 @@ __docker_subcommand() {
                 "($help)*--cluster-store-opt=[Cluster store options]:Cluster options:->cluster-store-options" \
                 "($help)--config-file=[Path to daemon configuration file]:Config File:_files" \
                 "($help)--containerd=[Path to containerd socket]:socket:_files -g \"*.sock\"" \
+                "($help)--containerd-namespace=[Containerd namespace to use]:containerd namespace:" \
+                "($help)--containerd-plugins-namespace=[Containerd namespace to use for plugins]:containerd namespace:" \
                 "($help)--data-root=[Root directory of persisted Docker data]:path:_directories" \
                 "($help -D --debug)"{-D,--debug}"[Enable debug mode]" \
                 "($help)--default-gateway[Container default gateway IPv4 address]:IPv4 address: " \

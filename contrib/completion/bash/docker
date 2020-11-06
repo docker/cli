@@ -2570,6 +2570,8 @@ _docker_daemon() {
 		--cluster-store-opt
 		--config-file
 		--containerd
+		--containerd-namespace
+		--containerd-plugins-namespace
 		--cpu-rt-period
 		--cpu-rt-runtime
 		--data-root
