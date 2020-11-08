@@ -128,13 +128,14 @@ Mounts:
 {{- if .Configs}}
 Configs:
 {{- range $config := .Configs }}
- Target:	{{$config.File.Name}}
+ConfigID:	{{$config.ConfigID}}
+Target:	{{$config.File.Name}}
   Source:	{{$config.ConfigName}}
 {{- end }}{{ end }}
 {{- if .Secrets }}
 Secrets:
 {{- range $secret := .Secrets }}
- ID:	{{$secret.ID}}
+ ID:	{{$secret.SecretID}}
  Target:	{{$secret.File.Name}}
   Source:	{{$secret.SecretName}}
 {{- end }}{{ end }}
