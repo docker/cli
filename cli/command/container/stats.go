@@ -156,7 +156,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// Start a short-lived goroutine to retrieve the initial list of
 		// containers.
 		getContainerList()
-		
+
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
 	} else {
@@ -175,7 +175,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
-		
+
 		var errs []string
 		cStats.mu.Lock()
 		for _, c := range cStats.cs {
