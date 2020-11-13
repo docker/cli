@@ -1709,7 +1709,7 @@ Keep the following things in mind about volumes in the `Dockerfile`.
   the destination of a volume inside the container must be one of:
 
   - a non-existing or empty directory
-  - a drive other than `C:`
+  - a drive other the `%SystemDrive%`, which is often `C:`
 
 - **Changing the volume from within the Dockerfile**: If any build steps change the
   data within the volume after it has been declared, those changes will be discarded.
