@@ -1769,7 +1769,7 @@ the `USER` instruction by passing the `-u` option.
 ### WORKDIR
 
 The default working directory for running binaries within a container is the
-root directory (`/`), but the developer can set a different default with the
+root directory (`/`). It is possible to set a different working directory with the
 Dockerfile `WORKDIR` command. The operator can override this with:
 
-    -w="": Working directory inside the container
+    -w="", --workdir="": Working directory inside the container
