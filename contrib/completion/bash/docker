@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# bash completion for docker                                -*- shell-script -*-
 # shellcheck disable=SC2016,SC2119,SC2155,SC2206,SC2207,SC2254
 #
 # Shellcheck ignore list:
@@ -5637,3 +5637,5 @@ eval "$__docker_previous_extglob_setting"
 unset __docker_previous_extglob_setting
 
 complete -F _docker docker docker.exe dockerd dockerd.exe
+
+# ex: filetype=sh
