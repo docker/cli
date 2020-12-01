@@ -37,6 +37,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("isPlugin", isPlugin)
 	cobra.AddTemplateFunc("isExperimental", isExperimental)
 	cobra.AddTemplateFunc("displayHelpLink", displayHelpLink)
+	cobra.AddTemplateFunc("cyan", cyan)
 	cobra.AddTemplateFunc("decoratedName", decoratedName)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
@@ -210,6 +211,16 @@ func displayHelpLink(cmd *cobra.Command) bool {
 	return !cmd.HasParent() && !hideGuides
 }
 
+var cyan = color("\033[1;36m%s\033[0m")
+
+func color(colorString string) func(...interface{}) string {
+	sprint := func(args ...interface{}) string {
+		return fmt.Sprintf(colorString,
+			fmt.Sprint(args...))
+	}
+	return sprint
+}
+
 func isPlugin(cmd *cobra.Command) bool {
 	return cmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true"
 }
@@ -366,7 +377,7 @@ Invalid Plugins:
 Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
 {{- if displayHelpLink .}}
-To get more help with docker, check out guides at https://docs.docker.com/go/guides/
+{{ cyan "To get more help with docker, check out guides at https://docs.docker.com/go/guides/" }}
 {{- end}}
 `
 
