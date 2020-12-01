@@ -36,6 +36,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("invalidPluginReason", invalidPluginReason)
 	cobra.AddTemplateFunc("isPlugin", isPlugin)
 	cobra.AddTemplateFunc("isExperimental", isExperimental)
+	cobra.AddTemplateFunc("displayHelpLink", displayHelpLink)
 	cobra.AddTemplateFunc("decoratedName", decoratedName)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
@@ -185,7 +186,6 @@ var helpCommand = &cobra.Command{
 		if cmd == nil || e != nil || len(args) > 0 {
 			return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
 		}
-
 		helpFunc := cmd.HelpFunc()
 		helpFunc(cmd, args)
 		return nil
@@ -203,6 +203,10 @@ func isExperimental(cmd *cobra.Command) bool {
 		}
 	})
 	return experimental
+}
+
+func displayHelpLink(cmd *cobra.Command) bool {
+	return !cmd.HasParent()
 }
 
 func isPlugin(cmd *cobra.Command) bool {
@@ -359,6 +363,9 @@ Invalid Plugins:
 {{- if .HasSubCommands }}
 
 Run '{{.CommandPath}} COMMAND --help' for more information on a command.
+{{- end}}
+{{- if displayHelpLink .}}
+To get more help with docker, check out guides at https://docs.docker.com/go/guides.md
 {{- end}}
 `
 
