@@ -206,7 +206,8 @@ func isExperimental(cmd *cobra.Command) bool {
 }
 
 func displayHelpLink(cmd *cobra.Command) bool {
-	return !cmd.HasParent()
+	hideGuides := os.Getenv("DOCKER_HIDE_HELP_GUIDES") != ""
+	return !cmd.HasParent() && !hideGuides
 }
 
 func isPlugin(cmd *cobra.Command) bool {
@@ -365,7 +366,7 @@ Invalid Plugins:
 Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
 {{- if displayHelpLink .}}
-To get more help with docker, check out guides at https://docs.docker.com/go/guides.md
+To get more help with docker, check out guides at https://docs.docker.com/go/guides/
 {{- end}}
 `
 
