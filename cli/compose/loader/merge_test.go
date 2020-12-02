@@ -237,10 +237,7 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 			name: "no_override",
 			portBase: map[string]interface{}{
 				"ports": []interface{}{
-					Mode:      "ingress",
-					Published: 8080,
-					Target:    80,
-					Protocol:  "tcp",
+					"8080:80",
 				},
 			},
 			portOverride: map[string]interface{}{},
@@ -257,18 +254,12 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 			name: "override_different_published",
 			portBase: map[string]interface{}{
 				"ports": []interface{}{
-					Mode:      "ingress",
-					Published: 8080,
-					Target:    80,
-					Protocol:  "tcp",
+					"8080:80",
 				},
 			},
 			portOverride: map[string]interface{}{
 				"ports": []interface{}{
-					Mode:      "ingress",
-					Published: 8081,
-					Target:    80,
-					Protocol:  "tcp",
+					"8081:80",
 				},
 			},
 			expected: []types.ServicePortConfig{
@@ -290,18 +281,12 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 			name: "override_same_published",
 			portBase: map[string]interface{}{
 				"ports": []interface{}{
-					Mode:      "ingress",
-					Published: 8080,
-					Target:    80,
-					Protocol:  "tcp",
+					"8080:80",
 				},
 			},
 			portOverride: map[string]interface{}{
 				"ports": []interface{}{
-					Mode:      "ingress",
-					Published: 8080,
-					Target:    81,
-					Protocol:  "tcp",
+					"8080:81",
 				},
 			},
 			expected: []types.ServicePortConfig{
@@ -858,18 +843,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 					"dockerfile": "bar.Dockerfile",
 				},
 				"ports": []interface{}{
-					{
-						Mode:      "ingress",
-						Published: 8080,
-						Target:    80,
-						Protocol:  "tcp",
-					},
-					{
-						Mode:      "ingress",
-						Published: 9090,
-						Target:    90,
-						Protocol:  "tcp",
-					},
+					"8080:80",
+					"9090:90",
 				},
 				"labels": []interface{}{
 					"foo=bar",
@@ -898,10 +873,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 				},
 				"ports": []interface{}{
 					map[string]interface{}{
-						"Mode":      "ingress",
 						"target":    81,
 						"published": 8080,
-						"Protocol":  "tcp",
 					},
 				},
 				"labels": map[string]interface{}{
