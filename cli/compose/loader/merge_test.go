@@ -869,7 +869,7 @@ func TestLoadMultipleConfigs(t *testing.T) {
 						Published: 9090,
 						Target:    90,
 						Protocol:  "tcp",
-					}
+					},
 				},
 				"labels": []interface{}{
 					"foo=bar",
