@@ -32,6 +32,7 @@ import (
 	"github.com/moby/buildkit/session/sshforward/sshprovider"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/moby/buildkit/util/progress/progressui"
+	"github.com/moby/buildkit/util/progress/progresswriter"
 	"github.com/pkg/errors"
 	fsutiltypes "github.com/tonistiigi/fsutil/types"
 	"github.com/tonistiigi/go-rosetta"
@@ -176,7 +177,8 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		}))
 	}
 
-	s.Allow(authprovider.NewDockerAuthProvider(os.Stderr))
+	dockerAuthProvider := authprovider.NewDockerAuthProvider(os.Stderr)
+	s.Allow(dockerAuthProvider)
 	if len(options.secrets) > 0 {
 		sp, err := parseSecretSpecs(options.secrets)
 		if err != nil {
@@ -241,14 +243,14 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		buildOptions.SessionID = s.ID()
 		buildOptions.BuildID = buildID
 		buildOptions.Outputs = outputs
-		return doBuild(ctx, eg, dockerCli, stdoutUsed, options, buildOptions)
+		return doBuild(ctx, eg, dockerCli, stdoutUsed, options, buildOptions, dockerAuthProvider)
 	})
 
 	return eg.Wait()
 }
 
 //nolint: gocyclo
-func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, stdoutUsed bool, options buildOptions, buildOptions types.ImageBuildOptions) (finalErr error) {
+func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, stdoutUsed bool, options buildOptions, buildOptions types.ImageBuildOptions, at session.Attachable) (finalErr error) {
 	response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
 	if err != nil {
 		return err
@@ -279,10 +281,17 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, std
 		if cons, err := console.ConsoleFromFile(out); err == nil && (options.progress == "auto" || options.progress == "tty") {
 			c = cons
 		}
-		// not using shared context to not disrupt display but let is finish reporting errors
+		// not using shared context to not disrupt display but let it finish reporting errors
 		eg.Go(func() error {
 			return progressui.DisplaySolveStatus(context.TODO(), "", c, out, displayCh)
 		})
+		if s, ok := at.(interface {
+			SetLogger(progresswriter.Logger)
+		}); ok {
+			s.SetLogger(func(s *client.SolveStatus) {
+				displayCh <- s
+			})
+		}
 	}
 
 	if options.quiet {
