@@ -111,7 +111,7 @@ func toServicePortConfigsMap(s interface{}) (map[interface{}]interface{}, error)
 	}
 	m := map[interface{}]interface{}{}
 	for _, p := range ports {
-		m[p.Published] = p
+		m[p] = p
 	}
 	return m, nil
 }
