@@ -13,7 +13,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
@@ -63,7 +63,7 @@ func runUnlock(dockerCli command.Cli) error {
 func readKey(in *streams.In, prompt string) (string, error) {
 	if in.IsTerminal() {
 		fmt.Print(prompt)
-		dt, err := terminal.ReadPassword(int(in.FD()))
+		dt, err := term.ReadPassword(int(in.FD()))
 		fmt.Println()
 		return string(dt), err
 	}

@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/pkg/fileutils"
+	"github.com/moby/buildkit/frontend/dockerfile/dockerignore"
 )
 
 // ReadDockerignore reads the .dockerignore file in the context directory and
