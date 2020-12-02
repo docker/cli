@@ -36,8 +36,8 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("invalidPluginReason", invalidPluginReason)
 	cobra.AddTemplateFunc("isPlugin", isPlugin)
 	cobra.AddTemplateFunc("isExperimental", isExperimental)
-	cobra.AddTemplateFunc("displayHelpLink", displayHelpLink)
-	cobra.AddTemplateFunc("cyan", cyan)
+	cobra.AddTemplateFunc("hasAdditionalHelp", hasAdditionalHelp)
+	cobra.AddTemplateFunc("additionalHelp", additionalHelp)
 	cobra.AddTemplateFunc("decoratedName", decoratedName)
 
 	rootCmd.SetUsageTemplate(usageTemplate)
@@ -48,6 +48,8 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
+
+	rootCmd.Annotations = map[string]string{"additionalHelp": brightCyan("To get more help with docker, check out guides at https://docs.docker.com/go/guides/")}
 
 	return opts, flags, helpCommand
 }
@@ -206,12 +208,18 @@ func isExperimental(cmd *cobra.Command) bool {
 	return experimental
 }
 
-func displayHelpLink(cmd *cobra.Command) bool {
-	hideGuides := os.Getenv("DOCKER_HIDE_HELP_GUIDES") != ""
-	return !cmd.HasParent() && !hideGuides
+func additionalHelp(cmd *cobra.Command) string {
+	if additionalHelp, ok := cmd.Annotations["additionalHelp"]; ok {
+		return additionalHelp
+	}
+	return ""
 }
 
-var cyan = color("\033[1;36m%s\033[0m")
+func hasAdditionalHelp(cmd *cobra.Command) bool {
+	return additionalHelp(cmd) != ""
+}
+
+var brightCyan = color("\033[1;96m%s\033[0m")
 
 func color(colorString string) func(...interface{}) string {
 	sprint := func(args ...interface{}) string {
@@ -376,8 +384,8 @@ Invalid Plugins:
 
 Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
-{{- if displayHelpLink .}}
-{{ cyan "To get more help with docker, check out guides at https://docs.docker.com/go/guides/" }}
+{{- if hasAdditionalHelp .}}
+{{ additionalHelp . }}
 {{- end}}
 `
 
