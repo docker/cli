@@ -15,7 +15,6 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	podutils "k8s.io/kubernetes/pkg/api/v1/pod"
 )
 
 type stackListWatch interface {
@@ -157,7 +156,7 @@ func (pw *podWatcher) updateServiceStatus(serviceName string) {
 			case apiv1.PodUnknown:
 				status.podsUnknown++
 			}
-			if podutils.IsPodReady(pod) {
+			if pw.isPodReady(pod) {
 				status.podsReady++
 			}
 		}
@@ -168,6 +167,15 @@ func (pw *podWatcher) updateServiceStatus(serviceName string) {
 		pw.statusUpdates <- status
 	}
 	pw.services[serviceName] = status
+}
+
+func (pw *podWatcher) isPodReady(pod *apiv1.Pod) bool {
+	for _, condition := range pod.Status.Conditions {
+		if condition.Status == apiv1.ConditionTrue && condition.Type == apiv1.PodReady {
+			return true
+		}
+	}
+	return false
 }
 
 func (pw *podWatcher) allReady() bool {
