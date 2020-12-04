@@ -15,6 +15,7 @@ func TestParseHost(t *testing.T) {
 		"tcp://invalid:port",
 	}
 
+	defaultHost := DefaultLocalHost()
 	valid := map[string]string{
 		"":                         defaultHost,
 		" ":                        defaultHost,

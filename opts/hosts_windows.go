@@ -2,8 +2,10 @@
 
 package opts
 
-// defaultHost constant defines the default host string used by docker on Windows
-const defaultHost = "npipe://" + defaultNamedPipe
+// DefaultLocalHost returns the default host string used by docker on Windows
+func DefaultLocalHost() string {
+	return "npipe://" + defaultNamedPipe
+}
 
 // TODO Windows. Identify bug in GOLang 1.5.1+ and/or Windows Server 2016 TP5.
 // @jhowardmsft, @swernli.
