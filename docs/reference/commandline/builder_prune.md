@@ -33,7 +33,9 @@ redirect_from:
 
 ## Description
 
-First, when the `BuildKit` garbage collector is enabled it runs periodically in the background and follows an ordered list of policies. Each policy is a prune operation so the order matters. But pruning can also be done manually with `docker builder prune` with is respective prune inputs to remove build cache.
+When the Garbage collector in the buildkit daemon configuration is enabled it runs in the background periodically which it follows an ordered list of
+policies, policies which are prune operations, so the order matters. Pruning can be done and tested manually in the cli with `docker builder prune` command,
+we are going to look at how pruning helps with build caches including different inputs to configure our prune.
 
 # builder prune
 
@@ -51,8 +53,9 @@ Options:
 
 ## Usage
 
-Build cache records can be inspected with the following command: ` docker system df -v`
-(but shows more than just build cache records) or with buildx via: `buildx du --verbose`
+Our build caches records can be inspected with the following command: `docker system df -v`
+(it shows image, container and volume caches)
+or with buildx command via: `buildx du --verbose`
 with a bit different output.
 
 ```bash
