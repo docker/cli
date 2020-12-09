@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
@@ -47,9 +48,36 @@ func longCreateDescription() string {
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	opts := &CreateOptions{}
 	cmd := &cobra.Command{
-		Use:   "create [OPTIONS] CONTEXT",
-		Short: "Create a context",
-		Args:  cli.ExactArgs(1),
+		Use:                "create [OPTIONS] [TYPE] CONTEXT",
+		Short:              "Create a context",
+		DisableFlagParsing: true,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			originalArgs := make([]string, len(args))
+			copy(originalArgs, args)
+
+			// parse flags but ignore unknown flags
+			cmd.DisableFlagParsing = false
+			cmd.FParseErrWhitelist = cobra.FParseErrWhitelist{
+				UnknownFlags: true,
+			}
+			err := cmd.ParseFlags(args)
+			if err != nil {
+				return err
+			}
+			argsWoFlags := cmd.Flags().Args()
+			if len(args) == 2 {
+				return context.RunContextCLI(args[0])
+			}
+
+			cmd.FParseErrWhitelist = cobra.FParseErrWhitelist{
+				UnknownFlags: false,
+			}
+			err = cmd.ParseFlags(originalArgs)
+			if err != nil {
+				return err
+			}
+			return cli.RequiresRangeArgs(1, 2)(cmd, argsWoFlags)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
 			return RunCreate(dockerCli, opts)

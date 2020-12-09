@@ -161,6 +161,20 @@ func (tcmd *TopLevelCommand) Initialize(ops ...command.InitializeOpt) error {
 	return tcmd.dockerCli.Initialize(tcmd.opts, ops...)
 }
 
+// ContextType return the current context type, "" for default
+func (tcmd *TopLevelCommand) ContextType() (string, error) {
+	context := tcmd.dockerCli.CurrentContext()
+	metadata, err := tcmd.dockerCli.ContextStore().GetMetadata(context)
+	if err != nil {
+		return "", err
+	}
+	meta := metadata.Metadata.(command.DockerContext)
+	if s, ok := meta.AdditionalFields["Type"]; ok {
+		return s.(string), nil
+	}
+	return "", nil
+}
+
 // VisitAll will traverse all commands from the root.
 // This is different from the VisitAll of cobra.Command where only parents
 // are checked.
