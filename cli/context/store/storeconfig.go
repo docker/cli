@@ -11,7 +11,7 @@ type NamedTypeGetter struct {
 	typeGetter TypeGetter
 }
 
-// EndpointTypeGetter returns a NamedTypeGetter with the spcecified name and getter
+// EndpointTypeGetter returns a NamedTypeGetter with the specified name and getter
 func EndpointTypeGetter(name string, getter TypeGetter) NamedTypeGetter {
 	return NamedTypeGetter{
 		name:       name,
