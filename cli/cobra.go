@@ -10,6 +10,7 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/moby/term"
+	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -49,7 +50,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 
-	rootCmd.Annotations = map[string]string{"additionalHelp": brightCyan("To get more help with docker, check out guides at https://docs.docker.com/go/guides/")}
+	rootCmd.Annotations = map[string]string{"additionalHelp": "To get more help with docker, check out our guides at https://docs.docker.com/go/guides/"}
 
 	return opts, flags, helpCommand
 }
@@ -210,23 +211,14 @@ func isExperimental(cmd *cobra.Command) bool {
 
 func additionalHelp(cmd *cobra.Command) string {
 	if additionalHelp, ok := cmd.Annotations["additionalHelp"]; ok {
-		return additionalHelp
+		style := aec.EmptyBuilder.Bold().ANSI
+		return style.Apply(additionalHelp)
 	}
 	return ""
 }
 
 func hasAdditionalHelp(cmd *cobra.Command) bool {
 	return additionalHelp(cmd) != ""
-}
-
-var brightCyan = color("\033[1;96m%s\033[0m")
-
-func color(colorString string) func(...interface{}) string {
-	sprint := func(args ...interface{}) string {
-		return fmt.Sprintf(colorString,
-			fmt.Sprint(args...))
-	}
-	return sprint
 }
 
 func isPlugin(cmd *cobra.Command) bool {
@@ -385,6 +377,7 @@ Invalid Plugins:
 Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
 {{- if hasAdditionalHelp .}}
+
 {{ additionalHelp . }}
 {{- end}}
 `
