@@ -3601,7 +3601,7 @@ _docker_service_ls() {
 			return
 			;;
 		mode)
-			COMPREPLY=( $( compgen -W "global replicated" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "global global-job replicated replicated-job" -- "${cur##*=}" ) )
 			return
 			;;
 		name)
@@ -3731,6 +3731,7 @@ _docker_service_update_and_create() {
 		--limit-pids
 		--log-driver
 		--log-opt
+		--max-replicas
 		--replicas
 		--replicas-max-per-node
 		--reserve-cpu
@@ -3804,7 +3805,7 @@ _docker_service_update_and_create() {
 				return
 				;;
 			--mode)
-				COMPREPLY=( $( compgen -W "global replicated" -- "$cur" ) )
+				COMPREPLY=( $( compgen -W "global global-job replicated replicated-job" -- "$cur" ) )
 				return
 				;;
 		esac
