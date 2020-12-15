@@ -31,11 +31,27 @@ redirect_from:
      will be rejected.
 -->
 
-## Description
+# Description
 
-When the Garbage collector in the buildkit daemon configuration is enabled it runs in the background periodically which it follows an ordered list of
-policies, policies which are prune operations, so the order matters. Pruning can be done and tested manually in the cli with `docker builder prune` command,
-we are going to look at how pruning helps with build caches including different inputs to configure our prune.
+Working with Docker, docker have various unused objects hanging around from previous activities, so docker
+takes a conservative approach to clean up unused objects, part of the object which we would be talking about is the builder cache
+these object are stored when building dockerfiles, there're generally not removed unless you explicitly ask Docker to do so. This
+can cause Docker to use extra disk space. Docker provides a prune command `docker builder prune` or `docker buildx prune` to clean
+up multiple unused build cache at once. This topic shows how to use these prune command and it different inputs to clean build
+cache.
+
+When we execute the `$ docker builder prune` command, it makes an API call to the Docker daemon, and the daemon searches for all
+unused build cache objects on that host and removes those objects from the system.
+
+The goal of creating cache is to speed up future builds.
+Removing unused build cache is very important in docker so as to build effective dockerfiles, pruning removes dead and unused
+build cache allowing room for new and useful cache. It also defers bad build cache and promotes the builds to work faster and
+effective.
+So docker try to remove the cache that is less likely to be used in future builds to keep builds as fast as possible while maintaining cache size under control.
+
+**Note**
+>Pruning does not works if the Total is below what you specified as keep storage option to prune. It needs to go above, we are
+>going to see how to use the `--keep-storage` option as part of our examples in this topic.
 
 # builder prune
 
@@ -51,8 +67,10 @@ Options:
       --keep-storage bytes   Amount of disk space to keep for cache
 ```
 
-## Usage
+# Usage
 
+To see how much cache you are using currently you can use `docker system df` to get a total view for what’s being in use including
+containers, images, and build cache.
 Our build caches records can be inspected with the following command: `docker system df -v`
 (it shows image, container and volume caches)
 or with buildx command via: `buildx du --verbose`
@@ -130,7 +148,7 @@ and `SHARED = true` same applies to `USAGE = 1` and `SHARED = false` both of the
 i.e `SHARED = false` and `USAGE = 0`.
 
 
-## Examples
+# Examples
 
 The [docker builder prune --help](commandline/builder_prune.md) shows all the flag / options that can be used for builder prune.
 This is what the output looks like:
@@ -149,19 +167,18 @@ Options:
       --keep-storage bytes   Amount of disk space to keep for cache
 ```
 
-## Build Prune With (--force) flag
+# Build Prune With (--force) flag
 
 First of all, the `--force` `-f` flag in [docker builder prune](commandline/builder_prune.md) helps to bypass
 the authentication that pops up when we use `docker builder prune` and any of its options. it can be used with other
 options, applications and usage examples of `--force` are shown with other options below.
 
 > **Note**
->
 > This feature dose not allow you to force remove a cache that is in use.
 > it only bypass authentications.
 
 
-## Build Prune With (--all, -a) flag 
+# Build Prune With (--all, -a) flag 
 
 Builder prune has a flag for removing all unused build cache, not just dangling caches, Discription of this flag is below.
 First we check for builder caches:
@@ -236,7 +253,7 @@ bb186d194decu5qrg0jjmw6tp
 Total reclaimed space: 112.78MB
 ```
 
-## Build Prune With (--filter) flag 
+# Build Prune With (--filter) flag 
 
 The filter flag for `builder prune` is used to `filter` what type of filter you want to remove based on the usage time 
 i.e the last time it was used, below we will show how the `--filter` flag is been used in our builder prune command.
@@ -271,10 +288,41 @@ Deleted build cache objects:
 i8nfk2fvpyyiu5qrg0jjmw6tp
 
 Total reclaimed space: 2.38MB
+
+# Two builder cache were deleted, the two were used 13 days ago, but we specify that we want to delete every build
+# cache that has not been used for the last 24 hours.
 ```
-**Note**
->Two builder cache were deleted, the two were used 13 days ago, but we specify that we want to delete every build
->cache that has not been used for the last 24 hours.
+
+### Example of --all and --filter flag combination.
+```bash
+$ docker system df -v ## to check the builder cache
+
+Build cache usage: 336.28MB
+
+CACHE ID            CACHE TYPE          SIZE                CREATED             LAST USED           USAGE               SHARED
+rkze7nhuwsrh        regular             36.1MB              2 weeks ago         12 hours ago        1                   false
+qemxnvg1n1o8        regular             36.1MB              2 weeks ago         2 weeks ago         2                   false
+8l4s9m2j2z4b        regular             74.5MB              2 weeks ago         2 weeks ago         0                   false
+d0fe97fa8b8c        regular             69.2MB              2 weeks ago         10 days ago         1                   false
+4d6b84966400        regular             41.3MB              2 weeks ago         13 days ago         0                   false
+bb186d194dec        regular             2.28MB              2 weeks ago         17 hours ago        1                   false
+216461ee9eb5        regular             76.8MB              2 weeks ago         13 days ago         0                   false
+
+$ docker builder prune --all --filter unused-for = 24h
+
+WARNING! This will remove all dangling build cache. Are you sure you want to continue? [y/N] y
+#y selected.
+
+Deleted build cache objects:
+
+8l4s9m2j2z4biu5qrg0jjmw6tp
+4d6b84966400yyqyguxrhrdv8k
+216461ee9eb5xm9vo7r0p490pg
+
+Total reclaimed space: 38.38MB
+
+# only build cache that are unused and are last used for more than 24 hours were deleted.
+```
 
 ## Using -f, --force flag with --filter.
 By now we know what the `-f` or `--force` flag does, in this example we are going to see how to 
@@ -304,7 +352,7 @@ e6vrmmkb82mmffmls87xe41k8
 Total reclaimed space: 3.5kb
 ```
 
-## Build Prune With (--keep-storage) flag 
+# Build Prune With (--keep-storage) flag 
 
 Docker as a way to manage the storage space that build cache can consume. The `--keep-storage` command helps
 us to manage the amount of storage space that our build cache can have.
@@ -312,18 +360,47 @@ us to manage the amount of storage space that our build cache can have.
 **Note** 
 >If build cache as been asigned to only have 1GB of storage, i.e it can only store upto 1GB amount of build caches 
 >and if the storage is full, it can no longer store more build caches therefore any other build will not be stored.
->i.e when the build is been run again, it starts from the begining because the build was not cached on the first run.
+>i.e when the prune, it deletes the ones that are unused until it gets to 1GB.
 
 Usage is below:
 
 ```bash 
-$ docker builder prune --keep-storage 5gb
+$ docker builder prune --keep-storage 512MB
 
 WARNING! This will remove all dangling build cache. Are you sure you want to continue? [y/N] y
 
 # y (yes) was selected.
 
 Total reclaimed space: 0B
+
+# now let use prune our build cache
+
+$ docker system df -v # to check for builder cache
+
+Build cache usage: 624.5MB
+
+CACHE ID            CACHE TYPE          SIZE                CREATED             LAST USED           USAGE               SHARED
+nhqetzusaoxp        source.local        695B                2 weeks ago         2 weeks ago         0                   false
+7sg0fy1pmvtt        regular             0B                  2 weeks ago         2 weeks ago         0                   false
+gi8wypsigtjm        source.local        340B                2 weeks ago         2 weeks ago         1                   false
+cd21hgno3hax        regular             2.42MB              2 weeks ago         2 weeks ago         3                   true
+36bctagchywz        regular             540MB               2 weeks ago         2 weeks ago         0                   false
+l1wnrjeqm9pa        regular             81MB                2 weeks ago         2 weeks ago         3                   false
+1jr4qt5wqgjl        regular             0B                  2 weeks ago         2 weeks ago         3                   false
+bdd3e2e51daf        regular             38.2MB              2 weeks ago         2 weeks ago         0                   false
+
+$ docker builder prune --all # Remove all unused cache till its under 512MB(Keep Storage limit)
+
+WARNING! This will remove all dangling build cache. Are you sure you want to continue? [y/N] y
+
+nhqetzusaoxpxm9vo7r0p490p
+7sg0fy1pmvtt5zgwl7z95cmk5
+36bctagchywzmgvbd3wl3hg9y
+
+# we have 4 unused cache there, but he removed 3 unused cache, because it has removed the amount of cache down to what we needed  
+# 512MB keep storage, and based on our filter.
+
+Total reclaimed space: 540.70MB
 ```
 ## Using -f, --force flag with --keep-storage.
 
@@ -336,5 +413,6 @@ $ docker builder prune --keep-storage 5gb -f
 # NOTE: No pop up showed up to ask if you approve the removal of the build cache.
 Total reclaimed space: 0B
 ```
-This are what you need to know on how to use `builder prune` on your docker engine.
+[Garbage collection](commandline/garbagecollection_config.md) is done in the pruning process, its an ordered list of prune
+operations, click the link to know more and see how to configure garbage collection. 
 <!---MARKER_GEN_END-->
