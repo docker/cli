@@ -34,6 +34,7 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 			_, err = fmt.Fprintf(dockerCli.Out(), "%s", cfg)
 			return err
 		},
+		Annotations: map[string]string{"experimental": ""},
 	}
 
 	flags := cmd.Flags()
