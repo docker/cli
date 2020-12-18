@@ -48,42 +48,18 @@ func longCreateDescription() string {
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	opts := &CreateOptions{}
 	cmd := &cobra.Command{
-		Use:                "create [OPTIONS] [TYPE] CONTEXT",
-		Short:              "Create a context",
-		DisableFlagParsing: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			originalArgs := make([]string, len(args))
-			copy(originalArgs, args)
-
-			// parse flags but ignore unknown flags
-			cmd.DisableFlagParsing = false
-			cmd.FParseErrWhitelist = cobra.FParseErrWhitelist{
-				UnknownFlags: true,
-			}
-			err := cmd.ParseFlags(args)
-			if err != nil {
-				return err
-			}
-			argsWoFlags := cmd.Flags().Args()
-			if len(args) == 2 {
-				return context.RunContextCLI(args[0])
-			}
-
-			cmd.FParseErrWhitelist = cobra.FParseErrWhitelist{
-				UnknownFlags: false,
-			}
-			err = cmd.ParseFlags(originalArgs)
-			if err != nil {
-				return err
-			}
-			return cli.RequiresRangeArgs(1, 2)(cmd, argsWoFlags)
-		},
+		Use:   "create [OPTIONS] [TYPE] CONTEXT",
+		Short: "Create a context",
+		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
 			return RunCreate(dockerCli, opts)
 		},
 		Long: longCreateDescription(),
 	}
+	cmd.AddCommand(newAciCreateCommand())
+	cmd.AddCommand(newEcsCreateCommand())
+
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")
 	flags.StringVar(
@@ -93,6 +69,30 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
 	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
 	flags.StringVar(&opts.From, "from", "", "create context from a named context")
+	return cmd
+}
+
+func newAciCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                "aci CONTEXT [flags]",
+		Short:              "Create a context for Azure Container Instances",
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return context.RunContextCLI(context.ContextTypeACI)
+		},
+	}
+	return cmd
+}
+
+func newEcsCreateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                "ecs CONTEXT [flags]",
+		Short:              "Create a context for Amazon ECS",
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return context.RunContextCLI(context.ContextTypeECS)
+		},
+	}
 	return cmd
 }
 
