@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	configtypes "github.com/docker/cli/cli/config/types"
+	dockercontext "github.com/docker/cli/cli/context"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
@@ -52,7 +53,20 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVarP(&opts.password, "password", "p", "", "Password")
 	flags.BoolVarP(&opts.passwordStdin, "password-stdin", "", false, "Take the password from stdin")
 
+	cmd.AddCommand(newLoginAzureCommand())
+
 	return cmd
+}
+
+func newLoginAzureCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:                "azure [OPTIONS]",
+		Short:              "Log in to Azure",
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return dockercontext.RunContextCLI(dockercontext.ContextTypeACI)
+		},
+	}
 }
 
 // displayUnencryptedWarning warns the user when using an insecure credential storage.
