@@ -31,7 +31,8 @@ $ docker context inspect "local+aks"
     "Name": "local+aks",
     "Metadata": {
       "Description": "Local Docker Engine + Azure AKS endpoint",
-      "StackOrchestrator": "kubernetes"
+      "StackOrchestrator": "kubernetes",
+      "Type": "moby"
     },
     "Endpoints": {
       "docker": {

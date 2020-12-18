@@ -9,6 +9,7 @@ import (
 
 // DockerContext is a typed representation of what we put in Context metadata
 type DockerContext struct {
+	Type              string
 	Description       string
 	StackOrchestrator Orchestrator
 	AdditionalFields  map[string]interface{}
@@ -17,6 +18,9 @@ type DockerContext struct {
 // MarshalJSON implements custom JSON marshalling
 func (dc DockerContext) MarshalJSON() ([]byte, error) {
 	s := map[string]interface{}{}
+	if dc.Type != "" {
+		s["Type"] = dc.Type
+	}
 	if dc.Description != "" {
 		s["Description"] = dc.Description
 	}
@@ -39,6 +43,8 @@ func (dc *DockerContext) UnmarshalJSON(payload []byte) error {
 	}
 	for k, v := range data {
 		switch k {
+		case "Type":
+			dc.Type = v.(string)
 		case "Description":
 			dc.Description = v.(string)
 		case "StackOrchestrator":

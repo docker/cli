@@ -9,6 +9,7 @@ const (
 	SizeHeader         = "SIZE"
 	LabelsHeader       = "LABELS"
 	NameHeader         = "NAME"
+	TypeHeader         = "TYPE"
 	DescriptionHeader  = "DESCRIPTION"
 	DriverHeader       = "DRIVER"
 	ScopeHeader        = "SCOPE"
