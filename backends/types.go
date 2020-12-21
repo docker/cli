@@ -1,11 +1,10 @@
-package context
+package backends
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 )
 
 const (
@@ -13,22 +12,21 @@ const (
 	ContextTypeECS = "ecs"
 	// ContextTypeACI is MS Azure Container Instances context type
 	ContextTypeACI = "aci"
-
-	//TODO move in a separate file and have a windows version
-	backendFolder = "/usr/local/lib/docker/cli-backends"
+	// ContextTypeLocal is context type for local engine and compose implemetation in particular
+	ContextTypeLocal = "local"
 )
 
-// RunContextCLI replace the current process with dedicated CLI for this context type
-func RunContextCLI(context string) error {
-	if context != ContextTypeACI && context != ContextTypeECS {
-		return fmt.Errorf("unsupported context type: %q", context)
+// RunBackendCLI replace the current process with dedicated CLI for this context type
+func RunBackendCLI(contextType string) error {
+	backend, err := GetBackend(contextType)
+	if err != nil {
+		return fmt.Errorf("unsupported context type: %q", contextType)
 	}
-	x := filepath.Join(backendFolder, "compose-cli")
-	if _, err := os.Stat(x); os.IsNotExist(err) {
+	if _, err := os.Stat(backend.Path); os.IsNotExist(err) {
 		// TODO we could be more restrictive about supported types to prevent abuses using ContextType enum values
-		return fmt.Errorf("unsupported context type %q", context)
+		return fmt.Errorf("unsupported context type %q", contextType)
 	}
-	delegate(x) // will exit
+	delegate(backend.Path) // will exit
 	return nil
 }
 
