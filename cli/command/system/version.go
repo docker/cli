@@ -9,6 +9,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/docker/cli/backends"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	kubecontext "github.com/docker/cli/cli/context/kubernetes"
@@ -35,7 +36,11 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Context:	{{.Context}}
  Experimental:	{{.Experimental}}
-{{- end}}
+ {{- range $backend := .Backends}}
+ {{$backend.Name}}:
+  Version:	{{$backend.Version}}
+  {{- end}}
+ {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
 
@@ -72,8 +77,8 @@ type versionInfo struct {
 }
 
 type clientVersion struct {
-	Platform struct{ Name string } `json:",omitempty"`
-
+	Platform          struct{ Name string } `json:",omitempty"`
+	Backends          []backends.Backend
 	Version           string
 	APIVersion        string `json:"ApiVersion"`
 	DefaultAPIVersion string `json:"DefaultAPIVersion,omitempty"`
@@ -145,10 +150,12 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	if err != nil {
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
+	backends := backends.ListBackends()
 
 	vd := versionInfo{
 		Client: clientVersion{
 			Platform:          struct{ Name string }{version.PlatformName},
+			Backends:          backends,
 			Version:           version.Version,
 			APIVersion:        dockerCli.Client().ClientVersion(),
 			DefaultAPIVersion: dockerCli.DefaultVersion(),
