@@ -1,6 +1,7 @@
 package backends
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,9 +20,10 @@ type Backend struct {
 	Err            error    `json:"-"`
 }
 
+// BackendMetadata backend metadata
 type BackendMetadata struct {
-	Name    string
-	Version string
+	Name    string `json:",omitempty"`
+	Version string `json:",omitempty"`
 }
 
 const (
@@ -29,17 +31,28 @@ const (
 	backendSuffix = "-backend"
 )
 
+var allowedBackends = map[string][]string{"docker-compose-cli-backend": {"aci", "ecs", "local"}}
+
 // ListBackends produces a list of available backends on the system and their context types
-func ListBackends() ([]Backend, error) {
-	return listBackendsFrom(getDockerCliBackendDir(), fakeMetadata)
+func ListBackends() []Backend {
+	return listBackendsFrom(getDockerCliBackendDir(), getMetadata, allowedBackends)
+}
+
+func getMetadata(binary string) (BackendMetadata, error) {
+	output, err := shellout(binary, "backend-metadata")
+	if err != nil {
+		return BackendMetadata{}, err
+	}
+	metadata := BackendMetadata{}
+	if err := json.Unmarshal(output, &metadata); err != nil {
+		return BackendMetadata{}, err
+	}
+	return metadata, nil
 }
 
 // GetBackend get backend for a given context type
 func GetBackend(contextType string) (*Backend, error) {
-	backends, err := ListBackends()
-	if err != nil {
-		return nil, err
-	}
+	backends := ListBackends()
 	for _, backend := range backends {
 		if utils.StrSliceContains(backend.SupportedTypes, contextType) {
 			return &backend, nil
@@ -50,18 +63,13 @@ func GetBackend(contextType string) (*Backend, error) {
 
 type extractMetadataFunc func(binary string) (BackendMetadata, error)
 
-func fakeMetadata(binary string) (BackendMetadata, error) {
-	name := strings.TrimPrefix(filepath.Base(binary), backendPrefix)
-	return BackendMetadata{Name: strings.TrimSuffix(name, ".exe"), Version: "1.0"}, nil
-}
-
-func listBackendsFrom(backendDir string, extractVersion extractMetadataFunc) ([]Backend, error) {
+func listBackendsFrom(backendDir string, extractMetadata extractMetadataFunc, allowedBackendFiles map[string][]string) []Backend {
 	if fi, err := os.Stat(backendDir); err != nil || !fi.IsDir() {
-		return nil, fmt.Errorf("%q is not a directory, unable to list backends", backendDir)
+		return nil
 	}
 	dentries, err := ioutil.ReadDir(backendDir)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 	result := []Backend{}
 	for _, candidate := range dentries {
@@ -72,23 +80,23 @@ func listBackendsFrom(backendDir string, extractVersion extractMetadataFunc) ([]
 			// Something else, ignore.
 			continue
 		}
-		fileName := candidate.Name()
-		name := strings.TrimSuffix(fileName, ".exe")
-		if !strings.HasPrefix(name, backendPrefix) || !strings.HasSuffix(name, backendSuffix) {
+		filename := candidate.Name()
+		path := filepath.Join(backendDir, filename)
+		withoutExe := strings.TrimSuffix(filename, ".exe")
+		if !strings.HasPrefix(withoutExe, backendPrefix) || !strings.HasSuffix(withoutExe, backendSuffix) {
 			continue
 		}
-		contextTypes := getContextTypes(name)
-		path := filepath.Join(backendDir, fileName)
-		metadata, err := extractVersion(path)
+		contextTypes, allowed := allowedBackendFiles[withoutExe]
+		if !allowed {
+			fmt.Fprintf(os.Stderr, "Invalid backend : backend binary %q is not allowed", filename)
+			continue
+		}
+
+		metadata, err := extractMetadata(path)
 		if err != nil {
 			continue
 		}
 		result = append(result, Backend{Name: metadata.Name, Path: path, Version: metadata.Version, SupportedTypes: contextTypes})
 	}
-	return result, nil
-}
-
-func getContextTypes(name string) []string {
-	name = strings.TrimPrefix(name, backendPrefix)
-	return strings.Split(strings.TrimSuffix(name, backendSuffix), "-")
+	return result
 }
