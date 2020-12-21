@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"text/tabwriter"
 
+	"github.com/docker/cli/backends"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
@@ -78,7 +78,7 @@ func newAciCreateCommand() *cobra.Command {
 		Short:              "Create a context for Azure Container Instances",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return context.RunContextCLI(context.ContextTypeACI)
+			return backends.RunBackendCLI(backends.ContextTypeACI)
 		},
 	}
 	return cmd
@@ -90,7 +90,7 @@ func newEcsCreateCommand() *cobra.Command {
 		Short:              "Create a context for Amazon ECS",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return context.RunContextCLI(context.ContextTypeECS)
+			return backends.RunBackendCLI(backends.ContextTypeECS)
 		},
 	}
 	return cmd

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/docker/cli/backends"
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	"github.com/docker/cli/cli/context"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
@@ -270,7 +270,7 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 	if ctx != "" {
-		return context.RunContextCLI(ctx)
+		return backends.RunBackendCLI(ctx)
 	}
 
 	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)

@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/docker/cli/backends"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	configtypes "github.com/docker/cli/cli/config/types"
-	dockercontext "github.com/docker/cli/cli/context"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
@@ -64,7 +64,7 @@ func newLoginAzureCommand() *cobra.Command {
 		Short:              "Log in to Azure",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return dockercontext.RunContextCLI(dockercontext.ContextTypeACI)
+			return backends.RunBackendCLI(backends.ContextTypeACI)
 		},
 	}
 }
