@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli/command/plugin"
 	"github.com/docker/cli/cli/command/registry"
 	"github.com/docker/cli/cli/command/secret"
+	"github.com/docker/cli/cli/command/serve"
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack"
 	"github.com/docker/cli/cli/command/swarm"
@@ -68,6 +69,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 
 		// secret
 		secret.NewSecretCommand(dockerCli),
+
+		// service
+		serve.NewServeCommand(),
 
 		// service
 		service.NewServiceCommand(dockerCli),
