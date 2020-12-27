@@ -1647,7 +1647,7 @@ sys	0m 0.03s
 Both `CMD` and `ENTRYPOINT` instructions define what command gets executed when running a container.
 There are few rules that describe their co-operation.
 
-1. Dockerfile should specify at least one of `CMD` or `ENTRYPOINT` commands to run a container without specifying a command or using an entrypoint flag.
+1. Dockerfile should specify at least one of CMD or ENTRYPOINT commands. This is recommended since a running container must have at least one of these specified.
 
 2. `ENTRYPOINT` should be defined when using the container as an executable.
 
