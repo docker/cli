@@ -1559,31 +1559,21 @@ __docker_plugin_complete_ls_filters() {
 __docker_plugins() {
     [[ $PREFIX = -* ]] && return 1
     integer ret=1
-    local line s
+    local filter line s
     declare -a lines plugins args
 
     filter=$1; shift
     [[ $filter != "none" ]] && args=("-f $filter")
 
-    lines=(${(f)${:-"$(_call_program commands docker $docker_options plugin ls $args)"$'\n'}})
+    # Output plugins in format "name:tag\|description"
+    lines=(${(f)${:-"$(_call_program commands docker $docker_options plugin ls --format='{{.Name}}\|{{.Description}}' $args)"}})
 
-    # Parse header line to find columns
-    local i=1 j=1 k header=${lines[1]}
-    declare -A begin end
-    while (( j < ${#header} - 1 )); do
-        i=$(( j + ${${header[$j,-1]}[(i)[^ ]]} - 1 ))
-        j=$(( i + ${${header[$i,-1]}[(i)  ]} - 1 ))
-        k=$(( j + ${${header[$j,-1]}[(i)[^ ]]} - 2 ))
-        begin[${header[$i,$((j-1))]}]=$i
-        end[${header[$i,$((j-1))]}]=$k
-    done
-    end[${header[$i,$((j-1))]}]=-1
-    lines=(${lines[2,-1]})
-
-    # Name
+    # Suggestion entries: name:tag -- description
     for line in $lines; do
-        s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
-        s="$s:${(l:7:: :::)${${line[${begin[TAG]},${end[TAG]}]}%% ##}}"
+        # - Remove redundant :latest tag
+        # - Quote : in name:tag (_describe splits on : to separate entry and description)
+        # - Replace \| separator with :
+        s="${${${line//:latest/}//:/\:}//\|/:}"
         plugins=($plugins $s)
     done
 
