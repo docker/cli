@@ -2597,7 +2597,6 @@ __docker_context_subcommand() {
         (inspect)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help -f --format)"{-f=,--format=}"[Format the output using the given Go template]:template: " \
                 "($help -)1:context:__docker_complete_contexts" && ret=0
             ;;
         (rm)
