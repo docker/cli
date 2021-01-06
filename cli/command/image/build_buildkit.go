@@ -78,7 +78,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		if options.dockerfileFromStdin() {
 			return errStdinConflict
 		}
-		rc, isArchive, err := build.DetectArchiveReader(os.Stdin)
+		rc, isArchive, err := build.DetectArchiveReader(dockerCli.In())
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	case isLocalDir(options.context):
 		contextDir = options.context
 		if options.dockerfileFromStdin() {
-			dockerfileReader = os.Stdin
+			dockerfileReader = dockerCli.In()
 		} else if options.dockerfileName != "" {
 			dockerfileName = filepath.Base(options.dockerfileName)
 			dockerfileDir = filepath.Dir(options.dockerfileName)
