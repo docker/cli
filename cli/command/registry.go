@@ -63,6 +63,9 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == ElectAuthServer(context.Background(), cli)
 		authConfig, err := GetDefaultAuthConfig(cli, true, indexServer, isDefaultRegistry)
+		if authConfig == nil {
+			authConfig = &types.AuthConfig{}
+		}
 		if err != nil {
 			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
