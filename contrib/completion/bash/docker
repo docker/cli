@@ -2553,6 +2553,7 @@ _docker_daemon() {
 		--ip-forward=false
 		--ip-masq=false
 		--iptables=false
+		--ip6tables
 		--ipv6
 		--live-restore
 		--no-new-privileges
