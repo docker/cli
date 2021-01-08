@@ -23,12 +23,13 @@ func TestListBackend(t *testing.T) {
 	)
 	defer dir.Remove()
 
-	candidates := listBackendsFrom(dir.Path(), fakeMetadata, map[string][]string{"docker-aci-local-backend": {"aci", "local"}, "docker-ecs-backend": {"ecs"}})
+	candidates, err := listBackendsFrom(dir.Path(), fakeMetadata, map[string][]string{"docker-aci-local-backend": {"aci", "local"}, "docker-ecs-backend": {"ecs"}})
 	exp := []Backend{
 		{Name: "aci-local-backend", Path: filepath.Join(dir.Path(), "docker-aci-local-backend"), Version: "1.0", SupportedTypes: []string{"aci", "local"}},
 		{Name: "ecs-backend", Path: filepath.Join(dir.Path(), "docker-ecs-backend.exe"), Version: "1.0", SupportedTypes: []string{"ecs"}},
 	}
 
+	assert.NilError(t, err)
 	assert.DeepEqual(t, candidates, exp)
 }
 

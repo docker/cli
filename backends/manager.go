@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/utils"
 )
 
@@ -35,7 +36,12 @@ var allowedBackends = map[string][]string{"docker-compose-cli-backend": {"aci", 
 
 // ListBackends produces a list of available backends on the system and their context types
 func ListBackends() []Backend {
-	return listBackendsFrom(getDockerCliBackendDir(), getMetadata, allowedBackends)
+	backends, err := listBackendsFrom(getDockerCliBackendDir(), getMetadata, allowedBackends)
+	if err != nil {
+		logrus.Debug("Skippping backend due to: " + err.Error())
+		return nil
+	}
+	return backends
 }
 
 func getMetadata(binary string) (BackendMetadata, error) {
@@ -63,13 +69,17 @@ func GetBackend(contextType string) (*Backend, error) {
 
 type extractMetadataFunc func(binary string) (BackendMetadata, error)
 
-func listBackendsFrom(backendDir string, extractMetadata extractMetadataFunc, allowedBackendFiles map[string][]string) []Backend {
-	if fi, err := os.Stat(backendDir); err != nil || !fi.IsDir() {
-		return nil
+func listBackendsFrom(backendDir string, extractMetadata extractMetadataFunc, allowedBackendFiles map[string][]string) ([]Backend, error) {
+	fi, err := os.Stat(backendDir)
+	if err != nil {
+		return nil, err
+	}
+	if !fi.IsDir() {
+		return nil, fmt.Errorf("backend folder %q is not a folder, skipping CLI backends", backendDir)
 	}
 	dentries, err := ioutil.ReadDir(backendDir)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	result := []Backend{}
 	for _, candidate := range dentries {
@@ -88,7 +98,7 @@ func listBackendsFrom(backendDir string, extractMetadata extractMetadataFunc, al
 		}
 		contextTypes, allowed := allowedBackendFiles[withoutExe]
 		if !allowed {
-			fmt.Fprintf(os.Stderr, "Invalid backend : backend binary %q is not allowed", filename)
+			logrus.Debugf("Invalid backend : backend binary %q is not allowed", filename)
 			continue
 		}
 
@@ -98,5 +108,5 @@ func listBackendsFrom(backendDir string, extractMetadata extractMetadataFunc, al
 		}
 		result = append(result, Backend{Name: metadata.Name, Path: path, Version: metadata.Version, SupportedTypes: contextTypes})
 	}
-	return result
+	return result, nil
 }
