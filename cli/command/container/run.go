@@ -131,7 +131,8 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		return runStartContainerErr(err)
 	}
 	if opts.sigProxy {
-		sigc := ForwardAllSignals(ctx, dockerCli, createResponse.ID)
+		sigc := notfiyAllSignals()
+		go ForwardAllSignals(ctx, dockerCli, createResponse.ID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
