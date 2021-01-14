@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/agl/ed25519"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/data"
+	"golang.org/x/crypto/ed25519"
 )
 
 const (
@@ -39,26 +39,26 @@ func (v Ed25519Verifier) Verify(key data.PublicKey, sig []byte, msg []byte) erro
 	if key.Algorithm() != data.ED25519Key {
 		return ErrInvalidKeyType{}
 	}
-	var sigBytes [ed25519.SignatureSize]byte
+	sigBytes := make([]byte, ed25519.SignatureSize)
 	if len(sig) != ed25519.SignatureSize {
 		logrus.Debugf("signature length is incorrect, must be %d, was %d.", ed25519.SignatureSize, len(sig))
 		return ErrInvalid
 	}
-	copy(sigBytes[:], sig)
+	copy(sigBytes, sig)
 
-	var keyBytes [ed25519.PublicKeySize]byte
+	keyBytes := make([]byte, ed25519.PublicKeySize)
 	pub := key.Public()
 	if len(pub) != ed25519.PublicKeySize {
 		logrus.Errorf("public key is incorrect size, must be %d, was %d.", ed25519.PublicKeySize, len(pub))
 		return ErrInvalidKeyLength{msg: fmt.Sprintf("ed25519 public key must be %d bytes.", ed25519.PublicKeySize)}
 	}
-	n := copy(keyBytes[:], key.Public())
+	n := copy(keyBytes, key.Public())
 	if n < ed25519.PublicKeySize {
 		logrus.Errorf("failed to copy the key, must have %d bytes, copied %d bytes.", ed25519.PublicKeySize, n)
 		return ErrInvalid
 	}
 
-	if !ed25519.Verify(&keyBytes, msg, &sigBytes) {
+	if !ed25519.Verify(ed25519.PublicKey(keyBytes), msg, sigBytes) {
 		logrus.Debugf("failed ed25519 verification")
 		return ErrInvalid
 	}

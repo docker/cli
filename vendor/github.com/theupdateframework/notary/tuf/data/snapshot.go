@@ -59,7 +59,7 @@ func IsValidSnapshotStructure(s Snapshot) error {
 	return nil
 }
 
-// NewSnapshot initilizes a SignedSnapshot with a given top level root
+// NewSnapshot initializes a SignedSnapshot with a given top level root
 // and targets objects
 func NewSnapshot(root *Signed, targets *Signed) (*SignedSnapshot, error) {
 	logrus.Debug("generating new snapshot...")

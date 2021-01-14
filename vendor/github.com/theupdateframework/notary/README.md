@@ -21,7 +21,7 @@ for more information.
 
 Notary aims to make the internet more secure by making it easy for people to
 publish and verify content. We often rely on TLS to secure our communications
-with a web server which is inherently flawed, as any compromise of the server
+with a web server, which is inherently flawed, as any compromise of the server
 enables malicious content to be substituted for the legitimate content.
 
 With Notary, publishers can sign their content offline using keys kept highly
@@ -46,11 +46,16 @@ Notary is based on [The Update Framework](https://www.theupdateframework.com/), 
 
 ## Security
 
+Any security vulnerabilities can be reported to security@docker.com.
+
 See Notary's [service architecture docs](docs/service_architecture.md#threat-model) for more information about our threat model, which details the varying survivability and severities for key compromise as well as mitigations.
 
-Notary's last security audit was on July 31, 2015 by NCC ([results](docs/resources/ncc_docker_notary_audit_2015_07_31.pdf)).
+### Security Audits
 
-Any security vulnerabilities can be reported to security@docker.com.
+Notary has had two public security audits:
+
+* [August 7, 2018 by Cure53](docs/resources/cure53_tuf_notary_audit_2018_08_07.pdf) covering TUF and Notary
+* [July 31, 2015 by NCC](docs/resources/ncc_docker_notary_audit_2015_07_31.pdf) covering Notary
 
 # Getting started with the Notary CLI
 
@@ -65,7 +70,7 @@ For more advanced usage, see the
 
 To use the CLI against a local Notary server rather than against Docker Hub:
 
-1. Ensure that you have [docker and docker-compose](http://docs.docker.com/compose/install/) installed.
+1. Ensure that you have [docker and docker-compose](https://docs.docker.com/compose/install/) installed.
 1. `git clone https://github.com/theupdateframework/notary.git` and from the cloned repository path,
     start up a local Notary server and signer and copy the config file and testing certs to your
     local Notary config directory:
@@ -88,6 +93,20 @@ URL is specified already in the configuration, file you copied.
 You can also leave off the `-d ~/.docker/trust` argument if you do not care
 to use `notary` with Docker images.
 
+## Upgrading dependencies
+
+To prevent mistakes in vendoring the go modules a buildscript has been added to properly vendor the modules using the correct version of Go to mitigate differences in CI and development environment.
+
+Following procedure should be executed to upgrade a dependency. Preferably keep dependency upgrades in a separate commit from your code changes.
+
+```bash
+go get -u github.com/spf13/viper
+buildscripts/circle-validate-vendor.sh
+git add .
+git commit -m "Upgraded github.com/spf13/viper"
+```
+
+The `buildscripts/circle-validate-vendor.sh` runs `go mod tidy` and `go mod vendor` using the given version of Go to prevent differences if you are for example running on a different version of Go.
 
 ## Building Notary
 
@@ -97,25 +116,20 @@ branch and contains features for the next release.
 
 Prerequisites:
 
-- Go >= 1.7.1
-    - Fedora: `dnf install golang`
-- libtool development headers installed
-    - Ubuntu: `apt-get install libltdl-dev`
-    - CentOS/RedHat: `yum install libtool-ltdl-devel`
-    - Fedora: `dnf install libtool-ltdl-devel`
-    - Mac OS ([Homebrew](http://brew.sh/)): `brew install libtool`
+* Go >= 1.12
 
 Set [```GOPATH```](https://golang.org/doc/code.html#GOPATH). Then, run:
 
 ```bash
+$ export GO111MODULE=on
 $ go get github.com/theupdateframework/notary
-# build with pcks11 support by default to support yubikey
+# build with pkcs11 support by default to support yubikey
 $ go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary
 $ notary
 ```
 
 To build the server and signer, run `docker-compose build`.
 
-
 ## License
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ftheupdateframework%2Fnotary.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ftheupdateframework%2Fnotary?ref=badge_large)

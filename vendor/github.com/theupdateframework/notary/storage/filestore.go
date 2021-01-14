@@ -137,14 +137,16 @@ func (f *FilesystemStore) GetSized(name string, size int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	file, err := os.OpenFile(p, os.O_RDONLY, notary.PrivNoExecPerms)
+	file, err := os.Open(p)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = ErrMetaNotFound{Resource: name}
 		}
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	if size == NoSizeLimit {
 		size = notary.MaxDownloadSize

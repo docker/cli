@@ -15,6 +15,7 @@ type MetadataStore interface {
 	SetMulti(map[string][]byte) error
 	RemoveAll() error
 	Remove(name string) error
+	Location() string
 }
 
 // PublicKeyStore must be implemented by a key service

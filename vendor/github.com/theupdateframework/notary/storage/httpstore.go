@@ -111,6 +111,18 @@ type HTTPStore struct {
 	roundTrip     http.RoundTripper
 }
 
+// NewNotaryServerStore returns a new HTTPStore against a URL which should represent a notary
+// server
+func NewNotaryServerStore(serverURL string, gun data.GUN, roundTrip http.RoundTripper) (RemoteStore, error) {
+	return NewHTTPStore(
+		serverURL+"/v2/"+gun.String()+"/_trust/tuf/",
+		"",
+		"json",
+		"key",
+		roundTrip,
+	)
+}
+
 // NewHTTPStore initializes a new store against a URL and a number of configuration options.
 //
 // In case of a nil `roundTrip`, a default offline store is used instead.
@@ -363,5 +375,5 @@ func (s HTTPStore) RotateKey(role data.RoleName) ([]byte, error) {
 
 // Location returns a human readable name for the storage location
 func (s HTTPStore) Location() string {
-	return s.baseURL.String()
+	return s.baseURL.Host
 }
