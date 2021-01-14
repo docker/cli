@@ -21,6 +21,9 @@ var (
 	// ErrRootKeyNotEncrypted is returned if a root key being imported is
 	// unencrypted
 	ErrRootKeyNotEncrypted = errors.New("only encrypted root keys may be imported")
+
+	// EmptyService is an empty crypto service
+	EmptyService = NewCryptoService()
 )
 
 // CryptoService implements Sign and Create, holding a specific GUN and keystore to

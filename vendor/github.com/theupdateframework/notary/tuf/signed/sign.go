@@ -87,7 +87,8 @@ func Sign(service CryptoService, s *data.Signed, signingKeys []data.PublicKey,
 		})
 	}
 
-	for _, sig := range s.Signatures {
+	for i := range s.Signatures {
+		sig := s.Signatures[i]
 		if _, ok := signingKeyIDs[sig.KeyID]; ok {
 			// key is in the set of key IDs for which a signature has been created
 			continue

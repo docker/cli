@@ -20,7 +20,7 @@ type Changelist interface {
 	// Remove deletes the changes corresponding with the indices given
 	Remove(idxs []int) error
 
-	// Close syncronizes any pending writes to the underlying
+	// Close synchronizes any pending writes to the underlying
 	// storage and closes the file/connection
 	Close() error
 

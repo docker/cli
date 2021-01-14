@@ -3,9 +3,11 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
+	"github.com/theupdateframework/notary/cryptoservice"
 	store "github.com/theupdateframework/notary/storage"
 	"github.com/theupdateframework/notary/trustpinning"
 	"github.com/theupdateframework/notary/tuf"
@@ -19,16 +21,6 @@ type tufClient struct {
 	cache      store.MetadataStore
 	oldBuilder tuf.RepoBuilder
 	newBuilder tuf.RepoBuilder
-}
-
-// newTufClient initialized a tufClient with the given repo, remote source of content, and cache
-func newTufClient(oldBuilder, newBuilder tuf.RepoBuilder, remote store.RemoteStore, cache store.MetadataStore) *tufClient {
-	return &tufClient{
-		oldBuilder: oldBuilder,
-		newBuilder: newBuilder,
-		remote:     remote,
-		cache:      cache,
-	}
 }
 
 // Update performs an update to the TUF repo as defined by the TUF spec
@@ -139,7 +131,7 @@ func (c *tufClient) updateRoot() error {
 
 	// Write newest to cache
 	if err := c.cache.Set(data.CanonicalRootRole.String(), raw); err != nil {
-		logrus.Debugf("unable to write %s to cache: %d.%s", newestVersion, data.CanonicalRootRole, err)
+		logrus.Debugf("unable to write %d.%s to cache: %s", newestVersion, data.CanonicalRootRole, err)
 	}
 	logrus.Debugf("finished updating root files")
 	return nil
@@ -322,4 +314,150 @@ func (c *tufClient) tryLoadRemote(consistentInfo tuf.ConsistentInfo, old []byte)
 		logrus.Debugf("Unable to write %s to cache: %s", consistentInfo.RoleName, err)
 	}
 	return raw, nil
+}
+
+// TUFLoadOptions are provided to LoadTUFRepo, which loads a TUF repo from cache,
+// from a remote store, or both
+type TUFLoadOptions struct {
+	GUN                    data.GUN
+	TrustPinning           trustpinning.TrustPinConfig
+	CryptoService          signed.CryptoService
+	Cache                  store.MetadataStore
+	RemoteStore            store.RemoteStore
+	AlwaysCheckInitialized bool
+}
+
+// bootstrapClient attempts to bootstrap a root.json to be used as the trust
+// anchor for a repository. The checkInitialized argument indicates whether
+// we should always attempt to contact the server to determine if the repository
+// is initialized or not. If set to true, we will always attempt to download
+// and return an error if the remote repository errors.
+//
+// Populates a tuf.RepoBuilder with this root metadata. If the root metadata
+// downloaded is a newer version than what is on disk, then intermediate
+// versions will be downloaded and verified in order to rotate trusted keys
+// properly. Newer root metadata must always be signed with the previous
+// threshold and keys.
+//
+// Fails if the remote server is reachable and does not know the repo
+// (i.e. before any metadata has been published), in which case the error is
+// store.ErrMetaNotFound, or if the root metadata (from whichever source is used)
+// is not trusted.
+//
+// Returns a TUFClient for the remote server, which may not be actually
+// operational (if the URL is invalid but a root.json is cached).
+func bootstrapClient(l TUFLoadOptions) (*tufClient, error) {
+	minVersion := 1
+	// the old root on disk should not be validated against any trust pinning configuration
+	// because if we have an old root, it itself is the thing that pins trust
+	oldBuilder := tuf.NewRepoBuilder(l.GUN, l.CryptoService, trustpinning.TrustPinConfig{})
+
+	// by default, we want to use the trust pinning configuration on any new root that we download
+	newBuilder := tuf.NewRepoBuilder(l.GUN, l.CryptoService, l.TrustPinning)
+
+	// Try to read root from cache first. We will trust this root until we detect a problem
+	// during update which will cause us to download a new root and perform a rotation.
+	// If we have an old root, and it's valid, then we overwrite the newBuilder to be one
+	// preloaded with the old root or one which uses the old root for trust bootstrapping.
+	if rootJSON, err := l.Cache.GetSized(data.CanonicalRootRole.String(), store.NoSizeLimit); err == nil {
+		// if we can't load the cached root, fail hard because that is how we pin trust
+		if err := oldBuilder.Load(data.CanonicalRootRole, rootJSON, minVersion, true); err != nil {
+			return nil, err
+		}
+
+		// again, the root on disk is the source of trust pinning, so use an empty trust
+		// pinning configuration
+		newBuilder = tuf.NewRepoBuilder(l.GUN, l.CryptoService, trustpinning.TrustPinConfig{})
+
+		if err := newBuilder.Load(data.CanonicalRootRole, rootJSON, minVersion, false); err != nil {
+			// Ok, the old root is expired - we want to download a new one.  But we want to use the
+			// old root to verify the new root, so bootstrap a new builder with the old builder
+			// but use the trustpinning to validate the new root
+			minVersion = oldBuilder.GetLoadedVersion(data.CanonicalRootRole)
+			newBuilder = oldBuilder.BootstrapNewBuilderWithNewTrustpin(l.TrustPinning)
+		}
+	}
+
+	if !newBuilder.IsLoaded(data.CanonicalRootRole) || l.AlwaysCheckInitialized {
+		// remoteErr was nil and we were not able to load a root from cache or
+		// are specifically checking for initialization of the repo.
+
+		// if remote store successfully set up, try and get root from remote
+		// We don't have any local data to determine the size of root, so try the maximum (though it is restricted at 100MB)
+		tmpJSON, err := l.RemoteStore.GetSized(data.CanonicalRootRole.String(), store.NoSizeLimit)
+		if err != nil {
+			// we didn't have a root in cache and were unable to load one from
+			// the server. Nothing we can do but error.
+			return nil, err
+		}
+
+		if !newBuilder.IsLoaded(data.CanonicalRootRole) {
+			// we always want to use the downloaded root if we couldn't load from cache
+			if err := newBuilder.Load(data.CanonicalRootRole, tmpJSON, minVersion, false); err != nil {
+				return nil, err
+			}
+
+			err = l.Cache.Set(data.CanonicalRootRole.String(), tmpJSON)
+			if err != nil {
+				// if we can't write cache we should still continue, just log error
+				logrus.Errorf("could not save root to cache: %s", err.Error())
+			}
+		}
+	}
+
+	// We can only get here if remoteErr != nil (hence we don't download any new root),
+	// and there was no root on disk
+	if !newBuilder.IsLoaded(data.CanonicalRootRole) {
+		return nil, ErrRepoNotInitialized{}
+	}
+
+	return &tufClient{
+		oldBuilder: oldBuilder,
+		newBuilder: newBuilder,
+		remote:     l.RemoteStore,
+		cache:      l.Cache,
+	}, nil
+}
+
+// LoadTUFRepo bootstraps a trust anchor (root.json) from cache (if provided) before updating
+// all the metadata for the repo from the remote (if provided). It loads a TUF repo from cache,
+// from a remote store, or both.
+func LoadTUFRepo(options TUFLoadOptions) (*tuf.Repo, *tuf.Repo, error) {
+	// set some sane defaults, so nothing has to be provided necessarily
+	if options.RemoteStore == nil {
+		options.RemoteStore = store.OfflineStore{}
+	}
+	if options.Cache == nil {
+		options.Cache = store.NewMemoryStore(nil)
+	}
+	if options.CryptoService == nil {
+		options.CryptoService = cryptoservice.EmptyService
+	}
+
+	c, err := bootstrapClient(options)
+	if err != nil {
+		if _, ok := err.(store.ErrMetaNotFound); ok {
+			return nil, nil, ErrRepositoryNotExist{
+				remote: options.RemoteStore.Location(),
+				gun:    options.GUN,
+			}
+		}
+		return nil, nil, err
+	}
+	repo, invalid, err := c.Update()
+	if err != nil {
+		// notFound.Resource may include a version or checksum so when the role is root,
+		// it will be root, <version>.root or root.<checksum>.
+		notFound, ok := err.(store.ErrMetaNotFound)
+		isRoot, _ := regexp.MatchString(`\.?`+data.CanonicalRootRole.String()+`\.?`, notFound.Resource)
+		if ok && isRoot {
+			return nil, nil, ErrRepositoryNotExist{
+				remote: options.RemoteStore.Location(),
+				gun:    options.GUN,
+			}
+		}
+		return nil, nil, err
+	}
+	warnRolesNearExpiry(repo)
+	return repo, invalid, nil
 }

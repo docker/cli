@@ -39,7 +39,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"

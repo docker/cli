@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/theupdateframework/notary"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const (
@@ -49,7 +49,7 @@ var (
 // Upon successful passphrase retrievals, the passphrase will be cached such that
 // subsequent prompts will produce the same passphrase.
 func PromptRetriever() notary.PassRetriever {
-	if !terminal.IsTerminal(int(os.Stdin.Fd())) {
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
 		return func(string, string, bool, int) (string, bool, error) {
 			return "", false, ErrNoInput
 		}
@@ -200,8 +200,8 @@ func GetPassphrase(in *bufio.Reader) ([]byte, error) {
 		err        error
 	)
 
-	if terminal.IsTerminal(int(os.Stdin.Fd())) {
-		passphrase, err = terminal.ReadPassword(int(os.Stdin.Fd()))
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		passphrase, err = term.ReadPassword(int(os.Stdin.Fd()))
 	} else {
 		passphrase, err = in.ReadBytes('\n')
 	}

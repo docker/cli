@@ -54,7 +54,7 @@ func isValidTargetsStructure(t Targets, roleName RoleName) error {
 	return nil
 }
 
-// NewTargets intiializes a new empty SignedTargets object
+// NewTargets initializes a new empty SignedTargets object
 func NewTargets() *SignedTargets {
 	return &SignedTargets{
 		Signatures: make([]Signature, 0),
