@@ -359,7 +359,7 @@ func (rb *repoBuilder) GenerateSnapshot(prev *data.SignedSnapshot) ([]byte, int,
 
 	// loadedNotChecksummed should currently contain the root awaiting checksumming,
 	// since it has to have been loaded.  Since the snapshot was generated using
-	// the root and targets data (there may not be any) that that have been loaded,
+	// the root and targets data (there may not be any) that have been loaded,
 	// remove all of them from rb.loadedNotChecksummed
 	for tgtName := range rb.repo.Targets {
 		delete(rb.loadedNotChecksummed, data.RoleName(tgtName))
