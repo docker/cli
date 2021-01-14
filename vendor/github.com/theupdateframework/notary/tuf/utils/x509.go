@@ -16,10 +16,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/agl/ed25519"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/tuf/data"
+	"golang.org/x/crypto/ed25519"
 )
 
 // CanonicalKeyID returns the ID of the public bytes version of a TUF key.

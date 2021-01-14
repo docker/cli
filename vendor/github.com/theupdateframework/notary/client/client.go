@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	canonicaljson "github.com/docker/go/canonical/json"
@@ -39,7 +37,6 @@ func init() {
 
 // repository stores all the information needed to operate on a notary repository.
 type repository struct {
-	baseDir        string
 	gun            data.GUN
 	baseURL        string
 	changelist     changelist.Changelist
@@ -56,7 +53,8 @@ type repository struct {
 // NewFileCachedRepository is a wrapper for NewRepository that initializes
 // a file cache from the provided repository, local config information and a crypto service.
 // It also retrieves the remote store associated to the base directory under where all the
-// trust files will be stored and the specified GUN.
+// trust files will be stored (This is normally defaults to "~/.notary" or "~/.docker/trust"
+// when enabling Docker content trust) and the specified GUN.
 //
 // In case of a nil RoundTripper, a default offline store is used instead.
 func NewFileCachedRepository(baseDir string, gun data.GUN, baseURL string, rt http.RoundTripper,
@@ -90,16 +88,13 @@ func NewFileCachedRepository(baseDir string, gun data.GUN, baseURL string, rt ht
 		return nil, err
 	}
 
-	return NewRepository(baseDir, gun, baseURL, remoteStore, cache, trustPinning, cryptoService, cl)
+	return NewRepository(gun, baseURL, remoteStore, cache, trustPinning, cryptoService, cl)
 }
 
 // NewRepository is the base method that returns a new notary repository.
-// It takes the base directory under where all the trust files will be stored
-// (This is normally defaults to "~/.notary" or "~/.docker/trust" when enabling
-// docker content trust).
 // It expects an initialized cache. In case of a nil remote store, a default
 // offline store is used.
-func NewRepository(baseDir string, gun data.GUN, baseURL string, remoteStore store.RemoteStore, cache store.MetadataStore,
+func NewRepository(gun data.GUN, baseURL string, remoteStore store.RemoteStore, cache store.MetadataStore,
 	trustPinning trustpinning.TrustPinConfig, cryptoService signed.CryptoService, cl changelist.Changelist) (Repository, error) {
 
 	// Repo's remote store is either a valid remote store or an OfflineStore
@@ -114,7 +109,6 @@ func NewRepository(baseDir string, gun data.GUN, baseURL string, remoteStore sto
 	nRepo := &repository{
 		gun:            gun,
 		baseURL:        baseURL,
-		baseDir:        baseDir,
 		changelist:     cl,
 		cache:          cache,
 		remoteStore:    remoteStore,
@@ -131,20 +125,62 @@ func (r *repository) GetGUN() data.GUN {
 	return r.gun
 }
 
-// Target represents a simplified version of the data TUF operates on, so external
-// applications don't have to depend on TUF data types.
-type Target struct {
-	Name   string                    // the name of the target
-	Hashes data.Hashes               // the hash of the target
-	Length int64                     // the size in bytes of the target
-	Custom *canonicaljson.RawMessage // the custom data provided to describe the file at TARGETPATH
+func (r *repository) updateTUF(forWrite bool) error {
+	repo, invalid, err := LoadTUFRepo(TUFLoadOptions{
+		GUN:                    r.gun,
+		TrustPinning:           r.trustPinning,
+		CryptoService:          r.cryptoService,
+		Cache:                  r.cache,
+		RemoteStore:            r.remoteStore,
+		AlwaysCheckInitialized: forWrite,
+	})
+	if err != nil {
+		return err
+	}
+	r.tufRepo = repo
+	r.invalid = invalid
+	return nil
 }
 
-// TargetWithRole represents a Target that exists in a particular role - this is
-// produced by ListTargets and GetTargetByName
-type TargetWithRole struct {
-	Target
-	Role data.RoleName
+// ListTargets calls update first before listing targets
+func (r *repository) ListTargets(roles ...data.RoleName) ([]*TargetWithRole, error) {
+	if err := r.updateTUF(false); err != nil {
+		return nil, err
+	}
+	return NewReadOnly(r.tufRepo).ListTargets(roles...)
+}
+
+// GetTargetByName calls update first before getting target by name
+func (r *repository) GetTargetByName(name string, roles ...data.RoleName) (*TargetWithRole, error) {
+	if err := r.updateTUF(false); err != nil {
+		return nil, err
+	}
+	return NewReadOnly(r.tufRepo).GetTargetByName(name, roles...)
+}
+
+// GetAllTargetMetadataByName calls update first before getting targets by name
+func (r *repository) GetAllTargetMetadataByName(name string) ([]TargetSignedStruct, error) {
+	if err := r.updateTUF(false); err != nil {
+		return nil, err
+	}
+	return NewReadOnly(r.tufRepo).GetAllTargetMetadataByName(name)
+
+}
+
+// ListRoles calls update first before getting roles
+func (r *repository) ListRoles() ([]RoleWithSignatures, error) {
+	if err := r.updateTUF(false); err != nil {
+		return nil, err
+	}
+	return NewReadOnly(r.tufRepo).ListRoles()
+}
+
+// GetDelegationRoles calls update first before getting all delegation roles
+func (r *repository) GetDelegationRoles() ([]data.Role, error) {
+	if err := r.updateTUF(false); err != nil {
+		return nil, err
+	}
+	return NewReadOnly(r.tufRepo).GetDelegationRoles()
 }
 
 // NewTarget is a helper method that returns a Target
@@ -493,167 +529,6 @@ func (r *repository) RemoveTarget(targetName string, roles ...data.RoleName) err
 	return addChange(r.changelist, template, roles...)
 }
 
-// ListTargets lists all targets for the current repository. The list of
-// roles should be passed in order from highest to lowest priority.
-//
-// IMPORTANT: if you pass a set of roles such as [ "targets/a", "targets/x"
-// "targets/a/b" ], even though "targets/a/b" is part of the "targets/a" subtree
-// its entries will be strictly shadowed by those in other parts of the "targets/a"
-// subtree and also the "targets/x" subtree, as we will defer parsing it until
-// we explicitly reach it in our iteration of the provided list of roles.
-func (r *repository) ListTargets(roles ...data.RoleName) ([]*TargetWithRole, error) {
-	if err := r.Update(false); err != nil {
-		return nil, err
-	}
-
-	if len(roles) == 0 {
-		roles = []data.RoleName{data.CanonicalTargetsRole}
-	}
-	targets := make(map[string]*TargetWithRole)
-	for _, role := range roles {
-		// Define an array of roles to skip for this walk (see IMPORTANT comment above)
-		skipRoles := utils.RoleNameSliceRemove(roles, role)
-
-		// Define a visitor function to populate the targets map in priority order
-		listVisitorFunc := func(tgt *data.SignedTargets, validRole data.DelegationRole) interface{} {
-			// We found targets so we should try to add them to our targets map
-			for targetName, targetMeta := range tgt.Signed.Targets {
-				// Follow the priority by not overriding previously set targets
-				// and check that this path is valid with this role
-				if _, ok := targets[targetName]; ok || !validRole.CheckPaths(targetName) {
-					continue
-				}
-				targets[targetName] = &TargetWithRole{
-					Target: Target{
-						Name:   targetName,
-						Hashes: targetMeta.Hashes,
-						Length: targetMeta.Length,
-						Custom: targetMeta.Custom,
-					},
-					Role: validRole.Name,
-				}
-			}
-			return nil
-		}
-
-		r.tufRepo.WalkTargets("", role, listVisitorFunc, skipRoles...)
-	}
-
-	var targetList []*TargetWithRole
-	for _, v := range targets {
-		targetList = append(targetList, v)
-	}
-
-	return targetList, nil
-}
-
-// GetTargetByName returns a target by the given name. If no roles are passed
-// it uses the targets role and does a search of the entire delegation
-// graph, finding the first entry in a breadth first search of the delegations.
-// If roles are passed, they should be passed in descending priority and
-// the target entry found in the subtree of the highest priority role
-// will be returned.
-// See the IMPORTANT section on ListTargets above. Those roles also apply here.
-func (r *repository) GetTargetByName(name string, roles ...data.RoleName) (*TargetWithRole, error) {
-	if err := r.Update(false); err != nil {
-		return nil, err
-	}
-
-	if len(roles) == 0 {
-		roles = append(roles, data.CanonicalTargetsRole)
-	}
-	var resultMeta data.FileMeta
-	var resultRoleName data.RoleName
-	var foundTarget bool
-	for _, role := range roles {
-		// Define an array of roles to skip for this walk (see IMPORTANT comment above)
-		skipRoles := utils.RoleNameSliceRemove(roles, role)
-
-		// Define a visitor function to find the specified target
-		getTargetVisitorFunc := func(tgt *data.SignedTargets, validRole data.DelegationRole) interface{} {
-			if tgt == nil {
-				return nil
-			}
-			// We found the target and validated path compatibility in our walk,
-			// so we should stop our walk and set the resultMeta and resultRoleName variables
-			if resultMeta, foundTarget = tgt.Signed.Targets[name]; foundTarget {
-				resultRoleName = validRole.Name
-				return tuf.StopWalk{}
-			}
-			return nil
-		}
-		// Check that we didn't error, and that we assigned to our target
-		if err := r.tufRepo.WalkTargets(name, role, getTargetVisitorFunc, skipRoles...); err == nil && foundTarget {
-			return &TargetWithRole{Target: Target{Name: name, Hashes: resultMeta.Hashes, Length: resultMeta.Length, Custom: resultMeta.Custom}, Role: resultRoleName}, nil
-		}
-	}
-	return nil, ErrNoSuchTarget(name)
-
-}
-
-// TargetSignedStruct is a struct that contains a Target, the role it was found in, and the list of signatures for that role
-type TargetSignedStruct struct {
-	Role       data.DelegationRole
-	Target     Target
-	Signatures []data.Signature
-}
-
-//ErrNoSuchTarget is returned when no valid trust data is found.
-type ErrNoSuchTarget string
-
-func (f ErrNoSuchTarget) Error() string {
-	return fmt.Sprintf("No valid trust data for %s", string(f))
-}
-
-// GetAllTargetMetadataByName searches the entire delegation role tree to find the specified target by name for all
-// roles, and returns a list of TargetSignedStructs for each time it finds the specified target.
-// If given an empty string for a target name, it will return back all targets signed into the repository in every role
-func (r *repository) GetAllTargetMetadataByName(name string) ([]TargetSignedStruct, error) {
-	if err := r.Update(false); err != nil {
-		return nil, err
-	}
-
-	var targetInfoList []TargetSignedStruct
-
-	// Define a visitor function to find the specified target
-	getAllTargetInfoByNameVisitorFunc := func(tgt *data.SignedTargets, validRole data.DelegationRole) interface{} {
-		if tgt == nil {
-			return nil
-		}
-		// We found a target and validated path compatibility in our walk,
-		// so add it to our list if we have a match
-		// if we have an empty name, add all targets, else check if we have it
-		var targetMetaToAdd data.Files
-		if name == "" {
-			targetMetaToAdd = tgt.Signed.Targets
-		} else {
-			if meta, ok := tgt.Signed.Targets[name]; ok {
-				targetMetaToAdd = data.Files{name: meta}
-			}
-		}
-
-		for targetName, resultMeta := range targetMetaToAdd {
-			targetInfo := TargetSignedStruct{
-				Role:       validRole,
-				Target:     Target{Name: targetName, Hashes: resultMeta.Hashes, Length: resultMeta.Length, Custom: resultMeta.Custom},
-				Signatures: tgt.Signatures,
-			}
-			targetInfoList = append(targetInfoList, targetInfo)
-		}
-		// continue walking to all child roles
-		return nil
-	}
-
-	// Check that we didn't error, and that we found the target at least once
-	if err := r.tufRepo.WalkTargets(name, "", getAllTargetInfoByNameVisitorFunc); err != nil {
-		return nil, err
-	}
-	if len(targetInfoList) == 0 {
-		return nil, ErrNoSuchTarget(name)
-	}
-	return targetInfoList, nil
-}
-
 // GetChangelist returns the list of the repository's unpublished changes
 func (r *repository) GetChangelist() (changelist.Changelist, error) {
 	return r.changelist, nil
@@ -669,51 +544,6 @@ func (r *repository) getRemoteStore() store.RemoteStore {
 	r.remoteStore = &store.OfflineStore{}
 
 	return r.remoteStore
-}
-
-// RoleWithSignatures is a Role with its associated signatures
-type RoleWithSignatures struct {
-	Signatures []data.Signature
-	data.Role
-}
-
-// ListRoles returns a list of RoleWithSignatures objects for this repo
-// This represents the latest metadata for each role in this repo
-func (r *repository) ListRoles() ([]RoleWithSignatures, error) {
-	// Update to latest repo state
-	if err := r.Update(false); err != nil {
-		return nil, err
-	}
-
-	// Get all role info from our updated keysDB, can be empty
-	roles := r.tufRepo.GetAllLoadedRoles()
-
-	var roleWithSigs []RoleWithSignatures
-
-	// Populate RoleWithSignatures with Role from keysDB and signatures from TUF metadata
-	for _, role := range roles {
-		roleWithSig := RoleWithSignatures{Role: *role, Signatures: nil}
-		switch role.Name {
-		case data.CanonicalRootRole:
-			roleWithSig.Signatures = r.tufRepo.Root.Signatures
-		case data.CanonicalTargetsRole:
-			roleWithSig.Signatures = r.tufRepo.Targets[data.CanonicalTargetsRole].Signatures
-		case data.CanonicalSnapshotRole:
-			roleWithSig.Signatures = r.tufRepo.Snapshot.Signatures
-		case data.CanonicalTimestampRole:
-			roleWithSig.Signatures = r.tufRepo.Timestamp.Signatures
-		default:
-			if !data.IsDelegation(role.Name) {
-				continue
-			}
-			if _, ok := r.tufRepo.Targets[role.Name]; ok {
-				// We'll only find a signature if we've published any targets with this delegation
-				roleWithSig.Signatures = r.tufRepo.Targets[role.Name].Signatures
-			}
-		}
-		roleWithSigs = append(roleWithSigs, roleWithSig)
-	}
-	return roleWithSigs, nil
 }
 
 // Publish pushes the local changes in signed material to the remote notary-server
@@ -736,7 +566,7 @@ func (r *repository) Publish() error {
 func (r *repository) publish(cl changelist.Changelist) error {
 	var initialPublish bool
 	// update first before publishing
-	if err := r.Update(true); err != nil {
+	if err := r.updateTUF(true); err != nil {
 		// If the remote is not aware of the repo, then this is being published
 		// for the first time.  Try to initialize the repository before publishing.
 		if _, ok := err.(ErrRepositoryNotExist); ok {
@@ -863,7 +693,14 @@ func (r *repository) oldKeysForLegacyClientSupport(legacyVersions int, initialPu
 	}
 	oldKeys := make(map[string]data.PublicKey)
 
-	c, err := r.bootstrapClient(true)
+	c, err := bootstrapClient(TUFLoadOptions{
+		GUN:                    r.gun,
+		TrustPinning:           r.trustPinning,
+		CryptoService:          r.cryptoService,
+		Cache:                  r.cache,
+		RemoteStore:            r.remoteStore,
+		AlwaysCheckInitialized: true,
+	})
 	// require a server connection to fetch old roots
 	if err != nil {
 		return nil, err
@@ -1001,135 +838,6 @@ func (r *repository) saveMetadata(ignoreSnapshot bool) error {
 	}
 
 	return r.cache.Set(data.CanonicalSnapshotRole.String(), snapshotJSON)
-}
-
-// returns a properly constructed ErrRepositoryNotExist error based on this
-// repo's information
-func (r *repository) errRepositoryNotExist() error {
-	host := r.baseURL
-	parsed, err := url.Parse(r.baseURL)
-	if err == nil {
-		host = parsed.Host // try to exclude the scheme and any paths
-	}
-	return ErrRepositoryNotExist{remote: host, gun: r.gun}
-}
-
-// Update bootstraps a trust anchor (root.json) before updating all the
-// metadata from the repo.
-func (r *repository) Update(forWrite bool) error {
-	c, err := r.bootstrapClient(forWrite)
-	if err != nil {
-		if _, ok := err.(store.ErrMetaNotFound); ok {
-			return r.errRepositoryNotExist()
-		}
-		return err
-	}
-	repo, invalid, err := c.Update()
-	if err != nil {
-		// notFound.Resource may include a version or checksum so when the role is root,
-		// it will be root, <version>.root or root.<checksum>.
-		notFound, ok := err.(store.ErrMetaNotFound)
-		isRoot, _ := regexp.MatchString(`\.?`+data.CanonicalRootRole.String()+`\.?`, notFound.Resource)
-		if ok && isRoot {
-			return r.errRepositoryNotExist()
-		}
-		return err
-	}
-	// we can be assured if we are at this stage that the repo we built is good
-	// no need to test the following function call for an error as it will always be fine should the repo be good- it is!
-	r.tufRepo = repo
-	r.invalid = invalid
-	warnRolesNearExpiry(repo)
-	return nil
-}
-
-// bootstrapClient attempts to bootstrap a root.json to be used as the trust
-// anchor for a repository. The checkInitialized argument indicates whether
-// we should always attempt to contact the server to determine if the repository
-// is initialized or not. If set to true, we will always attempt to download
-// and return an error if the remote repository errors.
-//
-// Populates a tuf.RepoBuilder with this root metadata. If the root metadata
-// downloaded is a newer version than what is on disk, then intermediate
-// versions will be downloaded and verified in order to rotate trusted keys
-// properly. Newer root metadata must always be signed with the previous
-// threshold and keys.
-//
-// Fails if the remote server is reachable and does not know the repo
-// (i.e. before the first r.Publish()), in which case the error is
-// store.ErrMetaNotFound, or if the root metadata (from whichever source is used)
-// is not trusted.
-//
-// Returns a TUFClient for the remote server, which may not be actually
-// operational (if the URL is invalid but a root.json is cached).
-func (r *repository) bootstrapClient(checkInitialized bool) (*tufClient, error) {
-	minVersion := 1
-	// the old root on disk should not be validated against any trust pinning configuration
-	// because if we have an old root, it itself is the thing that pins trust
-	oldBuilder := tuf.NewRepoBuilder(r.gun, r.GetCryptoService(), trustpinning.TrustPinConfig{})
-
-	// by default, we want to use the trust pinning configuration on any new root that we download
-	newBuilder := tuf.NewRepoBuilder(r.gun, r.GetCryptoService(), r.trustPinning)
-
-	// Try to read root from cache first. We will trust this root until we detect a problem
-	// during update which will cause us to download a new root and perform a rotation.
-	// If we have an old root, and it's valid, then we overwrite the newBuilder to be one
-	// preloaded with the old root or one which uses the old root for trust bootstrapping.
-	if rootJSON, err := r.cache.GetSized(data.CanonicalRootRole.String(), store.NoSizeLimit); err == nil {
-		// if we can't load the cached root, fail hard because that is how we pin trust
-		if err := oldBuilder.Load(data.CanonicalRootRole, rootJSON, minVersion, true); err != nil {
-			return nil, err
-		}
-
-		// again, the root on disk is the source of trust pinning, so use an empty trust
-		// pinning configuration
-		newBuilder = tuf.NewRepoBuilder(r.gun, r.GetCryptoService(), trustpinning.TrustPinConfig{})
-
-		if err := newBuilder.Load(data.CanonicalRootRole, rootJSON, minVersion, false); err != nil {
-			// Ok, the old root is expired - we want to download a new one.  But we want to use the
-			// old root to verify the new root, so bootstrap a new builder with the old builder
-			// but use the trustpinning to validate the new root
-			minVersion = oldBuilder.GetLoadedVersion(data.CanonicalRootRole)
-			newBuilder = oldBuilder.BootstrapNewBuilderWithNewTrustpin(r.trustPinning)
-		}
-	}
-
-	remote := r.getRemoteStore()
-
-	if !newBuilder.IsLoaded(data.CanonicalRootRole) || checkInitialized {
-		// remoteErr was nil and we were not able to load a root from cache or
-		// are specifically checking for initialization of the repo.
-
-		// if remote store successfully set up, try and get root from remote
-		// We don't have any local data to determine the size of root, so try the maximum (though it is restricted at 100MB)
-		tmpJSON, err := remote.GetSized(data.CanonicalRootRole.String(), store.NoSizeLimit)
-		if err != nil {
-			// we didn't have a root in cache and were unable to load one from
-			// the server. Nothing we can do but error.
-			return nil, err
-		}
-
-		if !newBuilder.IsLoaded(data.CanonicalRootRole) {
-			// we always want to use the downloaded root if we couldn't load from cache
-			if err := newBuilder.Load(data.CanonicalRootRole, tmpJSON, minVersion, false); err != nil {
-				return nil, err
-			}
-
-			err = r.cache.Set(data.CanonicalRootRole.String(), tmpJSON)
-			if err != nil {
-				// if we can't write cache we should still continue, just log error
-				logrus.Errorf("could not save root to cache: %s", err.Error())
-			}
-		}
-	}
-
-	// We can only get here if remoteErr != nil (hence we don't download any new root),
-	// and there was no root on disk
-	if !newBuilder.IsLoaded(data.CanonicalRootRole) {
-		return nil, ErrRepoNotInitialized{}
-	}
-
-	return newTufClient(oldBuilder, newBuilder, remote, r.cache), nil
 }
 
 // RotateKey removes all existing keys associated with the role. If no keys are
@@ -1273,7 +981,7 @@ func DeleteTrustData(baseDir string, gun data.GUN, URL string, rt http.RoundTrip
 	if deleteRemote {
 		remote, err := getRemoteStore(URL, gun, rt)
 		if err != nil {
-			logrus.Error("unable to instantiate a remote store: %v", err)
+			logrus.Errorf("unable to instantiate a remote store: %v", err)
 			return err
 		}
 		if err := remote.RemoveAll(); err != nil {

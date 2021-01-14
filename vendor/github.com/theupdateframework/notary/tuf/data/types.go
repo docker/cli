@@ -186,7 +186,7 @@ type FileMeta struct {
 
 // Equals returns true if the other FileMeta object is equivalent to this one
 func (f FileMeta) Equals(o FileMeta) bool {
-	if o.Length != f.Length || len(f.Hashes) != len(f.Hashes) {
+	if o.Length != f.Length || len(o.Hashes) != len(f.Hashes) {
 		return false
 	}
 	if f.Custom == nil && o.Custom != nil || f.Custom != nil && o.Custom == nil {
