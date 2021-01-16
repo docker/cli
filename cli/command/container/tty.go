@@ -95,32 +95,3 @@ func MonitorTtySize(ctx context.Context, cli command.Cli, id string, isExec bool
 	}
 	return nil
 }
-
-// ForwardAllSignals forwards signals to the container
-func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string) chan os.Signal {
-	sigc := make(chan os.Signal, 128)
-	signal.CatchAll(sigc)
-	go func() {
-		for s := range sigc {
-			if s == signal.SIGCHLD || s == signal.SIGPIPE {
-				continue
-			}
-			var sig string
-			for sigStr, sigN := range signal.SignalMap {
-				if sigN == s {
-					sig = sigStr
-					break
-				}
-			}
-			if sig == "" {
-				fmt.Fprintf(cli.Err(), "Unsupported signal: %v. Discarding.\n", s)
-				continue
-			}
-
-			if err := cli.Client().ContainerKill(ctx, cid, sig); err != nil {
-				logrus.Debugf("Error sending signal: %s", err)
-			}
-		}
-	}()
-	return sigc
-}
