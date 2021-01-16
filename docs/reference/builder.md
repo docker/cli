@@ -1677,9 +1677,10 @@ The table below shows what command is executed for different `ENTRYPOINT` / `CMD
 VOLUME ["/data"]
 ```
 
-The `VOLUME` instruction creates a mount point with the specified name
-and marks it as holding externally mounted volumes from native host or other
-containers. The value can be a JSON array, `VOLUME ["/var/log/"]`, or a plain
+The `VOLUME` instructs to create anonymous volumes for the specified container
+paths if no such volumes were created or mounted using `--volume` or `--mount`
+parameters when running the container.
+The value can be a JSON array, `VOLUME ["/var/log/"]`, or a plain
 string with multiple arguments, such as `VOLUME /var/log` or `VOLUME /var/log
 /var/db`. For more information/examples and mounting instructions via the
 Docker client, refer to
