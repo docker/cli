@@ -115,6 +115,7 @@ password`: "Invalid Auth config file",
 email`: "Invalid auth configuration file",
 	}
 
+	resetHomeDir()
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
@@ -131,6 +132,7 @@ email`: "Invalid auth configuration file",
 }
 
 func TestOldValidAuth(t *testing.T) {
+	resetHomeDir()
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
@@ -165,6 +167,7 @@ func TestOldValidAuth(t *testing.T) {
 }
 
 func TestOldJSONInvalid(t *testing.T) {
+	resetHomeDir()
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
@@ -184,6 +187,7 @@ func TestOldJSONInvalid(t *testing.T) {
 }
 
 func TestOldJSON(t *testing.T) {
+	resetHomeDir()
 	tmpHome, err := ioutil.TempDir("", "config-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
