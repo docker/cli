@@ -165,7 +165,7 @@ func updateConfigFromDefaults(defaultUpdateConfig *api.UpdateConfig) *swarm.Upda
 }
 
 func (opts updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
-	if !anyChanged(flags, flagUpdateParallelism, flagUpdateDelay, flagUpdateMonitor, flagUpdateFailureAction, flagUpdateMaxFailureRatio) {
+	if !anyChanged(flags, flagUpdateParallelism, flagUpdateDelay, flagUpdateMonitor, flagUpdateFailureAction, flagUpdateMaxFailureRatio, flagUpdateOrder) {
 		return nil
 	}
 
@@ -194,7 +194,7 @@ func (opts updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig
 }
 
 func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
-	if !anyChanged(flags, flagRollbackParallelism, flagRollbackDelay, flagRollbackMonitor, flagRollbackFailureAction, flagRollbackMaxFailureRatio) {
+	if !anyChanged(flags, flagRollbackParallelism, flagRollbackDelay, flagRollbackMonitor, flagRollbackFailureAction, flagRollbackMaxFailureRatio, flagRollbackOrder) {
 		return nil
 	}
 
