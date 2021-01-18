@@ -38,7 +38,7 @@ func NewTemplateInspector(outputStream io.Writer, tmpl *template.Template) Inspe
 // NewTemplateInspectorFromString creates a new TemplateInspector from a string
 // which is compiled into a template.
 func NewTemplateInspectorFromString(out io.Writer, tmplStr string) (Inspector, error) {
-	if tmplStr == "" {
+	if tmplStr == "" || tmplStr == "json" {
 		return NewIndentedInspector(out), nil
 	}
 
