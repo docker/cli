@@ -12,9 +12,12 @@ Usage:  docker node inspect [OPTIONS] self|NODE [NODE...]
 Display detailed information on one or more nodes
 
 Options:
-  -f, --format string   Format the output using the given Go template
-      --help            Print usage
+  -f, --format string   Format output using a custom template:
+                        'json':             Print in JSON format
+                        'TEMPLATE':         Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates (default "json")
       --pretty          Print the information in a human friendly format
+      --help            Print usage
 ```
 
 ## Description

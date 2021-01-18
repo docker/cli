@@ -21,6 +21,11 @@ const (
 	DefaultCertFile = "cert.pem"
 	// FlagTLSVerify is the flag name for the TLS verification option
 	FlagTLSVerify = "tlsverify"
+	// InspectFormatHelp describes the --format flag behavior for inspect commands
+	InspectFormatHelp = `Format output using a custom template:
+'json':             Print in JSON format
+'TEMPLATE':         Print output using the given Go template.
+Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates`
 )
 
 var (
