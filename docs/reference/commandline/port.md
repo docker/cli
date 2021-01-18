@@ -9,7 +9,7 @@ keywords: "port, mapping, container"
 ```markdown
 Usage:  docker port CONTAINER [PRIVATE_PORT[/PROTO]]
 
-List port mappings or a specific mapping for the container
+List port mappings or a specific mapping for the container  in the output format: PRIVATE_PORT/PROTO -> HOST_ADDRESS:HOST_PORT
 
 Options:
       --help   Print usage
@@ -44,4 +44,4 @@ $ docker port test 7890/udp
 $ docker port test 7890
 
 0.0.0.0:4321
-```
+```This container's private TCP port 7890 is mapped to the host's TCP port 4321. Thereby, all traffic incoming to the docker host on TCP port 4321 will be forwarded to the container on port 7890. The IP address 0.0.0.0 specifies that the port will be available on all the host's IPv4 addresses.
