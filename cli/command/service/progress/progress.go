@@ -140,7 +140,8 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 				return fmt.Errorf("service rollback paused: %s", service.UpdateStatus.Message)
 			case swarm.UpdateStateRollbackCompleted:
 				if !converged {
-					return fmt.Errorf("service rolled back: %s", service.UpdateStatus.Message)
+					progress.Messagef(progressOut, "", "service rolled back: %s", service.UpdateStatus.Message)
+					return nil
 				}
 			}
 		}
