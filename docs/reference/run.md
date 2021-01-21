@@ -1,6 +1,8 @@
 ---
 description: "Configure containers at runtime"
 keywords: "docker, run, configure, runtime"
+redirect_from:
+- /reference/run/
 ---
 
 <!-- This file is maintained within the docker/cli GitHub
