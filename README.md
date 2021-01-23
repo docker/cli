@@ -30,6 +30,18 @@ Run all linting:
 $ make -f docker.Makefile lint
 ```
 
+Run the unit test:
+
+```
+$ make -f docker.Makefile test-unit
+```
+
+Run the full test suite:
+
+```
+$ make -f docker.Makefile test
+```
+
 List all the available targets:
 
 ```
