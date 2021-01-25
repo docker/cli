@@ -21,6 +21,13 @@ import (
 // when the credentials are not in the keychain.
 const errCredentialsNotFound = "The specified item could not be found in the keychain."
 
+// errCredentialsNotFound is the specific error message returned by OS X
+// when environment does not allow showing dialog to unlock keychain.
+const errInteractionNotAllowed = "User interaction is not allowed."
+
+// ErrInteractionNotAllowed is returned if keychain password prompt can not be shown.
+var ErrInteractionNotAllowed = errors.New(`keychain cannot be accessed because the current session does not allow user interaction. The keychain may be locked; unlock it by running "security -v unlock-keychain ~/Library/Keychains/login.keychain-db" and try again`)
+
 // Osxkeychain handles secrets using the OS X Keychain as store.
 type Osxkeychain struct{}
 
@@ -89,6 +96,9 @@ func (h Osxkeychain) Get(serverURL string) (string, string, error) {
 		if goMsg == errCredentialsNotFound {
 			return "", "", credentials.NewErrCredentialsNotFound()
 		}
+		if goMsg == errInteractionNotAllowed {
+			return "", "", ErrInteractionNotAllowed
+		}
 
 		return "", "", errors.New(goMsg)
 	}
@@ -116,6 +126,9 @@ func (h Osxkeychain) List() (map[string]string, error) {
 		goMsg := C.GoString(errMsg)
 		if goMsg == errCredentialsNotFound {
 			return make(map[string]string), nil
+		}
+		if goMsg == errInteractionNotAllowed {
+			return nil, ErrInteractionNotAllowed
 		}
 
 		return nil, errors.New(goMsg)
