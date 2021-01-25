@@ -112,13 +112,13 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 			} else {
 				currentDir, err := os.Getwd()
 				if err != nil {
-					_, _ = fmt.Fprint(dockerCli.Err(), "No build context was specified, and we were" +
-					    "unable to get the local directory's path in order to use it as a" +
-					    "build context. Consider passing the build context path as an argument.")
+					_, _ = fmt.Fprint(dockerCli.Err(), "No build context was specified, and we were"+
+						"unable to get the local directory's path in order to use it as a"+
+						"build context. Consider passing the build context path as an argument.")
 					return errors.Errorf("unable to prepare context: %s", err)
 				}
-				_, _ = fmt.Fprintln(dockerCli.Out(), "No build context was specified. Using the current " +
-				    fmt.Sprintf("working directory '%s' as our build context.", currentDir))
+				_, _ = fmt.Fprintln(dockerCli.Out(), "No build context was specified. Using the current "+
+					fmt.Sprintf("working directory '%s' as our build context.", currentDir))
 				options.context = currentDir
 			}
 			return runBuild(dockerCli, options)
