@@ -1343,7 +1343,7 @@ __docker_node_complete_ls_filters() {
                 ;;
         esac
     else
-        opts=('id' 'label' 'membership' 'name' 'role')
+        opts=('id' 'label' 'membership' 'name' 'node.label' 'role')
         _describe -t filter-opts "filter options" opts -qS "=" && ret=0
     fi
 

@@ -4355,6 +4355,9 @@ _docker_node_ls() {
 			__docker_complete_nodes --cur "${cur##*=}" --id
 			return
 			;;
+		label|node.label)
+			return
+			;;
 		membership)
 			COMPREPLY=( $( compgen -W "accepted pending" -- "${cur##*=}" ) )
 			return
@@ -4371,7 +4374,7 @@ _docker_node_ls() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -W "id label membership name role" -S = -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "id label membership name node.label role" -S = -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
