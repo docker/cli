@@ -683,6 +683,31 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	}, nil
 }
 
+func parseDefaultNetOpts(copts *containerOptions) (map[string]*networktypes.EndpointSettings, error) {
+	if copts.aliases.Len() > 0 {
+		return nil, errors.New("network-scoped aliases are only supported for user-defined networks")
+	}
+	NetworkMode := container.NetworkMode(copts.netMode.NetworkMode())
+	endpointsConfig := make(map[string]*networktypes.EndpointSettings)
+	if copts.ipv4Address != "" || copts.ipv6Address != "" || copts.linkLocalIPs.Len() > 0 {
+		epConfig := &networktypes.EndpointSettings{}
+		endpointsConfig[string(NetworkMode)] = epConfig
+		epConfig.IPAMConfig = &networktypes.EndpointIPAMConfig{
+			IPv4Address: copts.ipv4Address,
+			IPv6Address: copts.ipv6Address,
+		}
+		if copts.linkLocalIPs.Len() > 0 {
+			epConfig.IPAMConfig.LinkLocalIPs = make([]string, copts.linkLocalIPs.Len())
+			copy(epConfig.IPAMConfig.LinkLocalIPs, copts.linkLocalIPs.GetAll())
+		}
+		if copts.links.Len() > 0 {
+			epConfig.Links = make([]string, copts.links.Len())
+			copy(epConfig.Links, copts.links.GetAll())
+		}
+	}
+	return endpointsConfig, nil
+}
+
 // parseNetworkOpts converts --network advanced options to endpoint-specs, and combines
 // them with the old --network-alias and --links. If returns an error if conflicting options
 // are found.
@@ -695,7 +720,9 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		endpoints                         = make(map[string]*networktypes.EndpointSettings, len(copts.netMode.Value()))
 		hasUserDefined, hasNonUserDefined bool
 	)
-
+	if len(copts.netMode.Value()) == 0 {
+		return parseDefaultNetOpts(copts)
+	}
 	for i, n := range copts.netMode.Value() {
 		n := n
 		if container.NetworkMode(n.Target).IsUserDefined() {
@@ -776,15 +803,18 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 }
 
 func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.EndpointSettings, error) {
+	netmode := container.NetworkMode(ep.Target)
 	if strings.TrimSpace(ep.Target) == "" {
 		return nil, errors.New("no name set for network")
 	}
-	if !container.NetworkMode(ep.Target).IsUserDefined() {
+	if !netmode.IsUserDefined() {
 		if len(ep.Aliases) > 0 {
 			return nil, errors.New("network-scoped aliases are only supported for user-defined networks")
 		}
-		if len(ep.Links) > 0 {
-			return nil, errors.New("links are only supported for user-defined networks")
+		if !netmode.IsBridge() && !netmode.IsDefault() {
+			if len(ep.Links) > 0 {
+				return nil, errors.New("links are only supported for user-defined networks")
+			}
 		}
 	}
 
