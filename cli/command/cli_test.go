@@ -14,7 +14,6 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
-	clitypes "github.com/docker/cli/types"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -281,7 +280,6 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	// Test default operations and also overriding default ones
 	cli, err := NewDockerCli(
 		WithContentTrust(true),
-		WithContainerizedClient(func(string) (clitypes.ContainerizedClient, error) { return nil, nil }),
 	)
 	assert.NilError(t, err)
 	// Check streams are initialized
@@ -289,9 +287,6 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	assert.Check(t, cli.Out() != nil)
 	assert.Check(t, cli.Err() != nil)
 	assert.Equal(t, cli.ContentTrustEnabled(), true)
-	client, err := cli.NewContainerizedEngineClient("")
-	assert.NilError(t, err)
-	assert.Equal(t, client, nil)
 
 	// Apply can modify a dockerCli after construction
 	inbuf := bytes.NewBuffer([]byte("input"))
