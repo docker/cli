@@ -60,6 +60,7 @@ The currently supported filters are:
 
 * [id](#id)
 * [label](#label)
+* [node.label](#nodelabel)
 * [membership](#membership)
 * [name](#name)
 * [role](#role)
@@ -77,7 +78,10 @@ ID                         HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
 
 #### label
 
-The `label` filter matches nodes based on engine labels and on the presence of a `label` alone or a `label` and a value. Node labels are currently not used for filtering.
+The `label` filter matches nodes based on engine labels and on the presence of a
+`label` alone or a `label` and a value. Engine labels are configured in
+the [daemon configuration](dockerd.md#daemon-configuration-file). To filter on
+Swarm `node` labels, use [`node.label` instead](#nodelabel).
 
 The following filter matches nodes with the `foo` label regardless of its value.
 
@@ -86,6 +90,42 @@ $ docker node ls -f "label=foo"
 
 ID                         HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
 1bcef6utixb0l0ca7gxuivsj0  swarm-worker2  Ready   Active
+```
+
+#### node.label
+
+The `node.label` filter matches nodes based on node labels and on the presence
+of a `node.label` alone or a `node.label` and a value.
+
+The following filter updates nodes to have a `region` node label:
+
+```console
+$ docker node update --label-add region=region-a swarm-test-01
+$ docker node update --label-add region=region-a swarm-test-02
+$ docker node update --label-add region=region-b swarm-test-03
+$ docker node update --label-add region=region-b swarm-test-04
+```
+
+Show all nodes that have a `region` node label set:
+
+```console
+$ docker node ls --filter node.label=region
+
+ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           20.10.2
+2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        20.10.2
+hc0pu7ntc7s4uvj4pv7z7pz15     swarm-test-03   Ready     Active         Reachable        20.10.2
+n41b2cijmhifxxvz56vwrs12q     swarm-test-04   Ready     Active                          20.10.2
+```
+
+Show all nodes that have a `region` node label, with value `region-a`:
+
+```console
+$ docker node ls --filter node.label=region=region-a
+
+ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           20.10.2
+2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        20.10.2
 ```
 
 #### membership
