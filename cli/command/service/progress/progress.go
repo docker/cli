@@ -99,6 +99,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 		convergedAt time.Time
 		monitor     = 5 * time.Second
 		rollback    bool
+		message     *progress.Progress
 	)
 
 	for {
@@ -140,8 +141,9 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 				return fmt.Errorf("service rollback paused: %s", service.UpdateStatus.Message)
 			case swarm.UpdateStateRollbackCompleted:
 				if !converged {
-					return fmt.Errorf("service rolled back: %s", service.UpdateStatus.Message)
+					message = &progress.Progress{ID: "rollback", Message: service.UpdateStatus.Message}
 				}
+				rollback = true
 			}
 		}
 		if converged && time.Since(convergedAt) >= monitor {
@@ -149,7 +151,9 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 				ID:     "verify",
 				Action: "Service converged",
 			})
-
+			if message != nil {
+				progressOut.WriteProgress(*message)
+			}
 			return nil
 		}
 
