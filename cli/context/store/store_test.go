@@ -175,7 +175,7 @@ func TestImportTarInvalid(t *testing.T) {
 	var r io.Reader = source
 	s := New(testDir, testCfg)
 	err = Import("tarInvalid", s, r)
-	assert.ErrorContains(t, err, "invalid context: no metadata found")
+	assert.ErrorContains(t, err, "unexpected context file")
 }
 
 func TestImportZip(t *testing.T) {
@@ -254,5 +254,5 @@ func TestImportZipInvalid(t *testing.T) {
 	var r io.Reader = source
 	s := New(testDir, testCfg)
 	err = Import("zipInvalid", s, r)
-	assert.ErrorContains(t, err, "invalid context: no metadata found")
+	assert.ErrorContains(t, err, "unexpected context file")
 }
