@@ -2005,7 +2005,9 @@ The following `ARG` variables are set automatically:
 
 These arguments are defined in the global scope so are not automatically
 available inside build stages or for your `RUN` commands. To expose one of
-these arguments inside the build stage redefine it without value.
+these arguments inside the build stage redefine it *without value*. (Default
+values for backward compatibility can always be provided when referenced, using
+e.g., `${TARGETPLATFORM:-linux/amd64}`.)
 
 For example:
 
