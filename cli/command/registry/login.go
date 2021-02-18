@@ -111,11 +111,12 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 		serverAddress = authServer
 	}
 
-	var err error
-	var authConfig *types.AuthConfig
 	var response registrytypes.AuthenticateOKBody
 	isDefaultRegistry := serverAddress == authServer
-	authConfig, err = command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	authConfig, err := command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	if authConfig == nil {
+		authConfig = &types.AuthConfig{}
+	}
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
 		response, err = loginWithCredStoreCreds(ctx, dockerCli, authConfig)
 	}
