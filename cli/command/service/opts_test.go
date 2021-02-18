@@ -289,6 +289,22 @@ func TestToServiceUpdateRollback(t *testing.T) {
 	assert.Check(t, is.DeepEqual(service.RollbackConfig, expected.RollbackConfig))
 }
 
+func TestToServiceUpdateRollbackOrder(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("update-order", "start-first")
+	flags.Set("rollback-order", "start-first")
+
+	o := newServiceOptions()
+	o.mode = "replicated"
+	o.update = updateOptions{order: "start-first"}
+	o.rollback = updateOptions{order: "start-first"}
+
+	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(service.UpdateConfig.Order, o.update.order))
+	assert.Check(t, is.Equal(service.RollbackConfig.Order, o.rollback.order))
+}
+
 func TestToServiceMaxReplicasGlobalModeConflict(t *testing.T) {
 	opt := serviceOptions{
 		mode:        "global",
