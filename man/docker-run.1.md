@@ -504,13 +504,13 @@ and foreground Docker containers.
 **--network**=*type*
    Set the Network mode for the container. Supported values are:
 
-| Value                       | Description                                                                              |
-|:----------------------------|:-----------------------------------------------------------------------------------------|
-| **none**                    | No networking in the container.                                                          |
-| **bridge**                  | Connect the container to the default Docker bridge via veth interfaces.                  |
-| **host**                    | Use the host's network stack inside the container.                                       |
-| **container:**_name_|_id_   | Use the network stack of another container, specified via its _name_ or _id_.            |
-| _network-name_|_network-id_ | Connects the container to a user created network (using `docker network create` command) |
+| Value                        | Description                                                                              |
+|:-----------------------------|:-----------------------------------------------------------------------------------------|
+| **none**                     | No networking in the container.                                                          |
+| **bridge**                   | Connect the container to the default Docker bridge via veth interfaces.                  |
+| **host**                     | Use the host's network stack inside the container.                                       |
+| **container:**_name_\|_id_   | Use the network stack of another container, specified via its _name_ or _id_.            |
+| _network-name_\|_network-id_ | Connects the container to a user created network (using `docker network create` command) |
 
 Default is **bridge**.
 

@@ -935,7 +935,7 @@ __docker_complete_log_options() {
 	# awslogs does not implement the $common_options2.
 	local awslogs_options="$common_options1 awslogs-create-group awslogs-credentials-endpoint awslogs-datetime-format awslogs-group awslogs-multiline-pattern awslogs-region awslogs-stream tag"
 
-	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries fluentd-sub-second-precision tag"
+	local fluentd_options="$common_options1 $common_options2 fluentd-address fluentd-async fluentd-buffer-limit fluentd-request-ack fluentd-retry-wait fluentd-max-retries fluentd-sub-second-precision tag"
 	local gcplogs_options="$common_options1 $common_options2 gcp-log-cmd gcp-meta-id gcp-meta-name gcp-meta-zone gcp-project"
 	local gelf_options="$common_options1 $common_options2 gelf-address gelf-compression-level gelf-compression-type gelf-tcp-max-reconnect gelf-tcp-reconnect-delay tag"
 	local journald_options="$common_options1 $common_options2 tag"
@@ -1955,6 +1955,7 @@ _docker_container_run_and_create() {
 		--pid
 		--pids-limit
 		--publish -p
+		--pull
 		--restart
 		--runtime
 		--security-opt
@@ -2153,6 +2154,10 @@ _docker_container_run_and_create() {
 			esac
 			return
 			;;
+		--pull)
+		  COMPREPLY=( $( compgen -W 'always missing never' -- "$cur" ) )
+		  return
+		  ;;
 		--runtime)
 			__docker_complete_runtimes
 			return
@@ -2548,6 +2553,7 @@ _docker_daemon() {
 		--ip-forward=false
 		--ip-masq=false
 		--iptables=false
+		--ip6tables
 		--ipv6
 		--live-restore
 		--no-new-privileges
@@ -3601,7 +3607,7 @@ _docker_service_ls() {
 			return
 			;;
 		mode)
-			COMPREPLY=( $( compgen -W "global replicated" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "global global-job replicated replicated-job" -- "${cur##*=}" ) )
 			return
 			;;
 		name)
@@ -3731,6 +3737,7 @@ _docker_service_update_and_create() {
 		--limit-pids
 		--log-driver
 		--log-opt
+		--max-replicas
 		--replicas
 		--replicas-max-per-node
 		--reserve-cpu
@@ -3804,7 +3811,7 @@ _docker_service_update_and_create() {
 				return
 				;;
 			--mode)
-				COMPREPLY=( $( compgen -W "global replicated" -- "$cur" ) )
+				COMPREPLY=( $( compgen -W "global global-job replicated replicated-job" -- "$cur" ) )
 				return
 				;;
 		esac
@@ -4348,6 +4355,9 @@ _docker_node_ls() {
 			__docker_complete_nodes --cur "${cur##*=}" --id
 			return
 			;;
+		label|node.label)
+			return
+			;;
 		membership)
 			COMPREPLY=( $( compgen -W "accepted pending" -- "${cur##*=}" ) )
 			return
@@ -4364,7 +4374,7 @@ _docker_node_ls() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -W "id label membership name role" -S = -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "id label membership name node.label role" -S = -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
