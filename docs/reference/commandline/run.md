@@ -403,10 +403,10 @@ VAR1=value1
 VAR2=value2
 USER
 
-$ docker run --env-file env.list ubuntu env | grep VAR
+$ docker run --env-file env.list ubuntu env | grep -E 'VAR|USER'
 VAR1=value1
 VAR2=value2
-USER=denis
+USER=jonzeolla
 ```
 
 ### Set metadata on container (-l, --label, --label-file)
