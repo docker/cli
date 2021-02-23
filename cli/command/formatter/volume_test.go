@@ -148,8 +148,8 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 		{Driver: "bar", Name: "foobar_bar"},
 	}
 	expectedJSONs := []map[string]interface{}{
-		{"Driver": "foo", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A"},
-		{"Driver": "bar", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A"},
+		{"Availability": "N/A", "Driver": "foo", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A", "Status": "N/A"},
+		{"Availability": "N/A", "Driver": "bar", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A", "Status": "N/A"},
 	}
 	out := bytes.NewBufferString("")
 	err := VolumeWrite(Context{Format: "{{json .}}", Output: out}, volumes)

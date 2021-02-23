@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -137,4 +138,109 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
 	}
+}
+
+func TestVolumeInspectCluster(t *testing.T) {
+	volumeInspectFunc := func(volumeID string) (volume.Volume, error) {
+		return volume.Volume{
+			Name:   "clustervolume",
+			Driver: "clusterdriver1",
+			Scope:  "global",
+			ClusterVolume: &volume.ClusterVolume{
+				ID: "fooid",
+				Meta: swarm.Meta{
+					Version: swarm.Version{
+						Index: uint64(123),
+					},
+				},
+				Spec: volume.ClusterVolumeSpec{
+					Group: "group0",
+					AccessMode: &volume.AccessMode{
+						Scope:       volume.ScopeMultiNode,
+						Sharing:     volume.SharingAll,
+						BlockVolume: &volume.TypeBlock{},
+					},
+					AccessibilityRequirements: &volume.TopologyRequirement{
+						Requisite: []volume.Topology{
+							{
+								Segments: map[string]string{
+									"region": "R1",
+									"zone":   "Z1",
+								},
+							}, {
+								Segments: map[string]string{
+									"region": "R1",
+									"zone":   "Z2",
+								},
+							},
+						},
+						Preferred: []volume.Topology{
+							{
+								Segments: map[string]string{
+									"region": "R1",
+									"zone":   "Z1",
+								},
+							},
+						},
+					},
+					CapacityRange: &volume.CapacityRange{
+						RequiredBytes: 1000,
+						LimitBytes:    1000000,
+					},
+					Secrets: []volume.Secret{
+						{
+							Key:    "secretkey1",
+							Secret: "mysecret1",
+						}, {
+							Key:    "secretkey2",
+							Secret: "mysecret2",
+						},
+					},
+					Availability: volume.AvailabilityActive,
+				},
+				Info: &volume.Info{
+					CapacityBytes: 10000,
+					VolumeContext: map[string]string{
+						"the": "context",
+						"has": "entries",
+					},
+					VolumeID: "clusterdriver1volume1id",
+					AccessibleTopology: []volume.Topology{
+						{
+							Segments: map[string]string{
+								"region": "R1",
+								"zone":   "Z1",
+							},
+						},
+					},
+				},
+				PublishStatus: []*volume.PublishStatus{
+					{
+						NodeID: "node1",
+						State:  volume.StatePublished,
+						PublishContext: map[string]string{
+							"some": "data",
+							"yup":  "data",
+						},
+					}, {
+						NodeID: "node2",
+						State:  volume.StatePendingNodeUnpublish,
+						PublishContext: map[string]string{
+							"some":    "more",
+							"publish": "context",
+						},
+					},
+				},
+			},
+		}, nil
+	}
+
+	cli := test.NewFakeCli(&fakeClient{
+		volumeInspectFunc: volumeInspectFunc,
+	})
+
+	cmd := newInspectCommand(cli)
+	cmd.SetArgs([]string{"clustervolume"})
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "volume-inspect-cluster.golden")
 }
