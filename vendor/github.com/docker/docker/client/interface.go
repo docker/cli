@@ -30,6 +30,7 @@ type CommonAPIClient interface {
 	PluginAPIClient
 	ServiceAPIClient
 	SwarmAPIClient
+	ClusterVolumeAPICLient
 	SecretAPIClient
 	SystemAPIClient
 	VolumeAPIClient
@@ -198,4 +199,14 @@ type ConfigAPIClient interface {
 	ConfigRemove(ctx context.Context, id string) error
 	ConfigInspectWithRaw(ctx context.Context, name string) (swarm.Config, []byte, error)
 	ConfigUpdate(ctx context.Context, id string, version swarm.Version, config swarm.ConfigSpec) error
+}
+
+// ClusterVolumeAPICLient defines API client methods for swarm cluster volumes
+// TODO(dperny): not the final API quite yet
+type ClusterVolumeAPICLient interface {
+	ClusterVolumeList(ctx context.Context, options types.VolumeListOptions) ([]swarm.Volume, error)
+	ClusterVolumeCreate(ctx context.Context, volume swarm.VolumeSpec) (types.VolumeCreateResponse, error)
+	ClusterVolumeRemove(ctx context.Context, id string) error
+	ClusterVolumeInspectWithRaw(ctx context.Context, id string) (swarm.Volume, []byte, error)
+	ClusterVolumeUpdate(ctx context.Context, id string, version swarm.Version, volume swarm.VolumeSpec) error
 }

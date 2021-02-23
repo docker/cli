@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/builder"
 	"github.com/docker/cli/cli/command/checkpoint"
+	"github.com/docker/cli/cli/command/clustervolume"
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/context"
@@ -77,6 +78,10 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 
 		// swarm
 		swarm.NewSwarmCommand(dockerCli),
+
+		// clustervolume
+		// TODO(dperny): might rename this
+		clustervolume.NewClusterVolumeCommand(dockerCli),
 
 		// trust
 		trust.NewTrustCommand(dockerCli),
