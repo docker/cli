@@ -62,8 +62,12 @@ The main process inside the container referenced under the link `redis` will rec
 $ docker rm $(docker ps -a -q)
 ```
 
-This command deletes all stopped containers. The command
-`docker ps -a -q` above returns all existing container IDs and passes them to
+This command deletes all stopped containers, in Linux and Windows Powershell. 
+To run this at the Windows command line, pass it via PowerShell, with:	
+```
+powershell "docker rm $(docker ps -a -q)"
+```
+The command `docker ps -a -q` above returns all existing container IDs and passes them to
 the `rm` command which deletes them. Running containers are not deleted.
 
 ### Remove a container and its volumes
