@@ -32,7 +32,6 @@ type fakeClient struct {
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options types.ResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, container string, options types.ContainerRemoveOptions) error
-	containerKillFunc       func(ctx context.Context, container, signal string) error
 	Version                 string
 }
 
@@ -152,13 +151,6 @@ func (f *fakeClient) ContainerExport(_ context.Context, container string) (io.Re
 func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options types.ResizeOptions) error {
 	if f.containerExecResizeFunc != nil {
 		return f.containerExecResizeFunc(id, options)
-	}
-	return nil
-}
-
-func (f *fakeClient) ContainerKill(ctx context.Context, container, signal string) error {
-	if f.containerKillFunc != nil {
-		return f.containerKillFunc(ctx, container, signal)
 	}
 	return nil
 }

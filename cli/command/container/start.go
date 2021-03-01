@@ -74,8 +74,7 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 
 		// We always use c.ID instead of container to maintain consistency during `docker start`
 		if !c.Config.Tty {
-			sigc := notfiyAllSignals()
-			ForwardAllSignals(ctx, dockerCli, c.ID, sigc)
+			sigc := ForwardAllSignals(ctx, dockerCli, c.ID)
 			defer signal.StopCatch(sigc)
 		}
 

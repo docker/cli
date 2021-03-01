@@ -97,8 +97,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	}
 
 	if opts.proxy && !c.Config.Tty {
-		sigc := notfiyAllSignals()
-		go ForwardAllSignals(ctx, dockerCli, opts.container, sigc)
+		sigc := ForwardAllSignals(ctx, dockerCli, opts.container)
 		defer signal.StopCatch(sigc)
 	}
 
