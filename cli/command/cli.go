@@ -271,17 +271,17 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	storeConfig := DefaultContextStoreConfig()
-	store := &ContextStoreWithDefault{
+	contextStore := &ContextStoreWithDefault{
 		Store: store.New(cliconfig.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
 			return ResolveDefaultContext(opts, configFile, storeConfig, io.Discard)
 		},
 	}
-	contextName, err := resolveContextName(opts, configFile, store)
+	contextName, err := resolveContextName(opts, configFile, contextStore)
 	if err != nil {
 		return nil, err
 	}
-	endpoint, err := resolveDockerEndpoint(store, contextName)
+	endpoint, err := resolveDockerEndpoint(contextStore, contextName)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
