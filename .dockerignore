@@ -1,6 +1,5 @@
 .circleci
 .dockerignore
-.git
 .github
 .gitignore
 appveyor.yml
