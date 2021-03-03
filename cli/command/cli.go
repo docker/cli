@@ -422,12 +422,13 @@ type ClientInfo struct {
 // It applies by default the standard streams, and the content trust from
 // environment.
 func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
-	cli := &DockerCli{}
 	defaultOps := []DockerCliOption{
 		WithContentTrustFromEnv(),
+		WithDefaultContextStoreConfig(),
 	}
-	cli.contextStoreConfig = DefaultContextStoreConfig()
 	ops = append(defaultOps, ops...)
+
+	cli := &DockerCli{}
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}
