@@ -661,7 +661,7 @@ __docker_container_subcommand() {
         "($help)*--ulimit=[ulimit options]:ulimit: "
         "($help)--userns=[Container user namespace]:user namespace:(host)"
         "($help)--tmpfs[mount tmpfs]"
-        "($help)*-v[Bind mount a volume]:volume: "
+        "($help)*-v[Bind mount a volume]:volume:_directories -W / -P '/' -S '\:' -r '/ '"
         "($help)--volume-driver=[Optional volume driver for the container]:volume driver:(local)"
         "($help)*--volumes-from=[Mount volumes from the specified container]:volume: "
         "($help -w --workdir)"{-w=,--workdir=}"[Working directory inside the container]:directory:_directories"
