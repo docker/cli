@@ -19,7 +19,7 @@ require (
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/dvsekhvalnov/jose2go v0.0.0-20170216131308-f21a8cedbbae
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/go-sql-driver/mysql v1.3.0
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gogo/protobuf v1.0.0 // indirect
 	github.com/golang/protobuf v1.3.4
 	github.com/google/certificate-transparency-go v1.0.10-0.20180222191210-5ab67e519c93 // indirect
@@ -30,7 +30,7 @@ require (
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/juju/loggo v0.0.0-20190526231331-6e530bcce5d8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/lib/pq v0.0.0-20150723085316-0dad96c0b94f
+	github.com/lib/pq v1.9.0
 	github.com/magiconair/properties v1.5.3 // indirect
 	github.com/mattn/go-sqlite3 v1.6.0
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
