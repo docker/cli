@@ -38,11 +38,6 @@ build_linter_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
 	cat ./dockerfiles/Dockerfile.lint | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(LINTER_IMAGE_NAME) -
 
-.PHONY: build_cross_image
-build_cross_image:
-	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.cross | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(CROSS_IMAGE_NAME) -
-
 .PHONY: build_shell_validate_image
 build_shell_validate_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
@@ -80,20 +75,8 @@ test-unit: build_docker_image ## run unit tests (using go test)
 .PHONY: test ## run unit and e2e tests
 test: test-unit test-e2e
 
-.PHONY: cross
-cross: build_cross_image ## build the CLI for macOS and Windows
-	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make cross
-
-.PHONY: binary-windows
-binary-windows: build_cross_image ## build the CLI for Windows
-	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make $@
-
 .PHONY: plugins-windows
 plugins-windows: build_cross_image ## build the example CLI plugins for Windows
-	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make $@
-
-.PHONY: binary-osx
-binary-osx: build_cross_image ## build the CLI for macOS
 	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make $@
 
 .PHONY: plugins-osx
@@ -119,9 +102,6 @@ fmt: ## run gofmt
 .PHONY: vendor
 vendor: build_docker_image vendor.conf ## download dependencies (vendor/) listed in vendor.conf
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make vendor
-
-dynbinary: build_cross_image ## build the CLI dynamically linked
-	$(DOCKER_RUN) -it $(CROSS_IMAGE_NAME) make dynbinary
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
