@@ -32,8 +32,26 @@ target "dynbinary" {
     }
 }
 
+variable "GROUP_TOTAL" {
+    default = "1"
+}
+
+variable "GROUP_INDEX" {
+    default = "0"
+}
+
+function "platforms" {
+    params = [USE_GLIBC]
+    result = concat(["linux/amd64", "linux/386", "linux/arm64", "linux/arm", "linux/ppc64le", "linux/s390x", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/arm", "windows/386"], USE_GLIBC!=""?[]:["windows/arm64"])
+}
+
+function "glen" {
+    params = [platforms, GROUP_TOTAL]
+    result = ceil(length(platforms)/GROUP_TOTAL)
+}
+
 target "_all_platforms" {
-    platforms = concat(["linux/amd64", "linux/386", "linux/arm64", "linux/arm", "linux/ppc64le", "linux/s390x", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/arm", "windows/386"], USE_GLIBC!=""?[]:["windows/arm64"])
+    platforms = slice(platforms(USE_GLIBC), GROUP_INDEX*glen(platforms(USE_GLIBC), GROUP_TOTAL),min(length(platforms(USE_GLIBC)), (GROUP_INDEX+1)*glen(platforms(USE_GLIBC), GROUP_TOTAL)))
 }
 
 target "cross" {
