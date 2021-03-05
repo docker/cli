@@ -42,6 +42,7 @@ jobs:
     docker: [{image: 'docker:19.03-git'}]
     environment:
       DOCKER_BUILDKIT: 1
+      BUILDX_VERSION: "v0.5.1"
     parallelism: 3
     steps:
       - checkout
@@ -55,21 +56,14 @@ jobs:
       - run:
           name: "Docker info"
           command: docker info
-      - run:
-          name: "Cross - build image"
-          command: |
-            docker build --progress=plain -f dockerfiles/Dockerfile.cross --tag cli-builder:$CIRCLE_BUILD_NUM .
-      - run:
-          name: "Cross"
-          command: |
-            name=cross-$CIRCLE_BUILD_NUM-$CIRCLE_NODE_INDEX
-            docker run \
-                -e CROSS_GROUP=$CIRCLE_NODE_INDEX \
-                --name $name cli-builder:$CIRCLE_BUILD_NUM \
-                make cross
-            docker cp \
-                $name:/go/src/github.com/docker/cli/build \
-                /work/build
+      - run: apk add make curl
+      - run: mkdir -vp ~/.docker/cli-plugins/
+      - run: curl -fsSL --output ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64
+      - run: chmod a+x ~/.docker/cli-plugins/docker-buildx
+      - run: docker buildx version
+      - run: docker context create buildctx
+      - run: docker buildx create --use buildctx && docker buildx inspect --bootstrap
+      - run: GROUP_INDEX=$CIRCLE_NODE_INDEX GROUP_TOTAL=$CIRCLE_NODE_TOTAL docker buildx bake cross --progress=plain
       - store_artifacts:
           path: /work/build
 
