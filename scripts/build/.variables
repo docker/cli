@@ -4,7 +4,7 @@ set -eu
 TARGET=${TARGET:-"build"}
 
 PLATFORM=${PLATFORM:-}
-VERSION=${VERSION:-"unknown-version"}
+VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
