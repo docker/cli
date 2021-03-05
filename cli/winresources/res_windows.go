@@ -5,7 +5,7 @@ These resources are used to provide
     * An icon
     * A Windows manifest declaring Windows version support
 
-The resource object files are generated with go generate.
+The resource object files are generated when building with scripts/build/binary .
 The resource source files are located in scripts/winresources.
 This occurs automatically when you run scripts/build/windows.
 
@@ -14,5 +14,3 @@ is included.
 
 */
 package winresources
-
-//go:generate ../../scripts/gen/windows-resources

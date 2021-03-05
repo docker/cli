@@ -11,7 +11,6 @@ set -eu
 : "${GO_BUILDTAGS=}"
 : "${GO_STRIP=}"
 
-set -x
 . ./scripts/build/.variables
 
 if [ -z "$CGO_ENABLED" ]; then
@@ -53,6 +52,23 @@ fi
 
 if [ -n "$GO_STRIP" ]; then
     LDFLAGS="$LDFLAGS -s -w"
+fi
+
+if [ "$(go env GOOS)" = "windows" ]; then
+    # Generate a Windows file version of the form major,minor,patch,build
+    VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . , | sed -re 's/^[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+,[0-9]+$/\0,0/')
+
+    set --
+    [ -n "$VERSION" ]      && set -- "$@" -D "DOCKER_VERSION=\"$VERSION\""
+    [ -n "$VERSION_QUAD" ] && set -- "$@" -D "DOCKER_VERSION_QUAD=$VERSION_QUAD"
+    [ -n "$GITCOMMIT" ]    && set -- "$@" -D "DOCKER_COMMIT=\"$GITCOMMIT\""
+
+    windres=$($(go env CC) --print-prog-name=windres)
+
+    target="$(dirname "$0")/../../cli/winresources/rsrc_$(go env GOARCH).syso"
+    mkdir -p "$(dirname "${target}")"
+    "$windres" -i "$(dirname "$0")/../winresources/docker.rc" -o "$target" "$@"
+    echo "package winresources" > "$(dirname "${target}")/stub_windows.go"
 fi
 
 echo "Building $GO_LINKMODE $(basename "${TARGET}")"
