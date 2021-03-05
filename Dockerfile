@@ -7,14 +7,14 @@ FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.16-${BASE_VARIANT} AS golatest	
 
 FROM gostable AS go-linux	
-FROM gostable AS go-windows
+FROM golatest AS go-windows
 FROM golatest AS go-darwin
 
-FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:810dc54d5144f133a218e88e319184bf8b9ce01d37d46ddb37573e90decd9eef AS xx
+FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:620d36a9d7f1e3b102a5c7e8eff12081ac363828b3a44390f24fa8da2d49383d AS xx
 
 FROM go-${TARGETOS} AS build-base-alpine
 COPY --from=xx / /
-RUN apk add --no-cache clang lld file
+RUN apk add --no-cache clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-alpine AS build-alpine
@@ -44,12 +44,14 @@ ARG CGO_ENABLED
 ARG VERSION
 RUN --mount=ro --mount=type=cache,target=/root/.cache \
     --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
+    --mount=type=tmpfs,target=cli/winresources \
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
     TARGET=/out ./scripts/build/binary && \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
 
 FROM build-base-${BASE_VARIANT} AS dev 
+COPY . .
 
 FROM scratch AS binary
 COPY --from=build /out .
