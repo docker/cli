@@ -12,9 +12,11 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/env"
+	"gotest.tools/v3/fs"
 )
 
 var homeKey = "HOME"
@@ -221,6 +223,31 @@ func TestOldJSON(t *testing.T) {
 	if configStr != expConfStr {
 		t.Fatalf("Should have save in new form: \n'%s'\n not \n'%s'\n", configStr, expConfStr)
 	}
+}
+
+func TestOldJSONFallbackDeprecationWarning(t *testing.T) {
+	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
+	tmpHome := fs.NewDir(t, t.Name(), fs.WithFile(oldConfigfile, js))
+	defer tmpHome.Remove()
+	defer env.PatchAll(t, map[string]string{homeKey: tmpHome.Path(), "DOCKER_CONFIG": ""})()
+
+	// reset the homeDir, configDir, and its sync.Once, to force them being resolved again
+	resetHomeDir()
+	resetConfigDir()
+
+	buffer := new(bytes.Buffer)
+	configFile := LoadDefaultConfigFile(buffer)
+	expected := configfile.New(tmpHome.Join(configFileDir, ConfigFileName))
+	expected.AuthConfigs = map[string]types.AuthConfig{
+		"https://index.docker.io/v1/": {
+			Username:      "joejoe",
+			Password:      "hello",
+			Email:         "user@example.com",
+			ServerAddress: "https://index.docker.io/v1/",
+		},
+	}
+	assert.Assert(t, strings.Contains(buffer.String(), "WARNING: Support for the legacy ~/.dockercfg configuration file and file-format is deprecated and will be removed in an upcoming release"))
+	assert.Check(t, is.DeepEqual(expected, configFile))
 }
 
 func TestNewJSON(t *testing.T) {
