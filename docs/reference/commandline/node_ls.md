@@ -16,7 +16,12 @@ Aliases:
 
 Options:
   -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print nodes using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table TEMPLATE':   Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        'TEMPLATE':         Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
   -q, --quiet           Only display IDs
 ```
@@ -203,6 +208,11 @@ e216jshn25ckzbvmwlnh5jr3g: swarm-manager1 Ready
 35o6tiywb700jesrt3dmllaza: swarm-worker1 Needs Rotation
 ```
 
+To list all nodes in JSON format, use the `json` directive:
+```console
+$ docker node ls --format json
+{"Availability":"Active","EngineVersion":"20.10.5","Hostname":"docker-desktop","ID":"k8f4w7qtzpj5sqzclcqafw35g","ManagerStatus":"Leader","Self":true,"Status":"Ready","TLSStatus":"Ready"}
+```
 
 ## Related commands
 
