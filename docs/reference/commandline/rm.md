@@ -65,7 +65,7 @@ as (unused) images and networks.
 
 Alternatively, you can use the `docker ps` with the `-q` / `--quiet` option to
 generate a list of container IDs to remove, and use that list as argument for
-the `docker rm` command. 
+the `docker rm` command.
 
 Combining commands can be more flexible, but is less portable as it depends
 on features provided by the shell, and the exact syntax may differ depending on
