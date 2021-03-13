@@ -17,10 +17,6 @@ This means that `runc` 1.0.0 should implement the 1.0 version of the specificati
 
 You can find official releases of `runc` on the [release](https://github.com/opencontainers/runc/releases) page.
 
-Currently, the following features are not considered to be production-ready:
-
-* [Support for cgroup v2](./docs/cgroup-v2.md)
-
 ## Security
 
 The reporting process and disclosure communications are outlined [here](https://github.com/opencontainers/org/blob/master/SECURITY.md).
@@ -67,16 +63,17 @@ To change build tags from the default, set the `BUILDTAGS` variable for make,
 e.g.
 
 ```bash
-make BUILDTAGS='seccomp apparmor'
+make BUILDTAGS='seccomp'
 ```
 
 | Build Tag | Feature                            | Enabled by default | Dependency |
 |-----------|------------------------------------|--------------------|------------|
 | seccomp   | Syscall filtering                  | yes                | libseccomp |
-| selinux   | selinux process and mount labeling | yes                | <none>     |
-| apparmor  | apparmor profile support           | yes                | <none>     |
 | nokmem    | disable kernel memory accounting   | no                 | <none>     |
 
+The following build tags were used earlier, but are now obsoleted:
+ - **apparmor** (since runc v1.0.0-rc93 the feature is always enabled)
+ - **selinux**  (since runc v1.0.0-rc93 the feature is always enabled)
 
 ### Running the test suite
 
