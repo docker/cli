@@ -72,7 +72,7 @@ This will create a new Bash session in the container `ubuntu_bash`.
 Next, set an environment variable in the current bash session.
 
 ```bash
-$ docker exec -it -e VAR=1 ubuntu_bash bash
+$ docker exec -it -e VAR=1 ubuntu_bash sh
 ```
 
 This will create a new Bash session in the container `ubuntu_bash` with environment
