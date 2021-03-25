@@ -105,18 +105,13 @@ func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 }
 
 // TODO remove this temporary hack, which is used to warn about the deprecated ~/.dockercfg file
-var (
-	mutex                  sync.RWMutex
-	printLegacyFileWarning bool
-)
+var printLegacyFileWarning bool
 
 // Load reads the configuration files in the given directory, and sets up
 // the auth config information and returns values.
 // FIXME: use the internal golang config parser
 func Load(configDir string) (*configfile.ConfigFile, error) {
-	mutex.Lock()
 	printLegacyFileWarning = false
-	mutex.Unlock()
 
 	if configDir == "" {
 		configDir = Dir()
@@ -142,9 +137,7 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 	// Can't find latest config file so check for the old one
 	filename = filepath.Join(getHomeDir(), oldConfigfile)
 	if file, err := os.Open(filename); err == nil {
-		mutex.Lock()
 		printLegacyFileWarning = true
-		mutex.Unlock()
 		defer file.Close()
 		if err := configFile.LegacyLoadFromReader(file); err != nil {
 			return configFile, errors.Wrap(err, filename)
@@ -160,8 +153,6 @@ func LoadDefaultConfigFile(stderr io.Writer) *configfile.ConfigFile {
 	if err != nil {
 		fmt.Fprintf(stderr, "WARNING: Error loading config file: %v\n", err)
 	}
-	mutex.RLock()
-	defer mutex.RUnlock()
 	if printLegacyFileWarning {
 		_, _ = fmt.Fprintln(stderr, "WARNING: Support for the legacy ~/.dockercfg configuration file and file-format is deprecated and will be removed in an upcoming release")
 	}
