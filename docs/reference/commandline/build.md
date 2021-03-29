@@ -389,6 +389,10 @@ contents of the `debug` file instead of looking for a `Dockerfile` and will use
 directory structure of the build context, regardless of how you refer to it on
 the command line.
 
+The `-f` argument does not affect where docker looks for the `.dockerignore` file.
+If the `-f` argument points to a file in directory other than the build context,
+a `.dockerignore` file adjacent to the `-f` argument will not be applied.
+
 > **Note**
 >
 > `docker build` returns a `no such file or directory` error if the
