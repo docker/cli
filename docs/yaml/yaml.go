@@ -19,6 +19,7 @@ type cmdOption struct {
 	ValueType       string `yaml:"value_type,omitempty"`
 	DefaultValue    string `yaml:"default_value,omitempty"`
 	Description     string `yaml:",omitempty"`
+	DetailsURL      string `yaml:"details_url,omitempty"` // DetailsURL contains an anchor-id or link for more information on this flag
 	Deprecated      bool
 	MinAPIVersion   string `yaml:"min_api_version,omitempty"`
 	Experimental    bool
@@ -61,14 +62,20 @@ func GenYamlTree(cmd *cobra.Command, dir string) error {
 // GenYamlTreeCustom creates yaml structured ref files
 func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string) string) error {
 	for _, c := range cmd.Commands() {
-		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
+		if !c.Runnable() && !c.HasAvailableSubCommands() {
+			// skip non-runnable commands without subcommands
+			// but *do* generate YAML for hidden and deprecated commands
+			// the YAML will have those included as metadata, so that the
+			// documentation repository can decide whether or not to present them
 			continue
 		}
 		if err := GenYamlTreeCustom(c, dir, filePrepender); err != nil {
 			return err
 		}
 	}
-
+	if !cmd.HasParent() {
+		return nil
+	}
 	basename := strings.Replace(cmd.CommandPath(), " ", "_", -1) + ".yaml"
 	filename := filepath.Join(dir, basename)
 	f, err := os.Create(filename)
@@ -86,12 +93,29 @@ func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string
 // GenYamlCustom creates custom yaml output
 // nolint: gocyclo
 func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
-	cliDoc := cmdDoc{}
-	cliDoc.Name = cmd.CommandPath()
+	const (
+		// shortMaxWidth is the maximum width for the "Short" description before
+		// we force YAML to use multi-line syntax. The goal is to make the total
+		// width fit within 80 characters. This value is based on 80 characters
+		// minus the with of the field, colon, and whitespace ('short: ').
+		shortMaxWidth = 73
 
-	cliDoc.Aliases = strings.Join(cmd.Aliases, ", ")
-	cliDoc.Short = cmd.Short
-	cliDoc.Long = cmd.Long
+		// longMaxWidth is the maximum width for the "Short" description before
+		// we force YAML to use multi-line syntax. The goal is to make the total
+		// width fit within 80 characters. This value is based on 80 characters
+		// minus the with of the field, colon, and whitespace ('long: ').
+		longMaxWidth = 74
+	)
+
+	cliDoc := cmdDoc{
+		Name:       cmd.CommandPath(),
+		Aliases:    strings.Join(cmd.Aliases, ", "),
+		Short:      forceMultiLine(cmd.Short, shortMaxWidth),
+		Long:       forceMultiLine(cmd.Long, longMaxWidth),
+		Example:    cmd.Example,
+		Deprecated: len(cmd.Deprecated) > 0,
+	}
+
 	if len(cliDoc.Long) == 0 {
 		cliDoc.Long = cliDoc.Short
 	}
@@ -100,12 +124,6 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 		cliDoc.Usage = cmd.UseLine()
 	}
 
-	if len(cmd.Example) > 0 {
-		cliDoc.Example = cmd.Example
-	}
-	if len(cmd.Deprecated) > 0 {
-		cliDoc.Deprecated = true
-	}
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
 		if v, ok := curr.Annotations["version"]; ok && cliDoc.MinAPIVersion == "" {
@@ -123,26 +141,32 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 		if _, ok := curr.Annotations["swarm"]; ok && !cliDoc.Swarm {
 			cliDoc.Swarm = true
 		}
-		if os, ok := curr.Annotations["ostype"]; ok && cliDoc.OSType == "" {
-			cliDoc.OSType = os
+		if o, ok := curr.Annotations["ostype"]; ok && cliDoc.OSType == "" {
+			cliDoc.OSType = o
+		}
+	}
+
+	anchors := make(map[string]struct{})
+	if a, ok := cmd.Annotations["anchors"]; ok && a != "" {
+		for _, anchor := range strings.Split(a, ",") {
+			anchors[anchor] = struct{}{}
 		}
 	}
 
 	flags := cmd.NonInheritedFlags()
 	if flags.HasFlags() {
-		cliDoc.Options = genFlagResult(flags)
+		cliDoc.Options = genFlagResult(flags, anchors)
 	}
 	flags = cmd.InheritedFlags()
 	if flags.HasFlags() {
-		cliDoc.InheritedOptions = genFlagResult(flags)
+		cliDoc.InheritedOptions = genFlagResult(flags, anchors)
 	}
 
 	if hasSeeAlso(cmd) {
 		if cmd.HasParent() {
 			parent := cmd.Parent()
 			cliDoc.Pname = parent.CommandPath()
-			link := cliDoc.Pname + ".yaml"
-			cliDoc.Plink = strings.Replace(link, " ", "_", -1)
+			cliDoc.Plink = strings.Replace(cliDoc.Pname, " ", "_", -1) + ".yaml"
 			cmd.VisitParents(func(c *cobra.Command) {
 				if c.DisableAutoGenTag {
 					cmd.DisableAutoGenTag = c.DisableAutoGenTag
@@ -157,10 +181,8 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 			if !child.IsAvailableCommand() || child.IsAdditionalHelpTopicCommand() {
 				continue
 			}
-			currentChild := cliDoc.Name + " " + child.Name()
 			cliDoc.Cname = append(cliDoc.Cname, cliDoc.Name+" "+child.Name())
-			link := currentChild + ".yaml"
-			cliDoc.Clink = append(cliDoc.Clink, strings.Replace(link, " ", "_", -1))
+			cliDoc.Clink = append(cliDoc.Clink, strings.Replace(cliDoc.Name+"_"+child.Name(), " ", "_", -1)+".yaml")
 		}
 	}
 
@@ -175,19 +197,39 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer) error {
 	return nil
 }
 
-func genFlagResult(flags *pflag.FlagSet) []cmdOption {
+func genFlagResult(flags *pflag.FlagSet, anchors map[string]struct{}) []cmdOption {
 	var (
 		result []cmdOption
 		opt    cmdOption
+	)
+
+	const (
+		// shortMaxWidth is the maximum width for the "Short" description before
+		// we force YAML to use multi-line syntax. The goal is to make the total
+		// width fit within 80 characters. This value is based on 80 characters
+		// minus the with of the field, colon, and whitespace ('  default_value: ').
+		defaultValueMaxWidth = 64
+
+		// longMaxWidth is the maximum width for the "Short" description before
+		// we force YAML to use multi-line syntax. The goal is to make the total
+		// width fit within 80 characters. This value is based on 80 characters
+		// minus the with of the field, colon, and whitespace ('  description: ').
+		descriptionMaxWidth = 66
 	)
 
 	flags.VisitAll(func(flag *pflag.Flag) {
 		opt = cmdOption{
 			Option:       flag.Name,
 			ValueType:    flag.Value.Type(),
-			DefaultValue: forceMultiLine(flag.DefValue),
-			Description:  forceMultiLine(flag.Usage),
+			DefaultValue: forceMultiLine(flag.DefValue, defaultValueMaxWidth),
+			Description:  forceMultiLine(flag.Usage, descriptionMaxWidth),
 			Deprecated:   len(flag.Deprecated) > 0,
+		}
+
+		if v, ok := flag.Annotations["docs.external.url"]; ok && len(v) > 0 {
+			opt.DetailsURL = strings.TrimPrefix(v[0], "https://docs.docker.com")
+		} else if _, ok = anchors[flag.Name]; ok {
+			opt.DetailsURL = "#" + flag.Name
 		}
 
 		// Todo, when we mark a shorthand is deprecated, but specify an empty message.
@@ -230,10 +272,15 @@ func genFlagResult(flags *pflag.FlagSet) []cmdOption {
 	return result
 }
 
-// Temporary workaround for yaml lib generating incorrect yaml with long strings
-// that do not contain \n.
-func forceMultiLine(s string) string {
-	if len(s) > 60 && !strings.Contains(s, "\n") {
+// forceMultiLine appends a newline (\n) to strings that are longer than max
+// to force the yaml lib to use block notation (https://yaml.org/spec/1.2/spec.html#Block)
+// instead of a single-line string with newlines and tabs encoded("string\nline1\nline2").
+//
+// This makes the generated YAML more readable, and easier to review changes.
+// max can be used to customize the width to keep the whole line < 80 chars.
+func forceMultiLine(s string, max int) string {
+	s = strings.TrimSpace(s)
+	if len(s) > max && !strings.Contains(s, "\n") {
 		s = s + "\n"
 	}
 	return s
@@ -253,17 +300,30 @@ func hasSeeAlso(cmd *cobra.Command) bool {
 	return false
 }
 
-func parseMDContent(mdString string) (description string, examples string) {
-	parsedContent := strings.Split(mdString, "\n## ")
-	for _, s := range parsedContent {
-		if strings.Index(s, "Description") == 0 {
-			description = strings.TrimSpace(strings.TrimPrefix(s, "Description"))
-		}
-		if strings.Index(s, "Examples") == 0 {
-			examples = strings.TrimSpace(strings.TrimPrefix(s, "Examples"))
-		}
+// applyDescriptionAndExamples fills in cmd.Long and cmd.Example with the
+// "Description" and "Examples" H2 sections in  mdString (if present).
+func applyDescriptionAndExamples(cmd *cobra.Command, mdString string) {
+	sections := getSections(mdString)
+	var (
+		anchors []string
+		md      string
+	)
+	if sections["description"] != "" {
+		md, anchors = cleanupMarkDown(sections["description"])
+		cmd.Long = md
+		anchors = append(anchors, md)
 	}
-	return description, examples
+	if sections["examples"] != "" {
+		md, anchors = cleanupMarkDown(sections["examples"])
+		cmd.Example = md
+		anchors = append(anchors, md)
+	}
+	if len(anchors) > 0 {
+		if cmd.Annotations == nil {
+			cmd.Annotations = make(map[string]string)
+		}
+		cmd.Annotations["anchors"] = strings.Join(anchors, ",")
+	}
 }
 
 type byName []*cobra.Command

@@ -17,7 +17,7 @@ import (
 const descriptionSourcePath = "docs/reference/commandline/"
 
 func generateCliYaml(opts *options) error {
-	dockerCli, err := command.NewDockerCli()
+	dockerCLI, err := command.NewDockerCli()
 	if err != nil {
 		return err
 	}
@@ -25,11 +25,15 @@ func generateCliYaml(opts *options) error {
 		Use:   "docker [OPTIONS] COMMAND [ARG...]",
 		Short: "The base command for the Docker CLI.",
 	}
-	commands.AddCommands(cmd, dockerCli)
+	commands.AddCommands(cmd, dockerCLI)
 	disableFlagsInUseLine(cmd)
 	source := filepath.Join(opts.source, descriptionSourcePath)
 	fmt.Println("Markdown source:", source)
 	if err := loadLongDescription(cmd, source); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(opts.target, 0755); err != nil {
 		return err
 	}
 
@@ -80,9 +84,7 @@ func loadLongDescription(parentCmd *cobra.Command, path string) error {
 		if err != nil {
 			return err
 		}
-		description, examples := parseMDContent(string(content))
-		cmd.Long = description
-		cmd.Example = examples
+		applyDescriptionAndExamples(cmd, string(content))
 	}
 	return nil
 }
