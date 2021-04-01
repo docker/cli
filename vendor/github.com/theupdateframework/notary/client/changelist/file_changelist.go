@@ -35,7 +35,10 @@ func getFileNames(dirName string) ([]os.FileInfo, error) {
 	if err != nil {
 		return fileInfos, err
 	}
-	defer dir.Close()
+	defer func() {
+		_ = dir.Close()
+	}()
+
 	dirListing, err = dir.Readdir(0)
 	if err != nil {
 		return fileInfos, err
@@ -89,7 +92,7 @@ func (cl FileChangelist) Add(c Change) error {
 		return err
 	}
 	filename := fmt.Sprintf("%020d_%s.change", time.Now().UnixNano(), uuid.Generate())
-	return ioutil.WriteFile(filepath.Join(cl.dir, filename), cJSON, 0644)
+	return ioutil.WriteFile(filepath.Join(cl.dir, filename), cJSON, 0600)
 }
 
 // Remove deletes the changes found at the given indices
@@ -120,7 +123,10 @@ func (cl FileChangelist) Clear(archive string) error {
 	if err != nil {
 		return err
 	}
-	defer dir.Close()
+	defer func() {
+		_ = dir.Close()
+	}()
+
 	files, err := dir.Readdir(0)
 	if err != nil {
 		return err

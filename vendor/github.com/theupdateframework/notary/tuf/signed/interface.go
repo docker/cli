@@ -39,7 +39,7 @@ type CryptoService interface {
 	KeyService
 }
 
-// Verifier defines an interface for verfying signatures. An implementer
+// Verifier defines an interface for verifying signatures. An implementer
 // of this interface should verify signatures for one and only one
 // signing scheme.
 type Verifier interface {
