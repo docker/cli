@@ -4,7 +4,12 @@ set -eu
 PLATFORM=${PLATFORM:-}
 VERSION=${VERSION:-"unknown-version"}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
-BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+if test "${SOURCE_DATE_EPOCH:-""}"; then
+    DATE_FMT="%d %b %Y %H:%M:%S"
+    BUILDTIME=$(LC_ALL=C date -u -d "@$SOURCE_DATE_EPOCH" "+$DATE_FMT")
+else
+    BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+fi
 
 PLATFORM_LDFLAGS=
 if test -n "${PLATFORM}"; then
