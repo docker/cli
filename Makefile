@@ -31,7 +31,7 @@ lint: ## run all the lint tools
 
 .PHONY: binary
 binary:
-	docker buildx bake binary
+	./scripts/build/binary
 
 .PHONY: plugins
 plugins: ## build example CLI plugins
@@ -39,7 +39,7 @@ plugins: ## build example CLI plugins
 
 .PHONY: cross
 cross:
-	docker buildx bake cross
+	./scripts/build/binary
 
 .PHONY: plugins-windows
 plugins-windows: ## build example CLI plugins for Windows
@@ -51,7 +51,7 @@ plugins-osx: ## build example CLI plugins for macOS
 
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
-	USE_GLIBC=1 docker buildx bake dynbinary
+	GO_LINKMODE=dynamic ./scripts/build/binary
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor
