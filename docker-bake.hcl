@@ -41,8 +41,8 @@ variable "GROUP_INDEX" {
 }
 
 function "platforms" {
-    params = [USE_GLIBC]
-    result = concat(["linux/amd64", "linux/386", "linux/arm64", "linux/arm", "linux/ppc64le", "linux/s390x", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/arm", "windows/386"], USE_GLIBC!=""?[]:["windows/arm64"])
+    params = []
+    result = ["linux/amd64", "linux/386", "linux/arm64", "linux/arm", "linux/ppc64le", "linux/s390x", "darwin/amd64", "darwin/arm64", "windows/amd64"]
 }
 
 function "glen" {
@@ -51,7 +51,7 @@ function "glen" {
 }
 
 target "_all_platforms" {
-    platforms = slice(platforms(USE_GLIBC), GROUP_INDEX*glen(platforms(USE_GLIBC), GROUP_TOTAL),min(length(platforms(USE_GLIBC)), (GROUP_INDEX+1)*glen(platforms(USE_GLIBC), GROUP_TOTAL)))
+    platforms = slice(platforms(), GROUP_INDEX*glen(platforms(), GROUP_TOTAL),min(length(platforms()), (GROUP_INDEX+1)*glen(platforms(), GROUP_TOTAL)))
 }
 
 target "cross" {
