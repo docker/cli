@@ -12,17 +12,30 @@ Development
 
 `docker/cli` is developed using Docker.
 
-Build a linux binary:
+Build CLI from source:
 
 ```
-$ make -f docker.Makefile binary
+$ docker buildx bake
 ```
 
 Build binaries for all supported platforms:
 
 ```
-$ make -f docker.Makefile cross
+$ docker buildx bake cross
 ```
+
+Build for a specific platform:
+
+```
+$ docker buildx bake --set binary.platform=linux/arm64 
+```
+
+Build dynamic binary for glibc or musl:
+
+```
+$ USE_GLIBC=1 docker buildx bake dynbinary 
+```
+
 
 Run all linting:
 
@@ -42,12 +55,6 @@ Start an interactive development environment:
 
 ```
 $ make -f docker.Makefile shell
-```
-
-In the development environment you can run many tasks, including build binaries:
-
-```
-$ make binary
 ```
 
 Legal

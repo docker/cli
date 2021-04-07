@@ -1,8 +1,10 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -eu
 
+TARGET=${TARGET:-"build"}
+
 PLATFORM=${PLATFORM:-}
-VERSION=${VERSION:-"unknown-version"}
+VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
@@ -20,15 +22,15 @@ export LDFLAGS="\
     ${LDFLAGS:-} \
 "
 
-GOOS="${GOOS:-$(go env GOHOSTOS)}"
-GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
+GOOS="$(go env GOOS)"
+GOARCH="$(go env GOARCH)"
 if [ "${GOARCH}" = "arm" ]; then
-	GOARM="${GOARM:-$(go env GOHOSTARM)}"
+	GOARM="$(go env GOARM)"
 fi
 
-TARGET="build/docker-$GOOS-$GOARCH"
+TARGET="$TARGET/docker-${GOOS}-${GOARCH}"
 if [ "${GOARCH}" = "arm" ] && [ -n "${GOARM}" ]; then
-	TARGET="${TARGET}-v${GOARM}"
+    TARGET="${TARGET}-v${GOARM}"
 fi
 
 if [ "${GOOS}" = "windows" ]; then

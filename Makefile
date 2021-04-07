@@ -30,29 +30,20 @@ lint: ## run all the lint tools
 	gometalinter --config gometalinter.json ./...
 
 .PHONY: binary
-binary: ## build executable for Linux
-	@echo "WARNING: binary creates a Linux executable. Use cross for macOS or Windows."
-	./scripts/build/binary
+binary:
+	docker buildx bake binary
 
 .PHONY: plugins
 plugins: ## build example CLI plugins
 	./scripts/build/plugins
 
 .PHONY: cross
-cross: ## build executable for macOS and Windows
-	./scripts/build/cross
-
-.PHONY: binary-windows
-binary-windows: ## build executable for Windows
-	./scripts/build/windows
+cross:
+	docker buildx bake cross
 
 .PHONY: plugins-windows
 plugins-windows: ## build example CLI plugins for Windows
 	./scripts/build/plugins-windows
-
-.PHONY: binary-osx
-binary-osx: ## build executable for macOS
-	./scripts/build/osx
 
 .PHONY: plugins-osx
 plugins-osx: ## build example CLI plugins for macOS
@@ -60,7 +51,7 @@ plugins-osx: ## build example CLI plugins for macOS
 
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
-	./scripts/build/dynbinary
+	USE_GLIBC=1 docker buildx bake dynbinary
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor
