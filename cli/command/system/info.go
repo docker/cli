@@ -136,7 +136,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 		prettyPrintClientInfo(dockerCli, *info.ClientInfo)
 	}
 	for _, err := range info.ClientErrors {
-		fmt.Fprintln(dockerCli.Out(), "ERROR:", err)
+		fmt.Fprintln(dockerCli.Err(), "ERROR:", err)
 	}
 
 	fmt.Fprintln(dockerCli.Out())
@@ -147,7 +147,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 		}
 	}
 	for _, err := range info.ServerErrors {
-		fmt.Fprintln(dockerCli.Out(), "ERROR:", err)
+		fmt.Fprintln(dockerCli.Err(), "ERROR:", err)
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
