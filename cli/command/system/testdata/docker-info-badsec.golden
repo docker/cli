@@ -51,5 +51,3 @@ Server:
  Default Address Pools:
    Base: 10.123.0.0/16, Size: 24
 
-ERROR: an error happened
-ERROR: invalid empty security option
