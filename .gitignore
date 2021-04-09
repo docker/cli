@@ -8,8 +8,7 @@
 Thumbs.db
 .editorconfig
 /build/
-cli/winresources/rsrc_386.syso
-cli/winresources/rsrc_amd64.syso
+cli/winresources/rsrc_*.syso
 /man/man1/
 /man/man5/
 /man/man8/
