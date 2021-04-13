@@ -56,7 +56,7 @@ fi
 
 if [ "$(go env GOOS)" = "windows" ]; then
     # Generate a Windows file version of the form major,minor,patch,build
-    VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . , | sed -re 's/^[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+,[0-9]+$/\0,0/')
+    VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | tr . , | sed -re 's/,$//' | sed -re 's/^[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+$/\0,0/' | sed -re 's/^[0-9]+,[0-9]+,[0-9]+$/\0,0/')
 
     set --
     [ -n "$VERSION" ]      && set -- "$@" -D "DOCKER_VERSION=\"$VERSION\""
