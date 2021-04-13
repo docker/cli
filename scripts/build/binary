@@ -63,11 +63,10 @@ if [ "$(go env GOOS)" = "windows" ]; then
     [ -n "$VERSION_QUAD" ] && set -- "$@" -D "DOCKER_VERSION_QUAD=$VERSION_QUAD"
     [ -n "$GITCOMMIT" ]    && set -- "$@" -D "DOCKER_COMMIT=\"$GITCOMMIT\""
 
-    windres=$($(go env CC) --print-prog-name=windres)
-
     target="$(dirname "$0")/../../cli/winresources/rsrc_$(go env GOARCH).syso"
     mkdir -p "$(dirname "${target}")"
-    "$windres" -i "$(dirname "$0")/../winresources/docker.rc" -o "$target" "$@"
+    : ${WINDRES:="$($(go env CC) --print-prog-name=windres)"}
+    "$WINDRES" -i "$(dirname "$0")/../winresources/docker.rc" -o "$target" --use-temp-file "$@"
     echo "package winresources" > "$(dirname "${target}")/stub_windows.go"
 fi
 
