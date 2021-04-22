@@ -26,8 +26,8 @@ Use `docker context ls` to print all contexts. The currently active context is
 indicated with an `*`:
 
 ```bash
-NAME                DESCRIPTION                               DOCKER ENDPOINT                      KUBERNETES ENDPOINT   ORCHESTRATOR
-default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                                swarm
-production                                                    tcp:///prod.corp.example.com:2376
-staging                                                       tcp:///stage.corp.example.com:2376
+NAME        TYPE        DESCRIPTION                               DOCKER ENDPOINT                      KUBERNETES ENDPOINT   ORCHESTRATOR
+default *   moby        Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                                swarm
+production  moby                                                  tcp:///prod.corp.example.com:2376
+staging     moby                                                  tcp:///stage.corp.example.com:2376
 ```

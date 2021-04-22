@@ -2,7 +2,7 @@ package formatter
 
 const (
 	// ClientContextTableFormat is the default client context format
-	ClientContextTableFormat = "table {{.Name}}{{if .Current}} *{{end}}\t{{.Description}}\t{{.DockerEndpoint}}\t{{.KubernetesEndpoint}}\t{{.StackOrchestrator}}"
+	ClientContextTableFormat = "table {{.Name}}{{if .Current}} *{{end}}\t{{.Type}}\t{{.Description}}\t{{.DockerEndpoint}}\t{{.KubernetesEndpoint}}\t{{.StackOrchestrator}}"
 
 	dockerEndpointHeader     = "DOCKER ENDPOINT"
 	kubernetesEndpointHeader = "KUBERNETES ENDPOINT"
@@ -24,6 +24,7 @@ func NewClientContextFormat(source string, quiet bool) Format {
 // ClientContext is a context for display
 type ClientContext struct {
 	Name               string
+	Type               string
 	Description        string
 	DockerEndpoint     string
 	KubernetesEndpoint string
@@ -53,6 +54,7 @@ func newClientContextContext() *clientContextContext {
 	ctx := clientContextContext{}
 	ctx.Header = SubHeaderContext{
 		"Name":               NameHeader,
+		"Type":               TypeHeader,
 		"Description":        DescriptionHeader,
 		"DockerEndpoint":     dockerEndpointHeader,
 		"KubernetesEndpoint": kubernetesEndpointHeader,
@@ -71,6 +73,10 @@ func (c *clientContextContext) Current() bool {
 
 func (c *clientContextContext) Name() string {
 	return c.c.Name
+}
+
+func (c *clientContextContext) Type() string {
+	return c.c.Type
 }
 
 func (c *clientContextContext) Description() string {

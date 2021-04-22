@@ -35,6 +35,7 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 						},
 					},
 					Metadata: command.DockerContext{
+						Type:              command.DefaultContextType,
 						Description:       "",
 						StackOrchestrator: command.OrchestratorSwarm,
 					},

@@ -14,6 +14,8 @@ import (
 const (
 	// DefaultContextName is the name reserved for the default context (config & env based)
 	DefaultContextName = "default"
+	// DefaultContextType is the default type for a context
+	DefaultContextType = "moby"
 )
 
 // DefaultContext contains the default context data for all endpoints
@@ -56,6 +58,7 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 	contextMetadata := store.Metadata{
 		Endpoints: make(map[string]interface{}),
 		Metadata: DockerContext{
+			Type:              DefaultContextType,
 			Description:       "",
 			StackOrchestrator: stackOrchestrator,
 		},
