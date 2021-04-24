@@ -39,12 +39,5 @@ Checkpoint and restore support for Containers.
 Metrics (Prometheus) output for basic container, image, and daemon operations.
 
  * [External graphdriver plugins](../docs/extend/plugins_graphdriver.md)
- * [Ipvlan Network Drivers](vlan-networks.md)
  * [Checkpoint & Restore](checkpoint-restore.md)
  * [Docker build with --squash argument](../docs/reference/commandline/build.md#squash-an-images-layers---squash-experimental)
-
-## How to comment on an experimental feature
-
-Each feature's documentation includes a list of proposal pull requests or PRs associated with the feature. If you want to comment on or suggest a change to a feature, please add it to the existing feature PR.
-
-Issues or problems with a feature? Inquire for help on the `#docker` IRC channel or on the [Docker Google group](https://groups.google.com/forum/#!forum/docker-user).
