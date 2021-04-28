@@ -33,11 +33,11 @@ a `Dockerfile` and a *context*. The build's context is the set of files at a
 specified location `PATH` or `URL`. The `PATH` is a directory on your local
 filesystem. The `URL` is a Git repository location.
 
-A context is processed recursively. So, a `PATH` includes any subdirectories and
-the `URL` includes the repository and its submodules. This example shows a
-build command that uses the current directory as context:
+The build context is processed recursively. So, a `PATH` includes any subdirectories
+and the `URL` includes the repository and its submodules. This example shows a
+build command that uses the current directory (`.`) as build context:
 
-```bash
+```console
 $ docker build .
 
 Sending build context to Docker daemon  6.51 MB
@@ -52,8 +52,9 @@ Dockerfile.
 
 > **Warning**
 >
-> Do not use your root directory, `/`, as the `PATH` as it causes the build to
-> transfer the entire contents of your hard drive to the Docker daemon.
+> Do not use your root directory, `/`, as the `PATH` for  your build context, as
+> it causes the build to transfer the entire contents of your hard drive to the
+> Docker daemon.
 {:.warning}
 
 To use a file in the build context, the `Dockerfile` refers to the file specified
@@ -66,32 +67,37 @@ Traditionally, the `Dockerfile` is called `Dockerfile` and located in the root
 of the context. You use the `-f` flag with `docker build` to point to a Dockerfile
 anywhere in your file system.
 
-```bash
+```console
 $ docker build -f /path/to/a/Dockerfile .
 ```
 
 You can specify a repository and tag at which to save the new image if
 the build succeeds:
 
-```bash
+```console
 $ docker build -t shykes/myapp .
 ```
 
 To tag the image into multiple repositories after the build,
 add multiple `-t` parameters when you run the `build` command:
 
-```bash
+```console
 $ docker build -t shykes/myapp:1.0.2 -t shykes/myapp:latest .
 ```
 
 Before the Docker daemon runs the instructions in the `Dockerfile`, it performs
 a preliminary validation of the `Dockerfile` and returns an error if the syntax is incorrect:
 
-```bash
+```console
 $ docker build -t test/myapp .
 
-Sending build context to Docker daemon 2.048 kB
-Error response from daemon: Unknown instruction: RUNCMD
+[+] Building 0.3s (2/2) FINISHED
+ => [internal] load build definition from Dockerfile                       0.1s
+ => => transferring dockerfile: 60B                                        0.0s
+ => [internal] load .dockerignore                                          0.1s
+ => => transferring context: 2B                                            0.0s
+error: failed to solve: rpc error: code = Unknown desc = failed to solve with frontend dockerfile.v0: failed to create LLB definition:
+dockerfile parse error line 2: unknown instruction: RUNCMD
 ```
 
 The Docker daemon runs the instructions in the `Dockerfile` one-by-one,
@@ -104,38 +110,35 @@ Note that each instruction is run independently, and causes a new image
 to be created - so `RUN cd /tmp` will not have any effect on the next
 instructions.
 
-Whenever possible, Docker will re-use the intermediate images (cache),
-to accelerate the `docker build` process significantly. This is indicated by
-the `Using cache` message in the console output.
-(For more information, see the [`Dockerfile` best practices guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/):
+Whenever possible, Docker uses a build-cache to accelerate the `docker build`
+process significantly. This is indicated by the `CACHED` message in the console
+output. (For more information, see the [`Dockerfile` best practices guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/):
 
-```bash
+```console
 $ docker build -t svendowideit/ambassador .
 
-Sending build context to Docker daemon 15.36 kB
-Step 1/4 : FROM alpine:3.2
- ---> 31f630c65071
-Step 2/4 : MAINTAINER SvenDowideit@home.org.au
- ---> Using cache
- ---> 2a1c91448f5f
-Step 3/4 : RUN apk update &&      apk add socat &&        rm -r /var/cache/
- ---> Using cache
- ---> 21ed6e7fbb73
-Step 4/4 : CMD env | grep _TCP= | (sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/socat -t 100000000 TCP4-LISTEN:\1,fork,reuseaddr TCP4:\2:\3 \&/' && echo wait) | sh
- ---> Using cache
- ---> 7ea8aef582cc
-Successfully built 7ea8aef582cc
+[+] Building 0.7s (6/6) FINISHED
+ => [internal] load build definition from Dockerfile                       0.1s
+ => => transferring dockerfile: 286B                                       0.0s
+ => [internal] load .dockerignore                                          0.1s
+ => => transferring context: 2B                                            0.0s
+ => [internal] load metadata for docker.io/library/alpine:3.2              0.4s
+ => CACHED [1/2] FROM docker.io/library/alpine:3.2@sha256:e9a2035f9d0d7ce  0.0s
+ => CACHED [2/2] RUN apk add --no-cache socat                              0.0s
+ => exporting to image                                                     0.0s
+ => => exporting layers                                                    0.0s
+ => => writing image sha256:1affb80ca37018ac12067fa2af38cc5bcc2a8f09963de  0.0s
+ => => naming to docker.io/svendowideit/ambassador                         0.0s
 ```
 
-Build cache is only used from images that have a local parent chain. This means
-that these images were created by previous builds or the whole chain of images
-was loaded with `docker load`. If you wish to use build cache of a specific
-image you can specify it with `--cache-from` option. Images specified with
-`--cache-from` do not need to have a parent chain and may be pulled from other
-registries.
+By default, the build cache is based on results from previous builds on the machine
+on which you are building. The `--cache-from` option also allows you to use a
+build-cache that's distributed through an image registry refer to the
+[specifying external cache sources](commandline/build.md#specifying-external-cache-sources)
+section in the `docker build` command reference.
 
-When you're done with your build, you're ready to look into [*Pushing a
-repository to its registry*](https://docs.docker.com/engine/tutorials/dockerrepos/#/contributing-to-docker-hub).
+When you're done with your build, you're ready to look into [scanning your image with `docker scan`](https://docs.docker.com/engine/scan/),
+and [pushing your image to Docker Hub](https://docs.docker.com/docker-hub/repos/).
 
 
 ## BuildKit
@@ -315,6 +318,8 @@ The following parser directives are supported:
 
 ## syntax
 
+<a name="external-implementation-features"><!-- included for deep-links to old section --></a>
+
 ```dockerfile
 # syntax=[remote image reference]
 ```
@@ -322,55 +327,73 @@ The following parser directives are supported:
 For example:
 
 ```dockerfile
-# syntax=docker/dockerfile
-# syntax=docker/dockerfile:1.0
+# syntax=docker/dockerfile:1
 # syntax=docker.io/docker/dockerfile:1
-# syntax=docker/dockerfile:1.0.0-experimental
 # syntax=example.com/user/repo:tag@sha256:abcdef...
 ```
 
-This feature is only enabled if the [BuildKit](#buildkit) backend is used.
+This feature is only available when using the [BuildKit](#buildkit) backend, and
+is ignored when using the classic builder backend.
 
-The syntax directive defines the location of the Dockerfile builder that is used for
-building the current Dockerfile. The BuildKit backend allows to seamlessly use
-external implementations of builders that are distributed as Docker images and
-execute inside a container sandbox environment.
+The syntax directive defines the location of the Dockerfile syntax that is used
+to build the Dockerfile. The BuildKit backend allows to seamlessly use external
+implementations that are distributed as Docker images and execute inside a
+container sandbox environment.
 
-Custom Dockerfile implementation allows you to:
+Custom Dockerfile implementations allows you to:
 
-  - Automatically get bugfixes without updating the daemon
+  - Automatically get bugfixes without updating the Docker daemon
   - Make sure all users are using the same implementation to build your Dockerfile
-  - Use the latest features without updating the daemon
-  - Try out new experimental or third-party features
+  - Use the latest features without updating the Docker daemon
+  - Try out new features or third-party features before they are integrated in the Docker daemon
+  - Use [alternative build definitions, or create your own](https://github.com/moby/buildkit#exploring-llb)
 
 ### Official releases
 
 Docker distributes official versions of the images that can be used for building
 Dockerfiles under `docker/dockerfile` repository on Docker Hub. There are two
-channels where new images are released: stable and experimental.
+channels where new images are released: `stable` and `labs`.
 
-Stable channel follows semantic versioning. For example:
+Stable channel follows [semantic versioning](https://semver.org). For example:
 
-  - `docker/dockerfile:1.0.0` - only allow immutable version `1.0.0`
-  - `docker/dockerfile:1.0` - allow versions `1.0.*`
-  - `docker/dockerfile:1` - allow versions `1.*.*`
-  - `docker/dockerfile:latest` - latest release on stable channel
+  - `docker/dockerfile:1` - kept updated with the latest `1.x.x` minor _and_ patch release
+  - `docker/dockerfile:1.2` -  kept updated with the latest `1.2.x` patch release,
+    and stops receiving updates once version `1.3.0` is released.
+  - `docker/dockerfile:1.2.1` - immutable: never updated
 
-The experimental channel uses incremental versioning with the major and minor
-component from the stable channel on the time of the release. For example:
+We recommend using `docker/dockerfile:1`, which always points to the latest stable
+release of the version 1 syntax, and receives both "minor" and "patch" updates
+for the version 1 release cycle. BuildKit automatically checks for updates of the
+syntax when performing a build, making sure you are using the most current version.
 
-  - `docker/dockerfile:1.0.1-experimental` - only allow immutable version `1.0.1-experimental`
-  - `docker/dockerfile:1.0-experimental` - latest experimental releases after `1.0`
-  - `docker/dockerfile:experimental` - latest release on experimental channel
+If a specific version is used, such as `1.2` or `1.2.1`, the Dockerfile needs to
+be updated manually to continue receiving bugfixes and new features. Old versions
+of the Dockerfile remain compatible with the new versions of the builder.
 
-You should choose a channel that best fits your needs. If you only want
-bugfixes, you should use `docker/dockerfile:1.0`. If you want to benefit from
-experimental features, you should use the experimental channel. If you are using
-the experimental channel, newer releases may not be backwards compatible, so it
+**labs channel**
+
+The "labs" channel provides early access to Dockerfile features that are not yet
+available in the stable channel. Labs channel images are released in conjunction
+with the stable releases, and follow the same versioning with the `-labs` suffix,
+for example:
+
+  - `docker/dockerfile:labs` - latest release on labs channel
+  - `docker/dockerfile:1-labs` - same as `dockerfile:1` in the stable channel, with labs features enabled
+  - `docker/dockerfile:1.2-labs` -  same as `dockerfile:1.2` in the stable channel, with labs features enabled
+  - `docker/dockerfile:1.2.1-labs` - immutable: never updated. Same as `dockerfile:1.2.1` in the stable channel, with labs features enabled
+
+Choose a channel that best fits your needs; if you want to benefit from
+new features, use the labs channel. Images in the labs channel provide a superset
+of the features in the stable channel; note that `stable` features in the labs
+channel images follow [semantic versioning](https://semver.org), but "labs"
+features do not, and newer releases may not be backwards compatible, so it
 is recommended to use an immutable full version variant.
 
-For master builds and nightly feature releases refer to the description in
-[the source repository](https://github.com/moby/buildkit/blob/master/README.md).
+For documentation on "labs" features, master builds, and nightly feature releases,
+refer to the description in [the BuildKit source repository on GitHub](https://github.com/moby/buildkit/blob/master/README.md).
+For a full list of available images, visit the [image repository on Docker Hub](https://hub.docker.com/r/docker/dockerfile),
+and the [docker/dockerfile-upstream image repository](https://hub.docker.com/r/docker/dockerfile-upstream)
+for development builds.
 
 ## escape
 
@@ -413,14 +436,15 @@ RUN dir c:\
 
 Results in:
 
-```powershell
-PS C:\John> docker build -t cmd .
+```console
+PS E:\myproject> docker build -t cmd .
+
 Sending build context to Docker daemon 3.072 kB
 Step 1/2 : FROM microsoft/nanoserver
  ---> 22738ff49c6d
 Step 2/2 : COPY testfile.txt c:\RUN dir c:
 GetFileAttributesEx c:RUN: The system cannot find the file specified.
-PS C:\John>
+PS E:\myproject>
 ```
 
 One solution to the above would be to use `/` as the target of both the `COPY`
@@ -441,8 +465,9 @@ RUN dir c:\
 
 Results in:
 
-```powershell
-PS C:\John> docker build -t succeeds --no-cache=true .
+```console
+PS E:\myproject> docker build -t succeeds --no-cache=true .
+
 Sending build context to Docker daemon 3.072 kB
 Step 1/3 : FROM microsoft/nanoserver
  ---> 22738ff49c6d
@@ -467,7 +492,7 @@ Step 3/3 : RUN dir c:\
  ---> 01c7f3bef04f
 Removing intermediate container a2c157f842f5
 Successfully built 01c7f3bef04f
-PS C:\John>
+PS E:\myproject>
 ```
 
 ## Environment replacement
@@ -910,8 +935,8 @@ the most-recently-applied value overrides any previously-set value.
 To view an image's labels, use the `docker image inspect` command. You can use
 the `--format` option to show just the labels;
  
-```bash
-docker image inspect --format='{{json .Config.Labels}}' myimage
+```console
+$ docker image inspect --format='{{json .Config.Labels}}' myimage
 ```
 ```json
 {
@@ -980,8 +1005,8 @@ port on the host, so the port will not be the same for TCP and UDP.
 Regardless of the `EXPOSE` settings, you can override them at runtime by using
 the `-p` flag. For example
 
-```bash
-docker run -p 80:80/tcp -p 80:80/udp ...
+```console
+$ docker run -p 80:80/tcp -p 80:80/udp ...
 ```
 
 To set up port redirection on the host system, see [using the -P flag](run.md#expose-incoming-ports).
@@ -1397,7 +1422,7 @@ An `ENTRYPOINT` allows you to configure a container that will run as an executab
 For example, the following starts nginx with its default content, listening
 on port 80:
 
-```bash
+```console
 $ docker run -i -t --rm -p 80:80 nginx
 ```
 
@@ -1432,7 +1457,7 @@ CMD ["-c"]
 
 When you run the container, you can see that `top` is the only process:
 
-```bash
+```console
 $ docker run -it --rm --name test  top -H
 
 top - 08:25:00 up  7:27,  0 users,  load average: 0.00, 0.01, 0.05
@@ -1447,7 +1472,7 @@ KiB Swap:  1441840 total,        0 used,  1441840 free.  1324440 cached Mem
 
 To examine the result further, you can use `docker exec`:
 
-```bash
+```console
 $ docker exec -it test ps aux
 
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
@@ -1519,7 +1544,7 @@ If you run this image with `docker run -it --rm -p 80:80 --name test apache`,
 you can then examine the container's processes with `docker exec`, or `docker top`,
 and then ask the script to stop Apache:
 
-```bash
+```console
 $ docker exec -it test ps aux
 
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
@@ -1579,7 +1604,7 @@ ENTRYPOINT exec top -b
 
 When you run this image, you'll see the single `PID 1` process:
 
-```bash
+```console
 $ docker run -it --rm --name test top
 
 Mem: 1704520K used, 352148K free, 0K shrd, 0K buff, 140368121167873K cached
@@ -1591,7 +1616,7 @@ Load average: 0.08 0.03 0.05 2/98 6
 
 Which exits cleanly on `docker stop`:
 
-```bash
+```console
 $ /usr/bin/time docker stop test
 
 test
@@ -1610,7 +1635,7 @@ CMD --ignored-param1
 
 You can then run it (giving it a name for the next step):
 
-```bash
+```console
 $ docker run -it --name test top --ignored-param2
 
 Mem: 1704184K used, 352484K free, 0K shrd, 0K buff, 140621524238337K cached
@@ -1626,7 +1651,7 @@ You can see from the output of `top` that the specified `ENTRYPOINT` is not `PID
 If you then run `docker stop test`, the container will not exit cleanly - the
 `stop` command will be forced to send a `SIGKILL` after the timeout:
 
-```bash
+```console
 $ docker exec -it test ps aux
 
 PID   USER     COMMAND
@@ -1859,9 +1884,10 @@ ARG user
 USER $user
 # ...
 ```
+
 A user builds this file by calling:
 
-```bash
+```console
 $ docker build --build-arg user=what_user .
 ```
 
@@ -1900,7 +1926,7 @@ RUN echo $CONT_IMG_VER
 
 Then, assume this image is built with this command:
 
-```bash
+```console
 $ docker build --build-arg CONT_IMG_VER=v2.0.1 .
 ```
 
@@ -1922,7 +1948,7 @@ RUN echo $CONT_IMG_VER
 Unlike an `ARG` instruction, `ENV` values are always persisted in the built
 image. Consider a docker build without the `--build-arg` flag:
 
-```bash
+```console
 $ docker build .
 ```
 
@@ -2298,8 +2324,9 @@ RUN c:\example\Execute-MyCmdlet -sample 'hello world'
 
 Resulting in:
 
-```powershell
-PS E:\docker\build\shell> docker build -t shell .
+```console
+PS E:\myproject> docker build -t shell .
+
 Sending build context to Docker daemon 4.096 kB
 Step 1/5 : FROM microsoft/nanoserver
  ---> 22738ff49c6d
@@ -2314,9 +2341,9 @@ Step 3/5 : RUN New-Item -ItemType Directory C:\Example
     Directory: C:\
 
 
-Mode                LastWriteTime         Length Name
-----                -------------         ------ ----
-d-----       10/28/2016  11:26 AM                Example
+Mode         LastWriteTime              Length Name
+----         -------------              ------ ----
+d-----       10/28/2016  11:26 AM              Example
 
 
  ---> 3f2fbf1395d9
@@ -2330,7 +2357,7 @@ hello world
  ---> 8e559e9bf424
 Removing intermediate container be6d8e63fe75
 Successfully built 8e559e9bf424
-PS E:\docker\build\shell>
+PS E:\myproject>
 ```
 
 The `SHELL` instruction could also be used to modify the way in which
@@ -2340,61 +2367,10 @@ environment variable expansion semantics could be modified.
 The `SHELL` instruction can also be used on Linux should an alternate shell be
 required such as `zsh`, `csh`, `tcsh` and others.
 
-## External implementation features
-
-This feature is only available when using the  [BuildKit](#buildkit) backend.
-
-Docker build supports experimental features like cache mounts, build secrets and
-ssh forwarding that are enabled by using an external implementation of the
-builder with a syntax directive. To learn about these features,
-[refer to the documentation in BuildKit repository](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/experimental.md).
-
 ## Dockerfile examples
 
-Below you can see some examples of Dockerfile syntax.
+For examples of Dockerfiles, refer to:
 
-```dockerfile
-# Nginx
-#
-# VERSION               0.0.1
-
-FROM      ubuntu
-LABEL Description="This image is used to start the foobar executable" Vendor="ACME Products" Version="1.0"
-RUN apt-get update && apt-get install -y inotify-tools nginx apache2 openssh-server
-```
-
-```dockerfile
-# Firefox over VNC
-#
-# VERSION               0.3
-
-FROM ubuntu
-
-# Install vnc, xvfb in order to create a 'fake' display and firefox
-RUN apt-get update && apt-get install -y x11vnc xvfb firefox
-RUN mkdir ~/.vnc
-# Setup a password
-RUN x11vnc -storepasswd 1234 ~/.vnc/passwd
-# Autostart firefox (might not be the best way, but it does the trick)
-RUN bash -c 'echo "firefox" >> /.bashrc'
-
-EXPOSE 5900
-CMD    ["x11vnc", "-forever", "-usepw", "-create"]
-```
-
-```dockerfile
-# Multiple images example
-#
-# VERSION               0.1
-
-FROM ubuntu
-RUN echo foo > bar
-# Will output something like ===> 907ad6c2736f
-
-FROM ubuntu
-RUN echo moo > oink
-# Will output something like ===> 695d7793cbe4
-
-# You'll now have two images, 907ad6c2736f with /bar, and 695d7793cbe4 with
-# /oink.
-```
+- The ["build images" section](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- The ["get started](https://docs.docker.com/get-started/)
+- The [language-specific getting started guides](https://docs.docker.com/language/)
