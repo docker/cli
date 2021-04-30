@@ -32,12 +32,14 @@ func TestProxyConfig(t *testing.T) {
 		httpsProxy = "https://user:password@proxy.mycorp.example.com:3129"
 		ftpProxy   = "http://ftpproxy.mycorp.example.com:21"
 		noProxy    = "*.intra.mycorp.example.com"
+		allProxy   = "socks://example.com:1234"
 
 		defaultProxyConfig = ProxyConfig{
 			HTTPProxy:  httpProxy,
 			HTTPSProxy: httpsProxy,
 			FTPProxy:   ftpProxy,
 			NoProxy:    noProxy,
+			AllProxy:   allProxy,
 		}
 	)
 
@@ -57,6 +59,8 @@ func TestProxyConfig(t *testing.T) {
 		"ftp_proxy":   &ftpProxy,
 		"NO_PROXY":    &noProxy,
 		"no_proxy":    &noProxy,
+		"ALL_PROXY":   &allProxy,
+		"all_proxy":   &allProxy,
 	}
 	assert.Check(t, is.DeepEqual(expected, proxyConfig))
 }
