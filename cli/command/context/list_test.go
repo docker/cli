@@ -18,7 +18,7 @@ func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name strin
 		DefaultStackOrchestrator: orchestrator,
 		Description:              "description of " + name,
 		Kubernetes:               map[string]string{keyFrom: "default"},
-		Docker:                   map[string]string{keyHost: "https://someswarmserver"},
+		Docker:                   map[string]string{keyHost: "https://someswarmserver.example.com"},
 	})
 	assert.NilError(t, err)
 }

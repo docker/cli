@@ -27,10 +27,10 @@ func TestEncodeAuth(t *testing.T) {
 }
 
 func TestProxyConfig(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
+	httpProxy := "http://proxy.mycorp.example.com:3128"
+	httpsProxy := "https://user:password@proxy.mycorp.example.com:3129"
+	ftpProxy := "http://ftpproxy.mycorp.example.com:21"
+	noProxy := "*.intra.mycorp.example.com"
 	defaultProxyConfig := ProxyConfig{
 		HTTPProxy:  httpProxy,
 		HTTPSProxy: httpsProxy,
@@ -59,12 +59,12 @@ func TestProxyConfig(t *testing.T) {
 }
 
 func TestProxyConfigOverride(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
+	httpProxy := "http://proxy.mycorp.example.com:3128"
 	overrideHTTPProxy := "http://proxy.example.com:3128"
 	overrideNoProxy := ""
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
+	httpsProxy := "https://user:password@proxy.mycorp.example.com:3129"
+	ftpProxy := "http://ftpproxy.mycorp.example.com:21"
+	noProxy := "*.intra.mycorp.example.com"
 	defaultProxyConfig := ProxyConfig{
 		HTTPProxy:  httpProxy,
 		HTTPSProxy: httpsProxy,
@@ -102,10 +102,10 @@ func TestProxyConfigOverride(t *testing.T) {
 }
 
 func TestProxyConfigPerHost(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
+	httpProxy := "http://proxy.mycorp.example.com:3128"
+	httpsProxy := "https://user:password@proxy.mycorp.example.com:3129"
+	ftpProxy := "http://ftpproxy.mycorp.example.com:21"
+	noProxy := "*.intra.mycorp.example.com"
 
 	extHTTPProxy := "http://proxy.example.com:3128"
 	extHTTPSProxy := "https://user:password@proxy.example.com:3129"
