@@ -60,6 +60,7 @@ type ProxyConfig struct {
 	HTTPSProxy string `json:"httpsProxy,omitempty"`
 	NoProxy    string `json:"noProxy,omitempty"`
 	FTPProxy   string `json:"ftpProxy,omitempty"`
+	AllProxy   string `json:"allProxy,omitempty"`
 }
 
 // KubernetesConfig contains Kubernetes orchestrator settings

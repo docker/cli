@@ -277,6 +277,8 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		"no_proxy=noProxy",
 		"FTP_PROXY=ftpProxy",
 		"ftp_proxy=ftpProxy",
+		"ALL_PROXY=allProxy",
+		"all_proxy=allProxy",
 	}
 	sort.Strings(expected)
 
@@ -299,6 +301,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 				HTTPSProxy: "httpsProxy",
 				NoProxy:    "noProxy",
 				FTPProxy:   "ftpProxy",
+				AllProxy:   "allProxy",
 			},
 		},
 	})
