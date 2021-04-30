@@ -66,10 +66,10 @@ func TestElectAuthServer(t *testing.T) {
 			},
 		},
 		{
-			expectedAuthServer: "https://foo.bar",
+			expectedAuthServer: "https://foo.example.com",
 			expectedWarning:    "",
 			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: "https://foo.bar"}, nil
+				return types.Info{IndexServerAddress: "https://foo.example.com"}, nil
 			},
 		},
 		{

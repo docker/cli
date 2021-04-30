@@ -81,8 +81,8 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 }
 
 func TestNewAPIClientFromFlagsWithHttpProxyEnv(t *testing.T) {
-	defer env.Patch(t, "HTTP_PROXY", "http://proxy.acme.com:1234")()
-	defer env.Patch(t, "DOCKER_HOST", "tcp://docker.acme.com:2376")()
+	defer env.Patch(t, "HTTP_PROXY", "http://proxy.acme.example.com:1234")()
+	defer env.Patch(t, "DOCKER_HOST", "tcp://docker.acme.example.com:2376")()
 
 	opts := &flags.CommonOptions{}
 	configFile := &configfile.ConfigFile{}
@@ -91,11 +91,11 @@ func TestNewAPIClientFromFlagsWithHttpProxyEnv(t *testing.T) {
 	transport, ok := apiclient.HTTPClient().Transport.(*http.Transport)
 	assert.Assert(t, ok)
 	assert.Assert(t, transport.Proxy != nil)
-	request, err := http.NewRequest(http.MethodGet, "tcp://docker.acme.com:2376", nil)
+	request, err := http.NewRequest(http.MethodGet, "tcp://docker.acme.example.com:2376", nil)
 	assert.NilError(t, err)
 	url, err := transport.Proxy(request)
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal("http://proxy.acme.com:1234", url.String()))
+	assert.Check(t, is.Equal("http://proxy.acme.example.com:1234", url.String()))
 }
 
 type fakeClient struct {
