@@ -133,7 +133,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
 			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: "http://indexserver"}, nil
+				return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
 			},
 		}
 		cli := test.NewFakeCli(client)

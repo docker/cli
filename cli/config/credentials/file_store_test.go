@@ -70,7 +70,7 @@ func TestFileStoreGet(t *testing.T) {
 
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
-	s2 := "https://example2.com"
+	s2 := "https://example2.example.com"
 	f := newStore(map[string]types.AuthConfig{
 		s1: {
 			Auth:          "super_secret_token",
@@ -80,7 +80,7 @@ func TestFileStoreGetAll(t *testing.T) {
 		s2: {
 			Auth:          "super_secret_token2",
 			Email:         "foo@example2.com",
-			ServerAddress: "https://example2.com",
+			ServerAddress: "https://example2.example.com",
 		},
 	})
 
