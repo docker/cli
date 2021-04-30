@@ -238,10 +238,12 @@ be set for each environment:
 * `ftpProxy` (sets the value of `FTP_PROXY` and `ftp_proxy`)
 * `noProxy` (sets the value of `NO_PROXY` and `no_proxy`)
 
-> **Warning**: Proxy settings may contain sensitive information (for example,
-> if the proxy requires authentication). Environment variables are stored as
-> plain text in the container's configuration, and as such can be inspected
-> through the remote API or committed to an image when using `docker commit`.
+> **Warning**
+> 
+> Proxy settings may contain sensitive information (for example, if the proxy
+> requires authentication). Environment variables are stored as plain text in
+> the container's configuration, and as such can be inspected through the remote
+> API or committed to an image when using `docker commit`.
 
 Once attached to a container, users detach from it and leave it running using
 the using `CTRL-p CTRL-q` key sequence. This detach key sequence is customizable
@@ -301,13 +303,13 @@ Following is a sample `config.json` file:
   "proxies": {
     "default": {
       "httpProxy":  "http://user:pass@example.com:3128",
-      "httpsProxy": "http://user:pass@example.com:3128",
-      "noProxy":    "http://user:pass@example.com:3128",
+      "httpsProxy": "https://my-proxy.example.com:3129",
+      "noProxy":    "intra.mycorp.example.com",
       "ftpProxy":   "http://user:pass@example.com:3128"
     },
     "https://manager1.mycorp.example.com:2377": {
       "httpProxy":  "http://user:pass@example.com:3128",
-      "httpsProxy": "http://user:pass@example.com:3128"
+      "httpsProxy": "https://my-proxy.example.com:3129"
     },
   }
 }
