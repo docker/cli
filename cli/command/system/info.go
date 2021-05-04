@@ -25,6 +25,7 @@ type infoOptions struct {
 type clientInfo struct {
 	Debug    bool
 	Context  string
+	Features map[string]string
 	Plugins  []pluginmanager.Plugin
 	Warnings []string
 }
@@ -72,13 +73,19 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	info.ClientInfo = &clientInfo{
-		Context: dockerCli.CurrentContext(),
-		Debug:   debug.IsEnabled(),
+		Context:  dockerCli.CurrentContext(),
+		Debug:    debug.IsEnabled(),
+		Features: map[string]string{},
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
 	} else {
 		info.ClientErrors = append(info.ClientErrors, err.Error())
+	}
+
+	buildkitEnabled, _ := command.BuildKitEnabled(dockerCli.ServerInfo())
+	if buildkitEnabled {
+		info.ClientInfo.Features["buildkit"] = "enabled"
 	}
 
 	if opts.format == "" {
@@ -116,6 +123,13 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 	fmt.Fprintln(dockerCli.Out(), " Context:   ", info.Context)
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
+
+	if len(info.Features) > 0 {
+		fmt.Fprintln(dockerCli.Out(), " Features:")
+		for k, v := range info.Features {
+			fmt.Fprintf(dockerCli.Out(), "  %s: %s\n", k, v)
+		}
+	}
 
 	if len(info.Plugins) > 0 {
 		fmt.Fprintln(dockerCli.Out(), " Plugins:")
