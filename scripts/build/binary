@@ -14,9 +14,9 @@ set -eu
 . ./scripts/build/.variables
 
 if [ -z "$CGO_ENABLED" ]; then
-    case "$(go env GOOS)" in
+    case "$($GO env GOOS)" in
         linux)
-            case "$(go env GOARCH)" in
+            case "$($GO env GOARCH)" in
                 amd64|arm64|arm|s390x)
                     CGO_ENABLED=1
                 ;;
@@ -34,8 +34,8 @@ if [ -z "$CGO_ENABLED" ]; then
     esac
 fi
 export CGO_ENABLED
-if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
-    case "$(go env GOARCH)" in
+if [ "$CGO_ENABLED" = "1" ] && [ "$($GO env GOOS)" != "windows" ]; then
+    case "$($GO env GOARCH)" in
         mips*|ppc64)
             # pie build mode is not supported on mips architectures
             ;;
@@ -46,7 +46,7 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
     GO_BUILDTAGS="$GO_BUILDTAGS pkcs11"
 fi
 
-if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
+if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$($GO env GOOS)" = "linux" ]; then
     LDFLAGS="$LDFLAGS -extldflags -static"
 fi
 
@@ -54,8 +54,8 @@ if [ -n "$GO_STRIP" ]; then
     LDFLAGS="$LDFLAGS -s -w"
 fi
 
-if [ "$(go env GOOS)" = "windows" ]; then
-    : "${WINDRES=$($(go env CC) --print-prog-name=windres)}"
+if [ "$($GO env GOOS)" = "windows" ]; then
+    : "${WINDRES=$($($GO env CC) --print-prog-name=windres)}"
     if [ -z "$WINDRES" ]; then
         >&2 echo "Empty WINDRES detected, skipping manifesting binary"
     else
@@ -67,7 +67,7 @@ if [ "$(go env GOOS)" = "windows" ]; then
         [ -n "$VERSION_QUAD" ] && set -- "$@" -D "DOCKER_VERSION_QUAD=$VERSION_QUAD"
         [ -n "$GITCOMMIT" ]    && set -- "$@" -D "DOCKER_COMMIT=\"$GITCOMMIT\""
 
-        target="$(dirname "$0")/../../cli/winresources/rsrc_$(go env GOARCH).syso"
+        target="$(dirname "$0")/../../cli/winresources/rsrc_$($GO env GOARCH).syso"
         mkdir -p "$(dirname "${target}")"
         "$WINDRES" -i "$(dirname "$0")/../winresources/docker.rc" -o "$target" --use-temp-file "$@"
         echo "package winresources" > "$(dirname "${target}")/stub_windows.go"
@@ -78,6 +78,6 @@ echo "Building $GO_LINKMODE $(basename "${TARGET}")"
 
 export GO111MODULE=auto
 
-go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
+$GO build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
 
 ln -sf "$(basename "${TARGET}")" "$(dirname "${TARGET}")/docker"

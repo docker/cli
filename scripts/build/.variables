@@ -3,6 +3,7 @@ set -eu
 
 TARGET=${TARGET:-"build"}
 
+GO=${GO:-"go"}
 PLATFORM=${PLATFORM:-}
 VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
@@ -22,10 +23,10 @@ export LDFLAGS="\
     ${LDFLAGS:-} \
 "
 
-GOOS="$(go env GOOS)"
-GOARCH="$(go env GOARCH)"
+GOOS="$($GO env GOOS)"
+GOARCH="$($GO env GOARCH)"
 if [ "${GOARCH}" = "arm" ]; then
-	GOARM="$(go env GOARM)"
+	GOARM="$($GO env GOARM)"
 fi
 
 TARGET="$TARGET/docker-${GOOS}-${GOARCH}"
