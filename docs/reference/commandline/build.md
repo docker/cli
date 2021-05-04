@@ -72,16 +72,16 @@ pre-packaged tarball contexts and plain text files.
 
 When the `URL` parameter points to the location of a Git repository, the
 repository acts as the build context. The system recursively fetches the
-repository and its submodules. The commit history is not preserved. A
-repository is first pulled into a temporary directory on your local host. After
-that succeeds, the directory is sent to the Docker daemon as the context.
-Local copy gives you the ability to access private repositories using local
-user credentials, VPN's, and so forth.
+repository and its submodules. The commit history is not preserved (i.e.
+using `git clone --depth 1`). A repository is first pulled into a temporary
+directory on your local host. After that succeeds, the directory is sent to
+the Docker daemon as the context. Local copy gives you the ability to access
+private repositories using local user credentials, VPN's, and so forth.
 
 > **Note**
 >
 > If the `URL` parameter contains a fragment the system will recursively clone
-> the repository and its submodules using a `git clone --recursive` command.
+> the repository and its submodules using a `git clone --recurse-submodules` command.
 
 Git URLs accept context configuration in their fragment section, separated by a
 colon (`:`).  The first part represents the reference that Git will check out,
