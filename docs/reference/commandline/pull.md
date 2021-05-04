@@ -160,7 +160,7 @@ Digest can also be used in the `FROM` of a Dockerfile, for example:
 
 ```dockerfile
 FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-LABEL maintainer="some maintainer <maintainer@example.com>"
+LABEL org.opencontainers.image.authors="some maintainer <maintainer@example.com>"
 ```
 
 > **Note**
