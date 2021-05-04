@@ -402,9 +402,6 @@ func printServerWarningsLegacy(dockerCli command.Cli, info types.Info) {
 	if !info.SwapLimit {
 		fmt.Fprintln(dockerCli.Err(), "WARNING: No swap limit support")
 	}
-	if !info.KernelMemory {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No kernel memory limit support")
-	}
 	if !info.OomKillDisable {
 		fmt.Fprintln(dockerCli.Err(), "WARNING: No oom kill disable support")
 	}
