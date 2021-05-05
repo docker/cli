@@ -137,13 +137,13 @@ Instead of specifying a context, you can pass a single `Dockerfile` in the
 `URL` or pipe the file in via `STDIN`. To pipe a `Dockerfile` from `STDIN`:
 
 ```bash
-$ docker build - < Dockerfile
+$ docker build - < MyDockerfile
 ```
 
-With Powershell on Windows, you can run:
+With Powershell, you can't pipe from STDIN. Instead, you run:
 
 ```powershell
-Get-Content Dockerfile | docker build -
+Get-Content MyDockerfile | docker build -
 ```
 
 If you use `STDIN` or specify a `URL` pointing to a plain text file, the system
@@ -277,21 +277,41 @@ ctx/container.cfg /` operation works as expected.
 
 ### Build with -
 
+bash:
+
 ```bash
-$ docker build - < Dockerfile
+$ docker build - < MyDockerFile
 ```
 
-This will read a Dockerfile from `STDIN` without context. Due to the lack of a
-context, no contents of any local directory will be sent to the Docker daemon.
-Since there is no context, a Dockerfile `ADD` only works if it refers to a
-remote URL.
+PowerShell:
+
+```powershell
+Get-Content MyDockerFile | docker build -
+```
+
+This will pass the provided Dockerfile's content through `STDIN` or pipe.
+
+No context will be sent to the Docker daemon, except for the piped
+Dockerfile's content. That content is sent to the Docker daemon by
+sending it as `./Dockerfile` as sole context.
+
+Since there is no further context, a Dockerfile `ADD` only works if it
+refers to a remote URL.
+
+bash:
 
 ```bash
 $ docker build - < context.tar.gz
 ```
 
-This will build an image for a compressed context read from `STDIN`.  Supported
-formats are: bzip2, gzip and xz.
+PowerShell:
+
+```powershell
+Get-Content context.tar.gz | docker build -
+```
+
+This will build an image for a compressed context read from `STDIN`/pipe.
+Supported formats are: bzip2, gzip and xz.
 
 ### Use a .dockerignore file
 
@@ -366,7 +386,7 @@ $ curl example.com/remote/Dockerfile | docker build -f - .
 ```
 
 The above command will use the current directory as the build context and read
-a Dockerfile from stdin.
+a Dockerfile from the pipe output.
 
 ```bash
 $ docker build -f dockerfiles/Dockerfile.debug -t myapp_debug .
