@@ -221,13 +221,13 @@ Line continuation characters are not supported in comments.
 >     RUN echo hello
 > RUN echo world
 > ```
-> 
+>
 > ```dockerfile
 > # this is a comment-line
 > RUN echo hello
 > RUN echo world
 > ```
-> 
+>
 > Note however, that whitespace in instruction _arguments_, such as the commands
 > following `RUN`, are preserved, so the following example prints `    hello    world`
 > with leading whitespace as specified:
@@ -796,7 +796,7 @@ expansion, not docker.
 > ```dockerfile
 > RUN ["c:\windows\system32\tasklist.exe"]
 > ```
-> 
+>
 > The correct syntax for this example is:
 >
 > ```dockerfile
@@ -934,7 +934,7 @@ the most-recently-applied value overrides any previously-set value.
 
 To view an image's labels, use the `docker image inspect` command. You can use
 the `--format` option to show just the labels;
- 
+
 ```console
 $ docker image inspect --format='{{json .Config.Labels}}' myimage
 ```
@@ -1060,7 +1060,7 @@ image, consider setting a value for a single command instead:
 ```dockerfile
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ...
 ```
- 
+
 Or using [`ARG`](#arg), which is not persisted in the final image:
 
 ```dockerfile
@@ -1076,7 +1076,7 @@ RUN apt-get update && apt-get install -y ...
 > ```dockerfile
 > ENV MY_VAR my-value
 > ```
-> 
+>
 > This syntax does not allow for multiple environment-variables to be set in a
 > single `ENV` instruction, and can be confusing. For example, the following
 > sets a single environment variable (`ONE`) with value `"TWO= THREE=world"`:
@@ -1084,7 +1084,7 @@ RUN apt-get update && apt-get install -y ...
 > ```dockerfile
 > ENV ONE TWO= THREE=world
 > ```
-> 
+>
 > The alternative syntax is supported for backward compatibility, but discouraged
 > for the reasons outlined above, and may be removed in a future release.
 
@@ -1391,7 +1391,7 @@ attempted to be used instead.
 
 - If `<dest>` doesn't exist, it is created along with all missing directories
   in its path.
-  
+
 > **Note**
 >
 > The first encountered `COPY` instruction will invalidate the cache for all
@@ -1698,8 +1698,15 @@ The table below shows what command is executed for different `ENTRYPOINT` / `CMD
 
 ## VOLUME
 
+Linux/Mac:
 ```dockerfile
 VOLUME ["/data"]
+```
+
+Windows:
+```dockerfile
+VOLUME ["\data"]
+VOLUME ["C:\data"]
 ```
 
 The `VOLUME` instruction creates a mount point with the specified name
@@ -1715,11 +1722,20 @@ The `docker run` command initializes the newly created volume with any data
 that exists at the specified location within the base image. For example,
 consider the following Dockerfile snippet:
 
+Linux/Mac:
 ```dockerfile
 FROM ubuntu
 RUN mkdir /myvol
 RUN echo "hello world" > /myvol/greeting
 VOLUME /myvol
+```
+
+Windows:
+```dockerfile
+FROM mcr.microsoft.com/windows/nanoserver:20H2
+RUN mkdir \myvol
+RUN echo hello world > \myvol\greeting
+VOLUME \myvol
 ```
 
 This Dockerfile results in an image that causes `docker run` to
@@ -1852,7 +1868,7 @@ ARG buildno
 > It is not recommended to use build-time variables for passing secrets like
 > github keys, user credentials etc. Build-time variable values are visible to
 > any user of the image with the `docker history` command.
-> 
+>
 > Refer to the ["build images with BuildKit"](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)
 > section to learn about secure ways to use secrets when building images.
 {:.warning}
