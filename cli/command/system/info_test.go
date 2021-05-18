@@ -248,7 +248,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 	sampleInfoDaemonWarnings.Warnings = []string{
 		"WARNING: No memory limit support",
 		"WARNING: No swap limit support",
-		"WARNING: No kernel memory limit support",
 		"WARNING: No oom kill disable support",
 		"WARNING: No cpu cfs quota support",
 		"WARNING: No cpu cfs period support",
