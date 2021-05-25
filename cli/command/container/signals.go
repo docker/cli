@@ -2,7 +2,6 @@ package container
 
 import (
 	"context"
-	"fmt"
 	"os"
 	gosignal "os/signal"
 
@@ -15,10 +14,16 @@ import (
 //
 // The channel you pass in must already be setup to receive any signals you want to forward.
 func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string, sigc <-chan os.Signal) {
-	var s os.Signal
+	var (
+		s  os.Signal
+		ok bool
+	)
 	for {
 		select {
-		case s = <-sigc:
+		case s, ok = <-sigc:
+			if !ok {
+				return
+			}
 		case <-ctx.Done():
 			return
 		}
@@ -40,7 +45,6 @@ func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string, sigc <-
 			}
 		}
 		if sig == "" {
-			fmt.Fprintf(cli.Err(), "Unsupported signal: %v. Discarding.\n", s)
 			continue
 		}
 
