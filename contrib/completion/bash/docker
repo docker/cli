@@ -2560,6 +2560,7 @@ _docker_daemon() {
 		--raw-logs
 		--selinux-enabled
 		--userland-proxy=false
+		--validate
 		--version -v
 	"
 	local options_with_args="
