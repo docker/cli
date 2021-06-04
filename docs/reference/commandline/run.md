@@ -470,7 +470,7 @@ $ docker run -itd --network=my-net --ip=10.10.9.75 busybox
 If you want to add a running container to a network use the `docker network connect` subcommand.
 
 You can connect multiple containers to the same network. Once connected, the
-containers can communicate easily need only another container's IP address
+containers can communicate easily using only another container's IP address
 or name. For `overlay` networks or custom plugins that support multi-host
 connectivity, containers connected to the same multi-host network but launched
 from different Engines can also communicate in this way.
