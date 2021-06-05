@@ -753,13 +753,18 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 		return nil, err
 	}
 
+	whiteoutConverter, err := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
 		ta := newTarAppender(
 			idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps),
 			compressWriter,
 			options.ChownOpts,
 		)
-		ta.WhiteoutConverter = getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+		ta.WhiteoutConverter = whiteoutConverter
 
 		defer func() {
 			// Make sure to check the error on Close.
@@ -917,7 +922,10 @@ func Unpack(decompressedArchive io.Reader, dest string, options *TarOptions) err
 	var dirs []*tar.Header
 	idMapping := idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps)
 	rootIDs := idMapping.RootPair()
-	whiteoutConverter := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	whiteoutConverter, err := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	if err != nil {
+		return err
+	}
 
 	// Iterate through the files in the archive.
 loop:
@@ -929,6 +937,12 @@ loop:
 		}
 		if err != nil {
 			return err
+		}
+
+		// ignore XGlobalHeader early to avoid creating parent directories for them
+		if hdr.Typeflag == tar.TypeXGlobalHeader {
+			logrus.Debugf("PAX Global Extended Headers found for %s and ignored", hdr.Name)
+			continue
 		}
 
 		// Normalize name, for safety and for a simple is-root check
@@ -950,7 +964,7 @@ loop:
 			parent := filepath.Dir(hdr.Name)
 			parentPath := filepath.Join(dest, parent)
 			if _, err := os.Lstat(parentPath); err != nil && os.IsNotExist(err) {
-				err = idtools.MkdirAllAndChownNew(parentPath, 0777, rootIDs)
+				err = idtools.MkdirAllAndChownNew(parentPath, 0755, rootIDs)
 				if err != nil {
 					return err
 				}
