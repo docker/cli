@@ -17,6 +17,16 @@ type createOptions struct {
 	driver     string
 	driverOpts opts.MapOpts
 	labels     opts.ListOpts
+
+	// options for cluster voluems only
+	group         string
+	scope         string
+	sharing       string
+	availability  string
+	secrets       opts.MapOpts
+	requiredBytes opts.MemBytes
+	limitBytes    opts.MemBytes
+	accessType    string
 }
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
@@ -45,6 +55,16 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Lookup("name").Hidden = true
 	flags.VarP(&options.driverOpts, "opt", "o", "Set driver specific options")
 	flags.Var(&options.labels, "label", "Set metadata for a volume")
+
+	// flags for cluster volumes only
+	flags.StringVarP(&options.group, "group", "g", "", "Cluster Volume group (cluster volumes)")
+	flags.StringVar(&options.scope, "scope", "single", `Cluster Volume access scope ("single"|"multi")`)
+	flags.StringVar(&options.sharing, "sharing", "none", `Cluster Volume access sharing ("none"|"readonly"|"onewriter"|"all")`)
+	flags.StringVar(&options.availability, "availability", "active", `Cluster Volume availability ("active"|"pause"|"drain")`)
+	flags.StringVar(&options.accessType, "type", "block", `Cluster Volume access type ("mount"|"block")`)
+	flags.Var(&options.secrets, "secret", "Cluster Volume secrets")
+	flags.Var(&options.requiredBytes, "limit-bytes", "Minimum size of the Cluster Volume in bytes (default 0 for undefined)")
+	flags.Var(&options.limitBytes, "required-bytes", "Maximum size of the Cluster Volume in bytes (default 0 for undefined)")
 
 	return cmd
 }
