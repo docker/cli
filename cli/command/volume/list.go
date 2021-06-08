@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	clusterTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Group}}\t{{.Driver}}\t{{.Availability}}\t{{.Status}}"
+	clusterTableFormat = "table {{.Name}}\t{{.Group}}\t{{.Driver}}\t{{.Availability}}\t{{.Status}}"
 )
 
 type listOptions struct {
@@ -53,7 +53,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	}
 
 	format := options.format
-	if len(format) == 0 {
+	if len(format) == 0 && !options.cluster {
 		if len(dockerCli.ConfigFile().VolumesFormat) > 0 && !options.quiet {
 			format = dockerCli.ConfigFile().VolumesFormat
 		} else {
@@ -65,13 +65,13 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 		// trick for filtering in place
 		n := 0
-		for _, volume := range volumes {
+		for _, volume := range volumes.Volumes {
 			if volume.ClusterOpts != nil {
-				volumes[n] = volume
+				volumes.Volumes[n] = volume
 				n++
 			}
 		}
-		volumes = volumes[:n]
+		volumes.Volumes = volumes.Volumes[:n]
 		if !options.quiet {
 			format = clusterTableFormat
 		} else {

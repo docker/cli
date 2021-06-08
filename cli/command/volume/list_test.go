@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	// TODO(dperny): temporary for testing
+
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
@@ -125,4 +127,109 @@ func TestVolumeListSortOrder(t *testing.T) {
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-sort.golden")
+}
+
+func TestClusterVolumeList(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
+			return volumetypes.VolumeListOKBody{
+				Volumes: []*types.Volume{
+					{
+						Name:   "volume1",
+						Scope:  "global",
+						Driver: "driver1",
+						ClusterOpts: &types.ClusterVolume{
+							Spec: types.ClusterVolumeSpec{
+								Group: "group1",
+								AccessMode: &types.VolumeAccessMode{
+									Scope:       types.VolumeScopeSingleNode,
+									Sharing:     types.VolumeSharingOneWriter,
+									MountVolume: &types.VolumeTypeMount{},
+								},
+								Availability: types.VolumeAvailabilityActive,
+							},
+						},
+					}, {
+						Name:   "volume2",
+						Scope:  "global",
+						Driver: "driver1",
+						ClusterOpts: &types.ClusterVolume{
+							Spec: types.ClusterVolumeSpec{
+								Group: "group1",
+								AccessMode: &types.VolumeAccessMode{
+									Scope:       types.VolumeScopeSingleNode,
+									Sharing:     types.VolumeSharingOneWriter,
+									MountVolume: &types.VolumeTypeMount{},
+								},
+								Availability: types.VolumeAvailabilityPause,
+							},
+							Info: &types.VolumeInfo{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol2",
+							},
+						},
+					}, {
+						Name:   "volume3",
+						Scope:  "global",
+						Driver: "driver2",
+						ClusterOpts: &types.ClusterVolume{
+							Spec: types.ClusterVolumeSpec{
+								Group: "group2",
+								AccessMode: &types.VolumeAccessMode{
+									Scope:       types.VolumeScopeMultiNode,
+									Sharing:     types.VolumeSharingAll,
+									MountVolume: &types.VolumeTypeMount{},
+								},
+								Availability: types.VolumeAvailabilityActive,
+							},
+							PublishStatus: []*types.VolumePublishStatus{
+								{
+									NodeID: "nodeid1",
+									State:  types.VolumePublished,
+								},
+							},
+							Info: &types.VolumeInfo{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol3",
+							},
+						},
+					}, {
+						Name:   "volume4",
+						Scope:  "global",
+						Driver: "driver2",
+						ClusterOpts: &types.ClusterVolume{
+							Spec: types.ClusterVolumeSpec{
+								Group: "group2",
+								AccessMode: &types.VolumeAccessMode{
+									Scope:       types.VolumeScopeMultiNode,
+									Sharing:     types.VolumeSharingAll,
+									MountVolume: &types.VolumeTypeMount{},
+								},
+								Availability: types.VolumeAvailabilityActive,
+							},
+							PublishStatus: []*types.VolumePublishStatus{
+								{
+									NodeID: "nodeid1",
+									State:  types.VolumePublished,
+								}, {
+									NodeID: "nodeid2",
+									State:  types.VolumePublished,
+								},
+							},
+							Info: &types.VolumeInfo{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol4",
+							},
+						},
+					},
+					Volume(VolumeName("volume-local-1")),
+				},
+			}, nil
+		},
+	})
+
+	cmd := newListCommand(cli)
+	cmd.Flags().Set("cluster", "true")
+	assert.NilError(t, cmd.Execute())
+	golden.Assert(t, cli.OutBuffer().String(), "volume-cluster-volume-list.golden")
 }

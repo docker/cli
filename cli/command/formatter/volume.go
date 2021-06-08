@@ -128,7 +128,7 @@ func (c *volumeContext) Size() string {
 }
 
 func (c *volumeContext) Group() string {
-	if c.v.ClusterOpts != nil {
+	if c.v.ClusterOpts == nil {
 		return "N/A"
 	}
 
@@ -136,19 +136,19 @@ func (c *volumeContext) Group() string {
 }
 
 func (c *volumeContext) Availability() string {
-	if c.v.ClusterOpts != nil {
+	if c.v.ClusterOpts == nil {
 		return "N/A"
 	}
 
-	return c.v.ClusterOpts.Spec.Availability
+	return string(c.v.ClusterOpts.Spec.Availability)
 }
 
 func (c *volumeContext) Status() string {
-	if c.v.ClusterOpts != nil {
+	if c.v.ClusterOpts == nil {
 		return "N/A"
 	}
 
-	if c.v.ClusterOpts.VolumeInfo == nil || c.v.ClusterOpts.VolumeInfo.VolumeID == "" {
+	if c.v.ClusterOpts.Info == nil || c.v.ClusterOpts.Info.VolumeID == "" {
 		return "pending creation"
 	}
 
