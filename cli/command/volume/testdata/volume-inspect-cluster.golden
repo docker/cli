@@ -1,0 +1,98 @@
+[
+    {
+        "ClusterOpts": {
+            "Version": {
+                "Index": 123
+            },
+            "CreatedAt": "0001-01-01T00:00:00Z",
+            "UpdatedAt": "0001-01-01T00:00:00Z",
+            "Spec": {
+                "Group": "group0",
+                "AccessMode": {
+                    "Scope": "multi",
+                    "Sharing": "all",
+                    "BlockVolume": {}
+                },
+                "AccessibilityRequirements": {
+                    "Requisite": [
+                        {
+                            "Segments": {
+                                "region": "R1",
+                                "zone": "Z1"
+                            }
+                        },
+                        {
+                            "Segments": {
+                                "region": "R1",
+                                "zone": "Z2"
+                            }
+                        }
+                    ],
+                    "Preferred": [
+                        {
+                            "Segments": {
+                                "region": "R1",
+                                "zone": "Z1"
+                            }
+                        }
+                    ]
+                },
+                "CapacityRange": {
+                    "RequiredBytes": 1000,
+                    "LimitBytes": 1000000
+                },
+                "Secrets": [
+                    {
+                        "Key": "secretkey1",
+                        "Secret": "mysecret1"
+                    },
+                    {
+                        "Key": "secretkey2",
+                        "Secret": "mysecret2"
+                    }
+                ],
+                "Availability": "active"
+            },
+            "PublishStatus": [
+                {
+                    "NodeID": "node1",
+                    "State": "published",
+                    "PublishContext": {
+                        "some": "data",
+                        "yup": "data"
+                    }
+                },
+                {
+                    "NodeID": "node2",
+                    "State": "pending node unpublish",
+                    "PublishContext": {
+                        "publish": "context",
+                        "some": "more"
+                    }
+                }
+            ],
+            "Info": {
+                "CapacityBytes": 10000,
+                "VolumeContext": {
+                    "has": "entries",
+                    "the": "context"
+                },
+                "VolumeID": "clusterdriver1volume1id",
+                "AccessibleTopology": [
+                    {
+                        "Segments": {
+                            "region": "R1",
+                            "zone": "Z1"
+                        }
+                    }
+                ]
+            }
+        },
+        "Driver": "clusterdriver1",
+        "Labels": null,
+        "Mountpoint": "",
+        "Name": "clustervolume",
+        "Options": null,
+        "Scope": "global"
+    }
+]
