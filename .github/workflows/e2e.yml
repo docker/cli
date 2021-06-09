@@ -28,11 +28,10 @@ jobs:
           - alpine
           - debian
         engine-version:
-#          - 20.10-dind # FIXME: Fails on 20.10
-          - stable-dind # TODO: Use 20.10-dind, stable-dind is deprecated
+          - 24.0-dind
         include:
           - target: non-experimental
-            engine-version: 19.03-dind
+            engine-version: 24.0-dind
     steps:
       -
         name: Checkout

@@ -1,6 +1,7 @@
 package image
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
@@ -16,6 +17,7 @@ const registryPrefix = "registry:5000"
 
 func TestPullWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+	skip.If(t, strings.HasPrefix(environment.DaemonVersion(), "19.03"), "skipping on 19.03 daemon, as output format differs")
 
 	// Digests in golden files are linux/amd64 specific.
 	// TODO: Fix this test and make it work on all platforms.

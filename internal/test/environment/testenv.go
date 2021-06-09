@@ -71,6 +71,12 @@ func boolFromString(val string) bool {
 // DefaultPollSettings used with gotestyourself/poll
 var DefaultPollSettings = poll.WithDelay(100 * time.Millisecond)
 
+// DaemonVersion returns the version of the daemon
+func DaemonVersion() string {
+	result := icmd.RunCmd(icmd.Command("docker", "info", "--format", "{{.ServerVersion}}"))
+	return strings.TrimSpace(result.Stdout())
+}
+
 // SkipIfNotExperimentalDaemon returns whether the test docker daemon is in experimental mode
 func SkipIfNotExperimentalDaemon(t *testing.T) {
 	t.Helper()
