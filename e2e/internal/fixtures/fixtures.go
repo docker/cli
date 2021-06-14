@@ -53,54 +53,41 @@ func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 // WithConfig sets an environment variable for the docker config location
 func WithConfig(dir string) func(cmd *icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
-		env := append(os.Environ(),
-			"DOCKER_CONFIG="+dir,
-		)
-		cmd.Env = append(cmd.Env, env...)
+		addEnvs(cmd, "DOCKER_CONFIG="+dir)
 	}
 }
 
 // WithPassphrase sets environment variables for passphrases
 func WithPassphrase(rootPwd, repositoryPwd string) func(cmd *icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
-		env := append(os.Environ(),
+		addEnvs(cmd,
 			"DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE="+rootPwd,
 			"DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE="+repositoryPwd,
 		)
-		cmd.Env = append(cmd.Env, env...)
 	}
 }
 
 // WithTrust sets DOCKER_CONTENT_TRUST to 1
 func WithTrust(cmd *icmd.Cmd) {
-	env := append(os.Environ(),
-		"DOCKER_CONTENT_TRUST=1",
-	)
-	cmd.Env = append(cmd.Env, env...)
+	addEnvs(cmd, "DOCKER_CONTENT_TRUST=1")
 }
 
 // WithNotary sets the location of the notary server
 func WithNotary(cmd *icmd.Cmd) {
-	env := append(os.Environ(),
-		"DOCKER_CONTENT_TRUST_SERVER="+NotaryURL,
-	)
-	cmd.Env = append(cmd.Env, env...)
+	addEnvs(cmd, "DOCKER_CONTENT_TRUST_SERVER="+NotaryURL)
 }
 
 // WithHome sets the HOME environment variable
 func WithHome(path string) func(*icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
-		cmd.Env = append(cmd.Env, "HOME="+path)
+		addEnvs(cmd, "HOME="+path)
 	}
 }
 
 // WithNotaryServer sets the location of the notary server
 func WithNotaryServer(notaryURL string) func(*icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
-		env := append(os.Environ(),
-			"DOCKER_CONTENT_TRUST_SERVER="+notaryURL,
-		)
-		cmd.Env = append(cmd.Env, env...)
+		addEnvs(cmd, "DOCKER_CONTENT_TRUST_SERVER="+notaryURL)
 	}
 }
 
@@ -132,4 +119,13 @@ func createNamedUnsignedImageFromBusyBox(t *testing.T, image string) {
 	icmd.RunCommand("docker", "image", "tag", BusyboxImage, image).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "image", "push", image).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "image", "rm", image).Assert(t, icmd.Success)
+}
+
+// addEnvs adds environment variables to cmd, making sure to preserve the
+// current os.Environ(), which would otherwise be omitted (for non-empty .Env).
+func addEnvs(cmd *icmd.Cmd, envs ...string) {
+	if len(cmd.Env) == 0 {
+		cmd.Env = os.Environ()
+	}
+	cmd.Env = append(cmd.Env, envs...)
 }
