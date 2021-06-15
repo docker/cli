@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label "linux && x86_64"
+        label "amd64 && ubuntu-1804 && overlay2"
     }
 
     options {
@@ -21,9 +21,9 @@ pipeline {
                     make -f docker.Makefile test-e2e-non-experimental"
             }
         }
-        stage("e2e (non-experimental) - 18.09 engine") {
+        stage("e2e (non-experimental) - 19.03 engine") {
             steps {
-                sh "E2E_ENGINE_VERSION=18.09-dind \
+                sh "E2E_ENGINE_VERSION=19.03-dind \
                   E2E_UNIQUE_ID=clie2e${BUILD_NUMBER} \
                   IMAGE_TAG=clie2e${BUILD_NUMBER} \
                   make -f docker.Makefile test-e2e-non-experimental"
