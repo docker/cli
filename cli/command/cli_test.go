@@ -202,8 +202,6 @@ func TestExperimentalCLI(t *testing.T) {
 			cliconfig.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
-			// For backward-compatibility, HasExperimental will always be "true"
-			assert.Equal(t, cli.ClientInfo().HasExperimental, true)
 		})
 	}
 }
