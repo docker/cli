@@ -55,7 +55,6 @@ type Cli interface {
 	Apply(ops ...DockerCliOption) error
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
-	ClientInfo() ClientInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 	DefaultVersion() string
 	ManifestStore() manifeststore.Store
@@ -76,7 +75,6 @@ type DockerCli struct {
 	err                io.Writer
 	client             client.APIClient
 	serverInfo         ServerInfo
-	clientInfo         *ClientInfo
 	contentTrust       bool
 	contextStore       store.Store
 	currentContext     string
@@ -84,9 +82,9 @@ type DockerCli struct {
 	contextStoreConfig store.Config
 }
 
-// DefaultVersion returns api.defaultVersion or DOCKER_API_VERSION if specified.
+// DefaultVersion returns api.defaultVersion.
 func (cli *DockerCli) DefaultVersion() string {
-	return cli.ClientInfo().DefaultVersion
+	return api.DefaultVersion
 }
 
 // Client returns the APIClient
@@ -139,30 +137,6 @@ func (cli *DockerCli) loadConfigFile() {
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
 	return cli.serverInfo
-}
-
-// ClientInfo returns the client details for the cli
-func (cli *DockerCli) ClientInfo() ClientInfo {
-	if cli.clientInfo == nil {
-		if err := cli.loadClientInfo(); err != nil {
-			panic(err)
-		}
-	}
-	return *cli.clientInfo
-}
-
-func (cli *DockerCli) loadClientInfo() error {
-	var v string
-	if cli.client != nil {
-		v = cli.client.ClientVersion()
-	} else {
-		v = api.DefaultVersion
-	}
-	cli.clientInfo = &ClientInfo{
-		DefaultVersion:  v,
-		HasExperimental: true,
-	}
-	return nil
 }
 
 // ContentTrustEnabled returns whether content trust has been enabled by an
@@ -265,11 +239,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		}
 	}
 	cli.initializeFromClient()
-
-	if err := cli.loadClientInfo(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -446,14 +415,6 @@ type ServerInfo struct {
 	HasExperimental bool
 	OSType          string
 	BuildkitVersion types.BuilderVersion
-}
-
-// ClientInfo stores details about the supported features of the client
-type ClientInfo struct {
-	// Deprecated: experimental CLI features always enabled. This field is kept
-	// for backward-compatibility, and is always "true".
-	HasExperimental bool
-	DefaultVersion  string
 }
 
 // NewDockerCli returns a DockerCli instance with all operators applied on it.
