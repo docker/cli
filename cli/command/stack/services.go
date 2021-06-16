@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
@@ -37,7 +36,6 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display IDs")
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print services using a Go template")
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
-	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }
 
@@ -52,18 +50,7 @@ func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator
 
 // GetServices returns the services for the specified orchestrator
 func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) ([]swarmtypes.Service, error) {
-	switch {
-	case commonOrchestrator.HasAll():
-		return nil, errUnsupportedAllOrchestrator
-	case commonOrchestrator.HasKubernetes():
-		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
-		if err != nil {
-			return nil, err
-		}
-		return kubernetes.GetServices(kli, opts)
-	default:
-		return swarm.GetServices(dockerCli, opts)
-	}
+	return swarm.GetServices(dockerCli, opts)
 }
 
 func formatWrite(dockerCli command.Cli, services []swarmtypes.Service, opts options.Services) error {
