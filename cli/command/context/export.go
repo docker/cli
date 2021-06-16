@@ -1,7 +1,6 @@
 package context
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,10 +8,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/spf13/cobra"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // ExportOptions are the options used for exporting a context
@@ -82,31 +79,7 @@ func RunExport(dockerCli command.Cli, opts *ExportOptions) error {
 	if err := store.ValidateContextName(opts.ContextName); err != nil && opts.ContextName != command.DefaultContextName {
 		return err
 	}
-	ctxMeta, err := dockerCli.ContextStore().GetMetadata(opts.ContextName)
-	if err != nil {
-		return err
-	}
-	if !opts.Kubeconfig {
-		reader := store.Export(opts.ContextName, dockerCli.ContextStore())
-		defer reader.Close()
-		return writeTo(dockerCli, reader, opts.Dest)
-	}
-	kubernetesEndpointMeta := kubernetes.EndpointFromContext(ctxMeta)
-	if kubernetesEndpointMeta == nil {
-		return fmt.Errorf("context %q has no kubernetes endpoint", opts.ContextName)
-	}
-	kubernetesEndpoint, err := kubernetesEndpointMeta.WithTLSData(dockerCli.ContextStore(), opts.ContextName)
-	if err != nil {
-		return err
-	}
-	kubeConfig := kubernetesEndpoint.KubernetesConfig()
-	rawCfg, err := kubeConfig.RawConfig()
-	if err != nil {
-		return err
-	}
-	data, err := clientcmd.Write(rawCfg)
-	if err != nil {
-		return err
-	}
-	return writeTo(dockerCli, bytes.NewBuffer(data), opts.Dest)
+	reader := store.Export(opts.ContextName, dockerCli.ContextStore())
+	defer reader.Close()
+	return writeTo(dockerCli, reader, opts.Dest)
 }

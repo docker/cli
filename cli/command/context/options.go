@@ -2,18 +2,14 @@ package context
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -24,9 +20,6 @@ const (
 	keyCert          = "cert"
 	keyKey           = "key"
 	keySkipTLSVerify = "skip-tls-verify"
-	keyKubeconfig    = "config-file"
-	keyKubecontext   = "context-override"
-	keyKubenamespace = "namespace-override"
 )
 
 type configKeyDescription struct {
@@ -42,12 +35,6 @@ var (
 		keyCert:          {},
 		keyKey:           {},
 		keySkipTLSVerify: {},
-	}
-	allowedKubernetesConfigKeys = map[string]struct{}{
-		keyFrom:          {},
-		keyKubeconfig:    {},
-		keyKubecontext:   {},
-		keyKubenamespace: {},
 	}
 	dockerConfigKeysDescriptions = []configKeyDescription{
 		{
@@ -73,24 +60,6 @@ var (
 		{
 			name:        keySkipTLSVerify,
 			description: "Skip TLS certificate validation",
-		},
-	}
-	kubernetesConfigKeysDescriptions = []configKeyDescription{
-		{
-			name:        keyFrom,
-			description: "Copy named context's Kubernetes endpoint configuration",
-		},
-		{
-			name:        keyKubeconfig,
-			description: "Path to a Kubernetes config file",
-		},
-		{
-			name:        keyKubecontext,
-			description: "Overrides the context set in the kubernetes config file",
-		},
-		{
-			name:        keyKubenamespace,
-			description: "Overrides the namespace set in the kubernetes config file",
 		},
 	}
 )
@@ -163,57 +132,4 @@ func getDockerEndpointMetadataAndTLS(dockerCli command.Cli, config map[string]st
 		return docker.EndpointMeta{}, nil, err
 	}
 	return ep.EndpointMeta, ep.TLSData.ToStoreTLSData(), nil
-}
-
-func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*kubernetes.Endpoint, error) {
-	if err := validateConfig(config, allowedKubernetesConfigKeys); err != nil {
-		return nil, err
-	}
-	if len(config) == 0 {
-		return nil, nil
-	}
-	if contextName, ok := config[keyFrom]; ok {
-		ctxMeta, err := dockerCli.ContextStore().GetMetadata(contextName)
-		if err != nil {
-			return nil, err
-		}
-		endpointMeta := kubernetes.EndpointFromContext(ctxMeta)
-		if endpointMeta != nil {
-			res, err := endpointMeta.WithTLSData(dockerCli.ContextStore(), dockerCli.CurrentContext())
-			if err != nil {
-				return nil, err
-			}
-			return &res, nil
-		}
-
-		// fallback to env-based kubeconfig
-		kubeconfig := os.Getenv("KUBECONFIG")
-		if kubeconfig == "" {
-			kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-		}
-		ep, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
-		if err != nil {
-			return nil, err
-		}
-		return &ep, nil
-	}
-	if config[keyKubeconfig] != "" {
-		ep, err := kubernetes.FromKubeConfig(config[keyKubeconfig], config[keyKubecontext], config[keyKubenamespace])
-		if err != nil {
-			return nil, err
-		}
-		return &ep, nil
-	}
-	return nil, nil
-}
-
-func getKubernetesEndpointMetadataAndTLS(dockerCli command.Cli, config map[string]string) (*kubernetes.EndpointMeta, *store.EndpointTLSData, error) {
-	ep, err := getKubernetesEndpoint(dockerCli, config)
-	if err != nil {
-		return nil, nil, err
-	}
-	if ep == nil {
-		return nil, nil, err
-	}
-	return &ep.EndpointMeta, ep.TLSData.ToStoreTLSData(), nil
 }

@@ -24,6 +24,7 @@ const (
 )
 
 // HasKubernetes returns true if defined orchestrator has Kubernetes capabilities.
+// Deprecated: support for kubernetes as orchestrator was removed.
 func (o Orchestrator) HasKubernetes() bool {
 	return o == OrchestratorKubernetes || o == OrchestratorAll
 }

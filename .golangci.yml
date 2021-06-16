@@ -28,9 +28,6 @@ linters:
 
 run:
   timeout: 5m
-  skip-dirs:
-    - cli/command/stack/kubernetes/api/openapi
-    - cli/command/stack/kubernetes/api/client
   skip-files:
     - cli/compose/schema/bindata.go
     - .*generated.*

@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 )
@@ -52,36 +51,8 @@ func TestUpdateDockerOnly(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, dc.StackOrchestrator, command.OrchestratorSwarm)
 	assert.Equal(t, dc.Description, "description of test")
-	assert.Check(t, cmp.Contains(c.Endpoints, kubernetes.KubernetesEndpoint))
 	assert.Check(t, cmp.Contains(c.Endpoints, docker.DockerEndpoint))
 	assert.Equal(t, c.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host, "tcp://some-host")
-}
-
-func TestUpdateStackOrchestratorStrategy(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	err := RunCreate(cli, &CreateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "swarm",
-		Docker:                   map[string]string{},
-	})
-	assert.NilError(t, err)
-	err = RunUpdate(cli, &UpdateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "kubernetes",
-	})
-	assert.ErrorContains(t, err, `cannot specify orchestrator "kubernetes" without configuring a Kubernetes endpoint`)
-}
-
-func TestUpdateStackOrchestratorStrategyRemoveKubeEndpoint(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	createTestContextWithKubeAndSwarm(t, cli, "test", "kubernetes")
-	err := RunUpdate(cli, &UpdateOptions{
-		Name:       "test",
-		Kubernetes: map[string]string{},
-	})
-	assert.ErrorContains(t, err, `cannot specify orchestrator "kubernetes" without configuring a Kubernetes endpoint`)
 }
 
 func TestUpdateInvalidDockerHost(t *testing.T) {
