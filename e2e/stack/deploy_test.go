@@ -6,23 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test/environment"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
-	"gotest.tools/v3/skip"
 )
 
 func TestDeployWithNamedResources(t *testing.T) {
 	t.Run("Swarm", func(t *testing.T) {
 		testDeployWithNamedResources(t, "swarm")
-	})
-	t.Run("Kubernetes", func(t *testing.T) {
-		// FIXME(chris-crone): currently does not work with compose for kubernetes.
-		t.Skip("FIXME(chris-crone): currently does not work with compose for kubernetes.")
-		skip.If(t, !environment.KubernetesEnabled())
-
-		testDeployWithNamedResources(t, "kubernetes")
 	})
 }
 

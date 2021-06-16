@@ -12,7 +12,7 @@
 //   - tls/
 //     - <context id>/endpoint1/: directory containing TLS data for the endpoint1 in the corresponding context
 //
-// The context store itself has absolutely no knowledge about what a docker or a kubernetes endpoint should contain in term of metadata or TLS config.
+// The context store itself has absolutely no knowledge about what a docker endpoint should contain in term of metadata or TLS config.
 // Client code is responsible for generating and parsing endpoint metadata and TLS files.
 // The multi-endpoints approach of this package allows to combine many different endpoints in the same "context" (e.g., the Docker CLI
 // is able for a single context to define both a docker endpoint and a Kubernetes endpoint for the same cluster, and also specify which

@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var errUnsupportedAllOrchestrator = fmt.Errorf(`no orchestrator specified: use either "kubernetes" or "swarm"`)
-
 type commonOptions struct {
 	orchestrator command.Orchestrator
 }
@@ -67,10 +65,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		newServicesCommand(dockerCli, &opts),
 	)
 	flags := cmd.PersistentFlags()
-	flags.String("kubeconfig", "", "Kubernetes config file")
-	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
-	flags.SetAnnotation("kubeconfig", "deprecated", nil)
-	flags.String("orchestrator", "", "Orchestrator to use (swarm|kubernetes|all)")
+	flags.String("orchestrator", "", "Orchestrator to use (swarm|all)")
 	flags.SetAnnotation("orchestrator", "deprecated", nil)
 	return cmd
 }
@@ -85,9 +80,6 @@ func getOrchestrator(dockerCli command.Cli, cmd *cobra.Command) (command.Orchest
 
 func hideOrchestrationFlags(cmd *cobra.Command, orchestrator command.Orchestrator) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		if _, ok := f.Annotations["kubernetes"]; ok && !orchestrator.HasKubernetes() {
-			f.Hidden = true
-		}
 		if _, ok := f.Annotations["swarm"]; ok && !orchestrator.HasSwarm() {
 			f.Hidden = true
 		}
@@ -102,9 +94,6 @@ func checkSupportedFlag(cmd *cobra.Command, orchestrator command.Orchestrator) e
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		if !f.Changed {
 			return
-		}
-		if _, ok := f.Annotations["kubernetes"]; ok && !orchestrator.HasKubernetes() {
-			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker cli with kubernetes features enabled`, f.Name))
 		}
 		if _, ok := f.Annotations["swarm"]; ok && !orchestrator.HasSwarm() {
 			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker cli with swarm features enabled`, f.Name))
