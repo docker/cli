@@ -9,7 +9,6 @@ import (
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"
-	"gotest.tools/v3/skip"
 )
 
 var pollSettings = environment.DefaultPollSettings
@@ -17,11 +16,6 @@ var pollSettings = environment.DefaultPollSettings
 func TestRemove(t *testing.T) {
 	t.Run("Swarm", func(t *testing.T) {
 		testRemove(t, "swarm")
-	})
-	t.Run("Kubernetes", func(t *testing.T) {
-		skip.If(t, !environment.KubernetesEnabled())
-
-		testRemove(t, "kubernetes")
 	})
 }
 
