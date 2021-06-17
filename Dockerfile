@@ -11,7 +11,7 @@ FROM golatest AS go-darwin
 FROM golatest AS go-windows-amd64
 FROM golatest AS go-windows-386
 FROM golatest AS go-windows-arm
-FROM --platform=$BUILDPLATFORM tonistiigi/golang:497feff1-${BASE_VARIANT} AS go-windows-arm64
+FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS go-windows-arm64
 FROM go-windows-${TARGETARCH} AS go-windows
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:620d36a9d7f1e3b102a5c7e8eff12081ac363828b3a44390f24fa8da2d49383d AS xx
