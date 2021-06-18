@@ -31,6 +31,7 @@ import (
 	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"github.com/moby/buildkit/session/sshforward/sshprovider"
 	"github.com/moby/buildkit/util/appcontext"
+	"github.com/moby/buildkit/util/gitutil"
 	"github.com/moby/buildkit/util/progress/progressui"
 	"github.com/moby/buildkit/util/progress/progresswriter"
 	"github.com/pkg/errors"
@@ -186,10 +187,15 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 		}
 		s.Allow(sp)
 	}
-	if len(options.ssh) > 0 {
-		sshp, err := parseSSHSpecs(options.ssh)
+
+	sshSpecs := options.ssh
+	if len(sshSpecs) == 0 && isGitSSH(remote) {
+		sshSpecs = []string{"default"}
+	}
+	if len(sshSpecs) > 0 {
+		sshp, err := parseSSHSpecs(sshSpecs)
 		if err != nil {
-			return errors.Wrapf(err, "could not parse ssh: %v", options.ssh)
+			return errors.Wrapf(err, "could not parse ssh: %v", sshSpecs)
 		}
 		s.Allow(sshp)
 	}
@@ -511,4 +517,9 @@ func parseSSH(value string) *sshprovider.AgentConfig {
 		cfg.Paths = strings.Split(parts[1], ",")
 	}
 	return &cfg
+}
+
+func isGitSSH(url string) bool {
+	_, gitProtocol := gitutil.ParseProtocol(url)
+	return gitProtocol == gitutil.SSHProtocol
 }
