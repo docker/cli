@@ -9,20 +9,9 @@
             "docker": {
                 "Host": "https://someswarmserver.example.com",
                 "SkipTLSVerify": false
-            },
-            "kubernetes": {
-                "Host": "https://someserver.example.com",
-                "SkipTLSVerify": false,
-                "DefaultNamespace": "default"
             }
         },
-        "TLSMaterial": {
-            "kubernetes": [
-                "ca.pem",
-                "cert.pem",
-                "key.pem"
-            ]
-        },
+        "TLSMaterial": {},
         "Storage": {
             "MetadataPath": "<METADATA_PATH>",
             "TLSPath": "<TLS_PATH>"

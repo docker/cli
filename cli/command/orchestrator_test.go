@@ -17,55 +17,24 @@ func TestOrchestratorSwitch(t *testing.T) {
 		flagOrchestrator     string
 		contextOrchestrator  string
 		expectedOrchestrator string
-		expectedKubernetes   bool
 		expectedSwarm        bool
 	}{
 		{
 			doc:                  "default",
 			expectedOrchestrator: "swarm",
-			expectedKubernetes:   false,
 			expectedSwarm:        true,
-		},
-		{
-			doc:                  "kubernetesConfigFile",
-			globalOrchestrator:   "kubernetes",
-			expectedOrchestrator: "kubernetes",
-			expectedKubernetes:   true,
-			expectedSwarm:        false,
-		},
-		{
-			doc:                  "kubernetesEnv",
-			envOrchestrator:      "kubernetes",
-			expectedOrchestrator: "kubernetes",
-			expectedKubernetes:   true,
-			expectedSwarm:        false,
-		},
-		{
-			doc:                  "kubernetesFlag",
-			flagOrchestrator:     "kubernetes",
-			expectedOrchestrator: "kubernetes",
-			expectedKubernetes:   true,
-			expectedSwarm:        false,
 		},
 		{
 			doc:                  "allOrchestratorFlag",
 			flagOrchestrator:     "all",
 			expectedOrchestrator: "all",
-			expectedKubernetes:   true,
 			expectedSwarm:        true,
-		},
-		{
-			doc:                  "kubernetesContext",
-			contextOrchestrator:  "kubernetes",
-			expectedOrchestrator: "kubernetes",
-			expectedKubernetes:   true,
 		},
 		{
 			doc:                  "contextOverridesConfigFile",
 			globalOrchestrator:   "kubernetes",
 			contextOrchestrator:  "swarm",
 			expectedOrchestrator: "swarm",
-			expectedKubernetes:   false,
 			expectedSwarm:        true,
 		},
 		{
@@ -73,7 +42,6 @@ func TestOrchestratorSwitch(t *testing.T) {
 			globalOrchestrator:   "kubernetes",
 			envOrchestrator:      "swarm",
 			expectedOrchestrator: "swarm",
-			expectedKubernetes:   false,
 			expectedSwarm:        true,
 		},
 		{
@@ -81,7 +49,6 @@ func TestOrchestratorSwitch(t *testing.T) {
 			envOrchestrator:      "kubernetes",
 			flagOrchestrator:     "swarm",
 			expectedOrchestrator: "swarm",
-			expectedKubernetes:   false,
 			expectedSwarm:        true,
 		},
 	}
@@ -93,7 +60,6 @@ func TestOrchestratorSwitch(t *testing.T) {
 			}
 			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, testcase.contextOrchestrator, testcase.globalOrchestrator, ioutil.Discard)
 			assert.NilError(t, err)
-			assert.Check(t, is.Equal(testcase.expectedKubernetes, orchestrator.HasKubernetes()))
 			assert.Check(t, is.Equal(testcase.expectedSwarm, orchestrator.HasSwarm()))
 			assert.Check(t, is.Equal(testcase.expectedOrchestrator, string(orchestrator)))
 		})

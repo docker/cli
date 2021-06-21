@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -29,13 +28,6 @@ func longUpdateDescription() string {
 	tw := tabwriter.NewWriter(buf, 20, 1, 3, ' ', 0)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
 	for _, d := range dockerConfigKeysDescriptions {
-		fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
-	}
-	tw.Flush()
-	buf.WriteString("\nKubernetes endpoint config:\n\n")
-	tw = tabwriter.NewWriter(buf, 20, 1, 3, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
-	for _, d := range kubernetesConfigKeysDescriptions {
 		fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
 	}
 	tw.Flush()
@@ -106,18 +98,6 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 		c.Endpoints[docker.DockerEndpoint] = dockerEP
 		tlsDataToReset[docker.DockerEndpoint] = dockerTLS
 	}
-	if o.Kubernetes != nil {
-		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.Kubernetes)
-		if err != nil {
-			return errors.Wrap(err, "unable to create kubernetes endpoint config")
-		}
-		if kubernetesEP == nil {
-			delete(c.Endpoints, kubernetes.KubernetesEndpoint)
-		} else {
-			c.Endpoints[kubernetes.KubernetesEndpoint] = kubernetesEP
-			tlsDataToReset[kubernetes.KubernetesEndpoint] = kubernetesTLS
-		}
-	}
 	if err := validateEndpointsAndOrchestrator(c); err != nil {
 		return err
 	}
@@ -136,12 +116,6 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 }
 
 func validateEndpointsAndOrchestrator(c store.Metadata) error {
-	dockerContext, err := command.GetDockerContext(c)
-	if err != nil {
-		return err
-	}
-	if _, ok := c.Endpoints[kubernetes.KubernetesEndpoint]; !ok && dockerContext.StackOrchestrator.HasKubernetes() {
-		return errors.Errorf("cannot specify orchestrator %q without configuring a Kubernetes endpoint", dockerContext.StackOrchestrator)
-	}
-	return nil
+	_, err := command.GetDockerContext(c)
+	return err
 }

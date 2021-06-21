@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -30,13 +29,6 @@ func longCreateDescription() string {
 	tw := tabwriter.NewWriter(buf, 20, 1, 3, ' ', 0)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
 	for _, d := range dockerConfigKeysDescriptions {
-		fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
-	}
-	tw.Flush()
-	buf.WriteString("\nKubernetes endpoint config:\n\n")
-	tw = tabwriter.NewWriter(buf, 20, 1, 3, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
-	for _, d := range kubernetesConfigKeysDescriptions {
 		fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
 	}
 	tw.Flush()
@@ -111,21 +103,6 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 	contextMetadata.Endpoints[docker.DockerEndpoint] = dockerEP
 	if dockerTLS != nil {
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerTLS
-	}
-	if o.Kubernetes != nil {
-		kubernetesEP, kubernetesTLS, err := getKubernetesEndpointMetadataAndTLS(cli, o.Kubernetes)
-		if err != nil {
-			return errors.Wrap(err, "unable to create kubernetes endpoint config")
-		}
-		if kubernetesEP == nil && stackOrchestrator.HasKubernetes() {
-			return errors.Errorf("cannot specify orchestrator %q without configuring a Kubernetes endpoint", stackOrchestrator)
-		}
-		if kubernetesEP != nil {
-			contextMetadata.Endpoints[kubernetes.KubernetesEndpoint] = kubernetesEP
-		}
-		if kubernetesTLS != nil {
-			contextTLSData.Endpoints[kubernetes.KubernetesEndpoint] = *kubernetesTLS
-		}
 	}
 	if err := validateEndpointsAndOrchestrator(contextMetadata); err != nil {
 		return err

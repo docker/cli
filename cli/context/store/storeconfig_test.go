@@ -38,7 +38,6 @@ func TestValidFilePaths(t *testing.T) {
 		"/tls/absolute/unix/path":      false,
 		`C:\tls\absolute\windows\path`: false,
 		"C:/tls/absolute/windows/path": false,
-		"tls/kubernetes/key.pem":       true,
 	}
 	for p, expectedValid := range paths {
 		err := isValidFilePath(p)
