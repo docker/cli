@@ -209,3 +209,17 @@ type ContainerStatus struct {
 type PortStatus struct {
 	Ports []PortConfig `json:",omitempty"`
 }
+
+// VolumeAttachment contains the associating a Volume to a Task.
+type VolumeAttachment struct {
+	// ID is the Swarmkit ID of the Volume. This is not the CSI VolumeId.
+	ID string `json:",omitempty"`
+
+	// Source, together with Target, indicates the Mount, as specified in the
+	// ContainerSpec, that this volume fulfills.
+	Source string `json:",omitempty"`
+
+	// Target, together with Source, indicates the Mount, as specified
+	// in the ContainerSpec, that this volume fulfills.
+	Target string `json:",omitempty"`
+}

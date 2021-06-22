@@ -128,31 +128,31 @@ func (c *volumeContext) Size() string {
 }
 
 func (c *volumeContext) Group() string {
-	if c.v.ClusterOpts == nil {
+	if c.v.ClusterVolume == nil {
 		return "N/A"
 	}
 
-	return c.v.ClusterOpts.Spec.Group
+	return c.v.ClusterVolume.Spec.Group
 }
 
 func (c *volumeContext) Availability() string {
-	if c.v.ClusterOpts == nil {
+	if c.v.ClusterVolume == nil {
 		return "N/A"
 	}
 
-	return string(c.v.ClusterOpts.Spec.Availability)
+	return string(c.v.ClusterVolume.Spec.Availability)
 }
 
 func (c *volumeContext) Status() string {
-	if c.v.ClusterOpts == nil {
+	if c.v.ClusterVolume == nil {
 		return "N/A"
 	}
 
-	if c.v.ClusterOpts.Info == nil || c.v.ClusterOpts.Info.VolumeID == "" {
+	if c.v.ClusterVolume.Info == nil || c.v.ClusterVolume.Info.VolumeID == "" {
 		return "pending creation"
 	}
 
-	l := len(c.v.ClusterOpts.PublishStatus)
+	l := len(c.v.ClusterVolume.PublishStatus)
 	switch l {
 	case 0:
 		return "created"

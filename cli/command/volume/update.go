@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/docker/docker/api/types"
+	volumetypes "github.com/docker/docker/api/types/volume"
 )
 
 func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
@@ -31,7 +32,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runUpdate(dockerCli command.Cli, volumeID, availability string, flags *pflag.FlagSet) error {
-	// TODO(dperny): For this proof of concept, the only thing that can be
+	// TODO(dperny): For this earliest version, the only thing that can be
 	// updated is Availability, which is necessary because to delete a cluster
 	// volume, the availbility must first be set to "drain"
 
@@ -51,8 +52,10 @@ func runUpdate(dockerCli command.Cli, volumeID, availability string, flags *pfla
 		volume.ClusterOpts.Spec.Availability = types.VolumeAvailability(availability)
 	}
 
-	return nil
-	// TODO(dperny): no update endpoint yet exists, so don't actually make the
-	// API call
-	// return apiClient.VolumeUpdate(ctx, volume.ClusterOpts.ID, volume.ClusterOpts.Version, volume.ClusterOpts.Spec)
+	return apiClient.VolumeUpdate(
+		ctx, volume.ClusterOpts.ID, volume.ClusterOpts.Version,
+		volumetypes.VolumeUpdateBody{
+			Spec: &volume.ClusterOpts.Spec,
+		},
+	)
 }

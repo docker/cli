@@ -7,6 +7,11 @@ import (
 // ClusterVolume contains options and information specific to, and only present
 // on, Swarm CSI cluster volumes.
 type ClusterVolume struct {
+	// ID is the Swarm ID of the volume. Because cluster volumes are Swarm
+	// objects, they have an ID, unlike non-cluster volumes, which only have a
+	// Name. This ID can be used to refer to the cluster volume.
+	ID string
+
 	// Meta is the swarm metadata about this volume.
 	swarm.Meta
 

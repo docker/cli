@@ -129,3 +129,11 @@ const (
 	// NodeStateDisconnected DISCONNECTED
 	NodeStateDisconnected NodeState = "disconnected"
 )
+
+// Topology defines the CSI topology of this node. This type is a duplicate of
+// github.com/docker/docker/api/types.Topology. Because the type definition
+// is so simple and to avoid complicated structure or circular imports, we just
+// duplicate it here. See that type for full documentation
+type Topology struct {
+	Segments map[string]string `json:",omitempty"`
+}

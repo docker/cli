@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	// TODO(dperny): temporary for testing
-
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
