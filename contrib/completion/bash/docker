@@ -5486,6 +5486,23 @@ _docker_wait() {
 	_docker_container_wait
 }
 
+_docker_compose() {
+	local composePluginPath="${HOME}/.docker/cli-plugins/docker-compose"
+	local completionCommand="__completeNoDesc"
+  local resultArray=(${composePluginPath} ${completionCommand} compose)
+	for value in "${words[@]:2}"
+	do
+		if [[ "${value}" == "" ]] ; then
+			resultArray+=( "''" )
+		else
+			resultArray+=( "${value}" )
+		fi
+	done
+	local result=$(eval "${resultArray[*]}" 2> /dev/null)
+
+	COMPREPLY=( $(compgen -W "${result%%:*}" -- "$current") )
+}
+
 _docker() {
 	local previous_extglob_setting=$(shopt -p extglob)
 	shopt -s extglob
@@ -5555,11 +5572,15 @@ _docker() {
 		wait
 	)
 
+	local known_plugin_commands=(
+		compose
+	)
+
 	local experimental_server_commands=(
 		checkpoint
 	)
 
-	local commands=(${management_commands[*]} ${top_level_commands[*]})
+	local commands=(${management_commands[*]} ${top_level_commands[*]} ${known_plugin_commands[*]})
 	[ -z "$DOCKER_HIDE_LEGACY_COMMANDS" ] && commands+=(${legacy_commands[*]})
 
 	# These options are valid as global options for all client commands
