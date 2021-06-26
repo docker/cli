@@ -4,7 +4,7 @@ interactively.  You can attach to the same contained process multiple times
 simultaneously, screen sharing style, or quickly view the progress of your
 detached process.
 
-To stop a container, use `CTRL-c`. This key sequence sends `SIGKILL` to the
+To stop a container, use `CTRL-c`. This key sequence sends **SIGKILL** to the
 container. You can detach from the container (and leave it running) using a
 configurable key sequence. The default sequence is `CTRL-p CTRL-q`. You
 configure the key sequence using the **--detach-keys** option or a configuration
@@ -29,8 +29,8 @@ of the following:
 * **a-z** (a single lowercase alpha character )
 * **@** (at sign)
 * **[** (left bracket)
-* **\\** (two backward slashes)
-*  **_** (underscore)
+* **\\\\** (two backward slashes)
+* **_** (underscore)
 * **^** (caret)
 
 These **a**, **ctrl-a**, **X**, or **ctrl-\\** values are all examples of valid key
