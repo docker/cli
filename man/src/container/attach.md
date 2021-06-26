@@ -10,7 +10,7 @@ configurable key sequence. The default sequence is `CTRL-p CTRL-q`. You
 configure the key sequence using the **--detach-keys** option or a configuration
 file. See **config-json(5)** for documentation on using a configuration file.
 
-It is forbidden to redirect the standard input of a `docker attach` command while
+It is forbidden to redirect the standard input of a **docker attach** command while
 attaching to a tty-enabled container (i.e.: launched with `-t`).
 
 # Override the detach sequence
@@ -22,18 +22,18 @@ sequence, as a per-container override or as a configuration property on  your
 entire configuration.
 
 To override the sequence for an individual container, use the
-`--detach-keys="<sequence>"` flag with the `docker attach` command. The format of
-the `<sequence>` is either a letter [a-Z], or the `ctrl-` combined with any of
-the following:
+**--detach-keys**=*key* flag with the **docker attach** command. The format of
+the *key* is either a letter [a-Z], or the **ctrl**-*value*, where *value* is one
+of the following:
 
-* `a-z` (a single lowercase alpha character )
-* `@` (at sign)
-* `[` (left bracket)
-* `\\` (two backward slashes)
-*  `_` (underscore)
-* `^` (caret)
+* **a-z** (a single lowercase alpha character )
+* **@** (at sign)
+* **[** (left bracket)
+* **\\** (two backward slashes)
+*  **_** (underscore)
+* **^** (caret)
 
-These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
+These **a**, **ctrl-a**, **X**, or **ctrl-\\** values are all examples of valid key
 sequences. To configure a different configuration default key sequence for all
 containers, see **docker(1)**.
 
