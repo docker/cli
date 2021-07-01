@@ -66,7 +66,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		// trick for filtering in place
 		n := 0
 		for _, volume := range volumes.Volumes {
-			if volume.ClusterOpts != nil {
+			if volume.ClusterVolume != nil {
 				volumes.Volumes[n] = volume
 				n++
 			}

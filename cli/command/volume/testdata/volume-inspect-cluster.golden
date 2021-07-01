@@ -1,6 +1,7 @@
 [
     {
-        "ClusterOpts": {
+        "ClusterVolume": {
+            "ID": "fooid",
             "Version": {
                 "Index": 123
             },

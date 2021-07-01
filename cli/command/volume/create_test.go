@@ -1,6 +1,7 @@
 package volume
 
 import (
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"strings"
@@ -123,4 +124,79 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("label", "lbl2=v2")
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(name, strings.TrimSpace(cli.OutBuffer().String())))
+}
+
+func TestVolumeCreateCluster(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
+			if body.Driver == "csi" && body.ClusterVolumeSpec == nil {
+				return types.Volume{}, fmt.Errorf("expected ClusterVolumeSpec, but none present")
+			}
+			if body.Driver == "notcsi" && body.ClusterVolumeSpec != nil {
+				return types.Volume{}, fmt.Errorf("expected no ClusterVolumeSpec, but present")
+			}
+			return types.Volume{}, nil
+		},
+	})
+
+	cmd := newCreateCommand(cli)
+	cmd.Flags().Set("type", "block")
+	cmd.Flags().Set("group", "gronp")
+	cmd.Flags().Set("driver", "csi")
+	cmd.SetArgs([]string{"name"})
+
+	assert.NilError(t, cmd.Execute())
+
+	cmd = newCreateCommand(cli)
+	cmd.Flags().Set("driver", "notcsi")
+	cmd.SetArgs([]string{"name"})
+
+	assert.NilError(t, cmd.Execute())
+}
+
+func TestVolumeCreateClusterOpts(t *testing.T) {
+	expectedBody := volumetypes.VolumeCreateBody{
+		Name:   "name",
+		Driver: "csi",
+		ClusterVolumeSpec: &types.ClusterVolumeSpec{
+			Group: "gronp",
+			AccessMode: &types.VolumeAccessMode{
+				Scope:   types.VolumeScopeMultiNode,
+				Sharing: types.VolumeSharingOneWriter,
+				// TODO(dperny): support mount options
+				MountVolume: &types.VolumeTypeMount{},
+			},
+			// TODO(dperny): topology requirements
+			CapacityRange: &types.VolumeCapacityRange{
+				RequiredBytes: uint64(1234),
+				LimitBytes:    uint64(567890),
+			},
+			Secrets: []types.VolumeSecret{
+				{Key: "key1", Secret: "secret1"},
+				{Key: "key2", Secret: "secret2"},
+			},
+			Availability: types.VolumeAvailabilityActive,
+		},
+	}
+
+	cli := test.NewFakeCli(&fakeClient{
+		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
+			assert.DeepEqual(t, body, expectedBody)
+			return types.Volume{}, nil
+		},
+	})
+
+	cmd := newCreateCommand(cli)
+	cmd.SetArgs([]string{"name"})
+	cmd.Flags().Set("driver", "csi")
+	cmd.Flags().Set("group", "gronp")
+	cmd.Flags().Set("scope", "multi")
+	cmd.Flags().Set("sharing", "onewriter")
+	cmd.Flags().Set("type", "mount")
+	cmd.Flags().Set("sharing", "onewriter")
+	cmd.Flags().Set("required-bytes", "1234")
+	cmd.Flags().Set("limit-bytes", "56789")
+	cmd.Flags().Set("secret", "key1=secret1,key2=secret2")
+
+	cmd.Execute()
 }

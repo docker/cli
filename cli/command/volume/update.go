@@ -44,18 +44,18 @@ func runUpdate(dockerCli command.Cli, volumeID, availability string, flags *pfla
 		return err
 	}
 
-	if volume.ClusterOpts == nil {
+	if volume.ClusterVolume == nil {
 		return errors.New("Can only update cluster volumes")
 	}
 
 	if flags.Changed("availability") {
-		volume.ClusterOpts.Spec.Availability = types.VolumeAvailability(availability)
+		volume.ClusterVolume.Spec.Availability = types.VolumeAvailability(availability)
 	}
 
 	return apiClient.VolumeUpdate(
-		ctx, volume.ClusterOpts.ID, volume.ClusterOpts.Version,
+		ctx, volume.ClusterVolume.ID, volume.ClusterVolume.Version,
 		volumetypes.VolumeUpdateBody{
-			Spec: &volume.ClusterOpts.Spec,
+			Spec: &volume.ClusterVolume.Spec,
 		},
 	)
 }

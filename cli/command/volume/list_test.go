@@ -136,7 +136,7 @@ func TestClusterVolumeList(t *testing.T) {
 						Name:   "volume1",
 						Scope:  "global",
 						Driver: "driver1",
-						ClusterOpts: &types.ClusterVolume{
+						ClusterVolume: &types.ClusterVolume{
 							Spec: types.ClusterVolumeSpec{
 								Group: "group1",
 								AccessMode: &types.VolumeAccessMode{
@@ -151,7 +151,7 @@ func TestClusterVolumeList(t *testing.T) {
 						Name:   "volume2",
 						Scope:  "global",
 						Driver: "driver1",
-						ClusterOpts: &types.ClusterVolume{
+						ClusterVolume: &types.ClusterVolume{
 							Spec: types.ClusterVolumeSpec{
 								Group: "group1",
 								AccessMode: &types.VolumeAccessMode{
@@ -170,7 +170,7 @@ func TestClusterVolumeList(t *testing.T) {
 						Name:   "volume3",
 						Scope:  "global",
 						Driver: "driver2",
-						ClusterOpts: &types.ClusterVolume{
+						ClusterVolume: &types.ClusterVolume{
 							Spec: types.ClusterVolumeSpec{
 								Group: "group2",
 								AccessMode: &types.VolumeAccessMode{
@@ -195,7 +195,7 @@ func TestClusterVolumeList(t *testing.T) {
 						Name:   "volume4",
 						Scope:  "global",
 						Driver: "driver2",
-						ClusterOpts: &types.ClusterVolume{
+						ClusterVolume: &types.ClusterVolume{
 							Spec: types.ClusterVolumeSpec{
 								Group: "group2",
 								AccessMode: &types.VolumeAccessMode{

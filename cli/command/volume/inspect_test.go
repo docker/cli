@@ -146,7 +146,8 @@ func TestVolumeInspectCluster(t *testing.T) {
 			Name:   "clustervolume",
 			Driver: "clusterdriver1",
 			Scope:  "global",
-			ClusterOpts: &types.ClusterVolume{
+			ClusterVolume: &types.ClusterVolume{
+				ID: "fooid",
 				Meta: swarm.Meta{
 					Version: swarm.Version{
 						Index: uint64(123),

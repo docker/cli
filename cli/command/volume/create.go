@@ -7,9 +7,11 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type createOptions struct {
@@ -18,7 +20,7 @@ type createOptions struct {
 	driverOpts opts.MapOpts
 	labels     opts.ListOpts
 
-	// options for cluster voluems only
+	// options for cluster volumes only
 	group         string
 	scope         string
 	sharing       string
@@ -46,7 +48,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 				}
 				options.name = args[0]
 			}
-			return runCreate(dockerCli, options)
+			return runCreate(dockerCli, options, hasClusterVolumeOptionSet(cmd.Flags()))
 		},
 	}
 	flags := cmd.Flags()
@@ -69,7 +71,16 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, options createOptions) error {
+// hasClusterVolumeOptionSet returns true if any of the cluster-specific
+// options are set.
+func hasClusterVolumeOptionSet(flags *pflag.FlagSet) bool {
+	return flags.Changed("group") || flags.Changed("scope") ||
+		flags.Changed("sharing") || flags.Changed("availability") ||
+		flags.Changed("type") || flags.Changed("secrets") ||
+		flags.Changed("limit-bytes") || flags.Changed("required-bytes")
+}
+
+func runCreate(dockerCli command.Cli, options createOptions, cluster bool) error {
 	client := dockerCli.Client()
 
 	volReq := volumetypes.VolumeCreateBody{
@@ -77,6 +88,10 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,
 		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
+	}
+
+	if cluster {
+		volReq.ClusterVolumeSpec = &types.ClusterVolumeSpec{}
 	}
 
 	vol, err := client.VolumeCreate(context.Background(), volReq)
