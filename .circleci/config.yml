@@ -4,13 +4,13 @@ jobs:
 
   lint:
     working_directory: /work
-    docker: [{image: 'docker:19.03-git'}]
+    docker: [{image: 'docker:20.10-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.6
           reusable: true
           exclusive: false
       - run:
@@ -39,7 +39,7 @@ jobs:
 
   cross:
     working_directory: /work
-    docker: [{image: 'docker:19.03-git'}]
+    docker: [{image: 'docker:20.10-git'}]
     environment:
       DOCKER_BUILDKIT: 1
       BUILDX_VERSION: "v0.5.1"
@@ -47,7 +47,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.6
           reusable: true
           exclusive: false
       - run:
@@ -69,13 +69,13 @@ jobs:
 
   test:
     working_directory: /work
-    docker: [{image: 'docker:19.03-git'}]
+    docker: [{image: 'docker:20.10-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.6
           reusable: true
           exclusive: false
       - run:
@@ -116,13 +116,13 @@ jobs:
 
   validate:
     working_directory: /work
-    docker: [{image: 'docker:19.03-git'}]
+    docker: [{image: 'docker:20.10-git'}]
     environment:
       DOCKER_BUILDKIT: 1
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.12
+          version: 20.10.6
           reusable: true
           exclusive: false
       - run:
