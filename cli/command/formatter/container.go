@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Platform}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
 	namesHeader      = "NAMES"
 	commandHeader    = "COMMAND"
@@ -42,6 +42,7 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 		}
 		format := `container_id: {{.ID}}
 image: {{.Image}}
+platform: {{.Platform}}
 command: {{.Command}}
 created_at: {{.CreatedAt}}
 state: {{- pad .State 1 0}}
@@ -92,6 +93,7 @@ func NewContainerContext() *ContainerContext {
 		"ID":           ContainerIDHeader,
 		"Names":        namesHeader,
 		"Image":        ImageHeader,
+		"Platform":     PlatformHeader,
 		"Command":      commandHeader,
 		"CreatedAt":    CreatedAtHeader,
 		"RunningFor":   runningForHeader,
@@ -292,6 +294,12 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// Platform returns formatted string representing the container image's
+// platform (e.g. linux/arm/v7).
+func (c *ContainerContext) Platform() string {
+	return c.c.Platform.String()
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
