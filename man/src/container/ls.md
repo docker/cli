@@ -32,6 +32,7 @@ Valid placeholders for the Go template are listed below:
    - .Command      - Quoted command.
    - .CreatedAt    - Time when the container was created.
    - .RunningFor   - Elapsed time since the container was started.
+   - .Platform     -  OS and Architecture of the image that the container was started from.
    - .Ports        - Exposed ports.
    - .Status       - Container status.
    - .Size         - Container disk size.
@@ -47,11 +48,11 @@ Valid placeholders for the Go template are listed below:
 ## Display all containers, including non-running
 
     $ docker container ls -a
-    CONTAINER ID        IMAGE                 COMMAND                CREATED             STATUS      PORTS    NAMES
-    a87ecb4f327c        fedora:20             /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
-    01946d9d34d8        vpavlin/rhel7:latest  /bin/sh -c #(nop) MA   33 minutes ago      Exit 0               thirsty_bell
-    c1d3b0166030        acffc0358b9e          /bin/sh -c yum -y up   2 weeks ago         Exit 1               determined_torvalds
-    41d50ecd2f57        fedora:20             /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
+    CONTAINER ID        IMAGE                 PLATFORM       COMMAND                CREATED             STATUS      PORTS    NAMES
+    a87ecb4f327c        fedora:20             linux/amd64    /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
+    01946d9d34d8        vpavlin/rhel7:latest  linux/amd64    /bin/sh -c #(nop) MA   33 minutes ago      Exit 0               thirsty_bell
+    c1d3b0166030        acffc0358b9e          linux/amd64    /bin/sh -c yum -y up   2 weeks ago         Exit 1               determined_torvalds
+    41d50ecd2f57        fedora:20             linux/amd64    /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
 
 ## Display only IDs of all containers, including non-running
 
@@ -107,11 +108,11 @@ Valid placeholders for the Go template are listed below:
 ## Display containers that have published port of 80:
 
     $ docker ps --filter publish=80
-    CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS                   NAMES
-    fc7e477723b7        busybox             "top"               About a minute ago   Up About a minute   0.0.0.0:32768->80/tcp   admiring_roentgen
+    CONTAINER ID        IMAGE      PLATFORM       COMMAND             CREATED              STATUS              PORTS                   NAMES
+    fc7e477723b7        busybox    linux/amd64    "top"               About a minute ago   Up About a minute   0.0.0.0:32768->80/tcp   admiring_roentgen
 
 ## Display containers that have exposed TCP port in the range of `8000-8080`:
 
     $ docker ps --filter expose=8000-8080/tcp
-    CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-    9833437217a5        busybox             "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
+    CONTAINER ID        IMAGE      PLATFORM       COMMAND             CREATED             STATUS              PORTS               NAMES
+    9833437217a5        busybox    linux/amd64    "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
