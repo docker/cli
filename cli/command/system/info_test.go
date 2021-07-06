@@ -420,3 +420,55 @@ func TestFormatInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestNeedsServerInfo(t *testing.T) {
+	tests := []struct {
+		doc      string
+		template string
+		expected bool
+	}{
+		{
+			doc:      "no template",
+			template: "",
+			expected: true,
+		},
+		{
+			doc:      "JSON",
+			template: "json",
+			expected: true,
+		},
+		{
+			doc:      "JSON (all fields)",
+			template: "{{json .}}",
+			expected: true,
+		},
+		{
+			doc:      "JSON (Server ID)",
+			template: "{{json .ID}}",
+			expected: true,
+		},
+		{
+			doc:      "ClientInfo",
+			template: "{{json .ClientInfo}}",
+			expected: false,
+		},
+		{
+			doc:      "JSON ClientInfo",
+			template: "{{json .ClientInfo}}",
+			expected: false,
+		},
+		{
+			doc:      "JSON (Active context)",
+			template: "{{json .ClientInfo.Context}}",
+			expected: false,
+		},
+	}
+
+	inf := info{ClientInfo: &clientInfo{}}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			assert.Equal(t, needsServerInfo(tc.template, inf), tc.expected)
+		})
+	}
+}

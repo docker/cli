@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -64,13 +66,6 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
 	var info info
 
-	ctx := context.Background()
-	if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
-		info.Info = &dinfo
-	} else {
-		info.ServerErrors = append(info.ServerErrors, err.Error())
-	}
-
 	info.ClientInfo = &clientInfo{
 		Context: dockerCli.CurrentContext(),
 		Debug:   debug.IsEnabled(),
@@ -81,10 +76,58 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 		info.ClientErrors = append(info.ClientErrors, err.Error())
 	}
 
+	if needsServerInfo(opts.format, info) {
+		ctx := context.Background()
+		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
+			info.Info = &dinfo
+		} else {
+			info.ServerErrors = append(info.ServerErrors, err.Error())
+		}
+	}
+
 	if opts.format == "" {
 		return prettyPrintInfo(dockerCli, info)
 	}
 	return formatInfo(dockerCli, info, opts.format)
+}
+
+// placeHolders does a rudimentary match for possible placeholders in a
+// template, matching a '.', followed by an letter (a-z/A-Z).
+var placeHolders = regexp.MustCompile(`\.[a-zA-Z]`)
+
+// needsServerInfo detects if the given template uses any server information.
+// If only client-side information is used in the template, we can skip
+// connecting to the daemon. This allows (e.g.) to only get cli-plugin
+// information, without also making a (potentially expensive) API call.
+func needsServerInfo(template string, info info) bool {
+	if len(template) == 0 || placeHolders.FindString(template) == "" {
+		// The template is empty, or does not contain formatting fields
+		// (e.g. `table` or `raw` or `{{ json .}}`). Assume we need server-side
+		// information to render it.
+		return true
+	}
+
+	// A template is provided and has at least one field set.
+	tmpl, err := templates.NewParse("", template)
+	if err != nil {
+		// ignore parsing errors here, and let regular code handle them
+		return true
+	}
+
+	type sparseInfo struct {
+		ClientInfo   *clientInfo `json:",omitempty"`
+		ClientErrors []string    `json:",omitempty"`
+	}
+
+	// This constructs an "info" object that only has the client-side fields.
+	err = tmpl.Execute(ioutil.Discard, sparseInfo{
+		ClientInfo:   info.ClientInfo,
+		ClientErrors: info.ClientErrors,
+	})
+	// If executing the template failed, it means the template needs
+	// server-side information as well. If it succeeded without server-side
+	// information, we don't need to make API calls to collect that information.
+	return err != nil
 }
 
 func prettyPrintInfo(dockerCli command.Cli, info info) error {
