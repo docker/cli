@@ -114,6 +114,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
 	flags.StringVar(&opts.kubeConfig, "kubeconfig", "", "Kubernetes config file")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
+	flags.SetAnnotation("kubeconfig", "deprecated", nil)
 
 	return cmd
 }

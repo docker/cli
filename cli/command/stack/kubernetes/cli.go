@@ -50,6 +50,7 @@ func NewOptions(flags *flag.FlagSet, orchestrator command.Orchestrator) Options 
 func AddNamespaceFlag(flags *flag.FlagSet) {
 	flags.String("namespace", "", "Kubernetes namespace to use")
 	flags.SetAnnotation("namespace", "kubernetes", nil)
+	flags.SetAnnotation("namespace", "deprecated", nil)
 }
 
 // WrapCli wraps command.Cli with kubernetes specifics

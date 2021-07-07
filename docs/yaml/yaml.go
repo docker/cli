@@ -199,6 +199,9 @@ func genFlagResult(flags *pflag.FlagSet) []cmdOption {
 		if _, ok := flag.Annotations["experimental"]; ok {
 			opt.Experimental = true
 		}
+		if _, ok := flag.Annotations["deprecated"]; ok {
+			opt.Deprecated = true
+		}
 		if v, ok := flag.Annotations["version"]; ok {
 			opt.MinAPIVersion = v[0]
 		}

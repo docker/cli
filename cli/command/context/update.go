@@ -61,8 +61,11 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		&opts.DefaultStackOrchestrator,
 		"default-stack-orchestrator", "",
 		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
+	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
 	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
+	flags.SetAnnotation("kubernetes", "kubernetes", nil)
+	flags.SetAnnotation("kubernetes", "deprecated", nil)
 	return cmd
 }
 
