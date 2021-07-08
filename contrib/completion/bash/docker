@@ -5486,21 +5486,21 @@ _docker_wait() {
 	_docker_container_wait
 }
 
+COMPOSE_PLUGIN_PATH=$(docker info --format '{{json .ClientInfo.Plugins}}' | sed -n 's/.*"Path":"\([^"]\+docker-compose\)".*/\1/p')
+
 _docker_compose() {
-	local composePluginPath="${HOME}/.docker/cli-plugins/docker-compose"
 	local completionCommand="__completeNoDesc"
-  local resultArray=(${composePluginPath} ${completionCommand} compose)
-	for value in "${words[@]:2}"
-	do
-		if [[ "${value}" == "" ]] ; then
+	local resultArray=($COMPOSE_PLUGIN_PATH $completionCommand compose)
+	for value in "${words[@]:2}"; do
+		if [ -z "$value" ]; then
 			resultArray+=( "''" )
 		else
-			resultArray+=( "${value}" )
+			resultArray+=( "$value" )
 		fi
 	done
-	local result=$(eval "${resultArray[*]}" 2> /dev/null)
+	local result=$(eval "${resultArray[*]}" 2> /dev/null | grep -v '^:[0-9]*$')
 
-	COMPREPLY=( $(compgen -W "${result%%:*}" -- "$current") )
+	COMPREPLY=( $(compgen -W "${result}" -- "$current") )
 }
 
 _docker() {
@@ -5572,9 +5572,11 @@ _docker() {
 		wait
 	)
 
-	local known_plugin_commands=(
-		compose
-	)
+	local known_plugin_commands=()
+
+	if [ -f "$COMPOSE_PLUGIN_PATH" ] ; then
+		known_plugin_commands+=("compose")
+	fi
 
 	local experimental_server_commands=(
 		checkpoint
