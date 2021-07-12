@@ -73,9 +73,23 @@ func GenYamlTreeCustom(cmd *cobra.Command, dir string, filePrepender func(string
 			return err
 		}
 	}
-	if !cmd.HasParent() {
-		return nil
-	}
+
+	// TODO: conditionally skip the root command (for plugins)
+	//
+	// The "root" command used in the generator is just a "stub", and only has a
+	// list of subcommands, but not (e.g.) global options/flags. We should fix
+	// that, so that the YAML file for the docker "root" command contains the
+	// global flags.
+	//
+	// If we're using this code to generate YAML docs for a plugin, the root-
+	// command is even less useful; in that case, the root command represents
+	// the "docker" command, and is a "dummy" with no flags, and only a single
+	// subcommand (the plugin's top command). For plugins, we should skip the
+	// root command altogether, to prevent generating a useless YAML file.
+	// if !cmd.HasParent() {
+	// 	return nil
+	// }
+
 	basename := strings.Replace(cmd.CommandPath(), " ", "_", -1) + ".yaml"
 	filename := filepath.Join(dir, basename)
 	f, err := os.Create(filename)
