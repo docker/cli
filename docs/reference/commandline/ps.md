@@ -30,7 +30,12 @@ Options:
                         - since=(<container-name>|<container-id>)
                         - status=(created|restarting|removing|running|paused|exited)
                         - volume=(<volume name>|<mount point destination>)
-      --format string   Pretty-print containers using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
   -n, --last int        Show n last created containers (includes all states) (default -1)
   -l, --latest          Show the latest created container (includes all states)
@@ -442,4 +447,10 @@ a87ecb4f327c        com.docker.swarm.node=ubuntu,com.docker.swarm.storage=ssd
 01946d9d34d8
 c1d3b0166030        com.docker.swarm.node=debian,com.docker.swarm.cpu=6
 41d50ecd2f57        com.docker.swarm.node=fedora,com.docker.swarm.cpu=3,com.docker.swarm.storage=ssd
+```
+
+To list all running containers with json output, use `json` directive:
+```bash
+$ docker ps --format json
+{"Command":"\"/docker-entrypoint.…\"","CreatedAt":"2021-03-10 00:15:05 +0100 CET","ID":"a762a2b37a1d","Image":"nginx","Labels":"maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e","LocalVolumes":"0","Mounts":"","Names":"boring_keldysh","Networks":"bridge","Ports":"80/tcp","RunningFor":"4 seconds ago","Size":"0B","State":"running","Status":"Up 3 seconds"}
 ```

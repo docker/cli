@@ -12,7 +12,7 @@ Usage:  docker secret inspect [OPTIONS] SECRET [SECRET...]
 Display detailed information on one or more secrets
 
 Options:
-  -f, --format string   Format the output using the given Go template
+  -f, --format string   Format the output using the given Go template (default "json")
       --help            Print usage
 ```
 

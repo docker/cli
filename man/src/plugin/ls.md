@@ -10,7 +10,7 @@ Filter output based on these conditions:
 
 ## Format
 
-   Pretty-print plugins using a Go template.
+   Format the output using the given Go template.
    Valid placeholders:
       .ID - Plugin ID.
       .Name - Plugin Name.
@@ -29,6 +29,11 @@ Filter output based on these conditions:
 
     $ docker plugin ls --format "{{.ID}}: {{.Name}}"
     869080b57404: tiborvass/sample-volume-plugin:latest
+
+## Display plugins with JSON output
+
+    $ docker plugin ls --format json
+    {"Description":"A sample volume plugin for Docker","Enabled":true,"ID":"2788a2da7e12","Name":"tiborvass/sample-volume-plugin:latest","PluginReference":"docker.io/tiborvass/sample-volume-plugin:latest"}
 
 ## Display enabled plugins
 

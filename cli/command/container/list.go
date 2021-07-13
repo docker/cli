@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
@@ -46,7 +47,7 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.BoolVarP(&options.nLatest, "latest", "l", false, "Show the latest created container (includes all states)")
 	flags.IntVarP(&options.last, "last", "n", -1, "Show n last created containers (includes all states)")
-	flags.StringVarP(&options.format, "format", "", "", "Pretty-print containers using a Go template")
+	flags.StringVarP(&options.format, "format", "", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
@@ -80,7 +81,6 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 		// Only requesting container size information when needed is an optimization,
 		// because calculating the size is a costly operation.
 		tmpl, err := templates.NewParse("", opts.format)
-
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse template")
 		}

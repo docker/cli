@@ -13,7 +13,12 @@ List the services in the stack
 
 Options:
   -f, --filter filter         Filter output based on conditions provided
-      --format string         Pretty-print services using a Go template
+      --format string         Format output using a custom template:
+                              'table':            Print output in table format with column headers (default)
+                              'table <TEMPLATE>': Print output in table format using the given Go template
+                              'json':             Print in JSON format
+                              '<TEMPLATE>':       Print output using the given Go template.
+                              Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help                  Print usage
       --kubeconfig string     Kubernetes config file
       --namespace string      Kubernetes namespace to use
@@ -108,6 +113,14 @@ $ docker stack services --format "{{.ID}}: {{.Mode}} {{.Replicas}}"
 
 0zmvwuiu3vue: replicated 10/10
 fm6uf97exkul: global 5/5
+```
+
+To list all the services with json output, use `json` directive:
+```bash
+$ docker stack services ls --format json
+{"ID":"0axqbl293vwm","Image":"localstack/localstack:latest","Mode":"replicated","Name":"myapp_localstack","Ports":"*:4566-\u003e4566/tcp, *:8080-\u003e8080/tcp","Replicas":"0/1"}
+{"ID":"384xvtzigz3p","Image":"redis:6.0.9-alpine3.12","Mode":"replicated","Name":"myapp_redis","Ports":"*:6379-\u003e6379/tcp","Replicas":"1/1"}
+{"ID":"hyujct8cnjkk","Image":"postgres:13.2-alpine","Mode":"replicated","Name":"myapp_repos-db","Ports":"*:5432-\u003e5432/tcp","Replicas":"0/1"}
 ```
 
 

@@ -16,7 +16,12 @@ Aliases:
 
 Options:
   -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print services using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
   -q, --quiet           Only display IDs
 ```
@@ -151,6 +156,13 @@ $ docker service ls --format "{{.ID}}: {{.Mode}} {{.Replicas}}"
 
 0zmvwuiu3vue: replicated 10/10
 fm6uf97exkul: global 5/5
+```
+
+To list all the services with json output, use the `json` directive:
+
+```bash
+$ docker service ls --format json
+{"ID":"ssniordqolsi","Image":"hello-world:latest","Mode":"replicated","Name":"hello","Ports":"","Replicas":"0/1"}
 ```
 
 ## Related commands

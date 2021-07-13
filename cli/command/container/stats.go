@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
@@ -44,7 +45,7 @@ func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all", "a", false, "Show all containers (default shows just running)")
 	flags.BoolVar(&opts.noStream, "no-stream", false, "Disable streaming stats and only pull the first result")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
+	flags.StringVar(&opts.format, "format", "", flagsHelper.FormatHelp)
 	return cmd
 }
 

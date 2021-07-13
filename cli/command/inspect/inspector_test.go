@@ -257,3 +257,57 @@ func TestTemplateInspectorRawFallbackNumber(t *testing.T) {
 		b.Reset()
 	}
 }
+
+func TestNewTemplateInspectorFromString(t *testing.T) {
+	testCases := []struct {
+		name     string
+		template string
+		expected string
+	}{
+		{
+			name:     "empty template outputs json by default",
+			template: "",
+			expected: `[
+    {
+        "Name": "test"
+    }
+]
+`,
+		},
+		{
+			name:     "json specific value outputs json",
+			template: "json",
+			expected: `[
+    {
+        "Name": "test"
+    }
+]
+`,
+		},
+		{
+			name:     "template is applied",
+			template: "{{.Name}}",
+			expected: "test\n",
+		},
+	}
+	value := struct {
+		Name string
+	}{
+		"test",
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := new(bytes.Buffer)
+			i, err := NewTemplateInspectorFromString(b, tc.template)
+			assert.NilError(t, err)
+
+			err = i.Inspect(value, nil)
+			assert.NilError(t, err)
+
+			err = i.Flush()
+			assert.NilError(t, err)
+
+			assert.Equal(t, b.String(), tc.expected)
+		})
+	}
+}

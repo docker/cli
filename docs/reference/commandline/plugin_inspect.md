@@ -12,7 +12,7 @@ Usage:  docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
 Display detailed information on one or more plugins
 
 Options:
-  -f, --format string   Format the output using the given Go template
+  -f, --format string   Format the output using the given Go template (default "json")
       --help            Print usage
 ```
 

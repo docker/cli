@@ -25,7 +25,7 @@ Filters the output based on these conditions:
 
 ## Format
 
-   Pretty-print images using a Go template.
+   Format the output using the given Go template.
    Valid placeholders:
       .ID - Image ID
       .Repository - Image repository
@@ -78,12 +78,13 @@ still find it in the third-party dockviz tool: https://github.com/justone/dockvi
 When using the --format option, the image command will either output the data 
 exactly as the template declares or, when using the `table` directive, will 
 include column headers as well. You can use special characters like `\t` for
-inserting tab spacing between columns. 
+inserting tab spacing between columns. `json` directive will output objects
+with JSON format.
 
 The following example uses a template without headers and outputs the ID and 
 Repository entries separated by a colon for all images:
 
-    docker images --format "{{.ID}}: {{.Repository}}"
+    docker image ls --format "{{.ID}}: {{.Repository}}"
     77af4d6b9913: <none>
     b6fa739cedf5: committ
     78a85c484bad: ipbabble
@@ -96,7 +97,7 @@ Repository entries separated by a colon for all images:
 
 To list all images with their repository and tag in a table format you can use:
 
-    docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}"
+    docker image ls --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}"
     IMAGE ID            REPOSITORY                TAG
     77af4d6b9913        <none>                    <none>
     b6fa739cedf5        committ                   latest
@@ -109,6 +110,13 @@ To list all images with their repository and tag in a table format you can use:
     746b819f315e        postgres                  latest
 
 Valid template placeholders are listed above.
+
+To list all images with JSON output you can use:
+
+    docker image ls --format json
+    {"Containers":"N/A","CreatedAt":"2021-01-18 11:29:06 +0100 CET","CreatedSince":"24 hours ago","Digest":"\u003cnone\u003e","ID":"fbcf509fa16f","Repository":"docker","SharedSize":"N/A","Size":"235MB","Tag":"stable-dind","UniqueSize":"N/A","VirtualSize":"235.5MB"}
+    {"Containers":"N/A","CreatedAt":"2021-01-18 11:24:48 +0100 CET","CreatedSince":"24 hours ago","Digest":"\u003cnone\u003e","ID":"08656a69ab2b","Repository":"docker-cli-e2e","SharedSize":"N/A","Size":"1.21GB","Tag":"latest","UniqueSize":"N/A","VirtualSize":"1.207GB"}
+    {"Containers":"N/A","CreatedAt":"2021-01-18 10:43:44 +0100 CET","CreatedSince":"24 hours ago","Digest":"\u003cnone\u003e","ID":"abca5c07c1ba","Repository":"docker-cli-dev","SharedSize":"N/A","Size":"608MB","Tag":"latest","UniqueSize":"N/A","VirtualSize":"607.8MB"}
 
 ## Listing only the shortened image IDs
 

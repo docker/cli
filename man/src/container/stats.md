@@ -2,7 +2,7 @@ Display a live stream of one or more containers' resource usage statistics
 
 # Format
 
-   Pretty-print containers statistics using a Go template.
+   Format the output using the given Go template.
    Valid placeholders:
       .Container - Container name or ID.
       .Name - Container name.
@@ -41,3 +41,8 @@ Running `docker container stats` with customized format on all (Running and Stop
     5a8b07ec4cc52823f3cbfdb964018623c1ba307bce2c057ccdbde5f4f6990833   big_heisenberg           0.00%               0B / 0B
 
 `drunk_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
+
+Running `docker container stats` with json output.
+
+    $ docker container stats --format json
+    {"BlockIO":"43.9MB / 0B","CPUPerc":"0.00%","Container":"14c505d03da8","ID":"14c505d03da8","MemPerc":"0.21%","MemUsage":"4.242MiB / 1.944GiB","Name":"registry","NetIO":"4.17kB / 0B","PIDs":"13"}

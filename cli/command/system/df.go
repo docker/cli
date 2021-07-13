@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,7 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.BoolVarP(&opts.verbose, "verbose", "v", false, "Show detailed information on space usage")
-	flags.StringVar(&opts.format, "format", "", "Pretty-print images using a Go template")
+	flags.StringVar(&opts.format, "format", "", flagsHelper.FormatHelp)
 
 	return cmd
 }

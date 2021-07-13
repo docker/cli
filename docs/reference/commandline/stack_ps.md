@@ -13,7 +13,12 @@ List the tasks in the stack
 
 Options:
   -f, --filter filter         Filter output based on conditions provided
-      --format string         Pretty-print tasks using a Go template
+      --format string         Format output using a custom template:
+                              'table':            Print output in table format with column headers (default)
+                              'table <TEMPLATE>': Print output in table format using the given Go template
+                              'json':             Print in JSON format
+                              '<TEMPLATE>':       Print output using the given Go template.
+                              Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help                  Print usage
       --kubeconfig string     Kubernetes config file
       --namespace string      Kubernetes namespace to use
@@ -152,6 +157,14 @@ voting_redis.1: redis:alpine
 voting_visualizer.1: dockersamples/visualizer:stable
 voting_vote.2: dockersamples/examplevotingapp_vote:before
 voting_redis.2: redis:alpine
+```
+
+To list all the tasks with json output, use `json` directive:
+```bash
+$ docker stack ps --format json myapp
+{"CurrentState":"Preparing 23 seconds ago","DesiredState":"Running","Error":"","ID":"2ufjubh79tn0","Image":"localstack/localstack:latest","Name":"myapp_localstack.1","Node":"docker-desktop","Ports":""}
+{"CurrentState":"Running 20 seconds ago","DesiredState":"Running","Error":"","ID":"roee387ngf5r","Image":"redis:6.0.9-alpine3.12","Name":"myapp_redis.1","Node":"docker-desktop","Ports":""}
+{"CurrentState":"Preparing 13 seconds ago","DesiredState":"Running","Error":"","ID":"yte68ouq7glh","Image":"postgres:13.2-alpine","Name":"myapp_repos-db.1","Node":"docker-desktop","Ports":""}
 ```
 
 ### Do not map IDs to Names

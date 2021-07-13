@@ -20,7 +20,12 @@ Options:
                         - before=(<image-name>[:tag]|<image-id>|<image@digest>)
                         - since=(<image-name>[:tag]|<image-id>|<image@digest>)
                         - reference=(pattern of an image reference)
-      --format string   Pretty-print images using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
       --no-trunc        Don't truncate output
   -q, --quiet           Only show image IDs
@@ -340,4 +345,11 @@ b6fa739cedf5        committ                   latest
 746b819f315e        postgres                  9.3
 746b819f315e        postgres                  9.3.5
 746b819f315e        postgres                  latest
+```
+
+With `json` directive, all images are printed with json output:
+```bash
+$ docker images --format json
+{"Containers":"N/A","CreatedAt":"2021-03-04 03:24:42 +0100 CET","CreatedSince":"5 days ago","Digest":"\u003cnone\u003e","ID":"4dd97cefde62","Repository":"ubuntu","SharedSize":"N/A","Size":"72.9MB","Tag":"latest","UniqueSize":"N/A","VirtualSize":"72.9MB"}
+{"Containers":"N/A","CreatedAt":"2021-02-17 22:19:54 +0100 CET","CreatedSince":"2 weeks ago","Digest":"\u003cnone\u003e","ID":"28f6e2705743","Repository":"alpine","SharedSize":"N/A","Size":"5.61MB","Tag":"latest","UniqueSize":"N/A","VirtualSize":"5.613MB"}
 ```

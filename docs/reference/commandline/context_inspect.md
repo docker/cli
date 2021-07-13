@@ -12,7 +12,7 @@ Usage:  docker context inspect [OPTIONS] [CONTEXT] [CONTEXT...]
 Display detailed information on one or more contexts
 
 Options:
-  -f, --format string   Format the output using the given Go template
+  -f, --format string   Format the output using the given Go template (default "json")
 ```
 
 ## Description

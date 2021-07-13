@@ -115,3 +115,8 @@ Valid placeholders for the Go template are listed below:
     $ docker ps --filter expose=8000-8080/tcp
     CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
     9833437217a5        busybox             "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
+
+## Display containers with json output:
+
+    $ docker ps --format json
+    {"Command":"\"/docker-entrypoint.…\"","CreatedAt":"2021-03-10 00:15:05 +0100 CET","ID":"a762a2b37a1d","Image":"nginx","Labels":"maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e","LocalVolumes":"0","Mounts":"","Names":"boring_keldysh","Networks":"bridge","Ports":"80/tcp","RunningFor":"4 seconds ago","Size":"0B","State":"running","Status":"Up 3 seconds"}

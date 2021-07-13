@@ -16,7 +16,12 @@ Aliases:
 
 Options:
   -f, --filter filter   Provide filter values (e.g. 'driver=bridge')
-      --format string   Pretty-print networks using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
       --no-trunc        Do not truncate the output
   -q, --quiet           Only display network IDs
@@ -228,6 +233,14 @@ $ docker network ls --format "{{.ID}}: {{.Driver}}"
 afaaab448eb2: bridge
 d1584f8dc718: host
 391df270dc66: null
+```
+
+To print all the networks with json output, use `json` directive:
+```bash
+$ docker network ls --format json
+{"CreatedAt":"2021-03-09 21:41:29.798999529 +0000 UTC","Driver":"bridge","ID":"f33ba176dd8e","IPv6":"false","Internal":"false","Labels":"","Name":"bridge","Scope":"local"}
+{"CreatedAt":"2021-03-09 21:41:29.772806592 +0000 UTC","Driver":"host","ID":"caf47bb3ac70","IPv6":"false","Internal":"false","Labels":"","Name":"host","Scope":"local"}
+{"CreatedAt":"2021-03-09 21:41:29.752212603 +0000 UTC","Driver":"null","ID":"9d096c122066","IPv6":"false","Internal":"false","Labels":"","Name":"none","Scope":"local"}
 ```
 
 ## Related commands

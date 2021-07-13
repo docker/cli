@@ -20,7 +20,12 @@ Options:
                        - driver=<string> a volume's driver name
                        - label=<key> or label=<key>=<value>
                        - name=<string> a volume's name
-      --format string  Pretty-print volumes using a Go template
+      --format string  Format output using a custom template:
+                       'table':            Print output in table format with column headers (default)
+                       'table <TEMPLATE>': Print output in table format using the given Go template
+                       'json':             Print in JSON format
+                       '<TEMPLATE>':       Print output using the given Go template.
+                       Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help           Print usage
   -q, --quiet          Only display volume names
 ```
@@ -179,6 +184,12 @@ $ docker volume ls --format "{{.Name}}: {{.Driver}}"
 vol1: local
 vol2: local
 vol3: local
+```
+
+To list all the volumes with json output, use `json` directive:
+```bash
+$ docker volume ls --format json
+{"Driver":"local","Labels":"","Links":"N/A","Mountpoint":"/var/lib/docker/volumes/docker-cli-dev-cache/_data","Name":"docker-cli-dev-cache","Scope":"local","Size":"N/A"}
 ```
 
 ## Related commands

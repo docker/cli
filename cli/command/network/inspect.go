@@ -29,7 +29,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "json", "Format the output using the given Go template")
 	cmd.Flags().BoolVarP(&opts.verbose, "verbose", "v", false, "Verbose output for diagnostics")
 
 	return cmd

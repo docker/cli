@@ -16,7 +16,12 @@ Aliases:
 
 Options:
   -f, --filter filter   Provide filter values (e.g. 'enabled=true')
-      --format string   Pretty-print plugins using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template. 
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --help            Print usage
       --no-trunc        Don't truncate output
   -q, --quiet           Only display plugin IDs
@@ -94,6 +99,12 @@ The following example uses a template without headers and outputs the
 $ docker plugin ls --format "{{.ID}}: {{.Name}}"
 
 4be01827a72e: vieux/sshfs:latest
+```
+
+To list all the plugins with json output, use `json` directive:
+```bash
+$ docker plugin ls --format json
+{"Description":"sshFS plugin for Docker","Enabled":false,"ID":"856d89febb1c","Name":"vieux/sshfs:latest","PluginReference":"docker.io/vieux/sshfs:latest"}
 ```
 
 ## Related commands

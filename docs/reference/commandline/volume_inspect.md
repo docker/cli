@@ -12,7 +12,7 @@ Usage:  docker volume inspect [OPTIONS] VOLUME [VOLUME...]
 Display detailed information on one or more volumes
 
 Options:
-  -f, --format string   Format the output using the given Go template
+  -f, --format string   Format the output using the given Go template (default "json")
       --help            Print usage
 ```
 

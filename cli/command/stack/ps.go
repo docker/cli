@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -31,7 +32,7 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	flags.BoolVar(&opts.NoResolve, "no-resolve", false, "Do not map IDs to Names")
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display task IDs")
-	flags.StringVar(&opts.Format, "format", "", "Pretty-print tasks using a Go template")
+	flags.StringVar(&opts.Format, "format", "", flagsHelper.FormatHelp)
 	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }

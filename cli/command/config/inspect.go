@@ -30,7 +30,7 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Format, "format", "f", "", "Format the output using the given Go template")
+	cmd.Flags().StringVarP(&opts.Format, "format", "f", "json", "Format the output using the given Go template")
 	cmd.Flags().BoolVar(&opts.Pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }

@@ -16,7 +16,13 @@ Aliases:
 
 Options:
   -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print secrets using a Go template
+      --format string   Format output using a custom template:
+                        'table':            Print output in table format with column headers (default)
+                        'table <TEMPLATE>': Print output in table format using the given Go template
+                        'json':             Print in JSON format
+                        '<TEMPLATE>':       Print output using the given Go template.
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
+
       --help            Print usage
   -q, --quiet           Only display IDs
 ```
@@ -146,6 +152,12 @@ ID                  NAME                      CREATED
 77af4d6b9913        secret-1                  5 minutes ago
 b6fa739cedf5        secret-2                  3 hours ago
 78a85c484f71        secret-3                  10 days ago
+```
+
+To list all the secrets with json output, use `json` directive:
+```bash
+$ docker secret ls --format json
+{"CreatedAt":"28 seconds ago","Driver":"","ID":"4y7hvwrt1u8e9uxh5ygqj7mzc","Labels":"","Name":"mysecret","UpdatedAt":"28 seconds ago"}
 ```
 
 ## Related commands

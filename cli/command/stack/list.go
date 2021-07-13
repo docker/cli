@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.Format, "format", "", "Pretty-print stacks using a Go template")
+	flags.StringVar(&opts.Format, "format", "", flagsHelper.FormatHelp)
 	flags.StringSliceVar(&opts.Namespaces, "namespace", []string{}, "Kubernetes namespaces to use")
 	flags.SetAnnotation("namespace", "kubernetes", nil)
 	flags.SetAnnotation("namespace", "deprecated", nil)

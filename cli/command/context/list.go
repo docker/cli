@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	kubecontext "github.com/docker/cli/cli/context/kubernetes"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +33,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.format, "format", "", "Pretty-print contexts using a Go template")
+	flags.StringVar(&opts.format, "format", "", flagsHelper.FormatHelp)
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only show context names")
 	return cmd
 }
