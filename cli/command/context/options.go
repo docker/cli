@@ -2,8 +2,6 @@ package context
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -13,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -186,12 +183,7 @@ func getKubernetesEndpoint(dockerCli command.Cli, config map[string]string) (*ku
 			return &res, nil
 		}
 
-		// fallback to env-based kubeconfig
-		kubeconfig := os.Getenv("KUBECONFIG")
-		if kubeconfig == "" {
-			kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-		}
-		ep, err := kubernetes.FromKubeConfig(kubeconfig, "", "")
+		ep, err := kubernetes.FromKubeConfig("", "", "")
 		if err != nil {
 			return nil, err
 		}
