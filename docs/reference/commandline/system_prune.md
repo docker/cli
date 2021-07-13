@@ -128,6 +128,48 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
+```bash
+$ docker system prune --filter 'until=10m'
+
+WARNING! This will remove:
+  - all stopped containers
+  - all networks not used by at least one container
+  - all dangling images
+  - all dangling build cache
+
+  Items to be pruned will be filtered with:
+  - until=10m
+
+Are you sure you want to continue? [y/N] y
+Deleted Containers:
+69c8e2d677f1f8858fbcd2bbe3be6a1723e0488c010c0491a2a1601b77832ec1
+47232b10662f8d1d62dc056c6c9b937f975d57ddbec026aff1d5f2a6b1d8156e
+67cbf4d5db4c492d7d9008302f12d67b081bba4c664867ee63d8f9252b248783
+a5749c316e4912a59452a0f8547deca1923af9085f38f114f74c4b69d3962989
+b10faab270db51790b8a58c9a6e164531633cbc5d2a7cb6ad7394a927607b72b
+7cf63ab4b8b4386f1504b07933434fd13f1db80588a64c0659dad9aa5b1f9e52
+99856eb7a03ce56d1dda9e174bde8460de335874b4a486ba6d3c38f1eac01c5a
+bc8291585d8742b75f3e0e2294d5c9a21435c65b6fe5869c8c7f454c3c8aa29f
+7aea29584e3cb33c3b05e0be4fe5396b9af16ab8106d625779d76624b3000e0d
+fcfa5f8287d738d84494f830ad5367339e49fb4fec883c63f0c31f93675d7618
+044c3caa2df6fb569db4c577efbf9d3b0f47254eae569f68fa2801aa73881bcd
+723941fe18511357d141e946252f0412b6804038d58a7340eec0ed9f87f17181
+efbf592b86e272133d1fc157ebcfc0d9d3ec1ae9abf0e69b29b6722219361667
+ec91f0e99f3d7f6259338427b8b8c9e09b56ba3f891bb7381cff12e11a6ad7cf
+f5a9e1b545a008881a019dbd3075268a74d3770ab56f7a1f3b0a46f5790741c7
+e3d9ff619baf6a50c0e77c2af9538e0e2b092e86620f40c6c8e4629bc4b277b5
+
+Deleted Networks:
+network4
+network6
+network1
+network3
+network2
+network5
+
+Total reclaimed space: 0B
+```
+
 The `label` filter accepts two formats. One is the `label=...` (`label=<key>` or `label=<key>=<value>`),
 which removes containers, images, networks, and volumes with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
