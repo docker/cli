@@ -568,6 +568,11 @@ directories that match patterns in it.  This helps to avoid
 unnecessarily sending large or sensitive files and directories to the
 daemon and potentially adding them to images using `ADD` or `COPY`.
 
+> **Note**
+>
+> .dockerignore ignores files when creating an image, but not volumes. 
+> Keep this in mind when you mount the volume to the same path as the path of the COPY command in the Dockerfile.
+
 The CLI interprets the `.dockerignore` file as a newline-separated
 list of patterns similar to the file globs of Unix shells.  For the
 purposes of matching, the root of the context is considered to be both
