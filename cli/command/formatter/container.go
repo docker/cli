@@ -16,12 +16,13 @@ import (
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
-	namesHeader      = "NAMES"
-	commandHeader    = "COMMAND"
-	runningForHeader = "CREATED"
-	mountsHeader     = "MOUNTS"
-	localVolumes     = "LOCAL VOLUMES"
-	networksHeader   = "NETWORKS"
+	namesHeader       = "NAMES"
+	commandHeader     = "COMMAND"
+	runningForHeader  = "CREATED"
+	mountsHeader      = "MOUNTS"
+	localVolumes      = "LOCAL VOLUMES"
+	networksHeader    = "NETWORKS"
+	ipAddressesHeader = "IP ADDRESSES"
 )
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -103,6 +104,7 @@ func NewContainerContext() *ContainerContext {
 		"Mounts":       mountsHeader,
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
+		"IPAddresses":  ipAddressesHeader,
 	}
 	return &containerCtx
 }
@@ -292,6 +294,25 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// IPAddresses returns the list of IP-addresses assigned to the container
+// IP-addresses are prefixed with the name of the network, separated with a colon.
+// For example: "bridge:192.168.1.10"
+func (c *ContainerContext) IPAddresses() []string {
+	ipAddresses := []string{}
+	if c.c.NetworkSettings == nil {
+		return ipAddresses
+	}
+	for name, net := range c.c.NetworkSettings.Networks {
+		if net.IPAddress != "" {
+			ipAddresses = append(ipAddresses, name+":"+net.IPAddress)
+		}
+		if net.GlobalIPv6Address != "" {
+			ipAddresses = append(ipAddresses, name+":"+net.GlobalIPv6Address)
+		}
+	}
+	return ipAddresses
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
