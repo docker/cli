@@ -471,11 +471,55 @@ Specifying the `--isolation` flag without a value is the same as setting `--isol
 
 ### Add entries to container hosts file (--add-host)
 
-You can add other hosts into a container's `/etc/hosts` file by using one or
-more `--add-host` flags. This example adds a static address for a host named
-`docker`:
+You can add other hosts into the intermediate container's `/etc/hosts` 
+file at build time, by using one or more `--add-host` flags. 
+This example adds a static address for a host named `docker`:
 
-    $ docker build --add-host=docker:10.180.0.1 .
+```dockerfile
+FROM debian AS build-env
+
+RUN cat /etc/hosts
+```
+
+```bash
+$ docker build -t mybuildimage --add-host=docker:10.180.0.1 .
+
+Sending build context to Docker daemon  2.048kB
+Step 1/2 : FROM debian AS build-env
+ ---> 7a4951775d15
+Step 2/2 : RUN cat /etc/hosts
+ ---> Running in 4f4501c62199
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::0	ip6-localnet
+ff00::0	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+10.180.0.1	docker
+172.17.0.2	4f4501c62199
+Removing intermediate container 4f4501c62199
+ ---> ac7aeb6b6379
+Successfully built ac7aeb6b6379
+Successfully tagged mybuildimage:latest
+```
+
+Please note that this host is not propagated to the container's `/etc/hosts` 
+file, as demonstrated by running the container built above:
+
+```bash
+$ docker run mybuildimage cat /etc/hosts
+
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::0	ip6-localnet
+ff00::0	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+172.17.0.2	5a0490320326
+```
+
+To make a custom host-to-IP mapping available to a container, please use the 
+`--add-host` option with the `docker run` command.
 
 ### Specifying target build stage (--target)
 
