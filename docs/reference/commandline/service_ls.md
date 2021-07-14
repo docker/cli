@@ -65,7 +65,9 @@ The currently supported filters are:
 
 #### id
 
-The `id` filter matches all or part of a service's id.
+The `id` filter matches all or the prefix of a service's id.
+
+The following filter matches services with an id starting with `0bcjw`.
 
 ```bash
 $ docker service ls -f "id=0bcjw"
@@ -113,9 +115,9 @@ w7y0v2yrn620        top                 global              1/1                 
 
 #### name
 
-The `name` filter matches on all or part of a service's name.
+The `name` filter matches on all or the prefix of a service's name.
 
-The following filter matches services with a name containing `redis`.
+The following filter matches services with a name starting with `redis`.
 
 ```bash
 $ docker service ls --filter name=redis
