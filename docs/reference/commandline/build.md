@@ -667,7 +667,7 @@ The `--squash` option has a number of known limitations:
   base image is still supported.
 - When using this option you may see significantly more space used due to
   storing two copies of the image, one for the build cache with all the cache
-  layers in tact, and one for the squashed version.
+  layers intact, and one for the squashed version.
 - While squashing layers may produce smaller images, it may have a negative
   impact on performance, as a single layer takes longer to extract, and
   downloading a single layer cannot be parallelized.
