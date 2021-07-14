@@ -17,8 +17,8 @@ Options:
   -f, --filter value    Filter output based on conditions provided (default [])
                         - dangling=(true|false)
                         - label=<key> or label=<key>=<value>
-                        - before=(<image-name>[:tag]|<image-id>|<image@digest>)
-                        - since=(<image-name>[:tag]|<image-id>|<image@digest>)
+                        - before=(<image-repository>[:tag]|<image-id>|<image@digest>)
+                        - since=(<image-repository>[:tag]|<image-id>|<image@digest>)
                         - reference=(pattern of an image reference)
       --format string   Pretty-print images using a Go template
       --help            Print usage
@@ -63,7 +63,7 @@ postgres                  9.3.5               746b819f315e        4 days ago    
 postgres                  latest              746b819f315e        4 days ago          213.4 MB
 ```
 
-### List images by name and tag
+### List images by repository and tag
 
 The `docker images` command takes an optional `[REPOSITORY[:TAG]]` argument
 that restricts the list to images that match the argument. If you specify
@@ -147,8 +147,8 @@ The currently supported filters are:
 
 * dangling (boolean - true or false)
 * label (`label=<key>` or `label=<key>=<value>`)
-* before (`<image-name>[:<tag>]`,  `<image id>` or `<image@digest>`) - filter images created before given id or references
-* since (`<image-name>[:<tag>]`,  `<image id>` or `<image@digest>`) - filter images created since given id or references
+* before (`<image-repository>[:<tag>]`,  `<image id>` or `<image@digest>`) - filter images created before given id or references
+* since (`<image-repository>[:<tag>]`,  `<image id>` or `<image@digest>`) - filter images created since given id or references
 * reference (pattern of an image reference) - filter images whose reference matches the specified pattern
 
 #### Show untagged images (dangling)
