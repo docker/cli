@@ -110,12 +110,6 @@ Build Syntax Suffix             | Commit Used           | Build Context Used
 `myrepo.git#mytag:myfolder`     | `refs/tags/mytag`     | `/myfolder`
 `myrepo.git#mybranch:myfolder`  | `refs/heads/mybranch` | `/myfolder`
 
-> **Note**
->
-> You cannot specify the build-context directory (`myfolder` in the examples above)
-> when using BuildKit as builder (`DOCKER_BUILDKIT=1`). Support for this feature
-> is tracked in [buildkit#1684](https://github.com/moby/buildkit/issues/1684).
-
 ### Tarball contexts
 
 If you pass an URL to a remote tarball, the URL itself is sent to the daemon:
