@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/containerd/containerd/pkg/userns"
+	"github.com/containerd/containerd/sys"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/system"
 	"golang.org/x/sys/unix"
@@ -92,7 +92,7 @@ func handleTarTypeBlockCharFifo(hdr *tar.Header, path string) error {
 	}
 
 	err := system.Mknod(path, mode, int(system.Mkdev(hdr.Devmajor, hdr.Devminor)))
-	if errors.Is(err, syscall.EPERM) && userns.RunningInUserNS() {
+	if errors.Is(err, syscall.EPERM) && sys.RunningInUserNS() {
 		// In most cases, cannot create a device if running in user namespace
 		err = nil
 	}
