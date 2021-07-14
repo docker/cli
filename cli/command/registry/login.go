@@ -106,7 +106,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocycl
 		authServer    = command.ElectAuthServer(ctx, dockerCli)
 	)
 	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
-		serverAddress = opts.serverAddress
+		serverAddress = strings.ToLower(opts.serverAddress)
 	} else {
 		serverAddress = authServer
 	}
