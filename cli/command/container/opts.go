@@ -840,11 +840,25 @@ func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]st
 func parseSecurityOpts(securityOpts []string) ([]string, error) {
 	for key, opt := range securityOpts {
 		con := strings.SplitN(opt, "=", 2)
-		if len(con) == 1 && con[0] != "no-new-privileges" {
-			if strings.Contains(opt, ":") {
-				con = strings.SplitN(opt, ":", 2)
+		if len(con) == 1 {
+			switch con[0] {
+			case "no-new-privileges":
+			case "privileged-without-host-devices":
+			case "pwohd":
+			default:
+				if strings.Contains(opt, ":") {
+					con = strings.SplitN(opt, ":", 2)
+				} else {
+					return securityOpts, errors.Errorf("Invalid --security-opt: %q", opt)
+				}
+			}
+		}
+		if con[0] == "pwohd" {
+			// abbrev is supported by CLI but not supported by API
+			if len(con) == 1 {
+				securityOpts[key] = "privileged-without-host-devices"
 			} else {
-				return securityOpts, errors.Errorf("Invalid --security-opt: %q", opt)
+				securityOpts[key] = "privileged-without-host-devices=" + con[1]
 			}
 		}
 		if con[0] == "seccomp" && con[1] != "unconfined" {
