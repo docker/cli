@@ -1564,25 +1564,11 @@ __docker_plugins() {
     filter=$1; shift
     [[ $filter != "none" ]] && args=("-f $filter")
 
-    lines=(${(f)${:-"$(_call_program commands docker $docker_options plugin ls $args)"$'\n'}})
-
-    # Parse header line to find columns
-    local i=1 j=1 k header=${lines[1]}
-    declare -A begin end
-    while (( j < ${#header} - 1 )); do
-        i=$(( j + ${${header[$j,-1]}[(i)[^ ]]} - 1 ))
-        j=$(( i + ${${header[$i,-1]}[(i)  ]} - 1 ))
-        k=$(( j + ${${header[$j,-1]}[(i)[^ ]]} - 2 ))
-        begin[${header[$i,$((j-1))]}]=$i
-        end[${header[$i,$((j-1))]}]=$k
-    done
-    end[${header[$i,$((j-1))]}]=-1
-    lines=(${lines[2,-1]})
+    lines=(${(f)${:-"$(_call_program commands docker $docker_options plugin ls --format='{{.Name}}\|{{.Description}}' $args)"$'\n'}})
 
     # Name
     for line in $lines; do
-        s="${line[${begin[NAME]},${end[NAME]}]%% ##}"
-        s="$s:${(l:7:: :::)${${line[${begin[TAG]},${end[TAG]}]}%% ##}}"
+        s="${${${line//:latest/}//:/\:}//\|/:}"
         plugins=($plugins $s)
     done
 
