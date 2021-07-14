@@ -1,6 +1,8 @@
 #
 # github.com/docker/cli
 #
+export GO ?= go
+
 all: binary
 
 
@@ -12,18 +14,18 @@ clean: ## remove build artifacts
 
 .PHONY: test-unit
 test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit 
-	gotestsum $(TESTFLAGS) -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/')}
+	gotestsum $(TESTFLAGS) -- $${TESTDIRS:-$(shell $(GO) list ./... | grep -vE '/vendor/|/e2e/')}
 
 .PHONY: test
 test: test-unit ## run tests
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	gotestsum -- -coverprofile=coverage.txt $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	gotestsum -- -coverprofile=coverage.txt $(shell $(GO) list ./... | grep -vE '/vendor/|/e2e/')
 
 .PHONY: fmt
 fmt:
-	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
+	$(GO) list -f {{.Dir}} ./... | xargs gofmt -w -s -d
 
 .PHONY: lint
 lint: ## run all the lint tools
@@ -81,7 +83,7 @@ help: ## print this help
 
 
 cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
-	go generate github.com/docker/cli/cli/compose/schema
+	$(GO) generate github.com/docker/cli/cli/compose/schema
 
 compose-jsonschema: cli/compose/schema/bindata.go ## generate compose-file schemas
 	scripts/validate/check-git-diff cli/compose/schema/bindata.go
