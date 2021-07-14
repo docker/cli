@@ -13,6 +13,7 @@ import (
 
 type pruneOptions struct {
 	force  bool
+	dryRun bool
 	filter opts.FilterOpt
 }
 
@@ -40,6 +41,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
+	flags.BoolVarP(&options.dryRun, "dry-run", "n", false, "Display container prune report without removing anything")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
 
 	return cmd
@@ -50,8 +52,9 @@ Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+	pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
 
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
+	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
 	}
 
@@ -62,6 +65,9 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 	if len(report.ContainersDeleted) > 0 {
 		output = "Deleted Containers:\n"
+		if options.dryRun {
+			output = "Will Delete Containers:\n"
+		}
 		for _, id := range report.ContainersDeleted {
 			output += id + "\n"
 		}
@@ -73,6 +79,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+func RunPrune(dockerCli command.Cli, all bool, dryRun bool, filter opts.FilterOpt) (uint64, string, error) {
+	return runPrune(dockerCli, pruneOptions{force: true, dryRun: dryRun, filter: filter})
 }
