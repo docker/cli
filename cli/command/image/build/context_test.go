@@ -245,6 +245,8 @@ func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
 func createTestTempDir(t *testing.T, prefix string) (string, func()) {
 	path, err := ioutil.TempDir("", prefix)
 	assert.NilError(t, err)
+	path, err = filepath.EvalSymlinks(path)
+	assert.NilError(t, err)
 	return path, func() { assert.NilError(t, os.RemoveAll(path)) }
 }
 
