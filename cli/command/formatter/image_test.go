@@ -40,10 +40,6 @@ func TestImageContext(t *testing.T) {
 			expValue: "10B",
 			call:     ctx.Size,
 		},
-		{
-			imageCtx: imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
-			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
-		},
 		// FIXME
 		// {imageContext{
 		// 	i:     types.ImageSummary{Created: unix},
@@ -99,6 +95,23 @@ func TestImageContext(t *testing.T) {
 		} else {
 			assert.Check(t, is.Equal(c.expValue, v))
 		}
+	}
+
+	caseTime := []struct {
+		imageCtx     imageContext
+		expValueTime time.Time
+		callTime     func() time.Time
+	}{
+		{
+			imageCtx:     imageContext{i: types.ImageSummary{Created: unix}, trunc: true},
+			expValueTime: time.Unix(unix, 0), callTime: ctx.CreatedAt,
+		},
+	}
+
+	for _, c := range caseTime {
+		ctx = c.imageCtx
+		v := c.callTime()
+		assert.Check(t, is.Equal(c.expValueTime, v))
 	}
 }
 
