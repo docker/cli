@@ -54,7 +54,7 @@ func ParseHost(defaultToTLS bool, val string) (string, error) {
 		if defaultToTLS {
 			host = defaultTLSHost
 		} else {
-			host = defaultHost
+			host = DefaultLocalHost()
 		}
 	} else {
 		var err error
