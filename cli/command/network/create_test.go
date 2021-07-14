@@ -22,14 +22,15 @@ func TestNetworkCreateErrors(t *testing.T) {
 		expectedError     string
 	}{
 		{
-			expectedError: "exactly 1 argument",
-		},
-		{
 			args: []string{"toto"},
 			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
 				return types.NetworkCreateResponse{}, errors.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
+		},
+		{
+			args:          []string{"1_arg", "2_arg"},
+			expectedError: "\"create\" requires at least 0 and at most 1 argument.",
 		},
 		{
 			args: []string{"toto"},
