@@ -21,7 +21,7 @@ services:
 	file := fs.NewFile(t, "test-get-config-details", fs.WithContent(content))
 	defer file.Remove()
 
-	details, err := getConfigDetails([]string{file.Path()}, nil)
+	details, err := GetConfigDetails([]string{file.Path()}, nil)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(filepath.Dir(file.Path()), details.WorkingDir))
 	assert.Assert(t, is.Len(details.ConfigFiles, 1))
@@ -36,7 +36,7 @@ services:
   foo:
     image: alpine:3.5
 `
-	details, err := getConfigDetails([]string{"-"}, strings.NewReader(content))
+	details, err := GetConfigDetails([]string{"-"}, strings.NewReader(content))
 	assert.NilError(t, err)
 	cwd, err := os.Getwd()
 	assert.NilError(t, err)

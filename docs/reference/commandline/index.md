@@ -159,6 +159,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [stack ps](stack_ps.md) | List the tasks in the stack                        |
 | [stack rm](stack_rm.md) | Remove the stack from the swarm                    |
 | [stack services](stack_services.md) | List the services in the stack         |
+| [stack config](stack_config.md) | Output the Compose file after merges and interpolations |
 
 ### Plugin commands
 
