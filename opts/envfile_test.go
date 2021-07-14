@@ -143,8 +143,8 @@ another invalid line`
 // ParseEnvFile with environment variable import definitions
 func TestParseEnvVariableDefinitionsFile(t *testing.T) {
 	content := `# comment=
-UNDEFINED_VAR
 HOME
+UNDEFINED_VAR
 `
 	tmpFile := tmpFileWithContent(content, t)
 	defer os.Remove(tmpFile)
@@ -154,12 +154,16 @@ HOME
 		t.Fatal("There must not be any error")
 	}
 
-	if "HOME="+os.Getenv("HOME") != variables[0] {
-		t.Fatal("the HOME variable is not properly imported as the first variable (but it is the only one to import)")
+	if 2 != len(variables) {
+		t.Fatal("exactly two variable are imported")
 	}
 
-	if 1 != len(variables) {
-		t.Fatal("exactly one variable is imported (as the other one is not set at all)")
+	if "HOME="+os.Getenv("HOME") != variables[0] {
+		t.Fatal("the HOME variable is not properly imported as the first variable")
+	}
+
+	if "UNDEFINED_VAR" != variables[1] {
+		t.Fatal("the UNDEFINED_VAR variable is not properly imported as the second variable")
 	}
 }
 
