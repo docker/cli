@@ -55,8 +55,7 @@ func TestServiceFiltersLabelSelectorGen(t *testing.T) {
 			),
 			expectedSelectorParts: []string{
 				"com.docker.stack.namespace=test",
-				"label1=test",
-				"label1=test2",
+				"label1 in (test,test2)",
 			},
 		},
 		{
