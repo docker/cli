@@ -1357,7 +1357,7 @@ $ echo $?
 ##### On Linux
 
 The default location of the configuration file on Linux is
-`/etc/docker/daemon.json`. The `--config-file` flag can be used to specify a
+`/etc/docker/daemon.json`. If the file does not exist, you need to create it first. The `--config-file` flag can be used to specify a
  non-default location.
 
 This is a full example of the allowed configuration options on Linux:
