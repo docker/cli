@@ -70,6 +70,14 @@ $ docker version --format '{{.Server.Version}}'
 19.03.8
 ```
 
+### Get the Client API version
+
+```bash
+$ docker version --format '{{.Client.APIVersion}}'
+
+1.20
+```
+
 ### Dump raw JSON data
 
 ```bash
