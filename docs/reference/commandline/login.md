@@ -77,6 +77,7 @@ you can download them from:
 - Apple macOS keychain: https://github.com/docker/docker-credential-helpers/releases
 - Microsoft Windows Credential Manager: https://github.com/docker/docker-credential-helpers/releases
 - [pass](https://www.passwordstore.org/): https://github.com/docker/docker-credential-helpers/releases
+- [LastPass](https://lastpass.com): https://gitlab.com/1ace/docker-credential-lastpass
 
 #### Configure the credentials store
 
