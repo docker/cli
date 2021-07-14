@@ -280,13 +280,9 @@ func ResolveAndValidateContextPath(givenContextDir string) (string, error) {
 	}
 
 	// The context dir might be a symbolic link, so follow it to the actual
-	// target directory.
-	//
-	// FIXME. We use isUNC (always false on non-Windows platforms) to workaround
-	// an issue in golang. On Windows, EvalSymLinks does not work on UNC file
-	// paths (those starting with \\). This hack means that when using links
-	// on UNC paths, they will not be followed.
-	if !isUNC(absContextDir) {
+	// target directory. This still forgets the configured context directory,
+	// but leave this for now on *nix only.
+	if runtime.GOOS != "windows" {
 		absContextDir, err = filepath.EvalSymlinks(absContextDir)
 		if err != nil {
 			return "", errors.Errorf("unable to evaluate symlinks in context path: %v", err)
