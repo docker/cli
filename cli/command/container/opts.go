@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -434,19 +435,19 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	deviceMappings := []container.DeviceMapping{}
 	for _, device := range copts.devices.GetAll() {
 		var (
-			validated     string
-			deviceMapping container.DeviceMapping
-			err           error
+			validated            string
+			parsedDeviceMappings []container.DeviceMapping
+			err                  error
 		)
 		validated, err = validateDevice(device, serverOS)
 		if err != nil {
 			return nil, err
 		}
-		deviceMapping, err = parseDevice(validated, serverOS)
+		parsedDeviceMappings, err = parseDevice(validated, serverOS)
 		if err != nil {
 			return nil, err
 		}
-		deviceMappings = append(deviceMappings, deviceMapping)
+		deviceMappings = append(deviceMappings, parsedDeviceMappings...)
 	}
 
 	// collect all the environment variables for the container
@@ -897,19 +898,21 @@ func parseStorageOpts(storageOpts []string) (map[string]string, error) {
 }
 
 // parseDevice parses a device mapping string to a container.DeviceMapping struct
-func parseDevice(device, serverOS string) (container.DeviceMapping, error) {
+func parseDevice(device, serverOS string) ([]container.DeviceMapping, error) {
+	var deviceMappings []container.DeviceMapping
 	switch serverOS {
 	case "linux":
 		return parseLinuxDevice(device)
 	case "windows":
 		return parseWindowsDevice(device)
 	}
-	return container.DeviceMapping{}, errors.Errorf("unknown server OS: %s", serverOS)
+	return append(deviceMappings, container.DeviceMapping{}), errors.Errorf("unknown server OS: %s", serverOS)
 }
 
 // parseLinuxDevice parses a device mapping string to a container.DeviceMapping struct
 // knowing that the target is a Linux daemon
-func parseLinuxDevice(device string) (container.DeviceMapping, error) {
+func parseLinuxDevice(device string) ([]container.DeviceMapping, error) {
+	var deviceMappings []container.DeviceMapping
 	src := ""
 	dst := ""
 	permissions := "rwm"
@@ -927,26 +930,46 @@ func parseLinuxDevice(device string) (container.DeviceMapping, error) {
 		fallthrough
 	case 1:
 		src = arr[0]
+		if strings.HasSuffix(src, "*") {
+			if dst != "" {
+				return deviceMappings, errors.Errorf("device with * suffix can't have dst: %s", device)
+			}
+		}
 	default:
-		return container.DeviceMapping{}, errors.Errorf("invalid device specification: %s", device)
+		return deviceMappings, errors.Errorf("invalid device specification: %s", device)
 	}
 
-	if dst == "" {
-		dst = src
-	}
+	if strings.HasSuffix(src, "*") {
+		devicePaths, _ := filepath.Glob(src)
+		for _, devicePath := range devicePaths {
+			deviceMapping := container.DeviceMapping{
+				PathOnHost:        devicePath,
+				PathInContainer:   devicePath,
+				CgroupPermissions: permissions,
+			}
+			deviceMappings = append(deviceMappings, deviceMapping)
+		}
 
-	deviceMapping := container.DeviceMapping{
-		PathOnHost:        src,
-		PathInContainer:   dst,
-		CgroupPermissions: permissions,
+	} else {
+		if dst == "" {
+			dst = src
+		}
+
+		deviceMapping := container.DeviceMapping{
+			PathOnHost:        src,
+			PathInContainer:   dst,
+			CgroupPermissions: permissions,
+		}
+		deviceMappings = append(deviceMappings, deviceMapping)
 	}
-	return deviceMapping, nil
+	return deviceMappings, nil
 }
 
 // parseWindowsDevice parses a device mapping string to a container.DeviceMapping struct
 // knowing that the target is a Windows daemon
-func parseWindowsDevice(device string) (container.DeviceMapping, error) {
-	return container.DeviceMapping{PathOnHost: device}, nil
+func parseWindowsDevice(device string) ([]container.DeviceMapping, error) {
+	var deviceMappings []container.DeviceMapping
+	return append(deviceMappings, container.DeviceMapping{PathOnHost: device}), nil
 }
 
 // validateDeviceCgroupRule validates a device cgroup rule string format
