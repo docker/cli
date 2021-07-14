@@ -503,6 +503,74 @@ func TestParseNetworkConfig(t *testing.T) {
 			expectedCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
+			name: "undefined-single-network-legacy-with-options",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"default": {
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links: []string{"foo:bar", "bar:baz"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "default"},
+		},
+		{
+			name: "default-single-network-legacy-with-links-options",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "default",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"default": {
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links: []string{"foo:bar", "bar:baz"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "default"},
+		},
+		{
+			name: "bridge-single-network-legacy-with-links-options",
+			flags: []string{
+				"--ip", "172.20.88.22",
+				"--ip6", "2001:db8::8822",
+				"--link", "foo:bar",
+				"--link", "bar:baz",
+				"--link-local-ip", "169.254.2.2",
+				"--link-local-ip", "fe80::169:254:2:2",
+				"--network", "bridge",
+			},
+			expected: map[string]*networktypes.EndpointSettings{
+				"bridge": {
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						IPv4Address:  "172.20.88.22",
+						IPv6Address:  "2001:db8::8822",
+						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					},
+					Links: []string{"foo:bar", "bar:baz"},
+				},
+			},
+			expectedCfg: container.HostConfig{NetworkMode: "bridge"},
+		},
+		{
 			name: "multiple-network-advanced-mixed",
 			flags: []string{
 				"--ip", "172.20.88.22",
@@ -588,6 +656,11 @@ func TestParseNetworkConfig(t *testing.T) {
 			name:        "invalid-mixed-network-types",
 			flags:       []string{"--network", "name=host", "--network", "net1"},
 			expectedErr: `conflicting options: cannot attach both user-defined and non-user-defined network-modes`,
+		},
+		{
+			name:        "invalid-options-alias-of-undefined-network",
+			flags:       []string{"--network-alias", "web1"},
+			expectedErr: `network-scoped aliases are only supported for user-defined networks`,
 		},
 	}
 
