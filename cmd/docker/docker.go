@@ -424,7 +424,16 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 		if _, ok := f.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker daemon with experimental features enabled`, f.Name))
 		}
-		// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
+		if _, ok := f.Annotations["buildkit"]; ok {
+			if v, _ := command.BuildKitEnabled(details.ServerInfo()); !v {
+				errs = append(errs, fmt.Sprintf(`"--%s" is only supported with BuildKit enabled. Enable BuildKit with DOCKER_BUILDKIT=1`, f.Name))
+			}
+		}
+		if _, ok := f.Annotations["no-buildkit"]; ok {
+			if v, _ := command.BuildKitEnabled(details.ServerInfo()); v {
+				errs = append(errs, fmt.Sprintf(`"--%s" is not supported with BuildKit enabled. Disable BuildKit with DOCKER_BUILDKIT=0`, f.Name))
+			}
+		}
 	})
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
