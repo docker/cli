@@ -77,6 +77,31 @@ func TestVolumePruneForce(t *testing.T) {
 	}
 }
 
+func TestVolumePruneDryRun(t *testing.T) {
+	testCases := []struct {
+		name            string
+		volumePruneFunc func(args filters.Args) (types.VolumesPruneReport, error)
+	}{
+		{
+			name: "dryRunEmpty",
+		},
+		{
+			name:            "dryRunDeleteVolumes",
+			volumePruneFunc: simplePruneFunc,
+		},
+	}
+
+	for _, tc := range testCases {
+		cli := test.NewFakeCli(&fakeClient{
+			volumePruneFunc: tc.volumePruneFunc,
+		})
+		cmd := NewPruneCommand(cli)
+		cmd.Flags().Set("dry-run", "true")
+		assert.NilError(t, cmd.Execute())
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-prune.%s.golden", tc.name))
+	}
+}
+
 func TestVolumePrunePromptYes(t *testing.T) {
 	// FIXME(vdemeester) make it work..
 	skip.If(t, runtime.GOOS == "windows", "TODO: fix test on windows")
