@@ -35,6 +35,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateLabel),
+		secrets:    *opts.NewMapOpts(nil, nil),
 	}
 
 	cmd := &cobra.Command{
@@ -65,8 +66,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.availability, "availability", "active", `Cluster Volume availability ("active"|"pause"|"drain")`)
 	flags.StringVar(&options.accessType, "type", "block", `Cluster Volume access type ("mount"|"block")`)
 	flags.Var(&options.secrets, "secret", "Cluster Volume secrets")
-	flags.Var(&options.requiredBytes, "limit-bytes", "Minimum size of the Cluster Volume in bytes (default 0 for undefined)")
-	flags.Var(&options.limitBytes, "required-bytes", "Maximum size of the Cluster Volume in bytes (default 0 for undefined)")
+	flags.Var(&options.limitBytes, "limit-bytes", "Minimum size of the Cluster Volume in bytes (default 0 for undefined)")
+	flags.Var(&options.requiredBytes, "required-bytes", "Maximum size of the Cluster Volume in bytes (default 0 for undefined)")
 
 	return cmd
 }
@@ -91,7 +92,40 @@ func runCreate(dockerCli command.Cli, options createOptions, cluster bool) error
 	}
 
 	if cluster {
-		volReq.ClusterVolumeSpec = &types.ClusterVolumeSpec{}
+		volReq.ClusterVolumeSpec = &types.ClusterVolumeSpec{
+			Group: options.group,
+			AccessMode: &types.VolumeAccessMode{
+				Scope:   types.VolumeScope(options.scope),
+				Sharing: types.VolumeSharing(options.sharing),
+			},
+			Availability: types.VolumeAvailability(options.availability),
+		}
+
+		if options.accessType == "mount" {
+			volReq.ClusterVolumeSpec.AccessMode.MountVolume = &types.VolumeTypeMount{}
+		} else if options.accessType == "block" {
+			volReq.ClusterVolumeSpec.AccessMode.BlockVolume = &types.VolumeTypeBlock{}
+		}
+
+		vcr := &types.VolumeCapacityRange{}
+		if r := options.requiredBytes.Value(); r >= 0 {
+			vcr.RequiredBytes = uint64(r)
+		}
+
+		if l := options.limitBytes.Value(); l >= 0 {
+			vcr.LimitBytes = uint64(l)
+		}
+		volReq.ClusterVolumeSpec.CapacityRange = vcr
+
+		for key, secret := range options.secrets.GetAll() {
+			volReq.ClusterVolumeSpec.Secrets = append(
+				volReq.ClusterVolumeSpec.Secrets,
+				types.VolumeSecret{
+					Key:    key,
+					Secret: secret,
+				},
+			)
+		}
 	}
 
 	vol, err := client.VolumeCreate(context.Background(), volReq)

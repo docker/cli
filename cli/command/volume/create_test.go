@@ -156,8 +156,10 @@ func TestVolumeCreateCluster(t *testing.T) {
 
 func TestVolumeCreateClusterOpts(t *testing.T) {
 	expectedBody := volumetypes.VolumeCreateBody{
-		Name:   "name",
-		Driver: "csi",
+		Name:       "name",
+		Driver:     "csi",
+		DriverOpts: map[string]string{},
+		Labels:     map[string]string{},
 		ClusterVolumeSpec: &types.ClusterVolumeSpec{
 			Group: "gronp",
 			AccessMode: &types.VolumeAccessMode{
@@ -195,8 +197,9 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 	cmd.Flags().Set("type", "mount")
 	cmd.Flags().Set("sharing", "onewriter")
 	cmd.Flags().Set("required-bytes", "1234")
-	cmd.Flags().Set("limit-bytes", "56789")
-	cmd.Flags().Set("secret", "key1=secret1,key2=secret2")
+	cmd.Flags().Set("limit-bytes", "567890")
+	cmd.Flags().Set("secret", "key1=secret1")
+	cmd.Flags().Set("secret", "key2=secret2")
 
 	cmd.Execute()
 }
