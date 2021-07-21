@@ -178,6 +178,17 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 				{Key: "key2", Secret: "secret2"},
 			},
 			Availability: types.VolumeAvailabilityActive,
+			AccessibilityRequirements: &types.TopologyRequirement{
+				Requisite: []types.Topology{
+					{Segments: map[string]string{"region": "R1", "zone": "Z1"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z2"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z3"}},
+				},
+				Preferred: []types.Topology{
+					{Segments: map[string]string{"region": "R1", "zone": "Z2"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z3"}},
+				},
+			},
 		},
 	}
 
@@ -198,8 +209,16 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 	cmd.Flags().Set("sharing", "onewriter")
 	cmd.Flags().Set("required-bytes", "1234")
 	cmd.Flags().Set("limit-bytes", "567890")
+
 	cmd.Flags().Set("secret", "key1=secret1")
 	cmd.Flags().Set("secret", "key2=secret2")
+
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z1")
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z2")
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z3")
+
+	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z2")
+	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z3")
 
 	cmd.Execute()
 }

@@ -3,6 +3,7 @@ package volume
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -21,21 +22,25 @@ type createOptions struct {
 	labels     opts.ListOpts
 
 	// options for cluster volumes only
-	group         string
-	scope         string
-	sharing       string
-	availability  string
-	secrets       opts.MapOpts
-	requiredBytes opts.MemBytes
-	limitBytes    opts.MemBytes
-	accessType    string
+	group             string
+	scope             string
+	sharing           string
+	availability      string
+	secrets           opts.MapOpts
+	requiredBytes     opts.MemBytes
+	limitBytes        opts.MemBytes
+	accessType        string
+	requisiteTopology opts.ListOpts
+	preferredTopology opts.ListOpts
 }
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	options := createOptions{
-		driverOpts: *opts.NewMapOpts(nil, nil),
-		labels:     opts.NewListOpts(opts.ValidateLabel),
-		secrets:    *opts.NewMapOpts(nil, nil),
+		driverOpts:        *opts.NewMapOpts(nil, nil),
+		labels:            opts.NewListOpts(opts.ValidateLabel),
+		secrets:           *opts.NewMapOpts(nil, nil),
+		requisiteTopology: opts.NewListOpts(nil),
+		preferredTopology: opts.NewListOpts(nil),
 	}
 
 	cmd := &cobra.Command{
@@ -68,6 +73,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Var(&options.secrets, "secret", "Cluster Volume secrets")
 	flags.Var(&options.limitBytes, "limit-bytes", "Minimum size of the Cluster Volume in bytes (default 0 for undefined)")
 	flags.Var(&options.requiredBytes, "required-bytes", "Maximum size of the Cluster Volume in bytes (default 0 for undefined)")
+	flags.Var(&options.requisiteTopology, "topology-required", "A topology that the Cluster Volume must be accessible from")
+	flags.Var(&options.preferredTopology, "topology-preferred", "A topology that the Cluster Volume would be preferred in")
 
 	return cmd
 }
@@ -126,6 +133,41 @@ func runCreate(dockerCli command.Cli, options createOptions, cluster bool) error
 				},
 			)
 		}
+
+		// TODO(dperny): ignore if no topology specified
+		topology := &types.TopologyRequirement{}
+		for _, top := range options.requisiteTopology.GetAll() {
+			// each topology takes the form segment=value,segment=value
+			// comma-separated list of equal separated maps
+			segments := map[string]string{}
+			for _, segment := range strings.Split(top, ",") {
+				parts := strings.SplitN(segment, "=", 2)
+				// TODO(dperny): validate topology syntax
+				segments[parts[0]] = parts[1]
+			}
+			topology.Requisite = append(
+				topology.Requisite,
+				types.Topology{Segments: segments},
+			)
+		}
+
+		for _, top := range options.preferredTopology.GetAll() {
+			// each topology takes the form segment=value,segment=value
+			// comma-separated list of equal separated maps
+			segments := map[string]string{}
+			for _, segment := range strings.Split(top, ",") {
+				parts := strings.SplitN(segment, "=", 2)
+				// TODO(dperny): validate topology syntax
+				segments[parts[0]] = parts[1]
+			}
+
+			topology.Preferred = append(
+				topology.Preferred,
+				types.Topology{Segments: segments},
+			)
+		}
+
+		volReq.ClusterVolumeSpec.AccessibilityRequirements = topology
 	}
 
 	vol, err := client.VolumeCreate(context.Background(), volReq)
