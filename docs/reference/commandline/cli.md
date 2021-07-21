@@ -214,6 +214,7 @@ be set for each environment:
 | `httpsProxy`   | Default value of `HTTPS_PROXY` and `https_proxy` for containers, and as `--build-arg` on `docker build` |
 | `ftpProxy`     | Default value of `FTP_PROXY` and `ftp_proxy` for containers, and as `--build-arg` on `docker build`     |
 | `noProxy`      | Default value of `NO_PROXY` and `no_proxy` for containers, and as `--build-arg` on `docker build`       |
+| `allProxy`     | Default value of `ALL_PROXY` and `all_proxy` for containers, and as `--build-arg` on `docker build`     |
 
 These settings are used to configure proxy settings for containers only, and not
 used as proxy settings for the `docker` CLI or the `dockerd` daemon. Refer to the
@@ -295,7 +296,8 @@ various fields:
       "httpProxy":  "http://user:pass@example.com:3128",
       "httpsProxy": "https://my-proxy.example.com:3129",
       "noProxy":    "intra.mycorp.example.com",
-      "ftpProxy":   "http://user:pass@example.com:3128"
+      "ftpProxy":   "http://user:pass@example.com:3128",
+      "allProxy":   "socks://example.com:1234"
     },
     "https://manager1.mycorp.example.com:2377": {
       "httpProxy":  "http://user:pass@example.com:3128",

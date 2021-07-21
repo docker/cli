@@ -60,6 +60,7 @@ type ProxyConfig struct {
 	HTTPSProxy string `json:"httpsProxy,omitempty"`
 	NoProxy    string `json:"noProxy,omitempty"`
 	FTPProxy   string `json:"ftpProxy,omitempty"`
+	AllProxy   string `json:"allProxy,omitempty"`
 }
 
 // KubernetesConfig contains Kubernetes orchestrator settings
@@ -244,6 +245,7 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*
 		"HTTPS_PROXY": &config.HTTPSProxy,
 		"NO_PROXY":    &config.NoProxy,
 		"FTP_PROXY":   &config.FTPProxy,
+		"ALL_PROXY":   &config.AllProxy,
 	}
 	m := runOpts
 	if m == nil {
