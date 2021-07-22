@@ -1,6 +1,7 @@
 package sockets
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"time"
@@ -15,7 +16,10 @@ func configureUnixTransport(tr *http.Transport, proto, addr string) error {
 func configureNpipeTransport(tr *http.Transport, proto, addr string) error {
 	// No need for compression in local communications.
 	tr.DisableCompression = true
-	tr.Dial = func(_, _ string) (net.Conn, error) {
+	tr.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+		return winio.DialPipeContext(ctx, addr)
+	}
+	tr.Dial = func(_, _ string) (net.Conn, error) { //nolint: staticcheck // SA1019: tr.Dial is deprecated: Use DialContext instead
 		return DialPipe(addr, defaultTimeout)
 	}
 	return nil

@@ -20,9 +20,13 @@ func GetProxyEnv(key string) string {
 	return proxyValue
 }
 
-// DialerFromEnvironment takes in a "direct" *net.Dialer and returns a
-// proxy.Dialer which will route the connections through the proxy using the
-// given dialer.
+// DialerFromEnvironment is used to configure a net.Dialer to route
+// connections through a SOCKS proxy.
+//
+// DEPRECATED: SOCKS proxies are now supported by configuring only
+// http.Transport.Proxy, and no longer require changing http.Transport.Dial.
+// Therefore, only sockets.ConfigureTransport() needs to be called, and any
+// sockets.DialerFromEnvironment() calls can be dropped.
 func DialerFromEnvironment(direct *net.Dialer) (proxy.Dialer, error) {
 	allProxy := GetProxyEnv("all_proxy")
 	if len(allProxy) == 0 {
