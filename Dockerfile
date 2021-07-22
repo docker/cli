@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1.3
 
 ARG BASE_VARIANT=alpine
 ARG GO_VERSION=1.13.15
