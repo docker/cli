@@ -145,7 +145,21 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 			assert.Check(t, is.Equal(tc.expectedErr, err.Error()))
 		} else {
 			assert.NilError(t, err)
-			assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, *authconfig))
+			assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authconfig))
 		}
 	}
+}
+
+func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	errBuf := new(bytes.Buffer)
+	cli.SetErr(errBuf)
+	cli.ConfigFile().CredentialsStore = "fake-does-not-exist"
+	serverAddress := "test-server-address"
+	expectedAuthConfig := types.AuthConfig{
+		ServerAddress: serverAddress,
+	}
+	authconfig, err := GetDefaultAuthConfig(cli, true, serverAddress, serverAddress == "https://index.docker.io/v1/")
+	assert.Check(t, is.DeepEqual(expectedAuthConfig, authconfig))
+	assert.Check(t, is.ErrorContains(err, "docker-credential-fake-does-not-exist"))
 }
