@@ -78,6 +78,7 @@ line:
 | `DOCKER_HOST`                 | Daemon socket to connect to.                                                                                                          |
 | `DOCKER_STACK_ORCHESTRATOR`   | Configure the default orchestrator to use when using `docker stack` management commands.                                              |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md) |
+| `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](build.md) with [BuildKit backend](../builder.md#buildkit). Use plain to show container output (default `auto`). |
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
