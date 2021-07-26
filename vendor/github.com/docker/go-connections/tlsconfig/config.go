@@ -132,7 +132,7 @@ func adjustMinVersion(options Options, config *tls.Config) error {
 }
 
 // IsErrEncryptedKey returns true if the 'err' is an error of incorrect
-// password when tryin to decrypt a TLS private key
+// password when trying to decrypt a TLS private key
 func IsErrEncryptedKey(err error) bool {
 	return errors.Cause(err) == x509.IncorrectPasswordError
 }
