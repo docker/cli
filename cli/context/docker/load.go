@@ -66,8 +66,9 @@ func (c *Endpoint) tlsConfig() (*tls.Config, error) {
 		}
 
 		var err error
-		if x509.IsEncryptedPEMBlock(pemBlock) {
-			keyBytes, err = x509.DecryptPEMBlock(pemBlock, []byte(c.TLSPassword))
+		// TODO should we follow Golang, and deprecate RFC 1423 encryption, and produce a warning (or just error)? see https://github.com/docker/cli/issues/3212
+		if x509.IsEncryptedPEMBlock(pemBlock) { //nolint: staticcheck // SA1019: x509.IsEncryptedPEMBlock is deprecated, and insecure by design
+			keyBytes, err = x509.DecryptPEMBlock(pemBlock, []byte(c.TLSPassword)) //nolint: staticcheck // SA1019: x509.IsEncryptedPEMBlock is deprecated, and insecure by design
 			if err != nil {
 				return nil, errors.Wrap(err, "private key is encrypted, but could not decrypt it")
 			}
