@@ -1375,7 +1375,7 @@ This is a full example of the allowed configuration options on Linux:
   "cluster-store-opts": {},
   "containerd": "/run/containerd/containerd.sock",
   "containerd-namespace": "docker",
-  "containerd-plugin-namespace": "docker-plugins",
+  "containerd-plugins-namespace": "docker-plugins",
   "data-root": "",
   "debug": true,
   "default-address-pools": [
@@ -1502,7 +1502,7 @@ This is a full example of the allowed configuration options on Windows:
   "cluster-store": "",
   "containerd": "\\\\.\\pipe\\containerd-containerd",
   "containerd-namespace": "docker",
-  "containerd-plugin-namespace": "docker-plugins",
+  "containerd-plugins-namespace": "docker-plugins",
   "data-root": "",
   "debug": true,
   "default-ulimits": {},
