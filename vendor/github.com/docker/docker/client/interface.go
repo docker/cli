@@ -44,6 +44,13 @@ type CommonAPIClient interface {
 	Close() error
 }
 
+// ContainerPruneOptions holds parameters to prune containers with.
+// TODO: somehow remove this later
+type PruneOptions struct {
+	dryRun bool
+	filter filters.Args
+}
+
 // ContainerAPIClient defines API client methods for the containers
 type ContainerAPIClient interface {
 	ContainerAttach(ctx context.Context, container string, options types.ContainerAttachOptions) (types.HijackedResponse, error)
@@ -77,7 +84,7 @@ type ContainerAPIClient interface {
 	ContainerWait(ctx context.Context, container string, condition containertypes.WaitCondition) (<-chan containertypes.ContainerWaitOKBody, <-chan error)
 	CopyFromContainer(ctx context.Context, container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	CopyToContainer(ctx context.Context, container, path string, content io.Reader, options types.CopyToContainerOptions) error
-	ContainersPrune(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error)
+	ContainersPrune(ctx context.Context, pruneFilter filters.Args, dryRun bool) (types.ContainersPruneReport, error)
 }
 
 // DistributionAPIClient defines API client methods for the registry

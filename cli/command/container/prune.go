@@ -17,6 +17,13 @@ type pruneOptions struct {
 	filter opts.FilterOpt
 }
 
+// ContainerPruneOptions holds parameters to prune containers with.
+// TODO: somehow remove this later
+// type PruneOptions struct {
+// 	IsDryRun bool
+// 	Filters  filters.Args
+// }
+
 // NewPruneCommand returns a new cobra prune command for containers
 func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
@@ -51,14 +58,18 @@ const warning = `WARNING! This will remove all stopped containers.
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+	n, err := fmt.Fprintln(dockerCli.Out(), "Just confirming ", options)
+	fmt.Print(n)
+
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
-	pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
+	// pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
 
 	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
 	}
 
-	report, err := dockerCli.Client().ContainersPrune(context.Background(), pruneFilters)
+	fmt.Fprintln(dockerCli.Out(), "Just before calling prune, just confirming: %#v\n", options)
+	report, err := dockerCli.Client().ContainersPrune(context.Background(), pruneFilters, options.dryRun)
 	if err != nil {
 		return 0, "", err
 	}

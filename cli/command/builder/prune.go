@@ -61,7 +61,7 @@ const (
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := options.filter.Value()
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
-	pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
+	// pruneFilters.Add("dryRun", fmt.Sprintf("%v", options.dryRun))
 
 	warning := normalWarning
 	if options.all {

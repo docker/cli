@@ -10,7 +10,7 @@ import (
 )
 
 // ContainersPrune requests the daemon to delete unused data
-func (cli *Client) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error) {
+func (cli *Client) ContainersPrune(ctx context.Context, pruneFilters filters.Args, dryRun bool) (types.ContainersPruneReport, error) {
 	var report types.ContainersPruneReport
 
 	if err := cli.NewVersionError("1.25", "container prune"); err != nil {
