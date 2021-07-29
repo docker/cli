@@ -17,5 +17,5 @@ for p in cli-plugins/examples/* "$@" ; do
 
     echo "Building statically linked $TARGET"
     export CGO_ENABLED=0
-    go build -o "${TARGET}" --ldflags "${LDFLAGS}" "github.com/docker/cli/${p}"
+    GO111MODULE=auto go build -o "${TARGET}" --ldflags "${LDFLAGS}" "github.com/docker/cli/${p}"
 done
