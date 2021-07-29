@@ -1,17 +1,17 @@
 # syntax=docker/dockerfile:1.3
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.13.15
+ARG GO_VERSION=1.16.6
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
-FROM --platform=$BUILDPLATFORM golang:1.16-${BASE_VARIANT} AS golatest	
+FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
 
-FROM gostable AS go-linux	
-FROM golatest AS go-darwin
-FROM golatest AS go-windows-amd64
-FROM golatest AS go-windows-386
-FROM golatest AS go-windows-arm
-FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS go-windows-arm64
+FROM gostable AS go-linux
+FROM gostable AS go-darwin
+FROM gostable AS go-windows-amd64
+FROM gostable AS go-windows-386
+FROM gostable AS go-windows-arm
+FROM golatest AS go-windows-arm64
 FROM go-windows-${TARGETARCH} AS go-windows
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:620d36a9d7f1e3b102a5c7e8eff12081ac363828b3a44390f24fa8da2d49383d AS xx

@@ -27,16 +27,19 @@ func TestEncodeAuth(t *testing.T) {
 }
 
 func TestProxyConfig(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
-	defaultProxyConfig := ProxyConfig{
-		HTTPProxy:  httpProxy,
-		HTTPSProxy: httpsProxy,
-		FTPProxy:   ftpProxy,
-		NoProxy:    noProxy,
-	}
+	var (
+		httpProxy  = "http://proxy.mycorp.example.com:3128"
+		httpsProxy = "https://user:password@proxy.mycorp.example.com:3129"
+		ftpProxy   = "http://ftpproxy.mycorp.example.com:21"
+		noProxy    = "*.intra.mycorp.example.com"
+
+		defaultProxyConfig = ProxyConfig{
+			HTTPProxy:  httpProxy,
+			HTTPSProxy: httpsProxy,
+			FTPProxy:   ftpProxy,
+			NoProxy:    noProxy,
+		}
+	)
 
 	cfg := ConfigFile{
 		Proxies: map[string]ProxyConfig{
@@ -59,18 +62,21 @@ func TestProxyConfig(t *testing.T) {
 }
 
 func TestProxyConfigOverride(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
-	overrideHTTPProxy := "http://proxy.example.com:3128"
-	overrideNoProxy := ""
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
-	defaultProxyConfig := ProxyConfig{
-		HTTPProxy:  httpProxy,
-		HTTPSProxy: httpsProxy,
-		FTPProxy:   ftpProxy,
-		NoProxy:    noProxy,
-	}
+	var (
+		httpProxy         = "http://proxy.mycorp.example.com:3128"
+		httpProxyOverride = "http://proxy.example.com:3128"
+		httpsProxy        = "https://user:password@proxy.mycorp.example.com:3129"
+		ftpProxy          = "http://ftpproxy.mycorp.example.com:21"
+		noProxy           = "*.intra.mycorp.example.com"
+		noProxyOverride   = ""
+
+		defaultProxyConfig = ProxyConfig{
+			HTTPProxy:  httpProxy,
+			HTTPSProxy: httpsProxy,
+			FTPProxy:   ftpProxy,
+			NoProxy:    noProxy,
+		}
+	)
 
 	cfg := ConfigFile{
 		Proxies: map[string]ProxyConfig{
@@ -84,46 +90,49 @@ func TestProxyConfigOverride(t *testing.T) {
 	}
 
 	ropts := map[string]*string{
-		"HTTP_PROXY": clone(overrideHTTPProxy),
-		"NO_PROXY":   clone(overrideNoProxy),
+		"HTTP_PROXY": clone(httpProxyOverride),
+		"NO_PROXY":   clone(noProxyOverride),
 	}
 	proxyConfig := cfg.ParseProxyConfig("/var/run/docker.sock", ropts)
 	expected := map[string]*string{
-		"HTTP_PROXY":  &overrideHTTPProxy,
+		"HTTP_PROXY":  &httpProxyOverride,
 		"http_proxy":  &httpProxy,
 		"HTTPS_PROXY": &httpsProxy,
 		"https_proxy": &httpsProxy,
 		"FTP_PROXY":   &ftpProxy,
 		"ftp_proxy":   &ftpProxy,
-		"NO_PROXY":    &overrideNoProxy,
+		"NO_PROXY":    &noProxyOverride,
 		"no_proxy":    &noProxy,
 	}
 	assert.Check(t, is.DeepEqual(expected, proxyConfig))
 }
 
 func TestProxyConfigPerHost(t *testing.T) {
-	httpProxy := "http://proxy.mycorp.com:3128"
-	httpsProxy := "https://user:password@proxy.mycorp.com:3129"
-	ftpProxy := "http://ftpproxy.mycorp.com:21"
-	noProxy := "*.intra.mycorp.com"
+	var (
+		httpProxy  = "http://proxy.mycorp.example.com:3128"
+		httpsProxy = "https://user:password@proxy.mycorp.example.com:3129"
+		ftpProxy   = "http://ftpproxy.mycorp.example.com:21"
+		noProxy    = "*.intra.mycorp.example.com"
 
-	extHTTPProxy := "http://proxy.example.com:3128"
-	extHTTPSProxy := "https://user:password@proxy.example.com:3129"
-	extFTPProxy := "http://ftpproxy.example.com:21"
-	extNoProxy := "*.intra.example.com"
+		extHTTPProxy  = "http://proxy.example.com:3128"
+		extHTTPSProxy = "https://user:password@proxy.example.com:3129"
+		extFTPProxy   = "http://ftpproxy.example.com:21"
+		extNoProxy    = "*.intra.example.com"
 
-	defaultProxyConfig := ProxyConfig{
-		HTTPProxy:  httpProxy,
-		HTTPSProxy: httpsProxy,
-		FTPProxy:   ftpProxy,
-		NoProxy:    noProxy,
-	}
-	externalProxyConfig := ProxyConfig{
-		HTTPProxy:  extHTTPProxy,
-		HTTPSProxy: extHTTPSProxy,
-		FTPProxy:   extFTPProxy,
-		NoProxy:    extNoProxy,
-	}
+		defaultProxyConfig = ProxyConfig{
+			HTTPProxy:  httpProxy,
+			HTTPSProxy: httpsProxy,
+			FTPProxy:   ftpProxy,
+			NoProxy:    noProxy,
+		}
+
+		externalProxyConfig = ProxyConfig{
+			HTTPProxy:  extHTTPProxy,
+			HTTPSProxy: extHTTPSProxy,
+			FTPProxy:   extFTPProxy,
+			NoProxy:    extNoProxy,
+		}
+	)
 
 	cfg := ConfigFile{
 		Proxies: map[string]ProxyConfig{
@@ -226,9 +235,11 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 }
 
 func TestGetAllCredentialsCredHelper(t *testing.T) {
-	testCredHelperSuffix := "test_cred_helper"
-	testCredHelperRegistryHostname := "credhelper.com"
-	testExtraCredHelperRegistryHostname := "somethingweird.com"
+	const (
+		testCredHelperSuffix                = "test_cred_helper"
+		testCredHelperRegistryHostname      = "credhelper.com"
+		testExtraCredHelperRegistryHostname = "somethingweird.com"
+	)
 
 	unexpectedCredHelperAuth := types.AuthConfig{
 		Username: "file_store_user",
@@ -265,9 +276,11 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 }
 
 func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
-	testFileStoreRegistryHostname := "example.com"
-	testCredHelperSuffix := "test_cred_helper"
-	testCredHelperRegistryHostname := "credhelper.com"
+	const (
+		testFileStoreRegistryHostname  = "example.com"
+		testCredHelperSuffix           = "test_cred_helper"
+		testCredHelperRegistryHostname = "credhelper.com"
+	)
 
 	expectedFileStoreAuth := types.AuthConfig{
 		Username: "file_store_user",
@@ -301,10 +314,12 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 }
 
 func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
-	testCredStoreSuffix := "test_creds_store"
-	testCredStoreRegistryHostname := "credstore.com"
-	testCredHelperSuffix := "test_cred_helper"
-	testCredHelperRegistryHostname := "credhelper.com"
+	const (
+		testCredStoreSuffix            = "test_creds_store"
+		testCredStoreRegistryHostname  = "credstore.com"
+		testCredHelperSuffix           = "test_cred_helper"
+		testCredHelperRegistryHostname = "credhelper.com"
+	)
 
 	configFile := New("filename")
 	configFile.CredentialsStore = testCredStoreSuffix
@@ -343,9 +358,11 @@ func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
 }
 
 func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
-	testCredStoreSuffix := "test_creds_store"
-	testCredHelperSuffix := "test_cred_helper"
-	testRegistryHostname := "example.com"
+	const (
+		testCredStoreSuffix  = "test_creds_store"
+		testCredHelperSuffix = "test_cred_helper"
+		testRegistryHostname = "example.com"
+	)
 
 	configFile := New("filename")
 	configFile.CredentialsStore = testCredStoreSuffix
@@ -424,38 +441,36 @@ func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
 		expectError bool
 	}{
 		{
-			"no kubernetes config is valid",
-			nil,
-			false,
+			name: "no kubernetes config is valid",
 		},
 		{
-			"enabled is valid",
-			&KubernetesConfig{AllNamespaces: "enabled"},
-			false,
+			name:   "enabled is valid",
+			config: &KubernetesConfig{AllNamespaces: "enabled"},
 		},
 		{
-			"disabled is valid",
-			&KubernetesConfig{AllNamespaces: "disabled"},
-			false,
+			name:   "disabled is valid",
+			config: &KubernetesConfig{AllNamespaces: "disabled"},
 		},
 		{
-			"empty string is valid",
-			&KubernetesConfig{AllNamespaces: ""},
-			false,
+			name:   "empty string is valid",
+			config: &KubernetesConfig{AllNamespaces: ""},
 		},
 		{
-			"other value is invalid",
-			&KubernetesConfig{AllNamespaces: "unknown"},
-			true,
+			name:        "other value is invalid",
+			config:      &KubernetesConfig{AllNamespaces: "unknown"},
+			expectError: true,
 		},
 	}
-	for _, test := range testCases {
-		err := checkKubernetesConfiguration(test.config)
-		if test.expectError {
-			assert.Assert(t, err != nil, test.name)
-		} else {
-			assert.NilError(t, err, test.name)
-		}
+	for _, tc := range testCases {
+		test := tc
+		t.Run(test.name, func(t *testing.T) {
+			err := checkKubernetesConfiguration(test.config)
+			if test.expectError {
+				assert.Assert(t, err != nil, test.name)
+			} else {
+				assert.NilError(t, err, test.name)
+			}
+		})
 	}
 }
 
