@@ -26,6 +26,7 @@ type pruneOptions struct {
 	pruneVolumes    bool
 	pruneBuildCache bool
 	filter          opts.FilterOpt
+	dryRun          bool
 }
 
 // newPruneCommand creates a new cobra.Command for `docker prune`
@@ -48,6 +49,8 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
 	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune volumes")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'label=<key>=<value>')")
+	// currently available only for containers
+	flags.BoolVar(&options.dryRun, "dry-run", false, "Does not remove anything, shows what will be deleted (currently available only for containers)")
 	// "filter" flag is available in 1.28 (docker 17.04) and up
 	flags.SetAnnotation("filter", "version", []string{"1.28"})
 
@@ -75,7 +78,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		return nil
 	}
 	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
-		container.RunPrune,
 		network.RunPrune,
 	}
 	if options.pruneVolumes {
@@ -96,6 +98,14 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 		if output != "" {
 			fmt.Fprintln(dockerCli.Out(), output)
 		}
+	}
+	spc, output, err := container.RunPrune(dockerCli, options.all, options.filter, options.dryRun)
+	if err != nil {
+		return err
+	}
+	spaceReclaimed += spc
+	if output != "" {
+		fmt.Fprintln(dockerCli.Out(), output)
 	}
 
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))

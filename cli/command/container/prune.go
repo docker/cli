@@ -14,6 +14,7 @@ import (
 type pruneOptions struct {
 	force  bool
 	filter opts.FilterOpt
+	dryRun bool
 }
 
 // NewPruneCommand returns a new cobra prune command for containers
@@ -41,6 +42,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
+	flags.BoolVar(&options.dryRun, "dry-run", false, "Does not remove containers, shows how many will be deleted")
 
 	return cmd
 }
@@ -51,17 +53,20 @@ Are you sure you want to continue?`
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
+	if !options.force && !options.dryRun && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
 	}
 
-	report, err := dockerCli.Client().ContainersPrune(context.Background(), pruneFilters)
+	report, err := dockerCli.Client().ContainersPrune(context.Background(), pruneFilters, options.dryRun)
 	if err != nil {
 		return 0, "", err
 	}
 
 	if len(report.ContainersDeleted) > 0 {
-		output = "Deleted Containers:\n"
+		output = "Will delete Containers:\n"
+		if !options.dryRun {
+			output = "Deleted Containers:\n"
+		}
 		for _, id := range report.ContainersDeleted {
 			output += id + "\n"
 		}
@@ -73,6 +78,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+func RunPrune(dockerCli command.Cli, all bool, filter opts.FilterOpt, dryRun bool) (uint64, string, error) {
+	return runPrune(dockerCli, pruneOptions{force: true, filter: filter, dryRun: dryRun})
 }
