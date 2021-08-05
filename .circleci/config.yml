@@ -2,41 +2,6 @@ version: 2
 
 jobs:
 
-  lint:
-    working_directory: /work
-    docker: [{image: 'docker:20.10-git'}]
-    environment:
-      DOCKER_BUILDKIT: 1
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.6
-          reusable: true
-          exclusive: false
-      - run:
-          name: "Docker version"
-          command: docker version
-      - run:
-          name: "Docker info"
-          command: docker info
-      - run:
-          name: "Shellcheck - build image"
-          command: |
-            docker build --progress=plain -f dockerfiles/Dockerfile.shellcheck --tag cli-validator:$CIRCLE_BUILD_NUM .
-      - run:
-          name: "Shellcheck"
-          command: |
-            docker run --rm cli-validator:$CIRCLE_BUILD_NUM \
-                make shellcheck
-      - run:
-          name: "Lint - build image"
-          command: |
-            docker build --progress=plain -f dockerfiles/Dockerfile.lint --tag cli-linter:$CIRCLE_BUILD_NUM .
-      - run:
-          name: "Lint"
-          command: |
-            docker run --rm cli-linter:$CIRCLE_BUILD_NUM
-
   cross:
     working_directory: /work
     docker: [{image: 'docker:20.10-git'}]
@@ -147,7 +112,6 @@ workflows:
   version: 2
   ci:
     jobs:
-      - lint
       - cross
       - test
       - validate
