@@ -25,10 +25,6 @@ test-coverage: ## run test coverage
 fmt:
 	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
 
-.PHONY: lint
-lint: ## run all the lint tools
-	gometalinter --config gometalinter.json ./...
-
 .PHONY: binary
 binary:
 	docker buildx bake binary
@@ -70,10 +66,6 @@ manpages: ## generate man pages from go source and markdown
 .PHONY: yamldocs
 yamldocs: ## generate documentation YAML files consumed by docs repo
 	scripts/docs/generate-yaml.sh
-
-.PHONY: shellcheck
-shellcheck: ## run shellcheck validation
-	scripts/validate/shellcheck
 
 .PHONY: help
 help: ## print this help

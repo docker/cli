@@ -61,3 +61,15 @@ target "cross" {
 target "dynbinary-cross" {
     inherits = ["dynbinary", "_all_platforms"]
 }
+
+target "lint" {
+    dockerfile = "./dockerfiles/Dockerfile.lint"
+    target = "lint"
+    output = ["type=cacheonly"]
+}
+
+target "shellcheck" {
+    dockerfile = "./dockerfiles/Dockerfile.shellcheck"
+    target = "shellcheck"
+    output = ["type=cacheonly"]
+}

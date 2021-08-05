@@ -11,9 +11,7 @@ DOCKER_CLI_GO_BUILD_CACHE ?= y
 
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev$(IMAGE_TAG)
 BINARY_NATIVE_IMAGE_NAME = docker-cli-native$(IMAGE_TAG)
-LINTER_IMAGE_NAME = docker-cli-lint$(IMAGE_TAG)
 CROSS_IMAGE_NAME = docker-cli-cross$(IMAGE_TAG)
-VALIDATE_IMAGE_NAME = docker-cli-shell-validate$(IMAGE_TAG)
 E2E_IMAGE_NAME = docker-cli-e2e$(IMAGE_TAG)
 E2E_ENGINE_VERSION ?=
 CACHE_VOLUME_NAME := docker-cli-dev-cache
@@ -31,17 +29,6 @@ export DOCKER_BUILDKIT=1
 build_docker_image:
 	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
 	cat ./dockerfiles/Dockerfile.dev | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(DEV_DOCKER_IMAGE_NAME) -
-
-# build docker image having the linting tools (dockerfiles/Dockerfile.lint)
-.PHONY: build_linter_image
-build_linter_image:
-	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.lint | docker build ${DOCKER_BUILD_ARGS} --build-arg=GO_VERSION -t $(LINTER_IMAGE_NAME) -
-
-.PHONY: build_shell_validate_image
-build_shell_validate_image:
-	# build dockerfile from stdin so that we don't send the build-context; source is bind-mounted in the development environment
-	cat ./dockerfiles/Dockerfile.shellcheck | docker build --build-arg=GO_VERSION -t $(VALIDATE_IMAGE_NAME) -
 
 .PHONY: build_binary_native_image
 build_binary_native_image:
@@ -92,8 +79,8 @@ dev: build_docker_image ## start a build container in interactive mode for in-co
 shell: dev ## alias for dev
 
 .PHONY: lint
-lint: build_linter_image ## run linters
-	$(DOCKER_RUN) -it $(LINTER_IMAGE_NAME)
+lint: ## run linters
+	docker buildx bake lint
 
 .PHONY: fmt
 fmt: ## run gofmt
@@ -120,8 +107,8 @@ yamldocs: build_docker_image ## generate documentation YAML files consumed by do
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make yamldocs
 
 .PHONY: shellcheck
-shellcheck: build_shell_validate_image ## run shellcheck validation
-	$(DOCKER_RUN) -it $(VALIDATE_IMAGE_NAME) make shellcheck
+shellcheck: ## run shellcheck validation
+	docker buildx bake shellcheck
 
 .PHONY: test-e2e
 test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ssh ## run all e2e tests
