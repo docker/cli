@@ -415,3 +415,24 @@ func TestMatchesWithNoPatterns(t *testing.T) {
 		t.Fatalf("Should not have match anything")
 	}
 }
+
+func TestGenerateDeterministicDockerfileNameInBuildContext(t *testing.T) {
+	// Create external Dockerfile context
+	dockerfileContext := ioutil.NopCloser(strings.NewReader(dockerfileContents))
+	// Create build context
+	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
+	defer cleanup()
+
+	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+
+	tarStream, err := archive.Tar(contextDir, archive.Uncompressed)
+	assert.NilError(t, err)
+
+	buildContext, _, err := GetContextFromReader(tarStream, DefaultDockerfileName)
+	assert.NilError(t, err)
+
+	// Check the generated docker file name is the one expected, related to the digest of the content
+	_, generatedDockerfileName, err := AddDockerfileToBuildContext(dockerfileContext, buildContext)
+	assert.NilError(t, err)
+	assert.Equal(t, generatedDockerfileName, ".dockerfile.sha256:fea29b3612818b392d10c77bb2fd28ccb86500f6cf544933e0c454172e16bebd")
+}
