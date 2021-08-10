@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/moby/sys/signal"
 )
 
 func TestForwardSignals(t *testing.T) {
