@@ -23,10 +23,10 @@ inside the container is sent `SIGKILL` signal (default), or the signal that is
 specified with the `--signal` option. You can reference a container by its
 ID, ID-prefix, or name.
 
-The `--signal` (or `-s` shorthand) flag sets the system call signal that is sent
-to the container. This signal can be a signal name in the format `SIG<NAME>`, for
-instance `SIGINT`, or an unsigned number that matches a position in the kernel's
-syscall table, for instance `2`.
+The `--signal` flag sets the system call signal that is sent to the container.
+This signal can be a signal name in the format `SIG<NAME>`, for instance `SIGINT`,
+or an unsigned number that matches a position in the kernel's syscall table,
+for instance `2`.
 
 While the default (`SIGKILL`) signal will terminate the container, the signal
 set through `--signal` may be non-terminal, depending on the container's main

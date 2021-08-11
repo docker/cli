@@ -119,7 +119,7 @@ Options:
                                       Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
                                       or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --sig-proxy                     Proxy received signals to the process (default true)
-      --stop-signal string            Signal to stop a container (default "SIGTERM")
+      --stop-signal string            Signal to stop the container
       --stop-timeout int              Timeout (in seconds) to stop a container
       --storage-opt value             Storage driver options for the container (default [])
       --sysctl value                  Sysctl options (default map[])
@@ -752,7 +752,8 @@ container to exit. This signal can be a signal name in the format `SIG<NAME>`,
 for instance `SIGKILL`, or an unsigned number that matches a position in the
 kernel's syscall table, for instance `9`.
 
-The default is `SIGTERM` if not specified.
+The default is defined by [`STOPSIGNAL`](https://docs.docker.com/engine/reference/builder/#stopsignal)
+in the image, or `SIGTERM` if the image has no `STOPSIGNAL` defined.
 
 ### Optional security options (--security-opt)
 

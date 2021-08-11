@@ -621,13 +621,16 @@ incompatible with any restart policy other than `none`.
    For the `overlay2` storage driver, the size option is only available if the backing fs is `xfs` and mounted with the `pquota` mount option.
    Under these conditions, user can pass any size less than the backing fs size.
 
-**--stop-signal**=*SIGTERM*
-   Signal to stop the container. Default is SIGTERM.
+**--stop-signal**=""
+   Signal to stop the container.
 
    The `--stop-signal` flag sets the system call signal that will be sent to the
    container to exit. This signal can be a signal name in the format `SIG<NAME>`,
    for instance `SIGKILL`, or an unsigned number that matches a position in the
    kernel's syscall table, for instance `9`.
+
+   The default is defined by `STOPSIGNAL` in the image, or `SIGTERM` if the image
+   has no `STOPSIGNAL` defined.
 
 **--stop-timeout**
   Timeout (in seconds) to stop a container, or **-1** to disable timeout.
