@@ -48,9 +48,9 @@ Running `docker ps --no-trunc` showing 2 linked containers.
 ```bash
 $ docker ps
 
-CONTAINER ID        IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
-4c01db0b339c        ubuntu:12.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
-d7886598dbe2        crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
+CONTAINER ID        IMAGE                        PLATFORM       COMMAND                  CREATED              STATUS              PORTS               NAMES
+4c01db0b339c        ubuntu:12.04                 linux/amd64    "bash"                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
+d7886598dbe2        crosbymichael/redis:latest   linux/arm/v7   "/redis-server --dir"    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
 ### Show both running and stopped containers
@@ -73,9 +73,9 @@ The `docker ps -s` command displays two different on-disk-sizes for each contain
 ```bash
 $ docker ps -s
 
-CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE                                                                                      SIZE
-e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours           my_nginx     35.58 kB (virtual 109.2 MB)
-00c6131c5e30   telegraf:1.5   "/entrypoint.sh"         11 weeks ago   Up 11 weeks          my_telegraf  0 B (virtual 209.5 MB)
+CONTAINER ID   IMAGE          PLATFORM       COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE
+e90b8831a4b8   nginx          linux/amd64    "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours           my_nginx     35.58 kB (virtual 109.2 MB)
+00c6131c5e30   telegraf:1.5   linux/arm/v7   "/entrypoint.sh"         11 weeks ago   Up 11 weeks          my_telegraf  0 B (virtual 209.5 MB)
 ```
   * The "size" information shows the amount of data (on disk) that is used for the _writable_ layer of each container
   * The "virtual size" is the total amount of disk-space used for the read-only _image_ data used by the container and the writable layer.
@@ -117,9 +117,9 @@ The following filter matches containers with the `color` label regardless of its
 ```bash
 $ docker ps --filter "label=color"
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-673394ef1d4c        busybox             "top"               47 seconds ago      Up 45 seconds                           nostalgic_shockley
-d85756f57265        busybox             "top"               52 seconds ago      Up 51 seconds                           high_albattani
+CONTAINER ID        IMAGE     PLATFORM      COMMAND             CREATED             STATUS              PORTS               NAMES
+673394ef1d4c        busybox   linux/amd64   "top"               47 seconds ago      Up 45 seconds                           nostalgic_shockley
+d85756f57265        myimage   linux/amd64   "top"               52 seconds ago      Up 51 seconds                           high_albattani
 ```
 
 The following filter matches containers with the `color` label with the `blue` value.
@@ -127,8 +127,8 @@ The following filter matches containers with the `color` label with the `blue` v
 ```bash
 $ docker ps --filter "label=color=blue"
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-d85756f57265        busybox             "top"               About a minute ago   Up About a minute                       high_albattani
+CONTAINER ID        IMAGE     PLATFORM       COMMAND             CREATED              STATUS              PORTS               NAMES
+d85756f57265        busybox   linux/amd64    "top"               About a minute ago   Up About a minute                       high_albattani
 ```
 
 #### name
@@ -140,8 +140,8 @@ The following filter matches all containers with a name containing the `nostalgi
 ```bash
 $ docker ps --filter "name=nostalgic_stallman"
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-9b6247364a03        busybox             "top"               2 minutes ago       Up 2 minutes                            nostalgic_stallman
+CONTAINER ID        IMAGE     PLATFORM      COMMAND             CREATED             STATUS              PORTS               NAMES
+9b6247364a03        busybox   linux/amd64   "top"               2 minutes ago       Up 2 minutes                            nostalgic_stallman
 ```
 
 You can also filter for a substring in a name as this shows:
@@ -149,10 +149,10 @@ You can also filter for a substring in a name as this shows:
 ```bash
 $ docker ps --filter "name=nostalgic"
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-715ebfcee040        busybox             "top"               3 seconds ago       Up 1 second                             i_am_nostalgic
-9b6247364a03        busybox             "top"               7 minutes ago       Up 7 minutes                            nostalgic_stallman
-673394ef1d4c        busybox             "top"               38 minutes ago      Up 38 minutes                           nostalgic_shockley
+CONTAINER ID        IMAGE           PLATFORM       COMMAND             CREATED             STATUS              PORTS               NAMES
+715ebfcee040        busybox         linux/amd64    "top"               3 seconds ago       Up 1 second                             i_am_nostalgic
+9b6247364a03        busybox         linux/amd64    "top"               7 minutes ago       Up 7 minutes                            nostalgic_stallman
+673394ef1d4c        busybox         linux/amd64    "top"               38 minutes ago      Up 38 minutes                           nostalgic_shockley
 ```
 
 #### exited
@@ -163,10 +163,10 @@ filter for containers that have exited successfully:
 ```bash
 $ docker ps -a --filter 'exited=0'
 
-CONTAINER ID        IMAGE             COMMAND                CREATED             STATUS                   PORTS                      NAMES
-ea09c3c82f6e        registry:latest   /srv/run.sh            2 weeks ago         Exited (0) 2 weeks ago   127.0.0.1:5000->5000/tcp   desperate_leakey
-106ea823fe4e        fedora:latest     /bin/sh -c 'bash -l'   2 weeks ago         Exited (0) 2 weeks ago                              determined_albattani
-48ee228c9464        fedora:20         bash                   2 weeks ago         Exited (0) 2 weeks ago                              tender_torvalds
+CONTAINER ID        IMAGE             PLATFORM       COMMAND                CREATED             STATUS                   PORTS                      NAMES
+ea09c3c82f6e        registry:latest   linux/amd64    /srv/run.sh            2 weeks ago         Exited (0) 2 weeks ago   127.0.0.1:5000->5000/tcp   desperate_leakey
+106ea823fe4e        fedora:latest     linux/amd64    /bin/sh -c 'bash -l'   2 weeks ago         Exited (0) 2 weeks ago                              determined_albattani
+48ee228c9464        fedora:20         linux/amd64    bash                   2 weeks ago         Exited (0) 2 weeks ago                              tender_torvalds
 ```
 
 #### Filter by exit signal
@@ -177,9 +177,9 @@ meaning a `SIGKILL(9)` killed them.
 ```bash
 $ docker ps -a --filter 'exited=137'
 
-CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS                       PORTS               NAMES
-b3e1c0ed5bfe        ubuntu:latest       "sleep 1000"           12 seconds ago      Exited (137) 5 seconds ago                       grave_kowalevski
-a2eb5558d669        redis:latest        "/entrypoint.sh redi   2 hours ago         Exited (137) 2 hours ago                         sharp_lalande
+CONTAINER ID        IMAGE           PLATFORM       COMMAND                CREATED             STATUS                       PORTS               NAMES
+b3e1c0ed5bfe        ubuntu:latest   linux/amd64    "sleep 1000"           12 seconds ago      Exited (137) 5 seconds ago                       grave_kowalevski
+a2eb5558d669        redis:latest    linux/amd64    "/entrypoint.sh redi   2 hours ago         Exited (137) 2 hours ago                         sharp_lalande
 ```
 
 Any of these events result in a `137` status:
@@ -197,10 +197,10 @@ to filter for `running` containers:
 ```bash
 $ docker ps --filter status=running
 
-CONTAINER ID        IMAGE                  COMMAND             CREATED             STATUS              PORTS               NAMES
-715ebfcee040        busybox                "top"               16 minutes ago      Up 16 minutes                           i_am_nostalgic
-d5c976d3c462        busybox                "top"               23 minutes ago      Up 23 minutes                           top
-9b6247364a03        busybox                "top"               24 minutes ago      Up 24 minutes                           nostalgic_stallman
+CONTAINER ID        IMAGE     PLATFORM       COMMAND             CREATED             STATUS              PORTS               NAMES
+715ebfcee040        busybox   linux/amd64    "top"               16 minutes ago      Up 16 minutes                           i_am_nostalgic
+d5c976d3c462        busybox   linux/amd64    "top"               23 minutes ago      Up 23 minutes                           top
+9b6247364a03        busybox   linux/amd64    "top"               24 minutes ago      Up 24 minutes                           nostalgic_stallman
 ```
 
 To filter for `paused` containers:
@@ -208,8 +208,8 @@ To filter for `paused` containers:
 ```bash
 $ docker ps --filter status=paused
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                      PORTS               NAMES
-673394ef1d4c        busybox             "top"               About an hour ago   Up About an hour (Paused)                       nostalgic_shockley
+CONTAINER ID        IMAGE     PLATFORM       COMMAND             CREATED             STATUS                      PORTS               NAMES
+673394ef1d4c        busybox   linux/amd64    "top"               About an hour ago   Up About an hour (Paused)                       nostalgic_shockley
 ```
 
 #### ancestor
@@ -229,11 +229,11 @@ for containers that use the latest `ubuntu` image:
 ```bash
 $ docker ps --filter ancestor=ubuntu
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-919e1179bdb8        ubuntu-c1           "top"               About a minute ago   Up About a minute                       admiring_lovelace
-5d1e4a540723        ubuntu-c2           "top"               About a minute ago   Up About a minute                       admiring_sammet
-82a598284012        ubuntu              "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
-bab2a34ba363        ubuntu              "top"               3 minutes ago        Up 3 minutes                            focused_yonath
+CONTAINER ID        IMAGE       PLATFORM       COMMAND             CREATED              STATUS              PORTS               NAMES
+919e1179bdb8        ubuntu-c1   linux/amd64    "top"               About a minute ago   Up About a minute                       admiring_lovelace
+5d1e4a540723        ubuntu-c2   linux/amd64    "top"               About a minute ago   Up About a minute                       admiring_sammet
+82a598284012        ubuntu      linux/amd64    "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+bab2a34ba363        ubuntu      linux/amd64    "top"               3 minutes ago        Up 3 minutes                            focused_yonath
 ```
 
 Match containers based on the `ubuntu-c1` image which, in this case, is a child
@@ -242,8 +242,8 @@ of `ubuntu`:
 ```bash
 $ docker ps --filter ancestor=ubuntu-c1
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-919e1179bdb8        ubuntu-c1           "top"               About a minute ago   Up About a minute                       admiring_lovelace
+CONTAINER ID        IMAGE       PLATFORM       COMMAND             CREATED              STATUS              PORTS               NAMES
+919e1179bdb8        ubuntu-c1   linux/amd64    "top"               About a minute ago   Up About a minute                       admiring_lovelace
 ```
 
 Match containers based on the `ubuntu` version `12.04.5` image:
@@ -251,8 +251,8 @@ Match containers based on the `ubuntu` version `12.04.5` image:
 ```bash
 $ docker ps --filter ancestor=ubuntu:12.04.5
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:12.04.5      "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+CONTAINER ID        IMAGE            PLATFORM       COMMAND             CREATED              STATUS              PORTS               NAMES
+82a598284012        ubuntu:12.04.5   linux/amd64    "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 The following matches containers based on the layer `d0e008c6cf02` or an image
@@ -261,8 +261,8 @@ that have this layer in its layer stack.
 ```bash
 $ docker ps --filter ancestor=d0e008c6cf02
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:12.04.5      "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+CONTAINER ID        IMAGE            PLATFORM       COMMAND             CREATED              STATUS              PORTS               NAMES
+82a598284012        ubuntu:12.04.5   linux/amd64    "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 #### Create time
@@ -275,10 +275,10 @@ given id or name. For example, having these containers created:
 ```bash
 $ docker ps
 
-CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS              PORTS              NAMES
-9c3527ed70ce        busybox     "top"         14 seconds ago       Up 15 seconds                          desperate_dubinsky
-4aace5031105        busybox     "top"         48 seconds ago       Up 49 seconds                          focused_hamilton
-6e63f6ff38b0        busybox     "top"         About a minute ago   Up About a minute                      distracted_fermat
+CONTAINER ID        IMAGE     PLATFORM       COMMAND       CREATED              STATUS              PORTS              NAMES
+9c3527ed70ce        busybox   linux/amd64    "top"         14 seconds ago       Up 15 seconds                          desperate_dubinsky
+4aace5031105        busybox   linux/amd64    "top"         48 seconds ago       Up 49 seconds                          focused_hamilton
+6e63f6ff38b0        busybox   linux/amd64    "top"         About a minute ago   Up About a minute                      distracted_fermat
 ```
 
 Filtering with `before` would give:
@@ -286,9 +286,9 @@ Filtering with `before` would give:
 ```bash
 $ docker ps -f before=9c3527ed70ce
 
-CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS              PORTS              NAMES
-4aace5031105        busybox     "top"         About a minute ago   Up About a minute                      focused_hamilton
-6e63f6ff38b0        busybox     "top"         About a minute ago   Up About a minute                      distracted_fermat
+CONTAINER ID        IMAGE      PLATFORM       COMMAND       CREATED              STATUS              PORTS              NAMES
+4aace5031105        busybox    linux/amd64    "top"         About a minute ago   Up About a minute                      focused_hamilton
+6e63f6ff38b0        busybox    linux/amd64    "top"         About a minute ago   Up About a minute                      distracted_fermat
 ```
 
 ##### since
@@ -299,9 +299,9 @@ id or name. For example, with the same containers as in `before` filter:
 ```bash
 $ docker ps -f since=6e63f6ff38b0
 
-CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS              PORTS               NAMES
-9c3527ed70ce        busybox     "top"         10 minutes ago      Up 10 minutes                           desperate_dubinsky
-4aace5031105        busybox     "top"         10 minutes ago      Up 10 minutes                           focused_hamilton
+CONTAINER ID        IMAGE      PLATFORM       COMMAND       CREATED             STATUS              PORTS               NAMES
+9c3527ed70ce        busybox    linux/amd64    "top"         10 minutes ago      Up 10 minutes                           desperate_dubinsky
+4aace5031105        busybox    linux/amd64    "top"         10 minutes ago      Up 10 minutes                           focused_hamilton
 ```
 
 #### volume
@@ -335,8 +335,8 @@ $ docker run -d --net=net2 --name=test2 ubuntu top
 
 $ docker ps --filter network=net1
 
-CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS              PORTS               NAMES
-9d4893ed80fe        ubuntu      "top"         10 minutes ago      Up 10 minutes                           test1
+CONTAINER ID        IMAGE    PLATFORM       COMMAND       CREATED             STATUS              PORTS               NAMES
+9d4893ed80fe        ubuntu   linux/amd64    "top"         10 minutes ago      Up 10 minutes                           test1
 ```
 
 The network filter matches on both the network's name and id. The following
@@ -350,8 +350,8 @@ $ docker network inspect --format "{{.ID}}" net1
 
 $ docker ps --filter network=8c0b4110ae930dbe26b258de9bc34a03f98056ed6f27f991d32919bfe401d7c5
 
-CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS              PORTS               NAMES
-9d4893ed80fe        ubuntu      "top"         10 minutes ago      Up 10 minutes                           test1
+CONTAINER ID        IMAGE     PLATFORM       COMMAND       CREATED             STATUS              PORTS               NAMES
+9d4893ed80fe        ubuntu    linux/amd64    "top"         10 minutes ago      Up 10 minutes                           test1
 ```
 
 #### publish and expose
@@ -367,29 +367,29 @@ $ docker run -d --expose=8080 busybox top
 
 $ docker ps -a
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                   NAMES
-9833437217a5        busybox             "top"               5 seconds ago       Up 4 seconds        8080/tcp                dreamy_mccarthy
-fc7e477723b7        busybox             "top"               50 seconds ago      Up 50 seconds       0.0.0.0:32768->80/tcp   admiring_roentgen
+CONTAINER ID        IMAGE     PLATFORM       COMMAND             CREATED             STATUS              PORTS                   NAMES
+9833437217a5        busybox   linux/amd64    "top"               5 seconds ago       Up 4 seconds        8080/tcp                dreamy_mccarthy
+fc7e477723b7        busybox   linux/amd64    "top"               50 seconds ago      Up 50 seconds       0.0.0.0:32768->80/tcp   admiring_roentgen
 
 $ docker ps --filter publish=80
 
-CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS                   NAMES
-fc7e477723b7        busybox             "top"               About a minute ago   Up About a minute   0.0.0.0:32768->80/tcp   admiring_roentgen
+CONTAINER ID        IMAGE     PLATFORM       COMMAND             CREATED              STATUS              PORTS                   NAMES
+fc7e477723b7        busybox   linux/amd64    "top"               About a minute ago   Up About a minute   0.0.0.0:32768->80/tcp   admiring_roentgen
 ```
 
 The following filter matches all containers that have exposed TCP port in the range of `8000-8080`:
 ```bash
 $ docker ps --filter expose=8000-8080/tcp
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-9833437217a5        busybox             "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
+CONTAINER ID        IMAGE      PLATFORM       COMMAND             CREATED             STATUS              PORTS               NAMES
+9833437217a5        busybox    linux/amd64    "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
 ```
 
 The following filter matches all containers that have exposed UDP port `80`:
 ```bash
 $ docker ps --filter publish=80/udp
 
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+CONTAINER ID        IMAGE     PLATFORM        COMMAND             CREATED             STATUS              PORTS               NAMES
 ```
 
 ### Formatting
@@ -406,6 +406,7 @@ Valid placeholders for the Go template are listed below:
 | `.Command`    | Quoted command                                                                                  |
 | `.CreatedAt`  | Time when the container was created.                                                            |
 | `.RunningFor` | Elapsed time since the container was started.                                                   |
+| `.Platform`   | OS and Architecture of the image that the container was started from.                           |
 | `.Ports`      | Exposed ports.                                                                                  |
 | `.State`      | Container status (for example; "created", "running", "exited").                                 |
 | `.Status`     | Container status with details about duration and health-status.                                 |
