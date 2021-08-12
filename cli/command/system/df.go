@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,8 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
-	du, err := dockerCli.Client().DiskUsage(context.Background())
+	// TODO expose types.DiskUsageOptions.Types as flag on the command-line and/or as separate commands (docker container df / docker container usage)
+	du, err := dockerCli.Client().DiskUsage(context.Background(), types.DiskUsageOptions{})
 	if err != nil {
 		return err
 	}
