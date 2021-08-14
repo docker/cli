@@ -71,16 +71,8 @@ yamldocs: ## generate documentation YAML files consumed by docs repo
 help: ## print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {gsub("\\\\n",sprintf("\n%22c",""), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-
-cli/compose/schema/bindata.go: cli/compose/schema/data/*.json
-	go generate github.com/docker/cli/cli/compose/schema
-
-compose-jsonschema: cli/compose/schema/bindata.go ## generate compose-file schemas
-	scripts/validate/check-git-diff cli/compose/schema/bindata.go
-
 .PHONY: ci-validate
 ci-validate:
 	time make -B vendor
-	time make -B compose-jsonschema
 	time make manpages
 	time make yamldocs
