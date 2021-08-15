@@ -20,6 +20,10 @@ To see the man page for a command run **man docker <command>**.
 **--help**
   Print usage statement
 
+**--completion**=""
+  Print the shell completion script for the specified shell (bash, fish,
+  powershell, or zsh) and quit.
+
 **--config**=""
   Specifies the location of the Docker client configuration files. The default is '~/.docker'.
 

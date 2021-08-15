@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	cliconfig "github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/contrib/completion"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
@@ -151,8 +152,48 @@ func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, erro
 		}
 		return nil, nil, cmd.FlagErrorFunc()(cmd, err)
 	}
-
+	if err := tcmd.HandleCompletionFlag(flags); err != nil {
+		return nil, nil, err
+	}
 	return cmd, flags.Args(), nil
+}
+
+// HandleCompletionFlag prints the completion script if the --completion flag
+// is set, after which it exits the application. If the root-command does not
+// have a --completion flag, flags.Parse() should already have produced an error,
+// and we won't reach this function, so no need to check if the flag exists.
+func (tcmd *TopLevelCommand) HandleCompletionFlag(flags *pflag.FlagSet) error {
+	f := flags.Lookup("completion")
+	if f == nil || !f.Changed {
+		return nil
+	}
+	shell := f.Value.String()
+	cmd := tcmd.cmd.Root()
+	if shell == "" {
+		// handle --completion= (with trailing '='), which isn't caught by the default Flag error handling
+		return FlagErrorFunc(cmd, fmt.Errorf("flag needs an argument: --"+f.Name))
+	}
+
+	// Use cobra's automatically generated completion script for languages
+	// for which we don't provide a script.
+	switch shell {
+	case "bash-cobra":
+		_ = cmd.GenBashCompletion(cmd.OutOrStdout())
+	case "fish-cobra":
+		_ = cmd.GenFishCompletion(cmd.OutOrStdout(), true)
+	case "powershell":
+		_ = cmd.GenPowerShellCompletionWithDesc(cmd.OutOrStdout())
+	case "zsh-cobra":
+		_ = cmd.GenZshCompletion(cmd.OutOrStdout())
+	default:
+		s, err := completion.Get(shell)
+		if err != nil {
+			return err
+		}
+		_, _ = fmt.Fprint(cmd.OutOrStdout(), s)
+	}
+	os.Exit(0)
+	return nil
 }
 
 // Initialize finalises global option parsing and initializes the docker client.
