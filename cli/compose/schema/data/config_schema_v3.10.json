@@ -2,11 +2,11 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "config_schema_v3.10.json",
   "type": "object",
-  "required": ["version"],
 
   "properties": {
     "version": {
-      "type": "string"
+      "type": "string",
+      "default": "3.10"
     },
 
     "services": {

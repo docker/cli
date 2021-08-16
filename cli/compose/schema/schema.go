@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultVersion = "1.0"
+	defaultVersion = "3.10"
 	versionField   = "version"
 )
 
@@ -39,7 +39,8 @@ func init() {
 	gojsonschema.FormatCheckers.Add("duration", durationFormatChecker{})
 }
 
-// Version returns the version of the config, defaulting to version 1.0
+// Version returns the version of the config, defaulting to the latest "3.x"
+// version (3.10).
 func Version(config map[string]interface{}) string {
 	version, ok := config[versionField]
 	if !ok {
