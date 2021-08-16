@@ -94,10 +94,6 @@ vendor: build_docker_image vendor.conf ## download dependencies (vendor/) listed
 authors: ## generate AUTHORS file from git history
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make authors
 
-.PHONY: compose-jsonschema
-compose-jsonschema: build_docker_image ## generate compose-file schemas
-	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make compose-jsonschema
-
 .PHONY: manpages
 manpages: build_docker_image ## generate man pages from go source and markdown
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make manpages

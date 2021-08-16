@@ -1,8 +1,7 @@
 package schema
 
-//go:generate esc -o bindata.go -pkg schema -ignore .*\.go -private -modtime=1518458244 data
-
 import (
+	"embed"
 	"fmt"
 	"strings"
 	"time"
@@ -58,9 +57,12 @@ func normalizeVersion(version string) string {
 	}
 }
 
+//go:embed data/config_schema_v*.json
+var schemas embed.FS
+
 // Validate uses the jsonschema to validate the configuration
 func Validate(config map[string]interface{}, version string) error {
-	schemaData, err := _escFSByte(false, fmt.Sprintf("/data/config_schema_v%s.json", version))
+	schemaData, err := schemas.ReadFile("data/config_schema_v" + version + ".json")
 	if err != nil {
 		return errors.Errorf("unsupported Compose file version: %s", version)
 	}
