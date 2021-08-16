@@ -50,6 +50,8 @@ func Version(config map[string]interface{}) string {
 
 func normalizeVersion(version string) string {
 	switch version {
+	case "":
+		return defaultVersion
 	case "3":
 		return "3.0"
 	default:
@@ -62,6 +64,7 @@ var schemas embed.FS
 
 // Validate uses the jsonschema to validate the configuration
 func Validate(config map[string]interface{}, version string) error {
+	version = normalizeVersion(version)
 	schemaData, err := schemas.ReadFile("data/config_schema_v" + version + ".json")
 	if err != nil {
 		return errors.Errorf("unsupported Compose file version: %s", version)
