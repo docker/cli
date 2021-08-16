@@ -40,7 +40,8 @@ func init() {
 }
 
 // Version returns the version of the config, defaulting to the latest "3.x"
-// version (3.10).
+// version (3.10). If only the major version "3" is specified, it is used as
+// version "3.x" and returns the default version (latest 3.x).
 func Version(config map[string]interface{}) string {
 	version, ok := config[versionField]
 	if !ok {
@@ -51,10 +52,8 @@ func Version(config map[string]interface{}) string {
 
 func normalizeVersion(version string) string {
 	switch version {
-	case "":
+	case "", "3":
 		return defaultVersion
-	case "3":
-		return "3.0"
 	default:
 		return version
 	}
