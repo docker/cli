@@ -58,11 +58,8 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 // SetupRootCommand sets default usage, help, and error handling for the
 // root command.
 func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet, *cobra.Command) {
-	opts, flags, helpCmd := setupCommonRootCommand(rootCmd)
-
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
-
-	return opts, flags, helpCmd
+	return setupCommonRootCommand(rootCmd)
 }
 
 // SetupPluginRootCommand sets default usage, help and error handling for a plugin root command.
