@@ -98,6 +98,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.7", expectedErr: "config"},
 		{version: "3.8"},
 		{version: "3.9"},
+		{version: "3.10"},
 	}
 
 	for _, tc := range tests {
