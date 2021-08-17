@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.16.7
+ARG GO_VERSION=1.17.0
 
 # Use Debian based image as docker-compose requires glibc.
 FROM golang:${GO_VERSION}-buster

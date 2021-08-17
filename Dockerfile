@@ -1,22 +1,11 @@
 # syntax=docker/dockerfile:1.3
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.16.7
-
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
-FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
-
-FROM gostable AS go-linux
-FROM gostable AS go-darwin
-FROM gostable AS go-windows-amd64
-FROM gostable AS go-windows-386
-FROM gostable AS go-windows-arm
-FROM golatest AS go-windows-arm64
-FROM go-windows-${TARGETARCH} AS go-windows
+ARG GO_VERSION=1.17.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:620d36a9d7f1e3b102a5c7e8eff12081ac363828b3a44390f24fa8da2d49383d AS xx
 
-FROM go-${TARGETOS} AS build-base-alpine
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS build-base-alpine
 COPY --from=xx / /
 RUN apk add --no-cache clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
