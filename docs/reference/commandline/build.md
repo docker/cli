@@ -39,7 +39,8 @@ Options:
                                 '<network-name>|<network-id>': connect to a user-defined network
       --no-cache                Do not use cache when building the image
   -o, --output                  Output destination (format: type=local,dest=path)
-      --pull                    Always attempt to pull a newer version of the image
+      --pull                    Always attempt to pull a newer version of all images that are referenced in 
+                                the Dockerfile (e. g. FROM, COPY --from <image>) during build
       --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty).
                                 Use plain to show container output
   -q, --quiet                   Suppress the build output and print image ID on success
