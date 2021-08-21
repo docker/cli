@@ -43,14 +43,14 @@ You can inspect a secret, either by its *name*, or *ID*
 
 For example, given the following secret:
 
-```bash
+```console
 $ docker secret ls
 
 ID                          NAME                CREATED             UPDATED
 eo7jnzguqgtpdah3cm5srfb97   my_secret           3 minutes ago       3 minutes ago
 ```
 
-```bash
+```console
 $ docker secret inspect secret.json
 ```
 
@@ -82,7 +82,7 @@ You can use the --format option to obtain specific information about a
 secret. The following example command outputs the creation time of the
 secret.
 
-```bash
+```console
 $ docker secret inspect --format='{{.CreatedAt}}' eo7jnzguqgtpdah3cm5srfb97
 
 2017-03-24 08:15:09.735271783 +0000 UTC

@@ -44,8 +44,9 @@ The example below shows the output for a daemon running on Red Hat Enterprise Li
 using the `devicemapper` storage driver. As can be seen in the output, additional
 information about the `devicemapper` storage driver is shown:
 
-```bash
+```console
 $ docker info
+
 Client:
  Context:    default
  Debug Mode: false
@@ -104,8 +105,9 @@ Server:
 Here is a sample output for a daemon running on Ubuntu, using the overlay2
 storage driver and a node that is part of a 2-node swarm:
 
-```bash
-$ docker -D info
+```console
+$ docker --debug info
+
 Client:
  Context:    default
  Debug Mode: true
@@ -194,7 +196,7 @@ The global `-D` option causes all `docker` commands to output debug information.
 
 You can also specify the output format:
 
-```bash
+```console
 $ docker info --format '{{json .}}'
 
 {"ID":"I54V:OLXT:HVMM:TPKO:JPHQ:CQCD:JNLC:O3BZ:4ZVJ:43XJ:PFHZ:6N2S","Containers":14, ...}

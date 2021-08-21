@@ -48,7 +48,7 @@ uses up the `SIZE` listed only once.
 
 ### List the most recently created images
 
-```bash
+```console
 $ docker images
 
 REPOSITORY                TAG                 IMAGE ID            CREATED             SIZE
@@ -72,7 +72,7 @@ given repository.
 
 For example, to list all images in the "java" repository, run this command :
 
-```bash
+```console
 $ docker images java
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -88,7 +88,7 @@ If both `REPOSITORY` and `TAG` are provided, only images matching that
 repository and tag are listed.  To find all local images in the "java"
 repository with tag "8" you can use:
 
-```bash
+```console
 $ docker images java:8
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -97,7 +97,7 @@ java                8                   308e519aac60        6 days ago          
 
 If nothing matches `REPOSITORY[:TAG]`, the list is empty.
 
-```bash
+```console
 $ docker images java:0
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -105,7 +105,7 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 
 ### List the full length image IDs
 
-```bash
+```console
 $ docker images --no-trunc
 
 REPOSITORY                    TAG                 IMAGE ID                                                                  CREATED             SIZE
@@ -127,7 +127,7 @@ called a `digest`. As long as the input used to generate the image is
 unchanged, the digest value is predictable. To list image digest values, use
 the `--digests` flag:
 
-```bash
+```console
 $ docker images --digests
 REPOSITORY                         TAG                 DIGEST                                                                    IMAGE ID            CREATED             SIZE
 localhost:5000/test/busybox        <none>              sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf   4986bf8c1536        9 weeks ago         2.43 MB
@@ -153,7 +153,7 @@ The currently supported filters are:
 
 #### Show untagged images (dangling)
 
-```bash
+```console
 $ docker images --filter "dangling=true"
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -173,7 +173,7 @@ using it. By having this flag it allows for batch cleanup.
 
 You can use this in conjunction with `docker rmi ...`:
 
-```bash
+```console
 $ docker rmi $(docker images -f "dangling=true" -q)
 
 8abc22fbb042
@@ -194,7 +194,7 @@ value.
 
 The following filter matches images with the `com.example.version` label regardless of its value.
 
-```bash
+```console
 $ docker images --filter "label=com.example.version"
 
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
@@ -204,7 +204,7 @@ match-me-2          latest              dea752e4e117        About a minute ago  
 
 The following filter matches images with the `com.example.version` label with the `1.0` value.
 
-```bash
+```console
 $ docker images --filter "label=com.example.version=1.0"
 
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
@@ -213,7 +213,7 @@ match-me            latest              511136ea3c5a        About a minute ago  
 
 In this example, with the `0.1` value, it returns an empty set because no matches were found.
 
-```bash
+```console
 $ docker images --filter "label=com.example.version=0.1"
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
 ```
@@ -223,7 +223,7 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 The `before` filter shows only images created before the image with
 given id or reference. For example, having these images:
 
-```bash
+```console
 $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
@@ -234,7 +234,7 @@ image3              latest              511136ea3c5a        25 minutes ago      
 
 Filtering with `before` would give:
 
-```bash
+```console
 $ docker images --filter "before=image1"
 
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
@@ -244,7 +244,7 @@ image3              latest              511136ea3c5a        25 minutes ago      
 
 Filtering with `since` would give:
 
-```bash
+```console
 $ docker images --filter "since=image3"
 REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
 image1              latest              eeae25ada2aa        4 minutes ago        188.3 MB
@@ -256,7 +256,7 @@ image2              latest              dea752e4e117        9 minutes ago       
 The `reference` filter shows only images whose reference matches
 the specified pattern.
 
-```bash
+```console
 $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -268,7 +268,7 @@ busybox             glibc               21c16b6787c6        5 weeks ago         
 
 Filtering with `reference` would give:
 
-```bash
+```console
 $ docker images --filter=reference='busy*:*libc'
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -278,7 +278,7 @@ busybox             glibc               21c16b6787c6        5 weeks ago         
 
 Filtering with multiple `reference` would give, either match A or B:
 
-```bash
+```console
 $ docker images --filter=reference='busy*:uclibc' --filter=reference='busy*:glibc'
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -310,7 +310,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `Repository` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker images --format "{{.ID}}: {{.Repository}}"
 
 77af4d6b9913: <none>
@@ -327,7 +327,7 @@ b6fa739cedf5: committ
 To list all images with their repository and tag in a table format you
 can use:
 
-```bash
+```console
 $ docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}"
 
 IMAGE ID            REPOSITORY                TAG

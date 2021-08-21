@@ -40,8 +40,9 @@ Lists the tasks that are running as part of the specified stack.
 
 The following command shows all the tasks that are part of the `voting` stack:
 
-```bash
+```console
 $ docker stack ps voting
+
 ID                  NAME                  IMAGE                                          NODE   DESIRED STATE  CURRENT STATE          ERROR  PORTS
 xim5bcqtgk1b        voting_worker.1       dockersamples/examplevotingapp_worker:latest   node2  Running        Running 2 minutes ago
 q7yik0ks1in6        voting_result.1       dockersamples/examplevotingapp_result:before   node1  Running        Running 2 minutes ago
@@ -71,8 +72,9 @@ The currently supported filters are:
 
 The `id` filter matches on all or a prefix of a task's ID.
 
-```bash
+```console
 $ docker stack ps -f "id=t" voting
+
 ID                  NAME                IMAGE               NODE         DESIRED STATE       CURRENTSTATE            ERROR  PORTS
 tz6j82jnwrx7        voting_db.1         postgres:9.4        node1        Running             Running 14 minutes ago
 t72q3z038jeh        voting_redis.2      redis:alpine        node3        Running             Running 14 minutes ago
@@ -82,8 +84,9 @@ t72q3z038jeh        voting_redis.2      redis:alpine        node3        Running
 
 The `name` filter matches on task names.
 
-```bash
+```console
 $ docker stack ps -f "name=voting_redis" voting
+
 ID                  NAME                IMAGE               NODE         DESIRED STATE       CURRENTSTATE            ERROR  PORTS
 w48spazhbmxc        voting_redis.1      redis:alpine        node2        Running             Running 17 minutes ago
 t72q3z038jeh        voting_redis.2      redis:alpine        node3        Running             Running 17 minutes ago
@@ -93,8 +96,9 @@ t72q3z038jeh        voting_redis.2      redis:alpine        node3        Running
 
 The `node` filter matches on a node name or a node ID.
 
-```bash
+```console
 $ docker stack ps -f "node=node1" voting
+
 ID                  NAME                  IMAGE                                          NODE   DESIRED STATE  CURRENT STATE          ERROR  PORTS
 q7yik0ks1in6        voting_result.1       dockersamples/examplevotingapp_result:before   node1  Running        Running 18 minutes ago
 tz6j82jnwrx7        voting_db.1           postgres:9.4                                   node1  Running        Running 18 minutes ago
@@ -105,8 +109,9 @@ tz6j82jnwrx7        voting_db.1           postgres:9.4                          
 
 The `desired-state` filter can take the values `running`, `shutdown`, `ready` or `accepted`.
 
-```bash
+```console
 $ docker stack ps -f "desired-state=running" voting
+
 ID                  NAME                  IMAGE                                          NODE   DESIRED STATE  CURRENT STATE           ERROR  PORTS
 xim5bcqtgk1b        voting_worker.1       dockersamples/examplevotingapp_worker:latest   node2  Running        Running 21 minutes ago
 q7yik0ks1in6        voting_result.1       dockersamples/examplevotingapp_result:before   node1  Running        Running 21 minutes ago
@@ -142,8 +147,9 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Name` and `Image` entries separated by a colon (`:`) for all tasks:
 
-```bash
+```console
 $ docker stack ps --format "{{.Name}}: {{.Image}}" voting
+
 voting_worker.1: dockersamples/examplevotingapp_worker:latest
 voting_result.1: dockersamples/examplevotingapp_result:before
 voting_vote.1: dockersamples/examplevotingapp_vote:before
@@ -158,8 +164,9 @@ voting_redis.2: redis:alpine
 
 The `--no-resolve` option shows IDs for task name, without mapping IDs to Names.
 
-```bash
+```console
 $ docker stack ps --no-resolve voting
+
 ID                  NAME                          IMAGE                                          NODE                        DESIRED STATE  CURRENT STATE            ERROR  PORTS
 xim5bcqtgk1b        10z9fjfqzsxnezo4hb81p8mqg.1   dockersamples/examplevotingapp_worker:latest   qaqt4nrzo775jrx6detglho01   Running        Running 30 minutes ago
 q7yik0ks1in6        hbxltua1na7mgqjnidldv5m65.1   dockersamples/examplevotingapp_result:before   mxpaef1tlh23s052erw88a4w5   Running        Running 30 minutes ago
@@ -178,8 +185,9 @@ image, and pins the service to that digest. The digest is not shown by
 default, but is printed if `--no-trunc` is used. The `--no-trunc` option
 also shows the non-truncated task IDs, and error-messages, as can be seen below:
 
-```bash
+```console
 $ docker stack ps --no-trunc voting
+
 ID                          NAME                  IMAGE                                                                                                                 NODE   DESIRED STATE  CURREN STATE           ERROR  PORTS
 xim5bcqtgk1bxqz91jzo4a1s5   voting_worker.1       dockersamples/examplevotingapp_worker:latest@sha256:3e4ddf59c15f432280a2c0679c4fc5a2ee5a797023c8ef0d3baf7b1385e9fed   node2  Running        Runnin 32 minutes ago
 q7yik0ks1in6kv32gg6y6yjf7   voting_result.1       dockersamples/examplevotingapp_result:before@sha256:83b56996e930c292a6ae5187fda84dd6568a19d97cdb933720be15c757b7463   node1  Running        Runnin 32 minutes ago
@@ -196,7 +204,7 @@ t72q3z038jehe1wbh9gdum076   voting_redis.2        redis:alpine@sha256:9cd405cd1e
 The `-q ` or `--quiet` option only shows IDs of the tasks in the stack.
 This example outputs all task IDs of the "voting" stack;
 
-```bash
+```console
 $ docker stack ps -q voting
 xim5bcqtgk1b
 q7yik0ks1in6
@@ -212,14 +220,14 @@ This option can be used to perform batch operations. For example, you can use
 the task IDs as input for other commands, such as `docker inspect`. The
 following example inspects all tasks of the "voting" stack;
 
-```bash
+```console
 $ docker inspect $(docker stack ps -q voting)
 
 [
     {
         "ID": "xim5bcqtgk1b1gk0krq1",
         "Version": {
-(...)
+<...>
 ```
 
 ## Related commands

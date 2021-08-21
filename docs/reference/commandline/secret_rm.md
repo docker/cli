@@ -35,7 +35,7 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 This example removes a secret:
 
-```bash
+```console
 $ docker secret rm secret.json
 sapth4csdo5b6wz2p5uimh5xg
 ```

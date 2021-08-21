@@ -33,7 +33,7 @@ You can use the full or shortened container ID or the container name set using
 
 Inspect the changes to an `nginx` container:
 
-```bash
+```console
 $ docker diff 1fdfd1f54c1b
 
 C /dev

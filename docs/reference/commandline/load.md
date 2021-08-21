@@ -18,6 +18,7 @@ Options:
                        The tarball may be compressed with gzip, bzip, or xz
   -q, --quiet          Suppress the load output but still outputs the imported images
 ```
+
 ## Description
 
 Load an image or repository from a tar archive (even if compressed with gzip,
@@ -25,7 +26,7 @@ bzip2, or xz) from a file or STDIN. It restores both images and tags.
 
 ## Examples
 
-```bash
+```console
 $ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE

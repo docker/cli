@@ -36,7 +36,7 @@ for more information about available filter options.
 
 ## Examples
 
-```bash
+```console
 $ docker node ls
 
 ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATUS
@@ -44,6 +44,7 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 38ciaotwjuritcdtn9npbnkuz    swarm-worker1   Ready   Active
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
+
 > **Note**
 >
 > In the above example output, there is a hidden column of `.Self` that indicates
@@ -69,7 +70,7 @@ The currently supported filters are:
 
 The `id` filter matches all or part of a node's id.
 
-```bash
+```console
 $ docker node ls -f id=1
 
 ID                         HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
@@ -85,7 +86,7 @@ Swarm `node` labels, use [`node.label` instead](#nodelabel).
 
 The following filter matches nodes with the `foo` label regardless of its value.
 
-```bash
+```console
 $ docker node ls -f "label=foo"
 
 ID                         HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
@@ -135,7 +136,7 @@ The `membership` filter matches nodes based on the presence of a `membership` an
 
 The following filter matches nodes with the `membership` of `accepted`.
 
-```bash
+```console
 $ docker node ls -f "membership=accepted"
 
 ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATUS
@@ -149,7 +150,7 @@ The `name` filter matches on all or part of a node hostname.
 
 The following filter matches the nodes with a name equal to `swarm-master` string.
 
-```bash
+```console
 $ docker node ls -f name=swarm-manager1
 
 ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATUS
@@ -162,7 +163,7 @@ The `role` filter matches nodes based on the presence of a `role` and a value `w
 
 The following filter matches nodes with the `manager` role.
 
-```bash
+```console
 $ docker node ls -f "role=manager"
 
 ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATUS
@@ -195,8 +196,9 @@ The following example uses a template without headers and outputs the
 `ID`, `Hostname`, and `TLS Status` entries separated by a colon (`:`) for all
 nodes:
 
-```bash
+```console
 $ docker node ls --format "{{.ID}}: {{.Hostname}} {{.TLSStatus}}"
+
 e216jshn25ckzbvmwlnh5jr3g: swarm-manager1 Ready
 35o6tiywb700jesrt3dmllaza: swarm-worker1 Needs Rotation
 ```

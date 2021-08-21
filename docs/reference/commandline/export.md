@@ -30,10 +30,10 @@ in the user guide for examples on exporting data in a volume.
 
 Each of these commands has the same result.
 
-```bash
+```console
 $ docker export red_panda > latest.tar
 ```
 
-```bash
+```console
 $ docker export --output="latest.tar" red_panda
 ```

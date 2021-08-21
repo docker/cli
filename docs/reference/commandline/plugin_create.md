@@ -25,7 +25,7 @@ Creates a plugin. Before creating the plugin, prepare the plugin's root filesyst
 
 The following example shows how to create a sample `plugin`.
 
-```bash
+```console
 $ ls -ls /home/pluginDir
 
 total 4

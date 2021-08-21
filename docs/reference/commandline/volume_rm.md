@@ -25,7 +25,7 @@ Remove one or more volumes. You cannot remove a volume that is in use by a conta
 
 ## Examples
 
-```bash
+```console
 $ docker volume rm hello
 
 hello

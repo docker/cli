@@ -37,7 +37,7 @@ service while keeping the service active in the swarm you can set the scale to 0
 
 The following command scales the "frontend" service to 50 tasks.
 
-```bash
+```console
 $ docker service scale frontend=50
 
 frontend scaled to 50
@@ -45,7 +45,7 @@ frontend scaled to 50
 
 The following command tries to scale a global service to 10 tasks and returns an error.
 
-```bash
+```console
 $ docker service create --mode global --name backend backend:latest
 
 b4g08uwuairexjub6ome6usqh
@@ -58,7 +58,7 @@ backend: scale can only be used with replicated or replicated-job mode
 Directly afterwards, run `docker service ls`, to see the actual number of
 replicas.
 
-```bash
+```console
 $ docker service ls --filter name=frontend
 
 ID            NAME      MODE        REPLICAS  IMAGE
@@ -68,7 +68,7 @@ ID            NAME      MODE        REPLICAS  IMAGE
 You can also scale a service using the [`docker service update`](service_update.md)
 command. The following commands are equivalent:
 
-```bash
+```console
 $ docker service scale frontend=50
 $ docker service update --replicas=50 frontend
 ```
@@ -79,7 +79,7 @@ The `docker service scale` command allows you to set the desired number of
 tasks for multiple services at once. The following example scales both the
 backend and frontend services:
 
-```bash
+```console
 $ docker service scale backend=3 frontend=5
 
 backend scaled to 3

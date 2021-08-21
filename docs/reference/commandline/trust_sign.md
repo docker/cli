@@ -27,7 +27,7 @@ Options:
 
 Given an image:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -40,7 +40,7 @@ Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 
 Sign a new tag with `docker trust sign`:
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v2
 
 Signing and pushing trust metadata for example/trust-demo:v2
@@ -60,7 +60,7 @@ Successfully signed docker.io/example/trust-demo:v2
 
 Use `docker trust inspect --pretty` to list the new signature:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -76,7 +76,7 @@ Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 
 Given an image:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -95,7 +95,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 Sign a new tag with `docker trust sign`:
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v1
 
 Signing and pushing trust metadata for example/trust-demo:v1
@@ -113,7 +113,7 @@ Successfully signed docker.io/example/trust-demo:v1
 
 `docker trust inspect --pretty` lists the new signature:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -134,13 +134,13 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 When signing an image on a repo for the first time, `docker trust sign` sets up new keys before signing the image.
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures or cannot access example/trust-demo
 ```
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v1
 
 Signing and pushing trust metadata for example/trust-demo:v1
@@ -165,7 +165,7 @@ Enter passphrase for alice key with ID 6d52b29:
 Successfully signed docker.io/example/trust-demo:v1
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS

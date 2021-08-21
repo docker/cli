@@ -33,7 +33,7 @@ The following example installs `vieus/sshfs` plugin and [sets](plugin_set.md) it
 Hub and prompt the user to accept the list of privileges that the plugin needs,
 set the plugin's parameters and enable the plugin.
 
-```bash
+```console
 $ docker plugin install vieux/sshfs DEBUG=1
 
 Plugin "vieux/sshfs" is requesting the following privileges:
@@ -46,7 +46,7 @@ vieux/sshfs
 
 After the plugin is installed, it appears in the list of plugins:
 
-```bash
+```console
 $ docker plugin ls
 
 ID             NAME                  DESCRIPTION                ENABLED

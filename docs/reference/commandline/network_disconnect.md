@@ -23,7 +23,7 @@ disconnect it from the network.
 
 ## Examples
 
-```bash
+```console
 $ docker network disconnect multi-host-network container1
 ```
 

@@ -43,14 +43,14 @@ You can inspect a config, either by its *name*, or *ID*
 
 For example, given the following config:
 
-```bash
+```console
 $ docker config ls
 
 ID                          NAME                CREATED             UPDATED
 eo7jnzguqgtpdah3cm5srfb97   my_config           3 minutes ago       3 minutes ago
 ```
 
-```bash
+```console
 $ docker config inspect config.json
 ```
 
@@ -83,7 +83,7 @@ You can use the --format option to obtain specific information about a
 config. The following example command outputs the creation time of the
 config.
 
-```bash
+```console
 $ docker config inspect --format='{{.CreatedAt}}' eo7jnzguqgtpdah3cm5srfb97
 
 2017-03-24 08:15:09.735271783 +0000 UTC
