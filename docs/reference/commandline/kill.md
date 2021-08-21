@@ -20,8 +20,18 @@ Options:
 
 The `docker kill` subcommand kills one or more containers. The main process
 inside the container is sent `SIGKILL` signal (default), or the signal that is
-specified with the `--signal` option. You can kill a container using the
-container's ID, ID-prefix, or name.
+specified with the `--signal` option. You can reference a container by its
+ID, ID-prefix, or name.
+
+The `--signal` (or `-s` shorthand) flag sets the system call signal that is sent
+to the container. This signal can be a signal name in the format `SIG<NAME>`, for
+instance `SIGINT`, or an unsigned number that matches a position in the kernel's
+syscall table, for instance `2`.
+
+While the default (`SIGKILL`) signal will terminate the container, the signal
+set through `--signal` may be non-terminal, depending on the container's main
+process. For example, the `SIGHUP` signal in most cases will be non-terminal,
+and the container will continue running after receiving the signal.
 
 > **Note**
 >
@@ -32,16 +42,16 @@ container's ID, ID-prefix, or name.
 ## Examples
 
 
-### Send a KILL signal  to a container
+### Send a KILL signal to a container
 
-The following example sends the default `KILL` signal to the container named
+The following example sends the default `SIGKILL` signal to the container named
 `my_container`:
 
 ```bash
 $ docker kill my_container
 ```
 
-### Send a custom signal  to a container
+### Send a custom signal to a container
 
 The following example sends a `SIGHUP` signal to the container named
 `my_container`:

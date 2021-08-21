@@ -109,7 +109,7 @@ Options:
                                       Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
                                       or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --stop-signal string            Signal to stop a container (default "SIGTERM")
-      --stop-timeout=10               Timeout (in seconds) to stop a container
+      --stop-timeout int              Timeout (in seconds) to stop a container
       --storage-opt value             Storage driver options for the container (default [])
       --sysctl value                  Sysctl options (default map[])
       --tmpfs value                   Mount a tmpfs directory (default [])
