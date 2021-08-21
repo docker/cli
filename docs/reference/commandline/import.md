@@ -39,39 +39,39 @@ Supported `Dockerfile` instructions:
 
 This will create a new untagged image.
 
-```bash
-$ docker import http://example.com/exampleimage.tgz
+```console
+$ docker import https://example.com/exampleimage.tgz
 ```
 
 ### Import from a local file
 
-- Import to docker via pipe and `STDIN`.
+Import to docker via pipe and `STDIN`.
 
-  ```bash
-  $ cat exampleimage.tgz | docker import - exampleimagelocal:new
-  ```
+```console
+$ cat exampleimage.tgz | docker import - exampleimagelocal:new
+```
 
-- Import with a commit message.
+Import with a commit message.
 
-  ```bash
-  $ cat exampleimage.tgz | docker import --message "New image imported from tarball" - exampleimagelocal:new
-  ```
+```console
+$ cat exampleimage.tgz | docker import --message "New image imported from tarball" - exampleimagelocal:new
+```
 
-- Import to docker from a local archive.
+Import to docker from a local archive.
 
-  ```bash
-  $ docker import /path/to/exampleimage.tgz
-  ```
+```console
+$ docker import /path/to/exampleimage.tgz
+```
 
 ### Import from a local directory
 
-```bash
+```console
 $ sudo tar -c . | docker import - exampleimagedir
 ```
 
 ### Import from a local directory with new configurations
 
-```bash
+```console
 $ sudo tar -c . | docker import --change "ENV DEBUG=true" - exampleimagedir
 ```
 
@@ -87,6 +87,6 @@ does not match the default operating system, it may be necessary to add
 `--platform`. This would be necessary when importing a Linux image into a Windows
 daemon.
 
-```bash
+```console
 $ docker import --platform=linux .\linuximage.tar
 ```

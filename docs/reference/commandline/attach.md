@@ -84,7 +84,7 @@ containers, see [**Configuration file** section](cli.md#configuration-files).
 
 ### Attach to and detach from a running container
 
-```bash
+```console
 $ docker run -d --name topdemo ubuntu /usr/bin/top -b
 
 $ docker attach topdemo
@@ -130,22 +130,19 @@ $ docker ps -a | grep topdemo
 And in this second example, you can see the exit code returned by the `bash`
 process is returned by the `docker attach` command to its caller too:
 
-```bash
-    $ docker run --name test -d -it debian
+```console
+$ docker run --name test -d -it debian
+275c44472aebd77c926d4527885bb09f2f6db21d878c75f0a1c212c03d3bcfab
 
-    275c44472aebd77c926d4527885bb09f2f6db21d878c75f0a1c212c03d3bcfab
+$ docker attach test
+root@f38c87f2a42d:/# exit 13
 
-    $ docker attach test
+exit
 
-    root@f38c87f2a42d:/# exit 13
+$ echo $?
+13
 
-    exit
+$ docker ps -a | grep test
 
-    $ echo $?
-
-    13
-
-    $ docker ps -a | grep test
-
-    275c44472aeb        debian:7            "/bin/bash"         26 seconds ago      Exited (13) 17 seconds ago                         test
+275c44472aeb        debian:7            "/bin/bash"         26 seconds ago      Exited (13) 17 seconds ago                         test
 ```

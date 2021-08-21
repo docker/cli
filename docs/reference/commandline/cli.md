@@ -24,7 +24,7 @@ redirect_from:
 To list available commands, either run `docker` with no parameters
 or execute `docker help`:
 
-```bash
+```console
 $ docker
 Usage: docker [OPTIONS] COMMAND [ARG...]
        docker [ --help | -v | --version ]

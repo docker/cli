@@ -34,11 +34,12 @@ Removes the specified nodes from a swarm.
 
 ### Remove a stopped node from the swarm
 
-```bash
+```console
 $ docker node rm swarm-node-02
 
 Node swarm-node-02 removed from swarm
 ```
+
 ### Attempt to remove a running node from a swarm
 
 Removes the specified nodes from the swarm, but only if the nodes are in the
@@ -58,7 +59,7 @@ compromised or is not behaving as expected, you can use the `--force` option.
 This may cause transient errors or interruptions, depending on the type of task
 being run on the node.
 
-```bash
+```console
 $ docker node rm --force swarm-node-03
 
 Node swarm-node-03 removed from swarm

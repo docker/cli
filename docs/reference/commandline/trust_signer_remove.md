@@ -25,7 +25,8 @@ Options:
 ### Remove a signer from a repo
 
 To remove an existing signer, `alice`, from this repository:
-```bash
+
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -44,7 +45,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 Remove `alice` with `docker trust signer remove`:
 
-```bash
+```console
 $ docker trust signer remove alice example/trust-demo
 
 Removing signer "alice" from image example/trust-demo...
@@ -54,7 +55,7 @@ Successfully removed alice from example/trust-demo
 
 `docker trust inspect --pretty` now does not list `alice` as a valid signer:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -74,7 +75,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 To remove an existing signer, `alice`, from multiple repositories:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -91,7 +92,7 @@ Repository Key: 95b9e5514c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo2
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -110,7 +111,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 Remove `alice` from both images with a single `docker trust signer remove` command:
 
-```bash
+```console
 $ docker trust signer remove alice example/trust-demo example/trust-demo2
 
 Removing signer "alice" from image example/trust-demo...
@@ -125,7 +126,7 @@ Successfully removed alice from example/trust-demo2
 Run `docker trust inspect --pretty` to confirm that `alice` is no longer listed as a valid
 signer of either `example/trust-demo` or `example/trust-demo2`:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -141,7 +142,7 @@ Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo2
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -161,7 +162,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 basis, so it will continue to remove the signer from subsequent repositories if
 one attempt fails:
 
-```bash
+```console
 $ docker trust signer remove alice example/unauthorized example/authorized
 
 Removing signer "alice" from image example/unauthorized...

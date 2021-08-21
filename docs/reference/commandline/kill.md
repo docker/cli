@@ -47,7 +47,7 @@ and the container will continue running after receiving the signal.
 The following example sends the default `SIGKILL` signal to the container named
 `my_container`:
 
-```bash
+```console
 $ docker kill my_container
 ```
 
@@ -56,7 +56,7 @@ $ docker kill my_container
 The following example sends a `SIGHUP` signal to the container named
 `my_container`:
 
-```bash
+```console
 $ docker kill --signal=SIGHUP  my_container
 ```
 
@@ -64,7 +64,7 @@ $ docker kill --signal=SIGHUP  my_container
 You can specify a custom signal either by _name_, or _number_. The `SIG` prefix
 is optional, so the following examples are equivalent:
 
-```bash
+```console
 $ docker kill --signal=SIGHUP my_container
 $ docker kill --signal=HUP my_container
 $ docker kill --signal=1 my_container

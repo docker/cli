@@ -25,6 +25,6 @@ instruction in the container's Dockerfile, or the `--stop-signal` option to
 
 ## Examples
 
-```bash
+```console
 $ docker stop my_container
 ```

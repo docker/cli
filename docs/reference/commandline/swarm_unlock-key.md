@@ -35,7 +35,7 @@ run the `docker swarm unlock-key` command without any arguments:
 
 ## Examples
 
-```bash
+```console
 $ docker swarm unlock-key
 
 To unlock a swarm manager after it restarts, run the `docker swarm unlock`
@@ -50,7 +50,7 @@ will not be able to restart the manager.
 Use the `--rotate` flag to rotate the unlock key to a new, randomly-generated
 key:
 
-```bash
+```console
 $ docker swarm unlock-key --rotate
 
 Successfully rotated manager unlock key.
@@ -66,7 +66,7 @@ will not be able to restart the manager.
 
 The `-q` (or `--quiet`) flag only prints the key:
 
-```bash
+```console
 $ docker swarm unlock-key -q
 
 SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8

@@ -33,8 +33,8 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 ### Create a secret
 
-```bash
-$ printf <secret> | docker secret create my_secret -
+```console
+$ printf "my super secret password" | docker secret create my_secret -
 
 onakdyv307se2tl7nl20anokv
 
@@ -46,7 +46,7 @@ onakdyv307se2tl7nl20anokv   my_secret           6 seconds ago       6 seconds ag
 
 ### Create a secret with a file
 
-```bash
+```console
 $ docker secret create my_secret ./secret.json
 
 dg426haahpi5ezmkkj5kyl3sn
@@ -59,15 +59,16 @@ dg426haahpi5ezmkkj5kyl3sn   my_secret           7 seconds ago       7 seconds ag
 
 ### Create a secret with labels
 
-```bash
-$ docker secret create --label env=dev \
-                       --label rev=20170324 \
-                       my_secret ./secret.json
+```console
+$ docker secret create \
+  --label env=dev \
+  --label rev=20170324 \
+  my_secret ./secret.json
 
 eo7jnzguqgtpdah3cm5srfb97
 ```
 
-```bash
+```console
 $ docker secret inspect my_secret
 
 [

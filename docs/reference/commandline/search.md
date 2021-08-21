@@ -32,7 +32,7 @@ Search [Docker Hub](https://hub.docker.com) for images
 
 This example displays images with a name containing 'busybox':
 
-```bash
+```console
 $ docker search busybox
 
 NAME                             DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
@@ -68,8 +68,9 @@ marclop/busybox-solr
 This example displays images with a name containing 'busybox',
 at least 3 stars and the description isn't truncated in the output:
 
-```bash
+```console
 $ docker search --filter=stars=3 --no-trunc busybox
+
 NAME                 DESCRIPTION                                                                               STARS     OFFICIAL   AUTOMATED
 busybox              Busybox base image.                                                                       325       [OK]
 progrium/busybox                                                                                               50                   [OK]
@@ -97,7 +98,7 @@ The currently supported filters are:
 This example displays images with a name containing 'busybox' and at
 least 3 stars:
 
-```bash
+```console
 $ docker search --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
@@ -111,7 +112,7 @@ radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8          
 This example displays images with a name containing 'busybox'
 and are automated builds:
 
-```bash
+```console
 $ docker search --filter is-automated=true busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
@@ -124,7 +125,7 @@ radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8          
 This example displays images with a name containing 'busybox', at least
 3 stars and are official builds:
 
-```bash
+```console
 $ docker search --filter is-official=true --filter stars=3 busybox
 
 NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
@@ -154,7 +155,7 @@ output the data exactly as the template declares. If you use the
 The following example uses a template without headers and outputs the
 `Name` and `StarCount` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker search --format "{{.Name}}: {{.StarCount}}" nginx
 
 nginx: 5441
@@ -171,7 +172,7 @@ maxexcloo/nginx: 7
 
 This example outputs a table format:
 
-```bash
+```console
 $ docker search --format "table {{.Name}}\t{{.IsAutomated}}\t{{.IsOfficial}}" nginx
 
 NAME                                     AUTOMATED           OFFICIAL

@@ -23,7 +23,7 @@ Remove all unused local volumes. Unused local volumes are those which are not re
 
 ## Examples
 
-```bash
+```console
 $ docker volume prune
 
 WARNING! This will remove all local volumes not used by at least one container.

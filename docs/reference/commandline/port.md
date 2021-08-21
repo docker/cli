@@ -22,7 +22,7 @@ Options:
 You can find out all the ports mapped by not specifying a `PRIVATE_PORT`, or
 just a specific mapping:
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                                            NAMES

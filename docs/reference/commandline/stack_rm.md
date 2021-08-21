@@ -38,7 +38,7 @@ Remove the stack from the swarm.
 
 This will remove the stack with the name `myapp`. Services, networks, and secrets associated with the stack will be removed.
 
-```bash
+```console
 $ docker stack rm myapp
 
 Removing service myapp_redis
@@ -52,7 +52,7 @@ Removing network myapp_frontend
 
 This will remove all the specified stacks, `myapp` and `vossibility`. Services, networks, and secrets associated with all the specified stacks will be removed.
 
-```bash
+```console
 $ docker stack rm myapp vossibility
 
 Removing service myapp_redis

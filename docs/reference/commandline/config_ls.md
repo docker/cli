@@ -36,7 +36,7 @@ For detailed information about using configs, refer to [store configuration data
 
 ## Examples
 
-```bash
+```console
 $ docker config ls
 
 ID                          NAME                        CREATED             UPDATED
@@ -60,7 +60,7 @@ The currently supported filters are:
 
 The `id` filter matches all or prefix of a config's id.
 
-```bash
+```console
 $ docker config ls -f "id=6697bflskwj1998km1gnnjr38"
 
 ID                          NAME                        CREATED             UPDATED
@@ -75,7 +75,7 @@ a `label` and a value.
 The following filter matches all configs with a `project` label regardless of
 its value:
 
-```bash
+```console
 $ docker config ls --filter label=project
 
 ID                          NAME                        CREATED             UPDATED
@@ -85,7 +85,7 @@ mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   Abou
 The following filter matches only services with the `project` label with the
 `project-a` value.
 
-```bash
+```console
 $ docker service ls --filter label=project=test
 
 ID                          NAME                        CREATED             UPDATED
@@ -98,7 +98,7 @@ The `name` filter matches on all or prefix of a config's name.
 
 The following filter matches config with a name containing a prefix of `test`.
 
-```bash
+```console
 $ docker config ls --filter name=test_config
 
 ID                          NAME                        CREATED             UPDATED
@@ -128,7 +128,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `Name` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker config ls --format "{{.ID}}: {{.Name}}"
 
 77af4d6b9913: config-1
@@ -139,7 +139,7 @@ b6fa739cedf5: config-2
 To list all configs with their name and created date in a table format you
 can use:
 
-```bash
+```console
 $ docker config ls --format "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}"
 
 ID                  NAME                      CREATED

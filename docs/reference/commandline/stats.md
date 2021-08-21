@@ -53,7 +53,7 @@ the `/containers/(id)/stats` API endpoint.
 
 Running `docker stats` on all running containers against a Linux daemon.
 
-```bash
+```console
 $ docker stats
 
 CONTAINER ID        NAME                                    CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
@@ -77,7 +77,7 @@ following columns are shown.
 
 Running `docker stats` on multiple containers by name and id against a Linux daemon.
 
-```bash
+```console
 $ docker stats awesome_brattain 67b2525d8ad1
 
 CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
@@ -87,7 +87,7 @@ b95a83497c91        awesome_brattain    0.28%               5.629MiB / 1.952GiB 
 
 Running `docker stats` with customized format on all (Running and Stopped) containers.
 
-```bash
+```console
 $ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" fervent_panini 5acfcb1b4fd1 drunk_visvesvaraya big_heisenberg
 
 CONTAINER                CPU %               MEM USAGE / LIMIT
@@ -151,7 +151,7 @@ outputs the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Container` and `CPUPerc` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker stats --format "{{.Container}}: {{.CPUPerc}}"
 
 09d3bb5b1604: 6.61%
@@ -162,7 +162,7 @@ $ docker stats --format "{{.Container}}: {{.CPUPerc}}"
 To list all containers statistics with their name, CPU percentage and memory
 usage in a table format you can use:
 
-```bash
+```console
 $ docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 
 CONTAINER           CPU %               PRIV WORKING SET
