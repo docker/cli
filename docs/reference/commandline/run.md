@@ -120,7 +120,7 @@ Options:
                                       or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --sig-proxy                     Proxy received signals to the process (default true)
       --stop-signal string            Signal to stop a container (default "SIGTERM")
-      --stop-timeout=10               Timeout (in seconds) to stop a container
+      --stop-timeout int              Timeout (in seconds) to stop a container
       --storage-opt value             Storage driver options for the container (default [])
       --sysctl value                  Sysctl options (default map[])
       --tmpfs value                   Mount a tmpfs directory (default [])
@@ -745,9 +745,12 @@ the three processes quota set for the `daemon` user.
 
 ### Stop container with signal (--stop-signal)
 
-The `--stop-signal` flag sets the system call signal that will be sent to the container to exit.
-This signal can be a valid unsigned number that matches a position in the kernel's syscall table, for instance 9,
-or a signal name in the format SIGNAME, for instance SIGKILL.
+The `--stop-signal` flag sets the system call signal that will be sent to the
+container to exit. This signal can be a signal name in the format `SIG<NAME>`,
+for instance `SIGKILL`, or an unsigned number that matches a position in the
+kernel's syscall table, for instance `9`.
+
+The default is `SIGTERM` if not specified.
 
 ### Optional security options (--security-opt)
 
@@ -756,8 +759,16 @@ The `credentialspec` must be in the format `file://spec.txt` or `registry://keyn
 
 ### Stop container with timeout (--stop-timeout)
 
-The `--stop-timeout` flag sets the timeout (in seconds) that a pre-defined (see `--stop-signal`) system call
-signal that will be sent to the container to exit. After timeout elapses the container will be killed with SIGKILL.
+The `--stop-timeout` flag sets the number of seconds to wait for the container
+to stop after sending the pre-defined (see `--stop-signal`) system call signal.
+If the container does not exit after the timeout elapses, it is forcibly killed
+with a `SIGKILL` signal.
+
+If `--stop-timeout` is set to `-1`, no timeout is applied, and the daemon will
+wait indefinitely for the container to exit.
+
+The default is determined by the daemon, and is 10 seconds for Linux containers,
+and 30 seconds for Windows containers.
 
 ### Specify isolation technology for container (--isolation)
 
