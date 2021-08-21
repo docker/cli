@@ -26,7 +26,7 @@ for further details.
 
 ## Examples
 
-```bash
+```console
 $ docker unpause my_container
 my_container
 ```

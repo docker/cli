@@ -30,7 +30,7 @@ Login to a registry.
 If you want to login to a self-hosted registry you can specify this by
 adding the server name.
 
-```bash
+```console
 $ docker login localhost:8080
 ```
 
@@ -44,7 +44,7 @@ or log-files.
 The following example reads a password from a file, and passes it to the
 `docker login` command using `STDIN`:
 
-```bash
+```console
 $ cat ~/my_password.txt | docker login --username foo --password-stdin
 ```
 

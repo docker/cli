@@ -27,7 +27,7 @@ all results in a JSON object.
 
 Connect two containers to the default `bridge` network:
 
-```bash
+```console
 $ sudo docker run -itd --name=container1 busybox
 f2870c98fd504370fb86e59f32cd0753b1ac9b69b7d80566ffc7192a82b3ed27
 
@@ -47,7 +47,7 @@ template for each result. Go's
 [text/template](http://golang.org/pkg/text/template/) package describes all the
 details of the format.
 
-```bash
+```console
 $ sudo docker network inspect bridge
 ```
 
@@ -104,13 +104,13 @@ The output is in JSON format, for example:
 
 Create and inspect a user-defined network:
 
-```bash
+```console
 $ docker network create simple-network
 
 69568e6336d8c96bbf57869030919f7c69524f71183b44d80948bd3927c87f6a
 ```
 
-```bash
+```console
 $ docker network inspect simple-network
 ```
 
@@ -146,7 +146,7 @@ For swarm mode overlay networks `network inspect` also shows the IP address and 
 of the peers. Peers are the nodes in the swarm cluster which have at least one task attached
 to the network. Node name is of the format `<hostname>-<unique ID>`.
 
-```bash
+```console
 $ docker network inspect ingress
 ```
 
@@ -213,7 +213,7 @@ and the IPs of the nodes where the tasks are running.
 Following is an example output for an overlay network `ov1` that has one service `s1`
 attached to. service `s1` in this case has three replicas.
 
-```bash
+```console
 $ docker network inspect --verbose ov1
 ```
 

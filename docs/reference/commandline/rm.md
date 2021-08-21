@@ -24,7 +24,7 @@ Options:
 
 This removes the container referenced under the link `/redis`.
 
-```bash
+```console
 $ docker rm /redis
 
 /redis
@@ -37,7 +37,7 @@ containers on the default bridge network, removing all network communication
 between the two containers. This does not apply when `--link` is used with
 user-specified networks.
 
-```bash
+```console
 $ docker rm --link /webapp/redis
 
 /webapp/redis
@@ -47,7 +47,7 @@ $ docker rm --link /webapp/redis
 
 This command force-removes a running container.
 
-```bash
+```console
 $ docker rm --force redis
 
 redis
@@ -88,7 +88,7 @@ $ docker ps --filter status=exited -q | xargs docker rm
 
 ### Remove a container and its volumes
 
-```bash
+```console
 $ docker rm -v redis
 redis
 ```
@@ -98,7 +98,7 @@ Note that if a volume was specified with a name, it will not be removed.
 
 ### Remove a container and selectively remove volumes
 
-```bash
+```console
 $ docker create -v awesome:/foo -v /bar --name hello redis
 hello
 

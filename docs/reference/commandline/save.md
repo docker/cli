@@ -26,7 +26,7 @@ each argument provided.
 
 ### Create a backup that can then be used with `docker load`.
 
-```bash
+```console
 $ docker save busybox > busybox.tar
 
 $ ls -sh busybox.tar
@@ -48,14 +48,14 @@ $ docker save -o fedora-latest.tar fedora:latest
 
 You can use gzip to save the image file and make the backup smaller.
 
-```bash
-docker save myimage:latest | gzip > myimage_latest.tar.gz
+```console
+$ docker save myimage:latest | gzip > myimage_latest.tar.gz
 ```
 
 ### Cherry-pick particular tags
 
 You can even cherry-pick particular tags of an image repository.
 
-```bash
+```console
 $ docker save -o ubuntu.tar ubuntu:lucid ubuntu:saucy
 ```

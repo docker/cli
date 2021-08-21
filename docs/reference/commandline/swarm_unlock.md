@@ -31,7 +31,7 @@ enabled, and is also available from the `docker swarm unlock-key` command.
 
 ## Examples
 
-```bash
+```console
 $ docker swarm unlock
 Please enter unlock key:
 ```

@@ -37,7 +37,7 @@ Lists the stacks.
 
 The following command shows all stacks and some additional information:
 
-```bash
+```console
 $ docker stack ls
 
 ID                 SERVICES            ORCHESTRATOR
@@ -65,7 +65,7 @@ the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Name` and `Services` entries separated by a colon (`:`) for all stacks:
 
-```bash
+```console
 $ docker stack ls --format "{{.Name}}: {{.Services}}"
 web-server: 1
 web-cache: 4

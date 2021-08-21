@@ -29,7 +29,7 @@ new tags.
 Use the `docker trust inspect` to get trust information about an image. The
 following example prints trust information for the `alpine:latest` image:
 
-```bash
+```console
 $ docker trust inspect alpine:latest
 ```
 
@@ -79,7 +79,7 @@ and the `Signers` responsible for the signature.
 If signers are set up for the repository via other `docker trust`
 commands, `docker trust inspect` includes a `Signers` key:
 
-```bash
+```console
 $ docker trust inspect my-image:purple
 ```
 
@@ -157,7 +157,7 @@ The output is in JSON format, for example:
 If the image tag is unsigned or unavailable, `docker trust inspect` does not
 display any signed tags.
 
-```bash
+```console
 $ docker trust inspect unsigned-img
 
 No signatures or cannot access unsigned-img
@@ -166,7 +166,7 @@ No signatures or cannot access unsigned-img
 However, if other tags are signed in the same image repository,
 `docker trust inspect` reports relevant key information:
 
-```bash
+```console
 $ docker trust inspect alpine:unsigned
 ```
 
@@ -204,7 +204,7 @@ The output is in JSON format, for example:
 If no tag is specified, `docker trust inspect` will report details for all
 signed tags in the repository:
 
-```bash
+```console
 $ docker trust inspect alpine
 ```
 
@@ -273,7 +273,7 @@ The output is in JSON format, for example:
 `docker trust inspect` can take multiple repositories and images as arguments,
 and reports the results in an ordered list:
 
-```bash
+```console
 $ docker trust inspect alpine notary
 ```
 
@@ -388,7 +388,7 @@ JSON output, by using the `--pretty` option:
 
 ### Get details about signatures for a single image tag
 
-```bash
+```console
 $ docker trust inspect --pretty alpine:latest
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -410,7 +410,7 @@ If signers are set up for the repository via other `docker trust` commands,
 `docker trust inspect --pretty` displays them appropriately as a `SIGNER`
 and specify their `KEYS`:
 
-```bash
+```console
 $ docker trust inspect --pretty my-image:purple
 
 SIGNED TAG          DIGEST                                                              SIGNERS
@@ -431,7 +431,7 @@ Root Key:       40b66ccc8b176be8c7d365a17f3e046d1c3494e053dd57cfeacfe2e19c4f8e8f
 However, if other tags are signed in the same image repository,
 `docker trust inspect` reports relevant key information.
 
-```bash
+```console
 $ docker trust inspect --pretty alpine:unsigned
 
 No signatures for alpine:unsigned
@@ -444,7 +444,7 @@ Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 
 ### Get details about signatures for all image tags in a repository
 
-```bash
+```console
 $ docker trust inspect --pretty alpine
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -466,7 +466,7 @@ Root Key:       a2489bcac7a79aa67b19b96c4a3bf0c675ffdf00c6d2fabe1a5df1115e80adce
 
 Here's an example with signers that are set up by `docker trust` commands:
 
-```bash
+```console
 $ docker trust inspect --pretty my-image
 
 SIGNED TAG          DIGEST                                                              SIGNERS
