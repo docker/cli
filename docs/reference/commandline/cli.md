@@ -3,7 +3,7 @@ title: "Use the Docker command line"
 description: "Docker's CLI command description and usage"
 keywords: "Docker, Docker documentation, CLI, command line, config.json, CLI configuration file"
 redirect_from:
-  - /go/experimental/
+  - /reference/commandline/cli/
   - /engine/reference/commandline/engine/
   - /engine/reference/commandline/engine_activate/
   - /engine/reference/commandline/engine_check/
@@ -314,6 +314,9 @@ various fields:
 Experimental features provide early access to future product functionality.
 These features are intended for testing and feedback, and they may change
 between releases without warning or can be removed from a future release.
+
+Starting with Docker 20.10, experimental CLI features are enabled by default,
+and require no configuration to enable them.
 
 ### Notary
 
