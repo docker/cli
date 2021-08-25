@@ -406,7 +406,6 @@ USER
 $ docker run --env-file env.list ubuntu env | grep VAR
 VAR1=value1
 VAR2=value2
-USER=denis
 ```
 
 ### Set metadata on container (-l, --label, --label-file)
