@@ -259,8 +259,13 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
 		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
+			pf := opts.platform
+			if pf == "" {
+				// Print 'null' if the platform value is empty.
+				pf = "null"
+			}
 			// we don't want to write to stdout anything apart from container.ID
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			fmt.Fprintf(stderr, "Unable to find image '%s' for platform '%s'\n", reference.FamiliarString(namedRef), pf)
 			if err := pullAndTagImage(); err != nil {
 				return nil, err
 			}
