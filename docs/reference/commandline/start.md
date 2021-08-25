@@ -20,6 +20,6 @@ Options:
 
 ## Examples
 
-```bash
+```console
 $ docker start my_container
 ```

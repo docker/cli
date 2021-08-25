@@ -54,7 +54,7 @@ See [context create](context_create.md).
 
 ### Update an existing context
 
-```bash
+```console
 $ docker context update \
     --description "some description" \
     --docker "host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file" \

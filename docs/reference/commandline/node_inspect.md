@@ -36,7 +36,7 @@ details of the format.
 
 ### Inspect a node
 
-```bash
+```console
 $ docker node inspect swarm-manager
 ```
 
@@ -113,7 +113,7 @@ $ docker node inspect swarm-manager
 
 ### Specify an output format
 
-```bash
+```console
 $ docker node inspect --format '{{ .ManagerStatus.Leader }}' self
 
 false
@@ -121,7 +121,7 @@ false
 
 Use `--format=pretty` or the `--pretty` shorthand to pretty-print the output:
 
-```bash
+```console
 $ docker node inspect --format=pretty self
 
 ID:                     e216jshn25ckzbvmwlnh5jr3g

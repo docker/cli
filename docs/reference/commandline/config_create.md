@@ -33,7 +33,7 @@ For detailed information about using configs, refer to [store configuration data
 
 ### Create a config
 
-```bash
+```console
 $ printf <config> | docker config create my_config -
 
 onakdyv307se2tl7nl20anokv
@@ -46,7 +46,7 @@ onakdyv307se2tl7nl20anokv   my_config           6 seconds ago       6 seconds ag
 
 ### Create a config with a file
 
-```bash
+```console
 $ docker config create my_config ./config.json
 
 dg426haahpi5ezmkkj5kyl3sn
@@ -59,7 +59,7 @@ dg426haahpi5ezmkkj5kyl3sn   my_config           7 seconds ago       7 seconds ag
 
 ### Create a config with labels
 
-```bash
+```console
 $ docker config create \
     --label env=dev \
     --label rev=20170324 \
@@ -68,7 +68,7 @@ $ docker config create \
 eo7jnzguqgtpdah3cm5srfb97
 ```
 
-```bash
+```console
 $ docker config inspect my_config
 
 [

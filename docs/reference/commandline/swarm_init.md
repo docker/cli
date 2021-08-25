@@ -37,8 +37,9 @@ in the newly created single-node swarm.
 
 ## Examples
 
-```bash
+```console
 $ docker swarm init --advertise-addr 192.168.99.121
+
 Swarm initialized: current node (bvz81updecsj6wjz393c09vti) is now a manager.
 
 To add a worker to this swarm, run the following command:
@@ -132,20 +133,21 @@ applies to all nodes that join the swarm.
 The following example initializes a new Swarm, and configures the data path
 port to UDP port 7777;
 
-```bash
-docker swarm init --data-path-port=7777
+```console
+$ docker swarm init --data-path-port=7777
 ```
+
 After the swarm is initialized, use the `docker info` command to verify that
 the port is configured:
 
-```bash
-docker info
-...
+```console
+$ docker info
+<...>
 ClusterID: 9vs5ygs0gguyyec4iqf2314c0
 Managers: 1
 Nodes: 1
 Data Path Port: 7777
-...
+<...>
 ```
 
 ### `--default-addr-pool`

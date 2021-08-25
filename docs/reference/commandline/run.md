@@ -120,7 +120,7 @@ Options:
                                       or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --sig-proxy                     Proxy received signals to the process (default true)
       --stop-signal string            Signal to stop a container (default "SIGTERM")
-      --stop-timeout=10               Timeout (in seconds) to stop a container
+      --stop-timeout int              Timeout (in seconds) to stop a container
       --storage-opt value             Storage driver options for the container (default [])
       --sysctl value                  Sysctl options (default map[])
       --tmpfs value                   Mount a tmpfs directory (default [])
@@ -161,7 +161,7 @@ For information on connecting a container to a network, see the ["*Docker networ
 
 ### Assign name and allocate pseudo-TTY (--name, -it)
 
-```bash
+```console
 $ docker run --name test -it debian
 
 root@d6c0fe130dba:/# exit 13
@@ -180,7 +180,7 @@ In the example, the `bash` shell is quit by entering
 
 ### Capture container ID (--cidfile)
 
-```bash
+```console
 $ docker run --cidfile /tmp/docker_test.cid ubuntu echo "test"
 ```
 
@@ -191,7 +191,7 @@ file when `docker run` exits.
 
 ### Full container capabilities (--privileged)
 
-```bash
+```console
 $ docker run -t -i --rm ubuntu bash
 root@bc338942ef20:/# mount -t tmpfs none /mnt
 mount: permission denied
@@ -201,7 +201,7 @@ This will *not* work, because by default, most potentially dangerous kernel
 capabilities are dropped; including `cap_sys_admin` (which is required to mount
 filesystems). However, the `--privileged` flag will allow it to run:
 
-```bash
+```console
 $ docker run -t -i --privileged ubuntu bash
 root@50e3f57e16e6:/# mount -t tmpfs none /mnt
 root@50e3f57e16e6:/# df -h
@@ -216,7 +216,7 @@ flag exists to allow special use-cases, like running Docker within Docker.
 
 ### Set working directory (-w)
 
-```bash
+```console
 $ docker  run -w /path/to/dir/ -i -t  ubuntu pwd
 ```
 
@@ -225,7 +225,7 @@ The `-w` lets the command being executed inside directory given, here
 
 ### Set storage driver options per container
 
-```bash
+```console
 $ docker run -it --storage-opt size=120G fedora /bin/bash
 ```
 
@@ -240,7 +240,7 @@ Under these conditions, user can pass any size less than the backing fs size.
 
 ### Mount tmpfs (--tmpfs)
 
-```bash
+```console
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
 
@@ -249,7 +249,7 @@ The `--tmpfs` flag mounts an empty tmpfs into the container with the `rw`,
 
 ### Mount volume (-v, --read-only)
 
-```bash
+```console
 $ docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu pwd
 ```
 
@@ -259,7 +259,7 @@ changing into the directory to the value returned by `pwd`. So this
 combination executes the command using the container, but inside the
 current working directory.
 
-```bash
+```console
 $ docker run -v /doesnt/exist:/foo -w /foo -i -t ubuntu bash
 ```
 
@@ -268,7 +268,7 @@ will automatically create this directory on the host for you. In the
 example above, Docker will create the `/doesnt/exist`
 folder before starting your container.
 
-```bash
+```console
 $ docker run --read-only -v /icanwrite busybox touch /icanwrite/here
 ```
 
@@ -277,7 +277,7 @@ a container writes files. The `--read-only` flag mounts the container's root
 filesystem as read only prohibiting writes to locations other than the
 specified volumes for the container.
 
-```bash
+```console
 $ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/static-docker-binary:/usr/bin/docker busybox sh
 ```
 
@@ -327,17 +327,17 @@ Even though there is no plan to deprecate `--volume`, usage of `--mount` is reco
 
 Examples:
 
-```bash
+```console
 $ docker run --read-only --mount type=volume,target=/icanwrite busybox touch /icanwrite/here
 ```
 
-```bash
+```console
 $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ```
 
 ### Publish or expose port (-p, --expose)
 
-```bash
+```console
 $ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
 ```
 
@@ -351,7 +351,7 @@ Note that ports which are not bound to the host (i.e., `-p 80:80` instead of
 you configured UFW to block this specific port, as Docker manages his
 own iptables rules. [Read more](https://docs.docker.com/network/iptables/)
 
-```bash
+```console
 $ docker run --expose 80 ubuntu bash
 ```
 
@@ -360,7 +360,7 @@ system's interfaces.
 
 ### Set environment variables (-e, --env, --env-file)
 
-```bash
+```console
 $ docker run -e MYVAR1 --env MYVAR2=foo --env-file ./env.list ubuntu bash
 ```
 
@@ -370,7 +370,7 @@ that are defined in the Dockerfile of the image you're running.
 
 You can define the variable and its value when running the container:
 
-```bash
+```console
 $ docker run --env VAR1=value1 --env VAR2=value2 ubuntu env | grep VAR
 VAR1=value1
 VAR2=value2
@@ -378,7 +378,7 @@ VAR2=value2
 
 You can also use variables that you've exported to your local environment:
 
-```bash
+```console
 export VAR1=value1
 export VAR2=value2
 
@@ -396,7 +396,7 @@ You can also load the environment variables from a file. This file should use
 the syntax `<variable>=value` (which sets the variable to the given value) or
 `<variable>` (which takes the value from the local environment), and `#` for comments.
 
-```bash
+```console
 $ cat env.list
 # This is a comment
 VAR1=value1
@@ -413,7 +413,7 @@ USER=denis
 
 A label is a `key=value` pair that applies metadata to a container. To label a container with two labels:
 
-```bash
+```console
 $ docker run -l my-label --label com.example.foo=bar ubuntu bash
 ```
 
@@ -428,7 +428,7 @@ Use the `--label-file` flag to load multiple labels from a file. Delimit each
 label in the file with an EOL mark. The example below loads labels from a
 labels file in the current directory:
 
-```bash
+```console
 $ docker run --label-file ./labels ubuntu bash
 ```
 
@@ -456,14 +456,14 @@ the Docker User Guide.
 When you start a container use the `--network` flag to connect it to a network.
 This adds the `busybox` container to the `my-net` network.
 
-```bash
+```console
 $ docker run -itd --network=my-net busybox
 ```
 
 You can also choose the IP addresses for the container with `--ip` and `--ip6`
 flags when you start the container on a user-defined network.
 
-```bash
+```console
 $ docker run -itd --network=my-net --ip=10.10.9.75 busybox
 ```
 
@@ -486,7 +486,7 @@ disconnect` command.
 
 ### Mount volumes from container (--volumes-from)
 
-```bash
+```console
 $ docker run --volumes-from 777f7dc92da7 --volumes-from ba8c0c54f0f2:ro -i -t ubuntu pwd
 ```
 
@@ -516,14 +516,14 @@ The `-a` flag tells `docker run` to bind to the container's `STDIN`, `STDOUT`
 or `STDERR`. This makes it possible to manipulate the output and input as
 needed.
 
-```bash
+```console
 $ echo "test" | docker run -i -a stdin ubuntu cat -
 ```
 
 This pipes data into a container and prints the container's ID by attaching
 only to the container's `STDIN`.
 
-```bash
+```console
 $ docker run -a stderr ubuntu echo test
 ```
 
@@ -531,7 +531,7 @@ This isn't going to print anything unless there's an error because we've
 only attached to the `STDERR` of the container. The container's logs
 still store what's been written to `STDERR` and `STDOUT`.
 
-```bash
+```console
 $ cat somefile | docker run -i -a stdin mybuilder dobuild
 ```
 
@@ -543,7 +543,7 @@ retrieve the container's ID once the container has finished running.
 
 ### Add host device to container (--device)
 
-```bash
+```console
 $ docker run --device=/dev/sdc:/dev/xvdc \
              --device=/dev/sdd --device=/dev/zero:/dev/nulo \
              -i -t \
@@ -564,7 +564,7 @@ This can be overridden using a third `:rwm` set of options to each `--device`
 flag. If the container is running in privileged mode, then the permissions specified
 will be ignored.
 
-```bash
+```console
 $ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
 
 Command (m for help): q
@@ -620,20 +620,20 @@ for more information.
 To use `--gpus`, specify which GPUs (or all) to use. If no value is provied, all
 available GPUs are used. The example below exposes all available GPUs.
 
-```bash
+```console
 $ docker run -it --rm --gpus all ubuntu nvidia-smi
 ```
 
 Use the `device` option to specify GPUs. The example below exposes a specific
 GPU.
 
-```bash
+```console
 $ docker run -it --rm --gpus device=GPU-3a23c669-1f69-c64e-cf85-44e9b07e7a2a ubuntu nvidia-smi
 ```
 
 The example below exposes the first and third GPUs.
 
-```bash
+```console
 $ docker run -it --rm --gpus device=0,2 nvidia-smi
 ```
 
@@ -650,7 +650,7 @@ Docker supports the following restart policies:
 | `unless-stopped`           | Restart the container unless it is explicitly stopped or Docker itself is stopped or restarted.                                                                                                                                                                  |
 | `always`                   | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
 
-```bash
+```console
 $ docker run --restart=always redis
 ```
 
@@ -667,16 +667,18 @@ You can add other hosts into a container's `/etc/hosts` file by using one or
 more `--add-host` flags. This example adds a static address for a host named
 `docker`:
 
-```bash
-$ docker run --add-host=docker:10.180.0.1 --rm -it debian
+```console
+$ docker run --add-host=docker:93.184.216.34 --rm -it alpine
 
-root@f38c87f2a42d:/# ping docker
-PING docker (10.180.0.1): 48 data bytes
-56 bytes from 10.180.0.1: icmp_seq=0 ttl=254 time=7.600 ms
-56 bytes from 10.180.0.1: icmp_seq=1 ttl=254 time=30.705 ms
-^C--- docker ping statistics ---
-2 packets transmitted, 2 packets received, 0% packet loss
-round-trip min/avg/max/stddev = 7.600/19.152/30.705/11.553 ms
+/ # ping docker
+PING docker (93.184.216.34): 56 data bytes
+64 bytes from 93.184.216.34: seq=0 ttl=37 time=93.052 ms
+64 bytes from 93.184.216.34: seq=1 ttl=37 time=92.467 ms
+64 bytes from 93.184.216.34: seq=2 ttl=37 time=92.252 ms
+^C
+--- docker ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 92.209/92.495/93.052 ms
 ```
 
 Sometimes you need to connect to the Docker host from within your
@@ -688,7 +690,7 @@ The flags you pass to `ip addr show` depend on whether you are
 using IPv4 or IPv6 networking in your containers. Use the following
 flags for IPv4 address retrieval for a network device named `eth0`:
 
-```bash
+```console
 $ HOSTIP=`ip -4 addr show scope global dev eth0 | grep inet | awk '{print $2}' | cut -d / -f 1 | sed -n 1p`
 $ docker run  --add-host=docker:${HOSTIP} --rm -it debian
 ```
@@ -704,7 +706,7 @@ available in the default container, you can set these using the `--ulimit` flag.
 `--ulimit` is specified with a soft and hard limit as such:
 `<type>=<soft limit>[:<hard limit>]`, for example:
 
-```bash
+```console
 $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 1024
 ```
@@ -716,7 +718,7 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 > the default `ulimits` set on the daemon. The `as` option is disabled now.
 > In other words, the following script is not supported:
 >
-> ```bash
+> ```console
 > $ docker run -it --ulimit as=1024 fedora /bin/bash`
 > ```
 
@@ -729,7 +731,7 @@ Be careful setting `nproc` with the `ulimit` flag as `nproc` is designed by Linu
 maximum number of processes available to a user, not to a container.  For example, start four
 containers with `daemon` user:
 
-```bash
+```console
 $ docker run -d -u daemon --ulimit nproc=3 busybox top
 
 $ docker run -d -u daemon --ulimit nproc=3 busybox top
@@ -745,9 +747,12 @@ the three processes quota set for the `daemon` user.
 
 ### Stop container with signal (--stop-signal)
 
-The `--stop-signal` flag sets the system call signal that will be sent to the container to exit.
-This signal can be a valid unsigned number that matches a position in the kernel's syscall table, for instance 9,
-or a signal name in the format SIGNAME, for instance SIGKILL.
+The `--stop-signal` flag sets the system call signal that will be sent to the
+container to exit. This signal can be a signal name in the format `SIG<NAME>`,
+for instance `SIGKILL`, or an unsigned number that matches a position in the
+kernel's syscall table, for instance `9`.
+
+The default is `SIGTERM` if not specified.
 
 ### Optional security options (--security-opt)
 
@@ -756,8 +761,16 @@ The `credentialspec` must be in the format `file://spec.txt` or `registry://keyn
 
 ### Stop container with timeout (--stop-timeout)
 
-The `--stop-timeout` flag sets the timeout (in seconds) that a pre-defined (see `--stop-signal`) system call
-signal that will be sent to the container to exit. After timeout elapses the container will be killed with SIGKILL.
+The `--stop-timeout` flag sets the number of seconds to wait for the container
+to stop after sending the pre-defined (see `--stop-signal`) system call signal.
+If the container does not exit after the timeout elapses, it is forcibly killed
+with a `SIGKILL` signal.
+
+If `--stop-timeout` is set to `-1`, no timeout is applied, and the daemon will
+wait indefinitely for the container to exit.
+
+The default is determined by the daemon, and is 10 seconds for Linux containers,
+and 30 seconds for Windows containers.
 
 ### Specify isolation technology for container (--isolation)
 
@@ -766,7 +779,7 @@ Windows. The `--isolation <value>` option sets a container's isolation technolog
 On Linux, the only supported is the `default` option which uses
 Linux namespaces. These two commands are equivalent on Linux:
 
-```bash
+```console
 $ docker run -d busybox top
 $ docker run -d --isolation default busybox top
 ```
@@ -847,7 +860,7 @@ The `--sysctl` sets namespaced kernel parameters (sysctls) in the
 container. For example, to turn on IP forwarding in the containers
 network namespace, run this command:
 
-```bash
+```console
 $ docker run --sysctl net.ipv4.ip_forward=1 someimage
 ```
 

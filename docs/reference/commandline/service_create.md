@@ -101,7 +101,7 @@ Creates a service as described by the specified parameters.
 
 ### Create a service
 
-```bash
+```console
 $ docker service create --name redis redis:3.0.6
 
 dmu1ept4cxcfe8k8lhtux3ro3
@@ -124,7 +124,7 @@ If your image is available on a private registry which requires login, use the
 your image is stored on `registry.example.com`, which is a private registry, use
 a command like the following:
 
-```bash
+```console
 $ docker login registry.example.com
 
 $ docker service  create \
@@ -142,7 +142,7 @@ nodes are able to log into the registry and pull the image.
 Use the `--replicas` flag to set the number of replica tasks for a replicated
 service. The following command creates a `redis` service with `5` replica tasks:
 
-```bash
+```console
 $ docker service create --name redis --replicas=5 redis:3.0.6
 
 4cdgfyky7ozwh3htjfw0d12qv
@@ -156,7 +156,7 @@ of replica tasks for the service.
 In the following example the desired state is  `5` replicas, but the current
 number of `RUNNING` tasks is `3`:
 
-```bash
+```console
 $ docker service ls
 
 ID            NAME   MODE        REPLICAS  IMAGE
@@ -166,7 +166,7 @@ ID            NAME   MODE        REPLICAS  IMAGE
 Once all the tasks are created and `RUNNING`, the actual number of tasks is
 equal to the desired number:
 
-```bash
+```console
 $ docker service ls
 
 ID            NAME   MODE        REPLICAS  IMAGE
@@ -180,7 +180,7 @@ Use the `--secret` flag to give a container access to a
 
 Create a service specifying a secret:
 
-```bash
+```console
 $ docker service create --name redis --secret secret.json redis:3.0.6
 
 4cdgfyky7ozwh3htjfw0d12qv
@@ -188,7 +188,7 @@ $ docker service create --name redis --secret secret.json redis:3.0.6
 
 Create a service specifying the secret, target, user/group ID, and mode:
 
-```bash
+```console
 $ docker service create --name redis \
     --secret source=ssh-key,target=ssh \
     --secret source=app-key,target=app,uid=1000,gid=1001,mode=0400 \
@@ -217,13 +217,13 @@ as numerical IDs or names. When using names, the provided group/user names must
 pre-exist in the container. The `mode` is specified as a 4-number sequence such
 as `0755`.
 
-```bash
+```console
 $ docker service create --name=redis --config redis-conf redis:3.0.6
 ```
 
 Create a service with a config and specify the target location and file mode:
 
-```bash
+```console
 $ docker service create --name redis \
   --config source=redis-conf,target=/etc/redis/redis.conf,mode=0400 redis:3.0.6
 ```
@@ -236,7 +236,7 @@ the container. If a target is specified, that is used as the filename.
 
 ### Create a service with a rolling update policy
 
-```bash
+```console
 $ docker service create \
   --replicas 10 \
   --name redis \
@@ -254,7 +254,7 @@ tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
 This sets an environment variable for all tasks in a service. For example:
 
-```bash
+```console
 $ docker service create \
   --name redis_2 \
   --replicas 5 \
@@ -265,7 +265,7 @@ $ docker service create \
 To specify multiple environment variables, specify multiple `--env` flags, each
 with a separate key-value pair.
 
-```bash
+```console
 $ docker service create \
   --name redis_2 \
   --replicas 5 \
@@ -279,7 +279,7 @@ $ docker service create \
 This option sets the docker service containers hostname to a specific string.
 For example:
 
-```bash
+```console
 $ docker service create --name redis --hostname myredis redis:3.0.6
 ```
 
@@ -288,7 +288,7 @@ $ docker service create --name redis --hostname myredis redis:3.0.6
 A label is a `key=value` pair that applies metadata to a service. To label a
 service with two labels:
 
-```bash
+```console
 $ docker service create \
   --name redis_2 \
   --label com.example.foo="bar"
@@ -592,7 +592,7 @@ or `--volume` flag for `docker run`, with some important exceptions:
 
 The following example creates a service that uses a named volume:
 
-```bash
+```console
 $ docker service create \
   --name my-service \
   --replicas 3 \
@@ -622,7 +622,7 @@ be deployed on a different node.
 The following command creates a service with three replicas with an anonymous
 volume on `/path/in/container`:
 
-```bash
+```console
 $ docker service create \
   --name my-service \
   --replicas 3 \
@@ -640,7 +640,7 @@ the task using them is complete.
 The following example bind-mounts a host directory at `/path/in/container` in
 the containers backing the service:
 
-```bash
+```console
 $ docker service create \
   --name my-service \
   --mount type=bind,source=/path/on/host,destination=/path/in/container \
@@ -655,7 +655,7 @@ service runs on each active node in the swarm.
 
 The following command creates a global service:
 
-```bash
+```console
 $ docker service create \
  --name redis_2 \
  --mode global \
@@ -688,7 +688,7 @@ the [`docker node update`](node_update.md) command.
 For example, the following limits tasks for the redis service to nodes where the
 node type label equals queue:
 
-```bash
+```console
 $ docker service create \
   --name redis_2 \
   --constraint node.platform.os==linux \
@@ -703,7 +703,7 @@ loop and deploy the service once a suitable node becomes available.
 In the example below, no node satisfying the constraint was found, causing the
 service to not reconcile with the desired state:
 
-```bash
+```console
 $ docker service create \
   --name web \
   --constraint node.labels.region==east \
@@ -721,7 +721,7 @@ b6lww17hrr4e        web      replicated   0/1        nginx:alpine
 After adding the `region=east` label to a node in the cluster, the service
 reconciles, and the desired number of replicas are deployed:
 
-```bash
+```console
 $ docker node update --label-add region=east yswe2dm4c5fdgtsrli1e8ya5l
 yswe2dm4c5fdgtsrli1e8ya5l
 
@@ -736,7 +736,7 @@ You can set up the service to divide tasks evenly over different categories of
 nodes. One example of where this can be useful is to balance tasks over a set
 of datacenters or availability zones. The example below illustrates this:
 
-```bash
+```console
 $ docker service create \
   --replicas 9 \
   --name redis_2 \
@@ -787,7 +787,7 @@ The following example sets up a service with multiple placement preferences.
 Tasks are spread first over the various datacenters, and then over racks
 (as indicated by the respective labels):
 
-```bash
+```console
 $ docker service create \
   --replicas 9 \
   --name redis_2 \
@@ -812,7 +812,7 @@ pending state.
 The following example requires that 4GB of memory be available and reservable
 on a given node before scheduling the service to run on that node.
 
-```bash
+```console
 $ docker service create --reserve-memory=4GB --name=too-big nginx:alpine
 ```
 
@@ -825,7 +825,7 @@ given amount of memory on a node. This example limits the amount of memory used
 by the task to 4GB. The task will be scheduled even if each of your nodes has
 only 2GB of memory, because `--limit-memory` is an upper limit.
 
-```bash
+```console
 $ docker service create --limit-memory=4GB --name=too-big nginx:alpine
 ```
 
@@ -880,7 +880,7 @@ maintenance or datacenter failure.
 
 The example below illustrates this:
 
-```bash
+```console
 $ docker service create \
   --name nginx \
   --replicas 2 \
@@ -896,7 +896,7 @@ You can use overlay networks to connect one or more services within the swarm.
 First, create an overlay network on a manager node the docker network create
 command:
 
-```bash
+```console
 $ docker network create --driver overlay my-network
 
 etjpu59cykrptrgw0z0hk5snf
@@ -908,7 +908,7 @@ access to the network.
 When you create a service and pass the `--network` flag to attach the service to
 the overlay network:
 
-```bash
+```console
 $ docker service create \
   --replicas 3 \
   --network my-network \
@@ -933,7 +933,7 @@ using the `--publish` flag. The `--publish` flag can take two different styles
 of arguments. The short version is positional, and allows you to specify the
 published port and target port separated by a colon (`:`).
 
-```bash
+```console
 $ docker service create --name my_web --replicas 3 --publish 8080:80 nginx
 ```
 
@@ -942,7 +942,7 @@ more options. The long format is preferred. You cannot specify the service's
 mode when using the short format. Here is an example of using the long format
 for the same service as above:
 
-```bash
+```console
 $ docker service create --name my_web --replicas 3 --publish published=8080,target=80 nginx
 ```
 
@@ -1074,7 +1074,7 @@ Valid placeholders for the Go template are listed below:
 In this example, we are going to set the template of the created containers based on the
 service's name, the node's ID and hostname where it sits.
 
-```bash
+```console
 $ docker service create \
     --name hosttempl \
     --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
@@ -1098,7 +1098,7 @@ By default, tasks scheduled on Windows nodes are run using the default isolation
 configured for this particular node. To force a specific isolation mode, you can use
 the `--isolation` flag:
 
-```bash
+```console
 $ docker service create --name myservice --isolation=process microsoft/nanoserver
 ```
 
@@ -1112,7 +1112,7 @@ Supported isolation modes on Windows are:
 You can narrow the kind of nodes your task can land on through the using the
 `--generic-resource` flag (if the nodes advertise these resources):
 
-```bash
+```console
 $ docker service create \
     --name cuda \
     --generic-resource "NVIDIA-GPU=2" \
@@ -1129,7 +1129,7 @@ belonging to a job exits successfully (return value 0), the Task is marked as
 
 Jobs are started by using one of two modes, `replicated-job` or `global-job`
 
-```bash
+```console
 $ docker service create --name myjob \
                         --mode replicated-job \
                         bash "true"
@@ -1159,12 +1159,13 @@ By default, all replicas of a replicated job will launch at once. To control
 the total number of replicas that are executing simultaneously at any one time,
 the `--max-concurrent` flag can be used:
 
-```bash
-$ docker service create --name mythrottledjob \
-                        --mode replicated-job \
-                        --replicas 10 \
-                        --max-concurrent 2 \
-                        bash "true"
+```console
+$ docker service create \
+    --name mythrottledjob \
+    --mode replicated-job \
+    --replicas 10 \
+    --max-concurrent 2 \
+    bash "true"
 ```
 
 The above command will execute 10 Tasks in total, but only 2 of them will be

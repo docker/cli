@@ -18,7 +18,7 @@ Options:
 
 ## Examples
 
-```bash
+```console
 $ docker logout localhost:8080
 ```
 

@@ -42,7 +42,7 @@ You can inspect a service, either by its *name*, or *ID*
 
 For example, given the following service;
 
-```bash
+```console
 $ docker service ls
 ID            NAME   MODE        REPLICAS  IMAGE
 dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
@@ -51,7 +51,7 @@ dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
 Both `docker service inspect redis`, and `docker service inspect dmu1ept4cxcf`
 produce the same result:
 
-```bash
+```console
 $ docker service inspect redis
 ```
 
@@ -99,7 +99,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-```bash
+```console
 $ docker service inspect dmu1ept4cxcf
 
 [
@@ -118,7 +118,7 @@ $ docker service inspect dmu1ept4cxcf
 You can print the inspect output in a human-readable format instead of the default
 JSON output, by using the `--pretty` option:
 
-```bash
+```console
 $ docker service inspect --pretty frontend
 
 ID:     c8wgl7q4ndfd52ni6qftkvnnp
@@ -153,7 +153,7 @@ The `--format` option can be used to obtain specific information about a
 service. For example, the following command outputs the number of replicas
 of the "redis" service.
 
-```bash
+```console
 $ docker service inspect --format='{{.Spec.Mode.Replicated.Replicas}}' redis
 
 10

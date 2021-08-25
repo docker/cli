@@ -18,6 +18,6 @@ Options:
 
 ## Examples
 
-```bash
+```console
 $ docker restart my_container
 ```

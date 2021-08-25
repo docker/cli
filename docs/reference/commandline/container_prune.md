@@ -26,7 +26,7 @@ Removes all stopped containers.
 
 ### Prune containers
 
-```bash
+```console
 $ docker container prune
 WARNING! This will remove all stopped containers.
 Are you sure you want to continue? [y/N] y
@@ -66,7 +66,7 @@ containers without the specified labels.
 
 The following removes containers created more than 5 minutes ago:
 
-```bash
+```console
 $ docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}'
 
 CONTAINER ID        IMAGE               COMMAND             CREATED AT                      STATUS
@@ -88,7 +88,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED AT          
 
 The following removes containers created before `2017-01-04T13:10:00`:
 
-```bash
+```console
 $ docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}'
 
 CONTAINER ID        IMAGE               COMMAND             CREATED AT                      STATUS

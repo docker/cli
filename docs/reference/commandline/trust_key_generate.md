@@ -25,7 +25,7 @@ Options:
 
 ### Generate a key-pair
 
-```bash
+```console
 $ docker trust key generate alice
 
 Generating key for alice...
@@ -44,7 +44,7 @@ be used directly by `docker trust signer add`.
 
 Provide the `--dir` argument to specify a directory to generate the key in:
 
-```bash
+```console
 $ docker trust key generate alice --dir /foo
 
 Generating key for alice...
