@@ -46,6 +46,7 @@ ARG GO_STRIP
 ARG CGO_ENABLED
 # VERSION sets the version for the produced binary
 ARG VERSION
+RUN wget 'https://github.com/tonistiigi/xx/releases/download/prebuilt%2Fld-1/ld64-signed-linux-amd64.tar.gz'
 RUN --mount=ro --mount=type=cache,target=/root/.cache \
     --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
     --mount=type=tmpfs,target=cli/winresources \
