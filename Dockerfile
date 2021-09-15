@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.16.7
+ARG GO_VERSION=1.16.8
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
