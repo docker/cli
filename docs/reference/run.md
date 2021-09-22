@@ -554,17 +554,17 @@ Docker supports the following restart policies:
   </tbody>
 </table>
 
-An ever increasing delay (double the previous delay, starting at 100
-milliseconds) is added before each restart to prevent flooding the server.
+An increasing delay (double the previous delay, starting at 100 milliseconds)
+is added before each restart to prevent flooding the server.
 This means the daemon will wait for 100 ms, then 200 ms, 400, 800, 1600,
-and so on until either the `on-failure` limit is hit, or when you `docker stop`
-or `docker rm -f` the container.
+and so on until either the `on-failure` limit, the maximum delay of 1 minute is
+hit, or when you `docker stop` or `docker rm -f` the container.
 
 If a container is successfully restarted (the container is started and runs
 for at least 10 seconds), the delay is reset to its default value of 100 ms.
 
 You can specify the maximum amount of times Docker will try to restart the
-container when using the **on-failure** policy.  The default is that Docker
+container when using the **on-failure** policy. The default is that Docker
 will try forever to restart the container. The number of (attempted) restarts
 for a container can be obtained via [`docker inspect`](commandline/inspect.md). For example, to get the number of restarts
 for container "my-container";
