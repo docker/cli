@@ -9,7 +9,7 @@ keywords: ["secret, inspect"]
 ```Markdown
 Usage:  docker secret inspect [OPTIONS] SECRET [SECRET...]
 
-Display detailed information on one or more secrets
+Display detailed information on one or more Swarm secrets
 
 Options:
   -f, --format string   Format the output using the given Go template

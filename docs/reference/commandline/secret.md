@@ -9,16 +9,16 @@ keywords: "secret"
 ```markdown
 Usage:  docker secret COMMAND
 
-Manage Docker secrets
+Manage Docker Swarm secrets
 
 Options:
       --help   Print usage
 
 Commands:
-  create      Create a secret from a file or STDIN as content
-  inspect     Display detailed information on one or more secrets
-  ls          List secrets
-  rm          Remove one or more secrets
+  create      Create a Swarm secret from a file or STDIN as content
+  inspect     Display detailed information on one or more Swarm secrets
+  ls          List Swarm secrets
+  rm          Remove one or more Swarm secrets
 
 Run 'docker secret COMMAND --help' for more information on a command.
 
@@ -26,7 +26,7 @@ Run 'docker secret COMMAND --help' for more information on a command.
 
 ## Description
 
-Manage secrets.
+Manage Docker Swarm secrets.
 
 ## Related commands
 

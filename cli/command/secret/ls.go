@@ -25,7 +25,7 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
 		Aliases: []string{"list"},
-		Short:   "List secrets",
+		Short:   "List Swarm secrets",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runSecretList(dockerCli, options)

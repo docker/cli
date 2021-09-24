@@ -21,7 +21,7 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 	opts := inspectOptions{}
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] SECRET [SECRET...]",
-		Short: "Display detailed information on one or more secrets",
+		Short: "Display detailed information on one or more Swarm secrets",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args

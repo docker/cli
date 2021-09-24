@@ -9,7 +9,7 @@ keywords: ["secret, create"]
 ```Markdown
 Usage:  docker secret create [OPTIONS] SECRET [file|-]
 
-Create a secret from a file or STDIN as content
+Create a Swarm secret from a file or STDIN as content
 
 Options:
   -l, --label list               Secret labels

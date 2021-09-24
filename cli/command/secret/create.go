@@ -30,7 +30,7 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] SECRET [file|-]",
-		Short: "Create a secret from a file or STDIN as content",
+		Short: "Create a Swarm secret from a file or STDIN as content",
 		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]

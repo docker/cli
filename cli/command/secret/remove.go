@@ -19,7 +19,7 @@ func newSecretRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:     "rm SECRET [SECRET...]",
 		Aliases: []string{"remove"},
-		Short:   "Remove one or more secrets",
+		Short:   "Remove one or more Swarm secrets",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts := removeOptions{
