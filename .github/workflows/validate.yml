@@ -19,6 +19,7 @@ jobs:
         target:
           - lint
           - shellcheck
+          - validate-vendor
     steps:
       -
         name: Checkout

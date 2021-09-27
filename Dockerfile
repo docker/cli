@@ -20,7 +20,7 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 FROM go-${TARGETOS} AS build-base-alpine
 COPY --from=xx / /
 RUN apk add --no-cache clang lld llvm file git
-WORKDIR /go/src/github.com/docker/cli
+WORKDIR /src
 
 FROM build-base-alpine AS build-alpine
 ARG TARGETPLATFORM
@@ -30,7 +30,7 @@ RUN xx-apk add --no-cache musl-dev gcc
 FROM go-${TARGETOS} AS build-base-buster
 COPY --from=xx / /
 RUN apt-get update && apt-get install --no-install-recommends -y clang lld file
-WORKDIR /go/src/github.com/docker/cli
+WORKDIR /src
 
 FROM build-base-buster AS build-buster
 ARG TARGETPLATFORM

@@ -73,3 +73,29 @@ target "shellcheck" {
     target = "shellcheck"
     output = ["type=cacheonly"]
 }
+
+target "validate-vendor" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "validate"
+    output = ["type=cacheonly"]
+}
+
+target "update-vendor" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "update"
+    output = ["."]
+}
+
+// Used to invalidate cache for mod-outdated run stage
+// See also https://github.com/moby/buildkit/issues/1213
+variable "TIMESTAMP" {
+    default = ""
+}
+target "mod-outdated" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "outdated"
+    args = {
+        TIMESTAMP = TIMESTAMP
+    }
+    output = ["type=cacheonly"]
+}

@@ -4,4 +4,3 @@
 .gitignore
 appveyor.yml
 build
-/vndr.log

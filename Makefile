@@ -49,11 +49,11 @@ plugins-osx: ## build example CLI plugins for macOS
 dynbinary: ## build dynamically linked binary
 	USE_GLIBC=1 docker buildx bake dynbinary
 
-vendor: vendor.conf ## check that vendor matches vendor.conf
+.PHONY: vendor
+vendor: ## update vendor based on go mod/sum
 	rm -rf vendor
-	bash -c 'vndr |& grep -v -i clone | tee ./vndr.log'
-	scripts/validate/check-git-diff vendor
-	scripts/validate/check-all-packages-vendored
+	go mod tidy
+	go mod vendor
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
@@ -73,6 +73,5 @@ help: ## print this help
 
 .PHONY: ci-validate
 ci-validate:
-	time make -B vendor
 	time make manpages
 	time make yamldocs

@@ -15,4 +15,3 @@ cli/winresources/rsrc_*.syso
 /docs/yaml/gen/
 coverage.txt
 profile.out
-/vndr.log
