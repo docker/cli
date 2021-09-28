@@ -1,0 +1,266 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+env:
+  PLATFORM: Docker Engine - WAGO (Community)
+  DEFAULT_PRODUCT_LICENSE: Community Engine
+  DOCKER_GITCOMMIT: ${{ github.sha }}
+  DOCKER_EXPERIMENTAL: 1
+  DOCKER_GRAPHDRIVER: overlay2
+  BUILDKIT_PROGRESS: plain
+  BASE_DEBIAN_DISTRO: buster
+  GO_VERSION: 1.16.7
+  APT_MIRROR: cdn-fastly.deb.debian.org
+  CHECK_CONFIG_COMMIT: 78405559cfe5987174aa2cb6463b9b2c1b917255
+  TESTDEBUG: 0
+  TIMEOUT: 120m
+  BUILD_OUTPUT: build
+  VERSION: '20.10-dev'
+
+jobs:
+  check:
+    runs-on: ubuntu-18.04
+    
+    outputs:
+      stringver: ${{ steps.contentrel.outputs.stringver }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Check signature
+      run: |
+        releasever=${{ github.ref }}
+        releasever="${releasever#refs/tags/}"
+        tagcheck=$(git tag -v ${releasever} 2>&1 >/dev/null) ||
+        echo "${tagcheck}" | grep -q "error" && {
+            echo "::error::tag ${releasever} is not a signed tag. Failing release process."
+            exit 1
+        } || {
+            echo "Tag ${releasever} is signed."
+            exit 0
+        }
+
+    - name: Release content
+      id: contentrel
+      run: |
+        releasever=${{ github.ref }}
+        echo "::set-output name=stringver::${releasever#refs/tags/v}"
+
+        file_path="${BUILD_OUTPUT}"/release-notes.md
+        echo "::set-output name=path::${file_path}"
+
+        mkdir -p "${BUILD_OUTPUT}"
+        git tag -l ${releasever#refs/tags/} -n20000 | tail -n +3 | cut -c 5- > "${file_path}"
+
+    - name: Save release notes
+      uses: actions/upload-artifact@v2
+      with:
+        name: docker-cli-release-notes
+        path: ${{ steps.contentrel.outputs.path }}
+
+  build-static-binary:
+  
+    strategy:
+      matrix:
+        include:
+        - arch: amd64
+          platform: linux/amd64
+        - arch: arm32v7
+          platform: linux/arm/v7
+
+    runs-on: ubuntu-18.04
+    needs:
+      - check
+
+    env:
+      VERSION: ${{ needs.check.outputs.stringver }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up node for Docker make
+      id: setup-docker-make
+      uses: WAGO/docker-actions/setup-docker-make@release/v1.0
+      with:
+        golang-version: ${{ env.GO_VERSION }}
+        base-debian-distro: ${{ env.BASE_DEBIAN_DISTRO }}
+        host-arch: ${{ matrix.arch }}
+        target-platform: ${{ matrix.platform }}
+        check-config-commit: ${{ env.CHECK_CONFIG_COMMIT }}
+        project-version: ${{ env.VERSION }}
+
+    - name: Set bundle meta information
+      id: set-bundle-info
+      run: |
+        input_path="${BUILD_OUTPUT}/docker-cli"
+        echo "::set-output name=input-path::${input_path}"
+
+    - name: Build binary
+      uses: docker/build-push-action@v2
+      with:
+        target: binary
+        context: .
+        push: false
+        outputs: |
+          type=local,dest=${{ steps.set-bundle-info.outputs.input-path }}
+        cache-from: type=local,src=${{ steps.setup-docker-make.outputs.buildx-cache }}
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        platforms: |
+          ${{ matrix.platform }}
+        build-args: |
+          SOURCE_DATE_EPOCH
+          BUILDTIME
+          APT_MIRROR
+          PLATFORM
+          DEFAULT_PRODUCT_LICENSE
+          DOCKER_GITCOMMIT
+          VERSION=${{ steps.setup-docker-make.outputs.version }}
+          CGO_ENABLED=1
+          BASE_VARIANT=${{ env.BASE_DEBIAN_DISTRO }}
+          GO_VERSION=${{ env.GO_VERSION }}
+        load: false
+
+    # Temp fix
+    # https://github.com/docker/build-push-action/issues/252
+    # https://github.com/moby/buildkit/issues/1896
+    - name: Move cache
+      env:
+        BUILDX_CACHE: ${{ steps.setup-docker-make.outputs.buildx-cache }}
+      run: |
+        rm -rf "${BUILDX_CACHE}"
+        mv /tmp/.buildx-cache-new "${BUILDX_CACHE}"
+    
+    - name: Create bundle
+      id: create-bundle
+      env:
+        BUNDLE_PLATFORM: ${{ steps.setup-docker-make.outputs.target-platform-id }}
+        BUNDLE_INPUT_PATH: ${{ steps.set-bundle-info.outputs.input-path }}
+        VERSION: ${{ steps.setup-docker-make.outputs.version }}
+      run: |
+        bundle_archive_name="docker-cli-${VERSION//\./_}_static-${BUNDLE_PLATFORM}.tar"
+        bundle_archive_base="${BUILD_OUTPUT}/${bundle_archive_name}"
+        bundle_archive="${bundle_archive_base}.gz"
+        tar -C "${BUNDLE_INPUT_PATH}" -czvf "${bundle_archive}" .
+        (cd "$(dirname "${bundle_archive}")"; sha256sum "$(basename "${bundle_archive}")") > "${bundle_archive}".sha256sum
+        echo "::set-output name=archive-base::${bundle_archive_base}"
+
+    - name: Upload bundle
+      uses: actions/upload-artifact@v2
+      with:
+        name: docker-cli-bundles
+        path: ${{ steps.create-bundle.outputs.archive-base }}.*
+        retention-days: 7    
+  
+    - name: Print artifact version informations
+      env:
+        BUNDLE_INPUT_PATH: ${{ steps.set-bundle-info.outputs.input-path }}
+      run: |
+        "${BUNDLE_INPUT_PATH}/docker" version
+
+  release:
+    runs-on: ubuntu-18.04
+
+    needs: 
+    - build-static-binary
+    - check
+
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - name: Release notes
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-cli-release-notes
+          path: ${{ env.BUILD_OUTPUT }}
+
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: docker cli ${{ needs.check.outputs.stringver }}
+          body_path: ${{ env.BUILD_OUTPUT }}/release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+
+  release-upload:  
+    runs-on: ubuntu-18.04
+
+    needs:
+    - release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set artifact information
+      id: set-artifact-info
+      uses: WAGO/docker-actions/artifact-info@release/v1.0
+      with:
+        version: ${{ env.VERSION }}
+        platform: ${{ matrix.platform }}
+
+    - name: Download bundles
+      uses: actions/download-artifact@v2
+      with:
+        name: docker-cli-bundles
+        path: ${{ env.BUILD_OUTPUT }}
+          
+    - name: Create catalog
+      id: catalog
+      run: |
+        _filenum=1
+        for f in $(ls "docker-cli-"*); do
+          echo "::set-output name=file${_filenum}::${f}"
+          let _filenum+=1
+        done
+      working-directory: ${{ env.BUILD_OUTPUT }}
+
+    - name: 1st Upload tarball
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ${{ env.BUILD_OUTPUT }}/${{ steps.catalog.outputs.file1 }}
+        asset_name: ${{ steps.catalog.outputs.file1 }}
+        asset_content_type: application/gzip
+    - name: 1st Upload sha256 sum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ${{ env.BUILD_OUTPUT }}/${{ steps.catalog.outputs.file2 }}
+        asset_name: ${{ steps.catalog.outputs.file2 }}
+        asset_content_type: text/plain
+
+    - name: 2nd Upload tarball
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ${{ env.BUILD_OUTPUT }}/${{ steps.catalog.outputs.file3 }}
+        asset_name: ${{ steps.catalog.outputs.file3 }}
+        asset_content_type: application/gzip
+    - name: 2nd Upload sha256 sum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ${{ env.BUILD_OUTPUT }}/${{ steps.catalog.outputs.file4 }}
+        asset_name: ${{ steps.catalog.outputs.file4 }}
+        asset_content_type: text/plain

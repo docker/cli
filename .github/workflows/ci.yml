@@ -100,7 +100,7 @@ jobs:
         BUNDLE_PLATFORM: ${{ steps.setup-docker-make.outputs.target-platform-id }}
         BUNDLE_INPUT_PATH: ${{ steps.set-bundle-info.outputs.input-path }}
       run: |
-        bundle_archive_name="docker-cli-${BUNDLE_PLATFORM}.tar"
+        bundle_archive_name="docker-cli-static-${BUNDLE_PLATFORM}.tar"
         bundle_archive="${BUILD_OUTPUT}/${bundle_archive_name}"
         tar -C "${BUNDLE_INPUT_PATH}" -cvf "${bundle_archive}" .
         echo "::set-output name=archive::${bundle_archive}"
