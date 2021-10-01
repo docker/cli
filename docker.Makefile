@@ -42,8 +42,9 @@ build_e2e_image:
 DOCKER_RUN_NAME_OPTION := $(if $(DOCKER_CLI_CONTAINER_NAME),--name $(DOCKER_CLI_CONTAINER_NAME),)
 DOCKER_RUN := docker run --rm $(ENVVARS) $(DOCKER_CLI_MOUNTS) $(DOCKER_RUN_NAME_OPTION)
 
-binary: build_binary_native_image ## build the CLI
-	$(DOCKER_RUN) $(BINARY_NATIVE_IMAGE_NAME)
+.PHONY: binary
+binary:
+	docker buildx bake binary
 
 build: binary ## alias for binary
 
@@ -62,6 +63,10 @@ test-unit: build_docker_image ## run unit tests (using go test)
 .PHONY: test ## run unit and e2e tests
 test: test-unit test-e2e
 
+.PHONY: cross
+cross:
+	docker buildx bake cross
+
 .PHONY: plugins-windows
 plugins-windows: build_cross_image ## build the example CLI plugins for Windows
 	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make $@
@@ -69,6 +74,10 @@ plugins-windows: build_cross_image ## build the example CLI plugins for Windows
 .PHONY: plugins-osx
 plugins-osx: build_cross_image ## build the example CLI plugins for macOS
 	$(DOCKER_RUN) $(CROSS_IMAGE_NAME) make $@
+
+.PHONY: dynbinary
+dynbinary: ## build dynamically linked binary
+	USE_GLIBC=1 docker buildx bake dynbinary
 
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
@@ -81,6 +90,10 @@ shell: dev ## alias for dev
 .PHONY: lint
 lint: ## run linters
 	docker buildx bake lint
+
+.PHONY: shellcheck
+shellcheck: ## run shellcheck validation
+	docker buildx bake shellcheck
 
 .PHONY: fmt
 fmt: ## run gofmt
@@ -101,10 +114,6 @@ manpages: build_docker_image ## generate man pages from go source and markdown
 .PHONY: yamldocs
 yamldocs: build_docker_image ## generate documentation YAML files consumed by docs repo
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make yamldocs
-
-.PHONY: shellcheck
-shellcheck: ## run shellcheck validation
-	docker buildx bake shellcheck
 
 .PHONY: test-e2e
 test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ssh ## run all e2e tests

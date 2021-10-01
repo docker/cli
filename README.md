@@ -1,64 +1,67 @@
-[![build status](https://circleci.com/gh/docker/cli.svg?style=shield)](https://circleci.com/gh/docker/cli/tree/master)
-[![Build Status](https://ci.docker.com/public/job/cli/job/master/badge/icon)](https://ci.docker.com/public/job/cli/job/master)
+# Docker CLI
 
-docker/cli
-==========
+[![PkgGoDev](https://img.shields.io/badge/go.dev-docs-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/docker/cli)
+[![Build Status](https://img.shields.io/github/workflow/status/docker/cli/build?logo=github)](https://github.com/docker/cli/actions?query=workflow%3Abuild)
+[![CircleCI Status](https://img.shields.io/circleci/build/github/docker/cli/master?logo=circleci)](https://circleci.com/gh/docker/cli/tree/master)
+[![Jenkins Status](https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.docker.com%2Fpublic%2Fjob%2Fcli%2Fjob%2Fmaster&logo=jenkins)](https://ci.docker.com/public/job/cli/job/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/docker/cli)](https://goreportcard.com/report/github.com/docker/cli)
+[![Codecov](https://codecov.io/gh/docker/cli/branch/master/graph/badge.svg)](https://codecov.io/gh/docker/cli)
+
+## About
 
 This repository is the home of the cli used in the Docker CE and
 Docker EE products.
 
-Development
-===========
+## Development
 
 `docker/cli` is developed using Docker.
 
 Build CLI from source:
 
-```
-$ docker buildx bake
+```shell
+docker buildx bake
 ```
 
 Build binaries for all supported platforms:
 
-```
-$ docker buildx bake cross
+```shell
+docker buildx bake cross
 ```
 
 Build for a specific platform:
 
-```
-$ docker buildx bake --set binary.platform=linux/arm64 
+```shell
+docker buildx bake --set binary.platform=linux/arm64 
 ```
 
 Build dynamic binary for glibc or musl:
 
+```shell
+USE_GLIBC=1 docker buildx bake dynbinary 
 ```
-$ USE_GLIBC=1 docker buildx bake dynbinary 
-```
-
 
 Run all linting:
 
-```
-$ make -f docker.Makefile lint
+```shell
+docker buildx bake lint shellcheck
 ```
 
 List all the available targets:
 
-```
-$ make help
+```shell
+make help
 ```
 
 ### In-container development environment
 
 Start an interactive development environment:
 
-```
-$ make -f docker.Makefile shell
+```shell
+make -f docker.Makefile shell
 ```
 
-Legal
-=====
+## Legal
+
 *Brought to you courtesy of our legal counsel. For more context,
 please see the [NOTICE](https://github.com/docker/cli/blob/master/NOTICE) document in this repo.*
 
@@ -70,8 +73,8 @@ violate applicable laws.
 
 For more information, please see https://www.bis.doc.gov
 
-Licensing
-=========
+## Licensing
+
 docker/cli is licensed under the Apache License, Version 2.0. See
 [LICENSE](https://github.com/docker/docker/blob/master/LICENSE) for the full
 license text.

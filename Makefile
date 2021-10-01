@@ -3,7 +3,6 @@
 #
 all: binary
 
-
 _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 
 .PHONY: clean
@@ -21,21 +20,29 @@ test: test-unit ## run tests
 test-coverage: ## run test coverage
 	gotestsum -- -coverprofile=coverage.txt $(shell go list ./... | grep -vE '/vendor/|/e2e/')
 
+.PHONY: lint
+lint: ## run all the lint tools
+	golangci-lint run
+
+.PHONY: shellcheck
+shellcheck: ## run shellcheck validation
+	find scripts/ contrib/completion/bash -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck
+
 .PHONY: fmt
 fmt:
 	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
 
 .PHONY: binary
-binary:
-	docker buildx bake binary
+binary: ## build executable for Linux
+	./scripts/build/binary
+
+.PHONY: dynbinary
+dynbinary: ## build dynamically linked binary
+	GO_LINKMODE=dynamic ./scripts/build/binary
 
 .PHONY: plugins
 plugins: ## build example CLI plugins
 	./scripts/build/plugins
-
-.PHONY: cross
-cross:
-	docker buildx bake cross
 
 .PHONY: plugins-windows
 plugins-windows: ## build example CLI plugins for Windows
@@ -44,10 +51,6 @@ plugins-windows: ## build example CLI plugins for Windows
 .PHONY: plugins-osx
 plugins-osx: ## build example CLI plugins for macOS
 	./scripts/build/plugins-osx
-
-.PHONY: dynbinary
-dynbinary: ## build dynamically linked binary
-	USE_GLIBC=1 docker buildx bake dynbinary
 
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor

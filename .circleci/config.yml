@@ -2,36 +2,6 @@ version: 2
 
 jobs:
 
-  cross:
-    working_directory: /work
-    docker: [{image: 'docker:20.10-git'}]
-    environment:
-      DOCKER_BUILDKIT: 1
-      BUILDX_VERSION: "v0.6.0"
-    parallelism: 3
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.6
-          reusable: true
-          exclusive: false
-      - run:
-          name: "Docker version"
-          command: docker version
-      - run:
-          name: "Docker info"
-          command: docker info
-      - run: apk add make curl
-      - run: mkdir -vp ~/.docker/cli-plugins/
-      - run: curl -fsSL --output ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64
-      - run: chmod a+x ~/.docker/cli-plugins/docker-buildx
-      - run: docker buildx version
-      - run: docker context create buildctx
-      - run: docker buildx create --use buildctx && docker buildx inspect --bootstrap
-      - run: GROUP_INDEX=$CIRCLE_NODE_INDEX GROUP_TOTAL=$CIRCLE_NODE_TOTAL docker buildx bake cross --progress=plain
-      - store_artifacts:
-          path: /work/build
-
   test:
     working_directory: /work
     docker: [{image: 'docker:20.10-git'}]
@@ -112,6 +82,5 @@ workflows:
   version: 2
   ci:
     jobs:
-      - cross
       - test
       - validate
