@@ -240,7 +240,7 @@ assigned devices will both be added to the cgroup.allow file and
 created into the container once it is run. This poses a problem when
 a new device needs to be added to running container.
 
-One of the solution is to add a more permissive rule to a container
+One of the solutions is to add a more permissive rule to a container
 allowing it access to a wider range of devices. For example, supposing
 our container needs access to a character device with major `42` and
 any number of minor number (added as new devices appear), the
