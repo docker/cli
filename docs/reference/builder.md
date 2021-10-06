@@ -179,7 +179,7 @@ Docker runs instructions in a `Dockerfile` in order. A `Dockerfile` **must
 begin with a `FROM` instruction**. This may be after [parser
 directives](#parser-directives), [comments](#format), and globally scoped
 [ARGs](#arg). The `FROM` instruction specifies the [*Parent
-Image*](https://docs.docker.com/glossary/#parent_image) from which you are
+Image*](https://docs.docker.com/glossary/#parent-image) from which you are
 building. `FROM` may only be preceded by one or more `ARG` instructions, which
 declare arguments that are used in `FROM` lines in the `Dockerfile`.
 
@@ -677,7 +677,7 @@ FROM [--platform=<platform>] <image>[@<digest>] [AS <name>]
 ```
 
 The `FROM` instruction initializes a new build stage and sets the
-[*Base Image*](https://docs.docker.com/glossary/#base_image) for subsequent instructions. As such, a
+[*Base Image*](https://docs.docker.com/glossary/#base-image) for subsequent instructions. As such, a
 valid `Dockerfile` must start with a `FROM` instruction. The image can be
 any valid image – it is especially easy to start by **pulling an image** from
 the [*Public Repositories*](https://docs.docker.com/docker-hub/repos/).
@@ -759,6 +759,7 @@ RUN instruction onto the next line. For example, consider these two lines:
 RUN /bin/bash -c 'source $HOME/.bashrc; \
 echo $HOME'
 ```
+
 Together they are equivalent to this single line:
 
 ```dockerfile
@@ -938,6 +939,7 @@ the `--format` option to show just the labels;
 ```console
 $ docker image inspect --format='{{json .Config.Labels}}' myimage
 ```
+
 ```json
 {
   "com.example.vendor": "ACME Incorporated",
@@ -2171,9 +2173,14 @@ ONBUILD RUN /usr/local/bin/python-build --dir /app/src
 STOPSIGNAL signal
 ```
 
-The `STOPSIGNAL` instruction sets the system call signal that will be sent to the container to exit.
-This signal can be a valid unsigned number that matches a position in the kernel's syscall table, for instance 9,
-or a signal name in the format SIGNAME, for instance SIGKILL.
+The `STOPSIGNAL` instruction sets the system call signal that will be sent to the
+container to exit. This signal can be a signal name in the format `SIG<NAME>`,
+for instance `SIGKILL`, or an unsigned number that matches a position in the
+kernel's syscall table, for instance `9`. The default is `SIGTERM` if not
+defined.
+
+The image's default stopsignal can be overridden per container, using the
+`--stop-signal` flag on `docker run` and `docker create`.
 
 ## HEALTHCHECK
 

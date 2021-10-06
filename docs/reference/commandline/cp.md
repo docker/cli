@@ -95,11 +95,11 @@ the user in the container. However, you can still copy such files by manually
 running `tar` in `docker exec`. Both of the following examples do the same thing
 in different ways (consider `SRC_PATH` and `DEST_PATH` are directories):
 
-```bash
+```console
 $ docker exec CONTAINER tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | tar Cxf DEST_PATH -
 ```
 
-```bash
+```console
 $ tar Ccf $(dirname SRC_PATH) - $(basename SRC_PATH) | docker exec -i CONTAINER tar Cxf DEST_PATH -
 ```
 

@@ -67,7 +67,7 @@ fraction of a second no more than nine digits long. You can combine the
 
 In order to retrieve logs before a specific point in time, run:
 
-```bash
+```console
 $ docker run --name test -d busybox sh -c "while true; do $(echo date); sleep 1; done"
 $ date
 Tue 14 Nov 2017 16:40:00 CET

@@ -26,7 +26,7 @@ Registry credentials are managed by [docker login](login.md).
 
 The following example shows how to push a sample `user/plugin`.
 
-```bash
+```console
 $ docker plugin ls
 
 ID             NAME                    DESCRIPTION                  ENABLED

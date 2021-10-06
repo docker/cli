@@ -40,7 +40,7 @@ to [*Share images on Docker Hub*](https://docs.docker.com/get-started/part3/).
 To tag a local image with ID "0e5574283393" into the "fedora" repository with
 "version1.0":
 
-```bash
+```console
 $ docker tag 0e5574283393 fedora/httpd:version1.0
 ```
 
@@ -49,7 +49,7 @@ $ docker tag 0e5574283393 fedora/httpd:version1.0
 To tag a local image with name "httpd" into the "fedora" repository with
 "version1.0":
 
-```bash
+```console
 $ docker tag httpd fedora/httpd:version1.0
 ```
 
@@ -61,7 +61,7 @@ existing local version `httpd:latest`.
 To tag a local image with name "httpd" and tag "test" into the "fedora"
 repository with "version1.0.test":
 
-```bash
+```console
 $ docker tag httpd:test fedora/httpd:version1.0.test
 ```
 
@@ -70,6 +70,6 @@ $ docker tag httpd:test fedora/httpd:version1.0.test
 To push an image to a private registry and not the central Docker
 registry you must tag it with the registry hostname and port (if needed).
 
-```bash
+```console
 $ docker tag 0e5574283393 myregistryhost:5000/fedora/httpd:version1.0
 ```

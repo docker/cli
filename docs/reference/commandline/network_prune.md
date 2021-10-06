@@ -24,7 +24,7 @@ by any containers.
 
 ## Examples
 
-```bash
+```console
 $ docker network prune
 
 WARNING! This will remove all custom networks not used by at least one container.
@@ -64,7 +64,7 @@ networks without the specified labels.
 The following removes networks created more than 5 minutes ago. Note that
 system networks such as `bridge`, `host`, and `none` will never be pruned:
 
-```bash
+```console
 $ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE

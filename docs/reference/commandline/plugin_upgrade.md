@@ -30,7 +30,7 @@ The plugin must be disabled before running the upgrade.
 The following example installs `vieus/sshfs` plugin, uses it to create and use
 a volume, then upgrades the plugin.
 
-```bash
+```console
 $ docker plugin install vieux/sshfs DEBUG=1
 
 Plugin "vieux/sshfs:next" is requesting the following privileges:

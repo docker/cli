@@ -30,7 +30,7 @@ for further details.
 
 ## Examples
 
-```bash
+```console
 $ docker pause my_container
 ```
 

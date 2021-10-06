@@ -30,7 +30,7 @@ the same network.
 
 ### Connect a running container to a network
 
-```bash
+```console
 $ docker network connect multi-host-network container1
 ```
 
@@ -38,7 +38,7 @@ $ docker network connect multi-host-network container1
 
 You can also use the `docker run --network=<network-name>` option to start a container and immediately connect it to a network.
 
-```bash
+```console
 $ docker run -itd --network=multi-host-network busybox
 ```
 
@@ -46,7 +46,7 @@ $ docker run -itd --network=multi-host-network busybox
 
 You can specify the IP address you want to be assigned to the container's interface.
 
-```bash
+```console
 $ docker network connect --ip 10.10.36.122 multi-host-network container2
 ```
 
@@ -54,7 +54,7 @@ $ docker network connect --ip 10.10.36.122 multi-host-network container2
 
 You can use `--link` option to link another container with a preferred alias
 
-```bash
+```console
 $ docker network connect --link container1:c1 multi-host-network container2
 ```
 
@@ -63,7 +63,7 @@ $ docker network connect --link container1:c1 multi-host-network container2
 `--alias` option can be used to resolve the container by another name in the network
 being connected to.
 
-```bash
+```console
 $ docker network connect --alias db --alias mysql multi-host-network container2
 ```
 
@@ -79,11 +79,11 @@ to specify an `--ip-range` when creating the network, and choose the static IP
 address(es) from outside that range. This ensures that the IP address is not
 given to another container while this container is not on the network.
 
-```bash
+```console
 $ docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 multi-host-network
 ```
 
-```bash
+```console
 $ docker network connect --ip 172.20.128.2 multi-host-network container2
 ```
 

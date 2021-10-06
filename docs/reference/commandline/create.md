@@ -109,7 +109,7 @@ Options:
                                       Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
                                       or `g` (gigabytes). If you omit the unit, the system uses bytes.
       --stop-signal string            Signal to stop a container (default "SIGTERM")
-      --stop-timeout=10               Timeout (in seconds) to stop a container
+      --stop-timeout int              Timeout (in seconds) to stop a container
       --storage-opt value             Storage driver options for the container (default [])
       --sysctl value                  Sysctl options (default map[])
       --tmpfs value                   Mount a tmpfs directory (default [])
@@ -131,6 +131,7 @@ Options:
       --volumes-from value            Mount volumes from the specified container(s) (default [])
   -w, --workdir string                Working directory inside the container
 ```
+
 ## Description
 
 The `docker create` command creates a writeable container layer over the
@@ -149,7 +150,7 @@ Please see the [run command](run.md) section and the [Docker run reference](../r
 
 ### Create and start a container
 
-```bash
+```console
 $ docker create -t -i fedora bash
 
 6d8af538ec541dd581ebc2a24153a28329acb5268abe5ef868c1f1a261221752
@@ -165,7 +166,7 @@ As of v1.4.0 container volumes are initialized during the `docker create` phase
 (i.e., `docker run` too). For example, this allows you to `create` the `data`
 volume container, and then use it from another container:
 
-```bash
+```console
 $ docker create -v /data --name data ubuntu
 
 240633dfbb98128fa77473d3d9018f6123b99c454b3251427ae190a7d951ad57
@@ -180,7 +181,7 @@ drwxr-xr-x 48 root root 4096 Dec  5 04:11 ..
 Similarly, `create` a host directory bind mounted volume container, which can
 then be used from the subsequent container:
 
-```bash
+```console
 $ docker create -v /home/docker:/docker --name docker ubuntu
 
 9aa88c08f319cd1e4515c3c46b0de7cc9aa75e878357b1e96f91e2c773029f03
@@ -202,7 +203,7 @@ drwxr-xr-x 32 1000 staff 1140 Dec  5 04:01 docker
 
 Set storage driver options per container.
 
-```bash
+```console
 $ docker create -it --storage-opt size=120G fedora /bin/bash
 ```
 
@@ -239,14 +240,14 @@ assigned devices will both be added to the cgroup.allow file and
 created into the container once it is run. This poses a problem when
 a new device needs to be added to running container.
 
-One of the solution is to add a more permissive rule to a container
+One of the solutions is to add a more permissive rule to a container
 allowing it access to a wider range of devices. For example, supposing
 our container needs access to a character device with major `42` and
 any number of minor number (added as new devices appear), the
 following rule would be added:
 
-```
-docker create --device-cgroup-rule='c 42:* rmw' -name my-container my-image
+```console
+$ docker create --device-cgroup-rule='c 42:* rmw' -name my-container my-image
 ```
 
 Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`

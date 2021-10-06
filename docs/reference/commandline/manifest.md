@@ -40,8 +40,8 @@ to two images -- one for windows on amd64, and one for darwin on amd64.
 
 ### manifest inspect
 
-```bash
-manifest inspect --help
+```console
+$ docker manifest inspect --help
 
 Usage:  docker manifest inspect [OPTIONS] [MANIFEST_LIST] MANIFEST
 
@@ -55,7 +55,7 @@ Options:
 
 ### manifest create
 
-```bash
+```console
 Usage:  docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]
 
 Create a local manifest list for annotating and pushing to a registry
@@ -68,7 +68,7 @@ Options:
 
 ### manifest annotate
 
-```bash
+```console
 Usage:  docker manifest annotate [OPTIONS] MANIFEST_LIST MANIFEST
 
 Add additional information to a local image manifest
@@ -85,7 +85,7 @@ Options:
 
 ### manifest push
 
-```bash
+```console
 Usage:  docker manifest push [OPTIONS] MANIFEST_LIST
 
 Push a manifest list to a repository
@@ -113,7 +113,7 @@ default requirements.
 
 ### Inspect an image's manifest object
 
-```bash
+```console
 $ docker manifest inspect hello-world
 {
         "schemaVersion": 2,
@@ -143,7 +143,7 @@ without a tag, or by digest (e.g. `hello-world@sha256:f3b3b28a45160805bb16542c95
 
 Here is an example of inspecting an image's manifest with the `--verbose` flag:
 
-```bash
+```console
 $ docker manifest inspect --verbose hello-world
 {
         "Ref": "docker.io/library/hello-world:latest",
@@ -187,7 +187,7 @@ After you have created your local copy of the manifest list, you may optionally
 Finally, you need to `push` your manifest list to the desired registry. Below are
 descriptions of these three commands, and an example putting them all together.
 
-```bash
+```console
 $ docker manifest create 45.55.81.106:5000/coolapp:v1 \
     45.55.81.106:5000/coolapp-ppc64le-linux:v1 \
     45.55.81.106:5000/coolapp-arm-linux:v1 \
@@ -197,11 +197,11 @@ $ docker manifest create 45.55.81.106:5000/coolapp:v1 \
 Created manifest list 45.55.81.106:5000/coolapp:v1
 ```
 
-```bash
+```console
 $ docker manifest annotate 45.55.81.106:5000/coolapp:v1 45.55.81.106:5000/coolapp-arm-linux --arch arm
 ```
 
-```bash
+```console
 $ docker manifest push 45.55.81.106:5000/coolapp:v1
 Pushed manifest 45.55.81.106:5000/coolapp@sha256:9701edc932223a66e49dd6c894a11db8c2cf4eccd1414f1ec105a623bf16b426 with digest: sha256:f67dcc5fc786f04f0743abfe0ee5dae9bd8caf8efa6c8144f7f2a43889dc513b
 Pushed manifest 45.55.81.106:5000/coolapp@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f with digest: sha256:b64ca0b60356a30971f098c92200b1271257f100a55b351e6bbe985638352f3a
@@ -213,7 +213,7 @@ sha256:050b213d49d7673ba35014f21454c573dcbec75254a08f4a7c34f66a47c06aba
 
 ### Inspect a manifest list
 
-```bash
+```console
 $ docker manifest inspect coolapp:v1
 {
    "schemaVersion": 2,
@@ -264,7 +264,7 @@ $ docker manifest inspect coolapp:v1
 Here is an example of creating and pushing a manifest list using a known
 insecure registry.
 
-```bash
+```console
 $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1.0 \
     myprivateregistry.mycompany.com/repo/image-linux-ppc64le:1.0 \
     myprivateregistry.mycompany.com/repo/image-linux-s390x:1.0 \

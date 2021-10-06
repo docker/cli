@@ -31,7 +31,7 @@ Refer to the [filtering](#filtering) section for more information about availabl
 
 ## Examples
 
-```bash
+```console
 $ docker plugin ls
 
 ID            NAME                                    DESCRIPTION                ENABLED
@@ -58,7 +58,7 @@ The `capability` filter matches on plugin capabilities. One plugin
 might have multiple capabilities. Currently `volumedriver`, `networkdriver`,
 `ipamdriver`, `logdriver`, `metricscollector`, and `authz` are supported capabilities.
 
-```bash
+```console
 $ docker plugin install --disable vieux/sshfs
 
 Installed plugin vieux/sshfs
@@ -90,7 +90,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `Name` entries separated by a colon (`:`) for all plugins:
 
-```bash
+```console
 $ docker plugin ls --format "{{.ID}}: {{.Name}}"
 
 4be01827a72e: vieux/sshfs:latest

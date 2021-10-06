@@ -28,7 +28,7 @@ To add a signer to a repository use `docker trust signer add`.
 
 For a private key `alice.pem` with permissions `-rw-------`
 
-```bash
+```console
 $ docker trust key load alice.pem
 
 Loading key from "alice.pem"...
@@ -39,7 +39,7 @@ Successfully imported key from alice.pem
 
 To specify a name use the `--name` flag:
 
-```bash
+```console
 $ docker trust key load --name alice-key alice.pem
 
 Loading key from "alice.pem"...

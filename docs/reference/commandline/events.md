@@ -208,13 +208,13 @@ You'll need two shells for this example.
 
 **Shell 1: Listening for events:**
 
-```bash
+```console
 $ docker events
 ```
 
 **Shell 2: Start and Stop containers:**
 
-```bash
+```console
 $ docker create --name test alpine:latest top
 $ docker start test
 $ docker stop test
@@ -239,7 +239,7 @@ To exit the `docker events` command, use `CTRL+C`.
 You can filter the output by an absolute timestamp or relative time on the host
 machine, using the following different time syntaxes:
 
-```bash
+```console
 $ docker events --since 1483283804
 2017-01-05T00:35:41.241772953+08:00 volume create testVol (driver=local)
 2017-01-05T00:35:58.859401177+08:00 container create d9cd...4d70 (image=alpine:latest, name=test)
@@ -292,7 +292,7 @@ $ docker events --since '2017-01-05T00:35:30' --until '2017-01-05T00:36:05'
 The following commands show several different ways to filter the `docker event`
 output.
 
-```bash
+```console
 $ docker events --filter 'event=stop'
 
 2017-01-05T00:40:22.880175420+08:00 container stop 0fdb...ff37 (image=alpine:latest, name=test)
@@ -388,7 +388,7 @@ $ docker events --filter 'scope=swarm'
 
 ### Format the output
 
-```bash
+```console
 $ docker events --filter 'type=container' --format 'Type={{.Type}}  Status={{.Status}}  ID={{.ID}}'
 
 Type=container  Status=create  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299c126a87812311951e26
@@ -401,7 +401,7 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-```bash
+```console
 $ docker events --format '{{json .}}'
 
 {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..

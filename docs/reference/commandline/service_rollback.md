@@ -43,13 +43,13 @@ previous version, having one replica.
 
 Create a service with a single replica:
 
-```bash
+```console
 $ docker service create --name my-service -p 8080:80 nginx:alpine
 ```
 
 Confirm that the service is running with a single replica:
 
-```bash
+```console
 $ docker service ls
 
 ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
@@ -58,7 +58,7 @@ xbw728mf6q0d        my-service          replicated          1/1                 
 
 Update the service to use three replicas:
 
-```bash
+```console
 $ docker service update --replicas=3 my-service
 
 $ docker service ls
@@ -70,7 +70,7 @@ xbw728mf6q0d        my-service          replicated          3/3                 
 Now roll back the service to its previous version, and confirm it is
 running a single replica again:
 
-```bash
+```console
 $ docker service rollback my-service
 
 $ docker service ls

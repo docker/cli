@@ -127,13 +127,13 @@ rolling restart without any changes to the service parameters.
 
 ### Update a service
 
-```bash
+```console
 $ docker service update --limit-cpu 2 redis
 ```
 
 ### Perform a rolling restart with no parameter changes
 
-```bash
+```console
 $ docker service update --force --update-parallelism 1 --update-delay 30s redis
 ```
 
@@ -161,7 +161,7 @@ service name.
 
 - The `--mount-rm` flag takes the `target` path of the mount.
 
-```bash
+```console
 $ docker service create \
     --name=myservice \
     --mount type=volume,source=test-data,target=/somewhere \
@@ -189,7 +189,7 @@ reference.
 
 The following example adds a published service port to an existing service.
 
-```bash
+```console
 $ docker service update \
   --publish-add published=8080,target=80 \
   myservice
@@ -204,7 +204,7 @@ reference.
 
 The following example adds a new alias name to an existing service already connected to network my-network:
 
-```bash
+```console
 $ docker service update \
   --network-rm my-network \
   --network-add name=my-network,alias=web1 \
@@ -219,7 +219,7 @@ This will revert the service to the configuration that was in place before the m
 
 The following example updates the number of replicas for the service from 4 to 5, and then rolls back to the previous configuration.
 
-```bash
+```console
 $ docker service update --replicas=5 web
 
 web
@@ -230,9 +230,10 @@ ID            NAME  MODE        REPLICAS  IMAGE
 80bvrzp6vxf3  web   replicated  0/5       nginx:alpine
 
 ```
+
 Roll back the `web` service...
 
-```bash
+```console
 $ docker service update --rollback web
 
 web
@@ -246,7 +247,7 @@ ID            NAME  MODE        REPLICAS  IMAGE
 
 Other options can be combined with `--rollback` as well, for example, `--update-delay 0s` to execute the rollback without a delay between tasks:
 
-```bash
+```console
 $ docker service update \
   --rollback \
   --update-delay 0s
@@ -283,7 +284,7 @@ secrets.
 
 The following example adds a secret named `ssh-2` and removes `ssh-1`:
 
-```bash
+```console
 $ docker service update \
     --secret-add source=ssh-2,target=ssh-2 \
     --secret-rm ssh-1 \
