@@ -128,9 +128,8 @@ This example displays images with a name containing 'busybox', at least
 ```console
 $ docker search --filter is-official=true --filter stars=3 busybox
 
-NAME                 DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
-progrium/busybox                                                     50                   [OK]
-radial/busyboxplus   Full-chain, Internet enabled, busybox made...   8                    [OK]
+NAME      DESCRIPTION           STARS     OFFICIAL   AUTOMATED
+busybox   Busybox base image.   325       [OK]
 ```
 
 ### Format the output
