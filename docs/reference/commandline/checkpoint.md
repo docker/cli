@@ -89,7 +89,7 @@ resumes from the point it left off once you restore.
 seccomp is only supported by CRIU in very up to date kernels.
 
 External terminal (i.e. `docker run -t ..`) is not supported at the moment.
-If you try to create a checkpoint for a container with an external terminal, 
+If you try to create a checkpoint for a container with an external terminal,
 it would fail:
 
 ```console
