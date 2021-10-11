@@ -33,7 +33,7 @@ cat > ./cli/winresources/versioninfo.json <<EOL
     "Comments": "",
     "CompanyName": "${COMPANY_NAME}",
     "FileDescription": "Docker Client",
-    "FileVersion": "${VERSION_QUAD}",
+    "FileVersion": "${VERSION}",
     "InternalName": "",
     "LegalCopyright": "Copyright © 2015-$(date +'%Y') Docker Inc.",
     "LegalTrademarks": "",
