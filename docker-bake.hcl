@@ -10,6 +10,11 @@ variable "STRIP_TARGET" {
     default = ""
 }
 
+# Sets the name of the company that produced the windows binary.
+variable "COMPANY_NAME" {
+    default = ""
+}
+
 group "default" {
     targets = ["binary"]
 }
@@ -21,6 +26,7 @@ target "binary" {
     args = {
         BASE_VARIANT = USE_GLIBC != "" ? "buster" : "alpine"
         VERSION = VERSION
+        COMPANY_NAME = COMPANY_NAME
         GO_STRIP = STRIP_TARGET
     }
 }

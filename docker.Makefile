@@ -9,6 +9,9 @@ DOCKER_CLI_MOUNTS ?= -v "$(CURDIR)":/go/src/github.com/docker/cli
 DOCKER_CLI_CONTAINER_NAME ?=
 DOCKER_CLI_GO_BUILD_CACHE ?= y
 
+# Sets the name of the company that produced the windows binary.
+COMPANY_NAME ?=
+
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev$(IMAGE_TAG)
 BINARY_NATIVE_IMAGE_NAME = docker-cli-native$(IMAGE_TAG)
 CROSS_IMAGE_NAME = docker-cli-cross$(IMAGE_TAG)
@@ -44,7 +47,7 @@ DOCKER_RUN := docker run --rm $(ENVVARS) $(DOCKER_CLI_MOUNTS) $(DOCKER_RUN_NAME_
 
 .PHONY: binary
 binary:
-	docker buildx bake binary
+	COMPANY_NAME=$(COMPANY_NAME) docker buildx bake binary
 
 build: binary ## alias for binary
 
@@ -65,7 +68,7 @@ test: test-unit test-e2e
 
 .PHONY: cross
 cross:
-	docker buildx bake cross
+	COMPANY_NAME=$(COMPANY_NAME) docker buildx bake cross
 
 .PHONY: plugins-windows
 plugins-windows: build_cross_image ## build the example CLI plugins for Windows
@@ -77,7 +80,7 @@ plugins-osx: build_cross_image ## build the example CLI plugins for macOS
 
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
-	USE_GLIBC=1 docker buildx bake dynbinary
+	USE_GLIBC=1 COMPANY_NAME=$(COMPANY_NAME)  docker buildx bake dynbinary
 
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
