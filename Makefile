@@ -1,6 +1,10 @@
 #
 # github.com/docker/cli
 #
+
+# Sets the name of the company that produced the windows binary.
+COMPANY_NAME ?=
+
 all: binary
 
 _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))

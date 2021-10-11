@@ -3,6 +3,7 @@
 ARG BASE_VARIANT=alpine
 ARG GO_VERSION=1.16.8
 ARG XX_VERSION=1.0.0-rc.2
+ARG GOVERSIONINFO_VERSION=v1.3.0
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
@@ -47,9 +48,18 @@ ARG GO_STRIP
 ARG CGO_ENABLED
 # VERSION sets the version for the produced binary
 ARG VERSION
-RUN --mount=ro --mount=type=cache,target=/root/.cache \
+# COMPANY_NAME sets the company that produced the windows binary
+ARG COMPANY_NAME
+# GOVERSIONINFO_VERSION defines goversioninfo tool version
+ARG GOVERSIONINFO_VERSION
+RUN --mount=type=cache,target=/root/.cache \
+    # install goversioninfo tool
+    GO111MODULE=auto go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}
+RUN --mount=type=bind,target=.,ro \
+    --mount=type=cache,target=/root/.cache \
     --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
     --mount=type=tmpfs,target=cli/winresources \
+    # override the default behavior of go with xx-go
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
     TARGET=/out ./scripts/build/binary && \

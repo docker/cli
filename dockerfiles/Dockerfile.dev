@@ -19,6 +19,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=tmpfs,target=/go/src/ \
     GO111MODULE=on go install github.com/LK4D4/vndr@${VNDR_VERSION}
 
+FROM golang AS goversioninfo
+ARG GOVERSIONINFO_VERSION=v1.3.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=tmpfs,target=/go/src/ \
+    GO111MODULE=on go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}
+
 FROM golang AS dev
 RUN  apk add --no-cache \
     bash \
@@ -32,8 +39,9 @@ CMD bash
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
 
-COPY --from=vndr      /go/bin/* /go/bin/
-COPY --from=gotestsum /go/bin/* /go/bin/
+COPY --from=vndr            /go/bin/* /go/bin/
+COPY --from=gotestsum       /go/bin/* /go/bin/
+COPY --from=goversioninfo   /go/bin/* /go/bin/
 
 WORKDIR /go/src/github.com/docker/cli
 ENV GO111MODULE=auto
