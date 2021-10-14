@@ -24,7 +24,7 @@ The number of images shown is the number of unique images. The same image tagged
 under different names is counted only once.
 
 If a format is specified, the given template will be executed instead of the
-default format. Go's [text/template](http://golang.org/pkg/text/template/) package
+default format. Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 Depending on the storage driver in use, additional information can be shown, such

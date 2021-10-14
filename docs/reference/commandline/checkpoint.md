@@ -11,7 +11,7 @@ Checkpoint and Restore is an experimental feature that allows you to freeze a ru
 container by checkpointing it, which turns its state into a collection of files
 on disk. Later, the container can be restored from the point it was frozen.
 
-This is accomplished using a tool called [CRIU](http://criu.org), which is an
+This is accomplished using a tool called [CRIU](https://criu.org), which is an
 external dependency of this feature. A good overview of the history of
 checkpoint and restore in Docker is available in this
 [Kubernetes blog post](https://kubernetes.io/blog/2015/07/how-did-quake-demo-from-dockercon-work/).

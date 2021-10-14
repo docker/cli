@@ -88,7 +88,7 @@ variables used by the Go runtime. In particular, you may find these useful:
 * `NO_PROXY`
 
 These Go environment variables are case-insensitive. See the
-[Go specification](http://golang.org/pkg/net/http/) for details on these
+[Go specification](https://golang.org/pkg/net/http/) for details on these
 variables.
 
 ## Configuration files

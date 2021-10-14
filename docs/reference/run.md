@@ -1254,7 +1254,7 @@ access to all devices on the host as well as set some configuration
 in AppArmor or SELinux to allow the container nearly all the same access to the
 host as processes running outside containers on the host. Additional
 information about running with `--privileged` is available on the
-[Docker Blog](http://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
+[Docker Blog](https://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
 
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
@@ -1337,7 +1337,7 @@ The next table shows the capabilities which are not granted by default and may b
 | SYSLOG                | Perform privileged syslog(2) operations.                                                                                       |
 | WAKE_ALARM            | Trigger something that will wake up the system.                                                                                |
 
-Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html),
+Further reference information is available on the [capabilities(7) - Linux man page](https://man7.org/linux/man-pages/man7/capabilities.7.html),
 and in the [Linux kernel source code](https://github.com/torvalds/linux/blob/124ea650d3072b005457faed69909221c2905a1f/include/uapi/linux/capability.h).
 
 Both flags support the value `ALL`, so to allow a container to use all capabilities
