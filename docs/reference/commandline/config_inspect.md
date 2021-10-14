@@ -23,7 +23,7 @@ Inspects the specified config.
 By default, this renders all results in a JSON array. If a format is specified,
 the given template will be executed for each result.
 
-Go's [text/template](http://golang.org/pkg/text/template/) package
+Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 For detailed information about using configs, refer to [store configuration data using Docker Configs](https://docs.docker.com/engine/swarm/configs/).
