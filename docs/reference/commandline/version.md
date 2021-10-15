@@ -22,7 +22,7 @@ Options:
 By default, this will render all version information in an easy to read
 layout. If a format is specified, the given template will be executed instead.
 
-Go's [text/template](http://golang.org/pkg/text/template/) package
+Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 ## Examples

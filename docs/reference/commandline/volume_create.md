@@ -74,7 +74,7 @@ The built-in `local` driver on Linux accepts options similar to the linux
 `mount` command. You can provide multiple options by passing the `--opt` flag
 multiple times. Some `mount` options (such as the `o` option) can take a
 comma-separated list of options. Complete list of available mount options can be
-found [here](http://man7.org/linux/man-pages/man8/mount.8.html).
+found [here](https://man7.org/linux/man-pages/man8/mount.8.html).
 
 For example, the following creates a `tmpfs` volume called `foo` with a size of
 100 megabyte and `uid` of 1000.
