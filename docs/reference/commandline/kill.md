@@ -70,5 +70,5 @@ $ docker kill --signal=HUP my_container
 $ docker kill --signal=1 my_container
 ```
 
-Refer to the [`signal(7)`](http://man7.org/linux/man-pages/man7/signal.7.html)
+Refer to the [`signal(7)`](https://man7.org/linux/man-pages/man7/signal.7.html)
 man-page for a list of standard Linux signals.

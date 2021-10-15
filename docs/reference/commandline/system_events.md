@@ -147,11 +147,11 @@ The currently supported filters are:
 
 If a format (`--format`) is specified, the given template will be executed
 instead of the default
-format. Go's [text/template](http://golang.org/pkg/text/template/) package
+format. Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
+Lines. For information about JSON Lines, please refer to https://jsonlines.org/ .
 
 ## Examples
 

@@ -20,7 +20,7 @@ A list of terms used around the Docker project.
 
 aufs (advanced multi layered unification filesystem) is a Linux [filesystem](#filesystem) that
 Docker supports as a storage backend. It implements the
-[union mount](http://en.wikipedia.org/wiki/Union_mount) for Linux file systems.
+[union mount](https://en.wikipedia.org/wiki/Union_mount) for Linux file systems.
 
 ## base image
 
@@ -28,7 +28,7 @@ An image that has no parent is a **base image**.
 
 ## boot2docker
 
-[boot2docker](http://boot2docker.io/) is a lightweight Linux distribution made
+[boot2docker](https://boot2docker.io/) is a lightweight Linux distribution made
 specifically to run Docker containers. The boot2docker management tool for Mac and Windows was deprecated and replaced by [`docker-machine`](#machine) which you can install with the Docker Toolbox.
 
 ## bridge
@@ -56,7 +56,7 @@ For more information about Docker networking, see
 ## btrfs
 
 btrfs (B-tree file system) is a Linux [filesystem](#filesystem) that Docker
-supports as a storage backend. It is a [copy-on-write](http://en.wikipedia.org/wiki/Copy-on-write)
+supports as a storage backend. It is a [copy-on-write](https://en.wikipedia.org/wiki/Copy-on-write)
 filesystem.
 
 ## build
@@ -241,7 +241,7 @@ for docker containers in a cluster.
 ## overlay storage driver
 
 OverlayFS is a [filesystem](#filesystem) service for Linux which implements a
-[union mount](http://en.wikipedia.org/wiki/Union_mount) for other file systems.
+[union mount](https://en.wikipedia.org/wiki/Union_mount) for other file systems.
 It is supported by the Docker daemon as a storage driver.
 
 ## registry

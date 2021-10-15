@@ -44,7 +44,7 @@ node are shown.
 
 You can specify an alternate format to execute a given
 template for each result. Go's
-[text/template](http://golang.org/pkg/text/template/) package describes all the
+[text/template](https://golang.org/pkg/text/template/) package describes all the
 details of the format.
 
 ```console
