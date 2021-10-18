@@ -719,7 +719,7 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 > In other words, the following script is not supported:
 >
 > ```console
-> $ docker run -it --ulimit as=1024 fedora /bin/bash`
+> $ docker run -it --ulimit as=1024 fedora /bin/bash
 > ```
 
 The values are sent to the appropriate `syscall` as they are set.
