@@ -235,10 +235,13 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 	}
 
 	if v, ok := aliasMap["builder"]; ok {
-		aliases = append(aliases,
-			[2][]string{{"build"}, {v, "build"}},
-			[2][]string{{"image", "build"}, {v, "build"}},
-		)
+		// wcow build command is not compatible with buildx
+		if v != "buildx" || dockerCli.ServerInfo().OSType != "windows" {
+			aliases = append(aliases,
+				[2][]string{{"build"}, {v, "build"}},
+				[2][]string{{"image", "build"}, {v, "build"}},
+			)
+		}
 	}
 	for _, al := range aliases {
 		var didChange bool
