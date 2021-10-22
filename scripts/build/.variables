@@ -5,6 +5,38 @@ TARGET=${TARGET:-"build"}
 
 PLATFORM=${PLATFORM:-}
 VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
+case "$VERSION" in
+  *.m) if git status -s | awk 'BEGIN {
+a[".circleci/config.yml"] = 0
+a[".dockerignore"] = 0
+a[".github/CODEOWNERS"] = 0
+a[".github/ISSUE_TEMPLATE.md"] = 0
+a[".github/PULL_REQUEST_TEMPLATE.md"] = 0
+a[".github/workflows/build.yml"] = 0
+a[".github/workflows/codeql-analysis.yml"] = 0
+a[".github/workflows/validate.yml"] = 0
+a[".gitignore"] = 0
+a["appveyor.yml"] = 0
+a["cli/winresources/winresources.go"] = 0
+expectedLen = length(a);
+}
+$1 == "D" || $1 == "M" || $1 == "??" { a[$2] = 1 }
+END {
+  foundLen = length(a);
+  if (expectedLen != foundLen) {
+    exit(1);
+  }
+  for (key in a) {
+    if (a[key] == 0) {
+      exit(1);
+    }
+  }
+}' ; then
+  VERSION=${VERSION%.m}
+fi
+  ;;
+esac
+
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 BUILDTIME=${BUILDTIME:-$(date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 
