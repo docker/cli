@@ -61,6 +61,11 @@ var HeaderFunctions = template.FuncMap{
 	},
 }
 
+// aliases for convenience
+var aliases = map[string]string{
+	"json": "{{json .}}",
+}
+
 // Parse creates a new anonymous template with the basic functions
 // and parses the given format.
 func Parse(format string) (*template.Template, error) {
@@ -76,6 +81,9 @@ func New(tag string) *template.Template {
 // NewParse creates a new tagged template with the basic functions
 // and parses the given format.
 func NewParse(tag, format string) (*template.Template, error) {
+	if alias, ok := aliases[format]; ok {
+		format = alias
+	}
 	return New(tag).Parse(format)
 }
 

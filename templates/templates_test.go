@@ -39,6 +39,26 @@ func TestNewParse(t *testing.T) {
 	assert.Check(t, is.Equal(want, b.String()))
 }
 
+func TestParseJSON(t *testing.T) {
+	f := func(t testing.TB, format string) {
+		tm, err := Parse(format)
+		assert.NilError(t, err)
+		var b bytes.Buffer
+		m := map[string]int{
+			"foo": 42,
+		}
+		assert.NilError(t, tm.Execute(&b, m))
+		want := `{"foo":42}`
+		assert.Check(t, is.Equal(want, b.String()))
+	}
+	t.Run("CanonicalForm", func(t *testing.T) {
+		f(t, "{{json .}}")
+	})
+	t.Run("ConvenienceForm", func(t *testing.T) {
+		f(t, "json")
+	})
+}
+
 func TestParseTruncateFunction(t *testing.T) {
 	source := "tupx5xzf6hvsrhnruz5cr8gwp"
 
