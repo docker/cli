@@ -63,7 +63,7 @@ desired root digest: sha256:05da740cf2577a25224c53019e2cce99bcc5ba09664ad6bb2a94
   rotated CA certificates:   [>                                                  ] 0/2 nodes
 ```
 
-Once the rotation os finished (all the progress bars have completed) the now-current
+Once the rotation is finished (all the progress bars have completed) the now-current
 CA certificate will be printed:
 
 ```console
