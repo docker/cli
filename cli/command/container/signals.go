@@ -54,7 +54,7 @@ func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string, sigc <-
 	}
 }
 
-func notfiyAllSignals() chan os.Signal {
+func notifyAllSignals() chan os.Signal {
 	sigc := make(chan os.Signal, 128)
 	gosignal.Notify(sigc)
 	return sigc
