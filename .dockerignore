@@ -1,9 +1,8 @@
-.circleci
-.dockerignore
-.github
-.gitignore
-appveyor.yml
-build
+/build/
 /cli/winresources/versioninfo.json
 /cli/winresources/*.syso
+/man/man*/
+/docs/yaml/gen/
+coverage.txt
+profile.out
 /vndr.log
