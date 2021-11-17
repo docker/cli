@@ -5,53 +5,10 @@
 
 set -eu
 
-: "${CGO_ENABLED=}"
-: "${GO_LINKMODE=static}"
-: "${GO_BUILDMODE=}"
-: "${GO_BUILDTAGS=}"
-: "${GO_STRIP=}"
-
 . ./scripts/build/.variables
 
-if [ -z "$CGO_ENABLED" ]; then
-    case "$(go env GOOS)" in
-        linux)
-            case "$(go env GOARCH)" in
-                amd64|arm64|arm|s390x)
-                    CGO_ENABLED=1
-                ;;
-                *)
-                    CGO_ENABLED=0
-                ;;
-            esac
-        ;;
-        darwin|windows)
-            CGO_ENABLED=1
-        ;;
-        *)
-            CGO_ENABLED=0
-        ;;
-    esac
-fi
-export CGO_ENABLED
 if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
-    case "$(go env GOARCH)" in
-        mips*|ppc64)
-            # pie build mode is not supported on mips architectures
-            ;;
-        *)
-            GO_BUILDMODE="-buildmode=pie"
-            ;;
-    esac
-    GO_BUILDTAGS="$GO_BUILDTAGS pkcs11"
-fi
-
-if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
-    LDFLAGS="$LDFLAGS -extldflags -static"
-fi
-
-if [ -n "$GO_STRIP" ]; then
-    LDFLAGS="$LDFLAGS -s -w"
+  GO_BUILDTAGS="$GO_BUILDTAGS pkcs11"
 fi
 
 echo "Building $GO_LINKMODE $(basename "${TARGET}")"
@@ -67,6 +24,6 @@ if [ "$(go env GOOS)" = "windows" ]; then
   fi
 fi
 
-(set -x ; go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}")
+(set -x ; go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" -ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}")
 
 ln -sf "$(basename "${TARGET}")" "$(dirname "${TARGET}")/docker"
