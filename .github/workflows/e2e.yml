@@ -1,0 +1,54 @@
+name: e2e
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]{2}'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - non-experimental
+          - experimental
+          - connhelper-ssh
+        base:
+          - alpine
+          - buster
+        engine-version:
+#          - 20.10-dind # FIXME: Fails on 20.10
+          - stable-dind # TODO: Use 20.10-dind, stable-dind is deprecated
+        include:
+          - target: non-experimental
+            engine-version: 19.03-dind
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Update daemon.json
+        run: |
+          sudo jq '.experimental = true' < /etc/docker/daemon.json > /tmp/docker.json
+          sudo mv /tmp/docker.json /etc/docker/daemon.json
+          sudo cat /etc/docker/daemon.json
+          sudo service docker restart
+          docker version
+          docker info
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Run ${{ matrix.target }}
+        run: |
+          make -f docker.Makefile test-e2e-${{ matrix.target }}
+        env:
+          BASE_VARIANT: ${{ matrix.base }}
+          E2E_ENGINE_VERSION: ${{ matrix.engine-version }}

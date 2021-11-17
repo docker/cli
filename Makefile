@@ -48,14 +48,6 @@ dynbinary: ## build dynamically linked binary
 plugins: ## build example CLI plugins
 	./scripts/build/plugins
 
-.PHONY: plugins-windows
-plugins-windows: ## build example CLI plugins for Windows
-	./scripts/build/plugins-windows
-
-.PHONY: plugins-osx
-plugins-osx: ## build example CLI plugins for macOS
-	./scripts/build/plugins-osx
-
 vendor: vendor.conf ## check that vendor matches vendor.conf
 	rm -rf vendor
 	bash -c 'vndr |& grep -v -i clone | tee ./vndr.log'

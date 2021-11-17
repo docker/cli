@@ -3,7 +3,6 @@
 [![PkgGoDev](https://img.shields.io/badge/go.dev-docs-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/docker/cli)
 [![Build Status](https://img.shields.io/github/workflow/status/docker/cli/build?logo=github)](https://github.com/docker/cli/actions?query=workflow%3Abuild)
 [![CircleCI Status](https://img.shields.io/circleci/build/github/docker/cli/master?logo=circleci)](https://circleci.com/gh/docker/cli/tree/master)
-[![Jenkins Status](https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fci.docker.com%2Fpublic%2Fjob%2Fcli%2Fjob%2Fmaster&logo=jenkins)](https://ci.docker.com/public/job/cli/job/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/docker/cli)](https://goreportcard.com/report/github.com/docker/cli)
 [![Codecov](https://codecov.io/gh/docker/cli/branch/master/graph/badge.svg)](https://codecov.io/gh/docker/cli)
 
