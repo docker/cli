@@ -78,6 +78,7 @@ type ContainerLogsOptions struct {
 	Follow     bool
 	Tail       string
 	Details    bool
+	Clean      bool
 }
 
 // ContainerRemoveOptions holds parameters to remove containers.

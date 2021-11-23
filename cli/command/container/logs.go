@@ -3,6 +3,8 @@ package container
 import (
 	"context"
 	"io"
+	"os"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -18,6 +20,7 @@ type logsOptions struct {
 	timestamps bool
 	details    bool
 	tail       string
+	clean      bool
 
 	container string
 }
@@ -44,6 +47,7 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
 	flags.StringVarP(&opts.tail, "tail", "n", "all", "Number of lines to show from the end of the logs")
+	flags.BoolVar(&opts.clean, "clean", false, "limpa os logs")
 	return cmd
 }
 
@@ -64,6 +68,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		Follow:     opts.follow,
 		Tail:       opts.tail,
 		Details:    opts.details,
+		Clean:      opts.clean,
 	}
 	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, options)
 	if err != nil {
@@ -75,6 +80,33 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		_, err = io.Copy(dockerCli.Out(), responseBody)
 	} else {
 		_, err = stdcopy.StdCopy(dockerCli.Out(), dockerCli.Err(), responseBody)
+	}
+	
+	if opts.clean {
+		logSizeBefore, err := os.Stat(c.LogPath)
+		if err != nil {
+			return err
+		}
+		
+		if logSizeBefore.Size() == 0 {
+			fmt.Println("The log is empty")
+			return err
+		}
+
+		fmt.Println("Cleaning logs...")
+
+		err = os.Truncate(c.LogPath, 0)
+		if err != nil {
+        	return err
+    	}
+		logSizeAfter, err := os.Stat(c.LogPath)
+		if err != nil {
+			return err
+		}
+		if logSizeBefore.Size() > logSizeAfter.Size() {
+			fmt.Println("...the log was cleared")
+		}
+		return err
 	}
 	return err
 }
