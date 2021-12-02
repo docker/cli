@@ -105,6 +105,7 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 The currently supported filters are:
 
 * until (`<timestamp>`) - only remove containers, images, and networks created before given timestamp
+  * Cannot be used with `--volumes`
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove containers, images, networks, and volumes with (or without, in case `label!=...` is used) the specified labels.
 
 The `until` filter can be Unix timestamps, date formatted
