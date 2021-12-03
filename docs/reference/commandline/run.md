@@ -108,6 +108,7 @@ Options:
       --privileged                    Give extended privileges to this container
   -p, --publish value                 Publish a container's port(s) to the host (default [])
   -P, --publish-all                   Publish all exposed ports to random ports
+      --pull string                   Pull image before running ("always"|"missing"|"never") (default "missing")
       --read-only                     Mount the container's root filesystem as read only
       --restart string                Restart policy to apply when a container exits (default "no")
                                       Possible values are : no, on-failure[:max-retry], always, unless-stopped
@@ -357,6 +358,48 @@ $ docker run --expose 80 ubuntu bash
 
 This exposes port `80` of the container without publishing the port to the host
 system's interfaces.
+
+### <a name="pull"></a> Set the pull policy (--pull)
+
+Use the `--pull` flag to set the image pull policy when creating (and running)
+the container.
+
+The `--pull` flag can take one of these values:
+
+| Value               | Description                                                                                                       |
+|:--------------------|:------------------------------------------------------------------------------------------------------------------|
+| `missing` (default) | Pull the image if it was not found in the image cache, or use the cached image otherwise.                         |
+| `never`             | Do not pull the image, even if it's missing, and produce an error if the image does not exist in the image cache. |
+| `always`            | Always perform a pull before creating the container.                                                              |
+
+When creating (and running) a container from an image, the daemon checks if the
+image exists in the local image cache. If the image is missing, an error is
+returned to the cli, allowing it to initiate a pull.
+
+The default (`missing`) is to only pull the image if it is not present in the
+daemon's image cache. This default allows you to run images that only exist
+locally (for example, images you built from a Dockerfile, but that have not
+been pushed to a registry), and reduces networking.
+
+The `always` option always initiates a pull before creating the container. This
+option makes sure the image is up-to-date, and prevents you from using outdated
+images, but may not be suitable in situations where you want to test a locally
+built image before pushing (as pulling the image overwrites the existing image
+in the image cache).
+
+The `never` option disables (implicit) pulling images when creating containers,
+and only uses images that are available in the image cache. If the specified
+image is not found, an error is produced, and the container is not created.
+This option is useful in situations where networking is not available, or to
+prevent images from being pulled implicitly when creating containers.
+
+The following example shows `docker run` with the `--pull=never` option set,
+which produces en error as the image is missing in the image-cache:
+
+```console
+$ docker run --pull=never hello-world
+docker: Error response from daemon: No such image: hello-world:latest.
+```
 
 ### Set environment variables (-e, --env, --env-file)
 
