@@ -56,6 +56,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
 	flags.StringVar(&opts.createOptions.pull, "pull", PullImageMissing,
 		`Pull image before running ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.BoolVarP(&opts.createOptions.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname

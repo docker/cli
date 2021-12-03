@@ -99,6 +99,7 @@ Options:
   -p, --publish value                 Publish a container's port(s) to the host (default [])
   -P, --publish-all                   Publish all exposed ports to random ports
       --pull string                   Pull image before creating ("always"|"missing"|"never") (default "missing")
+  -q, --quiet                         Suppress the pull output
       --read-only                     Mount the container's root filesystem as read only
       --restart string                Restart policy to apply when a container exits (default "no")
                                       Possible values are: no, on-failure[:max-retry], always, unless-stopped
