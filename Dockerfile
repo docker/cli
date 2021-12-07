@@ -4,6 +4,7 @@ ARG BASE_VARIANT=alpine
 ARG GO_VERSION=1.16.11
 ARG XX_VERSION=1.0.0-rc.2
 ARG GOVERSIONINFO_VERSION=v1.3.0
+ARG GOTESTSUM_VERSION=v1.7.0
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
@@ -37,6 +38,19 @@ FROM build-base-buster AS build-buster
 ARG TARGETPLATFORM
 RUN xx-apt install --no-install-recommends -y libc6-dev libgcc-8-dev
 
+FROM build-base-${BASE_VARIANT} AS goversioninfo
+ARG GOVERSIONINFO_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on go install "github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}"
+
+FROM build-base-${BASE_VARIANT} AS gotestsum
+ARG GOTESTSUM_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
+    && /out/gotestsum --version
+
 FROM build-${BASE_VARIANT} AS build
 # GO_LINKMODE defines if static or dynamic binary should be produced
 ARG GO_LINKMODE=static
@@ -50,11 +64,7 @@ ARG CGO_ENABLED
 ARG VERSION
 # COMPANY_NAME sets the company that produced the windows binary
 ARG COMPANY_NAME
-# GOVERSIONINFO_VERSION defines goversioninfo tool version
-ARG GOVERSIONINFO_VERSION
-RUN --mount=type=cache,target=/root/.cache \
-    # install goversioninfo tool
-    GO111MODULE=auto go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}
+COPY --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \
     --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
@@ -64,6 +74,17 @@ RUN --mount=type=bind,target=.,ro \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
     TARGET=/out ./scripts/build/binary && \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
+
+FROM build-${BASE_VARIANT} AS test
+COPY --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+ENV GO111MODULE=auto
+RUN --mount=type=bind,target=.,rw \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod \
+  gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+
+FROM scratch AS test-coverage
+COPY --from=test /tmp/coverage.txt /coverage.txt
 
 FROM build-${BASE_VARIANT} AS build-plugins
 ARG GO_LINKMODE=static
@@ -84,13 +105,6 @@ RUN apt-get update && apt-get install -y build-essential curl openssl openssh-cl
 ARG COMPOSE_VERSION=1.29.2
 RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
     chmod +x /usr/local/bin/docker-compose
-
-FROM build-${BASE_VARIANT} AS gotestsum
-ARG GOTESTSUM_VERSION=v1.7.0
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
-    GOBIN=/out GO111MODULE=on go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
-    && /out/gotestsum --version
 
 FROM e2e-base-${BASE_VARIANT} AS e2e
 ARG NOTARY_VERSION=v0.6.1

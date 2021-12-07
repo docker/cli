@@ -51,13 +51,6 @@ clean: build_docker_image ## clean build artifacts
 	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make clean
 	docker volume rm -f $(CACHE_VOLUME_NAME)
 
-.PHONY: test-unit
-test-unit: build_docker_image ## run unit tests (using go test)
-	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make test-unit
-
-.PHONY: test ## run unit and e2e tests
-test: test-unit test-e2e
-
 .PHONY: cross
 cross:
 	COMPANY_NAME=$(COMPANY_NAME) docker buildx bake cross
@@ -102,8 +95,20 @@ manpages: build_docker_image ## generate man pages from go source and markdown
 yamldocs: build_docker_image ## generate documentation YAML files consumed by docs repo
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make yamldocs
 
+.PHONY: test ## run unit and e2e tests
+test: test-unit test-e2e
+
+.PHONY: test-unit
+test-unit: ## run unit tests
+	docker buildx bake test
+
+.PHONY: test-coverage
+test-coverage: ## run test with coverage
+	docker buildx bake test-coverage
+
 .PHONY: build-e2e-image
 build-e2e-image:
+	mkdir -p $(CURDIR)/build/coverage
 	IMAGE_NAME=$(E2E_IMAGE_NAME) VERSION=$(VERSION) docker buildx bake e2e-image
 
 .PHONY: test-e2e
@@ -111,15 +116,24 @@ test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ss
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build-e2e-image # run experimental e2e tests
-	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) $(E2E_IMAGE_NAME)
+	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) \
+		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
+		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		$(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build-e2e-image # run non-experimental e2e tests
-	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) $(E2E_IMAGE_NAME)
+	docker run --rm $(ENVVARS) -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) \
+		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
+		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		$(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build-e2e-image # run experimental SSH-connection helper e2e tests
-	docker run --rm --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) -e TEST_CONNHELPER=ssh $(E2E_IMAGE_NAME)
+	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) -e TEST_CONNHELPER=ssh \
+		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
+		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		$(E2E_IMAGE_NAME)
 
 .PHONY: help
 help: ## print this help
