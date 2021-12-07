@@ -2,53 +2,6 @@ version: 2
 
 jobs:
 
-  test:
-    working_directory: /work
-    docker: [{image: 'docker:20.10-git'}]
-    environment:
-      DOCKER_BUILDKIT: 1
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.6
-          reusable: true
-          exclusive: false
-      - run:
-          name: "Docker version"
-          command: docker version
-      - run:
-          name: "Docker info"
-          command: docker info
-      - run:
-          name: "Unit Test with Coverage - build image"
-          command: |
-            mkdir -p test-results/unit-tests
-            docker build --progress=plain -f dockerfiles/Dockerfile.dev --tag cli-builder:$CIRCLE_BUILD_NUM .
-      - run:
-          name: "Unit Test with Coverage"
-          command: |
-            docker run \
-                -e GOTESTSUM_JUNITFILE=/tmp/junit.xml \
-                --name \
-                test-$CIRCLE_BUILD_NUM cli-builder:$CIRCLE_BUILD_NUM \
-                make test-coverage
-            docker cp \
-                test-$CIRCLE_BUILD_NUM:/tmp/junit.xml \
-                ./test-results/unit-tests/junit.xml
-      - run:
-          name: "Upload to Codecov"
-          command: |
-            docker cp \
-                test-$CIRCLE_BUILD_NUM:/go/src/github.com/docker/cli/coverage.txt \
-                coverage.txt
-            apk add -U bash curl
-            curl -s https://codecov.io/bash | bash || \
-                echo 'Codecov failed to upload'
-      - store_test_results:
-          path:  test-results
-      - store_artifacts:
-          path:  test-results
-
   validate:
     working_directory: /work
     docker: [{image: 'docker:20.10-git'}]
@@ -82,5 +35,4 @@ workflows:
   version: 2
   ci:
     jobs:
-      - test
       - validate

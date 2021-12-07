@@ -3,6 +3,5 @@
 /cli/winresources/*.syso
 /man/man*/
 /docs/yaml/gen/
-coverage.txt
 profile.out
 /vndr.log

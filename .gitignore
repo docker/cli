@@ -14,6 +14,5 @@ Thumbs.db
 /man/man5/
 /man/man8/
 /docs/yaml/gen/
-coverage.txt
 profile.out
 /vndr.log

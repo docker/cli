@@ -39,10 +39,14 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 	host := ":2375"
+	slug := "tcp://localhost"
+	if runtime.GOOS == "windows" {
+		slug = "tcp://127.0.0.1"
+	}
 	opts := &flags.CommonOptions{Hosts: []string{host}}
 	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
-	assert.Equal(t, apiClient.DaemonHost(), "tcp://localhost"+host)
+	assert.Equal(t, apiClient.DaemonHost(), slug+host)
 	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
 }
 

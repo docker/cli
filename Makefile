@@ -13,16 +13,17 @@ _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 clean: ## remove build artifacts
 	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml/gen
 
-.PHONY: test-unit
-test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit 
-	gotestsum $(TESTFLAGS) -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/')}
-
 .PHONY: test
 test: test-unit ## run tests
 
+.PHONY: test-unit
+test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit
+	gotestsum -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/')} $(TESTFLAGS)
+
 .PHONY: test-coverage
 test-coverage: ## run test coverage
-	gotestsum -- -coverprofile=coverage.txt $(shell go list ./... | grep -vE '/vendor/|/e2e/')
+	mkdir -p $(CURDIR)/build/coverage
+	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/') -coverprofile=$(CURDIR)/build/coverage/coverage.txt
 
 .PHONY: lint
 lint: ## run all the lint tools

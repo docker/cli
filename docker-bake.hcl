@@ -78,6 +78,16 @@ target "shellcheck" {
     output = ["type=cacheonly"]
 }
 
+target "test" {
+    target = "test"
+    output = ["type=cacheonly"]
+}
+
+target "test-coverage" {
+    target = "test-coverage"
+    output = ["build/coverage"]
+}
+
 target "e2e-image" {
     target = "e2e"
     output = ["type=docker"]

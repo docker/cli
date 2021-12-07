@@ -52,3 +52,9 @@ jobs:
         env:
           BASE_VARIANT: ${{ matrix.base }}
           E2E_ENGINE_VERSION: ${{ matrix.engine-version }}
+          TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./build/coverage/coverage.txt
