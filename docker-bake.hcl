@@ -93,18 +93,21 @@ target "shellcheck" {
 }
 
 target "validate-vendor" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "validate"
     output = ["type=cacheonly"]
 }
 
 target "update-vendor" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "update"
     output = ["."]
 }
 
 target "mod-outdated" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "outdated"
     args = {
