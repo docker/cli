@@ -71,8 +71,8 @@ following columns are shown.
 | `CONTAINER ID` and `Name` | the ID and name of the container                                                              |
 | `CPU %` and `MEM %`       | the percentage of the host's CPU and memory the container is using                            |
 | `MEM USAGE / LIMIT`       | the total memory the container is using, and the total amount of memory it is allowed to use  |
-| `NET I/O`                 | The amount of data the container has sent and received over its network interface             |
-| `BLOCK I/O`               | The amount of data the container has read to and written from block devices on the host       |
+| `NET I/O`                 | The amount of data the container has received and sent over its network interface             |
+| `BLOCK I/O`               | The amount of data the container has written to and read from block devices on the host       |
 | `PIDs`                    | the number of processes or threads the container has created                                  |
 
 Running `docker stats` on multiple containers by name and id against a Linux daemon.
