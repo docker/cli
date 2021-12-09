@@ -19,14 +19,14 @@ ARG TARGETPLATFORM
 # gcc is installed for libgcc only
 RUN xx-apk add --no-cache musl-dev gcc
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-buster AS build-base-buster
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bullseye AS build-base-bullseye
 COPY --from=xx / /
 RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld file
 WORKDIR /go/src/github.com/docker/cli
 
-FROM build-base-buster AS build-buster
+FROM build-base-bullseye AS build-bullseye
 ARG TARGETPLATFORM
-RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-8-dev
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-10-dev
 
 FROM build-base-${BASE_VARIANT} AS goversioninfo
 ARG GOVERSIONINFO_VERSION
@@ -92,7 +92,7 @@ RUN --mount=ro --mount=type=cache,target=/root/.cache \
 FROM build-base-alpine AS e2e-base-alpine
 RUN apk add --no-cache build-base curl docker-compose openssl openssh-client
 
-FROM build-base-buster AS e2e-base-buster
+FROM build-base-bullseye AS e2e-base-bullseye
 RUN apt-get update && apt-get install -y build-essential curl openssl openssh-client
 ARG COMPOSE_VERSION=1.29.2
 RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
