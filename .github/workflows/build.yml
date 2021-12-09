@@ -19,6 +19,9 @@ jobs:
         target:
           - cross
           - dynbinary-cross
+        use_glibc:
+          - ""
+          - glibc
     steps:
       -
         name: Checkout
@@ -33,6 +36,8 @@ jobs:
         uses: docker/bake-action@v1
         with:
           targets: ${{ matrix.target }}
+        env:
+          USE_GLIBC: ${{ matrix.use_glibc }}
       -
         name: Flatten artifacts
         working-directory: ./build
@@ -43,11 +48,16 @@ jobs:
             tar -cvzf "${base}.tar.gz" "$dir"
             rm -rf "$dir"
           done
+          if [ -z "${{ matrix.use_glibc }}" ]; then
+            echo "ARTIFACT_NAME=${{ matrix.target }}" >> $GITHUB_ENV
+          else
+            echo "ARTIFACT_NAME=${{ matrix.target }}-glibc" >> $GITHUB_ENV
+          fi
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.target }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: ./build/*
           if-no-files-found: error
 
