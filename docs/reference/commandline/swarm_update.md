@@ -35,7 +35,7 @@ Updates a swarm with new parameter values.
 
 ## Examples
 
-```bash
+```console
 $ docker swarm update --cert-expiry 720h
 ```
 

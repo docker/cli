@@ -21,12 +21,12 @@ Options:
 Returns information about a volume. By default, this command renders all results
 in a JSON array. You can specify an alternate format to execute a
 given template for each result. Go's
-[text/template](http://golang.org/pkg/text/template/) package describes all the
+[text/template](https://golang.org/pkg/text/template/) package describes all the
 details of the format.
 
 ## Examples
 
-```bash
+```console
 $ docker volume create myvolume
 
 myvolume
@@ -34,7 +34,7 @@ myvolume
 
 Use the `docker volume inspect` comment to inspect the configuration of the volume:
 
-```bash
+```console
 $ docker volume inspect myvolume
 ```
 
@@ -53,10 +53,11 @@ The output is in JSON format, for example:
   }
 ]
 ```
+
 Use the `--format` flag to format the output using a Go template, for example,
 to print the `Mountpoint` property:
 
-```bash
+```console
 $ docker volume inspect --format '{{ .Mountpoint }}' myvolume
 
 /var/lib/docker/volumes/myvolume/_data

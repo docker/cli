@@ -43,7 +43,7 @@ created.  Supported `Dockerfile` instructions:
 
 ### Commit a container
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES
@@ -62,7 +62,7 @@ svendowideit/testimage            version3            f5283438590d        16 sec
 
 ### Commit a container with new configurations
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID       IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES
@@ -84,7 +84,7 @@ $ docker inspect -f "{{ .Config.Env }}" f5283438590d
 
 ### Commit a container with new `CMD` and `EXPOSE` instructions
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES

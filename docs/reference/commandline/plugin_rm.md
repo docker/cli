@@ -31,7 +31,7 @@ functioning of running containers using the plugin).
 The following example disables and removes the `sample-volume-plugin:latest`
 plugin:
 
-```bash
+```console
 $ docker plugin disable tiborvass/sample-volume-plugin
 
 tiborvass/sample-volume-plugin

@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/moby/sys/signal"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -74,8 +74,8 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 
 		// We always use c.ID instead of container to maintain consistency during `docker start`
 		if !c.Config.Tty {
-			sigc := notfiyAllSignals()
-			ForwardAllSignals(ctx, dockerCli, c.ID, sigc)
+			sigc := notifyAllSignals()
+			go ForwardAllSignals(ctx, dockerCli, c.ID, sigc)
 			defer signal.StopCatch(sigc)
 		}
 

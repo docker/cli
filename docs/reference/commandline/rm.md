@@ -24,7 +24,7 @@ Options:
 
 This removes the container referenced under the link `/redis`.
 
-```bash
+```console
 $ docker rm /redis
 
 /redis
@@ -37,7 +37,7 @@ containers on the default bridge network, removing all network communication
 between the two containers. This does not apply when `--link` is used with
 user-specified networks.
 
-```bash
+```console
 $ docker rm --link /webapp/redis
 
 /webapp/redis
@@ -47,7 +47,7 @@ $ docker rm --link /webapp/redis
 
 This command force-removes a running container.
 
-```bash
+```console
 $ docker rm --force redis
 
 redis
@@ -58,17 +58,37 @@ The main process inside the container referenced under the link `redis` will rec
 
 ### Remove all stopped containers
 
-```bash
-$ docker rm $(docker ps -a -q)
+Use the [`docker container prune`](container_prune.md) command to remove all
+stopped containers, or refer to the [`docker system prune`](system_prune.md)
+command to remove unused containers in addition to other Docker resources, such
+as (unused) images and networks.
+
+Alternatively, you can use the `docker ps` with the `-q` / `--quiet` option to
+generate a list of container IDs to remove, and use that list as argument for
+the `docker rm` command.
+
+Combining commands can be more flexible, but is less portable as it depends
+on features provided by the shell, and the exact syntax may differ depending on
+what shell is used. To use this approach on Windows, consider using PowerShell
+or Bash.
+
+The example below uses `docker ps -q` to print the IDs of all containers that
+have exited (`--filter status=exited`), and removes those containers with
+the `docker rm` command:
+
+```console
+$ docker rm $(docker ps --filter status=exited -q)
 ```
 
-This command deletes all stopped containers. The command
-`docker ps -a -q` above returns all existing container IDs and passes them to
-the `rm` command which deletes them. Running containers are not deleted.
+Or, using the `xargs` Linux utility;
+
+```console
+$ docker ps --filter status=exited -q | xargs docker rm
+```
 
 ### Remove a container and its volumes
 
-```bash
+```console
 $ docker rm -v redis
 redis
 ```
@@ -78,7 +98,7 @@ Note that if a volume was specified with a name, it will not be removed.
 
 ### Remove a container and selectively remove volumes
 
-```bash
+```console
 $ docker create -v awesome:/foo -v /bar --name hello redis
 hello
 

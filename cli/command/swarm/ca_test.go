@@ -104,20 +104,20 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
-			args:     []string{"--external-ca=protocol=cfssl,url=https://some.com/https/url"},
+			args:     []string{"--external-ca=protocol=cfssl,url=https://some.example.com/https/url"},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{ // to make sure we're not erroring because we didn't provide a CA cert and external CA
 			args: []string{
 				"--ca-cert=" + tmpfile,
-				"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+				"--external-ca=protocol=cfssl,url=https://some.example.com/https/url",
 			},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
 			args: []string{
 				"--rotate",
-				"--external-ca=protocol=cfssl,url=https://some.com/https/url",
+				"--external-ca=protocol=cfssl,url=https://some.example.com/https/url",
 			},
 			errorMsg: "rotating to an external CA requires the `--ca-cert` flag to specify the external CA's cert - " +
 				"to add an external CA with the current root CA certificate, use the `update` command instead",
@@ -243,7 +243,7 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 		"--rotate",
 		"--detach",
 		"--ca-cert=" + certfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -253,7 +253,7 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 	expected.CAConfig.ExternalCAs = []*swarm.ExternalCA{
 		{
 			Protocol: swarm.ExternalCAProtocolCFSSL,
-			URL:      "https://some.external.ca",
+			URL:      "https://some.external.ca.example.com",
 			CACert:   cert,
 			Options:  make(map[string]string),
 		},
@@ -281,7 +281,7 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -291,7 +291,7 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 	expected.CAConfig.ExternalCAs = []*swarm.ExternalCA{
 		{
 			Protocol: swarm.ExternalCAProtocolCFSSL,
-			URL:      "https://some.external.ca",
+			URL:      "https://some.external.ca.example.com",
 			CACert:   cert,
 			Options:  make(map[string]string),
 		},

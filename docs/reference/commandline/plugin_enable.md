@@ -26,7 +26,7 @@ see [`docker plugin install`](plugin_install.md).
 The following example shows that the `sample-volume-plugin` plugin is installed,
 but disabled:
 
-```bash
+```console
 $ docker plugin ls
 
 ID            NAME                                    DESCRIPTION                ENABLED
@@ -35,7 +35,7 @@ ID            NAME                                    DESCRIPTION               
 
 To enable the plugin, use the following command:
 
-```bash
+```console
 $ docker plugin enable tiborvass/sample-volume-plugin
 
 tiborvass/sample-volume-plugin

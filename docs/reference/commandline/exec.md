@@ -46,7 +46,7 @@ not work, but `docker exec -ti my_container sh -c "echo a && echo b"` will.
 
 First, start a container.
 
-```bash
+```console
 $ docker run --name ubuntu_bash --rm -i -t ubuntu bash
 ```
 
@@ -54,7 +54,7 @@ This will create a container named `ubuntu_bash` and start a Bash session.
 
 Next, execute a command on the container.
 
-```bash
+```console
 $ docker exec -d ubuntu_bash touch /tmp/execWorks
 ```
 
@@ -63,7 +63,7 @@ This will create a new file `/tmp/execWorks` inside the running container
 
 Next, execute an interactive `bash` shell on the container.
 
-```bash
+```console
 $ docker exec -it ubuntu_bash bash
 ```
 
@@ -71,7 +71,7 @@ This will create a new Bash session in the container `ubuntu_bash`.
 
 Next, set an environment variable in the current bash session.
 
-```bash
+```console
 $ docker exec -it -e VAR=1 ubuntu_bash bash
 ```
 
@@ -81,14 +81,14 @@ on the current Bash session.
 
 By default `docker exec` command runs in the same working directory set when container was created.
 
-```bash
+```console
 $ docker exec -it ubuntu_bash pwd
 /
 ```
 
 You can select working directory for the command to execute into
 
-```bash
+```console
 $ docker exec -it -w /root ubuntu_bash pwd
 /root
 ```
@@ -98,7 +98,7 @@ $ docker exec -it -w /root ubuntu_bash pwd
 
 If the container is paused, then the `docker exec` command will fail with an error:
 
-```bash
+```console
 $ docker pause test
 
 test

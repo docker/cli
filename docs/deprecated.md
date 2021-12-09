@@ -50,9 +50,11 @@ The table below provides an overview of the current status of deprecated feature
 
 Status     | Feature                                                                                                                            | Deprecated | Remove
 -----------|------------------------------------------------------------------------------------------------------------------------------------|------------|------------
+Deprecated | [Support for encrypted TLS private keys](#support-for-encrypted-tls-private-keys)                                                  | v20.10     | -
+Deprecated | [Kubernetes stack and context support](#kubernetes-stack-and-context-support)                                                      | v20.10     | -
 Deprecated | [Pulling images from non-compliant image registries](#pulling-images-from-non-compliant-image-registries)                          | v20.10     | -
-Deprecated | [Linux containers on Windows (LCOW)](#linux-containers-on-windows-lcow-experimental)                                               | v20.10     | -
-Deprecated | [BLKIO weight options with cgroups v1](#blkio-weight-options–with-cgroups-v1)                                                      | v20.10     | -
+Removed    | [Linux containers on Windows (LCOW)](#linux-containers-on-windows-lcow-experimental)                                               | v20.10     | v21.xx
+Deprecated | [BLKIO weight options with cgroups v1](#blkio-weight-options-with-cgroups-v1)                                                      | v20.10     | -
 Deprecated | [Kernel memory limit](#kernel-memory-limit)                                                                                        | v20.10     | -
 Deprecated | [Classic Swarm and overlay networks using external key/value stores](#classic-swarm-and-overlay-networks-using-cluster-store)      | v20.10     | -
 Deprecated | [Support for the legacy `~/.dockercfg` configuration file for authentication](#support-for-legacy-dockercfg-configuration-files)   | v20.10     | -
@@ -97,6 +99,22 @@ Removed    | [`--api-enable-cors` flag on `dockerd`](#--api-enable-cors-flag-on-
 Removed    | [`--run` flag on `docker commit`](#--run-flag-on-docker-commit)                                                                    | v0.10      | v1.13
 Removed    | [Three arguments form in `docker import`](#three-arguments-form-in-docker-import)                                                  | v0.6.7     | v1.12
 
+### Support for encrypted TLS private keys
+
+**Deprecated in Release: v20.10**
+
+Use of encrypted TLS private keys has been deprecated, and will be removed in a
+future release. Golang has deprecated support for legacy PEM encryption (as
+specified in [RFC 1423](https://datatracker.ietf.org/doc/html/rfc1423)), as it
+is insecure by design (see [https://go-review.googlesource.com/c/go/+/264159](https://go-review.googlesource.com/c/go/+/264159)).
+
+### Kubernetes stack and context support
+
+**Deprecated in Release: v20.10**
+
+Following the deprecation of [Compose on Kubernetes](https://github.com/docker/compose-on-kubernetes), support for
+Kubernetes in the `stack` and `context` commands in the docker CLI is now marked as deprecated as well.
+
 ### Pulling images from non-compliant image registries
 
 **Deprecated in Release: v20.10**
@@ -132,6 +150,7 @@ major release.
 ### Linux containers on Windows (LCOW) (experimental)
 
 **Deprecated in Release: v20.10**
+**Removed in Release: v21.xx**
 
 The experimental feature to run Linux containers on Windows (LCOW) was introduced
 as a technical preview in Docker 17.09. While many enhancements were made after
@@ -541,7 +560,7 @@ See the events API documentation for the new format.
 
 **Removed In Release: [v1.12.0](https://github.com/docker/docker/releases/tag/v1.12.0)**
 
-To make tagging consistent across the various `docker` commands, the `-f` flag on the `docker tag` command is deprecated. It is not longer necessary to specify `-f` to move a tag from one image to another. Nor will `docker` generate an error if the `-f` flag is missing and the specified tag is already in use.
+To make tagging consistent across the various `docker` commands, the `-f` flag on the `docker tag` command is deprecated. It is no longer necessary to specify `-f` to move a tag from one image to another. Nor will `docker` generate an error if the `-f` flag is missing and the specified tag is already in use.
 
 ### HostConfig at API container start
 **Deprecated In Release: [v1.10.0](https://github.com/docker/docker/releases/tag/v1.10.0)**
@@ -570,9 +589,9 @@ Log tags are now generated in a standard way across different logging drivers.
 Because of which, the driver specific log tag options `syslog-tag`, `gelf-tag` and
 `fluentd-tag` have been deprecated in favor of the generic `tag` option.
 
-```bash
+```console
 {% raw %}
-docker --log-driver=syslog --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}"
+$ docker --log-driver=syslog --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}"
 {% endraw %}
 ```
 

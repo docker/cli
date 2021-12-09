@@ -1,9 +1,13 @@
 package opts
 
 import (
+	"bytes"
+	"os"
 	"testing"
 
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/go-connections/nat"
+	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -314,6 +318,46 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 		var port PortOpt
 		assert.Error(t, port.Set(tc.value), tc.expectedError)
 	}
+}
+
+func TestConvertPortToPortConfigWithIP(t *testing.T) {
+	testCases := []struct {
+		value           string
+		expectedWarning string
+	}{
+		{
+			value: "0.0.0.0",
+		},
+		{
+			value: "::",
+		},
+		{
+			value:           "192.168.1.5",
+			expectedWarning: `ignoring IP-address (192.168.1.5:2345:80/tcp) service will listen on '0.0.0.0'`,
+		},
+		{
+			value:           "::2",
+			expectedWarning: `ignoring IP-address ([::2]:2345:80/tcp) service will listen on '0.0.0.0'`,
+		},
+	}
+
+	var b bytes.Buffer
+	logrus.SetOutput(&b)
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.value, func(t *testing.T) {
+			_, err := ConvertPortToPortConfig("80/tcp", map[nat.Port][]nat.PortBinding{
+				"80/tcp": {{HostIP: tc.value, HostPort: "2345"}},
+			})
+			assert.NilError(t, err)
+			if tc.expectedWarning == "" {
+				assert.Equal(t, b.String(), "")
+			} else {
+				assert.Assert(t, is.Contains(b.String(), tc.expectedWarning))
+			}
+		})
+	}
+	logrus.SetOutput(os.Stderr)
 }
 
 func assertContains(t *testing.T, portConfigs []swarm.PortConfig, expected swarm.PortConfig) {

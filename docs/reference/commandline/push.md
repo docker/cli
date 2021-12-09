@@ -50,7 +50,7 @@ First save the new image by finding the container ID (using [`docker container l
 and then committing it to a new image name.  Note that only `a-z0-9-_.` are
 allowed when naming images:
 
-```bash
+```console
 $ docker container commit c16378f943fe rhel-httpd:latest
 ```
 
@@ -59,7 +59,7 @@ registry is on host named `registry-host` and listening on port `5000`. To do
 this, tag the image with the host name or IP address, and the port of the
 registry:
 
-```bash
+```console
 $ docker image tag rhel-httpd:latest registry-host:5000/myadmin/rhel-httpd:latest
 
 $ docker image push registry-host:5000/myadmin/rhel-httpd:latest
@@ -67,7 +67,7 @@ $ docker image push registry-host:5000/myadmin/rhel-httpd:latest
 
 Check that this worked by running:
 
-```bash
+```console
 $ docker image ls
 ```
 
@@ -82,7 +82,7 @@ The following example creates multiple tags for an image, and pushes all those
 tags to Docker Hub.
 
 
-```bash
+```console
 $ docker image tag myimage registry-host:5000/myname/myimage:latest
 $ docker image tag myimage registry-host:5000/myname/myimage:v1.0.1
 $ docker image tag myimage registry-host:5000/myname/myimage:v1.0
@@ -91,7 +91,7 @@ $ docker image tag myimage registry-host:5000/myname/myimage:v1
 
 The image is now tagged under multiple names:
 
-```bash
+```console
 $ docker image ls
 
 REPOSITORY                          TAG        IMAGE ID       CREATED      SIZE
@@ -106,7 +106,7 @@ When pushing with the `--all-tags` option, all tags of the `registry-host:5000/m
 image are pushed:
 
 
-```bash
+```console
 $ docker image push --all-tags registry-host:5000/myname/myimage
 
 The push refers to repository [registry-host:5000/myname/myimage]

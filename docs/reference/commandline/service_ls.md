@@ -36,14 +36,14 @@ This command lists services are running in the swarm.
 
 On a manager node:
 
-```bash
+```console
 $ docker service ls
 
 ID            NAME      MODE            REPLICAS             IMAGE
 c8wgl7q4ndfd  frontend  replicated      5/5                  nginx:alpine
 dmu1ept4cxcf  redis     replicated      3/3                  redis:3.0.6
 iwe3278osahj  mongo     global          7/7                  mongo:3.3
-hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest        
+hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest
 ```
 
 The `REPLICAS` column shows both the *actual* and *desired* number of tasks for
@@ -67,7 +67,7 @@ The currently supported filters are:
 
 The `id` filter matches all or part of a service's id.
 
-```bash
+```console
 $ docker service ls -f "id=0bcjw"
 ID            NAME   MODE        REPLICAS  IMAGE
 0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
@@ -81,7 +81,7 @@ a `label` and a value.
 The following filter matches all services with a `project` label regardless of
 its value:
 
-```bash
+```console
 $ docker service ls --filter label=project
 ID            NAME       MODE        REPLICAS  IMAGE
 01sl1rp6nj5u  frontend2  replicated  1/1       nginx:alpine
@@ -92,7 +92,7 @@ ID            NAME       MODE        REPLICAS  IMAGE
 The following filter matches only services with the `project` label with the
 `project-a` value.
 
-```bash
+```console
 $ docker service ls --filter label=project=project-a
 ID            NAME      MODE        REPLICAS  IMAGE
 36xvvwwauej0  frontend  replicated  5/5       nginx:alpine
@@ -105,7 +105,7 @@ The `mode` filter matches on the mode (either `replicated` or `global`) of a ser
 
 The following filter matches only `global` services.
 
-```bash
+```console
 $ docker service ls --filter mode=global
 ID                  NAME                MODE                REPLICAS            IMAGE
 w7y0v2yrn620        top                 global              1/1                 busybox
@@ -117,7 +117,7 @@ The `name` filter matches on all or part of a service's name.
 
 The following filter matches services with a name containing `redis`.
 
-```bash
+```console
 $ docker service ls --filter name=redis
 ID            NAME   MODE        REPLICAS  IMAGE
 0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
@@ -146,7 +146,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID`, `Mode`, and `Replicas` entries separated by a colon (`:`) for all services:
 
-```bash
+```console
 $ docker service ls --format "{{.ID}}: {{.Mode}} {{.Replicas}}"
 
 0zmvwuiu3vue: replicated 10/10

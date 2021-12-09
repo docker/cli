@@ -22,14 +22,14 @@ Options:
 By default, this will render all version information in an easy to read
 layout. If a format is specified, the given template will be executed instead.
 
-Go's [text/template](http://golang.org/pkg/text/template/) package
+Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 ## Examples
 
 ### Default output
 
-```bash
+```console
 $ docker version
 
 Client:
@@ -64,7 +64,7 @@ Server:
 
 ### Get the server version
 
-```bash
+```console
 $ docker version --format '{{.Server.Version}}'
 
 19.03.8
@@ -72,7 +72,7 @@ $ docker version --format '{{.Server.Version}}'
 
 ### Dump raw JSON data
 
-```bash
+```console
 $ docker version --format '{{json .}}'
 
 {"Client":{"Platform":{"Name":"Docker Engine - Community"},"Version":"19.03.8","ApiVersion":"1.40","DefaultAPIVersion":"1.40","GitCommit":"afacb8b","GoVersion":"go1.12.17","Os":"darwin","Arch":"amd64","BuildTime":"Wed Mar 11 01:21:11 2020","Experimental":true},"Server":{"Platform":{"Name":"Docker Engine - Community"},"Components":[{"Name":"Engine","Version":"19.03.8","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"Wed Mar 11 01:29:16 2020","Experimental":"true","GitCommit":"afacb8b","GoVersion":"go1.12.17","KernelVersion":"4.19.76-linuxkit","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.2.13","Details":{"GitCommit":"7ad184331fa3e55e52b890ea95e65ba581ae3429"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":"dc9208a3303feef5b3839f4323d9beb36df0a9dd"}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":"fec3683"}}],"Version":"19.03.8","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"afacb8b","GoVersion":"go1.12.17","Os":"linux","Arch":"amd64","KernelVersion":"4.19.76-linuxkit","Experimental":true,"BuildTime":"2020-03-11T01:29:16.000000000+00:00"}}
@@ -82,7 +82,7 @@ $ docker version --format '{{json .}}'
 
 The following example prints the currently used [`docker context`](context.md):
 
-```bash
+```console
 $ docker version --format='{{.Client.Context}}'
 default
 ```
@@ -94,7 +94,7 @@ could be used when using Bash as your shell.
 Declare a function to obtain the current context in your `~/.bashrc`, and set
 this command as your `PROMPT_COMMAND`
 
-```bash
+```console
 function docker_context_prompt() {
         PS1="context: $(docker version --format='{{.Client.Context}}')> "
 }
@@ -105,7 +105,7 @@ PROMPT_COMMAND=docker_context_prompt
 After reloading the `~/.bashrc`, the prompt now shows the currently selected
 `docker context`:
 
-```bash
+```console
 $ source ~/.bashrc
 context: default> docker context create --docker host=unix:///var/run/docker.sock my-context
 my-context

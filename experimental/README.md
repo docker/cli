@@ -11,8 +11,6 @@ please feel free to provide any feedback on these features you wish.
 
 ## Use Docker experimental
 
-Experimental features are now included in the standard Docker binaries as of
-version 1.13.0.
 To enable experimental features, start the Docker daemon with the
 `--experimental` flag or enable the daemon flag in the
 `/etc/docker/daemon.json` configuration file:
@@ -39,12 +37,5 @@ Checkpoint and restore support for Containers.
 Metrics (Prometheus) output for basic container, image, and daemon operations.
 
  * [External graphdriver plugins](../docs/extend/plugins_graphdriver.md)
- * [Ipvlan Network Drivers](vlan-networks.md)
- * [Checkpoint & Restore](checkpoint-restore.md)
+ * [Checkpoint & Restore](../docs/reference/commandline/checkpoint.md)
  * [Docker build with --squash argument](../docs/reference/commandline/build.md#squash-an-images-layers---squash-experimental)
-
-## How to comment on an experimental feature
-
-Each feature's documentation includes a list of proposal pull requests or PRs associated with the feature. If you want to comment on or suggest a change to a feature, please add it to the existing feature PR.
-
-Issues or problems with a feature? Inquire for help on the `#docker` IRC channel or on the [Docker Google group](https://groups.google.com/forum/#!forum/docker-user).

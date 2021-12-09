@@ -36,7 +36,7 @@ Lists the services that are running as part of the specified stack.
 
 The following command shows all services in the `myapp` stack:
 
-```bash
+```console
 $ docker stack services myapp
 
 ID            NAME            REPLICAS  IMAGE                                                                          COMMAND
@@ -52,7 +52,7 @@ Multiple filter flags are combined as an `OR` filter.
 
 The following command shows both the `web` and `db` services:
 
-```bash
+```console
 $ docker stack services --filter name=myapp_web --filter name=myapp_db myapp
 
 ID            NAME            REPLICAS  IMAGE                                                                          COMMAND
@@ -103,7 +103,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID`, `Mode`, and `Replicas` entries separated by a colon (`:`) for all services:
 
-```bash
+```console
 $ docker stack services --format "{{.ID}}: {{.Mode}} {{.Replicas}}"
 
 0zmvwuiu3vue: replicated 10/10

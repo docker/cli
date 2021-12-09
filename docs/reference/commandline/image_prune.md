@@ -26,7 +26,7 @@ Remove all dangling images. If `-a` is specified, will also remove all images no
 
 Example output:
 
-```bash
+```console
 $ docker image prune -a
 
 WARNING! This will remove all images without at least one container associated to them.
@@ -101,7 +101,7 @@ images without the specified labels.
 
 The following removes images created before `2017-01-04T00:00:00`:
 
-```bash
+```console
 $ docker images --format 'table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}\t{{.Size}}'
 REPOSITORY          TAG                 IMAGE ID            CREATED AT                      SIZE
 foo                 latest              2f287ac753da        2017-01-04 13:42:23 -0800 PST   3.98 MB
@@ -128,7 +128,7 @@ foo                 latest              2f287ac753da        2017-01-04 13:42:23 
 
 The following removes images created more than 10 days (`240h`) ago:
 
-```bash
+```console
 $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -168,25 +168,25 @@ busybox             latest              e02e811dd08f        2 months ago        
 
 The following example removes images with the label `deprecated`:
 
-```bash
+```console
 $ docker image prune --filter="label=deprecated"
 ```
 
 The following example removes images with the label `maintainer` set to `john`:
 
-```bash
+```console
 $ docker image prune --filter="label=maintainer=john"
 ```
 
 This example removes images which have no `maintainer` label:
 
-```bash
+```console
 $ docker image prune --filter="label!=maintainer"
 ```
 
 This example removes images which have a maintainer label not set to `john`:
 
-```bash
+```console
 $ docker image prune --filter="label!=maintainer=john"
 ```
 

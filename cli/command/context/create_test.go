@@ -169,7 +169,7 @@ func validateTestKubeEndpoint(t *testing.T, s store.Reader, name string) {
 	kubeMeta := ctxMetadata.Endpoints[kubernetes.KubernetesEndpoint].(kubernetes.EndpointMeta)
 	kubeEP, err := kubeMeta.WithTLSData(s, name)
 	assert.NilError(t, err)
-	assert.Equal(t, "https://someserver", kubeEP.Host)
+	assert.Equal(t, "https://someserver.example.com", kubeEP.Host)
 	assert.Equal(t, "the-ca", string(kubeEP.TLSData.CA))
 	assert.Equal(t, "the-cert", string(kubeEP.TLSData.Cert))
 	assert.Equal(t, "the-key", string(kubeEP.TLSData.Key))
@@ -287,7 +287,7 @@ func TestCreateFromContext(t *testing.T) {
 			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
 			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
-			assert.Equal(t, kubeEndpoint.Host, "https://someserver")
+			assert.Equal(t, kubeEndpoint.Host, "https://someserver.example.com")
 		})
 	}
 }
@@ -361,7 +361,7 @@ func TestCreateFromCurrent(t *testing.T) {
 			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
 			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
-			assert.Equal(t, kubeEndpoint.Host, "https://someserver")
+			assert.Equal(t, kubeEndpoint.Host, "https://someserver.example.com")
 		})
 	}
 }

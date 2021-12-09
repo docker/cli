@@ -45,7 +45,7 @@ Options:
 
 Running `docker ps --no-trunc` showing 2 linked containers.
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID        IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
@@ -58,7 +58,7 @@ d7886598dbe2        crosbymichael/redis:latest   /redis-server --dir    33 minut
 The `docker ps` command only shows running containers by default. To see all
 containers, use the `-a` (or `--all`) flag:
 
-```bash
+```console
 $ docker ps -a
 ```
 
@@ -70,7 +70,7 @@ the `PORTS` column.
 
 The `docker ps -s` command displays two different on-disk-sizes for each container:
 
-```bash
+```console
 $ docker ps -s
 
 CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE                                                                                      SIZE
@@ -114,7 +114,7 @@ value.
 
 The following filter matches containers with the `color` label regardless of its value.
 
-```bash
+```console
 $ docker ps --filter "label=color"
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -124,7 +124,7 @@ d85756f57265        busybox             "top"               52 seconds ago      
 
 The following filter matches containers with the `color` label with the `blue` value.
 
-```bash
+```console
 $ docker ps --filter "label=color=blue"
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
@@ -137,7 +137,7 @@ The `name` filter matches on all or part of a container's name.
 
 The following filter matches all containers with a name containing the `nostalgic_stallman` string.
 
-```bash
+```console
 $ docker ps --filter "name=nostalgic_stallman"
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -146,7 +146,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 
 You can also filter for a substring in a name as this shows:
 
-```bash
+```console
 $ docker ps --filter "name=nostalgic"
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -160,7 +160,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 The `exited` filter matches containers by exist status code. For example, to
 filter for containers that have exited successfully:
 
-```bash
+```console
 $ docker ps -a --filter 'exited=0'
 
 CONTAINER ID        IMAGE             COMMAND                CREATED             STATUS                   PORTS                      NAMES
@@ -174,7 +174,7 @@ ea09c3c82f6e        registry:latest   /srv/run.sh            2 weeks ago        
 You can use a filter to locate containers that exited with status of `137`
 meaning a `SIGKILL(9)` killed them.
 
-```bash
+```console
 $ docker ps -a --filter 'exited=137'
 
 CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS                       PORTS               NAMES
@@ -194,7 +194,7 @@ The `status` filter matches containers by status. You can filter using
 `created`, `restarting`, `running`, `removing`, `paused`, `exited` and `dead`. For example,
 to filter for `running` containers:
 
-```bash
+```console
 $ docker ps --filter status=running
 
 CONTAINER ID        IMAGE                  COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -205,7 +205,7 @@ d5c976d3c462        busybox                "top"               23 minutes ago   
 
 To filter for `paused` containers:
 
-```bash
+```console
 $ docker ps --filter status=paused
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                      PORTS               NAMES
@@ -226,7 +226,7 @@ it. The filter supports the following image representation:
 If you don't specify a `tag`, the `latest` tag is used. For example, to filter
 for containers that use the latest `ubuntu` image:
 
-```bash
+```console
 $ docker ps --filter ancestor=ubuntu
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
@@ -239,7 +239,7 @@ bab2a34ba363        ubuntu              "top"               3 minutes ago       
 Match containers based on the `ubuntu-c1` image which, in this case, is a child
 of `ubuntu`:
 
-```bash
+```console
 $ docker ps --filter ancestor=ubuntu-c1
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
@@ -248,7 +248,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 
 Match containers based on the `ubuntu` version `12.04.5` image:
 
-```bash
+```console
 $ docker ps --filter ancestor=ubuntu:12.04.5
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
@@ -258,7 +258,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 The following matches containers based on the layer `d0e008c6cf02` or an image
 that have this layer in its layer stack.
 
-```bash
+```console
 $ docker ps --filter ancestor=d0e008c6cf02
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
@@ -272,7 +272,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 The `before` filter shows only containers created before the container with
 given id or name. For example, having these containers created:
 
-```bash
+```console
 $ docker ps
 
 CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS              PORTS              NAMES
@@ -283,7 +283,7 @@ CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS       
 
 Filtering with `before` would give:
 
-```bash
+```console
 $ docker ps -f before=9c3527ed70ce
 
 CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS              PORTS              NAMES
@@ -296,7 +296,7 @@ CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS       
 The `since` filter shows only containers created since the container with given
 id or name. For example, with the same containers as in `before` filter:
 
-```bash
+```console
 $ docker ps -f since=6e63f6ff38b0
 
 CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS              PORTS               NAMES
@@ -309,7 +309,7 @@ CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS        
 The `volume` filter shows only containers that mount a specific volume or have
 a volume mounted in a specific path:
 
-```bash
+```console
 $ docker ps --filter volume=remote-volume --format "table {{.ID}}\t{{.Mounts}}"
 
 CONTAINER ID        MOUNTS
@@ -329,7 +329,7 @@ a given name or id.
 The following filter matches all containers that are connected to a network
 with a name containing `net1`.
 
-```bash
+```console
 $ docker run -d --net=net1 --name=test1 ubuntu top
 $ docker run -d --net=net2 --name=test2 ubuntu top
 
@@ -343,7 +343,7 @@ The network filter matches on both the network's name and id. The following
 example shows all containers that are attached to the `net1` network, using
 the network id as a filter;
 
-```bash
+```console
 $ docker network inspect --format "{{.ID}}" net1
 
 8c0b4110ae930dbe26b258de9bc34a03f98056ed6f27f991d32919bfe401d7c5
@@ -361,7 +361,7 @@ number, port range, and/or protocol. The default protocol is `tcp` when not spec
 
 The following filter matches all containers that have published port of 80:
 
-```bash
+```console
 $ docker run -d --publish=80 busybox top
 $ docker run -d --expose=8080 busybox top
 
@@ -378,7 +378,8 @@ fc7e477723b7        busybox             "top"               About a minute ago  
 ```
 
 The following filter matches all containers that have exposed TCP port in the range of `8000-8080`:
-```bash
+
+```console
 $ docker ps --filter expose=8000-8080/tcp
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -386,7 +387,8 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 ```
 
 The following filter matches all containers that have exposed UDP port `80`:
-```bash
+
+```console
 $ docker ps --filter publish=80/udp
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -423,7 +425,7 @@ column headers as well.
 The following example uses a template without headers and outputs the `ID` and
 `Command` entries separated by a colon (`:`) for all running containers:
 
-```bash
+```console
 $ docker ps --format "{{.ID}}: {{.Command}}"
 
 a87ecb4f327c: /bin/sh -c #(nop) MA
@@ -434,7 +436,7 @@ c1d3b0166030: /bin/sh -c yum -y up
 
 To list all running containers with their labels in a table format you can use:
 
-```bash
+```console
 $ docker ps --format "table {{.ID}}\t{{.Labels}}"
 
 CONTAINER ID        LABELS

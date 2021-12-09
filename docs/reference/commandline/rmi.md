@@ -35,7 +35,7 @@ an image has one or more tags referencing it, you must remove all of them before
 the image is removed. Digest references are removed automatically when an image
 is removed by tag.
 
-```bash
+```console
 $ docker images
 
 REPOSITORY                TAG                 IMAGE ID            CREATED             SIZE
@@ -71,7 +71,7 @@ Deleted: fd484f19954f4920da7ff372b5067f5b7ddb2fd3830cecd17b96ea9e286ba5b8
 If you use the `-f` flag and specify the image's short or long ID, then this
 command untags and removes all images that match the specified ID.
 
-```bash
+```console
 $ docker images
 
 REPOSITORY                TAG                 IMAGE ID            CREATED             SIZE
@@ -89,7 +89,7 @@ Deleted: fd484f19954f4920da7ff372b5067f5b7ddb2fd3830cecd17b96ea9e286ba5b8
 
 An image pulled by digest has no tag associated with it:
 
-```bash
+```console
 $ docker images --digests
 
 REPOSITORY                     TAG       DIGEST                                                                    IMAGE ID        CREATED         SIZE
@@ -98,7 +98,7 @@ localhost:5000/test/busybox    <none>    sha256:cbbf2f9a99b47fc460d422812b6a5adf
 
 To remove an image using its digest:
 
-```bash
+```console
 $ docker rmi localhost:5000/test/busybox@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf
 Untagged: localhost:5000/test/busybox@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf
 Deleted: 4986bf8c15363d1c5d15512d5266f8777bfba4974ac56e3270e7760f6f0a8125

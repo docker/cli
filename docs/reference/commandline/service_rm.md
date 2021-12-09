@@ -33,7 +33,7 @@ Removes the specified services from the swarm.
 
 Remove the `redis` service:
 
-```bash
+```console
 $ docker service rm redis
 
 redis

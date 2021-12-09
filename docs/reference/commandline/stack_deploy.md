@@ -43,7 +43,7 @@ Create and update a stack from a `compose` file on the swarm.
 
 The `deploy` command supports compose file version `3.0` and above.
 
-```bash
+```console
 $ docker stack deploy --compose-file docker-compose.yml vossibility
 
 Ignoring unsupported options: links
@@ -60,7 +60,7 @@ Creating service vossibility_lookupd
 
 The Compose file can also be provided as standard input with `--compose-file -`:
 
-```bash
+```console
 $ cat docker-compose.yml | docker stack deploy --compose-file - vossibility
 
 Ignoring unsupported options: links
@@ -79,7 +79,7 @@ If your configuration is split between multiple Compose files, e.g. a base
 configuration and environment-specific overrides, you can provide multiple
 `--compose-file` flags.
 
-```bash
+```console
 $ docker stack deploy --compose-file docker-compose.yml -c docker-compose.prod.yml vossibility
 
 Ignoring unsupported options: links
@@ -96,7 +96,7 @@ Creating service vossibility_lookupd
 
 You can verify that the services were correctly created:
 
-```bash
+```console
 $ docker service ls
 
 ID            NAME                               MODE        REPLICAS  IMAGE

@@ -10,7 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/moby/sys/signal"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -97,7 +97,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	}
 
 	if opts.proxy && !c.Config.Tty {
-		sigc := notfiyAllSignals()
+		sigc := notifyAllSignals()
 		go ForwardAllSignals(ctx, dockerCli, opts.container, sigc)
 		defer signal.StopCatch(sigc)
 	}

@@ -34,7 +34,8 @@ information about available filter options.
 ## Examples
 
 ### Create a volume
-```bash
+
+```console
 $ docker volume create rosemary
 
 rosemary
@@ -66,7 +67,7 @@ The currently supported filters are:
 
 The `dangling` filter matches on all volumes not referenced by any containers
 
-```bash
+```console
 $ docker run -d  -v tyler:/tmpwork  busybox
 
 f86a7dd02898067079c99ceacd810149060a70528eff3754d0b0f1a93bd0af18
@@ -81,7 +82,7 @@ The `driver` filter matches volumes based on their driver.
 
 The following example matches volumes that are created with the `local` driver:
 
-```bash
+```console
 $ docker volume ls -f driver=local
 
 DRIVER              VOLUME NAME
@@ -96,7 +97,7 @@ a `label` and a value.
 
 First, let's create some volumes to illustrate this;
 
-```bash
+```console
 $ docker volume create the-doctor --label is-timelord=yes
 
 the-doctor
@@ -108,7 +109,7 @@ daleks
 The following example filter matches volumes with the `is-timelord` label
 regardless of its value.
 
-```bash
+```console
 $ docker volume ls --filter label=is-timelord
 
 DRIVER              VOLUME NAME
@@ -121,7 +122,7 @@ As the above example demonstrates, both volumes with `is-timelord=yes`, and
 
 Filtering on both `key` *and* `value` of the label, produces the expected result:
 
-```bash
+```console
 $ docker volume ls --filter label=is-timelord=yes
 
 DRIVER              VOLUME NAME
@@ -131,7 +132,7 @@ local               the-doctor
 Specifying multiple label filter produces an "and" search; all conditions
 should be met;
 
-```bash
+```console
 $ docker volume ls --filter label=is-timelord=yes --filter label=is-timelord=no
 
 DRIVER              VOLUME NAME
@@ -143,7 +144,7 @@ The `name` filter matches on all or part of a volume's name.
 
 The following filter matches all volumes with a name containing the `rose` string.
 
-```bash
+```console
 $ docker volume ls -f name=rose
 
 DRIVER              VOLUME NAME
@@ -173,7 +174,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Name` and `Driver` entries separated by a colon (`:`) for all volumes:
 
-```bash
+```console
 $ docker volume ls --format "{{.Name}}: {{.Driver}}"
 
 vol1: local

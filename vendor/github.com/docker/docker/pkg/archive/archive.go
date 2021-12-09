@@ -129,11 +129,7 @@ func DetectCompression(source []byte) Compression {
 		Gzip:  {0x1F, 0x8B, 0x08},
 		Xz:    {0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00},
 	} {
-		if len(source) < len(m) {
-			logrus.Debug("Len too short")
-			continue
-		}
-		if bytes.Equal(m, source[:len(m)]) {
+		if bytes.HasPrefix(source, m) {
 			return compression
 		}
 	}
@@ -147,20 +143,15 @@ func xzDecompress(ctx context.Context, archive io.Reader) (io.ReadCloser, error)
 }
 
 func gzDecompress(ctx context.Context, buf io.Reader) (io.ReadCloser, error) {
-	noPigzEnv := os.Getenv("MOBY_DISABLE_PIGZ")
-	var noPigz bool
-
-	if noPigzEnv != "" {
-		var err error
-		noPigz, err = strconv.ParseBool(noPigzEnv)
+	if noPigzEnv := os.Getenv("MOBY_DISABLE_PIGZ"); noPigzEnv != "" {
+		noPigz, err := strconv.ParseBool(noPigzEnv)
 		if err != nil {
 			logrus.WithError(err).Warn("invalid value in MOBY_DISABLE_PIGZ env var")
 		}
-	}
-
-	if noPigz {
-		logrus.Debugf("Use of pigz is disabled due to MOBY_DISABLE_PIGZ=%s", noPigzEnv)
-		return gzip.NewReader(buf)
+		if noPigz {
+			logrus.Debugf("Use of pigz is disabled due to MOBY_DISABLE_PIGZ=%s", noPigzEnv)
+			return gzip.NewReader(buf)
+		}
 	}
 
 	unpigzPath, err := exec.LookPath("unpigz")
@@ -278,7 +269,9 @@ func ReplaceFileTarWrapper(inputTarStream io.ReadCloser, mods map[string]TarModi
 				return nil
 			}
 
-			header.Name = name
+			if header.Name == "" {
+				header.Name = name
+			}
 			header.Size = int64(len(data))
 			if err := tarWriter.WriteHeader(header); err != nil {
 				return err
@@ -753,13 +746,18 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 		return nil, err
 	}
 
+	whiteoutConverter, err := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
 		ta := newTarAppender(
 			idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps),
 			compressWriter,
 			options.ChownOpts,
 		)
-		ta.WhiteoutConverter = getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+		ta.WhiteoutConverter = whiteoutConverter
 
 		defer func() {
 			// Make sure to check the error on Close.
@@ -917,7 +915,10 @@ func Unpack(decompressedArchive io.Reader, dest string, options *TarOptions) err
 	var dirs []*tar.Header
 	idMapping := idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps)
 	rootIDs := idMapping.RootPair()
-	whiteoutConverter := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	whiteoutConverter, err := getWhiteoutConverter(options.WhiteoutFormat, options.InUserNS)
+	if err != nil {
+		return err
+	}
 
 	// Iterate through the files in the archive.
 loop:
@@ -929,6 +930,12 @@ loop:
 		}
 		if err != nil {
 			return err
+		}
+
+		// ignore XGlobalHeader early to avoid creating parent directories for them
+		if hdr.Typeflag == tar.TypeXGlobalHeader {
+			logrus.Debugf("PAX Global Extended Headers found for %s and ignored", hdr.Name)
+			continue
 		}
 
 		// Normalize name, for safety and for a simple is-root check
@@ -950,7 +957,7 @@ loop:
 			parent := filepath.Dir(hdr.Name)
 			parentPath := filepath.Join(dest, parent)
 			if _, err := os.Lstat(parentPath); err != nil && os.IsNotExist(err) {
-				err = idtools.MkdirAllAndChownNew(parentPath, 0777, rootIDs)
+				err = idtools.MkdirAllAndChownNew(parentPath, 0755, rootIDs)
 				if err != nil {
 					return err
 				}
@@ -1075,7 +1082,6 @@ func untarHandler(tarArchive io.Reader, dest string, options *TarOptions, decomp
 // TarUntar is a convenience function which calls Tar and Untar, with the output of one piped into the other.
 // If either Tar or Untar fails, TarUntar aborts and returns the error.
 func (archiver *Archiver) TarUntar(src, dst string) error {
-	logrus.Debugf("TarUntar(%s %s)", src, dst)
 	archive, err := TarWithOptions(src, &TarOptions{Compression: Uncompressed})
 	if err != nil {
 		return err
@@ -1120,11 +1126,9 @@ func (archiver *Archiver) CopyWithTar(src, dst string) error {
 	// as owner
 	rootIDs := archiver.IDMapping.RootPair()
 	// Create dst, copy src's content into it
-	logrus.Debugf("Creating dest directory: %s", dst)
 	if err := idtools.MkdirAllAndChownNew(dst, 0755, rootIDs); err != nil {
 		return err
 	}
-	logrus.Debugf("Calling TarUntar(%s, %s)", src, dst)
 	return archiver.TarUntar(src, dst)
 }
 
@@ -1132,7 +1136,6 @@ func (archiver *Archiver) CopyWithTar(src, dst string) error {
 // for a single file. It copies a regular file from path `src` to
 // path `dst`, and preserves all its metadata.
 func (archiver *Archiver) CopyFileWithTar(src, dst string) (err error) {
-	logrus.Debugf("CopyFileWithTar(%s, %s)", src, dst)
 	srcSt, err := os.Stat(src)
 	if err != nil {
 		return err

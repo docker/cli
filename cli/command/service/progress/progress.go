@@ -67,13 +67,6 @@ func terminalState(state swarm.TaskState) bool {
 	return numberedStates[state] > numberedStates[swarm.TaskStateRunning]
 }
 
-func stateToProgress(state swarm.TaskState, rollback bool) int64 {
-	if !rollback {
-		return numberedStates[state]
-	}
-	return numberedStates[swarm.TaskStateRunning] - numberedStates[state]
-}
-
 // ServiceProgress outputs progress information for convergence of a service.
 // nolint: gocyclo
 func ServiceProgress(ctx context.Context, client client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
@@ -343,7 +336,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 			running++
 		}
 
-		u.writeTaskProgress(task, mappedSlot, replicas, rollback)
+		u.writeTaskProgress(task, mappedSlot, replicas)
 	}
 
 	if !u.done {
@@ -389,7 +382,7 @@ func (u *replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes 
 	return tasksBySlot
 }
 
-func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64, rollback bool) {
+func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64) {
 	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
 		return
 	}
@@ -406,7 +399,7 @@ func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlo
 		u.progressOut.WriteProgress(progress.Progress{
 			ID:         fmt.Sprintf("%d/%d", mappedSlot, replicas),
 			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
-			Current:    stateToProgress(task.Status.State, rollback),
+			Current:    numberedStates[task.Status.State],
 			Total:      maxProgress,
 			HideCounts: true,
 		})
@@ -463,7 +456,7 @@ func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task
 				running++
 			}
 
-			u.writeTaskProgress(task, nodeCount, rollback)
+			u.writeTaskProgress(task, nodeCount)
 		}
 	}
 
@@ -507,7 +500,7 @@ func (u *globalProgressUpdater) tasksByNode(tasks []swarm.Task) map[string]swarm
 	return tasksByNode
 }
 
-func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int, rollback bool) {
+func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int) {
 	if u.done || nodeCount > maxProgressBars {
 		return
 	}
@@ -524,7 +517,7 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 		u.progressOut.WriteProgress(progress.Progress{
 			ID:         stringid.TruncateID(task.NodeID),
 			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
-			Current:    stateToProgress(task.Status.State, rollback),
+			Current:    numberedStates[task.Status.State],
 			Total:      maxProgress,
 			HideCounts: true,
 		})

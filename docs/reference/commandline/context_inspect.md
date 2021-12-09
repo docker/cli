@@ -23,7 +23,7 @@ Inspects one or more contexts.
 
 ### Inspect a context by name
 
-```bash
+```console
 $ docker context inspect "local+aks"
 
 [

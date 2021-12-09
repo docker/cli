@@ -45,7 +45,7 @@ on. When you launch a new container with  `docker run` it automatically connects
 this bridge network. You cannot remove this default bridge network, but you can
 create new ones using the `network create` command.
 
-```bash
+```console
 $ docker network create -d bridge my-bridge-network
 ```
 
@@ -75,7 +75,7 @@ discovery and server management tools that can assist your implementation.
 Once you have prepared the `overlay` network prerequisites you simply choose a
 Docker host in the cluster and issue the following to create the network:
 
-```bash
+```console
 $ docker network create -d overlay my-multihost-network
 ```
 
@@ -102,7 +102,7 @@ for more information about different endpoint modes.
 When you start a container, use the `--network` flag to connect it to a network.
 This example adds the `busybox` container to the `mynet` network:
 
-```bash
+```console
 $ docker run -itd --network=mynet busybox
 ```
 
@@ -126,14 +126,14 @@ network. It is purely for ip-addressing purposes. You can override this default
 and specify subnetwork values directly using the `--subnet` option. On a
 `bridge` network you can only create a single subnet:
 
-```bash
+```console
 $ docker network create --driver=bridge --subnet=192.168.0.0/16 br0
 ```
 
 Additionally, you also specify the `--gateway` `--ip-range` and `--aux-address`
 options.
 
-```bash
+```console
 $ docker network create \
   --driver=bridge \
   --subnet=172.28.0.0/16 \
@@ -148,7 +148,7 @@ support it you can create multiple subnetworks. This example uses two `/25`
 subnet mask to adhere to the current guidance of not having more than 256 IPs in
 a single overlay network. Each of the subnetworks has 126 usable addresses.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=192.168.10.0/25 \
   --subnet=192.168.20.0/25 \
@@ -175,7 +175,7 @@ equivalent docker daemon flags used for docker0 bridge:
 | `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        |
 | `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               |
 | `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        |
-| `com.docker.network.container_interface_prefix`  | -           | Set a custom prefix for container interfaces          |
+| `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
 
 The following arguments can be passed to `docker network create` for any
 network driver, again with their approximate equivalents to `docker daemon`.
@@ -191,7 +191,7 @@ network driver, again with their approximate equivalents to `docker daemon`.
 For example, let's use `-o` or `--opt` options to specify an IP address binding
 when publishing ports:
 
-```bash
+```console
 $ docker network create \
     -o "com.docker.network.bridge.host_binding_ipv4"="172.19.0.1" \
     simple-network
@@ -212,7 +212,7 @@ one ingress network can be created at the time. The network can be removed only
 if no services depend on it. Any option available when creating an overlay network
 is also available when creating the ingress network, besides the `--attachable` option.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=10.11.0.0/16 \
   --ingress \

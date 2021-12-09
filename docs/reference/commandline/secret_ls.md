@@ -36,7 +36,7 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 ## Examples
 
-```bash
+```console
 $ docker secret ls
 
 ID                          NAME                        CREATED             UPDATED
@@ -60,7 +60,7 @@ The currently supported filters are:
 
 The `id` filter matches all or prefix of a secret's id.
 
-```bash
+```console
 $ docker secret ls -f "id=6697bflskwj1998km1gnnjr38"
 
 ID                          NAME                        CREATED             UPDATED
@@ -75,7 +75,7 @@ a `label` and a value.
 The following filter matches all secrets with a `project` label regardless of
 its value:
 
-```bash
+```console
 $ docker secret ls --filter label=project
 
 ID                          NAME                        CREATED             UPDATED
@@ -85,7 +85,7 @@ mem02h8n73mybpgqjf0kfi1n0   test_secret                 About an hour ago   Abou
 The following filter matches only services with the `project` label with the
 `project-a` value.
 
-```bash
+```console
 $ docker service ls --filter label=project=test
 
 ID                          NAME                        CREATED             UPDATED
@@ -98,7 +98,7 @@ The `name` filter matches on all or prefix of a secret's name.
 
 The following filter matches secret with a name containing a prefix of `test`.
 
-```bash
+```console
 $ docker secret ls --filter name=test_secret
 
 ID                          NAME                        CREATED             UPDATED
@@ -128,7 +128,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `Name` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker secret ls --format "{{.ID}}: {{.Name}}"
 
 77af4d6b9913: secret-1
@@ -139,7 +139,7 @@ b6fa739cedf5: secret-2
 To list all secrets with their name and created date in a table format you
 can use:
 
-```bash
+```console
 $ docker secret ls --format "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}"
 
 ID                  NAME                      CREATED

@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 #
-# Build a static binary for the host OS/ARCH
+# Build plugins examples for the host OS/ARCH
 #
 
 set -eu -o pipefail
 
 source ./scripts/build/.variables
 
-mkdir -p "build/plugins-${GOOS}-${GOARCH}"
 for p in cli-plugins/examples/* "$@" ; do
     [ -d "$p" ] || continue
 
     n=$(basename "$p")
+    TARGET_PLUGIN="$(dirname "${TARGET}")/plugins-${GOOS}-${GOARCH}/docker-${n}"
+    mkdir -p "$(dirname "${TARGET_PLUGIN}")"
 
-    TARGET="build/plugins-${GOOS}-${GOARCH}/docker-${n}"
-
-    echo "Building statically linked $TARGET"
-    export CGO_ENABLED=0
-    go build -o "${TARGET}" --ldflags "${LDFLAGS}" "github.com/docker/cli/${p}"
+    echo "Building $GO_LINKMODE $(basename "${TARGET_PLUGIN}")"
+    (set -x ; CGO_ENABLED=0 GO111MODULE=auto go build -o "${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${LDFLAGS}" ${GO_BUILDMODE} "github.com/docker/cli/${p}")
 done

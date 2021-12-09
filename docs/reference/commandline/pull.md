@@ -53,7 +53,7 @@ To download a particular image, or set of images (i.e., a repository), use
 `docker pull`. If no tag is provided, Docker Engine uses the `:latest` tag as a
 default. This command pulls the `debian:latest` image:
 
-```bash
+```console
 $ docker pull debian
 
 Using default tag: latest
@@ -72,7 +72,7 @@ both layers with `debian:latest`. Pulling the `debian:jessie` image therefore
 only pulls its metadata, but not its layers, because all layers are already
 present locally:
 
-```bash
+```console
 $ docker pull debian:jessie
 
 jessie: Pulling from library/debian
@@ -85,7 +85,7 @@ Status: Downloaded newer image for debian:jessie
 To see which images are present locally, use the [`docker images`](images.md)
 command:
 
-```bash
+```console
 $ docker images
 
 REPOSITORY   TAG      IMAGE ID        CREATED      SIZE
@@ -109,8 +109,8 @@ refer to [understand images, containers, and storage drivers](https://docs.docke
 So far, you've pulled images by their name (and "tag"). Using names and tags is
 a convenient way to work with images. When using tags, you can `docker pull` an
 image again to make sure you have the most up-to-date version of that image.
-For example, `docker pull ubuntu:14.04` pulls the latest version of the Ubuntu
-14.04 image.
+For example, `docker pull ubuntu:20.04` pulls the latest version of the Ubuntu
+20.04 image.
 
 In some cases you don't want images to be updated to newer versions, but prefer
 to use a fixed version of an image. Docker enables you to pull an image by its
@@ -119,24 +119,24 @@ of an image to pull. Doing so, allows you to "pin" an image to that version,
 and guarantee that the image you're using is always the same.
 
 To know the digest of an image, pull the image first. Let's pull the latest
-`ubuntu:14.04` image from Docker Hub:
+`ubuntu:20.04` image from Docker Hub:
 
-```bash
-$ docker pull ubuntu:14.04
+```console
+$ docker pull ubuntu:20.04
 
-14.04: Pulling from library/ubuntu
-5a132a7e7af1: Pull complete
-fd2731e4c50c: Pull complete
-28a2f68d1120: Pull complete
-a3ed95caeb02: Pull complete
-Digest: sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-Status: Downloaded newer image for ubuntu:14.04
+20.04: Pulling from library/ubuntu
+16ec32c2132b: Pull complete
+Digest: sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+Status: Downloaded newer image for ubuntu:20.04
+docker.io/library/ubuntu:20.04
 ```
 
 Docker prints the digest of the image after the pull has finished. In the example
 above, the digest of the image is:
 
-    sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+```console
+sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+```
 
 Docker also prints the digest of an image when *pushing* to a registry. This
 may be useful if you want to pin to a version of the image you just pushed.
@@ -144,23 +144,20 @@ may be useful if you want to pin to a version of the image you just pushed.
 A digest takes the place of the tag when pulling an image, for example, to
 pull the above image by digest, run the following command:
 
-```bash
-$ docker pull ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+```console
+$ docker pull ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
 
-sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2: Pulling from library/ubuntu
-5a132a7e7af1: Already exists
-fd2731e4c50c: Already exists
-28a2f68d1120: Already exists
-a3ed95caeb02: Already exists
-Digest: sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-Status: Downloaded newer image for ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+docker.io/library/ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3: Pulling from library/ubuntu
+Digest: sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+Status: Image is up to date for ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+docker.io/library/ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
 ```
 
 Digest can also be used in the `FROM` of a Dockerfile, for example:
 
 ```dockerfile
-FROM ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-LABEL maintainer="some maintainer <maintainer@example.com>"
+FROM ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+LABEL org.opencontainers.image.authors="some maintainer <maintainer@example.com>"
 ```
 
 > **Note**
@@ -181,7 +178,7 @@ path is similar to a URL, but does not contain a protocol specifier (`https://`)
 The following command pulls the `testing/test-image` image from a local registry
 listening on port 5000 (`myregistry.local:5000`):
 
-```bash
+```console
 $ docker pull myregistry.local:5000/testing/test-image
 ```
 
@@ -200,7 +197,7 @@ can contain multiple images. To pull all images from a repository, provide the
 
 This command pulls all images from the `fedora` repository:
 
-```bash
+```console
 $ docker pull --all-tags fedora
 
 Pulling repository fedora
@@ -217,7 +214,7 @@ After the pull has completed use the `docker images` command to see the
 images that were pulled. The example below shows all the `fedora` images
 that are present locally:
 
-```bash
+```console
 $ docker images fedora
 
 REPOSITORY   TAG         IMAGE ID        CREATED      SIZE
@@ -232,7 +229,7 @@ fedora       latest      105182bb5e8b    5 days ago   372.7 MB
 Killing the `docker pull` process, for example by pressing `CTRL-c` while it is
 running in a terminal, will terminate the pull operation.
 
-```bash
+```console
 $ docker pull fedora
 
 Using default tag: latest

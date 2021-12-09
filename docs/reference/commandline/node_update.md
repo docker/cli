@@ -43,7 +43,7 @@ $ docker node update --label-add foo worker1
 
 To add multiple labels to a node, pass the `--label-add` flag for each label:
 
-```bash
+```console
 $ docker node update --label-add foo --label-add bar worker1
 ```
 

@@ -27,7 +27,7 @@ not specified, Docker generates a random name.
 
 Create a volume and then configure the container to use it:
 
-```bash
+```console
 $ docker volume create hello
 
 hello
@@ -58,7 +58,7 @@ assumes you want to re-use the existing volume and does not return an error.
 Some volume drivers may take options to customize the volume creation. Use the
 `-o` or `--opt` flags to pass driver options:
 
-```bash
+```console
 $ docker volume create --driver fake \
     --opt tardis=blue \
     --opt timey=wimey \
@@ -74,12 +74,12 @@ The built-in `local` driver on Linux accepts options similar to the linux
 `mount` command. You can provide multiple options by passing the `--opt` flag
 multiple times. Some `mount` options (such as the `o` option) can take a
 comma-separated list of options. Complete list of available mount options can be
-found [here](http://man7.org/linux/man-pages/man8/mount.8.html).
+found [here](https://man7.org/linux/man-pages/man8/mount.8.html).
 
 For example, the following creates a `tmpfs` volume called `foo` with a size of
 100 megabyte and `uid` of 1000.
 
-```bash
+```console
 $ docker volume create --driver local \
     --opt type=tmpfs \
     --opt device=tmpfs \
@@ -89,7 +89,7 @@ $ docker volume create --driver local \
 
 Another example that uses `btrfs`:
 
-```bash
+```console
 $ docker volume create --driver local \
     --opt type=btrfs \
     --opt device=/dev/sda2 \
@@ -99,7 +99,7 @@ $ docker volume create --driver local \
 Another example that uses `nfs` to mount the `/path/to/dir` in `rw` mode from
 `192.168.1.1`:
 
-```bash
+```console
 $ docker volume create --driver local \
     --opt type=nfs \
     --opt o=addr=192.168.1.1,rw \

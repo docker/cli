@@ -1,23 +1,16 @@
-# syntax=docker/dockerfile:1.1.3-experimental
+# syntax=docker/dockerfile:1.3
 
-ARG GO_VERSION=1.13.15
-ARG GOLANGCI_LINTER_SHA="v1.21.0"
+ARG GO_VERSION=1.16.11
+ARG GOLANGCI_LINT_VERSION=v1.23.8
 
-FROM    golang:${GO_VERSION}-alpine AS build
-ENV     CGO_ENABLED=0
-RUN     apk add --no-cache git
-ARG     GOLANGCI_LINTER_SHA
-ARG     GO111MODULE=on
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
-        go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINTER_SHA}
+FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 
-FROM    golang:${GO_VERSION}-alpine AS lint
-ENV     CGO_ENABLED=0
-ENV     DISABLE_WARN_OUTSIDE_CONTAINER=1
-COPY --from=build /go/bin/golangci-lint /usr/local/bin
+FROM golang:${GO_VERSION}-alpine AS lint
+ENV GO111MODULE=off
+ENV CGO_ENABLED=0
+ENV GOGC=75
 WORKDIR /go/src/github.com/docker/cli
-ENV     GOGC=75
-ENTRYPOINT ["/usr/local/bin/golangci-lint"]
-CMD     ["run", "--config=.golangci.yml"]
-COPY    . .
+COPY --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
+RUN --mount=type=bind,target=. \
+    --mount=type=cache,target=/root/.cache \
+        golangci-lint run

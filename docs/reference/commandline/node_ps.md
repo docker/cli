@@ -36,8 +36,9 @@ information about available filter options.
 
 ## Examples
 
-```bash
+```console
 $ docker node ps swarm-manager1
+
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
 redis.1.7q92v0nr1hcgts2amcjyqg3pq   redis:3.0.6  swarm-manager1  Running        Running 5 hours
 redis.6.b465edgho06e318egmgjbqo4o   redis:3.0.6  swarm-manager1  Running        Running 29 seconds
@@ -64,7 +65,7 @@ The `name` filter matches on all or part of a task's name.
 
 The following filter matches all tasks with a name containing the `redis` string.
 
-```bash
+```console
 $ docker node ps -f name=redis swarm-manager1
 
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
@@ -79,7 +80,7 @@ redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:3.0.6  swarm-manager1  Running        
 
 The `id` filter matches a task's id.
 
-```bash
+```console
 $ docker node ps -f id=bg8c07zzg87di2mufeq51a2qp swarm-manager1
 
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
@@ -93,7 +94,7 @@ value.
 
 The following filter matches tasks with the `usage` label regardless of its value.
 
-```bash
+```console
 $ docker node ps -f "label=usage"
 
 NAME                               IMAGE        NODE            DESIRED STATE  CURRENT STATE
@@ -132,8 +133,9 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Name` and `Image` entries separated by a colon (`:`) for all tasks:
 
-```bash
+```console
 $ docker node ps --format "{{.Name}}: {{.Image}}"
+
 top.1: busybox
 top.2: busybox
 top.3: busybox

@@ -26,7 +26,7 @@ and optionally, volumes.
 
 ## Examples
 
-```bash
+```console
 $ docker system prune
 
 WARNING! This will remove:
@@ -56,7 +56,7 @@ By default, volumes are not removed to prevent important data from being
 deleted if there is currently no container using the volume. Use the `--volumes`
 flag when running the command to prune volumes as well:
 
-```bash
+```console
 $ docker system prune -a --volumes
 
 WARNING! This will remove:

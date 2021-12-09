@@ -248,7 +248,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 	sampleInfoDaemonWarnings.Warnings = []string{
 		"WARNING: No memory limit support",
 		"WARNING: No swap limit support",
-		"WARNING: No kernel memory limit support",
 		"WARNING: No oom kill disable support",
 		"WARNING: No cpu cfs quota support",
 		"WARNING: No cpu cfs period support",
@@ -341,20 +340,22 @@ func TestPrettyPrintInfo(t *testing.T) {
 				ServerErrors: []string{"a server error occurred"},
 				ClientErrors: []string{"a client error occurred"},
 			},
-			prettyGolden:  "docker-info-errors",
-			jsonGolden:    "docker-info-errors",
-			expectedError: "errors pretty printing info",
+			prettyGolden:   "docker-info-errors",
+			jsonGolden:     "docker-info-errors",
+			warningsGolden: "docker-info-errors-stderr",
+			expectedError:  "errors pretty printing info",
 		},
 		{
 			doc: "bad security info",
 			dockerInfo: info{
 				Info:         &sampleInfoBadSecurity,
-				ServerErrors: []string{"an error happened"},
+				ServerErrors: []string{"a server error occurred"},
 				ClientInfo:   &clientInfo{Debug: false},
 			},
-			prettyGolden:  "docker-info-badsec",
-			jsonGolden:    "docker-info-badsec",
-			expectedError: "errors pretty printing info",
+			prettyGolden:   "docker-info-badsec",
+			jsonGolden:     "docker-info-badsec",
+			warningsGolden: "docker-info-badsec-stderr",
+			expectedError:  "errors pretty printing info",
 		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
@@ -418,6 +419,58 @@ func TestFormatInfo(t *testing.T) {
 			} else {
 				t.Fatal("test expected to neither pass nor fail")
 			}
+		})
+	}
+}
+
+func TestNeedsServerInfo(t *testing.T) {
+	tests := []struct {
+		doc      string
+		template string
+		expected bool
+	}{
+		{
+			doc:      "no template",
+			template: "",
+			expected: true,
+		},
+		{
+			doc:      "JSON",
+			template: "json",
+			expected: true,
+		},
+		{
+			doc:      "JSON (all fields)",
+			template: "{{json .}}",
+			expected: true,
+		},
+		{
+			doc:      "JSON (Server ID)",
+			template: "{{json .ID}}",
+			expected: true,
+		},
+		{
+			doc:      "ClientInfo",
+			template: "{{json .ClientInfo}}",
+			expected: false,
+		},
+		{
+			doc:      "JSON ClientInfo",
+			template: "{{json .ClientInfo}}",
+			expected: false,
+		},
+		{
+			doc:      "JSON (Active context)",
+			template: "{{json .ClientInfo.Context}}",
+			expected: false,
+		},
+	}
+
+	inf := info{ClientInfo: &clientInfo{}}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			assert.Equal(t, needsServerInfo(tc.template, inf), tc.expected)
 		})
 	}
 }

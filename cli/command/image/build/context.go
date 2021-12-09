@@ -378,26 +378,32 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		return nil, "", err
 	}
 	now := time.Now()
-	hdrTmpl := &tar.Header{
-		Mode:       0600,
-		Uid:        0,
-		Gid:        0,
-		ModTime:    now,
-		Typeflag:   tar.TypeReg,
-		AccessTime: now,
-		ChangeTime: now,
-	}
 	randomName := ".dockerfile." + stringid.GenerateRandomID()[:20]
 
 	buildCtx = archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
 		// Add the dockerfile with a random filename
-		randomName: func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
-			return hdrTmpl, file, nil
+		randomName: func(_ string, _ *tar.Header, _ io.Reader) (*tar.Header, []byte, error) {
+			header := &tar.Header{
+				Name:       randomName,
+				Mode:       0600,
+				ModTime:    now,
+				Typeflag:   tar.TypeReg,
+				AccessTime: now,
+				ChangeTime: now,
+			}
+			return header, file, nil
 		},
 		// Update .dockerignore to include the random filename
 		".dockerignore": func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
 			if h == nil {
-				h = hdrTmpl
+				h = &tar.Header{
+					Name:       ".dockerignore",
+					Mode:       0600,
+					ModTime:    now,
+					Typeflag:   tar.TypeReg,
+					AccessTime: now,
+					ChangeTime: now,
+				}
 			}
 
 			b := &bytes.Buffer{}

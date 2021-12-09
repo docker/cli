@@ -38,8 +38,9 @@ View or rotate the current swarm CA certificate.
 Run the `docker swarm ca` command without any options to view the current root CA certificate
 in PEM format.
 
-```bash
+```console
 $ docker swarm ca
+
 -----BEGIN CERTIFICATE-----
 MIIBazCCARCgAwIBAgIUJPzo67QC7g8Ebg2ansjkZ8CbmaswCgYIKoZIzj0EAwIw
 EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMTcwNTAzMTcxMDAwWhcNMzcwNDI4MTcx
@@ -55,7 +56,7 @@ lIwQqLkJ48SQqCjG1DBTSBsHmMSRT+6mE2My+Z3GKA==
 Pass the `--rotate` flag (and optionally a `--ca-cert`, along with a `--ca-key` or
 `--external-ca` parameter flag), in order to rotate the current swarm root CA.
 
-```
+```console
 $ docker swarm ca --rotate
 desired root digest: sha256:05da740cf2577a25224c53019e2cce99bcc5ba09664ad6bb2a9425d9ebd1b53e
   rotated TLS certificates:  [=========================>                         ] 1/2 nodes
@@ -65,7 +66,7 @@ desired root digest: sha256:05da740cf2577a25224c53019e2cce99bcc5ba09664ad6bb2a94
 Once the rotation os finished (all the progress bars have completed) the now-current
 CA certificate will be printed:
 
-```
+```console
 $ docker swarm ca --rotate
 desired root digest: sha256:05da740cf2577a25224c53019e2cce99bcc5ba09664ad6bb2a9425d9ebd1b53e
   rotated TLS certificates:  [==================================================>] 2/2 nodes

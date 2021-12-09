@@ -27,7 +27,7 @@ in a JSON array.
 
 The following example example inspects the `tiborvass/sample-volume-plugin` plugin:
 
-```bash
+```console
 $ docker plugin inspect tiborvass/sample-volume-plugin:latest
 ```
 
@@ -144,7 +144,7 @@ Output is in JSON format (output below is formatted for readability):
 
 ### Formatting the output
 
-```bash
+```console
 $ docker plugin inspect -f '{{.Id}}' tiborvass/sample-volume-plugin:latest
 
 8c74c978c434745c3ade82f1bc0acf38d04990eaf494fa507c16d9f1daa99c21

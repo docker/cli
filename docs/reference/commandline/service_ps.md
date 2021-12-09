@@ -38,7 +38,7 @@ Lists the tasks that are running as part of the specified services.
 
 The following command shows all the tasks that are part of the `redis` service:
 
-```bash
+```console
 $ docker service ps redis
 
 ID             NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE          ERROR  PORTS
@@ -58,7 +58,7 @@ In addition to _running_ tasks, the output also shows the task history. For
 example, after updating the service to use the `redis:3.0.6` image, the output
 may look like this:
 
-```bash
+```console
 $ docker service ps redis
 
 ID            NAME         IMAGE        NODE      DESIRED STATE  CURRENT STATE                   ERROR  PORTS
@@ -83,7 +83,7 @@ image, and pins the service to that digest. The digest is not shown by
 default, but is printed if `--no-trunc` is used. The `--no-trunc` option
 also shows the non-truncated task ID, and error-messages, as can be seen below;
 
-```bash
+```console
 $ docker service ps --no-trunc redis
 
 ID                          NAME         IMAGE                                                                                NODE      DESIRED STATE  CURRENT STATE            ERROR                                                                                           PORTS
@@ -112,7 +112,7 @@ The currently supported filters are:
 
 The `id` filter matches on all or a prefix of a task's ID.
 
-```bash
+```console
 $ docker service ps -f "id=8" redis
 
 ID             NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
@@ -124,8 +124,9 @@ ID             NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE    
 
 The `name` filter matches on task names.
 
-```bash
+```console
 $ docker service ps -f "name=redis.1" redis
+
 ID            NAME     IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
 qihejybwf1x5  redis.1  redis:3.0.6  manager1  Running        Running 8 seconds
 ```
@@ -135,8 +136,9 @@ qihejybwf1x5  redis.1  redis:3.0.6  manager1  Running        Running 8 seconds
 
 The `node` filter matches on a node name or a node ID.
 
-```bash
+```console
 $ docker service ps -f "node=manager1" redis
+
 ID            NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
 0qihejybwf1x  redis.1   redis:3.0.6  manager1  Running        Running 8 seconds
 1x0v8yomsncd  redis.5   redis:3.0.6  manager1  Running        Running 8 seconds
@@ -173,8 +175,9 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `Name` and `Image` entries separated by a colon (`:`) for all tasks:
 
-```bash
+```console
 $ docker service ps --format "{{.Name}}: {{.Image}}" top
+
 top.1: busybox
 top.2: busybox
 top.3: busybox

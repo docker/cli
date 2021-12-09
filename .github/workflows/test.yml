@@ -1,0 +1,75 @@
+name: test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]{2}'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  ctn:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Test
+        uses: docker/bake-action@v1
+        with:
+          targets: test-coverage
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./build/coverage/coverage.txt
+
+  host:
+    runs-on: ${{ matrix.os }}
+    env:
+      GOPATH: ${{ github.workspace }}
+      GOBIN: ${{ github.workspace }}/bin
+      GO111MODULE: auto
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+#          - windows-latest # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
+    steps:
+      -
+        name: Prepare git
+        if: matrix.os == 'windows-latest'
+        run: |
+          git config --system core.autocrlf false
+          git config --system core.eol lf
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.GOPATH }}/src/github.com/docker/cli
+      -
+        name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.11
+      -
+        name: Test
+        run: |
+          go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+          go tool cover -func=/tmp/coverage.txt
+        working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+        shell: bash
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: /tmp/coverage.txt
+          working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli

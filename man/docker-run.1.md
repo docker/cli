@@ -621,11 +621,30 @@ incompatible with any restart policy other than `none`.
    For the `overlay2` storage driver, the size option is only available if the backing fs is `xfs` and mounted with the `pquota` mount option.
    Under these conditions, user can pass any size less than the backing fs size.
 
-**--stop-signal**=*SIGTERM*
-  Signal to stop a container. Default is SIGTERM.
+**--stop-signal**=""
+   Signal to stop the container.
 
-**--stop-timeout**=*10*
-  Timeout (in seconds) to stop a container. Default is 10.
+   The `--stop-signal` flag sets the system call signal that will be sent to the
+   container to exit. This signal can be a signal name in the format `SIG<NAME>`,
+   for instance `SIGKILL`, or an unsigned number that matches a position in the
+   kernel's syscall table, for instance `9`.
+
+   The default is defined by `STOPSIGNAL` in the image, or `SIGTERM` if the image
+   has no `STOPSIGNAL` defined.
+
+**--stop-timeout**
+  Timeout (in seconds) to stop a container, or **-1** to disable timeout.
+
+  The `--stop-timeout` flag sets the number of seconds to wait for the container
+  to stop after sending the pre-defined (see `--stop-signal`) system call signal.
+  If the container does not exit after the timeout elapses, it is forcibly killed
+  with a `SIGKILL` signal.
+
+  If `--stop-timeout` is set to **-1**, no timeout is applied, and the daemon will
+  wait indefinitely for the container to exit.
+
+  The default is determined by the daemon, and 10 seconds for Linux containers,
+  and 30 seconds for Windows containers.
 
 **--shm-size**=""
    Size of `/dev/shm`. The format is `<number><unit>`.

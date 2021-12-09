@@ -40,7 +40,7 @@ As a convenience, you can pass `worker` or `manager` as an argument to
 `join-token` to print the full `docker swarm join` command to join a new node to
 the swarm:
 
-```bash
+```console
 $ docker swarm join-token worker
 
 To add a worker to this swarm, run the following command:
@@ -60,7 +60,7 @@ To add a manager to this swarm, run the following command:
 
 Use the `--rotate` flag to generate a new join token for the specified role:
 
-```bash
+```console
 $ docker swarm join-token --rotate worker
 
 Successfully rotated worker join token.
@@ -76,7 +76,7 @@ After using `--rotate`, only the new token will be valid for joining with the sp
 
 The `-q` (or `--quiet`) flag only prints the token:
 
-```bash
+```console
 $ docker swarm join-token -q worker
 
 SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-b30ljddcqhef9b9v4rs7mel7t

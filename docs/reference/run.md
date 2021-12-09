@@ -132,7 +132,7 @@ If you do not specify `-a` then Docker will [attach to both stdout and stderr
 You can specify to which of the three standard streams (`STDIN`, `STDOUT`,
 `STDERR`) you'd like to connect instead, as in:
 
-```bash
+```console
 $ docker run -a stdin -a stdout -i -t ubuntu /bin/bash
 ```
 
@@ -141,7 +141,7 @@ order to allocate a tty for the container process. `-i -t` is often written `-it
 as you'll see in later examples.  Specifying `-t` is forbidden when the client
 is receiving its standard input from a pipe, as in:
 
-```bash
+```console
 $ echo test | docker run -i busybox cat
 ```
 
@@ -198,7 +198,7 @@ the digest value is predictable and referenceable.
 The following example runs a container from the `alpine` image with the
 `sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0` digest:
 
-```bash
+```console
 $ docker run alpine@sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0 date
 ```
 
@@ -232,13 +232,13 @@ CMD ["htop"]
 
 Build the Dockerfile and tag the image as `myhtop`:
 
-```bash
+```console
 $ docker build -t myhtop .
 ```
 
 Use the following command to run `htop` inside a container:
 
-```bash
+```console
 $ docker run -it --rm --pid=host myhtop
 ```
 
@@ -248,13 +248,13 @@ Joining another container's pid namespace can be used for debugging that contain
 
 Start a container running a redis server:
 
-```bash
+```console
 $ docker run --name my-redis -d redis
 ```
 
 Debug the redis container by running another container that has strace in it:
 
-```bash
+```console
 $ docker run -it --pid=container:my-redis my_strace_docker_image bash
 $ strace -p 1
 ```
@@ -440,7 +440,7 @@ Example running a Redis container with Redis binding to `localhost` then
 running the `redis-cli` command and connecting to the Redis server over the
 `localhost` interface.
 
-```bash
+```console
 $ docker run -d --name redis example/redis --bind 127.0.0.1
 $ # use the redis container's network stack to access localhost
 $ docker run --rm -it --network container:redis example/redis-cli -h 127.0.0.1
@@ -460,7 +460,7 @@ Engines can also communicate in this way.
 The following example creates a network using the built-in `bridge` network
 driver and running a container in the created network
 
-```bash
+```console
 $ docker network create -d bridge my-net
 $ docker run --network=my-net -itd --name=container3 busybox
 ```
@@ -471,7 +471,7 @@ Your container will have lines in `/etc/hosts` which define the hostname of the
 container itself as well as `localhost` and a few other common things. The
 `--add-host` flag can be used to add additional lines to `/etc/hosts`.
 
-```bash
+```console
 $ docker run -it --add-host db-static:86.75.30.9 ubuntu cat /etc/hosts
 
 172.17.0.22     09d03f76bf2c
@@ -554,22 +554,22 @@ Docker supports the following restart policies:
   </tbody>
 </table>
 
-An ever increasing delay (double the previous delay, starting at 100
-milliseconds) is added before each restart to prevent flooding the server.
+An increasing delay (double the previous delay, starting at 100 milliseconds)
+is added before each restart to prevent flooding the server.
 This means the daemon will wait for 100 ms, then 200 ms, 400, 800, 1600,
-and so on until either the `on-failure` limit is hit, or when you `docker stop`
-or `docker rm -f` the container.
+and so on until either the `on-failure` limit, the maximum delay of 1 minute is
+hit, or when you `docker stop` or `docker rm -f` the container.
 
 If a container is successfully restarted (the container is started and runs
 for at least 10 seconds), the delay is reset to its default value of 100 ms.
 
 You can specify the maximum amount of times Docker will try to restart the
-container when using the **on-failure** policy.  The default is that Docker
+container when using the **on-failure** policy. The default is that Docker
 will try forever to restart the container. The number of (attempted) restarts
 for a container can be obtained via [`docker inspect`](commandline/inspect.md). For example, to get the number of restarts
 for container "my-container";
 
-```bash
+```console
 {% raw %}
 $ docker inspect -f "{{ .RestartCount }}" my-container
 # 2
@@ -578,7 +578,7 @@ $ docker inspect -f "{{ .RestartCount }}" my-container
 
 Or, to get the last time the container was (re)started;
 
-```bash
+```console
 {% raw %}
 $ docker inspect -f "{{ .State.StartedAt }}" my-container
 # 2015-03-04T23:47:07.691840179Z
@@ -587,18 +587,18 @@ $ docker inspect -f "{{ .State.StartedAt }}" my-container
 
 Combining `--restart` (restart policy) with the `--rm` (clean up) flag results
 in an error. On container restart, attached clients are disconnected. See the
-examples on using the [`--rm` (clean up)](#clean-up-rm) flag later in this page.
+examples on using the [`--rm` (clean up)](#clean-up---rm) flag later in this page.
 
 ### Examples
 
-```bash
+```console
 $ docker run --restart=always redis
 ```
 
 This will run the `redis` container with a restart policy of **always**
 so that if the container exits, Docker will restart it.
 
-```bash
+```console
 $ docker run --restart=on-failure:10 redis
 ```
 
@@ -616,7 +616,7 @@ the exit codes follow the `chroot` standard, see below:
 
 **_125_** if the error is with Docker daemon **_itself_**
 
-```bash
+```console
 $ docker run --foo busybox; echo $?
 
 flag provided but not defined: --foo
@@ -626,7 +626,7 @@ See 'docker run --help'.
 
 **_126_** if the **_contained command_** cannot be invoked
 
-```bash
+```console
 $ docker run busybox /etc; echo $?
 
 docker: Error response from daemon: Container command '/etc' could not be invoked.
@@ -635,7 +635,7 @@ docker: Error response from daemon: Container command '/etc' could not be invoke
 
 **_127_** if the **_contained command_** cannot be found
 
-```bash
+```console
 $ docker run busybox foo; echo $?
 
 docker: Error response from daemon: Container command 'foo' not found or does not exist.
@@ -644,9 +644,9 @@ docker: Error response from daemon: Container command 'foo' not found or does no
 
 **_Exit code_** of **_contained command_** otherwise
 
-```bash
-$ docker run busybox /bin/sh -c 'exit 3'; echo $?
-
+```console
+$ docker run busybox /bin/sh -c 'exit 3'
+$ echo $?
 3
 ```
 
@@ -669,8 +669,8 @@ the container exits**, you can add the `--rm` flag:
 > to running `docker rm -v my-container`. Only volumes that are specified without
 > a name are removed. For example, when running:
 >
-> ```bash
-> docker run --rm -v /foo -v awesome:/bar busybox top
+> ```console
+> $ docker run --rm -v /foo -v awesome:/bar busybox top
 > ```
 > 
 > the volume for `/foo` will be removed, but the volume for `/bar` will not.
@@ -696,7 +696,7 @@ You can override the default labeling scheme for each container by specifying
 the `--security-opt` flag. Specifying the level in the following command
 allows you to share the same content between containers.
 
-```bash
+```console
 $ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
 ```
 
@@ -707,7 +707,7 @@ $ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
 To disable the security labeling for this container versus running with the
 `--privileged` flag, use the following command:
 
-```bash
+```console
 $ docker run --security-opt label=disable -it fedora bash
 ```
 
@@ -716,7 +716,7 @@ you can specify an alternate type for the container. You could run a container
 that is only allowed to listen on Apache ports by executing the following
 command:
 
-```bash
+```console
 $ docker run --security-opt label=type:svirt_apache_t -it centos bash
 ```
 
@@ -727,7 +727,7 @@ $ docker run --security-opt label=type:svirt_apache_t -it centos bash
 If you want to prevent your container processes from gaining additional
 privileges, you can execute the following command:
 
-```bash
+```console
 $ docker run --security-opt no-new-privileges -it centos bash
 ```
 
@@ -836,14 +836,14 @@ We have four ways to set user memory usage:
 
 Examples:
 
-```bash
+```console
 $ docker run -it ubuntu:14.04 /bin/bash
 ```
 
 We set nothing about memory, this means the processes in the container can use
 as much memory and swap memory as they need.
 
-```bash
+```console
 $ docker run -it -m 300M --memory-swap -1 ubuntu:14.04 /bin/bash
 ```
 
@@ -851,7 +851,7 @@ We set memory limit and disabled swap memory limit, this means the processes in
 the container can use 300M memory and as much swap memory as they need (if the
 host supports swap memory).
 
-```bash
+```console
 $ docker run -it -m 300M ubuntu:14.04 /bin/bash
 ```
 
@@ -860,7 +860,7 @@ We set memory limit only, this means the processes in the container can use
 (--memory-swap) will be set as double of memory, in this case, memory + swap
 would be 2*300M, so processes can use 300M swap memory as well.
 
-```bash
+```console
 $ docker run -it -m 300M --memory-swap 1G ubuntu:14.04 /bin/bash
 ```
 
@@ -886,7 +886,7 @@ heavily contended for, memory is allocated based on the reservation hints/setup.
 The following example limits the memory (`-m`) to 500M and sets the memory
 reservation to 200M.
 
-```bash
+```console
 $ docker run -it -m 500M --memory-reservation 200M ubuntu:14.04 /bin/bash
 ```
 
@@ -896,7 +896,7 @@ memory below 200M.
 
 The following example set memory reservation to 1G without a hard memory limit.
 
-```bash
+```console
 $ docker run -it --memory-reservation 1G ubuntu:14.04 /bin/bash
 ```
 
@@ -914,13 +914,13 @@ memory.
 The following example limits the memory to 100M and disables the OOM killer for
 this container:
 
-```bash
+```console
 $ docker run -it -m 100M --oom-kill-disable ubuntu:14.04 /bin/bash
 ```
 
 The following example, illustrates a dangerous way to use the flag:
 
-```bash
+```console
 $ docker run -it --oom-kill-disable ubuntu:14.04 /bin/bash
 ```
 
@@ -990,14 +990,14 @@ limit and "K" the kernel limit. There are three possible ways to set limits:
 
 Examples:
 
-```bash
+```console
 $ docker run -it -m 500M --kernel-memory 50M ubuntu:14.04 /bin/bash
 ```
 
 We set memory and kernel memory, so the processes in the container can use
 500M memory in total, in this 500M memory, it can be 50M kernel memory tops.
 
-```bash
+```console
 $ docker run -it --kernel-memory 50M ubuntu:14.04 /bin/bash
 ```
 
@@ -1014,7 +1014,7 @@ between 0 and 100. A value of 0 turns off anonymous page swapping. A value of
 
 For example, you can set:
 
-```bash
+```console
 $ docker run -it --memory-swappiness=0 ubuntu:14.04 /bin/bash
 ```
 
@@ -1065,7 +1065,7 @@ And usually `--cpu-period` should work with `--cpu-quota`.
 
 Examples:
 
-```bash
+```console
 $ docker run -it --cpu-period=50000 --cpu-quota=25000 ubuntu:14.04 /bin/bash
 ```
 
@@ -1086,13 +1086,13 @@ We can set cpus in which to allow execution for containers.
 
 Examples:
 
-```bash
+```console
 $ docker run -it --cpuset-cpus="1,3" ubuntu:14.04 /bin/bash
 ```
 
 This means processes in container can be executed on cpu 1 and cpu 3.
 
-```bash
+```console
 $ docker run -it --cpuset-cpus="0-2" ubuntu:14.04 /bin/bash
 ```
 
@@ -1103,14 +1103,14 @@ on NUMA systems.
 
 Examples:
 
-```bash
+```console
 $ docker run -it --cpuset-mems="1,3" ubuntu:14.04 /bin/bash
 ```
 
 This example restricts the processes in the container to only use memory from
 memory nodes 1 and 3.
 
-```bash
+```console
 $ docker run -it --cpuset-mems="0-2" ubuntu:14.04 /bin/bash
 ```
 
@@ -1142,14 +1142,14 @@ The `--blkio-weight` flag can set the weighting to a value between 10 to 1000.
 For example, the commands below create two containers with different blkio
 weight:
 
-```bash
+```console
 $ docker run -it --name c1 --blkio-weight 300 ubuntu:14.04 /bin/bash
 $ docker run -it --name c2 --blkio-weight 600 ubuntu:14.04 /bin/bash
 ```
 
 If you do block IO in the two containers at the same time, by, for example:
 
-```bash
+```console
 $ time dd if=/mnt/zerofile of=test.out bs=1M count=1024 oflag=direct
 ```
 
@@ -1160,7 +1160,7 @@ The `--blkio-weight-device="DEVICE_NAME:WEIGHT"` flag sets a specific device wei
 The `DEVICE_NAME:WEIGHT` is a string containing a colon-separated device name and weight.
 For example, to set `/dev/sda` device weight to `200`:
 
-```bash
+```console
 $ docker run -it \
     --blkio-weight-device "/dev/sda:200" \
     ubuntu
@@ -1172,7 +1172,7 @@ to override this default with a new value on a specific device.
 The following example uses a default weight of `300` and overrides this default
 on `/dev/sda` setting that weight to `200`:
 
-```bash
+```console
 $ docker run -it \
     --blkio-weight 300 \
     --blkio-weight-device "/dev/sda:200" \
@@ -1183,7 +1183,7 @@ The `--device-read-bps` flag limits the read rate (bytes per second) from a devi
 For example, this command creates a container and limits the read rate to `1mb`
 per second from `/dev/sda`:
 
-```bash
+```console
 $ docker run -it --device-read-bps /dev/sda:1mb ubuntu
 ```
 
@@ -1191,7 +1191,7 @@ The `--device-write-bps` flag limits the write rate (bytes per second) to a devi
 For example, this command creates a container and limits the write rate to `1mb`
 per second for `/dev/sda`:
 
-```bash
+```console
 $ docker run -it --device-write-bps /dev/sda:1mb ubuntu
 ```
 
@@ -1203,7 +1203,7 @@ The `--device-read-iops` flag limits read rate (IO per second) from a device.
 For example, this command creates a container and limits the read rate to
 `1000` IO per second from `/dev/sda`:
 
-```bash
+```console
 $ docker run -ti --device-read-iops /dev/sda:1000 ubuntu
 ```
 
@@ -1211,7 +1211,7 @@ The `--device-write-iops` flag limits write rate (IO per second) to a device.
 For example, this command creates a container and limits the write rate to
 `1000` IO per second to `/dev/sda`:
 
-```bash
+```console
 $ docker run -ti --device-write-iops /dev/sda:1000 ubuntu
 ```
 
@@ -1220,7 +1220,7 @@ write rates must be a positive integer.
 
 ## Additional groups
 
-```bash
+```console
 --group-add: Add additional groups to run as
 ```
 
@@ -1228,11 +1228,12 @@ By default, the docker container process runs with the supplementary groups look
 up for the specified user. If one wants to add more to that list of groups, then
 one can use this flag:
 
-```bash
+```console
 $ docker run --rm --group-add audio --group-add nogroup --group-add 777 busybox id
 
 uid=0(root) gid=0(root) groups=10(wheel),29(audio),99(nogroup),777
 ```
+
 ## Runtime privilege and Linux capabilities
 
 | Option         | Description                                                                   |
@@ -1253,20 +1254,20 @@ access to all devices on the host as well as set some configuration
 in AppArmor or SELinux to allow the container nearly all the same access to the
 host as processes running outside containers on the host. Additional
 information about running with `--privileged` is available on the
-[Docker Blog](http://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
+[Docker Blog](https://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
 
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
 will be accessible within the container.
 
-```bash
+```console
 $ docker run --device=/dev/snd:/dev/snd ...
 ```
 
 By default, the container will be able to `read`, `write`, and `mknod` these devices.
 This can be overridden using a third `:rwm` set of options to each `--device` flag:
 
-```bash
+```console
 $ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
 
 Command (m for help): q
@@ -1336,20 +1337,20 @@ The next table shows the capabilities which are not granted by default and may b
 | SYSLOG                | Perform privileged syslog(2) operations.                                                                                       |
 | WAKE_ALARM            | Trigger something that will wake up the system.                                                                                |
 
-Further reference information is available on the [capabilities(7) - Linux man page](http://man7.org/linux/man-pages/man7/capabilities.7.html),
+Further reference information is available on the [capabilities(7) - Linux man page](https://man7.org/linux/man-pages/man7/capabilities.7.html),
 and in the [Linux kernel source code](https://github.com/torvalds/linux/blob/124ea650d3072b005457faed69909221c2905a1f/include/uapi/linux/capability.h).
 
 Both flags support the value `ALL`, so to allow a container to use all capabilities
 except for `MKNOD`:
 
-```bash
+```console
 $ docker run --cap-add=ALL --cap-drop=MKNOD ...
 ```
 
 The `--cap-add` and `--cap-drop` flags accept capabilities to be specified with
 a `CAP_` prefix. The following examples are therefore equivalent:
 
-```bash
+```console
 $ docker run --cap-add=SYS_ADMIN ...
 $ docker run --cap-add=CAP_SYS_ADMIN ...
 ```
@@ -1357,7 +1358,7 @@ $ docker run --cap-add=CAP_SYS_ADMIN ...
 For interacting with the network stack, instead of using `--privileged` they
 should use `--cap-add=NET_ADMIN` to modify the network interfaces.
 
-```bash
+```console
 $ docker run -it --rm  ubuntu:14.04 ip link add dummy0 type dummy
 
 RTNETLINK answers: Operation not permitted
@@ -1368,7 +1369,7 @@ $ docker run -it --rm --cap-add=NET_ADMIN ubuntu:14.04 ip link add dummy0 type d
 To mount a FUSE based filesystem, you need to combine both `--cap-add` and
 `--device`:
 
-```bash
+```console
 $ docker run --rm -it --cap-add SYS_ADMIN sshfs sshfs sven@10.10.10.20:/home/sven /mnt
 
 fuse: failed to open /dev/fuse: Operation not permitted
@@ -1448,7 +1449,7 @@ Dockerfile instruction and how the operator can override that setting.
 Recall the optional `COMMAND` in the Docker
 commandline:
 
-```bash
+```console
 $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
 ```
 
@@ -1463,7 +1464,7 @@ get appended as arguments to the `ENTRYPOINT`.
 
 ### ENTRYPOINT (default command to execute at runtime)
 
-```bash
+```console
     --entrypoint="": Overwrite the default entrypoint set by the image
 ```
 
@@ -1479,20 +1480,20 @@ runtime by using a string to specify the new `ENTRYPOINT`. Here is an
 example of how to run a shell in a container that has been set up to
 automatically run something else (like `/usr/bin/redis-server`):
 
-```bash
+```console
 $ docker run -it --entrypoint /bin/bash example/redis
 ```
 
 or two examples of how to pass more parameters to that ENTRYPOINT:
 
-```bash
+```console
 $ docker run -it --entrypoint /bin/bash example/redis -c ls -l
 $ docker run -it --entrypoint /usr/bin/redis-cli example/redis --help
 ```
 
 You can reset a containers entrypoint by passing an empty string, for example:
 
-```bash
+```console
 $ docker run -it --entrypoint="" mysql bash
 ```
 
@@ -1579,7 +1580,7 @@ above, or already defined by the developer with a Dockerfile `ENV`. If the
 operator names an environment variable without specifying a value, then the
 current value of the named variable is propagated into the container's environment:
 
-```bash
+```console
 $ export today=Wednesday
 $ docker run -e "deep=purple" -e today --rm alpine env
 
@@ -1640,7 +1641,7 @@ Similarly the operator can set the **HOSTNAME** (Linux) or **COMPUTERNAME** (Win
 
 Example:
 
-```bash
+```console
 {% raw %}
 $ docker run --name=test -d \
     --health-cmd='stat /etc/passwd || exit 1' \
@@ -1693,7 +1694,7 @@ The health status is also displayed in the `docker ps` output.
 
 ### TMPFS (mount tmpfs filesystems)
 
-```bash
+```console
 --tmpfs=[]: Create a tmpfs mount with: container-dir[:<options>],
             where the options are identical to the Linux
             'mount -t tmpfs -o' command.
@@ -1702,7 +1703,7 @@ The health status is also displayed in the `docker ps` output.
 The example below mounts an empty tmpfs into the container with the `rw`,
 `noexec`, `nosuid`, and `size=65536k` options.
 
-```bash
+```console
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
 

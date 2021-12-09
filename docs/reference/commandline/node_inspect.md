@@ -22,7 +22,7 @@ Options:
 Returns information about a node. By default, this command renders all results
 in a JSON array. You can specify an alternate format to execute a
 given template for each result. Go's
-[text/template](http://golang.org/pkg/text/template/) package describes all the
+[text/template](https://golang.org/pkg/text/template/) package describes all the
 details of the format.
 
 > **Note**
@@ -36,7 +36,7 @@ details of the format.
 
 ### Inspect a node
 
-```bash
+```console
 $ docker node inspect swarm-manager
 ```
 
@@ -113,7 +113,7 @@ $ docker node inspect swarm-manager
 
 ### Specify an output format
 
-```bash
+```console
 $ docker node inspect --format '{{ .ManagerStatus.Leader }}' self
 
 false
@@ -121,7 +121,7 @@ false
 
 Use `--format=pretty` or the `--pretty` shorthand to pretty-print the output:
 
-```bash
+```console
 $ docker node inspect --format=pretty self
 
 ID:                     e216jshn25ckzbvmwlnh5jr3g

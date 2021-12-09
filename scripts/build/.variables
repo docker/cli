@@ -1,39 +1,81 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -eu
 
+: "${CGO_ENABLED=}"
+: "${GO_LINKMODE=static}"
+: "${GO_BUILDMODE=}"
+: "${GO_BUILDTAGS=}"
+: "${GO_STRIP=}"
+
+TARGET=${TARGET:-"build"}
+
 PLATFORM=${PLATFORM:-}
-VERSION=${VERSION:-"unknown-version"}
+VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
-BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+BUILDTIME=${BUILDTIME:-$(date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 
-PLATFORM_LDFLAGS=
-if test -n "${PLATFORM}"; then
-	PLATFORM_LDFLAGS="-X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
-fi
-
-export LDFLAGS="\
-    -w \
-    ${PLATFORM_LDFLAGS} \
-    -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\" \
-    -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\" \
-    -X \"github.com/docker/cli/cli/version.Version=${VERSION}\" \
-    ${LDFLAGS:-} \
-"
-
-GOOS="${GOOS:-$(go env GOHOSTOS)}"
-GOARCH="${GOARCH:-$(go env GOHOSTARCH)}"
+GOOS="$(go env GOOS)"
+GOARCH="$(go env GOARCH)"
 if [ "${GOARCH}" = "arm" ]; then
-	GOARM="${GOARM:-$(go env GOHOSTARM)}"
+    GOARM="$(go env GOARM)"
 fi
 
-TARGET="build/docker-$GOOS-$GOARCH"
+TARGET="$TARGET/docker-${GOOS}-${GOARCH}"
 if [ "${GOARCH}" = "arm" ] && [ -n "${GOARM}" ]; then
-	TARGET="${TARGET}-v${GOARM}"
+    TARGET="${TARGET}-v${GOARM}"
 fi
-
 if [ "${GOOS}" = "windows" ]; then
-	TARGET="${TARGET}.exe"
+    TARGET="${TARGET}.exe"
 fi
 export TARGET
+
+if [ -z "$CGO_ENABLED" ]; then
+    case "$(go env GOOS)" in
+        linux)
+            case "$(go env GOARCH)" in
+                amd64|arm64|arm|s390x)
+                    CGO_ENABLED=1
+                ;;
+                *)
+                    CGO_ENABLED=0
+                ;;
+            esac
+        ;;
+        darwin|windows)
+            CGO_ENABLED=1
+        ;;
+        *)
+            CGO_ENABLED=0
+        ;;
+    esac
+fi
+export CGO_ENABLED
+
+if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
+    case "$(go env GOARCH)" in
+        mips*|ppc64)
+            # pie build mode is not supported on mips architectures
+            ;;
+        *)
+            GO_BUILDMODE="-buildmode=pie"
+            ;;
+    esac
+fi
+export GO_BUILDMODE
+
+LDFLAGS="${LDFLAGS:-} -w"
+LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
+LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
+LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
+if test -n "${PLATFORM}"; then
+    LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
+fi
+if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
+    LDFLAGS="$LDFLAGS -extldflags -static"
+fi
+if [ -n "$GO_STRIP" ]; then
+    LDFLAGS="$LDFLAGS -s"
+fi
+export LDFLAGS="$LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
 
 export SOURCE="github.com/docker/cli/cmd/docker"

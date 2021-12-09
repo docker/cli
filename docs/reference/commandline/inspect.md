@@ -29,7 +29,7 @@ By default, `docker inspect` will render results in a JSON array.
 
 If a format is specified, the given template will be executed for each result.
 
-Go's [text/template](http://golang.org/pkg/text/template/) package
+Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
 ## Specify target type (--type)
@@ -45,7 +45,7 @@ option.
 
 The following example inspects a _volume_ named "myvolume"
 
-```bash
+```console
 $ docker inspect --type=volume myvolume
 ```
 
@@ -56,25 +56,25 @@ $ docker inspect --type=volume myvolume
 For the most part, you can pick out any field from the JSON in a fairly
 straightforward manner.
 
-```bash
+```console
 $ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $INSTANCE_ID
 ```
 
 ### Get an instance's MAC address
 
-```bash
+```console
 $ docker inspect --format='{{range .NetworkSettings.Networks}}{{.MacAddress}}{{end}}' $INSTANCE_ID
 ```
 
 ### Get an instance's log path
 
-```bash
+```console
 $ docker inspect --format='{{.LogPath}}' $INSTANCE_ID
 ```
 
 ### Get an instance's image name
 
-```bash
+```console
 $ docker inspect --format='{{.Config.Image}}' $INSTANCE_ID
 ```
 
@@ -83,7 +83,7 @@ $ docker inspect --format='{{.Config.Image}}' $INSTANCE_ID
 You can loop over arrays and maps in the results to produce simple text
 output:
 
-```bash
+```console
 $ docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{(index $conf 0).HostPort}} {{end}}' $INSTANCE_ID
 ```
 
@@ -97,7 +97,7 @@ numeric public port, you use `index` to find the specific port map, and
 then `index` 0 contains the first object inside of that. Then we ask for
 the `HostPort` field to get the public address.
 
-```bash
+```console
 $ docker inspect --format='{{(index (index .NetworkSettings.Ports "8787/tcp") 0).HostPort}}' $INSTANCE_ID
 ```
 
@@ -108,6 +108,6 @@ fields, by default you get a Go-style dump of the inner values.
 Docker adds a template function, `json`, which can be applied to get
 results in JSON format.
 
-```bash
+```console
 $ docker inspect --format='{{json .Config}}' $INSTANCE_ID
 ```

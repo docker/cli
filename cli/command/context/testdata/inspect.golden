@@ -7,11 +7,11 @@
         },
         "Endpoints": {
             "docker": {
-                "Host": "https://someswarmserver",
+                "Host": "https://someswarmserver.example.com",
                 "SkipTLSVerify": false
             },
             "kubernetes": {
-                "Host": "https://someserver",
+                "Host": "https://someserver.example.com",
                 "SkipTLSVerify": false,
                 "DefaultNamespace": "default"
             }
