@@ -1,7 +1,7 @@
 ARG GO_VERSION=1.19.10
 
 # Use Debian based image as docker-compose requires glibc.
-FROM golang:${GO_VERSION}-buster
+FROM golang:${GO_VERSION}-bullseye
 
 RUN apt-get update && apt-get install -y \
     build-essential \

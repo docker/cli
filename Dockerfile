@@ -17,12 +17,12 @@ ARG TARGETPLATFORM
 # gcc is installed for libgcc only
 RUN xx-apk add --no-cache musl-dev gcc
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-buster AS build-base-buster
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bullseye AS build-base-bullseye
 COPY --from=xx / /
 RUN apt-get update && apt-get install --no-install-recommends -y clang lld file
 WORKDIR /go/src/github.com/docker/cli
 
-FROM build-base-buster AS build-buster
+FROM build-base-bullseye AS build-bullseye
 ARG TARGETPLATFORM
 RUN xx-apt install --no-install-recommends -y libc6-dev libgcc-8-dev
 
