@@ -17,10 +17,10 @@ cat > ./cli/winresources/versioninfo.json <<EOL
   "FixedFileInfo":
   {
     "FileVersion": {
-      "Major": $(echo "$VERSION_QUAD" | cut -d. -f1),
-      "Minor": $(echo "$VERSION_QUAD" | cut -d. -f2),
-      "Patch": $(echo "$VERSION_QUAD" | cut -d. -f3),
-      "Build": $(echo "$VERSION_QUAD" | cut -d. -f4)
+      "Major": $(echo "${VERSION_QUAD:-0}" | cut -d. -f1),
+      "Minor": $(echo "${VERSION_QUAD:-0}" | cut -d. -f2),
+      "Patch": $(echo "${VERSION_QUAD:-0}" | cut -d. -f3),
+      "Build": $(echo "${VERSION_QUAD:-0}" | cut -d. -f4)
     },
     "FileFlagsMask": "3f",
     "FileFlags ": "00",
