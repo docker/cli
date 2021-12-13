@@ -85,6 +85,13 @@ b95a83497c91        awesome_brattain    0.28%               5.629MiB / 1.952GiB 
 67b2525d8ad1        foobar              0.00%               1.727MiB / 1.952GiB   0.09%               2.48kB / 0B         4.11MB / 0B         2
 ```
 
+Running `docker stats` on container with name nginx and getting output in `json` format.
+
+```console
+$ docker stats nginx --no-stream --format "{{ json . }}"
+{"BlockIO":"0B / 13.3kB","CPUPerc":"0.03%","Container":"nginx","ID":"ed37317fbf42","MemPerc":"0.24%","MemUsage":"2.352MiB / 982.5MiB","Name":"nginx","NetIO":"539kB / 606kB","PIDs":"2"}
+```
+
 Running `docker stats` with customized format on all (Running and Stopped) containers.
 
 ```console
