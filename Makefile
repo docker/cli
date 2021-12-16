@@ -49,11 +49,18 @@ dynbinary: ## build dynamically linked binary
 plugins: ## build example CLI plugins
 	./scripts/build/plugins
 
-vendor: vendor.conf ## check that vendor matches vendor.conf
+.PHONY: vendor
+vendor: ## update vendor with go modules
 	rm -rf vendor
-	bash -c 'vndr |& grep -v -i clone | tee ./vndr.log'
-	scripts/validate/check-git-diff vendor
-	scripts/validate/check-all-packages-vendored
+	./scripts/vendor update
+
+.PHONY: validate-vendor
+validate-vendor: ## validate vendor
+	./scripts/vendor validate
+
+.PHONY: mod-outdated
+mod-outdated: ## check outdated dependencies
+	./scripts/vendor outdated
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
@@ -73,6 +80,5 @@ help: ## print this help
 
 .PHONY: ci-validate
 ci-validate:
-	time make -B vendor
 	time make manpages
 	time make yamldocs

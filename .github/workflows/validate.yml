@@ -11,7 +11,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  validate:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,6 +19,7 @@ jobs:
         target:
           - lint
           - shellcheck
+          - validate-vendor
     steps:
       -
         name: Checkout

@@ -4,4 +4,6 @@
 /man/man*/
 /docs/yaml/gen/
 profile.out
-/vndr.log
+
+# top-level go.mod is not meant to be checked in
+/go.mod

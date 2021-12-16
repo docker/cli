@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1.3-labs
+
+ARG GO_VERSION=1.16.11
+ARG MODOUTDATED_VERSION=v0.8.0
+
+FROM golang:${GO_VERSION}-alpine AS base
+RUN apk add --no-cache bash git rsync
+WORKDIR /src
+
+FROM base AS vendored
+RUN --mount=target=/context \
+    --mount=target=.,type=tmpfs  \
+    --mount=target=/go/pkg/mod,type=cache <<EOT
+set -e
+rsync -a /context/. .
+./scripts/vendor update
+mkdir /out
+cp -r vendor.mod vendor.sum vendor /out
+EOT
+
+FROM scratch AS update
+COPY --from=vendored /out /out
+
+FROM vendored AS validate
+RUN --mount=target=/context \
+    --mount=target=.,type=tmpfs <<EOT
+set -e
+rsync -a /context/. .
+git add -A
+rm -rf vendor
+cp -rf /out/* .
+./scripts/vendor validate
+EOT
+
+FROM psampaz/go-mod-outdated:${MODOUTDATED_VERSION} AS go-mod-outdated
+FROM base AS outdated
+ARG TIMESTAMP
+RUN --mount=target=.,rw \
+    --mount=target=/go/pkg/mod,type=cache \
+    --mount=from=go-mod-outdated,source=/home/go-mod-outdated,target=/usr/bin/go-mod-outdated \
+    ./scripts/vendor outdated

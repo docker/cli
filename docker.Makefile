@@ -20,6 +20,7 @@ ifeq ($(DOCKER_CLI_GO_BUILD_CACHE),y)
 DOCKER_CLI_MOUNTS += -v "$(CACHE_VOLUME_NAME):/root/.cache/go-build"
 endif
 VERSION = $(shell cat VERSION)
+TIMESTAMP = $(shell date '+%s')
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS -e GOOS -e GOARCH -e GOARM -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION)
 
 # Some Dockerfiles use features that are only supported with BuildKit enabled
@@ -80,8 +81,20 @@ fmt: ## run gofmt
 	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make fmt
 
 .PHONY: vendor
-vendor: build_docker_image vendor.conf ## download dependencies (vendor/) listed in vendor.conf
-	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make vendor
+vendor: ## update vendor with go modules
+	$(eval $@_TMP_OUT := $(shell mktemp -d -t dockercli-output.XXXXXXXXXX))
+	docker buildx bake --set "*.output=$($@_TMP_OUT)" update-vendor
+	rm -rf ./vendor
+	cp -R "$($@_TMP_OUT)"/out/* .
+	rm -rf $($@_TMP_OUT)/*
+
+.PHONY: validate-vendor
+validate-vendor: ## validate vendor
+	docker buildx bake validate-vendor
+
+.PHONY: mod-outdated
+mod-outdated: ## check outdated dependencies
+	TIMESTAMP=$(TIMESTAMP) docker buildx bake mod-outdated
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
