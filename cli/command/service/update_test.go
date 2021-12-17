@@ -1278,7 +1278,7 @@ func TestUpdateCredSpec(t *testing.T) {
 			spec:     &swarm.ContainerSpec{},
 			expected: nil,
 		}, {
-			name:    "add a config credenital spec",
+			name:    "add a config credential spec",
 			flagVal: "config://someConfigName",
 			spec: &swarm.ContainerSpec{
 				Configs: []*swarm.ConfigReference{
