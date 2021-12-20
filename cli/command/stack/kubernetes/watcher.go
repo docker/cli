@@ -27,13 +27,13 @@ type podListWatch interface {
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 }
 
-// DeployWatcher watches a stack deployement
+// DeployWatcher watches a stack deployment
 type deployWatcher struct {
 	pods   podListWatch
 	stacks stackListWatch
 }
 
-// Watch watches a stuck deployement and return a chan that will holds the state of the stack
+// Watch watches a stuck deployment and return a chan that will holds the state of the stack
 func (w *deployWatcher) Watch(name string, serviceNames []string, statusUpdates chan serviceStatus) error {
 	errC := make(chan error, 1)
 	defer close(errC)

@@ -215,7 +215,7 @@ func execCreateWithID(_ string, _ types.ExecConfig) (types.IDResponse, error) {
 
 func TestGetExecExitStatus(t *testing.T) {
 	execID := "the exec id"
-	expecatedErr := errors.New("unexpected error")
+	expectedErr := errors.New("unexpected error")
 
 	testcases := []struct {
 		inspectError  error
@@ -227,8 +227,8 @@ func TestGetExecExitStatus(t *testing.T) {
 			exitCode:     0,
 		},
 		{
-			inspectError:  expecatedErr,
-			expectedError: expecatedErr,
+			inspectError:  expectedErr,
+			expectedError: expectedErr,
 		},
 		{
 			exitCode:      15,
