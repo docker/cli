@@ -11,7 +11,6 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
@@ -27,12 +26,6 @@ var allowedAliases = map[string]struct{}{
 }
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
-	var (
-		opts    *cliflags.ClientOptions
-		flags   *pflag.FlagSet
-		helpCmd *cobra.Command
-	)
-
 	cmd := &cobra.Command{
 		Use:              "docker [OPTIONS] COMMAND [ARG...]",
 		Short:            "A self-sufficient runtime for containers",
@@ -44,15 +37,32 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
 			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
-
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Handle shell completion for plugin commands by forwarding the
+			// arguments to the plugin. Supporting completion is currently
+			// optional for plugins, so we ignore errors (if any).
+			if len(args) > 0 && cmd.Name() == cobra.ShellCompRequestCmd || cmd.Name() == cobra.ShellCompNoDescRequestCmd {
+				if _, _, err := cmd.Root().Find(args); err != nil {
+					// No such command. Try if we have a plugin that has this command
+					if err := tryPluginRun(dockerCli, cmd, args[0]); err == nil {
+						// We're done. Exit here to prevent the regular command
+						// from being executed.
+						os.Exit(0)
+					}
+					// Didn't find a plugin for this command either. Continue as
+					// usual, and have the default __complete / __completeNoDesc
+					// command handle the completion.
+					return nil
+				}
+			}
 			return isSupported(cmd, dockerCli)
 		},
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
 	}
-	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
+	opts, flags, helpCmd := cli.SetupRootCommand(cmd)
+	flags.String("completion", "", "Print the shell completion script for the specified shell (bash, fish, powershell, or zsh) and quit")
 	flags.BoolP("version", "v", false, "Print version information and quit")
 
 	setFlagErrorFunc(dockerCli, cmd)

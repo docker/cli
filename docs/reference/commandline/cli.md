@@ -32,6 +32,7 @@ Usage: docker [OPTIONS] COMMAND [ARG...]
 A self-sufficient runtime for containers.
 
 Options:
+      --completion string  Print the shell completion script for the specified shell (bash, fish, powershell, or zsh) and quit
       --config string      Location of client config files (default "/root/.docker")
   -c, --context string     Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with "docker context use")
   -D, --debug              Enable debug mode
