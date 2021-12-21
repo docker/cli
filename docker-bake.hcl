@@ -114,6 +114,20 @@ target "mod-outdated" {
     output = ["type=cacheonly"]
 }
 
+target "validate-authors" {
+    inherits = ["_common"]
+    dockerfile = "./dockerfiles/Dockerfile.authors"
+    target = "validate"
+    output = ["type=cacheonly"]
+}
+
+target "update-authors" {
+    inherits = ["_common"]
+    dockerfile = "./dockerfiles/Dockerfile.authors"
+    target = "update"
+    output = ["."]
+}
+
 target "test" {
     target = "test"
     output = ["type=cacheonly"]

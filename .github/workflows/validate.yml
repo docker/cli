@@ -20,6 +20,7 @@ jobs:
           - lint
           - shellcheck
           - validate-vendor
+          - update-authors # ensure authors update target runs fine
     steps:
       -
         name: Checkout
