@@ -432,9 +432,8 @@ or a High Performance Web Server.
 With the network set to `container` a container will share the
 network stack of another container.  The other container's name must be
 provided in the format of `--network container:<name|id>`. Note that `--add-host`
-`--hostname` `--dns` `--dns-search` `--dns-option` and `--mac-address` are
-invalid in `container` netmode, and `--publish` `--publish-all` `--expose` are
-also invalid in `container` netmode.
+`--hostname` `--dns` `--dns-search` `--dns-option` `--mac-address` `--publish` `--publish-all` 
+and `--expose` are invalid in `container` netmode.
 
 Example running a Redis container with Redis binding to `localhost` then
 running the `redis-cli` command and connecting to the Redis server over the
