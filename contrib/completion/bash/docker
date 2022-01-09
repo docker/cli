@@ -5486,7 +5486,7 @@ _docker_wait() {
 	_docker_container_wait
 }
 
-COMPOSE_PLUGIN_PATH=$(docker info --format '{{json .ClientInfo.Plugins}}' | sed -n 's/.*"Path":"\([^"]\+docker-compose\)".*/\1/p')
+COMPOSE_PLUGIN_PATH=$(docker info --format '{{range .ClientInfo.Plugins}}{{if eq .Name "compose"}}{{.Path}}{{end}}{{end}}')
 
 _docker_compose() {
 	local completionCommand="__completeNoDesc"
