@@ -78,6 +78,28 @@ target "shellcheck" {
     output = ["type=cacheonly"]
 }
 
+target "validate-vendor" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "validate"
+    output = ["type=cacheonly"]
+}
+
+target "update-vendor" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "update"
+    output = ["."]
+}
+
+target "mod-outdated" {
+    dockerfile = "./dockerfiles/Dockerfile.vendor"
+    target = "outdated"
+    args = {
+        // used to invalidate cache (more info https://github.com/moby/buildkit/issues/1213)
+        UUID = uuidv4()
+    }
+    output = ["type=cacheonly"]
+}
+
 target "test" {
     target = "test"
     output = ["type=cacheonly"]
