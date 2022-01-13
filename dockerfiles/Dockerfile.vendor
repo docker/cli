@@ -34,7 +34,7 @@ EOT
 
 FROM psampaz/go-mod-outdated:${MODOUTDATED_VERSION} AS go-mod-outdated
 FROM base AS outdated
-ARG TIMESTAMP
+ARG UUID
 RUN --mount=target=.,rw \
     --mount=target=/go/pkg/mod,type=cache \
     --mount=from=go-mod-outdated,source=/home/go-mod-outdated,target=/usr/bin/go-mod-outdated \

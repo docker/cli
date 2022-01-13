@@ -90,16 +90,12 @@ target "update-vendor" {
     output = ["."]
 }
 
-// Used to invalidate cache for mod-outdated run stage
-// See also https://github.com/moby/buildkit/issues/1213
-variable "TIMESTAMP" {
-    default = ""
-}
 target "mod-outdated" {
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "outdated"
     args = {
-        TIMESTAMP = TIMESTAMP
+        // used to invalidate cache (more info https://github.com/moby/buildkit/issues/1213)
+        UUID = uuidv4()
     }
     output = ["type=cacheonly"]
 }

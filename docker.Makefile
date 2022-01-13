@@ -20,7 +20,6 @@ ifeq ($(DOCKER_CLI_GO_BUILD_CACHE),y)
 DOCKER_CLI_MOUNTS += -v "$(CACHE_VOLUME_NAME):/root/.cache/go-build"
 endif
 VERSION = $(shell cat VERSION)
-TIMESTAMP = $(shell date '+%s')
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS -e GOOS -e GOARCH -e GOARM -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION)
 
 # Some Dockerfiles use features that are only supported with BuildKit enabled
@@ -94,7 +93,7 @@ validate-vendor: ## validate vendor
 
 .PHONY: mod-outdated
 mod-outdated: ## check outdated dependencies
-	TIMESTAMP=$(TIMESTAMP) docker buildx bake mod-outdated
+	docker buildx bake mod-outdated
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
