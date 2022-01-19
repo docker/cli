@@ -212,7 +212,7 @@ By default, all containers have the PID namespace enabled.
 
 PID namespace provides separation of processes. The PID Namespace removes the
 view of the system processes, and allows process ids to be reused including
-pid 1.
+pid 1 as if the container doesn't know about host machine.
 
 In certain cases you want your container to share the host's process namespace,
 basically allowing processes within the container to see all of the processes
@@ -270,9 +270,9 @@ those with `--network=host`, have their own UTS namespace.  The `host` setting w
 result in the container using the same UTS namespace as the host.  Note that
 `--hostname` and `--domainname` are invalid in `host` UTS mode.
 
-You may wish to share the UTS namespace with the host if you would like the
-hostname of the container to change as the hostname of the host changes.  A
-more advanced use case would be changing the host's hostname from a container.
+You may wish to share the UTS namespace with the host, if you would like the
+hostname of the container to be host's hostname. A more advanced use case 
+would be changing the host's hostname from a container.
 
 ## IPC settings (--ipc)
 
