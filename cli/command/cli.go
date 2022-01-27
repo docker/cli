@@ -33,9 +33,7 @@ import (
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
-	"github.com/theupdateframework/notary/passphrase"
 )
 
 // Streams is an interface which exposes the standard input and output streams
@@ -252,14 +250,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	if cli.client == nil {
 		cli.client, err = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
-		if tlsconfig.IsErrEncryptedKey(err) {
-			passRetriever := passphrase.PromptRetrieverWithInOut(cli.In(), cli.Out(), nil)
-			newClient := func(password string) (client.APIClient, error) {
-				cli.dockerEndpoint.TLSPassword = password //nolint: staticcheck // SA1019: cli.dockerEndpoint.TLSPassword is deprecated
-				return newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
-			}
-			cli.client, err = getClientWithPassword(passRetriever, newClient)
-		}
 		if err != nil {
 			return err
 		}
@@ -375,20 +365,6 @@ func (cli *DockerCli) initializeFromClient() {
 		BuildkitVersion: ping.BuilderVersion,
 	}
 	cli.client.NegotiateAPIVersionPing(ping)
-}
-
-func getClientWithPassword(passRetriever notary.PassRetriever, newClient func(password string) (client.APIClient, error)) (client.APIClient, error) {
-	for attempts := 0; ; attempts++ {
-		passwd, giveup, err := passRetriever("private", "encrypted TLS private", false, attempts)
-		if giveup || err != nil {
-			return nil, errors.Wrap(err, "private key is encrypted, but could not get passphrase")
-		}
-
-		apiclient, err := newClient(passwd)
-		if !tlsconfig.IsErrEncryptedKey(err) {
-			return apiclient, err
-		}
-	}
 }
 
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image

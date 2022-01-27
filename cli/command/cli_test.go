@@ -3,7 +3,6 @@ package command
 import (
 	"bytes"
 	"context"
-	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -205,73 +204,6 @@ func TestExperimentalCLI(t *testing.T) {
 			assert.NilError(t, err)
 			// For backward-compatibility, HasExperimental will always be "true"
 			assert.Equal(t, cli.ClientInfo().HasExperimental, true)
-		})
-	}
-}
-
-func TestGetClientWithPassword(t *testing.T) {
-	expected := "password"
-
-	var testcases = []struct {
-		doc             string
-		password        string
-		retrieverErr    error
-		retrieverGiveup bool
-		newClientErr    error
-		expectedErr     string
-	}{
-		{
-			doc:      "successful connect",
-			password: expected,
-		},
-		{
-			doc:             "password retriever exhausted",
-			retrieverGiveup: true,
-			retrieverErr:    errors.New("failed"),
-			expectedErr:     "private key is encrypted, but could not get passphrase",
-		},
-		{
-			doc:          "password retriever error",
-			retrieverErr: errors.New("failed"),
-			expectedErr:  "failed",
-		},
-		{
-			doc:          "newClient error",
-			newClientErr: errors.New("failed to connect"),
-			expectedErr:  "failed to connect",
-		},
-	}
-
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			passRetriever := func(_, _ string, _ bool, attempts int) (passphrase string, giveup bool, err error) {
-				// Always return an invalid pass first to test iteration
-				switch attempts {
-				case 0:
-					return "something else", false, nil
-				default:
-					return testcase.password, testcase.retrieverGiveup, testcase.retrieverErr
-				}
-			}
-
-			newClient := func(currentPassword string) (client.APIClient, error) {
-				if testcase.newClientErr != nil {
-					return nil, testcase.newClientErr
-				}
-				if currentPassword == expected {
-					return &client.Client{}, nil
-				}
-				return &client.Client{}, x509.IncorrectPasswordError
-			}
-
-			_, err := getClientWithPassword(passRetriever, newClient)
-			if testcase.expectedErr != "" {
-				assert.ErrorContains(t, err, testcase.expectedErr)
-				return
-			}
-
-			assert.NilError(t, err)
 		})
 	}
 }
