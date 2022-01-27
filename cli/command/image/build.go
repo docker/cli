@@ -184,12 +184,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		remote        string
 	)
 
-	if !options.quiet && dockerCli.ServerInfo().OSType != "windows" {
-		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
-
-`)
-	}
-
 	if options.stream {
 		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The experimental --stream flag has been removed and the build context
             will be sent non-streaming. Enable BuildKit instead with DOCKER_BUILDKIT=1

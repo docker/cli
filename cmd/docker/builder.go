@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"strconv"
@@ -13,44 +12,29 @@ import (
 )
 
 const (
-	builderDefaultPlugin     = "buildx"
-	builderDefaultInstallMsg = `To install buildx, see https://docs.docker.com/go/buildx/`
-	builderErrorMsg          = `%s: Required builder component %s is missing or broken.`
+	builderDefaultPlugin = "buildx"
+	buildxMissingWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+`
+
+	buildxMissingError = `ERROR: BuildKit is enabled but the buildx component is missing or broken.
+       Install the buildx component to build images with BuildKit:
+       https://docs.docker.com/go/buildx/
+`
 )
 
-type builderError struct {
-	warn    bool
-	builder string
-	err     error
-}
-
-func newBuilderError(warn bool, builder string, err error) error {
-	return &builderError{
-		warn:    warn,
-		builder: builder,
-		err:     err,
-	}
-}
-
-func (e *builderError) Error() string {
-	var errorMsg bytes.Buffer
-	if e.warn {
-		errorMsg.WriteString(fmt.Sprintf(builderErrorMsg, "WARNING", e.builder))
+func newBuilderError(warn bool, err error) error {
+	var errorMsg string
+	if warn {
+		errorMsg = buildxMissingWarning
 	} else {
-		errorMsg.WriteString(fmt.Sprintf(builderErrorMsg, "ERROR", e.builder))
+		errorMsg = buildxMissingError
 	}
-	if e.builder == builderDefaultPlugin {
-		errorMsg.WriteString(" ")
-		errorMsg.WriteString(builderDefaultInstallMsg)
+	if pluginmanager.IsNotFound(err) {
+		return errors.New(errorMsg)
 	}
-	if pluginmanager.IsNotFound(e.err) {
-		return errors.New(errorMsg.String()).Error()
-	}
-	return errors.Errorf("%v\n\n%s", e.err, errorMsg.String()).Error()
-}
-
-func (e *builderError) Unwrap() error {
-	return e.err
+	return fmt.Errorf("%w\n\n%s", err, errorMsg)
 }
 
 func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, error) {
@@ -98,10 +82,10 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	if perr != nil {
 		// if builder enforced with DOCKER_BUILDKIT=1, cmd fails if plugin missing or broken
 		if enforcedBuilder {
-			return fwargs, fwosargs, newBuilderError(false, builderAlias, perr)
+			return fwargs, fwosargs, newBuilderError(false, perr)
 		}
 		// otherwise, display warning and continue
-		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, builderAlias, perr).Error())
+		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, perr))
 		return args, osargs, nil
 	}
 
