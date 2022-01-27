@@ -37,7 +37,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		withWorkingDir(dir))
 	defer icmd.RunCommand("docker", "image", "rm", "myimage")
 
-	result.Assert(t, icmd.Expected{Err: "WARNING: The legacy builder is in use and will build your image in an inefficient way."})
+	result.Assert(t, icmd.Expected{Err: "DEPRECATED: The legacy builder is deprecated and will be removed in a future release."})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Prefix("Sending build context to Docker daemon"),
 		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:3.6"),

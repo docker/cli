@@ -184,8 +184,8 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		remote        string
 	)
 
-	if !options.quiet {
-		_, _ = fmt.Fprint(dockerCli.Err(), `WARNING: The legacy builder is in use and will build your image in an inefficient way.
+	if !options.quiet && dockerCli.ServerInfo().OSType != "windows" {
+		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
 
 `)
 	}

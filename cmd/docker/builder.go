@@ -14,20 +14,19 @@ import (
 
 const (
 	builderDefaultPlugin     = "buildx"
-	builderDefaultInstallMsg = `To install buildx, see
-       https://docs.docker.com/go/buildx. You can also fallback to the
-       legacy builder by setting DOCKER_BUILDKIT=0`
-
-	builderErrorMsg = "ERROR: Missing builder component %s."
+	builderDefaultInstallMsg = `To install buildx, see https://docs.docker.com/go/buildx/`
+	builderErrorMsg          = `%s: Required builder component %s is missing or broken.`
 )
 
 type builderError struct {
+	warn    bool
 	builder string
 	err     error
 }
 
-func newBuilderError(builder string, err error) error {
+func newBuilderError(warn bool, builder string, err error) error {
 	return &builderError{
+		warn:    warn,
 		builder: builder,
 		err:     err,
 	}
@@ -35,7 +34,11 @@ func newBuilderError(builder string, err error) error {
 
 func (e *builderError) Error() string {
 	var errorMsg bytes.Buffer
-	errorMsg.WriteString(fmt.Sprintf(builderErrorMsg, e.builder))
+	if e.warn {
+		errorMsg.WriteString(fmt.Sprintf(builderErrorMsg, "WARNING", e.builder))
+	} else {
+		errorMsg.WriteString(fmt.Sprintf(builderErrorMsg, "ERROR", e.builder))
+	}
 	if e.builder == builderDefaultPlugin {
 		errorMsg.WriteString(" ")
 		errorMsg.WriteString(builderDefaultInstallMsg)
@@ -50,17 +53,19 @@ func (e *builderError) Unwrap() error {
 	return e.err
 }
 
-func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []string) ([]string, []string, error) {
+func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, error) {
 	// check DOCKER_BUILDKIT env var is present and
 	// if not assume we want to use a builder
+	var enforcedBuilder bool
 	if v, ok := os.LookupEnv("DOCKER_BUILDKIT"); ok {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
-			return args, osArgs, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+			return args, osargs, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
 		}
 		if !enabled {
-			return args, osArgs, nil
+			return args, osargs, nil
 		}
+		enforcedBuilder = true
 	}
 
 	// if a builder alias is defined, use it instead
@@ -76,38 +81,13 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 	// wcow build command must use the legacy builder for buildx
 	// if not opt-in through a builder alias
 	if !isAlias && dockerCli.ServerInfo().OSType == "windows" {
-		return args, osArgs, nil
-	}
-
-	// builder aliases
-	aliases := [][2][]string{
-		{
-			{"builder"},
-			{builderAlias},
-		},
-		{
-			{"build"},
-			{builderAlias, "build"},
-		},
-		{
-			{"image", "build"},
-			{builderAlias, "build"},
-		},
+		return args, osargs, nil
 	}
 
 	// are we using a cmd that should be forwarded to the builder?
-	var forwarded bool
-	for _, al := range aliases {
-		var didChange bool
-		args, didChange = command.StringSliceReplaceAt(args, al[0], al[1], 0)
-		if didChange {
-			forwarded = true
-			osArgs, _ = command.StringSliceReplaceAt(osArgs, al[0], al[1], -1)
-			break
-		}
-	}
+	fwargs, fwosargs, forwarded := forwardBuilder(builderAlias, args, osargs)
 	if !forwarded {
-		return args, osArgs, nil
+		return args, osargs, nil
 	}
 
 	// check plugin is available if cmd forwarded
@@ -116,8 +96,38 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 		perr = plugin.Err
 	}
 	if perr != nil {
-		return args, osArgs, newBuilderError(builderAlias, perr)
+		// if builder enforced with DOCKER_BUILDKIT=1, cmd fails if plugin missing or broken
+		if enforcedBuilder {
+			return fwargs, fwosargs, newBuilderError(false, builderAlias, perr)
+		}
+		// otherwise, display warning and continue
+		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, builderAlias, perr).Error())
+		return args, osargs, nil
 	}
 
-	return args, osArgs, nil
+	return fwargs, fwosargs, nil
+}
+
+func forwardBuilder(alias string, args, osargs []string) ([]string, []string, bool) {
+	aliases := [][2][]string{
+		{
+			{"builder"},
+			{alias},
+		},
+		{
+			{"build"},
+			{alias, "build"},
+		},
+		{
+			{"image", "build"},
+			{alias, "build"},
+		},
+	}
+	for _, al := range aliases {
+		if fwargs, changed := command.StringSliceReplaceAt(args, al[0], al[1], 0); changed {
+			fwosargs, _ := command.StringSliceReplaceAt(osargs, al[0], al[1], -1)
+			return fwargs, fwosargs, true
+		}
+	}
+	return args, osargs, false
 }
