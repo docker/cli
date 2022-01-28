@@ -29,7 +29,7 @@ github.com/cpuguy83/go-md2man/v2/md2man
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/docker/compose-on-kubernetes v0.5.0-test1
+# github.com/docker/compose-on-kubernetes v0.5.0
 ## explicit
 github.com/docker/compose-on-kubernetes/api
 github.com/docker/compose-on-kubernetes/api/client/clientset
@@ -143,8 +143,6 @@ github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 github.com/gogo/protobuf/sortkeys
 github.com/gogo/protobuf/types
-# github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-github.com/golang/glog
 # github.com/golang/protobuf v1.5.2
 ## explicit
 github.com/golang/protobuf/proto

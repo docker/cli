@@ -12,7 +12,7 @@ require (
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1
 	github.com/creack/pty v1.1.11
-	github.com/docker/compose-on-kubernetes v0.5.0-test1
+	github.com/docker/compose-on-kubernetes v0.5.0
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/docker-credential-helpers v0.6.4
