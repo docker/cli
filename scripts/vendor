@@ -21,11 +21,10 @@ go 1.16
 EOL
 
 update() {
-  (set -x ; go mod vendor -modfile=vendor.mod)
+  (set -x ; go mod tidy -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
 }
 
 validate() {
-  (set -x ; go mod tidy -modfile=vendor.mod)
   diff=$(git status --porcelain -- vendor.mod vendor.sum vendor)
   if [ -n "$diff" ]; then
     echo >&2 'ERROR: Vendor result differs. Please vendor your package with "make -f docker.Makefile vendor"'
