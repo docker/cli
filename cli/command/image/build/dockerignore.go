@@ -37,3 +37,17 @@ func TrimBuildFilesFromExcludes(excludes []string, dockerfile string, dockerfile
 	}
 	return excludes
 }
+
+// OpenDockerignore try to open the .dockerignore file in the context directory
+func OpenDockerignore(contextDir string) error {
+	f, err := os.Open(filepath.Join(contextDir, ".dockerignore"))
+	switch {
+	case os.IsNotExist(err):
+		return nil
+	case err != nil:
+		return err
+	}
+	defer f.Close()
+
+	return nil
+}
