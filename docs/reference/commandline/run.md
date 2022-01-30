@@ -634,7 +634,7 @@ $ docker run -it --rm --gpus device=GPU-3a23c669-1f69-c64e-cf85-44e9b07e7a2a ubu
 The example below exposes the first and third GPUs.
 
 ```console
-$ docker run -it --rm --gpus device=0,2 nvidia-smi
+$ docker run -it --rm --gpus '"device=0,2"' nvidia-smi
 ```
 
 ### Restart policies (--restart)
