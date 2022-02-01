@@ -181,7 +181,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.VarP(&copts.labels, "label", "l", "Set meta data on a container")
 	flags.Var(&copts.labelsFile, "label-file", "Read in a line delimited file of labels")
 	flags.BoolVar(&copts.readonlyRootfs, "read-only", false, "Mount the container's root filesystem as read only")
-	flags.StringVar(&copts.restartPolicy, "restart", "no", "Restart policy to apply when a container exits")
+	flags.StringVar(&copts.restartPolicy, "restart", "no", `Restart policy to apply when a container exits ("no"|"on-failure[:max-retry]"|"always"|"unless-stopped")`)
 	flags.StringVar(&copts.stopSignal, "stop-signal", "", "Signal to stop the container")
 	flags.IntVar(&copts.stopTimeout, "stop-timeout", 0, "Timeout (in seconds) to stop a container")
 	flags.SetAnnotation("stop-timeout", "version", []string{"1.25"})
