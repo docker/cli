@@ -220,7 +220,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.links, "link", "Add link to another container")
 	flags.Var(&copts.linkLocalIPs, "link-local-ip", "Container IPv4/IPv6 link-local addresses")
 	flags.StringVar(&copts.macAddress, "mac-address", "", "Container MAC address (e.g., 92:d0:c6:0a:29:33)")
-	flags.VarP(&copts.publish, "publish", "p", "Publish a container's port(s) to the host")
+	flags.VarP(&copts.publish, "publish", "p", "Publish a container's port(s) to the host (format: <host address>:[<host port>]:<container port> or [<host port>:]<container port>)")
 	flags.BoolVarP(&copts.publishAll, "publish-all", "P", false, "Publish all exposed ports to random ports")
 	// We allow for both "--net" and "--network", although the latter is the recommended way.
 	flags.Var(&copts.netMode, "net", "Connect a container to a network")
@@ -238,8 +238,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.storageOpt, "storage-opt", "Storage driver options for the container")
 	flags.Var(&copts.tmpfs, "tmpfs", "Mount a tmpfs directory")
 	flags.Var(&copts.volumesFrom, "volumes-from", "Mount volumes from the specified container(s)")
-	flags.VarP(&copts.volumes, "volume", "v", "Bind mount a volume")
-	flags.Var(&copts.mounts, "mount", "Attach a filesystem mount to the container")
+	flags.VarP(&copts.volumes, "volume", "v", "Bind mount a volume (format: [<volume name|absolute host path>:]<absolute container path>[:<options>])")
+	flags.Var(&copts.mounts, "mount", `Attach a filesystem mount to the container (e.g., "type=volume,target=/mnt/persistent" or "type=bind,ro,src=/var/run/docker.sock,dst=/run/host-docker.sock")`)
 
 	// Health-checking
 	flags.StringVar(&copts.healthCmd, "health-cmd", "", "Command to run to check health")
