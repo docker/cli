@@ -198,7 +198,7 @@ flag exists to allow special use-cases, like running Docker within Docker.
 ### Set working directory (-w)
 
 ```console
-$ docker  run -w /path/to/dir/ -i -t  ubuntu pwd
+$ docker run -w /path/to/dir/ -i -t ubuntu pwd
 ```
 
 The `-w` lets the command being executed inside directory given, here
@@ -228,35 +228,38 @@ $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 The `--tmpfs` flag mounts an empty tmpfs into the container with the `rw`,
 `noexec`, `nosuid`, `size=65536k` options.
 
-### Mount volume (-v, --read-only)
+### Mount volume (-v, --volume, --read-only)
+
+The `-v` flag allows you to mount volumes and host-directory
+mounts in a container.
+
+Examples:
 
 ```console
-$ docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu pwd
+$ docker run -v `pwd`:`pwd` -w `pwd` -i -t ubuntu pwd
 ```
 
-The `-v` flag mounts the current working directory into the container. The `-w`
-lets the command being executed inside the current working directory, by
-changing into the directory to the value returned by `pwd`. So this
-combination executes the command using the container, but inside the
-current working directory.
+This combination of `-v` to mount the current working directory into the
+container at the same absolute path and `-w` to use it as the working
+directory in the container executes the command using the container but
+inside the host's working directory.
 
 ```console
 $ docker run -v /doesnt/exist:/foo -w /foo -i -t ubuntu bash
 ```
 
-When the host directory of a bind-mounted volume doesn't exist, Docker
-will automatically create this directory on the host for you. In the
-example above, Docker will create the `/doesnt/exist`
-folder before starting your container.
+When the source directory of a bind-mounted volume doesn't exist, Docker
+will automatically create it on the host. In the example above, Docker
+will create the `/doesnt/exist` folder before starting the container.
 
 ```console
 $ docker run --read-only -v /icanwrite busybox touch /icanwrite/here
 ```
 
 Volumes can be used in combination with `--read-only` to control where
-a container writes files. The `--read-only` flag mounts the container's root
-filesystem as read only prohibiting writes to locations other than the
-specified volumes for the container.
+a container writes files. The `--read-only` flag mounts the container's
+root filesystem as read only, prohibiting writes to locations other than
+the specified volumes for the container.
 
 ```console
 $ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/static-docker-binary:/usr/bin/docker busybox sh
@@ -316,7 +319,7 @@ $ docker run --read-only --mount type=volume,target=/icanwrite busybox touch /ic
 $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ```
 
-### Publish or expose port (-p, --expose)
+### Publish or expose port (-p, --publish, --expose)
 
 ```console
 $ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
