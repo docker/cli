@@ -48,7 +48,7 @@ Options:
   -e, --env list                       Set environment variables
       --env-file list                  Read in a file of environment variables
       --expose list                    Expose a port or a range of ports
-      --gpus gpu-request               GPU devices to add to the container ('all' to pass all
+      --gpus gpu-request               GPU devices to add to the container ("all" to pass all
                                        GPUs)
       --group-add list                 Add additional groups to join
       --health-cmd string              Command to run to check health
@@ -77,7 +77,7 @@ Options:
       --mac-address string             Container MAC address (e.g., 92:d0:c6:0a:29:33)
   -m, --memory bytes                   Memory limit
       --memory-reservation bytes       Memory soft limit
-      --memory-swap bytes              Swap limit equal to memory plus swap: '-1' to enable
+      --memory-swap bytes              Swap limit equal to memory plus swap: -1 to enable
                                        unlimited swap
       --memory-swappiness int          Tune container memory swappiness (0 to 100) (default -1)
       --mount mount                    Attach a filesystem mount to the container (e.g.,
@@ -101,7 +101,7 @@ Options:
                                        ("always"|"missing"|"never") (default "missing")
       --read-only                      Mount the container's root filesystem as read only
       --restart string                 Restart policy to apply when a container exits
-                                       (default "no")
+                                       ("no"|"on-failure[:max-retry]"|"always"|"unless-stopped") (default "no")
       --rm                             Automatically remove the container when it exits
       --runtime string                 Runtime to use for this container
       --security-opt list              Security Options
