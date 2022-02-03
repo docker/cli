@@ -34,43 +34,50 @@ func newBuilderError(warn bool, err error) error {
 	if pluginmanager.IsNotFound(err) {
 		return errors.New(errorMsg)
 	}
-	return fmt.Errorf("%w\n\n%s", err, errorMsg)
+	if err != nil {
+		return fmt.Errorf("%w\n\n%s", err, errorMsg)
+	}
+	return fmt.Errorf("%s", errorMsg)
 }
 
 func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, error) {
+	var useLegacy bool
+	var useBuilder bool
+
 	// check DOCKER_BUILDKIT env var is present and
-	// if not assume we want to use a builder
-	var enforcedBuilder bool
+	// if not assume we want to use the builder component
 	if v, ok := os.LookupEnv("DOCKER_BUILDKIT"); ok {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
 			return args, osargs, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
 		}
 		if !enabled {
-			return args, osargs, nil
+			useLegacy = true
+		} else {
+			useBuilder = true
 		}
-		enforcedBuilder = true
 	}
 
 	// if a builder alias is defined, use it instead
 	// of the default one
-	isAlias := false
 	builderAlias := builderDefaultPlugin
 	aliasMap := dockerCli.ConfigFile().Aliases
 	if v, ok := aliasMap[keyBuilderAlias]; ok {
-		isAlias = true
+		useBuilder = true
 		builderAlias = v
 	}
 
-	// wcow build command must use the legacy builder for buildx
-	// if not opt-in through a builder alias
-	if !isAlias && dockerCli.ServerInfo().OSType == "windows" {
+	// is this a build that should be forwarded to the builder?
+	fwargs, fwosargs, forwarded := forwardBuilder(builderAlias, args, osargs)
+	if !forwarded {
 		return args, osargs, nil
 	}
 
-	// are we using a cmd that should be forwarded to the builder?
-	fwargs, fwosargs, forwarded := forwardBuilder(builderAlias, args, osargs)
-	if !forwarded {
+	if useLegacy {
+		// display warning if not wcow and continue
+		if dockerCli.ServerInfo().OSType != "windows" {
+			_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, nil))
+		}
 		return args, osargs, nil
 	}
 
@@ -80,9 +87,9 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		perr = plugin.Err
 	}
 	if perr != nil {
-		// if builder enforced with DOCKER_BUILDKIT=1, cmd fails if plugin missing or broken
-		if enforcedBuilder {
-			return fwargs, fwosargs, newBuilderError(false, perr)
+		// if builder enforced with DOCKER_BUILDKIT=1, cmd must fail if plugin missing or broken
+		if useBuilder {
+			return args, osargs, newBuilderError(false, perr)
 		}
 		// otherwise, display warning and continue
 		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, perr))
