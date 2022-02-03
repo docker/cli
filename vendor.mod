@@ -8,7 +8,6 @@ go 1.16
 
 require (
 	github.com/Microsoft/go-winio v0.4.19 // indirect
-	github.com/containerd/console v1.0.2
 	github.com/containerd/containerd v1.5.5
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1
@@ -39,12 +38,10 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
-	github.com/tonistiigi/fsutil v0.0.0-20210609172227-d72af97c0eaf
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	golang.org/x/text v0.3.4

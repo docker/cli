@@ -104,6 +104,36 @@ func listPluginCandidates(dirs []string) (map[string][]string, error) {
 	return result, nil
 }
 
+// GetPlugin returns a plugin on the system by its name
+func GetPlugin(name string, dockerCli command.Cli, rootcmd *cobra.Command) (*Plugin, error) {
+	pluginDirs, err := getPluginDirs(dockerCli)
+	if err != nil {
+		return nil, err
+	}
+
+	candidates, err := listPluginCandidates(pluginDirs)
+	if err != nil {
+		return nil, err
+	}
+
+	if paths, ok := candidates[name]; ok {
+		if len(paths) == 0 {
+			return nil, errPluginNotFound(name)
+		}
+		c := &candidate{paths[0]}
+		p, err := newPlugin(c, rootcmd)
+		if err != nil {
+			return nil, err
+		}
+		if !IsNotFound(p.Err) {
+			p.ShadowedPaths = paths[1:]
+		}
+		return &p, nil
+	}
+
+	return nil, errPluginNotFound(name)
+}
+
 // ListPlugins produces a list of the plugins available on the system
 func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error) {
 	pluginDirs, err := getPluginDirs(dockerCli)

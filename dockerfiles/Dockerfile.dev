@@ -2,6 +2,9 @@
 
 ARG GO_VERSION=1.16.11
 
+ARG BUILDX_VERSION=0.7.1
+FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
+
 FROM golang:${GO_VERSION}-alpine AS golang
 ENV  CGO_ENABLED=0
 
@@ -32,6 +35,7 @@ CMD bash
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
 
+COPY --from=buildx          /buildx /usr/libexec/docker/cli-plugins/docker-buildx
 COPY --from=gotestsum       /go/bin/* /go/bin/
 COPY --from=goversioninfo   /go/bin/* /go/bin/
 

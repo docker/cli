@@ -22,10 +22,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var allowedAliases = map[string]struct{}{
-	"builder": {},
-}
-
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
@@ -220,38 +216,6 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) 
 	return nil
 }
 
-func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []string) ([]string, []string, error) {
-	aliasMap := dockerCli.ConfigFile().Aliases
-	aliases := make([][2][]string, 0, len(aliasMap))
-
-	for k, v := range aliasMap {
-		if _, ok := allowedAliases[k]; !ok {
-			return args, osArgs, errors.Errorf("Not allowed to alias %q. Allowed aliases: %#v", k, allowedAliases)
-		}
-		if _, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
-			return args, osArgs, errors.Errorf("Not allowed to alias with builtin %q as target", v)
-		}
-		aliases = append(aliases, [2][]string{{k}, {v}})
-	}
-
-	if v, ok := aliasMap["builder"]; ok {
-		aliases = append(aliases,
-			[2][]string{{"build"}, {v, "build"}},
-			[2][]string{{"image", "build"}, {v, "build"}},
-		)
-	}
-	for _, al := range aliases {
-		var didChange bool
-		args, didChange = command.StringSliceReplaceAt(args, al[0], al[1], 0)
-		if didChange {
-			osArgs, _ = command.StringSliceReplaceAt(osArgs, al[0], al[1], -1)
-			break
-		}
-	}
-
-	return args, osArgs, nil
-}
-
 func runDocker(dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
 
@@ -346,8 +310,6 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	var (
-		buildKitDisabled = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return !v }
-		buildKitEnabled  = func(_ string) bool { v, _ := command.BuildKitEnabled(details.ServerInfo()); return v }
 		notExperimental  = func(_ string) bool { return !details.ServerInfo().HasExperimental }
 		notOSType        = func(v string) bool { return v != details.ServerInfo().OSType }
 		versionOlderThan = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
@@ -365,16 +327,12 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 			}
 		}
 
-		hideFlagIf(f, buildKitDisabled, "buildkit")
-		hideFlagIf(f, buildKitEnabled, "no-buildkit")
 		hideFlagIf(f, notExperimental, "experimental")
 		hideFlagIf(f, notOSType, "ostype")
 		hideFlagIf(f, versionOlderThan, "version")
 	})
 
 	for _, subcmd := range cmd.Commands() {
-		hideSubcommandIf(subcmd, buildKitDisabled, "buildkit")
-		hideSubcommandIf(subcmd, buildKitEnabled, "no-buildkit")
 		hideSubcommandIf(subcmd, notExperimental, "experimental")
 		hideSubcommandIf(subcmd, notOSType, "ostype")
 		hideSubcommandIf(subcmd, versionOlderThan, "version")

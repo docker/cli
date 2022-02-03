@@ -82,6 +82,29 @@ func TestListPluginCandidates(t *testing.T) {
 	assert.DeepEqual(t, candidates, exp)
 }
 
+func TestGetPlugin(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile("docker-bbb", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+		fs.WithFile("docker-aaa", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+	)
+	defer dir.Remove()
+
+	cli := test.NewFakeCli(nil)
+	cli.SetConfigFile(&configfile.ConfigFile{CLIPluginsExtraDirs: []string{dir.Path()}})
+
+	plugin, err := GetPlugin("bbb", cli, &cobra.Command{})
+	assert.NilError(t, err)
+	assert.Equal(t, plugin.Name, "bbb")
+
+	_, err = GetPlugin("ccc", cli, &cobra.Command{})
+	assert.Error(t, err, "Error: No such CLI plugin: ccc")
+	assert.Assert(t, IsNotFound(err))
+}
+
 func TestListPluginsIsSorted(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("docker-bbb", `

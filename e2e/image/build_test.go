@@ -12,12 +12,15 @@ import (
 	"github.com/docker/cli/internal/test/output"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+
 	dir := fs.NewDir(t, "test-build-context-dir",
 		fs.WithFile("run", "echo running", fs.WithMode(0755)),
 		fs.WithDir("data", fs.WithFile("one", "1111")),
@@ -34,7 +37,12 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		withWorkingDir(dir))
 	defer icmd.RunCommand("docker", "image", "rm", "myimage")
 
-	result.Assert(t, icmd.Expected{Err: icmd.None})
+	const buildxMissingWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+`
+
+	result.Assert(t, icmd.Expected{Err: buildxMissingWarning})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Prefix("Sending build context to Docker daemon"),
 		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:3.6"),
@@ -50,6 +58,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 
 func TestTrustedBuild(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -84,6 +93,7 @@ func TestTrustedBuild(t *testing.T) {
 
 func TestTrustedBuildUntrustedImage(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -110,6 +120,8 @@ func TestTrustedBuildUntrustedImage(t *testing.T) {
 
 func TestBuildIidFileSquash(t *testing.T) {
 	environment.SkipIfNotExperimentalDaemon(t)
+	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+
 	dir := fs.NewDir(t, "test-iidfile-squash")
 	defer dir.Remove()
 	iidfile := filepath.Join(dir.Path(), "idsquash")
