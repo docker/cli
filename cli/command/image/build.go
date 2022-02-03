@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,7 +56,6 @@ type buildOptions struct {
 	isolation      string
 	quiet          bool
 	noCache        bool
-	progress       string
 	rm             bool
 	forceRm        bool
 	pull           bool
@@ -71,9 +69,6 @@ type buildOptions struct {
 	stream         bool
 	platform       string
 	untrusted      bool
-	secrets        []string
-	ssh            []string
-	outputs        []string
 }
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
@@ -118,40 +113,26 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.tags, "tag", "t", "Name and optionally a tag in the 'name:tag' format")
 	flags.Var(&options.buildArgs, "build-arg", "Set build-time variables")
 	flags.Var(options.ulimits, "ulimit", "Ulimit options")
-	flags.SetAnnotation("ulimit", "no-buildkit", nil)
 	flags.StringVarP(&options.dockerfileName, "file", "f", "", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
-	flags.SetAnnotation("memory", "no-buildkit", nil)
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
-	flags.SetAnnotation("memory-swap", "no-buildkit", nil)
 	flags.Var(&options.shmSize, "shm-size", "Size of /dev/shm")
-	flags.SetAnnotation("shm-size", "no-buildkit", nil)
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
-	flags.SetAnnotation("cpu-shares", "no-buildkit", nil)
 	flags.Int64Var(&options.cpuPeriod, "cpu-period", 0, "Limit the CPU CFS (Completely Fair Scheduler) period")
-	flags.SetAnnotation("cpu-period", "no-buildkit", nil)
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit the CPU CFS (Completely Fair Scheduler) quota")
-	flags.SetAnnotation("cpu-quota", "no-buildkit", nil)
 	flags.StringVar(&options.cpuSetCpus, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)")
-	flags.SetAnnotation("cpuset-cpus", "no-buildkit", nil)
 	flags.StringVar(&options.cpuSetMems, "cpuset-mems", "", "MEMs in which to allow execution (0-3, 0,1)")
-	flags.SetAnnotation("cpuset-mems", "no-buildkit", nil)
 	flags.StringVar(&options.cgroupParent, "cgroup-parent", "", "Optional parent cgroup for the container")
-	flags.SetAnnotation("cgroup-parent", "no-buildkit", nil)
 	flags.StringVar(&options.isolation, "isolation", "", "Container isolation technology")
 	flags.Var(&options.labels, "label", "Set metadata for an image")
 	flags.BoolVar(&options.noCache, "no-cache", false, "Do not use cache when building the image")
 	flags.BoolVar(&options.rm, "rm", true, "Remove intermediate containers after a successful build")
-	flags.SetAnnotation("rm", "no-buildkit", nil)
 	flags.BoolVar(&options.forceRm, "force-rm", false, "Always remove intermediate containers")
-	flags.SetAnnotation("force-rm", "no-buildkit", nil)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the build output and print image ID on success")
 	flags.BoolVar(&options.pull, "pull", false, "Always attempt to pull a newer version of the image")
 	flags.StringSliceVar(&options.cacheFrom, "cache-from", []string{}, "Images to consider as cache sources")
 	flags.BoolVar(&options.compress, "compress", false, "Compress the build context using gzip")
-	flags.SetAnnotation("compress", "no-buildkit", nil)
 	flags.StringSliceVar(&options.securityOpt, "security-opt", []string{}, "Security options")
-	flags.SetAnnotation("security-opt", "no-buildkit", nil)
 	flags.StringVar(&options.networkMode, "network", "default", "Set the networking mode for the RUN instructions during build")
 	flags.SetAnnotation("network", "version", []string{"1.25"})
 	flags.Var(&options.extraHosts, "add-host", "Add a custom host-to-IP mapping (host:ip)")
@@ -162,7 +143,6 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
 	flags.SetAnnotation("platform", "version", []string{"1.38"})
-	flags.SetAnnotation("platform", "buildkit", nil)
 
 	flags.BoolVar(&options.squash, "squash", false, "Squash newly built layers into a single new layer")
 	flags.SetAnnotation("squash", "experimental", nil)
@@ -170,21 +150,6 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
 	flags.MarkHidden("stream")
-
-	flags.StringVar(&options.progress, "progress", "auto", "Set type of progress output (auto, plain, tty). Use plain to show container output")
-	flags.SetAnnotation("progress", "buildkit", nil)
-
-	flags.StringArrayVar(&options.secrets, "secret", []string{}, "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret")
-	flags.SetAnnotation("secret", "version", []string{"1.39"})
-	flags.SetAnnotation("secret", "buildkit", nil)
-
-	flags.StringArrayVar(&options.ssh, "ssh", []string{}, "SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])")
-	flags.SetAnnotation("ssh", "version", []string{"1.39"})
-	flags.SetAnnotation("ssh", "buildkit", nil)
-
-	flags.StringArrayVarP(&options.outputs, "output", "o", []string{}, "Output destination (format: type=local,dest=path)")
-	flags.SetAnnotation("output", "version", []string{"1.40"})
-	flags.SetAnnotation("output", "buildkit", nil)
 
 	return cmd
 }
@@ -207,15 +172,8 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
-	if err != nil {
-		return err
-	}
-	if buildkitEnabled {
-		return runBuildBuildKit(dockerCli, options)
-	}
-
 	var (
+		err           error
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
 		contextDir    string
@@ -225,6 +183,12 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildBuff     io.Writer
 		remote        string
 	)
+
+	if !options.quiet {
+		_, _ = fmt.Fprint(dockerCli.Err(), `WARNING: The legacy builder is in use and will build your image in an inefficient way.
+
+`)
+	}
 
 	if options.stream {
 		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The experimental --stream flag has been removed and the build context
@@ -608,59 +572,4 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		Target:         options.target,
 		Platform:       options.platform,
 	}
-}
-
-func parseOutputs(inp []string) ([]types.ImageBuildOutput, error) {
-	var outs []types.ImageBuildOutput
-	if len(inp) == 0 {
-		return nil, nil
-	}
-	for _, s := range inp {
-		csvReader := csv.NewReader(strings.NewReader(s))
-		fields, err := csvReader.Read()
-		if err != nil {
-			return nil, err
-		}
-		if len(fields) == 1 && fields[0] == s && !strings.HasPrefix(s, "type=") {
-			if s == "-" {
-				outs = append(outs, types.ImageBuildOutput{
-					Type: "tar",
-					Attrs: map[string]string{
-						"dest": s,
-					},
-				})
-			} else {
-				outs = append(outs, types.ImageBuildOutput{
-					Type: "local",
-					Attrs: map[string]string{
-						"dest": s,
-					},
-				})
-			}
-			continue
-		}
-
-		out := types.ImageBuildOutput{
-			Attrs: map[string]string{},
-		}
-		for _, field := range fields {
-			parts := strings.SplitN(field, "=", 2)
-			if len(parts) != 2 {
-				return nil, errors.Errorf("invalid value %s", field)
-			}
-			key := strings.ToLower(parts[0])
-			value := parts[1]
-			switch key {
-			case "type":
-				out.Type = value
-			default:
-				out.Attrs[key] = value
-			}
-		}
-		if out.Type == "" {
-			return nil, errors.Errorf("type is required for output")
-		}
-		outs = append(outs, out)
-	}
-	return outs, nil
 }

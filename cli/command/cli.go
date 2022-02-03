@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -167,20 +166,6 @@ func (cli *DockerCli) loadClientInfo() error {
 // environment variable.
 func (cli *DockerCli) ContentTrustEnabled() bool {
 	return cli.contentTrust
-}
-
-// BuildKitEnabled returns whether buildkit is enabled either through a daemon setting
-// or otherwise the client-side DOCKER_BUILDKIT environment variable
-func BuildKitEnabled(si ServerInfo) (bool, error) {
-	buildkitEnabled := si.BuildkitVersion == types.BuilderBuildKit
-	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
-		var err error
-		buildkitEnabled, err = strconv.ParseBool(buildkitEnv)
-		if err != nil {
-			return false, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
-		}
-	}
-	return buildkitEnabled, nil
 }
 
 // ManifestStore returns a store for local manifests

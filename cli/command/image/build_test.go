@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -18,7 +17,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/google/go-cmp/cmp"
-	"github.com/moby/buildkit/session/secrets/secretsprovider"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
@@ -180,75 +178,6 @@ RUN echo hello world
 	assert.NilError(t, runBuild(cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
-}
-
-func TestParseSecret(t *testing.T) {
-	type testcase struct {
-		value       string
-		errExpected bool
-		errMatch    string
-		source      *secretsprovider.Source
-	}
-	var testcases = []testcase{
-		{
-			value:       "",
-			errExpected: true,
-		}, {
-			value:       "foobar",
-			errExpected: true,
-			errMatch:    "must be a key=value pair",
-		}, {
-			value:       "foo,bar",
-			errExpected: true,
-			errMatch:    "must be a key=value pair",
-		}, {
-			value:       "foo=bar",
-			errExpected: true,
-			errMatch:    "unexpected key",
-		}, {
-			value:  "src=somefile",
-			source: &secretsprovider.Source{FilePath: "somefile"},
-		}, {
-			value:  "source=somefile",
-			source: &secretsprovider.Source{FilePath: "somefile"},
-		}, {
-			value:  "id=mysecret",
-			source: &secretsprovider.Source{ID: "mysecret"},
-		}, {
-			value:  "id=mysecret,src=somefile",
-			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
-		}, {
-			value:  "id=mysecret,source=somefile,type=file",
-			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile"},
-		}, {
-			value:  "id=mysecret,src=somefile,src=othersecretfile",
-			source: &secretsprovider.Source{ID: "mysecret", FilePath: "othersecretfile"},
-		}, {
-			value:  "id=mysecret,src=somefile,env=SECRET",
-			source: &secretsprovider.Source{ID: "mysecret", FilePath: "somefile", Env: "SECRET"},
-		}, {
-			value:  "type=file",
-			source: &secretsprovider.Source{},
-		}, {
-			value:  "type=env",
-			source: &secretsprovider.Source{},
-		}, {
-			value:       "type=invalid",
-			errExpected: true,
-			errMatch:    "unsupported secret type",
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.value, func(t *testing.T) {
-			secret, err := parseSecret(tc.value)
-			assert.Equal(t, err != nil, tc.errExpected, fmt.Sprintf("err=%v errExpected=%t", err, tc.errExpected))
-			if tc.errMatch != "" {
-				assert.ErrorContains(t, err, tc.errMatch)
-			}
-			assert.DeepEqual(t, secret, tc.source)
-		})
-	}
 }
 
 type fakeBuild struct {

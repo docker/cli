@@ -5,6 +5,7 @@ ARG GO_VERSION=1.16.11
 ARG XX_VERSION=1.0.0-rc.2
 ARG GOVERSIONINFO_VERSION=v1.3.0
 ARG GOTESTSUM_VERSION=v1.7.0
+ARG BUILDX_VERSION=0.7.1
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
@@ -106,6 +107,8 @@ ARG COMPOSE_VERSION=1.29.2
 RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
     chmod +x /usr/local/bin/docker-compose
 
+FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
+
 FROM e2e-base-${BASE_VARIANT} AS e2e
 ARG NOTARY_VERSION=v0.6.1
 ADD --chmod=0755 https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 /usr/local/bin/notary
@@ -114,6 +117,7 @@ RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
 COPY --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 COPY --from=build /out ./build/
 COPY --from=build-plugins /out ./build/
+COPY --from=buildx /buildx /usr/libexec/docker/cli-plugins/docker-buildx
 COPY . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
