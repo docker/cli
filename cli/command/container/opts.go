@@ -844,7 +844,7 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 				return securityOpts, errors.Errorf("Invalid --security-opt: %q", opt)
 			}
 		}
-		if con[0] == "seccomp" && con[1] != "unconfined" {
+		if con[0] == "seccomp" && con[1] != "unconfined" && con[1] != "without-user-namespaces" {
 			f, err := ioutil.ReadFile(con[1])
 			if err != nil {
 				return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", con[1], err)
