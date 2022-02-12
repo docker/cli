@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
@@ -195,27 +196,6 @@ func (configFile *ConfigFile) Save() (retErr error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	temp, err := ioutil.TempFile(dir, filepath.Base(configFile.Filename))
-	if err != nil {
-		return err
-	}
-	defer func() {
-		temp.Close()
-		if retErr != nil {
-			if err := os.Remove(temp.Name()); err != nil {
-				logrus.WithError(err).WithField("file", temp.Name()).Debug("Error cleaning up temp file")
-			}
-		}
-	}()
-
-	err = configFile.SaveToWriter(temp)
-	if err != nil {
-		return err
-	}
-
-	if err := temp.Close(); err != nil {
-		return errors.Wrap(err, "error closing temp file")
-	}
 
 	// Handle situation where the configfile is a symlink
 	cfgFile := configFile.Filename
@@ -223,9 +203,30 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		cfgFile = f
 	}
 
-	// Try copying the current config file (if any) ownership and permissions
-	copyFilePermissions(cfgFile, temp.Name())
-	return os.Rename(temp.Name(), cfgFile)
+	f, err := os.OpenFile(cfgFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
+		if err != nil {
+			logrus.WithError(err).WithField("file", cfgFile).Error("Unable to unlock config file")
+		}
+		f.Close()
+	}()
+
+	err = syscall.Flock(int(f.Fd()), syscall.LOCK_EX)
+	if err != nil {
+		logrus.WithError(err).WithField("file", cfgFile).Error("Unable to lock config file")
+		return err
+	}
+
+	err = f.Truncate(0)
+	if err != nil {
+		return err
+	}
+
+	return configFile.SaveToWriter(f)
 }
 
 // ParseProxyConfig computes proxy configuration by retrieving the config for the provided host and
