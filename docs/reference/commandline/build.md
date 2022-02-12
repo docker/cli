@@ -153,9 +153,8 @@ option is ignored. In this scenario, there is no context.
 By default the `docker build` command will look for a `Dockerfile` at the root
 of the build context. The `-f`, `--file`, option lets you specify the path to
 an alternative file to use instead. This is useful in cases where the same set
-of files are used for multiple builds. The path must be to a file within the
-build context. If a relative path is specified then it is interpreted as
-relative to the root of the context.
+of files are used for multiple builds. If a relative path is specified then it
+is interpreted as relative to the current directory.
 
 In most cases, it's best to put each Dockerfile in an empty directory. Then,
 add to that directory only the files needed for building the Dockerfile. To
