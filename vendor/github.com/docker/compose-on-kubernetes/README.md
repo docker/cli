@@ -1,3 +1,5 @@
+> :warning: **This project is no longer maintained** :warning:
+
 # Compose on Kubernetes
 
 [![CircleCI](https://circleci.com/gh/docker/compose-on-kubernetes/tree/master.svg?style=svg)](https://circleci.com/gh/docker/compose-on-kubernetes/tree/master)
@@ -17,12 +19,28 @@ More documentation can be found in the [docs/](./docs) directory. This includes:
 
 # Get started
 
-Compose on Kubernetes comes installed on
-[Docker Desktop](https://www.docker.com/products/docker-desktop) and
-[Docker Enterprise](https://www.docker.com/products/docker-enterprise).
+## Install Compose on Kubernetes on Docker Desktop
+
+### Pre-requisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop).
+- To install etcd using these instructions, you must have [Helm](https://helm.sh) in your client environment.
+- [Download the Compose on Kubernetes installer](https://github.com/docker/compose-on-kubernetes/releases).
 
 On Docker Desktop you will need to activate Kubernetes in the settings to use
 Compose on Kubernetes.
+
+### Create compose namespace
+
+- Create a compose namespace by running `kubectl create namespace compose`
+
+### Deploy etcd
+
+Compose on Kubernetes requires an etcd instance (in addition to the kube-system etcd instance). Please follow [How to deploy etcd](./docs/deploy-etcd.md).
+
+### Deploy Compose on Kubernetes
+
+Run `installer-[darwin|linux|windows.exe] -namespace=compose -etcd-servers=http://compose-etcd-client:2379`.
 
 ## Check that Compose on Kubernetes is installed
 
