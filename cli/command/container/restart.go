@@ -14,8 +14,9 @@ import (
 )
 
 type restartOptions struct {
-	nSeconds        int
-	nSecondsChanged bool
+	signal         string
+	timeout        int
+	timeoutChanged bool
 
 	containers []string
 }
@@ -30,14 +31,15 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			opts.nSecondsChanged = cmd.Flags().Changed("time")
+			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runRestart(dockerCli, &opts)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.nSeconds, "time", "t", 10, "Seconds to wait for stop before killing the container")
+	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
+	flags.IntVarP(&opts.timeout, "time", "t", 0, "Seconds to wait before killing the container")
 	return cmd
 }
 
@@ -45,11 +47,12 @@ func runRestart(dockerCli command.Cli, opts *restartOptions) error {
 	ctx := context.Background()
 	var errs []string
 	var timeout *int
-	if opts.nSecondsChanged {
-		timeout = &opts.nSeconds
+	if opts.timeoutChanged {
+		timeout = &opts.timeout
 	}
 	for _, name := range opts.containers {
 		err := dockerCli.Client().ContainerRestart(ctx, name, container.StopOptions{
+			Signal:  opts.signal,
 			Timeout: timeout,
 		})
 		if err != nil {

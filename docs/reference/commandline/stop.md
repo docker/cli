@@ -12,8 +12,8 @@ Usage:  docker stop [OPTIONS] CONTAINER [CONTAINER...]
 Stop one or more running containers
 
 Options:
-      --help       Print usage
-  -t, --time int   Seconds to wait for stop before killing it (default 10)
+  -s, --signal string   Signal to send to the container
+  -t, --time int        Seconds to wait before killing the container
 ```
 
 ## Description

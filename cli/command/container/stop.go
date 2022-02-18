@@ -14,8 +14,9 @@ import (
 )
 
 type stopOptions struct {
-	time        int
-	timeChanged bool
+	signal         string
+	timeout        int
+	timeoutChanged bool
 
 	containers []string
 }
@@ -30,25 +31,27 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			opts.timeChanged = cmd.Flags().Changed("time")
+			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runStop(dockerCli, &opts)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.time, "time", "t", 10, "Seconds to wait for stop before killing it")
+	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
+	flags.IntVarP(&opts.timeout, "time", "t", 0, "Seconds to wait before killing the container")
 	return cmd
 }
 
 func runStop(dockerCli command.Cli, opts *stopOptions) error {
 	var timeout *int
-	if opts.timeChanged {
-		timeout = &opts.time
+	if opts.timeoutChanged {
+		timeout = &opts.timeout
 	}
 
 	errChan := parallelOperation(context.Background(), opts.containers, func(ctx context.Context, id string) error {
 		return dockerCli.Client().ContainerStop(ctx, id, container.StopOptions{
+			Signal:  opts.signal,
 			Timeout: timeout,
 		})
 	})
