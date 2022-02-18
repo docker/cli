@@ -3,6 +3,7 @@ package context
 import (
 	"bytes"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
@@ -106,6 +107,9 @@ func createNewContext(o *CreateOptions, stackOrchestrator command.Orchestrator, 
 	contextMetadata.Endpoints[docker.DockerEndpoint] = dockerEP
 	if dockerTLS != nil {
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerTLS
+	}
+	if len(o.Kubernetes) != 0 {
+		logrus.Warn("kubernetes orchestrator is deprecated")
 	}
 	if err := validateEndpointsAndOrchestrator(contextMetadata); err != nil {
 		return err

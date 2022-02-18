@@ -3,6 +3,7 @@ package context
 import (
 	"bytes"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
@@ -15,11 +16,14 @@ import (
 
 // UpdateOptions are the options used to update a context
 type UpdateOptions struct {
-	Name                     string
-	Description              string
+	Name        string
+	Description string
+	Docker      map[string]string
+
+	// Deprecated
 	DefaultStackOrchestrator string
-	Docker                   map[string]string
-	Kubernetes               map[string]string
+	// Deprecated
+	Kubernetes map[string]string
 }
 
 func longUpdateDescription() string {
@@ -97,6 +101,9 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 		}
 		c.Endpoints[docker.DockerEndpoint] = dockerEP
 		tlsDataToReset[docker.DockerEndpoint] = dockerTLS
+	}
+	if len(o.Kubernetes) != 0 {
+		logrus.Warn("kubernetes orchestrator is deprecated")
 	}
 	if err := validateEndpointsAndOrchestrator(c); err != nil {
 		return err
