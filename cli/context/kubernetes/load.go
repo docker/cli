@@ -1,14 +1,10 @@
 package kubernetes
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/store"
 	api "github.com/docker/compose-on-kubernetes/api"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -22,6 +18,7 @@ type EndpointMeta struct {
 	AuthProvider     *clientcmdapi.AuthProviderConfig `json:",omitempty"`
 	Exec             *clientcmdapi.ExecConfig         `json:",omitempty"`
 	UsernamePassword *UsernamePassword                `json:"usernamePassword,omitempty"`
+	Token            string                           `json:"token,omitempty"`
 }
 
 // UsernamePassword contains username/password auth info
@@ -64,6 +61,7 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 	cluster.Server = c.Host
 	cluster.InsecureSkipTLSVerify = c.SkipTLSVerify
 	authInfo := clientcmdapi.NewAuthInfo()
+	authInfo.Token = c.Token
 	if c.TLSData != nil {
 		cluster.CertificateAuthorityData = c.TLSData.CA
 		authInfo.ClientCertificateData = c.TLSData.Cert
@@ -89,11 +87,7 @@ func (c *Endpoint) KubernetesConfig() clientcmd.ClientConfig {
 // ResolveDefault returns endpoint metadata for the default Kubernetes
 // endpoint, which is derived from the env-based kubeconfig.
 func (c *EndpointMeta) ResolveDefault(stackOrchestrator command.Orchestrator) (interface{}, *store.EndpointTLSData, error) {
-	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		kubeconfig = filepath.Join(homedir.Get(), ".kube/config")
-	}
-	kubeEP, err := FromKubeConfig(kubeconfig, "", "")
+	kubeEP, err := FromKubeConfig("", "", "")
 	if err != nil {
 		if stackOrchestrator == command.OrchestratorKubernetes || stackOrchestrator == command.OrchestratorAll {
 			return nil, nil, errors.Wrapf(err, "default orchestrator is %s but unable to resolve kubernetes endpoint", stackOrchestrator)

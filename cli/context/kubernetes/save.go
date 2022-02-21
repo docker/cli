@@ -10,8 +10,13 @@ import (
 
 // FromKubeConfig creates a Kubernetes endpoint from a Kubeconfig file
 func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	if kubeconfig != "" {
+		loadingRules = &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig}
+	}
+
 	cfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		loadingRules,
 		&clientcmd.ConfigOverrides{CurrentContext: kubeContext, Context: clientcmdapi.Context{Namespace: namespaceOverride}})
 	ns, _, err := cfg.Namespace()
 	if err != nil {
@@ -56,6 +61,7 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 			AuthProvider:     clientcfg.AuthProvider,
 			Exec:             clientcfg.ExecProvider,
 			UsernamePassword: usernamePassword,
+			Token:            clientcfg.BearerToken,
 		},
 		TLSData: tlsData,
 	}, nil
