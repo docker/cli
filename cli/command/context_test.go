@@ -9,19 +9,17 @@ import (
 
 func TestDockerContextMetadataKeepAdditionalFields(t *testing.T) {
 	c := DockerContext{
-		Description:       "test",
-		StackOrchestrator: OrchestratorSwarm,
+		Description: "test",
 		AdditionalFields: map[string]interface{}{
 			"foo": "bar",
 		},
 	}
 	jsonBytes, err := json.Marshal(c)
 	assert.NilError(t, err)
-	assert.Equal(t, `{"Description":"test","StackOrchestrator":"swarm","foo":"bar"}`, string(jsonBytes))
+	assert.Equal(t, `{"Description":"test","foo":"bar"}`, string(jsonBytes))
 
 	var c2 DockerContext
 	assert.NilError(t, json.Unmarshal(jsonBytes, &c2))
 	assert.Equal(t, c2.AdditionalFields["foo"], "bar")
-	assert.Equal(t, c2.StackOrchestrator, OrchestratorSwarm)
 	assert.Equal(t, c2.Description, "test")
 }

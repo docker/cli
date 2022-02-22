@@ -59,11 +59,10 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			meta.Description = "Current DOCKER_HOST based configuration"
 		}
 		desc := formatter.ClientContext{
-			Name:              rawMeta.Name,
-			Current:           rawMeta.Name == curContext,
-			Description:       meta.Description,
-			StackOrchestrator: string(meta.StackOrchestrator),
-			DockerEndpoint:    dockerEndpoint.Host,
+			Name:           rawMeta.Name,
+			Current:        rawMeta.Name == curContext,
+			Description:    meta.Description,
+			DockerEndpoint: dockerEndpoint.Host,
 		}
 		contexts = append(contexts, &desc)
 	}

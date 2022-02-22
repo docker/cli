@@ -9,7 +9,6 @@ Aliases:
 Options:
   -c, --compose-file strings   Path to a Compose file, or "-" to read
                                from stdin
-      --orchestrator string    Orchestrator to use (swarm|all)
       --prune                  Prune services that are no longer referenced
       --resolve-image string   Query the registry to resolve image digest
                                and supported platforms

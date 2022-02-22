@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newListCommand(dockerCli command.Cli) *cobra.Command {
 	opts := options.List{}
 
 	cmd := &cobra.Command{
@@ -21,7 +21,7 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunList(cmd, dockerCli, opts, common.orchestrator)
+			return RunList(cmd, dockerCli, opts)
 		},
 	}
 
@@ -30,16 +30,14 @@ func newListCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command
 	return cmd
 }
 
-// RunList performs a stack list against the specified orchestrator
-func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List, orchestrator command.Orchestrator) error {
+// RunList performs a stack list against the specified swarm cluster
+func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error {
 	stacks := []*formatter.Stack{}
-	if orchestrator.HasSwarm() {
-		ss, err := swarm.GetStacks(dockerCli)
-		if err != nil {
-			return err
-		}
-		stacks = append(stacks, ss...)
+	ss, err := swarm.GetStacks(dockerCli)
+	if err != nil {
+		return err
 	}
+	stacks = append(stacks, ss...)
 	return format(dockerCli, opts, stacks)
 }
 

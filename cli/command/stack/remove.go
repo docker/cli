@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	var opts options.Remove
 
 	cmd := &cobra.Command{
@@ -22,13 +22,13 @@ func newRemoveCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err := validateStackNames(opts.Namespaces); err != nil {
 				return err
 			}
-			return RunRemove(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
+			return RunRemove(dockerCli, cmd.Flags(), opts)
 		},
 	}
 	return cmd
 }
 
-// RunRemove performs a stack remove against the specified orchestrator
-func RunRemove(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Remove) error {
+// RunRemove performs a stack remove against the specified swarm cluster
+func RunRemove(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Remove) error {
 	return swarm.RunRemove(dockerCli, opts)
 }

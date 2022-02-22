@@ -27,9 +27,9 @@ func TestStackContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: SwarmStackTableFormat},
-			`NAME      SERVICES   ORCHESTRATOR
-baz       2          orchestrator1
-bar       1          orchestrator2
+			`NAME      SERVICES
+baz       2
+bar       1
 `,
 		},
 		{
@@ -49,8 +49,8 @@ bar
 	}
 
 	stacks := []*Stack{
-		{Name: "baz", Services: 2, Orchestrator: "orchestrator1"},
-		{Name: "bar", Services: 1, Orchestrator: "orchestrator2"},
+		{Name: "baz", Services: 2},
+		{Name: "bar", Services: 1},
 	}
 	for _, tc := range cases {
 		tc := tc

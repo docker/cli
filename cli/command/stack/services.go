@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	opts := options.Services{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -29,7 +29,7 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunServices(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
+			return RunServices(dockerCli, cmd.Flags(), opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -39,17 +39,17 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 	return cmd
 }
 
-// RunServices performs a stack services against the specified orchestrator
-func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) error {
-	services, err := GetServices(dockerCli, flags, commonOrchestrator, opts)
+// RunServices performs a stack services against the specified swarm cluster
+func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) error {
+	services, err := GetServices(dockerCli, flags, opts)
 	if err != nil {
 		return err
 	}
 	return formatWrite(dockerCli, services, opts)
 }
 
-// GetServices returns the services for the specified orchestrator
-func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) ([]swarmtypes.Service, error) {
+// GetServices returns the services for the specified swarm cluster
+func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) ([]swarmtypes.Service, error) {
 	return swarm.GetServices(dockerCli, opts)
 }
 

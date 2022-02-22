@@ -3,7 +3,6 @@ package context
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
@@ -58,10 +57,12 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		"default-stack-orchestrator", "",
 		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
 	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
+	flags.MarkDeprecated("default-stack-orchestrator", "option will be ignored")
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
 	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
 	flags.SetAnnotation("kubernetes", "kubernetes", nil)
 	flags.SetAnnotation("kubernetes", "deprecated", nil)
+	flags.MarkDeprecated("kubernetes", "option will be ignored")
 	return cmd
 }
 
@@ -79,13 +80,6 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 	if err != nil {
 		return err
 	}
-	if o.DefaultStackOrchestrator != "" {
-		stackOrchestrator, err := command.NormalizeOrchestrator(o.DefaultStackOrchestrator)
-		if err != nil {
-			return errors.Wrap(err, "unable to parse default-stack-orchestrator")
-		}
-		dockerContext.StackOrchestrator = stackOrchestrator
-	}
 	if o.Description != "" {
 		dockerContext.Description = o.Description
 	}
@@ -102,10 +96,7 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 		c.Endpoints[docker.DockerEndpoint] = dockerEP
 		tlsDataToReset[docker.DockerEndpoint] = dockerTLS
 	}
-	if len(o.Kubernetes) != 0 {
-		logrus.Warn("kubernetes orchestrator is deprecated")
-	}
-	if err := validateEndpointsAndOrchestrator(c); err != nil {
+	if err := validateEndpoints(c); err != nil {
 		return err
 	}
 	if err := s.CreateOrUpdate(c); err != nil {
@@ -122,7 +113,7 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 	return nil
 }
 
-func validateEndpointsAndOrchestrator(c store.Metadata) error {
+func validateEndpoints(c store.Metadata) error {
 	_, err := command.GetDockerContext(c)
 	return err
 }

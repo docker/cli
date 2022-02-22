@@ -1,5 +1,5 @@
-NAME        DESCRIPTION                               DOCKER ENDPOINT                       ORCHESTRATOR
-current *   description of current                    https://someswarmserver.example.com   all
-default     Current DOCKER_HOST based configuration   unix:///var/run/docker.sock           swarm
-other       description of other                      https://someswarmserver.example.com   all
-unset       description of unset                      https://someswarmserver.example.com   
+NAME        DESCRIPTION                               DOCKER ENDPOINT
+current *   description of current                    https://someswarmserver.example.com
+default     Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+other       description of other                      https://someswarmserver.example.com
+unset       description of unset                      https://someswarmserver.example.com

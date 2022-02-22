@@ -1,3 +1,3 @@
-NAME        DESCRIPTION                               DOCKER ENDPOINT               ORCHESTRATOR
-default *   Current DOCKER_HOST based configuration   unix:///var/run/docker.sock   swarm
-remote      my remote cluster                         ssh://someserver              kubernetes
+NAME        DESCRIPTION                               DOCKER ENDPOINT
+default *   Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+remote      my remote cluster                         ssh://someserver

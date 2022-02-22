@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	opts := options.PS{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -22,7 +22,7 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunPs(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
+			return RunPs(dockerCli, cmd.Flags(), opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -34,7 +34,7 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	return cmd
 }
 
-// RunPs performs a stack ps against the specified orchestrator
-func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
+// RunPs performs a stack ps against the specified swarm cluster
+func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, opts options.PS) error {
 	return swarm.RunPS(dockerCli, opts)
 }

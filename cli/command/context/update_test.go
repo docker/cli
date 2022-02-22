@@ -28,7 +28,6 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 	assert.NilError(t, err)
 	dc, err := command.GetDockerContext(c)
 	assert.NilError(t, err)
-	assert.Equal(t, dc.StackOrchestrator, command.OrchestratorSwarm)
 	assert.Equal(t, dc.Description, "description")
 
 	assert.Equal(t, "test\n", cli.OutBuffer().String())
@@ -49,7 +48,6 @@ func TestUpdateDockerOnly(t *testing.T) {
 	assert.NilError(t, err)
 	dc, err := command.GetDockerContext(c)
 	assert.NilError(t, err)
-	assert.Equal(t, dc.StackOrchestrator, command.OrchestratorSwarm)
 	assert.Equal(t, dc.Description, "description of test")
 	assert.Check(t, cmp.Contains(c.Endpoints, docker.DockerEndpoint))
 	assert.Equal(t, c.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host, "tcp://some-host")

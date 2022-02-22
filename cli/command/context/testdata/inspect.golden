@@ -2,8 +2,7 @@
     {
         "Name": "current",
         "Metadata": {
-            "Description": "description of current",
-            "StackOrchestrator": "all"
+            "Description": "description of current"
         },
         "Endpoints": {
             "docker": {

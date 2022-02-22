@@ -8,10 +8,9 @@ import (
 
 const (
 	// SwarmStackTableFormat is the default Swarm stack format
-	SwarmStackTableFormat formatter.Format = "table {{.Name}}\t{{.Services}}\t{{.Orchestrator}}"
+	SwarmStackTableFormat formatter.Format = "table {{.Name}}\t{{.Services}}"
 
-	stackServicesHeader      = "SERVICES"
-	stackOrchestrastorHeader = "ORCHESTRATOR"
+	stackServicesHeader = "SERVICES"
 
 	// TableFormatKey is an alias for formatter.TableFormatKey
 	TableFormatKey = formatter.TableFormatKey
@@ -29,8 +28,6 @@ type Stack struct {
 	Name string
 	// Services is the number of the services
 	Services int
-	// Orchestrator is the platform where the stack is deployed
-	Orchestrator string
 }
 
 // StackWrite writes formatted stacks using the Context
@@ -54,9 +51,8 @@ type stackContext struct {
 func newStackContext() *stackContext {
 	stackCtx := stackContext{}
 	stackCtx.Header = formatter.SubHeaderContext{
-		"Name":         formatter.NameHeader,
-		"Services":     stackServicesHeader,
-		"Orchestrator": stackOrchestrastorHeader,
+		"Name":     formatter.NameHeader,
+		"Services": stackServicesHeader,
 	}
 	return &stackCtx
 }
@@ -71,8 +67,4 @@ func (s *stackContext) Name() string {
 
 func (s *stackContext) Services() string {
 	return strconv.Itoa(s.s.Services)
-}
-
-func (s *stackContext) Orchestrator() string {
-	return s.s.Orchestrator
 }

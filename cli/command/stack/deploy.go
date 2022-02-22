@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	var opts options.Deploy
 
 	cmd := &cobra.Command{
@@ -28,7 +28,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err != nil {
 				return err
 			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, common.Orchestrator(), opts)
+			return RunDeploy(dockerCli, cmd.Flags(), config, opts)
 		},
 	}
 
@@ -47,7 +47,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	return cmd
 }
 
-// RunDeploy performs a stack deploy against the specified orchestrator
-func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
+// RunDeploy performs a stack deploy against the specified swarm cluster
+func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, opts options.Deploy) error {
 	return swarm.RunDeploy(dockerCli, opts, config)
 }
