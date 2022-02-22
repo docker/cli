@@ -17,11 +17,11 @@ import (
 	"gotest.tools/v3/fs"
 )
 
-func withDefaultOpts(options execOptions) execOptions {
-	options.env = opts.NewListOpts(opts.ValidateEnv)
-	options.envFile = opts.NewListOpts(nil)
-	if len(options.command) == 0 {
-		options.command = []string{"command"}
+func withDefaultOpts(options ExecOptions) ExecOptions {
+	options.Env = opts.NewListOpts(opts.ValidateEnv)
+	options.EnvFile = opts.NewListOpts(nil)
+	if len(options.Command) == 0 {
+		options.Command = []string{"command"}
 	}
 	return options
 }
@@ -35,7 +35,7 @@ TWO=2
 	defer tmpFile.Remove()
 
 	testcases := []struct {
-		options    execOptions
+		options    ExecOptions
 		configFile configfile.ConfigFile
 		expected   types.ExecConfig
 	}{
@@ -45,7 +45,7 @@ TWO=2
 				AttachStdout: true,
 				AttachStderr: true,
 			},
-			options: withDefaultOpts(execOptions{}),
+			options: withDefaultOpts(ExecOptions{}),
 		},
 		{
 			expected: types.ExecConfig{
@@ -53,15 +53,15 @@ TWO=2
 				AttachStdout: true,
 				AttachStderr: true,
 			},
-			options: withDefaultOpts(execOptions{
-				command: []string{"command1", "command2"},
+			options: withDefaultOpts(ExecOptions{
+				Command: []string{"command1", "command2"},
 			}),
 		},
 		{
-			options: withDefaultOpts(execOptions{
-				interactive: true,
-				tty:         true,
-				user:        "uid",
+			options: withDefaultOpts(ExecOptions{
+				Interactive: true,
+				TTY:         true,
+				User:        "uid",
 			}),
 			expected: types.ExecConfig{
 				User:         "uid",
@@ -73,17 +73,17 @@ TWO=2
 			},
 		},
 		{
-			options: withDefaultOpts(execOptions{detach: true}),
+			options: withDefaultOpts(ExecOptions{Detach: true}),
 			expected: types.ExecConfig{
 				Detach: true,
 				Cmd:    []string{"command"},
 			},
 		},
 		{
-			options: withDefaultOpts(execOptions{
-				tty:         true,
-				interactive: true,
-				detach:      true,
+			options: withDefaultOpts(ExecOptions{
+				TTY:         true,
+				Interactive: true,
+				Detach:      true,
 			}),
 			expected: types.ExecConfig{
 				Detach: true,
@@ -92,7 +92,7 @@ TWO=2
 			},
 		},
 		{
-			options:    withDefaultOpts(execOptions{detach: true}),
+			options:    withDefaultOpts(ExecOptions{Detach: true}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
 			expected: types.ExecConfig{
 				Cmd:        []string{"command"},
@@ -101,9 +101,9 @@ TWO=2
 			},
 		},
 		{
-			options: withDefaultOpts(execOptions{
-				detach:     true,
-				detachKeys: "ab",
+			options: withDefaultOpts(ExecOptions{
+				Detach:     true,
+				DetachKeys: "ab",
 			}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
 			expected: types.ExecConfig{
@@ -119,9 +119,9 @@ TWO=2
 				AttachStderr: true,
 				Env:          []string{"ONE=1", "TWO=2"},
 			},
-			options: func() execOptions {
-				o := withDefaultOpts(execOptions{})
-				o.envFile.Set(tmpFile.Path())
+			options: func() ExecOptions {
+				o := withDefaultOpts(ExecOptions{})
+				o.EnvFile.Set(tmpFile.Path())
 				return o
 			}(),
 		},
@@ -132,10 +132,10 @@ TWO=2
 				AttachStderr: true,
 				Env:          []string{"ONE=1", "TWO=2", "ONE=override"},
 			},
-			options: func() execOptions {
-				o := withDefaultOpts(execOptions{})
-				o.envFile.Set(tmpFile.Path())
-				o.env.Set("ONE=override")
+			options: func() ExecOptions {
+				o := withDefaultOpts(ExecOptions{})
+				o.EnvFile.Set(tmpFile.Path())
+				o.Env.Set("ONE=override")
 				return o
 			}(),
 		},
@@ -149,8 +149,8 @@ TWO=2
 }
 
 func TestParseExecNoSuchFile(t *testing.T) {
-	execOpts := withDefaultOpts(execOptions{})
-	execOpts.envFile.Set("no-such-env-file")
+	execOpts := withDefaultOpts(ExecOptions{})
+	execOpts.EnvFile.Set("no-such-env-file")
 	execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
 	assert.ErrorContains(t, err, "no-such-env-file")
 	assert.Check(t, os.IsNotExist(err))
@@ -160,7 +160,7 @@ func TestParseExecNoSuchFile(t *testing.T) {
 func TestRunExec(t *testing.T) {
 	var testcases = []struct {
 		doc           string
-		options       execOptions
+		options       ExecOptions
 		client        fakeClient
 		expectedError string
 		expectedOut   string
@@ -168,15 +168,15 @@ func TestRunExec(t *testing.T) {
 	}{
 		{
 			doc: "successful detach",
-			options: withDefaultOpts(execOptions{
-				container: "thecontainer",
-				detach:    true,
+			options: withDefaultOpts(ExecOptions{
+				Container: "thecontainer",
+				Detach:    true,
 			}),
 			client: fakeClient{execCreateFunc: execCreateWithID},
 		},
 		{
 			doc:     "inspect error",
-			options: newExecOptions(),
+			options: NewExecOptions(),
 			client: fakeClient{
 				inspectFunc: func(string) (types.ContainerJSON, error) {
 					return types.ContainerJSON{}, errors.New("failed inspect")
@@ -186,7 +186,7 @@ func TestRunExec(t *testing.T) {
 		},
 		{
 			doc:           "missing exec ID",
-			options:       newExecOptions(),
+			options:       NewExecOptions(),
 			expectedError: "exec ID empty",
 		},
 	}
@@ -195,7 +195,7 @@ func TestRunExec(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&testcase.client)
 
-			err := runExec(cli, testcase.options)
+			err := RunExec(cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else {

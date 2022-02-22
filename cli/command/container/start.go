@@ -15,58 +15,65 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type startOptions struct {
-	attach        bool
-	openStdin     bool
-	detachKeys    string
-	checkpoint    string
-	checkpointDir string
+// StartOptions group options for `start` command
+type StartOptions struct {
+	Attach        bool
+	OpenStdin     bool
+	DetachKeys    string
+	Checkpoint    string
+	CheckpointDir string
 
-	containers []string
+	Containers []string
+}
+
+// NewStartOptions creates a new StartOptions
+func NewStartOptions() StartOptions {
+	return StartOptions{}
 }
 
 // NewStartCommand creates a new cobra.Command for `docker start`
 func NewStartCommand(dockerCli command.Cli) *cobra.Command {
-	var opts startOptions
+	var opts StartOptions
 
 	cmd := &cobra.Command{
 		Use:   "start [OPTIONS] CONTAINER [CONTAINER...]",
 		Short: "Start one or more stopped containers",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.containers = args
-			return runStart(dockerCli, &opts)
+			opts.Containers = args
+			return RunStart(dockerCli, &opts)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.attach, "attach", "a", false, "Attach STDOUT/STDERR and forward signals")
-	flags.BoolVarP(&opts.openStdin, "interactive", "i", false, "Attach container's STDIN")
-	flags.StringVar(&opts.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.BoolVarP(&opts.Attach, "attach", "a", false, "Attach STDOUT/STDERR and forward signals")
+	flags.BoolVarP(&opts.OpenStdin, "interactive", "i", false, "Attach container's STDIN")
+	flags.StringVar(&opts.DetachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
 
-	flags.StringVar(&opts.checkpoint, "checkpoint", "", "Restore from this checkpoint")
+	flags.StringVar(&opts.Checkpoint, "checkpoint", "", "Restore from this checkpoint")
 	flags.SetAnnotation("checkpoint", "experimental", nil)
 	flags.SetAnnotation("checkpoint", "ostype", []string{"linux"})
-	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
+	flags.StringVar(&opts.CheckpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 	flags.SetAnnotation("checkpoint-dir", "experimental", nil)
 	flags.SetAnnotation("checkpoint-dir", "ostype", []string{"linux"})
 	return cmd
 }
 
+// RunStart executes a `start` command
 // nolint: gocyclo
-func runStart(dockerCli command.Cli, opts *startOptions) error {
+func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
 
-	if opts.attach || opts.openStdin {
+	if opts.Attach || opts.OpenStdin {
 		// We're going to attach to a container.
 		// 1. Ensure we only have one container.
-		if len(opts.containers) > 1 {
+		if len(opts.Containers) > 1 {
 			return errors.New("you cannot start and attach multiple containers at once")
 		}
 
 		// 2. Attach to the container.
-		container := opts.containers[0]
+		container := opts.Containers[0]
 		c, err := dockerCli.Client().ContainerInspect(ctx, container)
 		if err != nil {
 			return err
@@ -79,13 +86,13 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 			defer signal.StopCatch(sigc)
 		}
 
-		if opts.detachKeys != "" {
-			dockerCli.ConfigFile().DetachKeys = opts.detachKeys
+		if opts.DetachKeys != "" {
+			dockerCli.ConfigFile().DetachKeys = opts.DetachKeys
 		}
 
 		options := types.ContainerAttachOptions{
 			Stream:     true,
-			Stdin:      opts.openStdin && c.Config.OpenStdin,
+			Stdin:      opts.OpenStdin && c.Config.OpenStdin,
 			Stdout:     true,
 			Stderr:     true,
 			DetachKeys: dockerCli.ConfigFile().DetachKeys,
@@ -129,8 +136,8 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 		// no matter it's detached, removed on daemon side(--rm) or exit normally.
 		statusChan := waitExitOrRemoved(ctx, dockerCli, c.ID, c.HostConfig.AutoRemove)
 		startOptions := types.ContainerStartOptions{
-			CheckpointID:  opts.checkpoint,
-			CheckpointDir: opts.checkpointDir,
+			CheckpointID:  opts.Checkpoint,
+			CheckpointDir: opts.CheckpointDir,
 		}
 
 		// 4. Start the container.
@@ -161,21 +168,21 @@ func runStart(dockerCli command.Cli, opts *startOptions) error {
 		if status := <-statusChan; status != 0 {
 			return cli.StatusError{StatusCode: status}
 		}
-	} else if opts.checkpoint != "" {
-		if len(opts.containers) > 1 {
+	} else if opts.Checkpoint != "" {
+		if len(opts.Containers) > 1 {
 			return errors.New("you cannot restore multiple containers at once")
 		}
-		container := opts.containers[0]
+		container := opts.Containers[0]
 		startOptions := types.ContainerStartOptions{
-			CheckpointID:  opts.checkpoint,
-			CheckpointDir: opts.checkpointDir,
+			CheckpointID:  opts.Checkpoint,
+			CheckpointDir: opts.CheckpointDir,
 		}
 		return dockerCli.Client().ContainerStart(ctx, container, startOptions)
 
 	} else {
 		// We're not going to attach to anything.
 		// Start as many containers as we want.
-		return startContainersWithoutAttachments(ctx, dockerCli, opts.containers)
+		return startContainersWithoutAttachments(ctx, dockerCli, opts.Containers)
 	}
 
 	return nil
