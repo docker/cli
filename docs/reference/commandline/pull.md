@@ -109,8 +109,8 @@ refer to [understand images, containers, and storage drivers](https://docs.docke
 So far, you've pulled images by their name (and "tag"). Using names and tags is
 a convenient way to work with images. When using tags, you can `docker pull` an
 image again to make sure you have the most up-to-date version of that image.
-For example, `docker pull ubuntu:14.04` pulls the latest version of the Ubuntu
-14.04 image.
+For example, `docker pull ubuntu:20.04` pulls the latest version of the Ubuntu
+20.04 image.
 
 In some cases you don't want images to be updated to newer versions, but prefer
 to use a fixed version of an image. Docker enables you to pull an image by its
@@ -119,7 +119,7 @@ of an image to pull. Doing so, allows you to "pin" an image to that version,
 and guarantee that the image you're using is always the same.
 
 To know the digest of an image, pull the image first. Let's pull the latest
-`ubuntu:14.04` image from Docker Hub:
+`ubuntu:20.04` image from Docker Hub:
 
 ```console
 $ docker pull ubuntu:20.04

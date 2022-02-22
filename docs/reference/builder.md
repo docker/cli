@@ -112,7 +112,7 @@ instructions.
 
 Whenever possible, Docker uses a build-cache to accelerate the `docker build`
 process significantly. This is indicated by the `CACHED` message in the console
-output. (For more information, see the [`Dockerfile` best practices guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/):
+output. (For more information, see the [`Dockerfile` best practices guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)):
 
 ```console
 $ docker build -t svendowideit/ambassador .
@@ -159,8 +159,8 @@ implementation. For example, BuildKit can:
 To use the BuildKit backend, you need to set an environment variable
 `DOCKER_BUILDKIT=1` on the CLI before invoking `docker build`.
 
-To learn about the experimental Dockerfile syntax available to BuildKit-based
-builds [refer to the documentation in the BuildKit repository](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/experimental.md).
+To learn about the Dockerfile syntax available to BuildKit-based
+builds [refer to the documentation in the BuildKit repository](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md).
 
 ## Format
 
@@ -1823,6 +1823,11 @@ RUN pwd
 
 The output of the final `pwd` command in this `Dockerfile` would be
 `/path/$DIRNAME`
+
+If not specified, the default working directory is `/`. In practice, if you aren't building a Dockerfile from scratch (`FROM scratch`), 
+the `WORKDIR` may likely be set by the base image you're using.
+
+Therefore, to avoid unintended operations in unknown directories, it is best practice to set your `WORKDIR` explicitly.
 
 ## ARG
 

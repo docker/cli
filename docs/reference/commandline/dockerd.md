@@ -115,8 +115,8 @@ Options with [] may be specified multiple times.
 uses different binaries for the daemon and client. To run the daemon you
 type `dockerd`.
 
-To run the daemon with debug output, use `dockerd -D` or add `"debug": true` to
-the `daemon.json` file.
+To run the daemon with debug output, use `dockerd --debug` or add `"debug": true`
+to [the `daemon.json` file](#daemon-configuration-file).
 
 > **Enabling experimental features**
 > 
@@ -312,7 +312,7 @@ article explains how to tune your existing setup without the use of options.
 
 The `btrfs` driver is very fast for `docker build` - but like `devicemapper`
 does not share executable memory between devices. Use
-`dockerd -s btrfs -g /mnt/btrfs_partition`.
+`dockerd --storage-driver btrfs --data-root /mnt/btrfs_partition`.
 
 The `zfs` driver is probably not as fast as `btrfs` but has a longer track record
 on stability. Thanks to `Single Copy ARC` shared blocks between clones will be
@@ -1233,14 +1233,14 @@ for `/var/lib/docker/tmp`. The `DOCKER_TMPDIR` and the data directory can be
 set like this:
 
 ```console
-$ DOCKER_TMPDIR=/mnt/disk2/tmp /usr/local/bin/dockerd -D -g /var/lib/docker -H unix:// > /var/lib/docker-machine/docker.log 2>&1
+$ DOCKER_TMPDIR=/mnt/disk2/tmp /usr/local/bin/dockerd --data-root /var/lib/docker -H unix:// > /var/lib/docker-machine/docker.log 2>&1
 ```
 
 or
 
 ```console
 $ export DOCKER_TMPDIR=/mnt/disk2/tmp
-$ /usr/local/bin/dockerd -D -g /var/lib/docker -H unix:// > /var/lib/docker-machine/docker.log 2>&1
+$ /usr/local/bin/dockerd --data-root /var/lib/docker -H unix:// > /var/lib/docker-machine/docker.log 2>&1
 ````
 
 #### Default cgroup parent
@@ -1554,7 +1554,7 @@ The list of currently supported options that can be reconfigured is this:
   be used to run containers.
 - `authorization-plugin`: it specifies the authorization plugins to use.
 - `allow-nondistributable-artifacts`: Replaces the set of registries to which the daemon will push nondistributable artifacts with a new set of registries.
-- `insecure-registries`: it replaces the daemon insecure registries with a new set of insecure registries. If some existing insecure registries in daemon's configuration are not in newly reloaded insecure resgitries, these existing ones will be removed from daemon's config.
+- `insecure-registries`: it replaces the daemon insecure registries with a new set of insecure registries. If some existing insecure registries in daemon's configuration are not in newly reloaded insecure registries, these existing ones will be removed from daemon's config.
 - `registry-mirrors`: it replaces the daemon registry mirrors with a new set of registry mirrors. If some existing registry mirrors in daemon's configuration are not in newly reloaded registry mirrors, these existing ones will be removed from daemon's config.
 - `shutdown-timeout`: it replaces the daemon's existing configuration timeout with a new timeout for shutting down all containers.
 - `features`: it explicitly enables or disables specific features.
