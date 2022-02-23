@@ -17,9 +17,6 @@ Aliases:
 Options:
       --help                  Print usage
       --format string         Pretty-print stacks using a Go template
-      --kubeconfig string     Kubernetes config file
-      --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
 ```
 
 ## Description

@@ -15,9 +15,6 @@ Options:
   -f, --filter filter         Filter output based on conditions provided
       --format string         Pretty-print services using a Go template
       --help                  Print usage
-      --kubeconfig string     Kubernetes config file
-      --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
   -q, --quiet                 Only display IDs
 ```
 

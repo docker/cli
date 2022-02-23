@@ -30,27 +30,16 @@ $ docker context inspect "local+aks"
   {
     "Name": "local+aks",
     "Metadata": {
-      "Description": "Local Docker Engine + Azure AKS endpoint",
-      "StackOrchestrator": "kubernetes"
+      "Description": "Local Docker Engine",
+      "StackOrchestrator": "swarm"
     },
     "Endpoints": {
       "docker": {
         "Host": "npipe:////./pipe/docker_engine",
         "SkipTLSVerify": false
-      },
-      "kubernetes": {
-        "Host": "https://simon-aks-***.hcp.uksouth.azmk8s.io:443",
-        "SkipTLSVerify": false,
-        "DefaultNamespace": "default"
       }
     },
-    "TLSMaterial": {
-      "kubernetes": [
-        "ca.pem",
-        "cert.pem",
-        "key.pem"
-      ]
-    },
+    "TLSMaterial": {},
     "Storage": {
       "MetadataPath": "C:\\Users\\simon\\.docker\\contexts\\meta\\cb6d08c0a1bfa5fe6f012e61a442788c00bed93f509141daff05f620fc54ddee",
       "TLSPath": "C:\\Users\\simon\\.docker\\contexts\\tls\\cb6d08c0a1bfa5fe6f012e61a442788c00bed93f509141daff05f620fc54ddee"
