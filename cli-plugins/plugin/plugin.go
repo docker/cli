@@ -160,3 +160,11 @@ func newMetadataSubcommand(plugin *cobra.Command, meta manager.Metadata) *cobra.
 	}
 	return cmd
 }
+
+// RunningStandalone tells a CLI plugin it is run standalone by direct execution
+func RunningStandalone() bool {
+	if os.Getenv(manager.ReexecEnvvar) != "" {
+		return false
+	}
+	return len(os.Args) < 2 || os.Args[1] != manager.MetadataSubcommandName
+}
