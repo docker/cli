@@ -128,13 +128,6 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	}
 
 	// TODO print error if kubernetes is used?
-	// orchestrator, err := dockerCli.StackOrchestrator("")
-	// if err != nil {
-	// 	return cli.StatusError{StatusCode: 64, Status: err.Error()}
-	// }
-	// if orchestrator.HasKubernetes() {
-	// 	// TODO print error if kubernetes is used?
-	// }
 
 	vd := versionInfo{
 		Client: clientVersion{
