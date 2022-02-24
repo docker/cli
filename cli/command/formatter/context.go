@@ -75,6 +75,9 @@ func (c *clientContextContext) DockerEndpoint() string {
 	return c.c.DockerEndpoint
 }
 
+// KubernetesEndpoint returns the kubernetes endpoint.
+//
+// Deprecated: support for kubernetes endpoints in contexts has been removed, and this formatting option will always be empty.
 func (c *clientContextContext) KubernetesEndpoint() string {
 	return ""
 }
