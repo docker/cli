@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,6 +59,7 @@ type Cli interface {
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
+	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
@@ -165,6 +167,26 @@ func (cli *DockerCli) loadClientInfo() error {
 // environment variable.
 func (cli *DockerCli) ContentTrustEnabled() bool {
 	return cli.contentTrust
+}
+
+// BuildKitEnabled returns buildkit is enabled or not.
+func (cli *DockerCli) BuildKitEnabled() (bool, error) {
+	// use DOCKER_BUILDKIT env var value if set
+	if v, ok := os.LookupEnv("DOCKER_BUILDKIT"); ok {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+		}
+		return enabled, nil
+	}
+	// if a builder alias is defined, we are using BuildKit
+	aliasMap := cli.ConfigFile().Aliases
+	if _, ok := aliasMap["builder"]; ok {
+		return true, nil
+	}
+	// otherwise, assume BuildKit is enabled but
+	// not if wcow reported from server side
+	return cli.ServerInfo().OSType != "windows", nil
 }
 
 // ManifestStore returns a store for local manifests
