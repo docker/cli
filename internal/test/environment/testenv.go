@@ -53,11 +53,6 @@ func Setup() error {
 	return nil
 }
 
-// KubernetesEnabled returns if Kubernetes testing is enabled
-func KubernetesEnabled() bool {
-	return os.Getenv("KUBECONFIG") != ""
-}
-
 // RemoteDaemon returns true if running against a remote daemon
 func RemoteDaemon() bool {
 	return os.Getenv("REMOTE_DAEMON") != ""
