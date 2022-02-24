@@ -14,7 +14,6 @@ import (
 
 // ExportOptions are the options used for exporting a context
 type ExportOptions struct {
-	Kubeconfig  bool
 	ContextName string
 	Dest        string
 }
@@ -23,26 +22,22 @@ func newExportCommand(dockerCli command.Cli) *cobra.Command {
 	opts := &ExportOptions{}
 	cmd := &cobra.Command{
 		Use:   "export [OPTIONS] CONTEXT [FILE|-]",
-		Short: "Export a context to a tar or kubeconfig file",
+		Short: "Export a context to a tar archive FILE or a tar stream on STDOUT.",
 		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ContextName = args[0]
 			if len(args) == 2 {
 				opts.Dest = args[1]
 			} else {
-				opts.Dest = opts.ContextName
-				if opts.Kubeconfig {
-					opts.Dest += ".kubeconfig"
-				} else {
-					opts.Dest += ".dockercontext"
-				}
+				opts.Dest = opts.ContextName + ".dockercontext"
 			}
 			return RunExport(dockerCli, opts)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&opts.Kubeconfig, "kubeconfig", false, "Export as a kubeconfig file")
+	flags.Bool("kubeconfig", false, "Export as a kubeconfig file")
+	flags.MarkDeprecated("kubeconfig", "option will be ignored")
 	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
 	flags.SetAnnotation("kubeconfig", "deprecated", nil)
 	return cmd

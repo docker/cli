@@ -9,15 +9,16 @@ keywords: "context, export"
 ```markdown
 Usage:  docker context export [OPTIONS] CONTEXT [FILE|-]
 
-Export a context to a tar or kubeconfig file
-
-Options:
-      --kubeconfig   Export as a kubeconfig file
+Export a context to a tar archive FILE or a tar stream on STDOUT.
 ```
 
 ## Description
 
-Exports a context in a file that can then be used with `docker context import`
-(or with `kubectl` if `--kubeconfig` is set). Default output filename is
-`<CONTEXT>.dockercontext`, or `<CONTEXT>.kubeconfig` if `--kubeconfig` is set.
-To export to `STDOUT`, you can run `docker context export my-context -`.
+Exports a context to a file that can then be used with `docker context import`.
+
+The default output filename is `<CONTEXT>.dockercontext`. To export to `STDOUT`, 
+use `-` as filename, for example:
+
+```console
+$ docker context export my-context -
+```

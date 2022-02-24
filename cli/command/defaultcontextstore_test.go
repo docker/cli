@@ -60,9 +60,7 @@ func TestDefaultContextInitializer(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
 	defer env.Patch(t, "DOCKER_HOST", "ssh://someswarmserver")()
-	cli.configFile = &configfile.ConfigFile{
-		StackOrchestrator: "swarm",
-	}
+	cli.configFile = &configfile.ConfigFile{}
 	ctx, err := ResolveDefaultContext(&cliflags.CommonOptions{
 		TLS: true,
 		TLSOptions: &tlsconfig.Options{

@@ -17,10 +17,6 @@ func getStackFilter(namespace string) filters.Args {
 	return filter
 }
 
-func getStackServiceFilter(namespace string) filters.Args {
-	return getStackFilter(namespace)
-}
-
 func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
 	filter := opt.Value()
 	filter.Add("label", convert.LabelNamespace+"="+namespace)
@@ -34,7 +30,7 @@ func getAllStacksFilter() filters.Args {
 }
 
 func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {
-	return apiclient.ServiceList(ctx, types.ServiceListOptions{Filters: getStackServiceFilter(namespace)})
+	return apiclient.ServiceList(ctx, types.ServiceListOptions{Filters: getStackFilter(namespace)})
 }
 
 func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]types.NetworkResource, error) {

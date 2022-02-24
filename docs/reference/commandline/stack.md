@@ -13,8 +13,6 @@ Manage Docker stacks
 
 Options:
       --help                  Print usage
-      --kubeconfig string     Kubernetes config file
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
 
 Commands:
   deploy      Deploy a new stack or update an existing stack

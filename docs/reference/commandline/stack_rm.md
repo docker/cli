@@ -16,9 +16,6 @@ Aliases:
 
 Options:
       --help                  Print usage
-      --kubeconfig string     Kubernetes config file
-      --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
 ```
 
 ## Description
@@ -36,7 +33,8 @@ Remove the stack from the swarm.
 
 ### Remove a stack
 
-This will remove the stack with the name `myapp`. Services, networks, and secrets associated with the stack will be removed.
+This will remove the stack with the name `myapp`. Services, networks, and secrets
+associated with the stack will be removed.
 
 ```console
 $ docker stack rm myapp
@@ -50,7 +48,8 @@ Removing network myapp_frontend
 
 ### Remove multiple stacks
 
-This will remove all the specified stacks, `myapp` and `vossibility`. Services, networks, and secrets associated with all the specified stacks will be removed.
+This will remove all the specified stacks, `myapp` and `vossibility`. Services,
+networks, and secrets associated with all the specified stacks will be removed.
 
 ```console
 $ docker stack rm myapp vossibility

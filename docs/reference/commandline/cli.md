@@ -65,18 +65,17 @@ the [installation](https://docs.docker.com/install/) instructions for your opera
 The following list of environment variables are supported by the `docker` command
 line:
 
-| Variable                      | Description                                                                                                                           |
-|:------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------|
-| `DOCKER_API_VERSION`          | Override the negotiated API version to use for debugging (e.g. `1.19`)                                                                |
+| Variable                      | Description                                                                                                                             |
+|:------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| `DOCKER_API_VERSION`          | Override the negotiated API version to use for debugging (e.g. `1.19`)                                                                  |
 | `DOCKER_CERT_PATH`            | Location of your authentication keys. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md)             |
-| `DOCKER_CONFIG`               | The location of your client configuration files.                                                                                      |
-| `DOCKER_CONTENT_TRUST_SERVER` | The URL of the Notary server to use. Defaults to the same URL as the registry.                                                        |
-| `DOCKER_CONTENT_TRUST`        | When set Docker uses notary to sign and verify images. Equates to `--disable-content-trust=false` for build, create, pull, push, run. |
-| `DOCKER_CONTEXT`              | Name of the `docker context` to use (overrides `DOCKER_HOST` env var and default context set with `docker context use`)               |
-| `DOCKER_DEFAULT_PLATFORM`     | Default platform for commands that take the `--platform` flag.                                                                        |
+| `DOCKER_CONFIG`               | The location of your client configuration files.                                                                                        |
+| `DOCKER_CONTENT_TRUST_SERVER` | The URL of the Notary server to use. Defaults to the same URL as the registry.                                                          |
+| `DOCKER_CONTENT_TRUST`        | When set Docker uses notary to sign and verify images. Equates to `--disable-content-trust=false` for build, create, pull, push, run.   |
+| `DOCKER_CONTEXT`              | Name of the `docker context` to use (overrides `DOCKER_HOST` env var and default context set with `docker context use`)                 |
+| `DOCKER_DEFAULT_PLATFORM`     | Default platform for commands that take the `--platform` flag.                                                                          |
 | `DOCKER_HIDE_LEGACY_COMMANDS` | When set, Docker hides "legacy" top-level commands (such as `docker rm`, and `docker pull`) in `docker help` output, and only `Management commands` per object-type (e.g., `docker container`) are printed. This may become the default in a future release, at which point this environment-variable is removed. |
-| `DOCKER_HOST`                 | Daemon socket to connect to.                                                                                                          |
-| `DOCKER_STACK_ORCHESTRATOR`   | Configure the default orchestrator to use when using `docker stack` management commands.                                              |
+| `DOCKER_HOST`                 | Daemon socket to connect to.                                                                                                            |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md) |
 | `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](build.md) with [BuildKit backend](../builder.md#buildkit). Use plain to show container output (default `auto`). |
 
@@ -192,14 +191,6 @@ for a specific registry. For more information, see the
 [**Credential helpers** section in the `docker login` documentation](login.md#credential-helpers)
 
 
-### Orchestrator options for docker stacks
-
-The property `stackOrchestrator` specifies the default orchestrator to use when
-running `docker stack` management commands. Valid values are `"swarm"`,
-`"kubernetes"`, and `"all"`. This property can be overridden with the
-`DOCKER_STACK_ORCHESTRATOR` environment variable, or the `--orchestrator` flag.
-
-
 ### Automatic proxy configuration for containers
 
 The property `proxies` specifies proxy environment variables to be automatically
@@ -282,7 +273,6 @@ various fields:
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
   },
-  "stackOrchestrator": "kubernetes",
   "plugins": {
     "plugin1": {
       "option": "value"

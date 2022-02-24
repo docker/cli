@@ -14,7 +14,6 @@ Show the Docker version information
 Options:
   -f, --format string       Format the output using the given Go template
       --help                Print usage
-      --kubeconfig string   Kubernetes config file
 ```
 
 ## Description
