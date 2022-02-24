@@ -60,7 +60,6 @@ type Cli interface {
 	ContentTrustEnabled() bool
 	ContextStore() store.Store
 	CurrentContext() string
-	StackOrchestrator(flagValue string) (Orchestrator, error)
 	DockerEndpoint() docker.Endpoint
 }
 
@@ -365,25 +364,6 @@ func (cli *DockerCli) ContextStore() store.Store {
 // CurrentContext returns the current context name
 func (cli *DockerCli) CurrentContext() string {
 	return cli.currentContext
-}
-
-// StackOrchestrator resolves which stack orchestrator is in use
-func (cli *DockerCli) StackOrchestrator(flagValue string) (Orchestrator, error) {
-	currentContext := cli.CurrentContext()
-	ctxRaw, err := cli.ContextStore().GetMetadata(currentContext)
-	if store.IsErrContextDoesNotExist(err) {
-		// case where the currentContext has been removed (CLI behavior is to fallback to using DOCKER_HOST based resolution)
-		return GetStackOrchestrator(flagValue, "", cli.ConfigFile().StackOrchestrator, cli.Err())
-	}
-	if err != nil {
-		return "", err
-	}
-	ctxMeta, err := GetDockerContext(ctxRaw)
-	if err != nil {
-		return "", err
-	}
-	ctxOrchestrator := string(ctxMeta.StackOrchestrator)
-	return GetStackOrchestrator(flagValue, ctxOrchestrator, cli.ConfigFile().StackOrchestrator, cli.Err())
 }
 
 // DockerEndpoint returns the current docker endpoint

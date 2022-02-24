@@ -29,9 +29,8 @@ func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
 		ztack, ok := m[name]
 		if !ok {
 			m[name] = &formatter.Stack{
-				Name:         name,
-				Services:     1,
-				Orchestrator: "Swarm",
+				Name:     name,
+				Services: 1,
 			}
 		} else {
 			ztack.Services++

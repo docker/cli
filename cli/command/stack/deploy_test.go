@@ -9,7 +9,7 @@ import (
 )
 
 func TestDeployWithEmptyName(t *testing.T) {
-	cmd := newDeployCommand(test.NewFakeCli(&fakeClient{}), nil)
+	cmd := newDeployCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"'   '"})
 	cmd.SetOut(ioutil.Discard)
 

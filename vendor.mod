@@ -12,7 +12,6 @@ require (
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1
 	github.com/creack/pty v1.1.11
-	github.com/docker/compose-on-kubernetes v0.5.0
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/docker-credential-helpers v0.6.4
@@ -25,7 +24,6 @@ require (
 	github.com/google/go-cmp v0.5.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
-	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
 	github.com/moby/sys/signal v0.6.0
@@ -41,17 +39,12 @@ require (
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	golang.org/x/text v0.3.4
 	google.golang.org/grpc v1.38.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.0.3
-	k8s.io/api v0.20.6
-	k8s.io/apimachinery v0.20.6
-	k8s.io/client-go v0.20.6
-	k8s.io/klog v1.0.1-0.20200310124935-4ad0115ba9e4 // indirect
 )
 
 replace (

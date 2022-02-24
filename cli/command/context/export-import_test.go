@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"gotest.tools/v3/assert"
 )
@@ -19,7 +20,7 @@ func TestExportImportWithFile(t *testing.T) {
 	contextFile := filepath.Join(contextDir, "exported")
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKube(t, cli)
+	createTestContext(t, cli)
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, RunExport(cli, &ExportOptions{
 		ContextName: "test",
@@ -45,7 +46,7 @@ func TestExportImportWithFile(t *testing.T) {
 func TestExportImportPipe(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKube(t, cli)
+	createTestContext(t, cli)
 	cli.ErrBuffer().Reset()
 	cli.OutBuffer().Reset()
 	assert.NilError(t, RunExport(cli, &ExportOptions{
@@ -70,31 +71,6 @@ func TestExportImportPipe(t *testing.T) {
 	assert.Equal(t, "Successfully imported context \"test2\"\n", cli.ErrBuffer().String())
 }
 
-func TestExportKubeconfig(t *testing.T) {
-	contextDir, err := ioutil.TempDir("", t.Name()+"context")
-	assert.NilError(t, err)
-	defer os.RemoveAll(contextDir)
-	contextFile := filepath.Join(contextDir, "exported")
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	createTestContextWithKube(t, cli)
-	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunExport(cli, &ExportOptions{
-		ContextName: "test",
-		Dest:        contextFile,
-		Kubeconfig:  true,
-	}))
-	assert.Equal(t, cli.ErrBuffer().String(), fmt.Sprintf("Written file %q\n", contextFile))
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
-		Name: "test2",
-		Kubernetes: map[string]string{
-			keyKubeconfig: contextFile,
-		},
-		Docker: map[string]string{},
-	}))
-	validateTestKubeEndpoint(t, cli.ContextStore(), "test2")
-}
-
 func TestExportExistingFile(t *testing.T) {
 	contextDir, err := ioutil.TempDir("", t.Name()+"context")
 	assert.NilError(t, err)
@@ -102,9 +78,18 @@ func TestExportExistingFile(t *testing.T) {
 	contextFile := filepath.Join(contextDir, "exported")
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKube(t, cli)
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, ioutil.WriteFile(contextFile, []byte{}, 0644))
 	err = RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
+}
+
+func createTestContext(t *testing.T, cli command.Cli) {
+	t.Helper()
+
+	err := RunCreate(cli, &CreateOptions{
+		Name:   "test",
+		Docker: map[string]string{},
+	})
+	assert.NilError(t, err)
 }

@@ -15,7 +15,6 @@ type Deploy struct {
 type List struct {
 	Format        string
 	AllNamespaces bool
-	Namespaces    []string
 }
 
 // PS holds docker stack ps options

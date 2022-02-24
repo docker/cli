@@ -55,7 +55,8 @@ func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 		in:        streams.NewIn(ioutil.NopCloser(strings.NewReader(""))),
 		// Use an empty string for filename so that tests don't create configfiles
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
-		configfile: configfile.New(""),
+		configfile:     configfile.New(""),
+		currentContext: command.DefaultContextName,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -213,25 +214,4 @@ func (c *FakeCli) ContentTrustEnabled() bool {
 // EnableContentTrust on the fake cli
 func EnableContentTrust(c *FakeCli) {
 	c.contentTrust = true
-}
-
-// StackOrchestrator return the selected stack orchestrator
-func (c *FakeCli) StackOrchestrator(flagValue string) (command.Orchestrator, error) {
-	configOrchestrator := ""
-	if c.configfile != nil {
-		configOrchestrator = c.configfile.StackOrchestrator
-	}
-	ctxOrchestrator := ""
-	if c.currentContext != "" && c.contextStore != nil {
-		meta, err := c.contextStore.GetMetadata(c.currentContext)
-		if err != nil {
-			return "", err
-		}
-		context, err := command.GetDockerContext(meta)
-		if err != nil {
-			return "", err
-		}
-		ctxOrchestrator = string(context.StackOrchestrator)
-	}
-	return command.GetStackOrchestrator(flagValue, ctxOrchestrator, configOrchestrator, c.err)
 }

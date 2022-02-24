@@ -27,17 +27,9 @@ func TestStackContextWrite(t *testing.T) {
 		// Table format
 		{
 			formatter.Context{Format: SwarmStackTableFormat},
-			`NAME      SERVICES   ORCHESTRATOR
-baz       2          orchestrator1
-bar       1          orchestrator2
-`,
-		},
-		// Kubernetes table format adds Namespace column
-		{
-			formatter.Context{Format: KubernetesStackTableFormat},
-			`NAME      SERVICES   ORCHESTRATOR    NAMESPACE
-baz       2          orchestrator1   namespace1
-bar       1          orchestrator2   namespace2
+			`NAME      SERVICES
+baz       2
+bar       1
 `,
 		},
 		{
@@ -57,8 +49,8 @@ bar
 	}
 
 	stacks := []*Stack{
-		{Name: "baz", Services: 2, Orchestrator: "orchestrator1", Namespace: "namespace1"},
-		{Name: "bar", Services: 1, Orchestrator: "orchestrator2", Namespace: "namespace2"},
+		{Name: "baz", Services: 2},
+		{Name: "bar", Services: 1},
 	}
 	for _, tc := range cases {
 		tc := tc

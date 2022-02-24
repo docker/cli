@@ -3,7 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
@@ -12,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	var opts options.Deploy
 
 	cmd := &cobra.Command{
@@ -29,7 +28,7 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err != nil {
 				return err
 			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, common.Orchestrator(), opts)
+			return RunDeploy(dockerCli, cmd.Flags(), config, opts)
 		},
 	}
 
@@ -45,13 +44,10 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	flags.SetAnnotation("resolve-image", "swarm", nil)
-	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }
 
-// RunDeploy performs a stack deploy against the specified orchestrator
-func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
-	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
-		func() error { return swarm.RunDeploy(dockerCli, opts, config) },
-		func(kli *kubernetes.KubeCli) error { return kubernetes.RunDeploy(kli, opts, config) })
+// RunDeploy performs a stack deploy against the specified swarm cluster
+func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, opts options.Deploy) error {
+	return swarm.RunDeploy(dockerCli, opts, config)
 }

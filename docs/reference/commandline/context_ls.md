@@ -28,8 +28,8 @@ indicated with an `*`:
 ```console
 $ docker context ls
 
-NAME                DESCRIPTION                               DOCKER ENDPOINT                      KUBERNETES ENDPOINT   ORCHESTRATOR
-default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock                                swarm
+NAME                DESCRIPTION                               DOCKER ENDPOINT                      ORCHESTRATOR
+default *           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock          swarm
 production                                                    tcp:///prod.corp.example.com:2376
 staging                                                       tcp:///stage.corp.example.com:2376
 ```

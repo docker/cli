@@ -71,7 +71,6 @@ func TestDefaultContextInitializer(t *testing.T) {
 	}, cli.ConfigFile(), DefaultContextStoreConfig(), cli.Err())
 	assert.NilError(t, err)
 	assert.Equal(t, "default", ctx.Meta.Name)
-	assert.Equal(t, OrchestratorSwarm, ctx.Meta.Metadata.(DockerContext).StackOrchestrator)
 	assert.DeepEqual(t, "ssh://someswarmserver", ctx.Meta.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host)
 	golden.Assert(t, string(ctx.TLS.Endpoints[docker.DockerEndpoint].Files["ca.pem"]), "ca.pem")
 }

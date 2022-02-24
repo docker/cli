@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
@@ -12,10 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
-)
-
-var (
-	orchestrator = commonOptions{orchestrator: command.OrchestratorSwarm}
 )
 
 func TestListErrors(t *testing.T) {
@@ -52,7 +47,7 @@ func TestListErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cmd := newListCommand(test.NewFakeCli(&fakeClient{
 			serviceListFunc: tc.serviceListFunc,
-		}), &orchestrator)
+		}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(ioutil.Discard)
 		for key, value := range tc.flags {
@@ -118,7 +113,7 @@ func TestStackList(t *testing.T) {
 					return services, nil
 				},
 			})
-			cmd := newListCommand(cli, &orchestrator)
+			cmd := newListCommand(cli)
 			for key, value := range tc.flags {
 				cmd.Flags().Set(key, value)
 			}

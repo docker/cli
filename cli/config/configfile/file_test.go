@@ -438,46 +438,6 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	}
 }
 
-func TestCheckKubernetesConfigurationRaiseAnErrorOnInvalidValue(t *testing.T) {
-	testCases := []struct {
-		name        string
-		config      *KubernetesConfig
-		expectError bool
-	}{
-		{
-			name: "no kubernetes config is valid",
-		},
-		{
-			name:   "enabled is valid",
-			config: &KubernetesConfig{AllNamespaces: "enabled"},
-		},
-		{
-			name:   "disabled is valid",
-			config: &KubernetesConfig{AllNamespaces: "disabled"},
-		},
-		{
-			name:   "empty string is valid",
-			config: &KubernetesConfig{AllNamespaces: ""},
-		},
-		{
-			name:        "other value is invalid",
-			config:      &KubernetesConfig{AllNamespaces: "unknown"},
-			expectError: true,
-		},
-	}
-	for _, tc := range testCases {
-		test := tc
-		t.Run(test.name, func(t *testing.T) {
-			err := checkKubernetesConfiguration(test.config)
-			if test.expectError {
-				assert.Assert(t, err != nil, test.name)
-			} else {
-				assert.NilError(t, err, test.name)
-			}
-		})
-	}
-}
-
 func TestSave(t *testing.T) {
 	configFile := New("test-save")
 	defer os.Remove("test-save")

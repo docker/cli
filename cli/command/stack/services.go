@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
@@ -18,7 +17,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	opts := options.Services{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -30,40 +29,28 @@ func newServicesCommand(dockerCli command.Cli, common *commonOptions) *cobra.Com
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunServices(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
+			return RunServices(dockerCli, cmd.Flags(), opts)
 		},
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display IDs")
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print services using a Go template")
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
-	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }
 
-// RunServices performs a stack services against the specified orchestrator
-func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) error {
-	services, err := GetServices(dockerCli, flags, commonOrchestrator, opts)
+// RunServices performs a stack services against the specified swarm cluster
+func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) error {
+	services, err := GetServices(dockerCli, flags, opts)
 	if err != nil {
 		return err
 	}
 	return formatWrite(dockerCli, services, opts)
 }
 
-// GetServices returns the services for the specified orchestrator
-func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.Services) ([]swarmtypes.Service, error) {
-	switch {
-	case commonOrchestrator.HasAll():
-		return nil, errUnsupportedAllOrchestrator
-	case commonOrchestrator.HasKubernetes():
-		kli, err := kubernetes.WrapCli(dockerCli, kubernetes.NewOptions(flags, commonOrchestrator))
-		if err != nil {
-			return nil, err
-		}
-		return kubernetes.GetServices(kli, opts)
-	default:
-		return swarm.GetServices(dockerCli, opts)
-	}
+// GetServices returns the services for the specified swarm cluster
+func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) ([]swarmtypes.Service, error) {
+	return swarm.GetServices(dockerCli, opts)
 }
 
 func formatWrite(dockerCli command.Cli, services []swarmtypes.Service, opts options.Services) error {

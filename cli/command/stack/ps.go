@@ -3,7 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	cliopts "github.com/docker/cli/opts"
@@ -11,7 +10,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	opts := options.PS{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -23,7 +22,7 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunPs(dockerCli, cmd.Flags(), common.Orchestrator(), opts)
+			return RunPs(dockerCli, cmd.Flags(), opts)
 		},
 	}
 	flags := cmd.Flags()
@@ -32,13 +31,10 @@ func newPsCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display task IDs")
 	flags.StringVar(&opts.Format, "format", "", "Pretty-print tasks using a Go template")
-	kubernetes.AddNamespaceFlag(flags)
 	return cmd
 }
 
-// RunPs performs a stack ps against the specified orchestrator
-func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, commonOrchestrator command.Orchestrator, opts options.PS) error {
-	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
-		func() error { return swarm.RunPS(dockerCli, opts) },
-		func(kli *kubernetes.KubeCli) error { return kubernetes.RunPS(kli, opts) })
+// RunPs performs a stack ps against the specified swarm cluster
+func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, opts options.PS) error {
+	return swarm.RunPS(dockerCli, opts)
 }
