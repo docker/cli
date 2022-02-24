@@ -2583,10 +2583,8 @@ __docker_context_subcommand() {
         (create)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help)--default-stack-orchestrator=[Default orchestrator for stack operations to use with this context]:default-stack-orchestrator:(swarm kubernetes all)" \
                 "($help)--description=[Description of the context]:description:" \
                 "($help)--docker=[Set the docker endpoint]:docker:" \
-                "($help)--kubernetes=[Set the kubernetes endpoint]:kubernetes:" \
                 "($help)--from=[Create context from a named context]:from:__docker_complete_contexts" \
                 "($help -):name: " && ret=0
             ;;
@@ -2608,10 +2606,8 @@ __docker_context_subcommand() {
         (update)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help)--default-stack-orchestrator=[Default orchestrator for stack operations to use with this context]:default-stack-orchestrator:(swarm kubernetes all)" \
                 "($help)--description=[Description of the context]:description:" \
                 "($help)--docker=[Set the docker endpoint]:docker:" \
-                "($help)--kubernetes=[Set the kubernetes endpoint]:kubernetes:" \
                 "($help -):name:" && ret=0
             ;;
     esac
