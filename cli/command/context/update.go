@@ -18,11 +18,6 @@ type UpdateOptions struct {
 	Name        string
 	Description string
 	Docker      map[string]string
-
-	// Deprecated
-	DefaultStackOrchestrator string
-	// Deprecated
-	Kubernetes map[string]string
 }
 
 func longUpdateDescription() string {
@@ -52,14 +47,14 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")
-	flags.StringVar(
-		&opts.DefaultStackOrchestrator,
+	flags.String(
 		"default-stack-orchestrator", "",
-		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
+		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)",
+	)
 	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
 	flags.MarkDeprecated("default-stack-orchestrator", "option will be ignored")
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
-	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
+	flags.StringToString("kubernetes", nil, "set the kubernetes endpoint")
 	flags.SetAnnotation("kubernetes", "kubernetes", nil)
 	flags.SetAnnotation("kubernetes", "deprecated", nil)
 	flags.MarkDeprecated("kubernetes", "option will be ignored")

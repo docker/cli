@@ -11,7 +11,7 @@ import (
 func TestInspect(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
+	createTestContext(t, cli, "current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runInspect(cli, inspectOptions{
 		refs: []string{"current"},

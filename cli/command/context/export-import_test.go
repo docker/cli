@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"gotest.tools/v3/assert"
 )
@@ -20,7 +19,7 @@ func TestExportImportWithFile(t *testing.T) {
 	contextFile := filepath.Join(contextDir, "exported")
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContext(t, cli)
+	createTestContext(t, cli, "test")
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, RunExport(cli, &ExportOptions{
 		ContextName: "test",
@@ -46,7 +45,7 @@ func TestExportImportWithFile(t *testing.T) {
 func TestExportImportPipe(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContext(t, cli)
+	createTestContext(t, cli, "test")
 	cli.ErrBuffer().Reset()
 	cli.OutBuffer().Reset()
 	assert.NilError(t, RunExport(cli, &ExportOptions{
@@ -82,14 +81,4 @@ func TestExportExistingFile(t *testing.T) {
 	assert.NilError(t, ioutil.WriteFile(contextFile, []byte{}, 0644))
 	err = RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
-}
-
-func createTestContext(t *testing.T, cli command.Cli) {
-	t.Helper()
-
-	err := RunCreate(cli, &CreateOptions{
-		Name:   "test",
-		Docker: map[string]string{},
-	})
-	assert.NilError(t, err)
 }

@@ -32,12 +32,6 @@ func Setup() error {
 		}
 	}
 
-	if kubeConfig := os.Getenv("TEST_KUBECONFIG"); kubeConfig != "" {
-		if err := os.Setenv("KUBECONFIG", kubeConfig); err != nil {
-			return err
-		}
-	}
-
 	if val := boolFromString(os.Getenv("TEST_REMOTE_DAEMON")); val {
 		if err := os.Setenv("REMOTE_DAEMON", "1"); err != nil {
 			return err

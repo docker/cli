@@ -5,20 +5,16 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/golden"
 )
 
-func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name string, orchestrator string) {
-	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
-	defer revert()
+func createTestContext(t *testing.T, cli command.Cli, name string) {
+	t.Helper()
 
 	err := RunCreate(cli, &CreateOptions{
-		Name:                     name,
-		DefaultStackOrchestrator: orchestrator,
-		Description:              "description of " + name,
-		Kubernetes:               map[string]string{keyFrom: "default"},
-		Docker:                   map[string]string{keyHost: "https://someswarmserver.example.com"},
+		Name:        name,
+		Description: "description of " + name,
+		Docker:      map[string]string{keyHost: "https://someswarmserver.example.com"},
 	})
 	assert.NilError(t, err)
 }
@@ -26,9 +22,9 @@ func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name strin
 func TestList(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
-	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
-	createTestContextWithKubeAndSwarm(t, cli, "unset", "unset")
+	createTestContext(t, cli, "current")
+	createTestContext(t, cli, "other")
+	createTestContext(t, cli, "unset")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runList(cli, &listOptions{}))
@@ -38,8 +34,8 @@ func TestList(t *testing.T) {
 func TestListQuiet(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
-	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
+	createTestContext(t, cli, "current")
+	createTestContext(t, cli, "other")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runList(cli, &listOptions{quiet: true}))
