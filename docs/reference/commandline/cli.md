@@ -273,7 +273,6 @@ various fields:
     "awesomereg.example.org": "hip-star",
     "unicorn.example.com": "vcbait"
   },
-  "stackOrchestrator": "kubernetes",
   "plugins": {
     "plugin1": {
       "option": "value"
