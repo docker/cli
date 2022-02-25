@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"runtime"
 	"strings"
@@ -58,7 +58,7 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 
 func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
-	flags.SetOutput(ioutil.Discard)
+	flags.SetOutput(io.Discard)
 	flags.Usage = nil
 	copts := addFlags(flags)
 	return flags, copts
