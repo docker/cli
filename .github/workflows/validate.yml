@@ -20,6 +20,7 @@ jobs:
           - lint
           - shellcheck
           - validate-vendor
+          - update-authors # ensure authors update target runs fine
     steps:
       -
         name: Checkout
@@ -31,3 +32,23 @@ jobs:
         uses: docker/bake-action@v1
         with:
           targets: ${{ matrix.target }}
+
+  validate-make:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - yamldocs # ensure yamldocs target runs fine
+          - manpages # ensure manpages target runs fine
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      -
+        name: Run
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile ${{ matrix.target }}

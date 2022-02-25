@@ -10,7 +10,6 @@ require (
 	github.com/Microsoft/go-winio v0.4.19 // indirect
 	github.com/containerd/containerd v1.5.5
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v20.10.7+incompatible

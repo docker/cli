@@ -1,3 +1,7 @@
+// This file is intended for use with "go run"; it isn't really part of the package.
+
+// +build manpages
+
 package main
 
 import (
@@ -18,6 +22,8 @@ import (
 const descriptionSourcePath = "man/src/"
 
 func generateManPages(opts *options) error {
+	log.SetFlags(0)
+
 	header := &doc.GenManHeader{
 		Title:   "DOCKER",
 		Section: "1",
@@ -73,6 +79,7 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 			continue
 		}
 
+		log.Printf("INFO: %s found\n", fullpath)
 		content, err := os.ReadFile(fullpath)
 		if err != nil {
 			return err

@@ -11,7 +11,7 @@ _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 
 .PHONY: clean
 clean: ## remove build artifacts
-	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml/gen
+	rm -rf ./build/* man/man[1-9] docs/yaml
 
 .PHONY: test
 test: test-unit ## run tests
@@ -77,8 +77,3 @@ yamldocs: ## generate documentation YAML files consumed by docs repo
 .PHONY: help
 help: ## print this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {gsub("\\\\n",sprintf("\n%22c",""), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-
-.PHONY: ci-validate
-ci-validate:
-	time make manpages
-	time make yamldocs

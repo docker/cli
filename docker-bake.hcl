@@ -1,3 +1,6 @@
+variable "GO_VERSION" {
+    default = "1.16.11"
+}
 variable "VERSION" {
     default = ""
 }
@@ -16,11 +19,19 @@ variable "COMPANY_NAME" {
     default = ""
 }
 
+target "_common" {
+    args = {
+        GO_VERSION = GO_VERSION
+        BUILDKIT_CONTEXT_KEEP_GIT_DIR = 1
+    }
+}
+
 group "default" {
     targets = ["binary"]
 }
 
 target "binary" {
+    inherits = ["_common"]
     target = "binary"
     platforms = ["local"]
     output = ["build"]
@@ -40,6 +51,7 @@ target "dynbinary" {
 }
 
 target "plugins" {
+    inherits = ["_common"]
     target = "plugins"
     platforms = ["local"]
     output = ["build"]
@@ -67,30 +79,35 @@ target "plugins-cross" {
 }
 
 target "lint" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.lint"
     target = "lint"
     output = ["type=cacheonly"]
 }
 
 target "shellcheck" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.shellcheck"
     target = "shellcheck"
     output = ["type=cacheonly"]
 }
 
 target "validate-vendor" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "validate"
     output = ["type=cacheonly"]
 }
 
 target "update-vendor" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "update"
     output = ["."]
 }
 
 target "mod-outdated" {
+    inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "outdated"
     args = {
@@ -98,6 +115,20 @@ target "mod-outdated" {
         UUID = uuidv4()
     }
     output = ["type=cacheonly"]
+}
+
+target "validate-authors" {
+    inherits = ["_common"]
+    dockerfile = "./dockerfiles/Dockerfile.authors"
+    target = "validate"
+    output = ["type=cacheonly"]
+}
+
+target "update-authors" {
+    inherits = ["_common"]
+    dockerfile = "./dockerfiles/Dockerfile.authors"
+    target = "update"
+    output = ["."]
 }
 
 target "test" {

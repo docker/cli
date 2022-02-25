@@ -97,7 +97,7 @@ mod-outdated: ## check outdated dependencies
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
-	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make authors
+	docker buildx bake update-authors
 
 .PHONY: manpages
 manpages: build_docker_image ## generate man pages from go source and markdown

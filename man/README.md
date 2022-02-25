@@ -12,4 +12,6 @@ Cobra command or amend the Markdown files for legacy pages.
 
 From within the project root directory run:
 
-    make manpages
+```shell
+$ make -f docker.Makefile manpages
+```
