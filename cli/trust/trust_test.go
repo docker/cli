@@ -1,8 +1,6 @@
 package trust
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/docker/distribution/reference"
@@ -49,11 +47,7 @@ func TestGetDigest(t *testing.T) {
 }
 
 func TestGetSignableRolesError(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "notary-test-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpDir)
-
-	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	target := client.Target{}
 	_, err = GetSignableRoles(notaryRepo, &target)
