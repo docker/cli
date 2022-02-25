@@ -12,10 +12,7 @@ import (
 
 func TestContextList(t *testing.T) {
 	cmd := icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env,
-		"DOCKER_CONFIG=./testdata/test-dockerconfig",
-		"KUBECONFIG=./testdata/test-kubeconfig",
-	)
+	cmd.Env = append(cmd.Env, "DOCKER_CONFIG=./testdata/test-dockerconfig")
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Expected{
 		Err:      icmd.None,
 		ExitCode: 0,
@@ -35,10 +32,7 @@ func TestContextImportNoTLS(t *testing.T) {
 	icmd.RunCmd(cmd).Assert(t, icmd.Success)
 
 	cmd = icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env,
-		"DOCKER_CONFIG="+d,
-		"KUBECONFIG=./testdata/test-kubeconfig", // Allows reuse of context-ls.golden
-	)
+	cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+d)
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Success)
 	golden.Assert(t, result.Stdout(), "context-ls.golden")
 }

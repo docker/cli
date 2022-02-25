@@ -95,21 +95,6 @@ func TestCreate(t *testing.T) {
 			},
 			expecterErr: `unable to parse docker host`,
 		},
-		{
-			options: CreateOptions{
-				Name:                     "invalid-orchestrator",
-				DefaultStackOrchestrator: "invalid",
-			},
-			expecterErr: "",
-		},
-		{
-			options: CreateOptions{
-				Name:                     "orchestrator-all-no-endpoint",
-				DefaultStackOrchestrator: "all",
-				Docker:                   map[string]string{},
-			},
-			expecterErr: "",
-		},
 	}
 	for _, tc := range tests {
 		tc := tc
@@ -127,19 +112,6 @@ func TestCreate(t *testing.T) {
 func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
 	assert.Equal(t, n+"\n", cli.OutBuffer().String())
 	assert.Equal(t, fmt.Sprintf("Successfully created context %q\n", n), cli.ErrBuffer().String())
-}
-
-func TestCreateOrchestratorSwarm(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-
-	err := RunCreate(cli, &CreateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "swarm",
-		Docker:                   map[string]string{},
-	})
-	assert.NilError(t, err)
-	assertContextCreateLogging(t, cli, "test")
 }
 
 func TestCreateOrchestratorEmpty(t *testing.T) {
@@ -160,7 +132,6 @@ func TestCreateFromContext(t *testing.T) {
 		description         string
 		expectedDescription string
 		docker              map[string]string
-		kubernetes          map[string]string
 	}{
 		{
 			name:                "no-override",

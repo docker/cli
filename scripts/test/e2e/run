@@ -64,7 +64,6 @@ runtests() {
     env -i \
         TEST_DOCKER_HOST="$engine_host" \
         TEST_DOCKER_CERT_PATH="${DOCKER_CERT_PATH-}" \
-        TEST_KUBECONFIG="${KUBECONFIG-}" \
         TEST_REMOTE_DAEMON="${REMOTE_DAEMON-}" \
         TEST_SKIP_PLUGIN_TESTS="${SKIP_PLUGIN_TESTS-}" \
         GOPATH="$GOPATH" \

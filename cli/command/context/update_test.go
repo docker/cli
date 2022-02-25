@@ -13,9 +13,8 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
 	err := RunCreate(cli, &CreateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "swarm",
-		Docker:                   map[string]string{},
+		Name:   "test",
+		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
 	cli.OutBuffer().Reset()
@@ -37,7 +36,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 func TestUpdateDockerOnly(t *testing.T) {
 	cli, cleanup := makeFakeCli(t)
 	defer cleanup()
-	createTestContextWithKubeAndSwarm(t, cli, "test", "swarm")
+	createTestContext(t, cli, "test")
 	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
 		Name: "test",
 		Docker: map[string]string{

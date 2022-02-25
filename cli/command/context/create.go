@@ -19,11 +19,6 @@ type CreateOptions struct {
 	Description string
 	Docker      map[string]string
 	From        string
-
-	// Deprecated
-	DefaultStackOrchestrator string
-	// Deprecated
-	Kubernetes map[string]string
 }
 
 func longCreateDescription() string {
@@ -53,14 +48,15 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")
-	flags.StringVar(
-		&opts.DefaultStackOrchestrator,
+	flags.String(
 		"default-stack-orchestrator", "",
-		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)")
+		"Default orchestrator for stack operations to use with this context (swarm|kubernetes|all)",
+	)
+	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
 	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
 	flags.MarkDeprecated("default-stack-orchestrator", "option will be ignored")
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
-	flags.StringToStringVar(&opts.Kubernetes, "kubernetes", nil, "set the kubernetes endpoint")
+	flags.StringToString("kubernetes", nil, "set the kubernetes endpoint")
 	flags.SetAnnotation("kubernetes", "kubernetes", nil)
 	flags.SetAnnotation("kubernetes", "deprecated", nil)
 	flags.MarkDeprecated("kubernetes", "option will be ignored")
@@ -76,7 +72,7 @@ func RunCreate(cli command.Cli, o *CreateOptions) error {
 		return err
 	}
 	switch {
-	case o.From == "" && o.Docker == nil && o.Kubernetes == nil:
+	case o.From == "" && o.Docker == nil:
 		err = createFromExistingContext(s, cli.CurrentContext(), o)
 	case o.From != "":
 		err = createFromExistingContext(s, o.From, o)
@@ -132,8 +128,8 @@ func checkContextNameForCreation(s store.Reader, name string) error {
 }
 
 func createFromExistingContext(s store.ReaderWriter, fromContextName string, o *CreateOptions) error {
-	if len(o.Docker) != 0 || len(o.Kubernetes) != 0 {
-		return errors.New("cannot use --docker or --kubernetes flags when --from is set")
+	if len(o.Docker) != 0 {
+		return errors.New("cannot use --docker flag when --from is set")
 	}
 	reader := store.Export(fromContextName, &descriptionDecorator{
 		Reader:      s,
