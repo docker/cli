@@ -2,22 +2,27 @@ package opts
 
 import (
 	"bufio"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
 )
 
-func tmpFileWithContent(content string, t *testing.T) string {
-	tmpFile, err := ioutil.TempFile("", "envfile-test")
+func tmpFileWithContent(t *testing.T, content string) string {
+	t.Helper()
+	tmpFile, err := os.CreateTemp("", "envfile-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer tmpFile.Close()
 
-	tmpFile.WriteString(content)
+	_, err = tmpFile.WriteString(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(tmpFile.Name())
+	})
 	return tmpFile.Name()
 }
 
@@ -37,8 +42,7 @@ and_underscore=working too
 	// from lines, which becomes annoying since that's the
 	// exact thing we need to test.
 	content += "\n    \t  "
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, content)
 
 	lines, err := ParseEnvFile(tmpFile)
 	if err != nil {
@@ -60,8 +64,7 @@ and_underscore=working too
 
 // Test ParseEnvFile for an empty file
 func TestParseEnvFileEmptyFile(t *testing.T) {
-	tmpFile := tmpFileWithContent("", t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, "")
 
 	lines, err := ParseEnvFile(tmpFile)
 	if err != nil {
@@ -89,9 +92,7 @@ func TestParseEnvFileBadlyFormattedFile(t *testing.T) {
 	content := `foo=bar
     f   =quux
 `
-
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
 	if err == nil {
@@ -108,11 +109,8 @@ func TestParseEnvFileBadlyFormattedFile(t *testing.T) {
 
 // Test ParseEnvFile for a file with a line exceeding bufio.MaxScanTokenSize
 func TestParseEnvFileLineTooLongFile(t *testing.T) {
-	content := strings.Repeat("a", bufio.MaxScanTokenSize+42)
-	content = fmt.Sprint("foo=", content)
-
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	content := "foo=" + strings.Repeat("a", bufio.MaxScanTokenSize+42)
+	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
 	if err == nil {
@@ -124,8 +122,7 @@ func TestParseEnvFileLineTooLongFile(t *testing.T) {
 func TestParseEnvFileRandomFile(t *testing.T) {
 	content := `first line
 another invalid line`
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
 	if err == nil {
@@ -146,8 +143,7 @@ func TestParseEnvVariableDefinitionsFile(t *testing.T) {
 UNDEFINED_VAR
 HOME
 `
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, content)
 
 	variables, err := ParseEnvFile(tmpFile)
 	if nil != err {
@@ -168,8 +164,7 @@ func TestParseEnvVariableWithNoNameFile(t *testing.T) {
 	content := `# comment=
 =blank variable names are an error case
 `
-	tmpFile := tmpFileWithContent(content, t)
-	defer os.Remove(tmpFile)
+	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
 	if nil == err {
