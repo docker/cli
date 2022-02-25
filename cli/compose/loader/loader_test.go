@@ -2,7 +2,6 @@ package loader
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"sort"
@@ -946,7 +945,7 @@ func uint32Ptr(value uint32) *uint32 {
 }
 
 func TestFullExample(t *testing.T) {
-	bytes, err := ioutil.ReadFile("full-example.yml")
+	bytes, err := os.ReadFile("full-example.yml")
 	assert.NilError(t, err)
 
 	homeDir := "/home/foo"
