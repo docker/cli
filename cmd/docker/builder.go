@@ -41,8 +41,7 @@ func newBuilderError(warn bool, err error) error {
 }
 
 func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, error) {
-	var useLegacy bool
-	var useBuilder bool
+	var useLegacy, useBuilder bool
 
 	// check DOCKER_BUILDKIT env var is present and
 	// if not assume we want to use the builder component
@@ -70,6 +69,12 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	// is this a build that should be forwarded to the builder?
 	fwargs, fwosargs, forwarded := forwardBuilder(builderAlias, args, osargs)
 	if !forwarded {
+		return args, osargs, nil
+	}
+
+	// wcow build command must use the legacy builder
+	// if not opt-in through a builder component
+	if !useBuilder && dockerCli.ServerInfo().OSType == "windows" {
 		return args, osargs, nil
 	}
 
