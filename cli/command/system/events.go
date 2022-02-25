@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sort"
 	"strings"
 	"text/template"
@@ -100,7 +99,7 @@ func makeTemplate(format string) (*template.Template, error) {
 	}
 	// we execute the template for an empty message, so as to validate
 	// a bad template like "{{.badFieldString}}"
-	return tmpl, tmpl.Execute(ioutil.Discard, &eventtypes.Message{})
+	return tmpl, tmpl.Execute(io.Discard, &eventtypes.Message{})
 }
 
 // rfc3339NanoFixed is similar to time.RFC3339Nano, except it pads nanoseconds

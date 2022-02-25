@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"regexp"
 	"sort"
 	"strings"
@@ -121,7 +120,7 @@ func needsServerInfo(template string, info info) bool {
 	}
 
 	// This constructs an "info" object that only has the client-side fields.
-	err = tmpl.Execute(ioutil.Discard, sparseInfo{
+	err = tmpl.Execute(io.Discard, sparseInfo{
 		ClientInfo:   info.ClientInfo,
 		ClientErrors: info.ClientErrors,
 	})
