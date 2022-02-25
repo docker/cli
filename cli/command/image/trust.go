@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sort"
 
 	"github.com/docker/cli/cli/command"
@@ -283,7 +282,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 
 	out := cli.Out()
 	if opts.quiet {
-		out = streams.NewOut(ioutil.Discard)
+		out = streams.NewOut(io.Discard)
 	}
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
 }
