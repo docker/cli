@@ -13,8 +13,8 @@ Thumbs.db
 /man/man1/
 /man/man5/
 /man/man8/
-/docs/yaml/gen/
 profile.out
 
 # top-level go.mod is not meant to be checked in
 /go.mod
+/go.sum

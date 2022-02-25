@@ -5,7 +5,7 @@ set -eu
 TYP=$1
 
 usage() {
-  echo "usage: ./scripts/vendor <update|validate|outdated>"
+  echo "usage: ./scripts/vendor <init|update|validate|outdated>"
   exit 1
 }
 
@@ -13,12 +13,14 @@ if [ -z "$TYP" ]; then
   usage
 fi
 
-# create dummy go.mod, see comment in vendor.mod
-cat > go.mod <<EOL
+init() {
+  # create dummy go.mod, see comment in vendor.mod
+  cat > go.mod <<EOL
 module github.com/docker/cli
 
 go 1.16
 EOL
+}
 
 update() {
   (set -x ; go mod tidy -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
@@ -42,14 +44,20 @@ outdated() {
 }
 
 case $TYP in
+  "init")
+    init
+    ;;
   "update")
+    init
     update
     ;;
   "validate")
+    init
     update
     validate
     ;;
   "outdated")
+    init
     outdated
     ;;
   *)
