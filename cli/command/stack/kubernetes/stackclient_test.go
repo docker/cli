@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -10,7 +10,7 @@ import (
 
 func TestFromCompose(t *testing.T) {
 	stackClient := &stackV1Beta1{}
-	s, err := stackClient.FromCompose(ioutil.Discard, "foo", &composetypes.Config{
+	s, err := stackClient.FromCompose(io.Discard, "foo", &composetypes.Config{
 		Version:  "3.1",
 		Filename: "banana",
 		Services: []composetypes.ServiceConfig{
@@ -37,7 +37,7 @@ services:
 
 func TestFromComposeUnsupportedVersion(t *testing.T) {
 	stackClient := &stackV1Beta1{}
-	_, err := stackClient.FromCompose(ioutil.Discard, "foo", &composetypes.Config{
+	_, err := stackClient.FromCompose(io.Discard, "foo", &composetypes.Config{
 		Version:  "3.6",
 		Filename: "banana",
 		Services: []composetypes.ServiceConfig{
