@@ -2,7 +2,7 @@ package swarm
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -73,7 +73,7 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }

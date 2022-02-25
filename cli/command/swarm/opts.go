@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
@@ -140,7 +140,7 @@ func (p *PEMFile) String() string {
 
 // Set parses a root rotation option
 func (p *PEMFile) Set(value string) error {
-	contents, err := ioutil.ReadFile(value)
+	contents, err := os.ReadFile(value)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 			hasURL = true
 			externalCA.URL = value
 		case "cacert":
-			cacontents, err := ioutil.ReadFile(value)
+			cacontents, err := os.ReadFile(value)
 			if err != nil {
 				return nil, errors.Wrap(err, "unable to read CA cert for external CA")
 			}
