@@ -2,8 +2,6 @@ package context
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -16,9 +14,9 @@ import (
 	"gotest.tools/v3/env"
 )
 
-func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func()) {
-	dir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
+func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
+	t.Helper()
+	dir := t.TempDir()
 	storeConfig := store.NewConfig(
 		func() interface{} { return &command.DockerContext{} },
 		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
@@ -44,15 +42,12 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 			}, nil
 		},
 	}
-	cleanup := func() {
-		os.RemoveAll(dir)
-	}
 	result := test.NewFakeCli(nil, opts...)
 	for _, o := range opts {
 		o(result)
 	}
 	result.SetContextStore(store)
-	return result, cleanup
+	return result
 }
 
 func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
@@ -62,8 +57,7 @@ func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
 }
 
 func TestCreateInvalids(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
 		options     CreateOptions
@@ -138,8 +132,7 @@ func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
 }
 
 func TestCreateOrchestratorSwarm(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 
 	err := RunCreate(cli, &CreateOptions{
 		Name:                     "test",
@@ -151,8 +144,7 @@ func TestCreateOrchestratorSwarm(t *testing.T) {
 }
 
 func TestCreateOrchestratorEmpty(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
@@ -192,8 +184,7 @@ func createTestContextWithKube(t *testing.T, cli command.Cli) {
 }
 
 func TestCreateOrchestratorAllKubernetesEndpointFromCurrent(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContextWithKube(t, cli)
 	assertContextCreateLogging(t, cli, "test")
 	validateTestKubeEndpoint(t, cli.ContextStore(), "test")
@@ -228,8 +219,7 @@ func TestCreateFromContext(t *testing.T) {
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
 	cli.ResetOutputBuffers()
@@ -319,8 +309,7 @@ func TestCreateFromCurrent(t *testing.T) {
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
 	defer revert()
 	cli.ResetOutputBuffers()
