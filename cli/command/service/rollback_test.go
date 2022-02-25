@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -49,7 +49,7 @@ func TestRollback(t *testing.T) {
 		cmd := newRollbackCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.NilError(t, cmd.Execute())
 		assert.Check(t, is.Equal(strings.TrimSpace(cli.ErrBuffer().String()), tc.expectedDockerCliErr))
 	}
@@ -98,7 +98,7 @@ func TestRollbackWithErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.Flags().Set("quiet", "true")
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
