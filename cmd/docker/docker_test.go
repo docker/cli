@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -30,7 +29,7 @@ func TestClientDebugEnabled(t *testing.T) {
 	assert.Check(t, is.Equal(logrus.DebugLevel, logrus.GetLevel()))
 }
 
-var discard = ioutil.NopCloser(bytes.NewBuffer(nil))
+var discard = io.NopCloser(bytes.NewBuffer(nil))
 
 func runCliCommand(t *testing.T, r io.ReadCloser, w io.Writer, args ...string) error {
 	t.Helper()
@@ -38,7 +37,7 @@ func runCliCommand(t *testing.T, r io.ReadCloser, w io.Writer, args ...string) e
 		r = discard
 	}
 	if w == nil {
-		w = ioutil.Discard
+		w = io.Discard
 	}
 	cli, err := command.NewDockerCli(command.WithInputStream(r), command.WithCombinedStreams(w))
 	assert.NilError(t, err)
