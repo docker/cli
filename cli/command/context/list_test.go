@@ -20,8 +20,7 @@ func createTestContext(t *testing.T, cli command.Cli, name string) {
 }
 
 func TestList(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "current")
 	createTestContext(t, cli, "other")
 	createTestContext(t, cli, "unset")
@@ -32,8 +31,7 @@ func TestList(t *testing.T) {
 }
 
 func TestListQuiet(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "current")
 	createTestContext(t, cli, "other")
 	cli.SetCurrentContext("current")

@@ -2,8 +2,6 @@ package context
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -14,9 +12,9 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func()) {
-	dir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
+func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
+	t.Helper()
+	dir := t.TempDir()
 	storeConfig := store.NewConfig(
 		func() interface{} { return &command.DockerContext{} },
 		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
@@ -40,15 +38,12 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 			}, nil
 		},
 	}
-	cleanup := func() {
-		os.RemoveAll(dir)
-	}
 	result := test.NewFakeCli(nil, opts...)
 	for _, o := range opts {
 		o(result)
 	}
 	result.SetContextStore(store)
-	return result, cleanup
+	return result
 }
 
 func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
@@ -58,8 +53,7 @@ func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
 }
 
 func TestCreate(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
 		options     CreateOptions
@@ -115,8 +109,7 @@ func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
 }
 
 func TestCreateOrchestratorEmpty(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
@@ -144,8 +137,7 @@ func TestCreateFromContext(t *testing.T) {
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
@@ -210,8 +202,7 @@ func TestCreateFromCurrent(t *testing.T) {
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
