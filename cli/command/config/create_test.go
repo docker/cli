@@ -1,7 +1,8 @@
 package config
 
 import (
-	"io/ioutil"
+	"io"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -46,7 +47,7 @@ func TestConfigCreateErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -82,7 +83,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	}
 	name := "foo"
 
-	data, err := ioutil.ReadFile(filepath.Join("testdata", configDataFile))
+	data, err := os.ReadFile(filepath.Join("testdata", configDataFile))
 	assert.NilError(t, err)
 
 	expected := swarm.ConfigSpec{
