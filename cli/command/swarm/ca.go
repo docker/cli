@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -113,7 +112,7 @@ func attach(ctx context.Context, dockerCli command.Cli, opts caOptions) error {
 	}()
 
 	if opts.quiet {
-		go io.Copy(ioutil.Discard, pipeReader)
+		go io.Copy(io.Discard, pipeReader)
 		return <-errChan
 	}
 
