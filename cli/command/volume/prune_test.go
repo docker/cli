@@ -2,7 +2,7 @@ package volume
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"runtime"
 	"strings"
 	"testing"
@@ -48,7 +48,7 @@ func TestVolumePruneErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -86,7 +86,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 			volumePruneFunc: simplePruneFunc,
 		})
 
-		cli.SetIn(streams.NewIn(ioutil.NopCloser(strings.NewReader(input))))
+		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
@@ -102,7 +102,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 			volumePruneFunc: simplePruneFunc,
 		})
 
-		cli.SetIn(streams.NewIn(ioutil.NopCloser(strings.NewReader(input))))
+		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
