@@ -1,7 +1,7 @@
 package volume
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -32,7 +32,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 				volumeRemoveFunc: tc.volumeRemoveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
