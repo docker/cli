@@ -20,6 +20,10 @@ func TestValidate(t *testing.T) {
 	}
 
 	assert.NilError(t, Validate(config, "3.0"))
+	assert.NilError(t, Validate(config, "3"))
+	assert.NilError(t, Validate(config, ""))
+	assert.ErrorContains(t, Validate(config, "1.0"), "unsupported Compose file version: 1.0")
+	assert.ErrorContains(t, Validate(config, "12345"), "unsupported Compose file version: 12345")
 }
 
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
@@ -84,6 +88,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		version     string
 		expectedErr string
 	}{
+		{version: "3", expectedErr: "credential_spec"},
 		{version: "3.0", expectedErr: "credential_spec"},
 		{version: "3.1", expectedErr: "credential_spec"},
 		{version: "3.2", expectedErr: "credential_spec"},
@@ -94,6 +99,8 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.7", expectedErr: "config"},
 		{version: "3.8"},
 		{version: "3.9"},
+		{version: "3.10"},
+		{version: ""},
 	}
 
 	for _, tc := range tests {

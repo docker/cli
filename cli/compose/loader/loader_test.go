@@ -421,6 +421,14 @@ func TestV1Unsupported(t *testing.T) {
 foo:
   image: busybox
 `)
+	assert.ErrorContains(t, err, "(root) Additional property foo is not allowed")
+
+	_, err = loadYAML(`
+version: "1.0"
+foo:
+  image: busybox
+`)
+
 	assert.ErrorContains(t, err, "unsupported Compose file version: 1.0")
 }
 
