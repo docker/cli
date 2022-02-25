@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/config"
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
@@ -253,4 +254,21 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 		return client.NewClientWithOpts()
 	})))
 	assert.Check(t, cli.ContextStore() != nil)
+}
+
+func TestMissingContextFromConfigFileShouldDeferError(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", t.Name())
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	config.SetDir(tmpDir)
+	configFile := config.LoadDefaultConfigFile(ioutil.Discard)
+	configFile.CurrentContext = "missing"
+	assert.NilError(t, configFile.Save())
+
+	cli, err := NewDockerCli()
+	assert.NilError(t, err)
+	assert.NilError(t, cli.Initialize(flags.NewClientOptions()))
+	_, err = cli.client.Info(context.Background())
+	assert.ErrorContains(t, err, `Current context "missing" is not found on the file system`)
 }
