@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -101,7 +100,7 @@ func readSecretData(in io.ReadCloser, file string) ([]byte, error) {
 		}
 		defer in.Close()
 	}
-	data, err := ioutil.ReadAll(in)
+	data, err := io.ReadAll(in)
 	if err != nil {
 		return nil, err
 	}

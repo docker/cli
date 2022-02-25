@@ -1,7 +1,8 @@
 package secret
 
 import (
-	"io/ioutil"
+	"io"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -44,14 +45,14 @@ func TestSecretCreateErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
 func TestSecretCreateWithName(t *testing.T) {
 	name := "foo"
-	data, err := ioutil.ReadFile(filepath.Join("testdata", secretDataFile))
+	data, err := os.ReadFile(filepath.Join("testdata", secretDataFile))
 	assert.NilError(t, err)
 
 	expected := swarm.SecretSpec{
