@@ -2,9 +2,10 @@ package manifest
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"testing"
 
+	"github.com/docker/cli/cli/manifest/store"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution/reference"
@@ -42,14 +43,13 @@ func TestManifestPushErrors(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newPushListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
 func TestManifestPush(t *testing.T) {
-	store, sCleanup := newTempManifestStore(t)
-	defer sCleanup()
+	store := store.NewStore(t.TempDir())
 
 	registry := newFakeRegistryClient()
 

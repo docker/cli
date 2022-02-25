@@ -2,8 +2,7 @@ package manifest
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/manifest/store"
@@ -20,13 +19,6 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
-
-func newTempManifestStore(t *testing.T) (store.Store, func()) {
-	tmpdir, err := ioutil.TempDir("", "test-manifest-storage")
-	assert.NilError(t, err)
-
-	return store.NewStore(tmpdir), func() { os.RemoveAll(tmpdir) }
-}
 
 func ref(t *testing.T, name string) reference.Named {
 	named, err := reference.ParseNamed("example.com/" + name)
@@ -70,22 +62,20 @@ func fullImageManifest(t *testing.T, ref reference.Named) types.ImageManifest {
 }
 
 func TestInspectCommandLocalManifestNotFound(t *testing.T) {
-	store, cleanup := newTempManifestStore(t)
-	defer cleanup()
+	store := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
 }
 
 func TestInspectCommandNotFound(t *testing.T) {
-	store, cleanup := newTempManifestStore(t)
-	defer cleanup()
+	store := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
@@ -99,15 +89,14 @@ func TestInspectCommandNotFound(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
 }
 
 func TestInspectCommandLocalManifest(t *testing.T) {
-	store, cleanup := newTempManifestStore(t)
-	defer cleanup()
+	store := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
@@ -125,8 +114,7 @@ func TestInspectCommandLocalManifest(t *testing.T) {
 }
 
 func TestInspectcommandRemoteManifest(t *testing.T) {
-	store, cleanup := newTempManifestStore(t)
-	defer cleanup()
+	store := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
@@ -137,7 +125,7 @@ func TestInspectcommandRemoteManifest(t *testing.T) {
 	})
 
 	cmd := newInspectCommand(cli)
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()
