@@ -2,7 +2,7 @@ package image
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -141,7 +141,7 @@ func TestBuildIidFileSquash(t *testing.T) {
 		withWorkingDir(buildDir),
 	)
 	result.Assert(t, icmd.Success)
-	id, err := ioutil.ReadFile(iidfile)
+	id, err := os.ReadFile(iidfile)
 	assert.NilError(t, err)
 	result = icmd.RunCommand("docker", "image", "inspect", "-f", "{{.Id}}", imageTag)
 	result.Assert(t, icmd.Success)
