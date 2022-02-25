@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -40,7 +40,7 @@ func TestPluginDisableErrors(t *testing.T) {
 				pluginDisableFunc: tc.pluginDisableFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
