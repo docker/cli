@@ -1,7 +1,7 @@
 package command
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -91,7 +91,7 @@ func TestOrchestratorSwitch(t *testing.T) {
 			if testcase.envOrchestrator != "" {
 				defer env.Patch(t, "DOCKER_STACK_ORCHESTRATOR", testcase.envOrchestrator)()
 			}
-			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, testcase.contextOrchestrator, testcase.globalOrchestrator, ioutil.Discard)
+			orchestrator, err := GetStackOrchestrator(testcase.flagOrchestrator, testcase.contextOrchestrator, testcase.globalOrchestrator, io.Discard)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(testcase.expectedKubernetes, orchestrator.HasKubernetes()))
 			assert.Check(t, is.Equal(testcase.expectedSwarm, orchestrator.HasSwarm()))
