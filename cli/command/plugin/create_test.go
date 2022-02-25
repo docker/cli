@@ -3,7 +3,6 @@ package plugin
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"runtime"
 	"testing"
 
@@ -41,7 +40,7 @@ func TestCreateErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newCreateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -53,7 +52,7 @@ func TestCreateErrorOnFileAsContextDir(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpFile.Path()})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "context must be a directory")
 }
 
@@ -64,7 +63,7 @@ func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 
 	expectedErr := "config.json: no such file or directory"
 	if runtime.GOOS == "windows" {
@@ -82,7 +81,7 @@ func TestCreateErrorOnInvalidConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "invalid")
 }
 
@@ -100,7 +99,7 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "Error creating plugin")
 }
 
