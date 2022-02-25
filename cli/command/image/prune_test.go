@@ -2,7 +2,7 @@ package image
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -39,7 +39,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		cmd := NewPruneCommand(test.NewFakeCli(&fakeClient{
 			imagesPruneFunc: tc.imagesPruneFunc,
 		}))
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -93,7 +93,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
 		cmd := NewPruneCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)

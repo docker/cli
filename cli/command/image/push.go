@@ -3,7 +3,7 @@ package image
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -93,7 +93,7 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	}
 
 	if opts.quiet {
-		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(ioutil.Discard), nil)
+		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), nil)
 		if err == nil {
 			fmt.Fprintln(dockerCli.Out(), ref.String())
 		}

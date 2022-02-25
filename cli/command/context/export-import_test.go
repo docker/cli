@@ -3,7 +3,7 @@ package context
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,12 +13,8 @@ import (
 )
 
 func TestExportImportWithFile(t *testing.T) {
-	contextDir, err := ioutil.TempDir("", t.Name()+"context")
-	assert.NilError(t, err)
-	defer os.RemoveAll(contextDir)
-	contextFile := filepath.Join(contextDir, "exported")
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	contextFile := filepath.Join(t.TempDir(), "exported")
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "test")
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, RunExport(cli, &ExportOptions{
@@ -43,8 +39,7 @@ func TestExportImportWithFile(t *testing.T) {
 }
 
 func TestExportImportPipe(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "test")
 	cli.ErrBuffer().Reset()
 	cli.OutBuffer().Reset()
@@ -53,7 +48,7 @@ func TestExportImportPipe(t *testing.T) {
 		Dest:        "-",
 	}))
 	assert.Equal(t, cli.ErrBuffer().String(), "")
-	cli.SetIn(streams.NewIn(ioutil.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
+	cli.SetIn(streams.NewIn(io.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, RunImport(cli, "test2", "-"))
@@ -71,14 +66,10 @@ func TestExportImportPipe(t *testing.T) {
 }
 
 func TestExportExistingFile(t *testing.T) {
-	contextDir, err := ioutil.TempDir("", t.Name()+"context")
-	assert.NilError(t, err)
-	defer os.RemoveAll(contextDir)
-	contextFile := filepath.Join(contextDir, "exported")
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	contextFile := filepath.Join(t.TempDir(), "exported")
+	cli := makeFakeCli(t)
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, ioutil.WriteFile(contextFile, []byte{}, 0644))
-	err = RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
+	assert.NilError(t, os.WriteFile(contextFile, []byte{}, 0644))
+	err := RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
 }

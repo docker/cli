@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -36,7 +35,7 @@ type mockCommand struct {
 // Output returns responses from the remote credentials helper.
 // It mocks those responses based in the input in the mock.
 func (m *mockCommand) Output() ([]byte, error) {
-	in, err := ioutil.ReadAll(m.input)
+	in, err := io.ReadAll(m.input)
 	if err != nil {
 		return nil, err
 	}

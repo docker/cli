@@ -1,7 +1,7 @@
 package stack
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
@@ -79,7 +79,7 @@ func TestStackServicesErrors(t *testing.T) {
 			for key, value := range tc.flags {
 				cmd.Flags().Set(key, value)
 			}
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -88,7 +88,7 @@ func TestStackServicesErrors(t *testing.T) {
 func TestRunServicesWithEmptyName(t *testing.T) {
 	cmd := newServicesCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"'   '"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }

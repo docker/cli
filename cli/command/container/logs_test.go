@@ -2,7 +2,6 @@ package container
 
 import (
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -15,7 +14,7 @@ import (
 
 var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
 	return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
-		return ioutil.NopCloser(strings.NewReader(expectedOut)), nil
+		return io.NopCloser(strings.NewReader(expectedOut)), nil
 	}
 }
 

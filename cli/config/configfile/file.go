@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,7 +74,7 @@ func New(fn string) *ConfigFile {
 // LegacyLoadFromReader reads the non-nested configuration data given and sets up the
 // auth config information with given directory and populates the receiver object
 func (configFile *ConfigFile) LegacyLoadFromReader(configData io.Reader) error {
-	b, err := ioutil.ReadAll(configData)
+	b, err := io.ReadAll(configData)
 	if err != nil {
 		return err
 	}
@@ -188,7 +187,7 @@ func (configFile *ConfigFile) Save() (retErr error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	temp, err := ioutil.TempFile(dir, filepath.Base(configFile.Filename))
+	temp, err := os.CreateTemp(dir, filepath.Base(configFile.Filename))
 	if err != nil {
 		return err
 	}

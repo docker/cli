@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -225,23 +225,23 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	outbuf := bytes.NewBuffer(nil)
 	errbuf := bytes.NewBuffer(nil)
 	err = cli.Apply(
-		WithInputStream(ioutil.NopCloser(inbuf)),
+		WithInputStream(io.NopCloser(inbuf)),
 		WithOutputStream(outbuf),
 		WithErrorStream(errbuf),
 	)
 	assert.NilError(t, err)
 	// Check input stream
-	inputStream, err := ioutil.ReadAll(cli.In())
+	inputStream, err := io.ReadAll(cli.In())
 	assert.NilError(t, err)
 	assert.Equal(t, string(inputStream), "input")
 	// Check output stream
 	fmt.Fprintf(cli.Out(), "output")
-	outputStream, err := ioutil.ReadAll(outbuf)
+	outputStream, err := io.ReadAll(outbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(outputStream), "output")
 	// Check error stream
 	fmt.Fprintf(cli.Err(), "error")
-	errStream, err := ioutil.ReadAll(errbuf)
+	errStream, err := io.ReadAll(errbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(errStream), "error")
 }

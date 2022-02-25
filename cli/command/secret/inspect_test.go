@@ -2,7 +2,7 @@ package secret
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 	"time"
 
@@ -59,7 +59,7 @@ func TestSecretInspectErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -52,7 +51,7 @@ func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 		out:       streams.NewOut(outBuffer),
 		outBuffer: outBuffer,
 		err:       errBuffer,
-		in:        streams.NewIn(ioutil.NopCloser(strings.NewReader(""))),
+		in:        streams.NewIn(io.NopCloser(strings.NewReader(""))),
 		// Use an empty string for filename so that tests don't create configfiles
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
 		configfile:     configfile.New(""),

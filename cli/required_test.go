@@ -2,7 +2,7 @@ package cli
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -119,7 +119,7 @@ func runTestCases(t *testing.T, testCases []testCase) {
 	for _, tc := range testCases {
 		cmd := newDummyCommand(tc.validateFunc)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)

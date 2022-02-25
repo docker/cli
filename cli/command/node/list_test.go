@@ -1,7 +1,7 @@
 package node
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
@@ -47,7 +47,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 			infoFunc:     tc.infoFunc,
 		})
 		cmd := newListCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }

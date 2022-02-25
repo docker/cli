@@ -6,7 +6,6 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -39,7 +38,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 		FROM alpine:3.6
 		COPY foo /
 	`)
-	cli.SetIn(streams.NewIn(ioutil.NopCloser(dockerfile)))
+	cli.SetIn(streams.NewIn(io.NopCloser(dockerfile)))
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("foo", "some content"))
@@ -128,7 +127,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	cmd := NewBuildCommand(test.NewFakeCli(&fakeClient{}))
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, "unable to prepare context")
 	assert.ErrorContains(t, err, "docker-build-git")
@@ -139,20 +138,17 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 // case.
 func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
-	tmpDir, err := ioutil.TempDir("", "docker-build-from-local-dir-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpDir)
 
-	buildDir := filepath.Join(tmpDir, "github.com", "docker", "no-such-repository")
-	err = os.MkdirAll(buildDir, 0777)
+	buildDir := filepath.Join(t.TempDir(), "github.com", "docker", "no-such-repository")
+	err := os.MkdirAll(buildDir, 0777)
 	assert.NilError(t, err)
-	err = ioutil.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0644)
+	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0644)
 	assert.NilError(t, err)
 
 	client := test.NewFakeCli(&fakeClient{})
 	cmd := NewBuildCommand(client)
 	cmd.SetArgs([]string{buildDir})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	err = cmd.Execute()
 	assert.NilError(t, err)
 }
@@ -193,7 +189,7 @@ func (f *fakeBuild) build(_ context.Context, context io.Reader, options types.Im
 	f.context = tar.NewReader(context)
 	f.options = options
 	body := new(bytes.Buffer)
-	return types.ImageBuildResponse{Body: ioutil.NopCloser(body)}, nil
+	return types.ImageBuildResponse{Body: io.NopCloser(body)}, nil
 }
 
 func (f *fakeBuild) headers(t *testing.T) []*tar.Header {

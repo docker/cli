@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -275,7 +274,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	store := &ContextStoreWithDefault{
 		Store: store.New(cliconfig.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, configFile, storeConfig, ioutil.Discard)
+			return ResolveDefaultContext(opts, configFile, storeConfig, io.Discard)
 		},
 	}
 	contextName, err := resolveContextName(opts, configFile, store)

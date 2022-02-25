@@ -1,7 +1,7 @@
 package store
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -11,14 +11,14 @@ import (
 func TestLimitReaderReadAll(t *testing.T) {
 	r := strings.NewReader("Reader")
 
-	_, err := ioutil.ReadAll(r)
+	_, err := io.ReadAll(r)
 	assert.NilError(t, err)
 
 	r = strings.NewReader("Test")
-	_, err = ioutil.ReadAll(&LimitedReader{R: r, N: 4})
+	_, err = io.ReadAll(&LimitedReader{R: r, N: 4})
 	assert.NilError(t, err)
 
 	r = strings.NewReader("Test")
-	_, err = ioutil.ReadAll(&LimitedReader{R: r, N: 2})
+	_, err = io.ReadAll(&LimitedReader{R: r, N: 2})
 	assert.Error(t, err, "read exceeds the defined limit")
 }

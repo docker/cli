@@ -9,8 +9,7 @@ import (
 )
 
 func TestInspect(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runInspect(cli, inspectOptions{

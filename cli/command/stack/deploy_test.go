@@ -1,7 +1,7 @@
 package stack
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -11,7 +11,7 @@ import (
 func TestDeployWithEmptyName(t *testing.T) {
 	cmd := newDeployCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"'   '"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }

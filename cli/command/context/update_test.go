@@ -10,8 +10,7 @@ import (
 )
 
 func TestUpdateDescriptionOnly(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
@@ -34,8 +33,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 }
 
 func TestUpdateDockerOnly(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContext(t, cli, "test")
 	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
 		Name: "test",
@@ -53,8 +51,7 @@ func TestUpdateDockerOnly(t *testing.T) {
 }
 
 func TestUpdateInvalidDockerHost(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
