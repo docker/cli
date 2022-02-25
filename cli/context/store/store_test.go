@@ -8,7 +8,6 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -30,11 +29,8 @@ var testCfg = NewConfig(func() interface{} { return &context{} },
 )
 
 func TestExportImport(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	s := New(testDir, testCfg)
-	err = s.CreateOrUpdate(
+	s := New(t.TempDir(), testCfg)
+	err := s.CreateOrUpdate(
 		Metadata{
 			Endpoints: map[string]interface{}{
 				"ep1": endpoint{Foo: "bar"},
@@ -87,11 +83,8 @@ func TestExportImport(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	s := New(testDir, testCfg)
-	err = s.CreateOrUpdate(
+	s := New(t.TempDir(), testCfg)
+	err := s.CreateOrUpdate(
 		Metadata{
 			Endpoints: map[string]interface{}{
 				"ep1": endpoint{Foo: "bar"},
@@ -114,30 +107,18 @@ func TestRemove(t *testing.T) {
 }
 
 func TestListEmptyStore(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	store := New(testDir, testCfg)
-	result, err := store.List()
+	result, err := New(t.TempDir(), testCfg).List()
 	assert.NilError(t, err)
 	assert.Check(t, len(result) == 0)
 }
 
 func TestErrHasCorrectContext(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	store := New(testDir, testCfg)
-	_, err = store.GetMetadata("no-exists")
+	_, err := New(t.TempDir(), testCfg).GetMetadata("no-exists")
 	assert.ErrorContains(t, err, "no-exists")
 	assert.Check(t, IsErrContextDoesNotExist(err))
 }
 
 func TestDetectImportContentType(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-
 	buf := new(bytes.Buffer)
 	r := bufio.NewReader(buf)
 	ct, err := getImportContentType(r)
@@ -146,10 +127,7 @@ func TestDetectImportContentType(t *testing.T) {
 }
 
 func TestImportTarInvalid(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-
+	testDir := t.TempDir()
 	tf := path.Join(testDir, "test.context")
 
 	f, err := os.Create(tf)
@@ -179,10 +157,7 @@ func TestImportTarInvalid(t *testing.T) {
 }
 
 func TestImportZip(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-
+	testDir := t.TempDir()
 	zf := path.Join(testDir, "test.zip")
 
 	f, err := os.Create(zf)
@@ -230,10 +205,7 @@ func TestImportZip(t *testing.T) {
 }
 
 func TestImportZipInvalid(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-
+	testDir := t.TempDir()
 	zf := path.Join(testDir, "test.zip")
 
 	f, err := os.Create(zf)

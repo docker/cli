@@ -1,7 +1,6 @@
 package store
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,18 +20,13 @@ func testMetadata(name string) Metadata {
 }
 
 func TestMetadataGetNotExisting(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: testCfg}
-	_, err = testee.get("noexist")
+	testee := metadataStore{root: t.TempDir(), config: testCfg}
+	_, err := testee.get("noexist")
 	assert.Assert(t, IsErrContextDoesNotExist(err))
 }
 
 func TestMetadataCreateGetRemove(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 	testee := metadataStore{root: testDir, config: testCfg}
 	expected2 := Metadata{
 		Endpoints: map[string]interface{}{
@@ -43,7 +37,7 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 		Name:     "test-context",
 	}
 	testMeta := testMetadata("test-context")
-	err = testee.createOrUpdate(testMeta)
+	err := testee.createOrUpdate(testMeta)
 	assert.NilError(t, err)
 	// create a new instance to check it does not depend on some sort of state
 	testee = metadataStore{root: testDir, config: testCfg}
@@ -66,22 +60,17 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 }
 
 func TestMetadataRespectJsonAnnotation(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 	testee := metadataStore{root: testDir, config: testCfg}
 	assert.NilError(t, testee.createOrUpdate(testMetadata("test")))
-	bytes, err := ioutil.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
+	bytes, err := os.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
 	assert.NilError(t, err)
 	assert.Assert(t, cmp.Contains(string(bytes), "a_very_recognizable_field_name"))
 	assert.Assert(t, cmp.Contains(string(bytes), "another_very_recognizable_field_name"))
 }
 
 func TestMetadataList(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: testCfg}
+	testee := metadataStore{root: t.TempDir(), config: testCfg}
 	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
@@ -89,8 +78,7 @@ func TestMetadataList(t *testing.T) {
 	}
 
 	for _, s := range wholeData {
-		err = testee.createOrUpdate(s)
-		assert.NilError(t, err)
+		assert.NilError(t, testee.createOrUpdate(s))
 	}
 
 	data, err := testee.list()
@@ -99,10 +87,7 @@ func TestMetadataList(t *testing.T) {
 }
 
 func TestEmptyConfig(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir}
+	testee := metadataStore{root: t.TempDir()}
 	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
@@ -110,8 +95,7 @@ func TestEmptyConfig(t *testing.T) {
 	}
 
 	for _, s := range wholeData {
-		err = testee.createOrUpdate(s)
-		assert.NilError(t, err)
+		assert.NilError(t, testee.createOrUpdate(s))
 	}
 
 	data, err := testee.list()
@@ -127,10 +111,10 @@ type embeddedStruct struct {
 }
 
 func TestWithEmbedding(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: NewConfig(func() interface{} { return &contextWithEmbedding{} })}
+	testee := metadataStore{
+		root:   t.TempDir(),
+		config: NewConfig(func() interface{} { return &contextWithEmbedding{} }),
+	}
 	testCtxMeta := contextWithEmbedding{
 		embeddedStruct: embeddedStruct{
 			Val: "Hello",
