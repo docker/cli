@@ -40,6 +40,7 @@ jobs:
       matrix:
         target:
           - yamldocs # ensure yamldocs target runs fine
+          - manpages # ensure manpages target runs fine
     steps:
       -
         name: Checkout
@@ -48,5 +49,6 @@ jobs:
           fetch-depth: 0
       -
         name: Run
+        shell: 'script --return --quiet --command "bash {0}"'
         run: |
           make -f docker.Makefile ${{ matrix.target }}

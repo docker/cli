@@ -1,17 +1,50 @@
 #!/usr/bin/env bash
-# Generate man pages for docker/cli
-set -eu -o pipefail
 
-mkdir -p ./man/man1
+set -eu
 
-if ! command -v go-md2man &> /dev/null; then
-	# yay, go install creates a binary named "v2" ¯\_(ツ)_/¯
-	go build -o "/go/bin/go-md2man" ./vendor/github.com/cpuguy83/go-md2man/v2
-fi
+: "${MD2MAN_VERSION=v2.0.1}"
 
-# Generate man pages from cobra commands
-go build -o /tmp/gen-manpages github.com/docker/cli/man
-/tmp/gen-manpages --root "$(pwd)" --target "$(pwd)/man/man1"
+export GO111MODULE=auto
 
-# Generate legacy pages from markdown
-./man/md2man-all.sh -q
+function clean {
+  rm -rf "$buildir"
+}
+
+buildir=$(mktemp -d -t docker-cli-docsgen.XXXXXXXXXX)
+trap clean EXIT
+
+(
+  set -x
+  cp -r . "$buildir/"
+  cd "$buildir"
+  # init dummy go.mod
+  ./scripts/vendor init
+  # install go-md2man and copy man/tools.go in root folder
+  # to be able to fetch the required dependencies
+  go mod edit -modfile=vendor.mod -require=github.com/cpuguy83/go-md2man/v2@${MD2MAN_VERSION}
+  cp man/tools.go .
+  # update vendor
+  ./scripts/vendor update
+  # build gen-manpages
+  go build -mod=vendor -modfile=vendor.mod -tags manpages -o /tmp/gen-manpages ./man/generate.go
+  # build go-md2man
+  go build -mod=vendor -modfile=vendor.mod -o /tmp/go-md2man ./vendor/github.com/cpuguy83/go-md2man/v2
+)
+
+mkdir -p man/man1
+(set -x ; /tmp/gen-manpages --root "." --target "$(pwd)/man/man1")
+
+(
+  cd man
+  for FILE in *.md; do
+    base="$(basename "$FILE")"
+    name="${base%.md}"
+    num="${name##*.}"
+    if [ -z "$num" ] || [ "$name" = "$num" ]; then
+      # skip files that aren't of the format xxxx.N.md (like README.md)
+      continue
+    fi
+    mkdir -p "./man${num}"
+    (set -x ; /tmp/go-md2man -in "$FILE" -out "./man${num}/${name}")
+  done
+)

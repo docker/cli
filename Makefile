@@ -11,7 +11,7 @@ _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 
 .PHONY: clean
 clean: ## remove build artifacts
-	rm -rf ./build/* cli/winresources/rsrc_* ./man/man[1-9] docs/yaml
+	rm -rf ./build/* man/man[1-9] docs/yaml
 
 .PHONY: test
 test: test-unit ## run tests

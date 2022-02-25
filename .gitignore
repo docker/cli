@@ -10,9 +10,6 @@ Thumbs.db
 /build/
 /cli/winresources/versioninfo.json
 /cli/winresources/*.syso
-/man/man1/
-/man/man5/
-/man/man8/
 profile.out
 
 # top-level go.mod is not meant to be checked in

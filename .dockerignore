@@ -2,6 +2,8 @@
 /cli/winresources/versioninfo.json
 /cli/winresources/*.syso
 /man/man*/
+/man/vendor/
+/man/go.sum
 /docs/yaml/
 /docs/vendor/
 /docs/go.sum
