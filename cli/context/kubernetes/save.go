@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/docker/cli/cli/context"
 	"k8s.io/client-go/tools/clientcmd"
@@ -63,7 +63,7 @@ func FromKubeConfig(kubeconfig, kubeContext, namespaceOverride string) (Endpoint
 
 func readFileOrDefault(path string, defaultValue []byte) ([]byte, error) {
 	if path != "" {
-		return ioutil.ReadFile(path)
+		return os.ReadFile(path)
 	}
 	return defaultValue, nil
 }
