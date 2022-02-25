@@ -2,7 +2,6 @@ package image
 
 import (
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -34,14 +33,14 @@ func TestNewPushCommandErrors(t *testing.T) {
 			args:          []string{"image:repo"},
 			expectedError: "Failed to push",
 			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
-				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
+				return io.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
 			},
 		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imagePushFunc: tc.imagePushFunc})
 		cmd := NewPushCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -69,7 +68,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
-					return ioutil.NopCloser(strings.NewReader("")), nil
+					return io.NopCloser(strings.NewReader("")), nil
 				},
 			})
 			cmd := NewPushCommand(cli)

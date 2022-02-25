@@ -2,7 +2,6 @@ package image
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -38,7 +37,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			isTerminal:    false,
 			expectedError: "error saving image",
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
+				return io.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
 			},
 		},
 		{
@@ -56,7 +55,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
 		cli.Out().SetIsTerminal(tc.isTerminal)
 		cmd := NewSaveCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -75,7 +74,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
-				return ioutil.NopCloser(strings.NewReader("")), nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 			deferredFunc: func() {
 				os.Remove("save_tmp_file")
@@ -88,17 +87,17 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				assert.Assert(t, is.Len(images, 2))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, is.Equal("arg2", images[1]))
-				return ioutil.NopCloser(strings.NewReader("")), nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 	}
 	for _, tc := range testCases {
 		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				return ioutil.NopCloser(strings.NewReader("")), nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		}))
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NilError(t, cmd.Execute())
 		if tc.deferredFunc != nil {

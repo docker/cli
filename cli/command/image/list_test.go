@@ -2,7 +2,7 @@ package image
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
@@ -36,7 +36,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -82,7 +82,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
 		cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
 		cmd := NewImagesCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)
