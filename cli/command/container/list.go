@@ -2,7 +2,7 @@ package container
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -89,7 +89,7 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 
 		// This shouldn't error out but swallowing the error makes it harder
 		// to track down if preProcessor issues come up.
-		if err := tmpl.Execute(ioutil.Discard, optionsProcessor); err != nil {
+		if err := tmpl.Execute(io.Discard, optionsProcessor); err != nil {
 			return nil, errors.Wrap(err, "failed to execute template")
 		}
 

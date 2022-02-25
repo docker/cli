@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -68,7 +68,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewRunCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		err := cmd.Execute()
 		assert.Assert(t, err != nil)
 		assert.Assert(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))

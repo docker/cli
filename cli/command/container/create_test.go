@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"sort"
@@ -67,7 +66,7 @@ func TestCIDFileCloseWithWrite(t *testing.T) {
 	content := "id"
 	assert.NilError(t, file.Write(content))
 
-	actual, err := ioutil.ReadFile(path)
+	actual, err := os.ReadFile(path)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(content, string(actual)))
 
@@ -130,7 +129,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 			},
 			imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
 				defer func() { pullCounter++ }()
-				return ioutil.NopCloser(strings.NewReader("")), nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 			infoFunc: func() (types.Info, error) {
 				return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
@@ -194,7 +193,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
 		cmd := NewCreateCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)
@@ -254,7 +253,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 				},
 			})
 			cmd := NewCreateCommand(cli)
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
 			assert.NilError(t, err)
@@ -306,7 +305,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		},
 	})
 	cmd := NewCreateCommand(cli)
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()
 	assert.NilError(t, err)

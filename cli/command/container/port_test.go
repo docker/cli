@@ -1,7 +1,7 @@
 package container
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -47,7 +47,7 @@ func TestNewPortCommandOutput(t *testing.T) {
 				},
 			}, test.EnableContentTrust)
 			cmd := NewPortCommand(cli)
-			cmd.SetErr(ioutil.Discard)
+			cmd.SetErr(io.Discard)
 			cmd.SetArgs([]string{"some_container", "80"})
 			err := cmd.Execute()
 			assert.NilError(t, err)
