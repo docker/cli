@@ -1,7 +1,7 @@
 package trust
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/trust"
@@ -38,7 +38,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.Flags().Set("pretty", "true")
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -85,7 +85,7 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 			cli.SetNotaryClient(tc.notaryRepository)
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.err)
 			if tc.golden != "" {
 				golden.Assert(t, cli.OutBuffer().String(), tc.golden)
