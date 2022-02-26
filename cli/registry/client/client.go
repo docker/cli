@@ -24,7 +24,6 @@ type RegistryClient interface {
 	GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error)
 	MountBlob(ctx context.Context, source reference.Canonical, target reference.Named) error
 	PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error)
-	GetTags(ctx context.Context, ref reference.Named) ([]string, error)
 }
 
 // NewRegistryClient returns a new RegistryClient with a resolver
@@ -121,19 +120,6 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 
 	dgst, err := manifestService.Put(ctx, manifest, opts...)
 	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
-}
-
-func (c *client) GetTags(ctx context.Context, ref reference.Named) ([]string, error) {
-	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
-	if err != nil {
-		return nil, err
-	}
-
-	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	return repo.Tags(ctx).All(ctx)
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
