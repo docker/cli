@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/config/credentials"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
@@ -72,7 +73,7 @@ func ResolveAuthConfig(_ context.Context, cli Cli, index *registrytypes.IndexInf
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
 func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (types.AuthConfig, error) {
 	if !isDefaultRegistry {
-		serverAddress = registry.ConvertToHostname(serverAddress)
+		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
 	var authconfig = configtypes.AuthConfig{}
 	var err error
