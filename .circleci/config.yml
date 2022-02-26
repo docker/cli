@@ -1,0 +1,19 @@
+# This is a dummy CircleCI config file to avoid GitHub status failures reported
+# on branches that don't use CircleCI. This file should be deleted when all
+# branches are no longer dependent on CircleCI.
+version: 2
+
+jobs:
+  dummy:
+    docker:
+      - image: busybox
+    steps:
+      - run:
+          name: "dummy"
+          command: echo "dummy job"
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - dummy
