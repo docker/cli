@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/reference"
 	distributionclient "github.com/docker/distribution/registry/client"
@@ -206,17 +205,4 @@ func getManifestOptionsFromReference(ref reference.Named) (digest.Digest, []dist
 		return digested.Digest(), []distribution.ManifestServiceOption{}, nil
 	}
 	return "", nil, errors.Errorf("%s no tag or digest", ref)
-}
-
-// GetRegistryAuth returns the auth config given an input image
-func GetRegistryAuth(ctx context.Context, resolver AuthConfigResolver, imageName string) (*types.AuthConfig, error) {
-	distributionRef, err := reference.ParseNormalizedNamed(imageName)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse image name: %s: %s", imageName, err)
-	}
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, resolver, distributionRef.String())
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get imgRefAndAuth: %s", err)
-	}
-	return imgRefAndAuth.AuthConfig(), nil
 }
