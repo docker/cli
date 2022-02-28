@@ -63,7 +63,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memoryReservation, "memory-reservation", "Memory soft limit")
-	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: -1 to enable unlimited swap")
 	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit")
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
 	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, "Tune container pids limit (set -1 for unlimited)")

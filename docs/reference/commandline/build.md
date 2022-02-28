@@ -12,9 +12,9 @@ Usage:  docker build [OPTIONS] PATH | URL | -
 Build an image from a Dockerfile
 
 Options:
-      --add-host value          Add a custom host-to-IP mapping (host:ip) (default [])
-      --build-arg value         Set build-time variables (default [])
-      --cache-from value        Images to consider as cache sources (default [])
+      --add-host list           Add a custom host-to-IP mapping (host:ip)
+      --build-arg list          Set build-time variables
+      --cache-from strings      Images to consider as cache sources
       --cgroup-parent string    Optional parent cgroup for the container
       --compress                Compress the build context using gzip
       --cpu-period int          Limit the CPU CFS (Completely Fair Scheduler) period
@@ -23,38 +23,26 @@ Options:
       --cpuset-cpus string      CPUs in which to allow execution (0-3, 0,1)
       --cpuset-mems string      MEMs in which to allow execution (0-3, 0,1)
       --disable-content-trust   Skip image verification (default true)
-  -f, --file string             Name of the Dockerfile (Default is 'PATH/Dockerfile')
+  -f, --file string             Name of the Dockerfile (Default is "PATH/Dockerfile")
       --force-rm                Always remove intermediate containers
-      --help                    Print usage
       --iidfile string          Write the image ID to the file
       --isolation string        Container isolation technology
-      --label value             Set metadata for an image (default [])
-  -m, --memory string           Memory limit
-      --memory-swap string      Swap limit equal to memory plus swap: '-1' to enable unlimited swap
+      --label list              Set metadata for an image
+  -m, --memory bytes            Memory limit
+      --memory-swap bytes       Swap limit equal to memory plus swap: -1 to enable unlimited swap
       --network string          Set the networking mode for the RUN instructions during build
-                                'bridge': use default Docker bridge
-                                'none': no networking
-                                'container:<name|id>': reuse another container's network stack
-                                'host': use the Docker host network stack
-                                '<network-name>|<network-id>': connect to a user-defined network
+                                (default "default")
       --no-cache                Do not use cache when building the image
-  -o, --output                  Output destination (format: type=local,dest=path)
+      --platform string         Set platform if server is multi-platform capable
       --pull                    Always attempt to pull a newer version of the image
-      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty).
-                                Use plain to show container output
   -q, --quiet                   Suppress the build output and print image ID on success
-      --rm                      Remove intermediate containers after a successful build (default true)
-      --secret                  Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret"
-      --security-opt value      Security Options (default [])
+      --rm                      Remove intermediate containers after a successful build
+                                (default true)
+      --security-opt strings    Security options
       --shm-size bytes          Size of /dev/shm
-                                The format is `<number><unit>`. `number` must be greater than `0`.
-                                Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
-                                or `g` (gigabytes). If you omit the unit, the system uses bytes.
-      --squash                  Squash newly built layers into a single new layer (**Experimental Only**)
-      --ssh                     SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])
-  -t, --tag value               Name and optionally a tag in the 'name:tag' format (default [])
+  -t, --tag list                Name and optionally a tag in the "name:tag" format
       --target string           Set the target build stage to build.
-      --ulimit value            Ulimit options (default [])
+      --ulimit ulimit           Ulimit options (default [])
 ```
 
 ## Description
