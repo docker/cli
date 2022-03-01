@@ -25,7 +25,9 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
+	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/moby/sys/signal v0.6.0
+	github.com/moby/sys/symlink v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
@@ -60,9 +62,6 @@ replace (
 	github.com/jaguilar/vt100 => github.com/tonistiigi/vt100 v0.0.0-20190402012908-ad4c4a574305
 	github.com/json-iterator/go => github.com/json-iterator/go v1.1.10
 	github.com/moby/buildkit => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a // master (v0.9.0-dev)
-	github.com/moby/sys/mount => github.com/moby/sys/mount v0.3.0
-	github.com/moby/sys/mountinfo => github.com/moby/sys/mountinfo v0.5.0
-	github.com/moby/sys/symlink => github.com/moby/sys/symlink v0.2.0
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
 	github.com/prometheus/client_model => github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common => github.com/prometheus/common v0.9.1
