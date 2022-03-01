@@ -80,7 +80,7 @@ github.com/docker/docker/rootless
 ## explicit
 github.com/docker/docker-credential-helpers/client
 github.com/docker/docker-credential-helpers/credentials
-# github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c => github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
+# github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
 github.com/docker/go/canonical/json
 # github.com/docker/go-connections v0.4.0
 ## explicit
@@ -131,7 +131,7 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/shlex
 # github.com/gorilla/mux v1.8.0
 github.com/gorilla/mux
-# github.com/imdario/mergo v0.3.12 => github.com/imdario/mergo v0.3.12
+# github.com/imdario/mergo v0.3.12
 ## explicit
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
@@ -143,7 +143,7 @@ github.com/miekg/pkcs11
 # github.com/mitchellh/mapstructure v1.3.2
 ## explicit
 github.com/mitchellh/mapstructure
-# github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
+# github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
 ## explicit
 github.com/moby/buildkit/frontend/dockerfile/dockerignore
 github.com/moby/buildkit/util/appcontext
@@ -181,7 +181,7 @@ github.com/pkg/errors
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
-# github.com/prometheus/client_model v0.2.0 => github.com/prometheus/client_model v0.2.0
+# github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.10.0 => github.com/prometheus/common v0.9.1
 github.com/prometheus/common/expfmt
@@ -200,7 +200,7 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
+# github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 ## explicit
 github.com/theupdateframework/notary
 github.com/theupdateframework/notary/client
@@ -356,21 +356,10 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# cloud.google.com/go => cloud.google.com/go v0.44.3
 # github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible
-# github.com/docker/go => github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
-# github.com/evanphx/json-patch => gopkg.in/evanphx/json-patch.v4 v4.1.0
 # github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 # github.com/google/go-cmp => github.com/google/go-cmp v0.2.0
-# github.com/google/gofuzz => github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
-# github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.2.0
-# github.com/imdario/mergo => github.com/imdario/mergo v0.3.12
-# github.com/jaguilar/vt100 => github.com/tonistiigi/vt100 v0.0.0-20190402012908-ad4c4a574305
-# github.com/json-iterator/go => github.com/json-iterator/go v1.1.10
-# github.com/moby/buildkit => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
 # github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
-# github.com/prometheus/client_model => github.com/prometheus/client_model v0.2.0
 # github.com/prometheus/common => github.com/prometheus/common v0.9.1
 # github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
-# github.com/theupdateframework/notary => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
