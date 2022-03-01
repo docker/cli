@@ -24,8 +24,10 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
+	github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a // master (v0.9.0-dev)
+	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/moby/sys/signal v0.6.0
+	github.com/moby/sys/symlink v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
@@ -47,37 +49,10 @@ require (
 )
 
 replace (
-	cloud.google.com/go => cloud.google.com/go v0.44.3
 	github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible // master (v21.xx-dev)
-	github.com/docker/go => github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c // contains a customized version of canonical/json and is used by Notary. The package is periodically rebased on current Go versions.
-	github.com/evanphx/json-patch => gopkg.in/evanphx/json-patch.v4 v4.1.0
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
-	github.com/google/go-cmp => github.com/google/go-cmp v0.2.0
-	github.com/google/gofuzz => github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
-	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.2.0
-	github.com/imdario/mergo => github.com/imdario/mergo v0.3.12
-	github.com/jaguilar/vt100 => github.com/tonistiigi/vt100 v0.0.0-20190402012908-ad4c4a574305
-	github.com/json-iterator/go => github.com/json-iterator/go v1.1.10
-	github.com/moby/buildkit => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a // master (v0.9.0-dev)
-	github.com/moby/sys/mount => github.com/moby/sys/mount v0.3.0
-	github.com/moby/sys/mountinfo => github.com/moby/sys/mountinfo v0.5.0
-	github.com/moby/sys/symlink => github.com/moby/sys/symlink v0.2.0
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
-	github.com/prometheus/client_model => github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common => github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
-	github.com/theupdateframework/notary => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
-	golang.org/x/term => golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
-	golang.org/x/text => golang.org/x/text v0.3.3
-	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.8
-	gotest.tools/v3 => gotest.tools/v3 v3.0.2
-	k8s.io/api => k8s.io/api v0.16.9
-	k8s.io/apimachinery => k8s.io/apimachinery v0.16.9
-	k8s.io/client-go => k8s.io/client-go v0.16.9
-	k8s.io/klog => k8s.io/klog v1.0.1-0.20200310124935-4ad0115ba9e4 // v1.0.0-2-g4ad0115 pending v1.0.1 release to fix https://github.com/docker/cli/issues/2420
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-	k8s.io/utils => k8s.io/utils v0.0.0-20190923111123-69764acb6e8e
-	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
 )

@@ -80,7 +80,7 @@ github.com/docker/docker/rootless
 ## explicit
 github.com/docker/docker-credential-helpers/client
 github.com/docker/docker-credential-helpers/credentials
-# github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c => github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
+# github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
 github.com/docker/go/canonical/json
 # github.com/docker/go-connections v0.4.0
 ## explicit
@@ -119,11 +119,12 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/go-cmp v0.5.5 => github.com/google/go-cmp v0.2.0
+# github.com/google/go-cmp v0.5.5
 ## explicit
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/cmpopts
 github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -131,7 +132,7 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/shlex
 # github.com/gorilla/mux v1.8.0
 github.com/gorilla/mux
-# github.com/imdario/mergo v0.3.12 => github.com/imdario/mergo v0.3.12
+# github.com/imdario/mergo v0.3.12
 ## explicit
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
@@ -143,18 +144,20 @@ github.com/miekg/pkcs11
 # github.com/mitchellh/mapstructure v1.3.2
 ## explicit
 github.com/mitchellh/mapstructure
-# github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
+# github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
 ## explicit
 github.com/moby/buildkit/frontend/dockerfile/dockerignore
 github.com/moby/buildkit/util/appcontext
-# github.com/moby/sys/mount v0.2.0 => github.com/moby/sys/mount v0.3.0
+# github.com/moby/sys/mount v0.3.0
+## explicit
 github.com/moby/sys/mount
-# github.com/moby/sys/mountinfo v0.5.0 => github.com/moby/sys/mountinfo v0.5.0
+# github.com/moby/sys/mountinfo v0.5.0
 github.com/moby/sys/mountinfo
 # github.com/moby/sys/signal v0.6.0
 ## explicit
 github.com/moby/sys/signal
-# github.com/moby/sys/symlink v0.1.0 => github.com/moby/sys/symlink v0.2.0
+# github.com/moby/sys/symlink v0.2.0
+## explicit
 github.com/moby/sys/symlink
 # github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 ## explicit
@@ -179,7 +182,7 @@ github.com/pkg/errors
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
-# github.com/prometheus/client_model v0.2.0 => github.com/prometheus/client_model v0.2.0
+# github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.10.0 => github.com/prometheus/common v0.9.1
 github.com/prometheus/common/expfmt
@@ -198,7 +201,7 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
+# github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 ## explicit
 github.com/theupdateframework/notary
 github.com/theupdateframework/notary/client
@@ -238,17 +241,17 @@ golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 => golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
+# golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
 ## explicit
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 => golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
+# golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 ## explicit
 golang.org/x/term
-# golang.org/x/text v0.3.4 => golang.org/x/text v0.3.3
+# golang.org/x/text v0.3.4
 ## explicit
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
@@ -257,6 +260,9 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 golang.org/x/time/rate
+# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
+golang.org/x/xerrors
+golang.org/x/xerrors/internal
 # google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.38.0
@@ -336,10 +342,10 @@ google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
-# gopkg.in/yaml.v2 v2.4.0 => gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/yaml.v2 v2.4.0
 ## explicit
 gopkg.in/yaml.v2
-# gotest.tools/v3 v3.0.3 => gotest.tools/v3 v3.0.2
+# gotest.tools/v3 v3.0.3
 ## explicit
 gotest.tools/v3/assert
 gotest.tools/v3/assert/cmp
@@ -347,43 +353,16 @@ gotest.tools/v3/env
 gotest.tools/v3/fs
 gotest.tools/v3/golden
 gotest.tools/v3/icmd
+gotest.tools/v3/internal/assert
 gotest.tools/v3/internal/cleanup
 gotest.tools/v3/internal/difflib
 gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-gotest.tools/v3/x/subtest
-# cloud.google.com/go => cloud.google.com/go v0.44.3
 # github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible
-# github.com/docker/go => github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
-# github.com/evanphx/json-patch => gopkg.in/evanphx/json-patch.v4 v4.1.0
 # github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
-# github.com/google/go-cmp => github.com/google/go-cmp v0.2.0
-# github.com/google/gofuzz => github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
-# github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.2.0
-# github.com/imdario/mergo => github.com/imdario/mergo v0.3.12
-# github.com/jaguilar/vt100 => github.com/tonistiigi/vt100 v0.0.0-20190402012908-ad4c4a574305
-# github.com/json-iterator/go => github.com/json-iterator/go v1.1.10
-# github.com/moby/buildkit => github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a
-# github.com/moby/sys/mount => github.com/moby/sys/mount v0.3.0
-# github.com/moby/sys/mountinfo => github.com/moby/sys/mountinfo v0.5.0
-# github.com/moby/sys/symlink => github.com/moby/sys/symlink v0.2.0
 # github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
-# github.com/prometheus/client_model => github.com/prometheus/client_model v0.2.0
 # github.com/prometheus/common => github.com/prometheus/common v0.9.1
 # github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
-# github.com/theupdateframework/notary => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
-# golang.org/x/sys => golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
-# golang.org/x/term => golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
-# golang.org/x/text => golang.org/x/text v0.3.3
-# gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.8
-# gotest.tools/v3 => gotest.tools/v3 v3.0.2
-# k8s.io/api => k8s.io/api v0.16.9
-# k8s.io/apimachinery => k8s.io/apimachinery v0.16.9
-# k8s.io/client-go => k8s.io/client-go v0.16.9
-# k8s.io/klog => k8s.io/klog v1.0.1-0.20200310124935-4ad0115ba9e4
-# k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-# k8s.io/utils => k8s.io/utils v0.0.0-20190923111123-69764acb6e8e
-# sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
