@@ -68,7 +68,6 @@ replace (
 	github.com/prometheus/common => github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
 	github.com/theupdateframework/notary => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
-	golang.org/x/text => golang.org/x/text v0.3.3
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.8
 	gotest.tools/v3 => gotest.tools/v3 v3.0.2
 )
