@@ -36,7 +36,8 @@ type createOptions struct {
 	name      string
 	platform  string
 	untrusted bool
-	pull      string // alway, missing, never
+	pull      string // always, missing, never
+	quiet     bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -63,6 +64,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&opts.pull, "pull", PullImageMissing,
 		`Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -227,7 +229,11 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	}
 
 	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
+		pullOut := stderr
+		if opts.quiet {
+			pullOut = io.Discard
+		}
+		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, pullOut); err != nil {
 			return err
 		}
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
@@ -259,8 +265,11 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
 		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
-			// we don't want to write to stdout anything apart from container.ID
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			if !opts.quiet {
+				// we don't want to write to stdout anything apart from container.ID
+				fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			}
+
 			if err := pullAndTagImage(); err != nil {
 				return nil, err
 			}

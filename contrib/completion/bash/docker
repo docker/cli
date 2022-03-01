@@ -1994,6 +1994,7 @@ _docker_container_run_and_create() {
 		--oom-kill-disable
 		--privileged
 		--publish-all -P
+		--quiet -q
 		--read-only
 		--tty -t
 	"
