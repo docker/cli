@@ -339,7 +339,7 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit
 gopkg.in/yaml.v2
-# gotest.tools/v3 v3.0.3 => gotest.tools/v3 v3.0.2
+# gotest.tools/v3 v3.0.3
 ## explicit
 gotest.tools/v3/assert
 gotest.tools/v3/assert/cmp
@@ -347,13 +347,13 @@ gotest.tools/v3/env
 gotest.tools/v3/fs
 gotest.tools/v3/golden
 gotest.tools/v3/icmd
+gotest.tools/v3/internal/assert
 gotest.tools/v3/internal/cleanup
 gotest.tools/v3/internal/difflib
 gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-gotest.tools/v3/x/subtest
 # cloud.google.com/go => cloud.google.com/go v0.44.3
 # github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible
@@ -375,4 +375,3 @@ gotest.tools/v3/x/subtest
 # github.com/prometheus/common => github.com/prometheus/common v0.9.1
 # github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
 # github.com/theupdateframework/notary => github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
-# gotest.tools/v3 => gotest.tools/v3 v3.0.2
