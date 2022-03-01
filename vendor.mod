@@ -73,11 +73,4 @@ replace (
 	golang.org/x/text => golang.org/x/text v0.3.3
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.8
 	gotest.tools/v3 => gotest.tools/v3 v3.0.2
-	k8s.io/api => k8s.io/api v0.16.9
-	k8s.io/apimachinery => k8s.io/apimachinery v0.16.9
-	k8s.io/client-go => k8s.io/client-go v0.16.9
-	k8s.io/klog => k8s.io/klog v1.0.1-0.20200310124935-4ad0115ba9e4 // v1.0.0-2-g4ad0115 pending v1.0.1 release to fix https://github.com/docker/cli/issues/2420
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-	k8s.io/utils => k8s.io/utils v0.0.0-20190923111123-69764acb6e8e
-	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
 )
