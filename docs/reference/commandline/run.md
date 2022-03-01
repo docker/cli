@@ -653,9 +653,32 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 > This option fails if the container isolation is `hyperv` or when running Linux
 > Containers on Windows (LCOW).
 
+### <a name="device-cgroup-rule"></a> Using dynamically created devices (--device-cgroup-rule)
+
+Devices available to a container are assigned at creation time. The
+assigned devices will both be added to the cgroup.allow file and
+created into the container once it is run. This poses a problem when
+a new device needs to be added to running container.
+
+One of the solutions is to add a more permissive rule to a container
+allowing it access to a wider range of devices. For example, supposing
+our container needs access to a character device with major `42` and
+any number of minor number (added as new devices appear), the
+following rule would be added:
+
+```console
+$ docker run -d --device-cgroup-rule='c 42:* rmw' -name my-container my-image
+```
+
+Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
+the required device when it is added.
+
+> **Note**: initially present devices still need to be explicitly added to the
+> `docker run` / `docker create` command.
+
 ### Access an NVIDIA GPU
 
-The `--gpus­` flag allows you to access NVIDIA GPU resources. First you need to
+The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
 Visit [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
 for more information.
@@ -819,9 +842,9 @@ and 30 seconds for Windows containers.
 ### Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
-Windows. The `--isolation <value>` option sets a container's isolation technology.
-On Linux, the only supported is the `default` option which uses
-Linux namespaces. These two commands are equivalent on Linux:
+Windows. The `--isolation=<value>` option sets a container's isolation technology.
+On Linux, the only supported is the `default` option which uses Linux namespaces.
+These two commands are equivalent on Linux:
 
 ```console
 $ docker run -d busybox top
@@ -830,16 +853,15 @@ $ docker run -d --isolation default busybox top
 
 On Windows, `--isolation` can take one of these values:
 
+| Value     | Description                                                                                |
+|:----------|:-------------------------------------------------------------------------------------------|
+| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below). |
+| `process` | Shared-kernel namespace isolation.                                                         |
+| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                              |
 
-| Value     | Description                                                                                                       |
-|:----------|:------------------------------------------------------------------------------------------------------------------|
-| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below).                        |
-| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems older than Windows 10 1809). |
-| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                     |
-
-The default isolation on Windows server operating systems is `process`. The default
-isolation on Windows client operating systems is `hyperv`. An attempt to start a container on a client
-operating system older than Windows 10 1809 with `--isolation process` will fail.
+The default isolation on Windows server operating systems is `process`, and `hyperv`
+on Windows client operating systems, such as Windows 10. Process isolation is more
+performant, but requires the image to
 
 On Windows server, assuming the default configuration, these commands are equivalent
 and result in `process` isolation:
