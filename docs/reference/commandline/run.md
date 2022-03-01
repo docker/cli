@@ -649,9 +649,8 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 
 > **Note**
 >
-> The `--device` option is only supported on process-isolated Windows containers.
-> This option fails if the container isolation is `hyperv` or when running Linux
-> Containers on Windows (LCOW).
+> The `--device` option is only supported on process-isolated Windows containers,
+> and produces an error if the container isolation is `hyperv`.
 
 ### <a name="device-cgroup-rule"></a> Using dynamically created devices (--device-cgroup-rule)
 
