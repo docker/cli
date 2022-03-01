@@ -88,7 +88,6 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		version     string
 		expectedErr string
 	}{
-		{version: "3", expectedErr: "credential_spec"},
 		{version: "3.0", expectedErr: "credential_spec"},
 		{version: "3.1", expectedErr: "credential_spec"},
 		{version: "3.2", expectedErr: "credential_spec"},
@@ -100,6 +99,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.8"},
 		{version: "3.9"},
 		{version: "3.10"},
+		{version: "3"},
 		{version: ""},
 	}
 
