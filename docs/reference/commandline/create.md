@@ -134,35 +134,51 @@ Options:
 
 ## Description
 
-The `docker create` command creates a writeable container layer over the
-specified image and prepares it for running the specified command.  The
+The `docker container create` (or shorthand: `docker create`) command creates a
+new container from the specified image, without starting it.
+
+When creating a container, the docker daemon creates a writeable container layer
+over the specified image and prepares it for running the specified command.  The
 container ID is then printed to `STDOUT`.  This is similar to `docker run -d`
-except the container is never started.  You can then use the
-`docker start <container_id>` command to start the container at any point.
+except the container is never started. You can then use the `docker container start`
+(or shorthand: `docker start`) command to start the container at any point.
 
 This is useful when you want to set up a container configuration ahead of time
 so that it is ready to start when you need it. The initial status of the
 new container is `created`.
 
-Please see the [run command](run.md) section and the [Docker run reference](../run.md) for more details.
+The `docker create` command shares most of its options with the `docker run`
+command (which performs a `docker create` before starting it). Refer to the
+[`docker run` command](run.md) section and the [Docker run reference](../run.md)
+for details on the available flags and options.
 
 ## Examples
 
 ### Create and start a container
 
-```console
-$ docker create -t -i fedora bash
+The following example creates an interactive container with a pseudo-TTY attached,
+then starts the container and attaches to it:
 
+```console
+$ docker container create -i -t --name mycontainer alpine
 6d8af538ec541dd581ebc2a24153a28329acb5268abe5ef868c1f1a261221752
 
-$ docker start -a -i 6d8af538ec5
+$ docker container start --attach -i mycontainer
+/ # echo hello world
+hello world
+```
 
-bash-4.2#
+The above is the equivalent of a `docker run`:
+
+```console
+$ docker run -it --name mycontainer2 alpine
+/ # echo hello world
+hello world
 ```
 
 ### Initialize volumes
 
-As of v1.4.0 container volumes are initialized during the `docker create` phase
+Container volumes are initialized during the `docker create` phase
 (i.e., `docker run` too). For example, this allows you to `create` the `data`
 volume container, and then use it from another container:
 
@@ -199,58 +215,3 @@ drwxr-sr-x  3 1000 staff   60 Dec  1 03:28 .local
 drwx--S---  2 1000 staff  460 Dec  5 00:51 .ssh
 drwxr-xr-x 32 1000 staff 1140 Dec  5 04:01 docker
 ```
-
-
-Set storage driver options per container.
-
-```console
-$ docker create -it --storage-opt size=120G fedora /bin/bash
-```
-
-This (size) will allow to set the container rootfs size to 120G at creation time.
-This option is only available for the `devicemapper`, `btrfs`, `overlay2`,
-`windowsfilter` and `zfs` graph drivers.
-For the `devicemapper`, `btrfs`, `windowsfilter` and `zfs` graph drivers,
-user cannot pass a size less than the Default BaseFS Size.
-For the `overlay2` storage driver, the size option is only available if the
-backing fs is `xfs` and mounted with the `pquota` mount option.
-Under these conditions, user can pass any size less than the backing fs size.
-
-### Specify isolation technology for container (--isolation)
-
-This option is useful in situations where you are running Docker containers on
-Windows. The `--isolation=<value>` option sets a container's isolation
-technology. On Linux, the only supported is the `default` option which uses
-Linux namespaces. On Microsoft Windows, you can specify these values:
-
-
-| Value     | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| `default` | Use the value specified by the Docker daemon's `--exec-opt` . If the `daemon` does not specify an isolation technology, Microsoft Windows uses `process` as its default value if the daemon is running on Windows server, or `hyperv` if running on Windows client. |
-| `process` | Namespace isolation only.                                    |
-| `hyperv`  | Hyper-V hypervisor partition-based isolation.                |
-
-Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
-
-### Dealing with dynamically created devices (--device-cgroup-rule)
-
-Devices available to a container are assigned at creation time. The
-assigned devices will both be added to the cgroup.allow file and
-created into the container once it is run. This poses a problem when
-a new device needs to be added to running container.
-
-One of the solutions is to add a more permissive rule to a container
-allowing it access to a wider range of devices. For example, supposing
-our container needs access to a character device with major `42` and
-any number of minor number (added as new devices appear), the
-following rule would be added:
-
-```console
-$ docker create --device-cgroup-rule='c 42:* rmw' -name my-container my-image
-```
-
-Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
-the required device when it is added.
-
-NOTE: initially present devices still need to be explicitly added to
-the create/run command
