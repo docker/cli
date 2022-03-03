@@ -75,14 +75,17 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		imageInspectInvocationCount = 0
-		cli := test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc})
-		cmd := newInspectCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("inspect-command-success.%s.golden", tc.name))
-		assert.Check(t, is.Equal(imageInspectInvocationCount, tc.imageCount))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			imageInspectInvocationCount = 0
+			cli := test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc})
+			cmd := newInspectCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("inspect-command-success.%s.golden", tc.name))
+			assert.Check(t, is.Equal(imageInspectInvocationCount, tc.imageCount))
+		})
 	}
 }
