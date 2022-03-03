@@ -15,7 +15,7 @@ github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/pkg/userns
 github.com/containerd/containerd/platforms
-# github.com/coreos/etcd v3.3.25+incompatible
+# github.com/coreos/etcd v3.3.27+incompatible
 ## explicit
 github.com/coreos/etcd/raft/raftpb
 # github.com/creack/pty v1.1.11
