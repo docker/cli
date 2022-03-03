@@ -175,13 +175,13 @@ func compare(actual []byte, filename string) (cmp.Result, []byte) {
 }
 
 func update(filename string, actual []byte) error {
-	if dir := filepath.Dir(filename); dir != "." {
+	if !*flagUpdate {
+		return nil
+	}
+	if dir := filepath.Dir(Path(filename)); dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return err
 		}
 	}
-	if *flagUpdate {
-		return ioutil.WriteFile(Path(filename), actual, 0644)
-	}
-	return nil
+	return ioutil.WriteFile(Path(filename), actual, 0644)
 }
