@@ -53,6 +53,5 @@ replace (
 	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible // master (v21.xx-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
-	github.com/prometheus/common => github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
 )
