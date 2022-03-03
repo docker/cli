@@ -15,6 +15,8 @@ type createOptions struct {
 	checkpoint    string
 	checkpointDir string
 	leaveRunning  bool
+	preDump       bool
+	prevImagetDir string
 }
 
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
@@ -34,7 +36,9 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.leaveRunning, "leave-running", false, "Leave the container running after checkpoint")
 	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
-
+	flags.BoolVar(&opts.preDump, "pre-dump", false, "Pre-dump is used for live migration")
+	flags.StringVarP(&opts.prevImagetDir, "prevImageDir", "", "",
+		"prevImageDir is the directory of last iteration dump image")
 	return cmd
 }
 
@@ -44,7 +48,9 @@ func runCreate(dockerCli command.Cli, opts createOptions) error {
 	checkpointOpts := types.CheckpointCreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
-		Exit:          !opts.leaveRunning,
+		//		PreDump:       opts.preDump,
+		//		PrevImageDir:  opts.prevImagetDir,
+		Exit: !opts.leaveRunning,
 	}
 
 	err := client.CheckpointCreate(context.Background(), opts.container, checkpointOpts)
