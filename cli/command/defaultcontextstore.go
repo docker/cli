@@ -2,9 +2,7 @@ package command
 
 import (
 	"fmt"
-	"io"
 
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
@@ -45,7 +43,7 @@ type EndpointDefaultResolver interface {
 }
 
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.ConfigFile, storeconfig store.Config, stderr io.Writer) (*DefaultContext, error) {
+func ResolveDefaultContext(opts *cliflags.CommonOptions, config store.Config) (*DefaultContext, error) {
 	contextTLSData := store.ContextTLSData{
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
@@ -66,7 +64,7 @@ func ResolveDefaultContext(opts *cliflags.CommonOptions, config *configfile.Conf
 		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerEP.TLSData.ToStoreTLSData()
 	}
 
-	if err := storeconfig.ForeachEndpointType(func(n string, get store.TypeGetter) error {
+	if err := config.ForeachEndpointType(func(n string, get store.TypeGetter) error {
 		if n == docker.DockerEndpoint { // handled above
 			return nil
 		}
