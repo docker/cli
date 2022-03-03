@@ -20,7 +20,7 @@ require (
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.5
+	github.com/google/go-cmp v0.5.7
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/mitchellh/mapstructure v1.3.2
