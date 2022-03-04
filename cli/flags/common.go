@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	cliconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/sirupsen/logrus"
@@ -48,7 +48,7 @@ func NewCommonOptions() *CommonOptions {
 // InstallFlags adds flags for the common options on the FlagSet
 func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	if dockerCertPath == "" {
-		dockerCertPath = cliconfig.Dir()
+		dockerCertPath = config.Dir()
 	}
 
 	flags.BoolVarP(&commonOpts.Debug, "debug", "D", false, "Enable debug mode")
