@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	cliconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api"
@@ -199,7 +199,7 @@ func TestExperimentalCLI(t *testing.T) {
 			}
 
 			cli := &DockerCli{client: apiclient, err: os.Stderr}
-			cliconfig.SetDir(dir.Path())
+			config.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
 			// For backward-compatibility, HasExperimental will always be "true"

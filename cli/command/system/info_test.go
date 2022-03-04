@@ -9,7 +9,7 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -69,16 +69,16 @@ var sampleInfoNoSwarm = types.Info{
 	OSType:             "linux",
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",
-	RegistryConfig: &registry.ServiceConfig{
+	RegistryConfig: &registrytypes.ServiceConfig{
 		AllowNondistributableArtifactsCIDRs:     nil,
 		AllowNondistributableArtifactsHostnames: nil,
-		InsecureRegistryCIDRs: []*registry.NetIPNet{
+		InsecureRegistryCIDRs: []*registrytypes.NetIPNet{
 			{
 				IP:   net.ParseIP("127.0.0.0"),
 				Mask: net.IPv4Mask(255, 0, 0, 0),
 			},
 		},
-		IndexConfigs: map[string]*registry.IndexInfo{
+		IndexConfigs: map[string]*registrytypes.IndexInfo{
 			"docker.io": {
 				Name:     "docker.io",
 				Mirrors:  nil,

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/config"
-	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
@@ -129,7 +128,7 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 }
 
 func (cli *DockerCli) loadConfigFile() {
-	cli.configFile = cliconfig.LoadDefaultConfigFile(cli.err)
+	cli.configFile = config.LoadDefaultConfigFile(cli.err)
 }
 
 // ServerInfo returns the server version details for the host this client is
@@ -228,7 +227,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	cliflags.SetLogLevel(opts.Common.LogLevel)
 
 	if opts.ConfigDir != "" {
-		cliconfig.SetDir(opts.ConfigDir)
+		config.SetDir(opts.ConfigDir)
 	}
 
 	if opts.Common.Debug {
@@ -237,7 +236,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 	cli.loadConfigFile()
 
-	baseContextStore := store.New(cliconfig.ContextStoreDir(), cli.contextStoreConfig)
+	baseContextStore := store.New(config.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
@@ -272,7 +271,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	storeConfig := DefaultContextStoreConfig()
 	contextStore := &ContextStoreWithDefault{
-		Store: store.New(cliconfig.ContextStoreDir(), storeConfig),
+		Store: store.New(config.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
 			return ResolveDefaultContext(opts, configFile, storeConfig, io.Discard)
 		},

@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/errdefs"
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
 

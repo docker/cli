@@ -7,7 +7,7 @@ import (
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
-	cliconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"
@@ -22,7 +22,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	opts := cliflags.NewClientOptions()
 	flags := rootCmd.Flags()
 
-	flags.StringVar(&opts.ConfigDir, "config", cliconfig.Dir(), "Location of client config files")
+	flags.StringVar(&opts.ConfigDir, "config", config.Dir(), "Location of client config files")
 	opts.Common.InstallFlags(flags)
 
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })

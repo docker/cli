@@ -14,7 +14,7 @@ import (
 	v2 "github.com/docker/distribution/registry/api/v2"
 	distclient "github.com/docker/distribution/registry/client"
 	"github.com/docker/docker/registry"
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
