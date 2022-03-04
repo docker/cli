@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	registry "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/docker/docker/api/types/registry"
 )
 
 const (
@@ -28,7 +28,7 @@ func NewSearchFormat(source string) formatter.Format {
 }
 
 // SearchWrite writes the context
-func SearchWrite(ctx formatter.Context, results []registry.SearchResult) error {
+func SearchWrite(ctx formatter.Context, results []registrytypes.SearchResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, result := range results {
 			searchCtx := &searchContext{trunc: ctx.Trunc, s: result}
@@ -53,7 +53,7 @@ type searchContext struct {
 	formatter.HeaderContext
 	trunc bool
 	json  bool
-	s     registry.SearchResult
+	s     registrytypes.SearchResult
 }
 
 func (c *searchContext) MarshalJSON() ([]byte, error) {
