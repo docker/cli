@@ -30,7 +30,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.format, "format", "f", "json", flagsHelper.InspectFormatHelp)
+	flags.StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	return cmd
 }
 

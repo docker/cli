@@ -37,7 +37,7 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.format, "format", "f", "json", flagsHelper.InspectFormatHelp)
+	flags.StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	flags.StringVar(&opts.inspectType, "type", "", "Return JSON for specified type")
 	flags.BoolVarP(&opts.size, "size", "s", false, "Display total file sizes if the type is container")
 

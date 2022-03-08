@@ -31,7 +31,7 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Format, "format", "f", "json", flagsHelper.InspectFormatHelp)
+	cmd.Flags().StringVarP(&opts.Format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	cmd.Flags().BoolVar(&opts.Pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }

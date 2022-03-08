@@ -15,7 +15,7 @@ Options:
   -f, --format string   Format output using a custom template:
                         'json':             Print in JSON format
                         'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates (default "json")
+                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
       --pretty          Print the information in a human friendly format
       --help            Print usage
 ```

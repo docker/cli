@@ -277,11 +277,7 @@ func TestNewTemplateInspectorFromString(t *testing.T) {
 		{
 			name:     "json specific value outputs json",
 			template: "json",
-			expected: `[
-    {
-        "Name": "test"
-    }
-]
+			expected: `[{"Name":"test"}]
 `,
 		},
 		{

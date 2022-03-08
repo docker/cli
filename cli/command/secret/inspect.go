@@ -30,7 +30,7 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.format, "format", "f", "json", flagsHelper.InspectFormatHelp)
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	cmd.Flags().BoolVar(&opts.pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }
