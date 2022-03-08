@@ -87,7 +87,7 @@ docker-run - Run a command in a new container
 [**--tmpfs**[=*[CONTAINER-DIR[:OPTIONS]*]]
 [**-u**|**--user**[=*USER*]]
 [**--ulimit**[=*[]*]]
-[**--uts**[=*[]*]]
+[**--uts**[=*[UTS]*]]
 [**-v**|**--volume**[=*[[HOST-DIR:]CONTAINER-DIR[:OPTIONS]]*]]
 [**--volume-driver**[=*DRIVER*]]
 [**--volumes-from**[=*[]*]]
@@ -557,10 +557,11 @@ Use `docker port`(1) to see the actual mapping, e.g. `docker port CONTAINER $CON
 **--pids-limit**=""
    Tune the container's pids (process IDs) limit. Set to `-1` to have unlimited pids for the container.
 
-**--uts**=*type*
-   Set the UTS mode for the container. The only possible *type* is **host**, meaning to
-use the host's UTS namespace inside the container.
-     Note: the host mode gives the container access to changing the host's hostname and is therefore considered insecure.
+**--uts**=""
+   Set the UTS mode for the container. 
+   Default is to create a private UTS namespace for the container
+                               'container:<name|id>': join another container's UTS namespace
+                               'host': use the host's UTS namespace for the container. Note: the host mode gives the container access to changing the host's hostname and is therefore considered insecure.
 
 **--privileged** [**true**|**false**]
    Give extended privileges to this container. A "privileged" container is given access to all devices.

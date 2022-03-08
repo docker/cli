@@ -486,6 +486,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l net -d 'Set the
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s P -l publish-all -d 'Publish all exposed ports to random ports on the host interfaces'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s p -l publish -d "Publish a container's port to the host"
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l pid -d 'Default is to create a private PID namespace for the container'
+complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l uts -d 'Default is to create a private UTS namespace for the container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l privileged -d 'Give extended privileges to this container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l read-only -d "Mount the container's root filesystem as read only"
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l restart -d 'Restart policy to apply when a container exits (no, on-failure[:max-retry], always)'

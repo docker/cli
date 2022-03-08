@@ -623,7 +623,10 @@ func TestParseModes(t *testing.T) {
 	}
 
 	// uts ko
-	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"}) //nolint:dogsled
+	flags, copts = setupRunFlags()
+	args = []string{"--uts=container:", "img", "cmd"}
+	assert.NilError(t, flags.Parse(args))
+	_, err = parse(flags, copts, runtime.GOOS)
 	assert.ErrorContains(t, err, "--uts: invalid UTS mode")
 
 	// uts ok
