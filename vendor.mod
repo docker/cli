@@ -11,7 +11,7 @@ require (
 	github.com/containerd/containerd v1.5.10
 	github.com/coreos/etcd v3.3.27+incompatible // indirect
 	github.com/creack/pty v1.1.11
-	github.com/docker/distribution v2.7.1+incompatible
+	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/docker/go-connections v0.4.0
@@ -49,7 +49,6 @@ require (
 )
 
 replace (
-	github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible // master (v21.xx-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0

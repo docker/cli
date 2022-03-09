@@ -21,7 +21,7 @@ github.com/coreos/etcd/raft/raftpb
 # github.com/creack/pty v1.1.11
 ## explicit
 github.com/creack/pty
-# github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
+# github.com/docker/distribution v2.8.1+incompatible
 ## explicit
 github.com/docker/distribution
 github.com/docker/distribution/digestset
@@ -360,7 +360,6 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# github.com/docker/distribution => github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20210811141259-343665850e3a+incompatible
 # github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 # github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
