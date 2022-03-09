@@ -19,9 +19,7 @@
             "Data": null,
             "Name": ""
         },
-        "RootFS": {
-            "Type": ""
-        },
+        "RootFS": {},
         "Metadata": {
             "LastTagTime": "0001-01-01T00:00:00Z"
         }
@@ -46,9 +44,7 @@
             "Data": null,
             "Name": ""
         },
-        "RootFS": {
-            "Type": ""
-        },
+        "RootFS": {},
         "Metadata": {
             "LastTagTime": "0001-01-01T00:00:00Z"
         }

@@ -92,7 +92,7 @@ func filepathMatches(matcher *fileutils.PatternMatcher, file string) (bool, erro
 		// Don't let them exclude everything, kind of silly.
 		return false, nil
 	}
-	return matcher.Matches(file)
+	return matcher.MatchesOrParentMatches(file)
 }
 
 // DetectArchiveReader detects whether the input stream is an archive or a
