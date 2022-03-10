@@ -2,6 +2,7 @@ package opts
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -26,6 +27,40 @@ func TestMountOptString(t *testing.T) {
 	}
 	expected := "bind /home/path /target, volume foo /target/foo"
 	assert.Check(t, is.Equal(expected, mount.String()))
+}
+
+func TestMountRelative(t *testing.T) {
+
+	for _, testcase := range []struct {
+		name string
+		path string
+		bind string
+	}{
+		{
+			name: "Current path",
+			path: ".",
+			bind: "type=bind,source=.,target=/target",
+		}, {
+			name: "Current path with slash",
+			path: "./",
+			bind: "type=bind,source=./,target=/target",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			var mount MountOpt
+			assert.NilError(t, mount.Set(testcase.bind))
+
+			mounts := mount.Value()
+			assert.Assert(t, is.Len(mounts, 1))
+			abs, err := filepath.Abs(testcase.path)
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(mounttypes.Mount{
+				Type:   mounttypes.TypeBind,
+				Source: abs,
+				Target: "/target",
+			}, mounts[0]))
+		})
+	}
 }
 
 func TestMountOptSetBindNoErrorBind(t *testing.T) {

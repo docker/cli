@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
+	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/api/types/versions"
@@ -348,10 +350,25 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	// add any bind targets to the list of container volumes
 	for bind := range copts.volumes.GetMap() {
 		parsed, _ := loader.ParseVolume(bind)
+
 		if parsed.Source != "" {
+			toBind := bind
+
+			if parsed.Type == string(mounttypes.TypeBind) {
+				if arr := strings.SplitN(bind, ":", 2); len(arr) == 2 {
+					hostPart := arr[0]
+					if strings.HasPrefix(hostPart, "."+string(filepath.Separator)) || hostPart == "." {
+						if absHostPart, err := filepath.Abs(hostPart); err == nil {
+							hostPart = absHostPart
+						}
+					}
+					toBind = hostPart + ":" + arr[1]
+				}
+			}
+
 			// after creating the bind mount we want to delete it from the copts.volumes values because
 			// we do not want bind mounts being committed to image configs
-			binds = append(binds, bind)
+			binds = append(binds, toBind)
 			// We should delete from the map (`volumes`) here, as deleting from copts.volumes will not work if
 			// there are duplicates entries.
 			delete(volumes, bind)
