@@ -1083,7 +1083,7 @@ __docker_image_subcommand() {
         (push)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help -a --all-tags)"{-a,--all-tags}"[Push all tagged images in the repository]" \
+                "($help -a --all-tags)"{-a,--all-tags}"[Push all tags of an image to the repository]" \
                 "($help)--disable-content-trust[Skip image signing]" \
                 "($help -): :__docker_complete_images" && ret=0
             ;;
