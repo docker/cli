@@ -5,10 +5,10 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
-	"text/tabwriter"
 	"text/template"
 	"time"
 
+	"github.com/WeiZhang555/tabwriter"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/version"

@@ -3,8 +3,8 @@ package context
 import (
 	"bytes"
 	"fmt"
-	"text/tabwriter"
 
+	"github.com/WeiZhang555/tabwriter"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/docker"

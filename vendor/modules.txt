@@ -5,6 +5,9 @@ github.com/Azure/go-ansiterm/winterm
 ## explicit
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
+# github.com/WeiZhang555/tabwriter v0.0.0-20200115015932-e5c45f4da38d
+## explicit
+github.com/WeiZhang555/tabwriter
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
@@ -145,6 +148,8 @@ github.com/klauspost/compress/huff0
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
+# github.com/mattn/go-runewidth v0.0.2
+github.com/mattn/go-runewidth
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/miekg/pkcs11 v1.0.3

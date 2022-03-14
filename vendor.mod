@@ -8,6 +8,7 @@ go 1.16
 
 require (
 	github.com/Microsoft/go-winio v0.5.1 // indirect
+	github.com/WeiZhang555/tabwriter v0.0.0-20200115015932-e5c45f4da38d
 	github.com/containerd/containerd v1.5.10
 	github.com/coreos/etcd v3.3.27+incompatible // indirect
 	github.com/creack/pty v1.1.11
