@@ -16,7 +16,12 @@ Aliases:
 
 Options:
       --help                  Print usage
-      --format string         Pretty-print stacks using a Go template
+      --format string         Format output using a custom template:
+                              'table':            Print output in table format with column headers (default)
+                              'table TEMPLATE':   Print output in table format using the given Go template
+                              'json':             Print in JSON format
+                              'TEMPLATE':         Print output using the given Go template.
+                              Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
 ```
 
 ## Description
@@ -66,6 +71,12 @@ The following example uses a template without headers and outputs the
 $ docker stack ls --format "{{.Name}}: {{.Services}}"
 web-server: 1
 web-cache: 4
+```
+
+To list all stacks in JSON format, use the `json` directive:
+```console
+$ docker stack ls --format json
+{"Name":"myapp","Namespace":"","Orchestrator":"Swarm","Services":"3"}
 ```
 
 ## Related commands

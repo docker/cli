@@ -307,7 +307,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from export' -a '(__fish_pri
 
 # history
 complete -c docker -f -n '__fish_docker_no_subcommand' -a history -d 'Show the history of an image'
-complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l format -d 'Pretty-print images using a Go template'
+complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l format -d 'Format the output using the given Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -s H -l human -d 'Print sizes and dates in human readable format'
 complete -c docker -A -f -n '__fish_seen_subcommand_from history' -l no-trunc -d "Don't truncate output"
@@ -319,7 +319,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (default hides intermediate images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l digests -d 'Show digests'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d 'Filter output based on conditions provided'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Pretty-print images using a Go template'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Format the output using the given Go template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l no-trunc -d "Don't truncate output"
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s q -l quiet -d 'Only show image IDs'

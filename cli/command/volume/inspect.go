@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/inspect"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 
 	return cmd
 }

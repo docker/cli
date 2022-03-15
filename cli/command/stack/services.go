@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	cliopts "github.com/docker/cli/opts"
 	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/fvbommel/sortorder"
@@ -34,7 +35,7 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVar(&opts.Format, "format", "", "Pretty-print services using a Go template")
+	flags.StringVar(&opts.Format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&opts.Filter, "filter", "f", "Filter output based on conditions provided")
 	return cmd
 }
