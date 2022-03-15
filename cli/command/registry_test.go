@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 
@@ -14,7 +13,6 @@ import (
 
 	. "github.com/docker/cli/cli/command"
 	configtypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -43,56 +41,6 @@ func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
 		return cli.infoFunc()
 	}
 	return types.Info{}, nil
-}
-
-func TestElectAuthServer(t *testing.T) {
-	testCases := []struct {
-		expectedAuthServer string
-		expectedWarning    string
-		infoFunc           func() (types.Info, error)
-	}{
-		{
-			expectedAuthServer: "https://index.docker.io/v1/",
-			expectedWarning:    "",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: "https://index.docker.io/v1/"}, nil
-			},
-		},
-		{
-			expectedAuthServer: "https://index.docker.io/v1/",
-			expectedWarning:    "Empty registry endpoint from daemon",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: ""}, nil
-			},
-		},
-		{
-			expectedAuthServer: "https://foo.example.com",
-			expectedWarning:    "",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: "https://foo.example.com"}, nil
-			},
-		},
-		{
-			expectedAuthServer: "https://index.docker.io/v1/",
-			expectedWarning:    "failed to get default registry endpoint from daemon",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error getting info")
-			},
-		},
-	}
-	// Enable debug to see warnings we're checking for
-	debug.Enable()
-	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
-		server := ElectAuthServer(context.Background(), cli)
-		assert.Check(t, is.Equal(tc.expectedAuthServer, server))
-		actual := cli.ErrBuffer().String()
-		if tc.expectedWarning == "" {
-			assert.Check(t, is.Len(actual, 0))
-		} else {
-			assert.Check(t, is.Contains(actual, tc.expectedWarning))
-		}
-	}
 }
 
 func TestGetDefaultAuthConfig(t *testing.T) {
