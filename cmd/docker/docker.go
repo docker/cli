@@ -278,7 +278,6 @@ func main() {
 
 type versionDetails interface {
 	Client() client.APIClient
-	ClientInfo() command.ClientInfo
 	ServerInfo() command.ServerInfo
 }
 
