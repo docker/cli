@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"sort"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -75,9 +74,6 @@ func runSearch(dockerCli command.Cli, options searchOptions) error {
 		return err
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[j].StarCount < results[i].StarCount
-	})
 	searchCtx := formatter.Context{
 		Output: dockerCli.Out(),
 		Format: NewSearchFormat(options.format),
