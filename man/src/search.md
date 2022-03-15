@@ -2,8 +2,6 @@ Search Docker Hub for images that match the specified `TERM`. The table
 of images returned displays the name, description (truncated by default), number
 of stars awarded, whether the image is official, and whether it is automated.
 
-*Note* - Search queries will only return up to 25 results
-
 ## Filter
 
    Filter output based on these conditions:
