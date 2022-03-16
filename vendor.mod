@@ -24,7 +24,7 @@ require (
 	github.com/google/go-cmp v0.5.7
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
-	github.com/klauspost/compress v1.14.3 // indirect
+	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.8.2-0.20210615162540-9f254e18360a // master (v0.9.0-dev)
 	github.com/moby/sys/signal v0.7.0

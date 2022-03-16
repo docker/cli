@@ -138,7 +138,7 @@ github.com/gorilla/mux
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/klauspost/compress v1.14.3
+# github.com/klauspost/compress v1.15.0
 ## explicit
 github.com/klauspost/compress
 github.com/klauspost/compress/fse
