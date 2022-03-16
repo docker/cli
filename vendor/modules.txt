@@ -16,9 +16,6 @@ github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/pkg/userns
 github.com/containerd/containerd/platforms
-# github.com/coreos/etcd v3.3.27+incompatible
-## explicit
-github.com/coreos/etcd/raft/raftpb
 # github.com/creack/pty v1.1.11
 ## explicit
 github.com/creack/pty
@@ -95,7 +92,7 @@ github.com/docker/go-metrics
 # github.com/docker/go-units v0.4.0
 ## explicit
 github.com/docker/go-units
-# github.com/docker/swarmkit v1.12.1-0.20210726173615-3629f50980f6
+# github.com/docker/swarmkit v1.12.1-0.20220307221335-616e8db4c3b0
 ## explicit
 github.com/docker/swarmkit/api
 github.com/docker/swarmkit/api/deepcopy
@@ -114,7 +111,6 @@ github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 github.com/gogo/protobuf/sortkeys
 github.com/gogo/protobuf/types
 # github.com/golang/protobuf v1.5.2
-## explicit
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
@@ -233,6 +229,9 @@ github.com/xeipuuv/gojsonreference
 # github.com/xeipuuv/gojsonschema v1.2.0
 ## explicit
 github.com/xeipuuv/gojsonschema
+# go.etcd.io/etcd/raft/v3 v3.5.2
+## explicit
+go.etcd.io/etcd/raft/v3/raftpb
 # golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
 ## explicit
 golang.org/x/crypto/ed25519
