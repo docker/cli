@@ -12,7 +12,7 @@ Usage:  docker push [OPTIONS] NAME[:TAG]
 Push an image or a repository to a registry
 
 Options:
-  -a, --all-tags                Push all tagged images in the repository
+  -a, --all-tags                Push all tags of an image to the repository
       --disable-content-trust   Skip image signing (default true)
       --help                    Print usage
   -q, --quiet                   Suppress verbose output
