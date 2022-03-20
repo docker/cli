@@ -23,12 +23,12 @@ may not contain underscores. If a hostname is present, it may optionally be
 followed by a port number in the format `:8080`. If not present, the command
 uses Docker's public registry located at `registry-1.docker.io` by default. Name
 components may contain lowercase letters, digits and separators. A separator
-is defined as a period, one or two underscores, or one or more dashes. A name
+is defined as a period, one or two underscores, or one or more hyphens. A name
 component may not start or end with a separator.
 
 A tag name must be valid ASCII and may contain lowercase and uppercase letters,
-digits, underscores, periods and dashes. A tag name may not start with a
-period or a dash and may contain a maximum of 128 characters.
+digits, underscores, periods and hyphens. A tag name may not start with a
+period or a hyphen and may contain a maximum of 128 characters.
 
 You can group your images together using names and tags, and then upload them
 to [*Share images on Docker Hub*](https://docs.docker.com/get-started/part3/).
