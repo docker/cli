@@ -2497,7 +2497,7 @@ func (rl *clientConnReadLoop) processPushPromise(f *PushPromiseFrame) error {
 	// Spec says:
 	// "PUSH_PROMISE MUST NOT be sent if the SETTINGS_ENABLE_PUSH
 	// setting of the peer endpoint is set to 0. An endpoint that
-	// has set this setting and has received acknowledgement MUST
+	// has set this setting and has received acknowledgment MUST
 	// treat the receipt of a PUSH_PROMISE frame as a connection
 	// error (Section 5.4.1) of type PROTOCOL_ERROR."
 	return ConnectionError(ErrCodeProtocol)
