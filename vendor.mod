@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.2
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.7+incompatible // see "replace" for the actual version
+	github.com/docker/docker v20.10.14+incompatible // see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0
@@ -28,6 +28,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/errors v0.9.1
+	github.com/rootless-containers/rootlesskit v0.14.6 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
@@ -45,6 +46,6 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220309172631-83b51522df43+incompatible // master (v21.xx-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220325085113-4a26fdda76d9+incompatible // master (v21.xx-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 )
