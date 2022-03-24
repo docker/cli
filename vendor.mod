@@ -49,5 +49,4 @@ require (
 replace (
 	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220309172631-83b51522df43+incompatible // master (v21.xx-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
-	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
 )

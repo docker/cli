@@ -175,7 +175,7 @@ github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/prometheus/client_golang v1.11.0 => github.com/prometheus/client_golang v1.6.0
+# github.com/prometheus/client_golang v1.11.0
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
@@ -363,4 +363,3 @@ gotest.tools/v3/poll
 gotest.tools/v3/skip
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220309172631-83b51522df43+incompatible
 # github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
-# github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.6.0
