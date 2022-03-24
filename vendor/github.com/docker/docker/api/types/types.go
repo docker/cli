@@ -188,6 +188,15 @@ type Ping struct {
 	OSType         string
 	Experimental   bool
 	BuilderVersion BuilderVersion
+
+	// SwarmStatus provides information about the current swarm status of the
+	// engine, obtained from the "Swarm" header in the API response.
+	//
+	// It can be a nil struct if the API version does not provide this header
+	// in the ping response, or if an error occurred, in which case the client
+	// should use other ways to get the current swarm status, such as the /swarm
+	// endpoint.
+	SwarmStatus *swarm.Status
 }
 
 // ComponentVersion describes the version information for a specific component.
@@ -239,8 +248,8 @@ type Info struct {
 	Plugins            PluginsInfo
 	MemoryLimit        bool
 	SwapLimit          bool
-	KernelMemory       bool // Deprecated: kernel 5.4 deprecated kmem.limit_in_bytes
-	KernelMemoryTCP    bool
+	KernelMemory       bool `json:",omitempty"` // Deprecated: kernel 5.4 deprecated kmem.limit_in_bytes
+	KernelMemoryTCP    bool `json:",omitempty"` // KernelMemoryTCP is not supported on cgroups v2.
 	CPUCfsPeriod       bool `json:"CpuCfsPeriod"`
 	CPUCfsQuota        bool `json:"CpuCfsQuota"`
 	CPUShares          bool
