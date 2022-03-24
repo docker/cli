@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -36,9 +37,10 @@ Refer to https://docs.docker.com/go/formatting/ for more information about forma
 )
 
 var (
-	dockerCertPath  = os.Getenv("DOCKER_CERT_PATH")
-	dockerTLSVerify = os.Getenv("DOCKER_TLS_VERIFY") != ""
-	dockerTLS       = os.Getenv("DOCKER_TLS") != ""
+	dockerCertPath  = os.Getenv(client.EnvOverrideCertPath)
+	dockerTLSVerify = os.Getenv(client.EnvTLSVerify) != ""
+	// TODO(thaJeztah) the 'DOCKER_TLS' environment variable is not documented, and does not have a const.
+	dockerTLS = os.Getenv("DOCKER_TLS") != ""
 )
 
 // CommonOptions are options common to both the client and the daemon.
@@ -84,7 +86,7 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	hostOpt := opts.NewNamedListOptsRef("hosts", &commonOpts.Hosts, nil)
 	flags.VarP(hostOpt, "host", "H", "Daemon socket(s) to connect to")
 	flags.StringVarP(&commonOpts.Context, "context", "c", "",
-		`Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with "docker context use")`)
+		`Name of the context to use to connect to the daemon (overrides `+client.EnvOverrideHost+` env var and default context set with "docker context use")`)
 }
 
 // SetDefaultOptions sets default values for options after flag parsing is

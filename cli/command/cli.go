@@ -411,7 +411,7 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 	var host string
 	switch len(hosts) {
 	case 0:
-		host = os.Getenv("DOCKER_HOST")
+		host = os.Getenv(client.EnvOverrideHost)
 	case 1:
 		host = hosts[0]
 	default:
@@ -429,7 +429,7 @@ func UserAgent() string {
 // resolveContextName resolves the current context name with the following rules:
 // - setting both --context and --host flags is ambiguous
 // - if --context is set, use this value
-// - if --host flag or DOCKER_HOST is set, fallbacks to use the same logic as before context-store was added
+// - if --host flag or DOCKER_HOST (client.EnvOverrideHost) is set, fallbacks to use the same logic as before context-store was added
 // for backward compatibility with existing scripts
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
@@ -444,7 +444,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	if len(opts.Hosts) > 0 {
 		return DefaultContextName, nil
 	}
-	if _, present := os.LookupEnv("DOCKER_HOST"); present {
+	if _, present := os.LookupEnv(client.EnvOverrideHost); present {
 		return DefaultContextName, nil
 	}
 	if ctxName, ok := os.LookupEnv("DOCKER_CONTEXT"); ok {
