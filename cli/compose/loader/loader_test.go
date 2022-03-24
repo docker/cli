@@ -587,6 +587,26 @@ volumes:
 	assert.Check(t, is.Equal(home, config.Volumes["test"].Driver))
 }
 
+func TestLoadWithDotInServiceName(t *testing.T) {
+	dict, err := ParseYAML([]byte(`
+version: "3.4"
+services:
+  app.0:
+    ulimits:
+      nofile:
+        soft: ${APP_NOFILE}
+        hard: ${APP_NOFILE}`))
+	assert.NilError(t, err)
+	env := map[string]string{
+		"APP_NOFILE": "555",
+	}
+	config, err := Load(buildConfigDetails(dict, env))
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Equal(config.Services[0].Ulimits["nofile"].Hard, 555))
+	assert.Check(t, is.Equal(config.Services[0].Ulimits["nofile"].Soft, 555))
+}
+
 func TestLoadWithInterpolationCastFull(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3.8"
