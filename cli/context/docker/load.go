@@ -6,7 +6,6 @@ import (
 	"encoding/pem"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/docker/cli/cli/connhelper"
@@ -122,12 +121,7 @@ func (c *Endpoint) ClientOpts() ([]client.Opt, error) {
 		}
 	}
 
-	version := os.Getenv("DOCKER_API_VERSION")
-	if version != "" {
-		result = append(result, client.WithVersion(version))
-	} else {
-		result = append(result, client.WithAPIVersionNegotiation())
-	}
+	result = append(result, client.WithVersionFromEnv(), client.WithAPIVersionNegotiation())
 	return result, nil
 }
 
