@@ -73,6 +73,10 @@ fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
     LDFLAGS="$LDFLAGS -extldflags -static"
 fi
+if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
+    # compiling statically with CGO enabled requires osusergo to be set.
+    GO_BUILDTAGS="$GO_BUILDTAGS osusergo"
+fi
 if [ -n "$GO_STRIP" ]; then
     LDFLAGS="$LDFLAGS -s"
 fi
