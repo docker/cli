@@ -3,12 +3,15 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/pkg/homedir"
+	"github.com/docker/docker/registry"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
@@ -51,6 +54,13 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 
 	rootCmd.Annotations = map[string]string{"additionalHelp": "To get more help with docker, check out our guides at https://docs.docker.com/go/guides/"}
+
+	// Configure registry.CertsDir() when running in rootless-mode
+	if os.Getenv("ROOTLESSKIT_STATE_DIR") != "" {
+		if configHome, err := homedir.GetConfigHome(); err == nil {
+			registry.SetCertsDir(filepath.Join(configHome, "docker/certs.d"))
+		}
+	}
 
 	return opts, flags, helpCommand
 }
