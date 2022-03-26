@@ -2,7 +2,7 @@
 
 ARG BASE_VARIANT=alpine
 ARG GO_VERSION=1.16.15
-ARG XX_VERSION=1.0.0-rc.2
+ARG XX_VERSION=1.1.0
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
 FROM --platform=$BUILDPLATFORM golang:1.17rc1-${BASE_VARIANT} AS golatest
@@ -55,7 +55,7 @@ RUN --mount=ro --mount=type=cache,target=/root/.cache \
     TARGET=/out ./scripts/build/binary && \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
 
-FROM build-base-${BASE_VARIANT} AS dev 
+FROM build-base-${BASE_VARIANT} AS dev
 COPY . .
 
 FROM scratch AS binary
