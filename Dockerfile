@@ -37,7 +37,7 @@ WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-buster AS build-buster
 ARG TARGETPLATFORM
-RUN xx-apt install --no-install-recommends -y libc6-dev libgcc-8-dev
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-8-dev
 
 FROM build-base-${BASE_VARIANT} AS goversioninfo
 ARG GOVERSIONINFO_VERSION
