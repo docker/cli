@@ -1,5 +1,6 @@
 // This file is intended for use with "go run"; it isn't really part of the package.
 
+//go:build docsgen
 // +build docsgen
 
 package main
