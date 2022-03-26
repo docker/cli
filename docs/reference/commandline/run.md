@@ -40,6 +40,7 @@ Options:
       --cpu-rt-runtime int            Limit the CPU real-time runtime in microseconds
       --cpuset-cpus string            CPUs in which to allow execution (0-3, 0,1)
       --cpuset-mems string            MEMs in which to allow execution (0-3, 0,1)
+      --current-user                  Run as the user that called the CLI
   -d, --detach                        Run container in background and print container ID
       --detach-keys string            Override the key sequence for detaching a container
       --device value                  Add a host device to the container (default [])

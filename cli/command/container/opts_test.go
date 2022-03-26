@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"runtime"
 	"strings"
 	"testing"
@@ -967,5 +968,49 @@ func TestConvertToStandardNotation(t *testing.T) {
 		if _, err := convertToStandardNotation(ports); err == nil {
 			t.Fatalf("ConvertToStandardNotation(`%q`) should have failed conversion", ports)
 		}
+	}
+}
+
+func TestParseUser(t *testing.T) {
+	testUser := user.User{
+		Uid: "1234",
+		Gid: "1234",
+	}
+
+	testCases := []struct {
+		currentUser        *user.User
+		currentUserFlag    bool
+		userFlag           string
+		expectedParsedUser string
+	}{
+		{
+			currentUser:        &testUser,
+			currentUserFlag:    false,
+			userFlag:           "",
+			expectedParsedUser: "",
+		},
+		{
+			currentUser:        &testUser,
+			currentUserFlag:    false,
+			userFlag:           "1000",
+			expectedParsedUser: "1000",
+		},
+		{
+			currentUser:        &testUser,
+			currentUserFlag:    true,
+			userFlag:           "",
+			expectedParsedUser: "1234:1234",
+		},
+		{
+			currentUser:        &testUser,
+			currentUserFlag:    true,
+			userFlag:           "1000",
+			expectedParsedUser: "1000",
+		},
+	}
+
+	for _, tc := range testCases {
+		parsedUser := parseUser(tc.currentUser, tc.currentUserFlag, tc.userFlag)
+		assert.DeepEqual(t, parsedUser, tc.expectedParsedUser)
 	}
 }

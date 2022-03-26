@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -86,6 +87,7 @@ type containerOptions struct {
 	memorySwap         opts.MemSwapBytes
 	kernelMemory       opts.MemBytes
 	user               string
+	currentUser        bool
 	workingDir         string
 	cpuCount           int64
 	cpuShares          int64
@@ -191,6 +193,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.BoolVarP(&copts.tty, "tty", "t", false, "Allocate a pseudo-TTY")
 	flags.Var(copts.ulimits, "ulimit", "Ulimit options")
 	flags.StringVarP(&copts.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
+	flags.BoolVarP(&copts.currentUser, "current-user", "", false, "Run as the user that called the CLI")
 	flags.StringVarP(&copts.workingDir, "workdir", "w", "", "Working directory inside the container")
 	flags.BoolVar(&copts.autoRemove, "rm", false, "Automatically remove the container when it exits")
 
@@ -519,6 +522,13 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
+	currentUser, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+
+	parsedUser := parseUser(currentUser, copts.currentUser, copts.user)
+
 	// Healthcheck
 	var healthConfig *container.HealthConfig
 	haveHealthSettings := copts.healthCmd != "" ||
@@ -597,7 +607,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Hostname:     copts.hostname,
 		Domainname:   copts.domainname,
 		ExposedPorts: ports,
-		User:         copts.user,
+		User:         parsedUser,
 		Tty:          copts.tty,
 		// TODO: deprecated, it comes from -n, --networking
 		// it's still needed internally to set the network to disabled
@@ -840,6 +850,20 @@ func convertToStandardNotation(ports []string) ([]string, error) {
 		}
 	}
 	return optsList, nil
+}
+
+// parseUser determines the user that will run the commands inside the container
+func parseUser(currentUser *user.User, currentUserFlag bool, userFlag string) string {
+	// The --user flag takes precedence
+	if userFlag != "" {
+		return userFlag
+	}
+	if !currentUserFlag {
+		return ""
+	}
+
+	parsedUser := fmt.Sprintf("%s:%s", currentUser.Uid, currentUser.Gid)
+	return parsedUser
 }
 
 func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]string, error) {
