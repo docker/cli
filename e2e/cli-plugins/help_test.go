@@ -1,9 +1,7 @@
 package cliplugins
 
 import (
-	"bufio"
 	"regexp"
-	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -21,7 +19,7 @@ func TestGlobalHelp(t *testing.T) {
 		ExitCode: 0,
 	})
 	assert.Assert(t, is.Equal(res.Stderr(), ""))
-	scanner := bufio.NewScanner(strings.NewReader(res.Stdout()))
+	output := res.Stdout()
 
 	// Instead of baking in the full current output of `docker
 	// help`, which can be expected to change regularly, bake in
@@ -34,44 +32,20 @@ func TestGlobalHelp(t *testing.T) {
 	//  - The `badmeta` plugin under the "Invalid Plugins" heading.
 	//
 	// Regexps are needed because the width depends on `unix.TIOCGWINSZ` or similar.
-	helloworldre := regexp.MustCompile(`^  helloworld\*\s+A basic Hello World plugin for tests \(Docker Inc\., testing\)$`)
-	badmetare := regexp.MustCompile(`^  badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string$`)
-	var helloworldcount, badmetacount int
-	for _, expected := range []*regexp.Regexp{
-		regexp.MustCompile(`^A self-sufficient runtime for containers$`),
-		regexp.MustCompile(`^Management Commands:$`),
-		regexp.MustCompile(`^  container\s+Manage containers$`),
-		helloworldre,
-		regexp.MustCompile(`^  image\s+Manage images$`),
-		regexp.MustCompile(`^Commands:$`),
-		regexp.MustCompile(`^  create\s+Create a new container$`),
-		regexp.MustCompile(`^Invalid Plugins:$`),
-		badmetare,
-		nil, // scan to end of input rather than stopping at badmetare
+	for _, s := range []string{
+		`Management Commands:`,
+		`\s+container\s+Manage containers`,
+		`\s+helloworld\*\s+A basic Hello World plugin for tests \(Docker Inc\., testing\)`,
+		`\s+image\s+Manage images`,
+		`Commands:`,
+		`\s+create\s+Create a new container`,
+		`Invalid Plugins:`,
+		`\s+badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string`,
 	} {
-		var found bool
-		for scanner.Scan() {
-			text := scanner.Text()
-			if helloworldre.MatchString(text) {
-				helloworldcount++
-			}
-			if badmetare.MatchString(text) {
-				badmetacount++
-			}
-
-			if expected != nil && expected.MatchString(text) {
-				found = true
-				break
-			}
-		}
-		assert.Assert(t, expected == nil || found, "Did not find match for %q in `docker help` output", expected)
+		expected := regexp.MustCompile(`(?m)^` + s + `$`)
+		matches := expected.FindAllString(output, -1)
+		assert.Equal(t, len(matches), 1, "Did not find expected number of matches for %q in `docker help` output", expected)
 	}
-	// We successfully scanned all the input
-	assert.Assert(t, !scanner.Scan())
-	assert.NilError(t, scanner.Err())
-	// Plugins should only be listed once.
-	assert.Assert(t, is.Equal(helloworldcount, 1))
-	assert.Assert(t, is.Equal(badmetacount, 1))
 
 	// Running with `--help` should produce the same.
 	t.Run("help_flag", func(t *testing.T) {
@@ -79,7 +53,7 @@ func TestGlobalHelp(t *testing.T) {
 		res2.Assert(t, icmd.Expected{
 			ExitCode: 0,
 		})
-		assert.Assert(t, is.Equal(res2.Stdout(), res.Stdout()))
+		assert.Assert(t, is.Equal(res2.Stdout(), output))
 		assert.Assert(t, is.Equal(res2.Stderr(), ""))
 	})
 
@@ -90,7 +64,7 @@ func TestGlobalHelp(t *testing.T) {
 			ExitCode: 0,
 		})
 		assert.Assert(t, is.Equal(res2.Stdout(), ""))
-		assert.Assert(t, is.Equal(res2.Stderr(), res.Stdout()))
+		assert.Assert(t, is.Equal(res2.Stderr(), output))
 	})
 
 	t.Run("badopt", func(t *testing.T) {
@@ -103,7 +77,7 @@ func TestGlobalHelp(t *testing.T) {
 			ExitCode: 125,
 		})
 		assert.Assert(t, is.Equal(res2.Stdout(), ""))
-		exp := "unknown flag: --badopt\nSee 'docker --help'.\n" + res.Stdout() + "\n"
-		assert.Assert(t, is.Equal(res2.Stderr(), exp))
+		assert.Assert(t, is.Contains(res2.Stderr(), "unknown flag: --badopt"))
+		assert.Assert(t, is.Contains(res2.Stderr(), "See 'docker --help"))
 	})
 }
