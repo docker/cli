@@ -18,12 +18,12 @@ init() {
   cat > go.mod <<EOL
 module github.com/docker/cli
 
-go 1.16
+go 1.17
 EOL
 }
 
 update() {
-  (set -x ; go mod tidy -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
+  (set -x ; go mod tidy -compat=1.17 -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
 }
 
 validate() {
