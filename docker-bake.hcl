@@ -1,5 +1,5 @@
 variable "GO_VERSION" {
-    default = "1.17.13"
+    default = "1.18.0"
 }
 variable "VERSION" {
     default = ""
