@@ -55,6 +55,8 @@ ARG VERSION
 # PACKAGER_NAME sets the company that produced the windows binary
 ARG PACKAGER_NAME
 COPY --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
+# in bullseye arm64 target does not link with lld so configure it to use ld instead
+RUN [ ! -f /etc/alpine-release ] && xx-info is-cross && [ "$(xx-info arch)" = "arm64" ] && XX_CC_PREFER_LINKER=ld xx-clang --setup-target-triple || true
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \
     --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
@@ -69,9 +71,9 @@ FROM build-${BASE_VARIANT} AS test
 COPY --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 ENV GO111MODULE=auto
 RUN --mount=type=bind,target=.,rw \
-  --mount=type=cache,target=/root/.cache \
-  --mount=type=cache,target=/go/pkg/mod \
-  gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/go/pkg/mod \
+    gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
 
 FROM scratch AS test-coverage
 COPY --from=test /tmp/coverage.txt /coverage.txt
