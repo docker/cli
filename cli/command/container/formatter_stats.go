@@ -181,14 +181,14 @@ func (c *statsContext) ID() string {
 
 func (c *statsContext) CPUPerc() string {
 	if c.s.IsInvalid {
-		return fmt.Sprintf("--")
+		return "--"
 	}
 	return fmt.Sprintf("%.2f%%", c.s.CPUPercentage)
 }
 
 func (c *statsContext) MemUsage() string {
 	if c.s.IsInvalid {
-		return fmt.Sprintf("-- / --")
+		return "-- / --"
 	}
 	if c.os == winOSType {
 		return units.BytesSize(c.s.Memory)
@@ -198,28 +198,28 @@ func (c *statsContext) MemUsage() string {
 
 func (c *statsContext) MemPerc() string {
 	if c.s.IsInvalid || c.os == winOSType {
-		return fmt.Sprintf("--")
+		return "--"
 	}
 	return fmt.Sprintf("%.2f%%", c.s.MemoryPercentage)
 }
 
 func (c *statsContext) NetIO() string {
 	if c.s.IsInvalid {
-		return fmt.Sprintf("--")
+		return "--"
 	}
 	return fmt.Sprintf("%s / %s", units.HumanSizeWithPrecision(c.s.NetworkRx, 3), units.HumanSizeWithPrecision(c.s.NetworkTx, 3))
 }
 
 func (c *statsContext) BlockIO() string {
 	if c.s.IsInvalid {
-		return fmt.Sprintf("--")
+		return "--"
 	}
 	return fmt.Sprintf("%s / %s", units.HumanSizeWithPrecision(c.s.BlockRead, 3), units.HumanSizeWithPrecision(c.s.BlockWrite, 3))
 }
 
 func (c *statsContext) PIDs() string {
 	if c.s.IsInvalid || c.os == winOSType {
-		return fmt.Sprintf("--")
+		return "--"
 	}
 	return fmt.Sprintf("%d", c.s.PidsCurrent)
 }
