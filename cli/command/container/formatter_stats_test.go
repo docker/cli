@@ -54,13 +54,11 @@ func TestContainerStatsContextWrite(t *testing.T) {
 	}{
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		{
 			formatter.Context{Format: "table {{.MemUsage}}"},

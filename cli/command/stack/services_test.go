@@ -62,7 +62,7 @@ func TestStackServicesErrors(t *testing.T) {
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 				return []swarm.Service{*Service()}, nil
 			},
-			expectedError: "Template parsing error",
+			expectedError: "template parsing error",
 		},
 	}
 

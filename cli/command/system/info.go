@@ -548,7 +548,7 @@ func formatInfo(dockerCli command.Cli, info info, format string) error {
 	tmpl, err := templates.Parse(format)
 	if err != nil {
 		return cli.StatusError{StatusCode: 64,
-			Status: "Template parsing error: " + err.Error()}
+			Status: "template parsing error: " + err.Error()}
 	}
 	err = tmpl.Execute(dockerCli.Out(), info)
 	dockerCli.Out().Write([]byte{'\n'})

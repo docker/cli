@@ -36,7 +36,7 @@ func TestConfigInspectErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			expectedError: "Template parsing error",
+			expectedError: "template parsing error",
 		},
 		{
 			args: []string{"foo", "bar"},

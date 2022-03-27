@@ -27,6 +27,7 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 	config, err := loader.Load(configDetails)
 	if err != nil {
 		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
+			//nolint:revive // ignore capitalization error; this error is intentionally formatted multi-line
 			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n",
 				propertyWarnings(fpe.Properties))
 		}
