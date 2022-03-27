@@ -3,7 +3,7 @@
 #
 
 # Sets the name of the company that produced the windows binary.
-COMPANY_NAME ?=
+PACKAGER_NAME ?=
 
 all: binary
 

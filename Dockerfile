@@ -52,8 +52,8 @@ ARG GO_STRIP
 ARG CGO_ENABLED
 # VERSION sets the version for the produced binary
 ARG VERSION
-# COMPANY_NAME sets the company that produced the windows binary
-ARG COMPANY_NAME
+# PACKAGER_NAME sets the company that produced the windows binary
+ARG PACKAGER_NAME
 COPY --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \

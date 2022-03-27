@@ -15,7 +15,7 @@ variable "IMAGE_NAME" {
 }
 
 # Sets the name of the company that produced the windows binary.
-variable "COMPANY_NAME" {
+variable "PACKAGER_NAME" {
     default = ""
 }
 
@@ -38,7 +38,7 @@ target "binary" {
     args = {
         BASE_VARIANT = USE_GLIBC != "" ? "buster" : "alpine"
         VERSION = VERSION
-        COMPANY_NAME = COMPANY_NAME
+        PACKAGER_NAME = PACKAGER_NAME
         GO_STRIP = STRIP_TARGET
     }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-: "${COMPANY_NAME=}"
+: "${PACKAGER_NAME=}"
 
 . ./scripts/build/.variables
 
@@ -31,7 +31,7 @@ cat > ./cli/winresources/versioninfo.json <<EOL
   "StringFileInfo":
   {
     "Comments": "",
-    "CompanyName": "${COMPANY_NAME}",
+    "CompanyName": "${PACKAGER_NAME}",
     "FileDescription": "Docker Client",
     "FileVersion": "${VERSION}",
     "InternalName": "",
