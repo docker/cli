@@ -10,7 +10,7 @@ DOCKER_CLI_CONTAINER_NAME ?=
 DOCKER_CLI_GO_BUILD_CACHE ?= y
 
 # Sets the name of the company that produced the windows binary.
-COMPANY_NAME ?=
+PACKAGER_NAME ?=
 
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev$(IMAGE_TAG)
 E2E_IMAGE_NAME = docker-cli-e2e
@@ -36,7 +36,7 @@ DOCKER_RUN := docker run --rm $(ENVVARS) $(DOCKER_CLI_MOUNTS) $(DOCKER_RUN_NAME_
 
 .PHONY: binary
 binary:
-	COMPANY_NAME=$(COMPANY_NAME) docker buildx bake binary
+	PACKAGER_NAME=$(PACKAGER_NAME) docker buildx bake binary
 
 build: binary ## alias for binary
 
@@ -53,11 +53,11 @@ clean: build_docker_image ## clean build artifacts
 
 .PHONY: cross
 cross:
-	COMPANY_NAME=$(COMPANY_NAME) docker buildx bake cross
+	PACKAGER_NAME=$(PACKAGER_NAME) docker buildx bake cross
 
 .PHONY: dynbinary
 dynbinary: ## build dynamically linked binary
-	USE_GLIBC=1 COMPANY_NAME=$(COMPANY_NAME)  docker buildx bake dynbinary
+	USE_GLIBC=1 PACKAGER_NAME=$(PACKAGER_NAME)  docker buildx bake dynbinary
 
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
