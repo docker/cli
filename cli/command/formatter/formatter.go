@@ -73,7 +73,7 @@ func (c *Context) preFormat() {
 func (c *Context) parseFormat() (*template.Template, error) {
 	tmpl, err := templates.Parse(c.finalFormat)
 	if err != nil {
-		return tmpl, errors.Errorf("Template parsing error: %v\n", err)
+		return tmpl, errors.Wrap(err, "template parsing error")
 	}
 	return tmpl, err
 }
@@ -94,7 +94,7 @@ func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
 
 func (c *Context) contextFormat(tmpl *template.Template, subContext SubContext) error {
 	if err := tmpl.Execute(c.buffer, subContext); err != nil {
-		return errors.Errorf("Template parsing error: %v\n", err)
+		return errors.Wrap(err, "template parsing error")
 	}
 	if c.Format.IsTable() && c.header != nil {
 		c.header = subContext.FullHeader()

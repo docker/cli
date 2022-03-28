@@ -50,7 +50,7 @@ func NewTemplateInspectorFromString(out io.Writer, tmplStr string) (Inspector, e
 
 	tmpl, err := templates.Parse(tmplStr)
 	if err != nil {
-		return nil, errors.Errorf("Template parsing error: %s", err)
+		return nil, errors.Errorf("template parsing error: %s", err)
 	}
 	return NewTemplateInspector(out, tmpl), nil
 }
@@ -100,7 +100,7 @@ func (i *TemplateInspector) Inspect(typedElement interface{}, rawElement []byte)
 	buffer := new(bytes.Buffer)
 	if err := i.tmpl.Execute(buffer, typedElement); err != nil {
 		if rawElement == nil {
-			return errors.Errorf("Template parsing error: %v", err)
+			return errors.Errorf("template parsing error: %v", err)
 		}
 		return i.tryRawInspectFallback(rawElement)
 	}
@@ -124,7 +124,7 @@ func (i *TemplateInspector) tryRawInspectFallback(rawElement []byte) error {
 
 	tmplMissingKey := i.tmpl.Option("missingkey=error")
 	if rawErr := tmplMissingKey.Execute(buffer, raw); rawErr != nil {
-		return errors.Errorf("Template parsing error: %v", rawErr)
+		return errors.Errorf("template parsing error: %v", rawErr)
 	}
 
 	i.buffer.Write(buffer.Bytes())

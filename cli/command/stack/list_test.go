@@ -28,7 +28,7 @@ func TestListErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			expectedError: "Template parsing error",
+			expectedError: "template parsing error",
 		},
 		{
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {

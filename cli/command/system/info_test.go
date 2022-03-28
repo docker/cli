@@ -396,7 +396,7 @@ func TestFormatInfo(t *testing.T) {
 		{
 			doc:           "syntax",
 			template:      "{{}",
-			expectedError: `Status: Template parsing error: template: :1: unexpected "}" in command, Code: 64`,
+			expectedError: `Status: template parsing error: template: :1: unexpected "}" in command, Code: 64`,
 		},
 		{
 			doc:           "syntax",

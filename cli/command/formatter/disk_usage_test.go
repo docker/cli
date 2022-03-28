@@ -61,8 +61,7 @@ CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED
 					Format: "{{InvalidFunction}}",
 				},
 			},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			DiskUsageContext{
@@ -70,8 +69,7 @@ CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED
 					Format: "{{nil}}",
 				},
 			},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{

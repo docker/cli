@@ -157,7 +157,7 @@ func (cid *cidFile) Close() error {
 		return nil
 	}
 	if err := os.Remove(cid.path); err != nil {
-		return errors.Errorf("failed to remove the CID file '%s': %s \n", cid.path, err)
+		return errors.Wrapf(err, "failed to remove the CID file '%s'", cid.path)
 	}
 
 	return nil
@@ -168,7 +168,7 @@ func (cid *cidFile) Write(id string) error {
 		return nil
 	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
-		return errors.Errorf("Failed to write the container ID to the file: %s", err)
+		return errors.Wrap(err, "failed to write the container ID to the file")
 	}
 	cid.written = true
 	return nil
@@ -179,12 +179,12 @@ func newCIDFile(path string) (*cidFile, error) {
 		return &cidFile{}, nil
 	}
 	if _, err := os.Stat(path); err == nil {
-		return nil, errors.Errorf("Container ID file found, make sure the other container isn't running or delete %s", path)
+		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", path)
 	}
 
 	f, err := os.Create(path)
 	if err != nil {
-		return nil, errors.Errorf("Failed to create the container ID file: %s", err)
+		return nil, errors.Wrap(err, "failed to create the container ID file")
 	}
 
 	return &cidFile{path: path, file: f}, nil

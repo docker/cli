@@ -119,8 +119,7 @@ func TestImageContextWrite(t *testing.T) {
 					Format: "{{InvalidFunction}}",
 				},
 			},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			ImageContext{
@@ -128,8 +127,7 @@ func TestImageContextWrite(t *testing.T) {
 					Format: "{{nil}}",
 				},
 			},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{

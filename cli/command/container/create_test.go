@@ -38,7 +38,7 @@ func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
 	defer tempfile.Remove()
 
 	_, err := newCIDFile(tempfile.Path())
-	assert.ErrorContains(t, err, "Container ID file found")
+	assert.ErrorContains(t, err, "container ID file found")
 }
 
 func TestCIDFileCloseWithNoWrite(t *testing.T) {

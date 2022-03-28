@@ -254,7 +254,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 
 		if err := build.ValidateContextDirectory(contextDir, excludes); err != nil {
-			return errors.Errorf("error checking context: '%s'.", err)
+			return errors.Wrap(err, "error checking context")
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
