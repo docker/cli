@@ -43,7 +43,7 @@ type StatsEntry struct {
 
 // Stats represents an entity to store containers statistics synchronously
 type Stats struct {
-	mutex sync.Mutex
+	mutex sync.RWMutex
 	StatsEntry
 	err error
 }
@@ -51,8 +51,8 @@ type Stats struct {
 // GetError returns the container statistics error.
 // This is used to determine whether the statistics are valid or not
 func (cs *Stats) GetError() error {
-	cs.mutex.Lock()
-	defer cs.mutex.Unlock()
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
 	return cs.err
 }
 
@@ -94,8 +94,8 @@ func (cs *Stats) SetStatistics(s StatsEntry) {
 
 // GetStatistics returns container statistics with other meta data such as the container name
 func (cs *Stats) GetStatistics() StatsEntry {
-	cs.mutex.Lock()
-	defer cs.mutex.Unlock()
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
 	return cs.StatsEntry
 }
 
