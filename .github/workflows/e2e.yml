@@ -22,7 +22,7 @@ jobs:
           - connhelper-ssh
         base:
           - alpine
-          - buster
+          - bullseye
         engine-version:
 #          - 20.10-dind # FIXME: Fails on 20.10
           - stable-dind # TODO: Use 20.10-dind, stable-dind is deprecated
