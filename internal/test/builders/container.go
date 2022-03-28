@@ -16,8 +16,8 @@ func Container(name string, builders ...func(container *types.Container)) *types
 		Names:   []string{"/" + name},
 		Command: "top",
 		Image:   "busybox:latest",
-		Status:  "Up 1 second",
-		Created: time.Now().Unix(),
+		Status:  "Up 1 minute",
+		Created: time.Now().Add(-1 * time.Minute).Unix(),
 	}
 
 	for _, builder := range builders {
