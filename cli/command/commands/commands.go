@@ -28,69 +28,36 @@ import (
 // AddCommands adds all the commands from cli/command to the root command
 func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 	cmd.AddCommand(
-		// checkpoint
-		checkpoint.NewCheckpointCommand(dockerCli),
-
-		// config
-		config.NewConfigCommand(dockerCli),
-
-		// container
-		container.NewContainerCommand(dockerCli),
+		// commonly used shorthands
 		container.NewRunCommand(dockerCli),
-
-		// image
-		image.NewImageCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
-
-		// builder
-		builder.NewBuilderCommand(dockerCli),
-
-		// manifest
-		manifest.NewManifestCommand(dockerCli),
-
-		// network
-		network.NewNetworkCommand(dockerCli),
-
-		// node
-		node.NewNodeCommand(dockerCli),
-
-		// plugin
-		plugin.NewPluginCommand(dockerCli),
-
-		// registry
 		registry.NewLoginCommand(dockerCli),
 		registry.NewLogoutCommand(dockerCli),
 		registry.NewSearchCommand(dockerCli),
-
-		// secret
-		secret.NewSecretCommand(dockerCli),
-
-		// service
-		service.NewServiceCommand(dockerCli),
-
-		// system
-		system.NewSystemCommand(dockerCli),
 		system.NewVersionCommand(dockerCli),
 
-		// stack
-		stack.NewStackCommand(dockerCli),
-
-		// swarm
-		swarm.NewSwarmCommand(dockerCli),
-
-		// trust
+		// management commands
+		builder.NewBuilderCommand(dockerCli),
+		checkpoint.NewCheckpointCommand(dockerCli),
+		container.NewContainerCommand(dockerCli),
+		context.NewContextCommand(dockerCli),
+		image.NewImageCommand(dockerCli),
+		manifest.NewManifestCommand(dockerCli),
+		network.NewNetworkCommand(dockerCli),
+		plugin.NewPluginCommand(dockerCli),
+		system.NewSystemCommand(dockerCli),
 		trust.NewTrustCommand(dockerCli),
-
-		// volume
 		volume.NewVolumeCommand(dockerCli),
 
-		// context
-		context.NewContextCommand(dockerCli),
+		// orchestration (swarm) commands
+		config.NewConfigCommand(dockerCli),
+		node.NewNodeCommand(dockerCli),
+		secret.NewSecretCommand(dockerCli),
+		service.NewServiceCommand(dockerCli),
+		stack.NewStackCommand(dockerCli),
+		swarm.NewSwarmCommand(dockerCli),
 
 		// legacy commands may be hidden
-		hide(system.NewEventsCommand(dockerCli)),
-		hide(system.NewInfoCommand(dockerCli)),
-		hide(system.NewInspectCommand(dockerCli)),
 		hide(container.NewAttachCommand(dockerCli)),
 		hide(container.NewCommitCommand(dockerCli)),
 		hide(container.NewCopyCommand(dockerCli)),
@@ -122,6 +89,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(image.NewRemoveCommand(dockerCli)),
 		hide(image.NewSaveCommand(dockerCli)),
 		hide(image.NewTagCommand(dockerCli)),
+		hide(system.NewEventsCommand(dockerCli)),
+		hide(system.NewInfoCommand(dockerCli)),
+		hide(system.NewInspectCommand(dockerCli)),
 	)
 }
 
