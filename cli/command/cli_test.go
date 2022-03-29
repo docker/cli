@@ -159,7 +159,7 @@ func TestInitializeFromClient(t *testing.T) {
 
 			cli := &DockerCli{client: apiclient}
 			cli.initializeFromClient()
-			assert.DeepEqual(t, cli.serverInfo, testcase.expectedServer)
+			assert.DeepEqual(t, cli.ServerInfo(), testcase.expectedServer)
 			assert.Equal(t, apiclient.negotiated, testcase.negotiated)
 		})
 	}
