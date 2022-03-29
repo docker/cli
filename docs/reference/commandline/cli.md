@@ -329,7 +329,7 @@ $ docker run --help
 
 Usage: docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
 
-Run a command in a new container
+Create and run a new container from an image
 
 Options:
       --add-host value             Add a custom host-to-IP mapping (host:ip) (default [])

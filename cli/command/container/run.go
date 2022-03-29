@@ -35,7 +35,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "run [OPTIONS] IMAGE [COMMAND] [ARG...]",
-		Short: "Run a command in a new container",
+		Short: "Create and run a new container from an image",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			copts.Image = args[0]

@@ -63,7 +63,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [rename](rename.md)                   | Rename a container                                               |
 | [restart](restart.md)                 | Restart a running container                                      |
 | [rm](rm.md)                           | Remove one or more containers                                    |
-| [run](run.md)                         | Run a command in a new container                                 |
+| [run](run.md)                         | Create and run a new container from an image                     |
 | [start](start.md)                     | Start one or more stopped containers                             |
 | [stats](stats.md)                     | Display a live stream of container(s) resource usage  statistics |
 | [stop](stop.md)                       | Stop a running container                                         |

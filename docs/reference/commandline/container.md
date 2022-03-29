@@ -33,7 +33,7 @@ Commands:
   rename      Rename a container
   restart     Restart one or more containers
   rm          Remove one or more containers
-  run         Run a command in a new container
+  run         Create and run a new container from an image
   start       Start one or more stopped containers
   stats       Display a live stream of container(s) resource usage statistics
   stop        Stop one or more running containers

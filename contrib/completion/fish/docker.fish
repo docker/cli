@@ -452,7 +452,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -l no-prune -d 'Do
 complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_docker_images)' -d "Image"
 
 # run
-complete -c docker -f -n '__fish_docker_no_subcommand' -a run -d 'Run a command in a new container'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a run -d 'Create and run a new container from an image'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s a -l attach -d 'Attach to STDIN, STDOUT or STDERR.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l add-host -d 'Add a custom host-to-IP mapping (host:ip)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s c -l cpu-shares -d 'CPU shares (relative weight)'
