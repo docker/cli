@@ -21,7 +21,7 @@ Commands:
   cp          Copy files/folders between a container and the local filesystem
   create      Create a new container
   diff        Inspect changes to files or directories on a container's filesystem
-  exec        Run a command in a running container
+  exec        Execute a command in a running container
   export      Export a container's filesystem as a tar archive
   inspect     Display detailed information on one or more containers
   kill        Kill one or more running containers

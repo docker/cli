@@ -53,7 +53,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [create](create.md)                   | Create a new container                                           |
 | [diff](diff.md)                       | Inspect changes on a container's filesystem                      |
 | [events](events.md)                   | Get real time events from the server                             |
-| [exec](exec.md)                       | Run a command in a running container                             |
+| [exec](exec.md)                       | Execute a command in a running container                         |
 | [export](export.md)                   | Export a container's filesystem as a tar archive                 |
 | [kill](kill.md)                       | Kill a running container                                         |
 | [logs](logs.md)                       | Fetch the logs of a container                                    |

@@ -287,7 +287,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l since -d 'Sh
 complete -c docker -A -f -n '__fish_seen_subcommand_from events' -l until -d 'Stream events until this timestamp'
 
 # exec
-complete -c docker -f -n '__fish_docker_no_subcommand' -a exec -d 'Run a command in a running container'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a exec -d 'Execute a command in a running container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s d -l detach -d 'Detached mode: run command in the background'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -l detach-keys -d 'Override the key sequence for detaching a container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from exec' -s e -l env -d 'Set environment variables'
