@@ -30,11 +30,17 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 	cmd.AddCommand(
 		// commonly used shorthands
 		container.NewRunCommand(dockerCli),
+		container.NewExecCommand(dockerCli),
+		container.NewPsCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
+		image.NewPullCommand(dockerCli),
+		image.NewPushCommand(dockerCli),
+		image.NewImagesCommand(dockerCli),
 		registry.NewLoginCommand(dockerCli),
 		registry.NewLogoutCommand(dockerCli),
 		registry.NewSearchCommand(dockerCli),
 		system.NewVersionCommand(dockerCli),
+		system.NewInfoCommand(dockerCli),
 
 		// management commands
 		builder.NewBuilderCommand(dockerCli),
@@ -63,13 +69,11 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(container.NewCopyCommand(dockerCli)),
 		hide(container.NewCreateCommand(dockerCli)),
 		hide(container.NewDiffCommand(dockerCli)),
-		hide(container.NewExecCommand(dockerCli)),
 		hide(container.NewExportCommand(dockerCli)),
 		hide(container.NewKillCommand(dockerCli)),
 		hide(container.NewLogsCommand(dockerCli)),
 		hide(container.NewPauseCommand(dockerCli)),
 		hide(container.NewPortCommand(dockerCli)),
-		hide(container.NewPsCommand(dockerCli)),
 		hide(container.NewRenameCommand(dockerCli)),
 		hide(container.NewRestartCommand(dockerCli)),
 		hide(container.NewRmCommand(dockerCli)),
@@ -81,16 +85,12 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(container.NewUpdateCommand(dockerCli)),
 		hide(container.NewWaitCommand(dockerCli)),
 		hide(image.NewHistoryCommand(dockerCli)),
-		hide(image.NewImagesCommand(dockerCli)),
 		hide(image.NewImportCommand(dockerCli)),
 		hide(image.NewLoadCommand(dockerCli)),
-		hide(image.NewPullCommand(dockerCli)),
-		hide(image.NewPushCommand(dockerCli)),
 		hide(image.NewRemoveCommand(dockerCli)),
 		hide(image.NewSaveCommand(dockerCli)),
 		hide(image.NewTagCommand(dockerCli)),
 		hide(system.NewEventsCommand(dockerCli)),
-		hide(system.NewInfoCommand(dockerCli)),
 		hide(system.NewInspectCommand(dockerCli)),
 	)
 }
