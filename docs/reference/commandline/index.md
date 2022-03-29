@@ -74,13 +74,13 @@ read the [`dockerd`](dockerd.md) reference page.
 
 ### Hub and registry commands
 
-| Command             | Description                                                            |
-|:--------------------|:-----------------------------------------------------------------------|
-| [login](login.md)   | Register or log in to a Docker registry                                |
-| [logout](logout.md) | Log out from a Docker registry                                         |
-| [pull](pull.md)     | Pull an image or a repository from a Docker registry                   |
-| [push](push.md)     | Push an image or a repository to a Docker registry                     |
-| [search](search.md) | Search the Docker Hub for images                                       |
+| Command             | Description                                                             |
+|:--------------------|:------------------------------------------------------------------------|
+| [login](login.md)   | Register or log in to a Docker registry                                 |
+| [logout](logout.md) | Log out from a Docker registry                                          |
+| [pull](pull.md)     | Pull an image or a repository from a Docker registry                    |
+| [push](push.md)     | Push an image or a repository to a Docker registry                      |
+| [search](search.md) | Search Docker Hub for images                                            |
 
 ### Network and connectivity commands
 

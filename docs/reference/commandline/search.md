@@ -9,7 +9,7 @@ keywords: "search, hub, images"
 ```markdown
 Usage:  docker search [OPTIONS] TERM
 
-Search the Docker Hub for images
+Search Docker Hub for images
 
 Options:
   -f, --filter value   Filter output based on conditions provided (default [])
