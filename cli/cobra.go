@@ -372,11 +372,13 @@ Examples:
 {{ .Example }}
 
 {{- end}}
+{{- if .HasParent}}
 {{- if .HasAvailableFlags}}
 
 Options:
 {{ wrappedFlagUsages . | trimRightSpace}}
 
+{{- end}}
 {{- end}}
 {{- if hasManagementSubCommands . }}
 
@@ -413,6 +415,14 @@ Invalid Plugins:
   {{rpad .Name .NamePadding }} {{invalidPluginReason .}}
 {{- end}}
 
+{{- end}}
+{{- if not .HasParent}}
+{{- if .HasAvailableFlags}}
+
+Global Options:
+{{ wrappedFlagUsages . | trimRightSpace}}
+
+{{- end}}
 {{- end}}
 
 {{- if .HasSubCommands }}
