@@ -35,7 +35,10 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCA(dockerCli, cmd.Flags(), opts)
 		},
-		Annotations: map[string]string{"version": "1.30"},
+		Annotations: map[string]string{
+			"version": "1.30",
+			"swarm":   "manager",
+		},
 	}
 
 	flags := cmd.Flags()

@@ -23,6 +23,10 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runLeave(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "active",
+		},
 	}
 
 	flags := cmd.Flags()

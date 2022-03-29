@@ -309,8 +309,33 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	var (
-		notExperimental  = func(_ string) bool { return !details.ServerInfo().HasExperimental }
-		notOSType        = func(v string) bool { return v != details.ServerInfo().OSType }
+		notExperimental = func(_ string) bool { return !details.ServerInfo().HasExperimental }
+		notOSType       = func(v string) bool { return v != details.ServerInfo().OSType }
+		notSwarmStatus  = func(v string) bool {
+			s := details.ServerInfo().SwarmStatus
+			if s == nil {
+				// engine did not return swarm status header
+				return false
+			}
+			switch v {
+			case "manager":
+				// requires the node to be a manager
+				return !s.ControlAvailable
+			case "active":
+				// requires swarm to be active on the node (e.g. for swarm leave)
+				// only hide the command if we're sure the node is "inactive"
+				// for any other status, assume the "leave" command can still
+				// be used.
+				return s.NodeState == "inactive"
+			case "":
+				// some swarm commands, such as "swarm init" and "swarm join"
+				// are swarm-related, but do not require swarm to be active
+				return false
+			default:
+				// ignore any other value for the "swarm" annotation
+				return false
+			}
+		}
 		versionOlderThan = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
 	)
 
@@ -328,12 +353,14 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 
 		hideFlagIf(f, notExperimental, "experimental")
 		hideFlagIf(f, notOSType, "ostype")
+		hideFlagIf(f, notSwarmStatus, "swarm")
 		hideFlagIf(f, versionOlderThan, "version")
 	})
 
 	for _, subcmd := range cmd.Commands() {
 		hideSubcommandIf(subcmd, notExperimental, "experimental")
 		hideSubcommandIf(subcmd, notOSType, "ostype")
+		hideSubcommandIf(subcmd, notSwarmStatus, "swarm")
 		hideSubcommandIf(subcmd, versionOlderThan, "version")
 	}
 	return nil

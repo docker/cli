@@ -24,6 +24,10 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUnlock(dockerCli)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
+		},
 	}
 
 	return cmd

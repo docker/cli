@@ -39,6 +39,10 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInit(dockerCli, cmd.Flags(), opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "", // swarm init does not require swarm to be active, and is always available on API 1.24 and up
+		},
 	}
 
 	flags := cmd.Flags()
