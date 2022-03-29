@@ -9,7 +9,7 @@ keywords: "secret"
 ```markdown
 Usage:  docker secret COMMAND
 
-Manage Docker secrets
+Manage Swarm secrets
 
 Options:
       --help   Print usage

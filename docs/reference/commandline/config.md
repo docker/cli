@@ -9,7 +9,7 @@ keywords: "config"
 ```markdown
 Usage:  docker config COMMAND
 
-Manage Docker configs
+Manage Swarm configs
 
 Options:
       --help   Print usage

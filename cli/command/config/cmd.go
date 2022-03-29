@@ -11,7 +11,7 @@ import (
 func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
-		Short: "Manage Docker configs",
+		Short: "Manage Swarm configs",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{

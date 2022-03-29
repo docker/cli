@@ -9,7 +9,7 @@ keywords: "stack"
 ```markdown
 Usage:  docker stack [OPTIONS] COMMAND
 
-Manage Docker stacks
+Manage Swarm stacks
 
 Options:
       --help                  Print usage

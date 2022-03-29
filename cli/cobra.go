@@ -31,9 +31,11 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
+	cobra.AddTemplateFunc("hasOrchestratorSubCommands", hasOrchestratorSubCommands)
 	cobra.AddTemplateFunc("hasInvalidPlugins", hasInvalidPlugins)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
+	cobra.AddTemplateFunc("orchestratorSubCommands", orchestratorSubCommands)
 	cobra.AddTemplateFunc("invalidPlugins", invalidPlugins)
 	cobra.AddTemplateFunc("wrappedFlagUsages", wrappedFlagUsages)
 	cobra.AddTemplateFunc("vendorAndVersion", vendorAndVersion)
@@ -240,6 +242,10 @@ func hasManagementSubCommands(cmd *cobra.Command) bool {
 	return len(managementSubCommands(cmd)) > 0
 }
 
+func hasOrchestratorSubCommands(cmd *cobra.Command) bool {
+	return len(orchestratorSubCommands(cmd)) > 0
+}
+
 func hasInvalidPlugins(cmd *cobra.Command) bool {
 	return len(invalidPlugins(cmd)) > 0
 }
@@ -285,6 +291,27 @@ func vendorAndVersion(cmd *cobra.Command) string {
 }
 
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range allManagementSubCommands(cmd) {
+		if _, ok := sub.Annotations["swarm"]; ok {
+			continue
+		}
+		cmds = append(cmds, sub)
+	}
+	return cmds
+}
+
+func orchestratorSubCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range allManagementSubCommands(cmd) {
+		if _, ok := sub.Annotations["swarm"]; ok {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func allManagementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
 		if isPlugin(sub) {
@@ -356,6 +383,15 @@ Options:
 Management Commands:
 
 {{- range managementSubCommands . }}
+  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
+{{- end}}
+
+{{- end}}
+{{- if hasOrchestratorSubCommands . }}
+
+Orchestration Commands:
+
+{{- range orchestratorSubCommands . }}
   {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
 {{- end}}
 
