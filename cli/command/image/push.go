@@ -29,7 +29,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] NAME[:TAG]",
-		Short: "Push an image or a repository to a registry",
+		Short: "Upload an image to a registry",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]

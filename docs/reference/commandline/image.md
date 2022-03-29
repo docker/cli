@@ -23,8 +23,8 @@ Commands:
   load        Load an image from a tar archive or STDIN
   ls          List images
   prune       Remove unused images
-  pull        Pull an image or a repository from a registry
-  push        Push an image or a repository to a registry
+  pull        Download an image from a registry
+  push        Upload an image to a registry
   rm          Remove one or more images
   save        Save one or more images to a tar archive (streamed to STDOUT by default)
   tag         Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE

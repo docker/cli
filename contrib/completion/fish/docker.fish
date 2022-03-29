@@ -414,14 +414,14 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -s s -l size -d 'Di
 complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l since -d 'Show only containers created since Id or Name, include non-running ones.'
 
 # pull
-complete -c docker -f -n '__fish_docker_no_subcommand' -a pull -d 'Pull an image or a repository from a Docker registry server'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a pull -d 'Download an image from a registry'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -s a -l all-tags -d 'Download all tagged images in the repository'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)' -d "Image"
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_repositories)' -d "Repository"
 
 # push
-complete -c docker -f -n '__fish_docker_no_subcommand' -a push -d 'Push an image or a repository to a Docker registry server'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a push -d 'Upload an image to a registry'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_images)' -d "Image"
 complete -c docker -A -f -n '__fish_seen_subcommand_from push' -a '(__fish_print_docker_repositories)' -d "Repository"

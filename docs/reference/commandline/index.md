@@ -78,8 +78,8 @@ read the [`dockerd`](dockerd.md) reference page.
 |:--------------------|:------------------------------------------------------------------------|
 | [login](login.md)   | Register or log in to a Docker registry                                 |
 | [logout](logout.md) | Log out from a Docker registry                                          |
-| [pull](pull.md)     | Pull an image or a repository from a Docker registry                    |
-| [push](push.md)     | Push an image or a repository to a Docker registry                      |
+| [pull](pull.md)     | Download an image from a registry                                       |
+| [push](push.md)     | Upload an image to a registry                                           |
 | [search](search.md) | Search Docker Hub for images                                            |
 
 ### Network and connectivity commands

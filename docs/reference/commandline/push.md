@@ -9,7 +9,7 @@ keywords: "share, push, image"
 ```markdown
 Usage:  docker push [OPTIONS] NAME[:TAG]
 
-Push an image or a repository to a registry
+Upload an image to a registry
 
 Options:
   -a, --all-tags                Push all tags of an image to the repository
