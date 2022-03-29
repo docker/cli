@@ -38,7 +38,8 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.IntVar(&options.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
+	// TODO(thaJeztah) remove default from client as the daemon already has a default
+	flags.IntVar(&options.limit, "limit", 25, "Max number of search results")
 	flags.StringVar(&options.format, "format", "", "Pretty-print search using a Go template")
 
 	return cmd
