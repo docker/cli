@@ -140,7 +140,7 @@ using a Go template.
 Valid placeholders for the Go template are:
 
 | Placeholder    | Description                       |
-| -------------- | --------------------------------- |
+|----------------|-----------------------------------|
 | `.Name`        | Image Name                        |
 | `.Description` | Image description                 |
 | `.StarCount`   | Number of stars for the image     |
