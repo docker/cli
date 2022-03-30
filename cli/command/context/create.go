@@ -92,17 +92,24 @@ func createNewContext(o *CreateOptions, cli command.Cli, s store.Writer) error {
 	if o.Docker == nil {
 		return errors.New("docker endpoint configuration is required")
 	}
-	contextMetadata := newContextMetadata(o)
-	contextTLSData := store.ContextTLSData{
-		Endpoints: make(map[string]store.EndpointTLSData),
-	}
 	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.Docker)
 	if err != nil {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}
-	contextMetadata.Endpoints[docker.DockerEndpoint] = dockerEP
+	contextMetadata := store.Metadata{
+		Endpoints: map[string]interface{}{
+			docker.DockerEndpoint: dockerEP,
+		},
+		Metadata: command.DockerContext{
+			Description: o.Description,
+		},
+		Name: o.Name,
+	}
+	contextTLSData := store.ContextTLSData{}
 	if dockerTLS != nil {
-		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerTLS
+		contextTLSData.Endpoints = map[string]store.EndpointTLSData{
+			docker.DockerEndpoint: *dockerTLS,
+		}
 	}
 	if err := validateEndpoints(contextMetadata); err != nil {
 		return err
@@ -160,14 +167,4 @@ func (d *descriptionDecorator) GetMetadata(name string) (store.Metadata, error) 
 	}
 	c.Metadata = typedContext
 	return c, nil
-}
-
-func newContextMetadata(o *CreateOptions) store.Metadata {
-	return store.Metadata{
-		Endpoints: make(map[string]interface{}),
-		Metadata: command.DockerContext{
-			Description: o.Description,
-		},
-		Name: o.Name,
-	}
 }
