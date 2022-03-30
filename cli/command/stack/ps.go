@@ -25,6 +25,9 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return RunPs(dockerCli, cmd.Flags(), opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
+		},
 	}
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.NoTrunc, "no-trunc", false, "Do not truncate output")

@@ -30,6 +30,9 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return RunDeploy(dockerCli, cmd.Flags(), config, opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
+		},
 	}
 
 	flags := cmd.Flags()

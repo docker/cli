@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"syscall"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -43,6 +45,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runRun(dockerCli, cmd.Flags(), &opts, copts)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
 			"category-top": "1",
 		},
@@ -67,6 +70,23 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddPlatformFlag(flags, &opts.platform)
 	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
+
+	cmd.RegisterFlagCompletionFunc(
+		"env",
+		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return os.Environ(), cobra.ShellCompDirectiveNoFileComp
+		},
+	)
+	cmd.RegisterFlagCompletionFunc(
+		"env-file",
+		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveDefault
+		},
+	)
+	cmd.RegisterFlagCompletionFunc(
+		"network",
+		completion.NetworkNames(dockerCli),
+	)
 	return cmd
 }
 

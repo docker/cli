@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
@@ -52,6 +54,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 			options.Command = args[1:]
 			return RunExec(dockerCli, options)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 		Annotations: map[string]string{
 			"category-top": "2",
 		},
@@ -72,6 +75,19 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("env-file", "version", []string{"1.25"})
 	flags.StringVarP(&options.Workdir, "workdir", "w", "", "Working directory inside the container")
 	flags.SetAnnotation("workdir", "version", []string{"1.35"})
+
+	cmd.RegisterFlagCompletionFunc(
+		"env",
+		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return os.Environ(), cobra.ShellCompDirectiveNoFileComp
+		},
+	)
+	cmd.RegisterFlagCompletionFunc(
+		"env-file",
+		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveDefault // _filedir
+		},
+	)
 
 	return cmd
 }

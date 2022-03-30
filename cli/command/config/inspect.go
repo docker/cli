@@ -29,6 +29,9 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.Names = args
 			return RunConfigInspect(dockerCli, opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
+		},
 	}
 
 	cmd.Flags().StringVarP(&opts.Format, "format", "f", "", flagsHelper.InspectFormatHelp)
