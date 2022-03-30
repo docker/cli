@@ -93,7 +93,7 @@ bk658fpbex0d57cqcwoe3jthu   redis.2      redis:3.0.6@sha256:6a692a76c2081888b589
 nvjljf7rmor4htv7l8rwcx7i7   \_ redis.2   redis:3.0.6@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  worker2   Shutdown       Rejected 5 minutes ago   "No such image: redis@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842"
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
@@ -150,7 +150,7 @@ ID            NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE     
 
 The `desired-state` filter can take the values `running`, `shutdown`, or `accepted`.
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints tasks output
 using a Go template.

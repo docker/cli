@@ -30,18 +30,25 @@ bzip2, or xz) from a file or STDIN. It restores both images and tags.
 $ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+```
 
+### Load images from STDIN
+
+```console
 $ docker load < busybox.tar.gz
 
 Loaded image: busybox:latest
 $ docker images
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 busybox             latest              769b9341d937        7 weeks ago         2.489 MB
+```
 
+### <a name=input></a> Load images from a file (--input)
+
+```console
 $ docker load --input fedora.tar
 
 Loaded image: fedora:rawhide
-
 Loaded image: fedora:20
 
 $ docker images

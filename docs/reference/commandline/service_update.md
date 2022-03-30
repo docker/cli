@@ -131,7 +131,7 @@ rolling restart without any changes to the service parameters.
 $ docker service update --limit-cpu 2 redis
 ```
 
-### Perform a rolling restart with no parameter changes
+### <a name=update-parallelism></a> Perform a rolling restart with no parameter changes
 
 ```console
 $ docker service update --force --update-parallelism 1 --update-delay 30s redis
@@ -144,7 +144,7 @@ that only one task is replaced at a time (this is the default behavior). The
 `--update-delay 30s` setting introduces a 30 second delay between tasks, so
 that the rolling restart happens gradually.
 
-### Add or remove mounts
+### <a name=mount-add></a> Add or remove mounts (--mount-add, --mount-rm)
 
 Use the `--mount-add` or `--mount-rm` options add or remove a service's bind mounts
 or volumes.
@@ -180,7 +180,7 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
-### Add or remove published service ports
+### <a name=publish-add></a> Add or remove published service ports (--publish-add, --publish-rm)
 
 Use the `--publish-add` or `--publish-rm` flags to add or remove a published
 port for a service. You can use the short or long syntax discussed in the
@@ -195,7 +195,7 @@ $ docker service update \
   myservice
 ```
 
-### Add or remove network
+### <a name=network-add></a> Add or remove network (--network-add, --network-rm)
 
 Use the `--network-add` or `--network-rm` flags to add or remove a network for
 a service. You can use the short or long syntax discussed in the
@@ -211,7 +211,7 @@ $ docker service update \
   myservice
 ```
 
-### Roll back to the previous version of a service
+### <a name=rollback></a> Roll back to the previous version of a service (--rollback)
 
 Use the `--rollback` option to roll back to the previous version of the service.
 
@@ -277,7 +277,7 @@ will update one task at a time during a normal update, but during a rollback, 3
 tasks at a time will get rolled back. These rollback parameters are respected both
 during automatic rollbacks and for rollbacks initiated manually using `--rollback`.
 
-### Add or remove secrets
+### <a name=secret-add></a> Add or remove secrets (--secret-add, --secret-rm)
 
 Use the `--secret-add` or `--secret-rm` options add or remove a service's
 secrets.
@@ -297,7 +297,7 @@ Some flags of `service update` support the use of templating.
 See [`service create`](service_create.md#create-services-using-templates) for the reference.
 
 
-### Specify isolation mode (Windows)
+### <a name=isolation></a> Specify isolation mode on Windows (--isolation)
 
 `service update` supports the same `--isolation` flag as `service create`
 See [`service create`](service_create.md) for the reference.

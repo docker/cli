@@ -131,7 +131,7 @@ CONTAINER ID        NAME                CPU %               PRIV WORKING SET    
 9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints container output
 using a Go template.

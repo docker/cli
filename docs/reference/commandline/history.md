@@ -47,7 +47,7 @@ c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mand
 511136ea3c5a        19 months ago                                                       0 B                 Imported from -
 ```
 
-### Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) will pretty-prints history output
 using a Go template.

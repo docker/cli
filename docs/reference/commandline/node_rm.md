@@ -52,7 +52,7 @@ Error response from daemon: rpc error: code = 9 desc = node swarm-node-03 is not
 down and can't be removed
 ```
 
-### Forcibly remove an inaccessible node from a swarm
+### <a name=force></a> Forcibly remove an inaccessible node from a swarm (--force)
 
 If you lose access to a worker node or need to shut it down because it has been
 compromised or is not behaving as expected, you can use the `--force` option.

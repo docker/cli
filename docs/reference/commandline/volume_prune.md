@@ -35,7 +35,7 @@ my-named-vol
 Total reclaimed space: 36 B
 ```
 
-## Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

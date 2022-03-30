@@ -53,7 +53,7 @@ a running container with kernel memory initialized.
 
 The following sections illustrate ways to use this command.
 
-### Update a container's cpu-shares
+### <a name=cpu-shares></a> Update a container's cpu-shares (--cpu-shares)
 
 To limit a container's cpu-shares to 512, first identify the container
 name or ID. You can use `docker ps` to find these values. You can also
@@ -63,7 +63,7 @@ use the ID returned from the `docker run` command.  Then, do the following:
 $ docker update --cpu-shares 512 abebf7571666
 ```
 
-### Update a container with cpu-shares and memory
+### <a name=memory></a> Update a container with cpu-shares and memory (-m, --memory)
 
 To update multiple resource configurations for multiple containers:
 
@@ -71,7 +71,7 @@ To update multiple resource configurations for multiple containers:
 $ docker update --cpu-shares 512 -m 300M abebf7571666 hopeful_morse
 ```
 
-### Update a container's kernel memory constraints
+### <a name=kernel-memory></a> Update a container's kernel memory constraints (--kernel-memory)
 
 You can update a container's kernel memory limit using the `--kernel-memory`
 option. On kernel version older than 4.6, this option can be updated on a
@@ -108,7 +108,7 @@ start it, the container uses the new value.
 Kernel version newer than (include) 4.6 does not have this limitation, you
 can use `--kernel-memory` the same way as other options.
 
-### Update a container's restart policy
+### <a name=restart></a> Update a container's restart policy (--restart)
 
 You can change a container's restart policy on a running container. The new
 restart policy takes effect instantly after you run `docker update` on a

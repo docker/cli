@@ -74,7 +74,7 @@ $ docker image ls
 You should see both `rhel-httpd` and `registry-host:5000/myadmin/rhel-httpd`
 listed.
 
-### Push all tags of an image
+### <a name=all-tags></a> Push all tags of an image (-a, --all-tags)
 
 Use the `-a` (or `--all-tags`) option to push all tags of a local image.
 
