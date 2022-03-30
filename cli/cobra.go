@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
@@ -12,6 +13,7 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/docker/docker/registry"
+	"github.com/fvbommel/sortorder"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
@@ -30,9 +32,11 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
+	cobra.AddTemplateFunc("hasTopCommands", hasTopCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
 	cobra.AddTemplateFunc("hasOrchestratorSubCommands", hasOrchestratorSubCommands)
 	cobra.AddTemplateFunc("hasInvalidPlugins", hasInvalidPlugins)
+	cobra.AddTemplateFunc("topCommands", topCommands)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
 	cobra.AddTemplateFunc("orchestratorSubCommands", orchestratorSubCommands)
@@ -250,11 +254,42 @@ func hasInvalidPlugins(cmd *cobra.Command) bool {
 	return len(invalidPlugins(cmd)) > 0
 }
 
+func hasTopCommands(cmd *cobra.Command) bool {
+	return len(topCommands(cmd)) > 0
+}
+
+func topCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	if cmd.Parent() != nil {
+		// for now, only use top-commands for the root-command, and skip
+		// for sub-commands
+		return cmds
+	}
+	for _, sub := range cmd.Commands() {
+		if isPlugin(sub) || !sub.IsAvailableCommand() {
+			continue
+		}
+		if _, ok := sub.Annotations["category-top"]; ok {
+			cmds = append(cmds, sub)
+		}
+	}
+	sort.SliceStable(cmds, func(i, j int) bool {
+		return sortorder.NaturalLess(cmds[i].Annotations["category-top"], cmds[j].Annotations["category-top"])
+	})
+	return cmds
+}
+
 func operationSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
 		if isPlugin(sub) {
 			continue
+		}
+		if _, ok := sub.Annotations["category-top"]; ok {
+			if cmd.Parent() == nil {
+				// for now, only use top-commands for the root-command
+				continue
+			}
 		}
 		if sub.IsAvailableCommand() && !sub.HasSubCommands() {
 			cmds = append(cmds, sub)
@@ -378,6 +413,13 @@ Examples:
 Options:
 {{ wrappedFlagUsages . | trimRightSpace}}
 
+{{- end}}
+{{- end}}
+{{- if hasTopCommands .}}
+
+Common Commands:
+{{- range topCommands .}}
+  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}
 {{- end}}
 {{- end}}
 {{- if hasManagementSubCommands . }}

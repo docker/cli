@@ -54,6 +54,9 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInfo(cmd, dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "12",
+		},
 	}
 
 	flags := cmd.Flags()

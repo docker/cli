@@ -23,6 +23,9 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runLogout(dockerCli, serverAddress)
 		},
+		Annotations: map[string]string{
+			"category-top": "9",
+		},
 	}
 
 	return cmd

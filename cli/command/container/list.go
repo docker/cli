@@ -37,6 +37,9 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runPs(dockerCli, &options)
 		},
+		Annotations: map[string]string{
+			"category-top": "3",
+		},
 	}
 
 	flags := cmd.Flags()

@@ -44,6 +44,9 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runRun(dockerCli, cmd.Flags(), &opts, copts)
 		},
+		Annotations: map[string]string{
+			"category-top": "1",
+		},
 	}
 
 	flags := cmd.Flags()

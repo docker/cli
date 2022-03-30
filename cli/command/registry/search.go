@@ -32,6 +32,9 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 			options.term = args[0]
 			return runSearch(dockerCli, options)
 		},
+		Annotations: map[string]string{
+			"category-top": "10",
+		},
 	}
 
 	flags := cmd.Flags()

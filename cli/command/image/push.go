@@ -35,6 +35,9 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 			opts.remote = args[0]
 			return RunPush(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "6",
+		},
 	}
 
 	flags := cmd.Flags()
