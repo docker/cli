@@ -100,27 +100,36 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 
 // PutManifest sends the manifest to a registry and returns the new digest
 func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error) {
-	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
+	var dgst digest.Digest
+	put := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+		manifestService, err := repo.Manifests(ctx)
+		if err != nil {
+			return false, err
+		}
+
+		_, opts, err := getManifestOptionsFromReference(ref)
+		if err != nil {
+			return false, err
+		}
+
+		dgst, err = manifestService.Put(ctx, manifest, opts...)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	registryService, err := registryService(ref, c.insecureRegistry)
 	if err != nil {
 		return digest.Digest(""), err
 	}
 
-	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
+	err = c.iterateEndpoints(ctx, ref, registryService.LookupPushEndpoints, put)
 	if err != nil {
 		return digest.Digest(""), err
 	}
 
-	manifestService, err := repo.Manifests(ctx)
-	if err != nil {
-		return digest.Digest(""), err
-	}
-
-	_, opts, err := getManifestOptionsFromReference(ref)
-	if err != nil {
-		return digest.Digest(""), err
-	}
-
-	dgst, err := manifestService.Put(ctx, manifest, opts...)
 	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
 }
 
@@ -180,7 +189,12 @@ func (c *client) GetManifest(ctx context.Context, ref reference.Named) (manifest
 		return result.Ref != nil, err
 	}
 
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	registryService, err := registryService(ref, c.insecureRegistry)
+	if err != nil {
+		return result, err
+	}
+
+	err = c.iterateEndpoints(ctx, ref, registryService.LookupPullEndpoints, fetch)
 	return result, err
 }
 
@@ -193,7 +207,12 @@ func (c *client) GetManifestList(ctx context.Context, ref reference.Named) ([]ma
 		return len(result) > 0, err
 	}
 
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	registryService, err := registryService(ref, c.insecureRegistry)
+	if err != nil {
+		return result, err
+	}
+
+	err = c.iterateEndpoints(ctx, ref, registryService.LookupPullEndpoints, fetch)
 	return result, err
 }
 
