@@ -9,7 +9,7 @@ keywords: "search, hub, images"
 ```markdown
 Usage:  docker search [OPTIONS] TERM
 
-Search the Docker Hub for images
+Search Docker Hub for images
 
 Options:
   -f, --filter value   Filter output based on conditions provided (default [])
@@ -18,7 +18,7 @@ Options:
                        - stars=<number> - image has at least 'number' stars
       --format string  Pretty-print images using a Go template
       --help           Print usage
-      --limit int      Max number of search results (default 25)
+      --limit int      Max number of search results
       --no-trunc       Don't truncate output
 ```
 
@@ -79,8 +79,8 @@ radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Co
 
 ### Limit search results (--limit)
 
-The flag `--limit` is the maximum number of results returned by a search. This value could
-be in the range between 1 and 100. The default value of `--limit` is 25.
+The flag `--limit` is the maximum number of results returned by a search. If no
+value is set, the default is set by the daemon.
 
 ### Filtering
 

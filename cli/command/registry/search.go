@@ -26,7 +26,7 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "search [OPTIONS] TERM",
-		Short: "Search the Docker Hub for images",
+		Short: "Search Docker Hub for images",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.term = args[0]
@@ -38,8 +38,7 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	// TODO(thaJeztah) remove default from client as the daemon already has a default
-	flags.IntVar(&options.limit, "limit", 25, "Max number of search results")
+	flags.IntVar(&options.limit, "limit", 0, "Max number of search results")
 	flags.StringVar(&options.format, "format", "", "Pretty-print search using a Go template")
 
 	return cmd
