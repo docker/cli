@@ -45,7 +45,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_config                 3 seconds ago       3 seconds ago
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (-f, --filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -105,7 +105,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   About an hour ago
 ```
 
-### Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints configs output
 using a Go template.

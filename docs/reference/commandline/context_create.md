@@ -41,7 +41,7 @@ configuration to connect to different clusters or single nodes.
 
 ## Examples
 
-### Create a context with a docker endpoint
+### <a name=docker></a> Create a context with a docker endpoint (--docker)
 
 To create a context from scratch provide the docker and, if required,
 kubernetes options. The example below creates the context `my-context`
@@ -53,7 +53,7 @@ $ docker context create \
     my-context
 ```
 
-### Create a context based on an existing context
+### <a name=from></a> Create a context based on an existing context (--from)
 
 Use the `--from=<context-name>` option to create a new context from
 an existing context. The example below creates a new context named `my-context`

@@ -108,7 +108,7 @@ $ docker images java:0
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 ```
 
-### List the full length image IDs
+### <a name=no-trunc></a> List the full length image IDs (--no-trunc)
 
 ```console
 $ docker images --no-trunc
@@ -125,7 +125,7 @@ tryout                        latest              sha256:2629d1fa0b81b222fca6337
 <none>                        <none>              sha256:5ed6274db6ceb2397844896966ea239290555e74ef307030ebb01ff91b1914df   24 hours ago        1.089 GB
 ```
 
-### List image digests
+### <a name=digests></a> List image digests (--digests)
 
 Images that use the v2 or later format have a content-addressable identifier
 called a `digest`. As long as the input used to generate the image is
@@ -143,7 +143,7 @@ output includes the image digest. You can `pull` using a digest value. You can
 also reference by digest in `create`, `run`, and `rmi` commands, as well as the
 `FROM` image reference in a Dockerfile.
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

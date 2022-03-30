@@ -161,7 +161,7 @@ For information on connecting a container to a network, see the ["*Docker networ
 
 ## Examples
 
-### Assign name and allocate pseudo-TTY (--name, -it)
+### <a name=name></a> Assign name and allocate pseudo-TTY (--name, -it)
 
 ```console
 $ docker run --name test -it debian
@@ -180,7 +180,7 @@ In the example, the `bash` shell is quit by entering
 `exit 13`. This exit code is passed on to the caller of
 `docker run`, and is recorded in the `test` container's metadata.
 
-### Capture container ID (--cidfile)
+### <a name=cidfile></a> Capture container ID (--cidfile)
 
 ```console
 $ docker run --cidfile /tmp/docker_test.cid ubuntu echo "test"
@@ -191,7 +191,7 @@ flag makes Docker attempt to create a new file and write the container ID to it.
 If the file exists already, Docker will return an error. Docker will close this
 file when `docker run` exits.
 
-### Full container capabilities (--privileged)
+### <a name=privileged></a> Full container capabilities (--privileged)
 
 ```console
 $ docker run -t -i --rm ubuntu bash
@@ -216,7 +216,7 @@ lifts all the limitations enforced by the `device` cgroup controller. In other
 words, the container can then do almost everything that the host can do. This
 flag exists to allow special use-cases, like running Docker within Docker.
 
-### Set working directory (-w)
+### <a name=workdir></a> Set working directory (-w, --workdir)
 
 ```console
 $ docker  run -w /path/to/dir/ -i -t  ubuntu pwd
@@ -225,7 +225,7 @@ $ docker  run -w /path/to/dir/ -i -t  ubuntu pwd
 The `-w` lets the command being executed inside directory given, here
 `/path/to/dir/`. If the path does not exist it is created inside the container.
 
-### Set storage driver options per container
+### <a name=storage-opt></a> Set storage driver options per container (--storage-opt)
 
 ```console
 $ docker run -it --storage-opt size=120G fedora /bin/bash
@@ -240,7 +240,7 @@ For the `overlay2` storage driver, the size option is only available if the
 backing fs is `xfs` and mounted with the `pquota` mount option.
 Under these conditions, user can pass any size less than the backing fs size.
 
-### Mount tmpfs (--tmpfs)
+### <a name=tmpfs></a> Mount tmpfs (--tmpfs)
 
 ```console
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
@@ -249,7 +249,7 @@ $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 The `--tmpfs` flag mounts an empty tmpfs into the container with the `rw`,
 `noexec`, `nosuid`, `size=65536k` options.
 
-### Mount volume (-v, --read-only)
+### <a name=volume></a> Mount volume (-v, --read-only)
 
 ```console
 $ docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu pwd
@@ -315,7 +315,7 @@ docker run -v c:\foo:c:\existing-directory-with-contents ...
 For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/storage/volumes/)
 
 
-### Add bind mounts or volumes using the --mount flag
+### <a name=mount></a> Add bind mounts or volumes using the --mount flag
 
 The `--mount` flag allows you to mount volumes, host-directories and `tmpfs`
 mounts in a container.
@@ -337,7 +337,7 @@ $ docker run --read-only --mount type=volume,target=/icanwrite busybox touch /ic
 $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ```
 
-### Publish or expose port (-p, --expose)
+### <a name=publish></a> Publish or expose port (-p, --expose)
 
 ```console
 $ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
@@ -402,7 +402,7 @@ $ docker run --pull=never hello-world
 docker: Error response from daemon: No such image: hello-world:latest.
 ```
 
-### Set environment variables (-e, --env, --env-file)
+### <a name=env></a> Set environment variables (-e, --env, --env-file)
 
 ```console
 $ docker run -e MYVAR1 --env MYVAR2=foo --env-file ./env.list ubuntu bash
@@ -453,7 +453,7 @@ VAR2=value2
 USER=jonzeolla
 ```
 
-### Set metadata on container (-l, --label, --label-file)
+### <a name=label></a> Set metadata on container (-l, --label, --label-file)
 
 A label is a `key=value` pair that applies metadata to a container. To label a container with two labels:
 
@@ -495,7 +495,7 @@ For additional information on working with labels, see [*Labels - custom
 metadata in Docker*](https://docs.docker.com/config/labels-custom-metadata/) in
 the Docker User Guide.
 
-### Connect a container to a network (--network)
+### <a name=network></a> Connect a container to a network (--network)
 
 When you start a container use the `--network` flag to connect it to a network.
 This adds the `busybox` container to the `my-net` network.
@@ -528,7 +528,7 @@ from different Engines can also communicate in this way.
 You can disconnect a container from a network using the `docker network
 disconnect` command.
 
-### Mount volumes from container (--volumes-from)
+### <a name=volumes-from></a> Mount volumes from container (--volumes-from)
 
 ```console
 $ docker run --volumes-from 777f7dc92da7 --volumes-from ba8c0c54f0f2:ro -i -t ubuntu pwd
@@ -554,11 +554,11 @@ content label. Shared volume labels allow all containers to read/write content.
 The `Z` option tells Docker to label the content with a private unshared label.
 Only the current container can use a private volume.
 
-### Attach to STDIN/STDOUT/STDERR (-a)
+### <a name=attach></a> Attach to STDIN/STDOUT/STDERR (-a, --attach)
 
-The `-a` flag tells `docker run` to bind to the container's `STDIN`, `STDOUT`
-or `STDERR`. This makes it possible to manipulate the output and input as
-needed.
+The `--attach` (or `-a`) flag tells `docker run` to bind to the container's
+`STDIN`, `STDOUT` or `STDERR`. This makes it possible to manipulate the output
+and input as needed.
 
 ```console
 $ echo "test" | docker run -i -a stdin ubuntu cat -
@@ -585,7 +585,7 @@ logs could be retrieved using `docker logs`. This is
 useful if you need to pipe a file or something else into a container and
 retrieve the container's ID once the container has finished running.
 
-### Add host device to container (--device)
+### <a name=device></a> Add host device to container (--device)
 
 ```console
 $ docker run --device=/dev/sdc:/dev/xvdc \
@@ -676,7 +676,7 @@ the required device when it is added.
 > **Note**: initially present devices still need to be explicitly added to the
 > `docker run` / `docker create` command.
 
-### Access an NVIDIA GPU
+### <a name=gpus></a> Access an NVIDIA GPU
 
 The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
@@ -703,7 +703,7 @@ The example below exposes the first and third GPUs.
 $ docker run -it --rm --gpus '"device=0,2"' nvidia-smi
 ```
 
-### Restart policies (--restart)
+### <a name=restart></a> Restart policies (--restart)
 
 Use Docker's `--restart` to specify a container's *restart policy*. A restart
 policy controls whether the Docker daemon restarts a container after exit.
@@ -727,7 +727,7 @@ More detailed information on restart policies can be found in the
 [Restart Policies (--restart)](../run.md#restart-policies---restart)
 section of the Docker run reference page.
 
-### Add entries to container hosts file (--add-host)
+### <a name=add-host></a> Add entries to container hosts file (--add-host)
 
 You can add other hosts into a container's `/etc/hosts` file by using one or
 more `--add-host` flags. This example adds a static address for a host named
@@ -765,7 +765,7 @@ For IPv6 use the `-6` flag instead of the `-4` flag. For other network
 devices, replace `eth0` with the correct device name (for example `docker0`
 for the bridge device).
 
-### Set ulimits in container (--ulimit)
+### <a name=ulimit></a> Set ulimits in container (--ulimit)
 
 Since setting `ulimit` settings in a container requires extra privileges not
 available in the default container, you can set these using the `--ulimit` flag.
@@ -811,7 +811,7 @@ The 4th container fails and reports "[8] System error: resource temporarily unav
 This fails because the caller set `nproc=3` resulting in the first three containers using up
 the three processes quota set for the `daemon` user.
 
-### Stop container with signal (--stop-signal)
+### <a name=stop-signal></a> Stop container with signal (--stop-signal)
 
 The `--stop-signal` flag sets the system call signal that will be sent to the
 container to exit. This signal can be a signal name in the format `SIG<NAME>`,
@@ -821,12 +821,12 @@ kernel's syscall table, for instance `9`.
 The default is defined by [`STOPSIGNAL`](https://docs.docker.com/engine/reference/builder/#stopsignal)
 in the image, or `SIGTERM` if the image has no `STOPSIGNAL` defined.
 
-### Optional security options (--security-opt)
+### <a name=security-opt></a> Optional security options (--security-opt)
 
 On Windows, this flag can be used to specify the `credentialspec` option.
 The `credentialspec` must be in the format `file://spec.txt` or `registry://keyname`.
 
-### Stop container with timeout (--stop-timeout)
+### <a name=stop-timeout></a> Stop container with timeout (--stop-timeout)
 
 The `--stop-timeout` flag sets the number of seconds to wait for the container
 to stop after sending the pre-defined (see `--stop-signal`) system call signal.
@@ -839,7 +839,7 @@ wait indefinitely for the container to exit.
 The default is determined by the daemon, and is 10 seconds for Linux containers,
 and 30 seconds for Windows containers.
 
-### Specify isolation technology for container (--isolation)
+### <a name=isolation></a> Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
 Windows. The `--isolation=<value>` option sets a container's isolation technology.
@@ -882,7 +882,7 @@ PS C:\> docker run -d --isolation default microsoft/nanoserver powershell echo h
 PS C:\> docker run -d --isolation hyperv microsoft/nanoserver powershell echo hyperv
 ```
 
-### Specify hard limits on memory available to containers (-m, --memory)
+### <a name=memory></a> Specify hard limits on memory available to containers (-m, --memory)
 
 These parameters always set an upper limit on the memory available to the container. On Linux, this
 is set on the cgroup and applications in a container can query it at `/sys/fs/cgroup/memory/memory.limit_in_bytes`.
@@ -920,7 +920,7 @@ On Windows, this will affect containers differently depending on what type of is
     ```
 
 
-### Configure namespaced kernel parameters (sysctls) at runtime
+### <a name=sysctl></a> Configure namespaced kernel parameters (sysctls) at runtime (--sysctl)
 
 The `--sysctl` sets namespaced kernel parameters (sysctls) in the
 container. For example, to turn on IP forwarding in the containers

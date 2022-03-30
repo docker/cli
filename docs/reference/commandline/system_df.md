@@ -84,7 +84,7 @@ volumes or in systems where some images, containers, or volumes have very large
 filesystems with many files. You should also be careful not to run this command
 in systems where performance is critical.
 
-## Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints the disk usage output
 using a Go template.

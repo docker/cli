@@ -56,7 +56,7 @@ the service. If the service is in `replicated-job` or `global-job`, it will
 additionally show the completion status of the job as completed tasks over
 total tasks the job will execute.
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -128,7 +128,7 @@ ID            NAME   MODE        REPLICAS  IMAGE
 0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints services output
 using a Go template.

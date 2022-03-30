@@ -97,7 +97,7 @@ deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
 Total reclaimed space: 13.5 MB
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

@@ -189,7 +189,7 @@ registry is allowed to be accessed over an insecure connection. Refer to the
 [insecure registries](dockerd.md#insecure-registries) section for more information.
 
 
-### Pull a repository with multiple images
+### <a name=all-tags></a> Pull a repository with multiple images (-a, --all-tags)
 
 By default, `docker pull` pulls a *single* image from the registry. A repository
 can contain multiple images. To pull all images from a repository, provide the

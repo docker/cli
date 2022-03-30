@@ -114,7 +114,7 @@ $ docker node inspect swarm-manager
 ]
 ```
 
-### Specify an output format
+### <a name=format></a> Format the output (--format)
 
 ```console
 $ docker node inspect --format '{{ .ManagerStatus.Leader }}' self

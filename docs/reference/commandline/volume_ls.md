@@ -156,7 +156,7 @@ DRIVER              VOLUME NAME
 local               rosemary
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints volumes output
 using a Go template.

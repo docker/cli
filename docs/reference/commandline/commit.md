@@ -60,7 +60,7 @@ REPOSITORY                        TAG                 ID                  CREATE
 svendowideit/testimage            version3            f5283438590d        16 seconds ago      335.7 MB
 ```
 
-### Commit a container with new configurations
+### <a name=change></a> Commit a container with new configurations (--change)
 
 ```console
 $ docker ps

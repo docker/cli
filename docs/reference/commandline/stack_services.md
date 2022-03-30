@@ -46,7 +46,7 @@ ID            NAME            REPLICAS  IMAGE                                   
 dn7m7nhhfb9y  myapp_db        1/1       mysql@sha256:a9a5b559f8821fe73d58c3606c812d1c044868d42c63817fa5125fd9d8b7b539
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
@@ -74,7 +74,7 @@ The currently supported filters are:
 * service (`--filter service=web`)
   * Swarm: not supported
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints services output
 using a Go template.

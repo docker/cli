@@ -117,7 +117,7 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
-#### Filtering
+#### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
 like to use multiple filters, pass multiple flags (e.g.,
@@ -142,16 +142,6 @@ The currently supported filters are:
 * plugin (`plugin=<name or id>`)
 * type (`type=<container or image or volume or network or daemon or plugin>`)
 * volume (`volume=<name or id>`)
-
-#### Format
-
-If a format (`--format`) is specified, the given template will be executed
-instead of the default
-format. Go's [text/template](https://golang.org/pkg/text/template/) package
-describes all the details of the format.
-
-If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to https://jsonlines.org/ .
 
 ## Examples
 
@@ -314,7 +304,11 @@ $ docker system events --filter 'type=plugin'
 2016-07-25T17:30:14.888127370Z plugin enable ec7b87f2ce84330fe076e666f17dfc049d2d7ae0b8190763de94e1f2d105993f (name=tiborvass/sample-volume-plugin:latest)
 ```
 
-### Format the output
+### <a name=format></a> Format the output (--format)
+
+If a format (`--format`) is specified, the given template will be executed
+instead of the default format. Go's [text/template](https://golang.org/pkg/text/template/)
+package describes all the details of the format.
 
 ```console
 $ docker system events --filter 'type=container' --format 'Type={{.Type}}  Status={{.Status}}  ID={{.ID}}'
@@ -328,6 +322,9 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 ```
 
 #### Format as JSON
+
+If a format is set to `{{json .}}`, the events are streamed as valid JSON
+Lines. For information about JSON Lines, please refer to https://jsonlines.org/ .
 
 ```console
 $ docker system events --format '{{json .}}'
