@@ -99,16 +99,16 @@ $ docker build https://github.com/docker/rootfs.git#container:docker
 The following table represents all the valid suffixes with their build
 contexts:
 
-Build Syntax Suffix             | Commit Used           | Build Context Used
---------------------------------|-----------------------|-------------------
-`myrepo.git`                    | `refs/heads/master`   | `/`
-`myrepo.git#mytag`              | `refs/tags/mytag`     | `/`
-`myrepo.git#mybranch`           | `refs/heads/mybranch` | `/`
-`myrepo.git#pull/42/head`       | `refs/pull/42/head`   | `/`
-`myrepo.git#:myfolder`          | `refs/heads/master`   | `/myfolder`
-`myrepo.git#master:myfolder`    | `refs/heads/master`   | `/myfolder`
-`myrepo.git#mytag:myfolder`     | `refs/tags/mytag`     | `/myfolder`
-`myrepo.git#mybranch:myfolder`  | `refs/heads/mybranch` | `/myfolder`
+| Build Syntax Suffix            | Commit Used           | Build Context Used |
+|--------------------------------|-----------------------|--------------------|
+| `myrepo.git`                   | `refs/heads/master`   | `/`                |
+| `myrepo.git#mytag`             | `refs/tags/mytag`     | `/`                |
+| `myrepo.git#mybranch`          | `refs/heads/mybranch` | `/`                |
+| `myrepo.git#pull/42/head`      | `refs/pull/42/head`   | `/`                |
+| `myrepo.git#:myfolder`         | `refs/heads/master`   | `/myfolder`        |
+| `myrepo.git#master:myfolder`   | `refs/heads/master`   | `/myfolder`        |
+| `myrepo.git#mytag:myfolder`    | `refs/tags/mytag`     | `/myfolder`        |
+| `myrepo.git#mybranch:myfolder` | `refs/heads/mybranch` | `/myfolder`        |
 
 > **Note**
 >
@@ -461,11 +461,11 @@ technology. On Linux, the only supported is the `default` option which uses
 Linux namespaces. On Microsoft Windows, you can specify these values:
 
 
-| Value     | Description                                                                                                                                                   |
-|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `default` | Use the value specified by the Docker daemon's `--exec-opt` . If the `daemon` does not specify an isolation technology, Microsoft Windows uses `process` as its default value.  |
-| `process` | Namespace isolation only.                                                                                                                                     |
-| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                                                                 |
+| Value     | Description                                                                                                                                                                    |
+|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `default` | Use the value specified by the Docker daemon's `--exec-opt` . If the `daemon` does not specify an isolation technology, Microsoft Windows uses `process` as its default value. |
+| `process` | Namespace isolation only.                                                                                                                                                      |
+| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                                                                                  |
 
 Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
 
@@ -485,10 +485,10 @@ image. Commands after the target stage will be skipped.
 
 ```dockerfile
 FROM debian AS build-env
-...
+# ...
 
 FROM alpine AS production-env
-...
+# ...
 ```
 
 ```console
