@@ -30,16 +30,6 @@ func (c Config) SetEndpoint(name string, getter TypeGetter) {
 	c.endpointTypes[name] = getter
 }
 
-// ForeachEndpointType calls cb on every endpoint type registered with the Config
-func (c Config) ForeachEndpointType(cb func(string, TypeGetter) error) error {
-	for n, ep := range c.endpointTypes {
-		if err := cb(n, ep); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // NewConfig creates a config object
 func NewConfig(contextType TypeGetter, endpoints ...NamedTypeGetter) Config {
 	res := Config{
