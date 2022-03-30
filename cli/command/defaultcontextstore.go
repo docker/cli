@@ -34,66 +34,31 @@ type ContextStoreWithDefault struct {
 	Resolver DefaultContextResolver
 }
 
-// EndpointDefaultResolver is implemented by any EndpointMeta object
-// which wants to be able to populate the store with whatever their default is.
-type EndpointDefaultResolver interface {
-	// ResolveDefault returns values suitable for storing in store.Metadata.Endpoints
-	// and store.ContextTLSData.Endpoints.
-	//
-	// An error is only returned for something fatal, not simply
-	// the lack of a default (e.g. because the config file which
-	// would contain it is missing). If there is no default then
-	// returns nil, nil, nil.
-	ResolveDefault() (interface{}, *store.EndpointTLSData, error)
-}
-
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func ResolveDefaultContext(opts *cliflags.ClientOptions, config store.Config) (*DefaultContext, error) {
-	contextTLSData := store.ContextTLSData{
-		Endpoints: make(map[string]store.EndpointTLSData),
-	}
-	contextMetadata := store.Metadata{
-		Endpoints: make(map[string]interface{}),
-		Metadata: DockerContext{
-			Description: "",
-		},
-		Name: DefaultContextName,
-	}
-
+func ResolveDefaultContext(opts *cliflags.ClientOptions) (*DefaultContext, error) {
 	dockerEP, err := resolveDefaultDockerEndpoint(opts)
 	if err != nil {
 		return nil, err
 	}
-	contextMetadata.Endpoints[docker.DockerEndpoint] = dockerEP.EndpointMeta
+	contextTLSData := store.ContextTLSData{}
 	if dockerEP.TLSData != nil {
-		contextTLSData.Endpoints[docker.DockerEndpoint] = *dockerEP.TLSData.ToStoreTLSData()
+		contextTLSData.Endpoints = map[string]store.EndpointTLSData{
+			docker.DockerEndpoint: *dockerEP.TLSData.ToStoreTLSData(),
+		}
 	}
 
-	if err := config.ForeachEndpointType(func(n string, get store.TypeGetter) error {
-		if n == docker.DockerEndpoint { // handled above
-			return nil
-		}
-		ep := get()
-		if i, ok := ep.(EndpointDefaultResolver); ok {
-			meta, tls, err := i.ResolveDefault()
-			if err != nil {
-				return err
-			}
-			if meta == nil {
-				return nil
-			}
-			contextMetadata.Endpoints[n] = meta
-			if tls != nil {
-				contextTLSData.Endpoints[n] = *tls
-			}
-		}
-		// Nothing to be done
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return &DefaultContext{Meta: contextMetadata, TLS: contextTLSData}, nil
+	return &DefaultContext{
+		Meta: store.Metadata{
+			Endpoints: map[string]interface{}{
+				docker.DockerEndpoint: dockerEP.EndpointMeta,
+			},
+			Metadata: DockerContext{
+				Description: "",
+			},
+			Name: DefaultContextName,
+		},
+		TLS: contextTLSData,
+	}, nil
 }
 
 // List implements store.Store's List
