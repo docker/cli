@@ -80,13 +80,13 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder        | Description
--------------------|------------------------------------------------------------
-`.ID`              | Plugin ID
-`.Name`            | Plugin name and tag
-`.Description`     | Plugin description
-`.Enabled`         | Whether plugin is enabled or not
-`.PluginReference` | The reference used to push/pull from a registry
+| Placeholder        | Description                                     |
+|--------------------|-------------------------------------------------|
+| `.ID`              | Plugin ID                                       |
+| `.Name`            | Plugin name and tag                             |
+| `.Description`     | Plugin description                              |
+| `.Enabled`         | Whether plugin is enabled or not                |
+| `.PluginReference` | The reference used to push/pull from a registry |
 
 When using the `--format` option, the `plugin ls` command will either
 output the data exactly as the template declares or, when using the

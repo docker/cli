@@ -135,14 +135,14 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder | Description
-------------|------------------------------------------------------------------------------------------
-`.ID`       | Service ID
-`.Name`     | Service name
-`.Mode`     | Service mode (replicated, global)
-`.Replicas` | Service replicas
-`.Image`    | Service image
-`.Ports`    | Service ports published in ingress mode
+| Placeholder | Description                             |
+|-------------|-----------------------------------------|
+| `.ID`       | Service ID                              |
+| `.Name`     | Service name                            |
+| `.Mode`     | Service mode (replicated, global)       |
+| `.Replicas` | Service replicas                        |
+| `.Image`    | Service image                           |
+| `.Ports`    | Service ports published in ingress mode |
 
 When using the `--format` option, the `service ls` command will either
 output the data exactly as the template declares or, when using the
@@ -159,6 +159,7 @@ fm6uf97exkul: global 5/5
 ```
 
 To list all services in JSON format, use the `json` directive:
+
 ```console
 $ docker service ls --format json
 {"ID":"ssniordqolsi","Image":"hello-world:latest","Mode":"replicated","Name":"hello","Ports":"","Replicas":"0/1"}

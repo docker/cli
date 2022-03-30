@@ -81,13 +81,13 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder | Description
-------------|-------------------------------------------------------------------
-`.ID`       | Service ID
-`.Name`     | Service name
-`.Mode`     | Service mode (replicated, global)
-`.Replicas` | Service replicas
-`.Image`    | Service image
+| Placeholder | Description                       |
+|-------------|-----------------------------------|
+| `.ID`       | Service ID                        |
+| `.Name`     | Service name                      |
+| `.Mode`     | Service mode (replicated, global) |
+| `.Replicas` | Service replicas                  |
+| `.Image`    | Service image                     |
 
 When using the `--format` option, the `stack services` command will either
 output the data exactly as the template declares or, when using the
@@ -104,6 +104,7 @@ fm6uf97exkul: global 5/5
 ```
 
 To list all services in JSON format, use the `json` directive:
+
 ```console
 $ docker stack services ls --format json
 {"ID":"0axqbl293vwm","Image":"localstack/localstack:latest","Mode":"replicated","Name":"myapp_localstack","Ports":"*:4566-\u003e4566/tcp, *:8080-\u003e8080/tcp","Replicas":"0/1"}

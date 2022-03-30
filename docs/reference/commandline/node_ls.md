@@ -182,16 +182,16 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder      | Description
------------------|------------------------------------------------------------------------------------------
-`.ID`            | Node ID
-`.Self`          | Node of the daemon (`true/false`, `true`indicates that the node is the same as current docker daemon)
-`.Hostname`      | Node hostname
-`.Status`        | Node status
-`.Availability`  | Node availability ("active", "pause", or "drain")
-`.ManagerStatus` | Manager status of the node
-`.TLSStatus`     | TLS status of the node ("Ready", or "Needs Rotation" has TLS certificate signed by an old CA)
-`.EngineVersion` | Engine version
+| Placeholder      | Description                                                                                           |
+|------------------|-------------------------------------------------------------------------------------------------------|
+| `.ID`            | Node ID                                                                                               |
+| `.Self`          | Node of the daemon (`true/false`, `true`indicates that the node is the same as current docker daemon) |
+| `.Hostname`      | Node hostname                                                                                         |
+| `.Status`        | Node status                                                                                           |
+| `.Availability`  | Node availability ("active", "pause", or "drain")                                                     |
+| `.ManagerStatus` | Manager status of the node                                                                            |
+| `.TLSStatus`     | TLS status of the node ("Ready", or "Needs Rotation" has TLS certificate signed by an old CA)         |
+| `.EngineVersion` | Engine version                                                                                        |
 
 When using the `--format` option, the `node ls` command will either
 output the data exactly as the template declares or, when using the

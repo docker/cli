@@ -452,6 +452,7 @@ c1d3b0166030        com.docker.swarm.node=debian,com.docker.swarm.cpu=6
 ```
 
 To list all running containers in JSON format, use the `json` directive:
+
 ```console
 $ docker ps --format json
 {"Command":"\"/docker-entrypoint.…\"","CreatedAt":"2021-03-10 00:15:05 +0100 CET","ID":"a762a2b37a1d","Image":"nginx","Labels":"maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e","LocalVolumes":"0","Mounts":"","Names":"boring_keldysh","Networks":"bridge","Ports":"80/tcp","RunningFor":"4 seconds ago","Size":"0B","State":"running","Status":"Up 3 seconds"}

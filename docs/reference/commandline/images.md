@@ -298,15 +298,15 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-| Placeholder | Description|
-| ---- | ---- |
-| `.ID` | Image ID |
-| `.Repository` | Image repository |
-| `.Tag` | Image tag |
-| `.Digest` | Image digest |
+| Placeholder     | Description                              |
+|-----------------|------------------------------------------|
+| `.ID`           | Image ID                                 |
+| `.Repository`   | Image repository                         |
+| `.Tag`          | Image tag                                |
+| `.Digest`       | Image digest                             |
 | `.CreatedSince` | Elapsed time since the image was created |
-| `.CreatedAt` | Time when the image was created |
-| `.Size` | Image disk size |
+| `.CreatedAt`    | Time when the image was created          |
+| `.Size`         | Image disk size                          |
 
 When using the `--format` option, the `image` command will either
 output the data exactly as the template declares or, when using the

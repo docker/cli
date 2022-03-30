@@ -184,7 +184,7 @@ network driver, again with their approximate equivalents to `docker daemon`.
 |--------------|----------------|--------------------------------------------|
 | `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
 | `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
-| `--internal` | -              | Restrict external access to the network   |
+| `--internal` | -              | Restrict external access to the network    |
 | `--ipv6`     | `--ipv6`       | Enable IPv6 networking                     |
 | `--subnet`   | `--bip`        | Subnet for network                         |
 

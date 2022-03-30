@@ -119,7 +119,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder  | Description                                                                          |
-| ------------ | ------------------------------------------------------------------------------------ |
+|--------------|--------------------------------------------------------------------------------------|
 | `.ID`        | Secret ID                                                                            |
 | `.Name`      | Secret name                                                                          |
 | `.CreatedAt` | Time when the secret was created                                                     |

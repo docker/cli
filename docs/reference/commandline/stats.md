@@ -138,18 +138,17 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder  | Description
------------- | --------------------------------------------
-`.Container` | Container name or ID (user input)
-`.Name`      | Container name
-`.ID`        | Container ID
-`.CPUPerc`   | CPU percentage
-`.MemUsage`  | Memory usage
-`.NetIO`     | Network IO
-`.BlockIO`   | Block IO
-`.MemPerc`   | Memory percentage (Not available on Windows)
-`.PIDs`      | Number of PIDs (Not available on Windows)
-
+| Placeholder  | Description                                  |
+|--------------|----------------------------------------------|
+| `.Container` | Container name or ID (user input)            |
+| `.Name`      | Container name                               |
+| `.ID`        | Container ID                                 |
+| `.CPUPerc`   | CPU percentage                               |
+| `.MemUsage`  | Memory usage                                 |
+| `.NetIO`     | Network IO                                   |
+| `.BlockIO`   | Block IO                                     |
+| `.MemPerc`   | Memory percentage (Not available on Windows) |
+| `.PIDs`      | Number of PIDs (Not available on Windows)    |
 
 When using the `--format` option, the `stats` command either
 outputs the data exactly as the template declares or, when using the
