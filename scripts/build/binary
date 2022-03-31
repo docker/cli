@@ -24,6 +24,6 @@ if [ "$(go env GOOS)" = "windows" ]; then
   fi
 fi
 
-(set -x ; go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" -ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}")
+(set -x ; go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}")
 
 ln -sf "$(basename "${TARGET}")" "$(dirname "${TARGET}")/docker"

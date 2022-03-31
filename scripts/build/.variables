@@ -63,23 +63,23 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
 fi
 export GO_BUILDMODE
 
-LDFLAGS="${LDFLAGS:-} -w"
-LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
-LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
-LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
+GO_LDFLAGS="${GO_LDFLAGS:-} -w"
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
 if test -n "${PLATFORM}"; then
-    LDFLAGS="$LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
+    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
 fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
-    LDFLAGS="$LDFLAGS -extldflags -static"
+    GO_LDFLAGS="$GO_LDFLAGS -extldflags -static"
 fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
     # compiling statically with CGO enabled requires osusergo to be set.
     GO_BUILDTAGS="$GO_BUILDTAGS osusergo"
 fi
 if [ -n "$GO_STRIP" ]; then
-    LDFLAGS="$LDFLAGS -s"
+    GO_LDFLAGS="$GO_LDFLAGS -s"
 fi
-export LDFLAGS="$LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
+export GO_LDFLAGS="$GO_LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
 
 export SOURCE="github.com/docker/cli/cmd/docker"
