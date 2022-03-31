@@ -14,13 +14,17 @@ import (
 )
 
 func TestRemoveForce(t *testing.T) {
-	var removed []string
+	var (
+		removed1 []string
+		removed2 []string
+	)
 
 	cli := test.NewFakeCli(&fakeClient{
 		containerRemoveFunc: func(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
-			removed = append(removed, container)
+			removed1 = append(removed1, container)
+			removed2 = append(removed2, container)
 			if container == "nosuchcontainer" {
-				return errdefs.NotFound(fmt.Errorf("Error: No such container: " + container))
+				return errdefs.NotFound(fmt.Errorf("Error: no such container: " + container))
 			}
 			return nil
 		},
@@ -31,16 +35,16 @@ func TestRemoveForce(t *testing.T) {
 
 	t.Run("without force", func(t *testing.T) {
 		cmd.SetArgs([]string{"nosuchcontainer", "mycontainer"})
-		removed = []string{}
-		assert.ErrorContains(t, cmd.Execute(), "No such container")
-		sort.Strings(removed)
-		assert.DeepEqual(t, removed, []string{"mycontainer", "nosuchcontainer"})
+		removed1 = []string{}
+		assert.ErrorContains(t, cmd.Execute(), "no such container")
+		sort.Strings(removed1)
+		assert.DeepEqual(t, removed1, []string{"mycontainer", "nosuchcontainer"})
 	})
 	t.Run("with force", func(t *testing.T) {
 		cmd.SetArgs([]string{"--force", "nosuchcontainer", "mycontainer"})
-		removed = []string{}
+		removed2 = []string{}
 		assert.NilError(t, cmd.Execute())
-		sort.Strings(removed)
-		assert.DeepEqual(t, removed, []string{"mycontainer", "nosuchcontainer"})
+		sort.Strings(removed2)
+		assert.DeepEqual(t, removed2, []string{"mycontainer", "nosuchcontainer"})
 	})
 }
