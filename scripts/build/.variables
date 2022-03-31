@@ -13,13 +13,13 @@ if test -n "${PLATFORM}"; then
 	PLATFORM_LDFLAGS="-X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
 fi
 
-export LDFLAGS="\
+export GO_LDFLAGS="\
     -w \
     ${PLATFORM_LDFLAGS} \
     -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\" \
     -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\" \
     -X \"github.com/docker/cli/cli/version.Version=${VERSION}\" \
-    ${LDFLAGS:-} \
+    ${GO_LDFLAGS:-} \
 "
 
 GOOS="$(go env GOOS)"
