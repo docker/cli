@@ -109,12 +109,12 @@ Function Execute-Build($additionalBuildTags, $directory) {
     Write-Host "INFO: Building..."
 
     $buildTime=$(Get-Date).ToUniversalTime()
-    $env:LDFLAGS="-linkmode=internal `
+    $env:GO_LDFLAGS="-linkmode=internal `
       -X \""github.com/docker/cli/cli/version.Version=$dockerVersion\"" `
       -X \""github.com/docker/cli/cli/version.GitCommit=$gitCommit\"" `
       -X \""github.com/docker/cli/cli/version.BuildTime=$buildTime\"""
     if ($env:PLATFORM) {
-      $env:LDFLAGS="$env:LDFLAGS -X \""github.com/docker/cli/cli/version.PlatformName=$env:PLATFORM\"""
+      $env:GO_LDFLAGS="$env:GO_LDFLAGS -X \""github.com/docker/cli/cli/version.PlatformName=$env:PLATFORM\"""
     }
 
     # Generate a version in the form major,minor,patch,build
@@ -138,7 +138,7 @@ Function Execute-Build($additionalBuildTags, $directory) {
     # By using --% we can use \"key=%foo%\" and have a environment variable foo that contains spaces
     go build $raceParm $verboseParm $allParm $optParm -tags "$buildTags" `
       -o "$root\build\$directory.exe" `
-      -ldflags --% "%LDFLAGS%"
+      -ldflags --% "%GO_LDFLAGS%"
 
     if ($LASTEXITCODE -ne 0) { Throw "Failed to compile" }
     Pop-Location; $global:pushed=$False

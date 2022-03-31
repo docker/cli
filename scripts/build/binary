@@ -47,11 +47,11 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
 fi
 
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
-    LDFLAGS="$LDFLAGS -extldflags -static"
+    GO_LDFLAGS="$GO_LDFLAGS -extldflags -static"
 fi
 
 if [ -n "$GO_STRIP" ]; then
-    LDFLAGS="$LDFLAGS -s -w"
+    GO_LDFLAGS="$GO_LDFLAGS -s -w"
 fi
 
 if [ "$(go env GOOS)" = "windows" ]; then
@@ -75,6 +75,6 @@ echo "Building $GO_LINKMODE $(basename "${TARGET}")"
 
 export GO111MODULE=auto
 
-go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
+go build -o "${TARGET}" -tags "${GO_BUILDTAGS}" --ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE} "${SOURCE}"
 
 ln -sf "$(basename "${TARGET}")" "$(dirname "${TARGET}")/docker"

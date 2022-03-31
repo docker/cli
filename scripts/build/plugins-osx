@@ -12,7 +12,7 @@ export GOOS=darwin
 export GOARCH=amd64
 export CC=o64-clang
 export CXX=o64-clang++
-export LDFLAGS="$LDFLAGS -linkmode external -s"
+export GO_LDFLAGS="$GO_LDFLAGS -linkmode external -s"
 export LDFLAGS_STATIC_DOCKER='-extld='${CC}
 
 source ./scripts/build/plugins
