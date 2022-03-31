@@ -3,14 +3,19 @@ set -eu
 
 : "${PACKAGER_NAME=}"
 
+quadVersionNum() {
+  num=$(echo "${1:-0}" | cut -d. -f"$2")
+  if [ "$num" != "0" ]; then
+    echo "${num#0}"
+  else
+    echo "$num"
+  fi
+}
+
 . ./scripts/build/.variables
 
 # Create version quad for Windows of the form major.minor.patch.build
 VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | sed -re 's/\.$//' | sed -re 's/^[0-9]+$/\0\.0/' | sed -re 's/^[0-9]+\.[0-9]+$/\0\.0/' | sed -re 's/^[0-9]+\.[0-9]+\.[0-9]+$/\0\.0/')
-VERSION_MAJOR=$(echo "${VERSION_QUAD:-0}" | cut -d. -f1)
-VERSION_MINOR=$(echo "${VERSION_QUAD:-0}" | cut -d. -f2)
-VERSION_PATCH=$(echo "${VERSION_QUAD:-0}" | cut -d. -f3)
-VERSION_BUILD=$(echo "${VERSION_QUAD:-0}" | cut -d. -f4)
 
 # Generate versioninfo.json to be able to create a syso file which contains
 # Microsoft Windows Version Information and an icon using goversioninfo.
@@ -21,10 +26,10 @@ cat > ./cli/winresources/versioninfo.json <<EOL
   "FixedFileInfo":
   {
     "FileVersion": {
-      "Major": ${VERSION_MAJOR},
-      "Minor": ${VERSION_MINOR#0},
-      "Patch": ${VERSION_PATCH},
-      "Build": ${VERSION_BUILD}
+      "Major": $(quadVersionNum "$VERSION_QUAD" 1),
+      "Minor": $(quadVersionNum "$VERSION_QUAD" 2),
+      "Patch": $(quadVersionNum "$VERSION_QUAD" 3),
+      "Build": $(quadVersionNum "$VERSION_QUAD" 4)
     },
     "FileFlagsMask": "3f",
     "FileFlags ": "00",
