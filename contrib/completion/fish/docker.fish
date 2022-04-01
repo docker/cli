@@ -108,7 +108,7 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -s l -l log-level -d 'Set
 complete -c docker -f -n '__fish_docker_no_subcommand' -l label -d 'Set key=value labels to the daemon (displayed in `docker info`)'
 complete -c docker -f -n '__fish_docker_no_subcommand' -l mtu -d 'Set the containers network MTU'
 complete -c docker -f -n '__fish_docker_no_subcommand' -s p -l pidfile -d 'Path to use for daemon PID file'
-complete -c docker -f -n '__fish_docker_no_subcommand' -l registry-mirror -d 'Specify a preferred Docker registry mirror'
+complete -c docker -f -n '__fish_docker_no_subcommand' -l registry-mirror -d 'Specify a preferred registry mirror'
 complete -c docker -f -n '__fish_docker_no_subcommand' -s s -l storage-driver -d 'Force the Docker runtime to use a specific storage driver'
 complete -c docker -f -n '__fish_docker_no_subcommand' -l selinux-enabled -d 'Enable selinux support. SELinux does not presently support the BTRFS storage driver'
 complete -c docker -f -n '__fish_docker_no_subcommand' -l storage-opt -d 'Set storage driver options'
@@ -358,14 +358,14 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s i -l input -d 
 complete -c docker -A -f -n '__fish_seen_subcommand_from load' -s q -l quiet -d 'Suppress the load output'
 
 # login
-complete -c docker -f -n '__fish_docker_no_subcommand' -a login -d 'Log in to a Docker registry server'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a login -d 'Log in to a registry'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s p -l password -d 'Password'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -l password-stdin -d 'Take the password from stdin'
 complete -c docker -A -f -n '__fish_seen_subcommand_from login' -s u -l username -d 'Username'
 
 # logout
-complete -c docker -f -n '__fish_docker_no_subcommand' -a logout -d 'Log out from a Docker registry server'
+complete -c docker -f -n '__fish_docker_no_subcommand' -a logout -d 'Log out from a registry'
 
 # logs
 complete -c docker -f -n '__fish_docker_no_subcommand' -a logs -d 'Fetch the logs of a container'

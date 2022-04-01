@@ -35,8 +35,8 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "login [OPTIONS] [SERVER]",
-		Short: "Log in to a Docker registry",
-		Long:  "Log in to a Docker registry.\nIf no server is specified, the default is defined by the daemon.",
+		Short: "Log in to a registry",
+		Long:  "Log in to a registry.\nIf no server is specified, the default is defined by the daemon.",
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {

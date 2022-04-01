@@ -76,8 +76,8 @@ read the [`dockerd`](dockerd.md) reference page.
 
 | Command             | Description                                                             |
 |:--------------------|:------------------------------------------------------------------------|
-| [login](login.md)   | Register or log in to a Docker registry                                 |
-| [logout](logout.md) | Log out from a Docker registry                                          |
+| [login](login.md)   | Log in to a registry                                                    |
+| [logout](logout.md) | Log out from a registry                                                 |
 | [pull](pull.md)     | Download an image from a registry                                       |
 | [push](push.md)     | Upload an image to a registry                                           |
 | [search](search.md) | Search Docker Hub for images                                            |

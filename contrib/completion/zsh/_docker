@@ -2779,7 +2779,7 @@ __docker_subcommand() {
                 "($help)--oom-score-adjust=[Set the oom_score_adj for the daemon]:oom-score:(-500)" \
                 "($help -p --pidfile)"{-p=,--pidfile=}"[Path to use for daemon PID file]:PID file:_files" \
                 "($help)--raw-logs[Full timestamps without ANSI coloring]" \
-                "($help)*--registry-mirror=[Preferred Docker registry mirror]:registry mirror: " \
+                "($help)*--registry-mirror=[Preferred registry mirror]:registry mirror: " \
                 "($help)--seccomp-profile=[Path to seccomp profile]:path:_files -g \"*.json\"" \
                 "($help -s --storage-driver)"{-s=,--storage-driver=}"[Storage driver to use]:driver:(aufs btrfs devicemapper overlay overlay2 vfs zfs)" \
                 "($help)--selinux-enabled[Enable selinux support]" \

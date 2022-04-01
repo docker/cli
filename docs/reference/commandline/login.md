@@ -9,7 +9,7 @@ keywords: "registry, login, image"
 ```markdown
 Usage:  docker login [OPTIONS] [SERVER]
 
-Log in to a Docker registry.
+Log in to a registry.
 If no server is specified, the default is defined by the daemon.
 
 Options:

@@ -19,4 +19,4 @@ credentials.  When you log in, the command stores encoded credentials in
     # docker login localhost:8080
 
 # See also
-**docker-logout(1)** to log out from a Docker registry.
+**docker-logout(1)** to log out from a registry.

@@ -9,7 +9,7 @@ keywords: "logout, docker, registry"
 ```markdown
 Usage:  docker logout [SERVER]
 
-Log out from a Docker registry.
+Log out from a registry.
 If no server is specified, the default is defined by the daemon.
 
 Options:
