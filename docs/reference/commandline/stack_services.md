@@ -46,7 +46,7 @@ ID            NAME            REPLICAS  IMAGE                                   
 dn7m7nhhfb9y  myapp_db        1/1       mysql@sha256:a9a5b559f8821fe73d58c3606c812d1c044868d42c63817fa5125fd9d8b7b539
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
@@ -74,20 +74,20 @@ The currently supported filters are:
 * service (`--filter service=web`)
   * Swarm: not supported
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints services output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder | Description
-------------|-------------------------------------------------------------------
-`.ID`       | Service ID
-`.Name`     | Service name
-`.Mode`     | Service mode (replicated, global)
-`.Replicas` | Service replicas
-`.Image`    | Service image
+| Placeholder | Description                       |
+|-------------|-----------------------------------|
+| `.ID`       | Service ID                        |
+| `.Name`     | Service name                      |
+| `.Mode`     | Service mode (replicated, global) |
+| `.Replicas` | Service replicas                  |
+| `.Image`    | Service image                     |
 
 When using the `--format` option, the `stack services` command will either
 output the data exactly as the template declares or, when using the
@@ -104,6 +104,7 @@ fm6uf97exkul: global 5/5
 ```
 
 To list all services in JSON format, use the `json` directive:
+
 ```console
 $ docker stack services ls --format json
 {"ID":"0axqbl293vwm","Image":"localstack/localstack:latest","Mode":"replicated","Name":"myapp_localstack","Ports":"*:4566-\u003e4566/tcp, *:8080-\u003e8080/tcp","Replicas":"0/1"}

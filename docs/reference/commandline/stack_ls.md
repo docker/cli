@@ -47,14 +47,14 @@ myapp              2                   Kubernetes
 vossibility-stack  6                   Swarm
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints stacks using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
 | Placeholder     | Description        |
-| --------------- | ------------------ |
+|-----------------|--------------------|
 | `.Name`         | Stack name         |
 | `.Services`     | Number of services |
 | `.Orchestrator` | Orchestrator name  |
@@ -74,6 +74,7 @@ web-cache: 4
 ```
 
 To list all stacks in JSON format, use the `json` directive:
+
 ```console
 $ docker stack ls --format json
 {"Name":"myapp","Namespace":"","Orchestrator":"Swarm","Services":"3"}

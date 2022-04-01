@@ -117,7 +117,7 @@ dmu1ept4cxcf  redis   replicated  1/1       redis:3.0.6
 a8q9dasaafud  redis2  global      1/1       redis:3.0.6
 ```
 
-#### Create a service using an image on a private registry
+#### <a name=with-registry-auth></a>Create a service using an image on a private registry (--with-registry-auth)
 
 If your image is available on a private registry which requires login, use the
 `--with-registry-auth` flag with `docker service create`, after logging in. If
@@ -137,7 +137,7 @@ This passes the login token from your local client to the swarm nodes where the
 service is deployed, using the encrypted WAL logs. With this information, the
 nodes are able to log into the registry and pull the image.
 
-### Create a service with 5 replica tasks (--replicas)
+### <a name=replicas></a>Create a service with 5 replica tasks (--replicas)
 
 Use the `--replicas` flag to set the number of replica tasks for a replicated
 service. The following command creates a `redis` service with `5` replica tasks:
@@ -173,7 +173,7 @@ ID            NAME   MODE        REPLICAS  IMAGE
 4cdgfyky7ozw  redis  replicated  5/5       redis:3.0.7
 ```
 
-### Create a service with secrets
+### <a name=secret></a>Create a service with secrets (--secret)
 
 Use the `--secret` flag to give a container access to a
 [secret](secret_create.md).
@@ -205,7 +205,7 @@ in the container. If a target is specified, that is used as the filename. In the
 example above, two files are created: `/run/secrets/ssh` and
 `/run/secrets/app` for each of the secret targets specified.
 
-### Create a service with configs
+### <a name=config></a>Create a service with configs (--config)
 
 Use the `--config` flag to give a container access to a
 [config](config_create.md).
@@ -234,7 +234,7 @@ Configs are located in `/` in the container if no target is specified. If no
 target is specified, the name of the config is used as the name of the file in
 the container. If a target is specified, that is used as the filename.
 
-### Create a service with a rolling update policy
+### <a name=update-delay></a>Create a service with a rolling update policy
 
 ```console
 $ docker service create \
@@ -250,7 +250,7 @@ maximum of 2 tasks at a time, with `10s` between updates. For more information,
 refer to the [rolling updates
 tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
-### Set environment variables (-e, --env)
+### <a name=env></a> Set environment variables (-e, --env)
 
 This sets an environment variable for all tasks in a service. For example:
 
@@ -274,7 +274,7 @@ $ docker service create \
   redis:3.0.6
 ```
 
-### Create a service with specific hostname (--hostname)
+### <a name=hostname></a> Create a service with specific hostname (--hostname)
 
 This option sets the docker service containers hostname to a specific string.
 For example:
@@ -283,7 +283,7 @@ For example:
 $ docker service create --name redis --hostname myredis redis:3.0.6
 ```
 
-### Set metadata on a service (-l, --label)
+### <a name=label></a> Set metadata on a service (-l, --label)
 
 A label is a `key=value` pair that applies metadata to a service. To label a
 service with two labels:
@@ -662,7 +662,7 @@ $ docker service create \
  redis:3.0.6
 ```
 
-### Specify service constraints (--constraint)
+### <a name=constraint></a> Specify service constraints (--constraint)
 
 You can limit the set of nodes where a task can be scheduled by defining
 constraint expressions. Constraint expressions can either use a _match_ (`==`)
@@ -670,16 +670,15 @@ or _exclude_ (`!=`) rule. Multiple constraints find nodes that satisfy every
 expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
-node attribute       | matches                        | example
----------------------|--------------------------------|-----------------------------------------------
-`node.id`            | Node ID                        | `node.id==2ivku8v2gvtg4`
-`node.hostname`      | Node hostname                  | `node.hostname!=node-2`
-`node.role`          | Node role (`manager`/`worker`) | `node.role==manager`
-`node.platform.os`   | Node operating system          | `node.platform.os==windows`
-`node.platform.arch` | Node architecture              | `node.platform.arch==x86_64`
-`node.labels`        | User-defined node labels       | `node.labels.security==high`
-`engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-14.04`
-
+| node attribute       | matches                        | example                                       |
+|----------------------|--------------------------------|-----------------------------------------------|
+| `node.id`            | Node ID                        | `node.id==2ivku8v2gvtg4`                      |
+| `node.hostname`      | Node hostname                  | `node.hostname!=node-2`                       |
+| `node.role`          | Node role (`manager`/`worker`) | `node.role==manager`                          |
+| `node.platform.os`   | Node operating system          | `node.platform.os==windows`                   |
+| `node.platform.arch` | Node architecture              | `node.platform.arch==x86_64`                  |
+| `node.labels`        | User-defined node labels       | `node.labels.security==high`                  |
+| `engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-14.04` |
 
 `engine.labels` apply to Docker Engine labels like operating system, drivers,
 etc. Swarm administrators add `node.labels` for operational purposes by using
@@ -730,7 +729,7 @@ ID                  NAME     MODE         REPLICAS   IMAGE               PORTS
 b6lww17hrr4e        web      replicated   1/1        nginx:alpine
 ```
 
-### Specify service placement preferences (--placement-pref)
+### <a name=placement-pref></a> Specify service placement preferences (--placement-pref)
 
 You can set up the service to divide tasks evenly over different categories of
 nodes. One example of where this can be useful is to balance tasks over a set
@@ -801,7 +800,7 @@ appends a new placement preference after all existing placement preferences.
 `--placement-pref-rm` removes an existing placement preference that matches the
 argument.
 
-### Specify memory requirements and constraints for a service (--reserve-memory and --limit-memory)
+### <a name=reserve-memory></a> Specify memory requirements and constraints for a service (--reserve-memory and --limit-memory)
 
 If your service needs a minimum amount of memory in order to run correctly,
 you can use `--reserve-memory` to specify that the service should only be
@@ -869,7 +868,7 @@ On Linux, you can also limit a service's overall memory footprint on a given
 host at the level of the host operating system, using `cgroups` or other
 relevant operating system tools.
 
-### Specify maximum replicas per node (--replicas-max-per-node)
+### <a name=replicas-max-per-node></a> Specify maximum replicas per node (--replicas-max-per-node)
 
 Use the `--replicas-max-per-node` flag to set the maximum number of replica tasks that can run on a node.
 The following command creates a nginx service with 2 replica tasks but only one replica task per node.
@@ -889,7 +888,7 @@ $ docker service create \
   nginx
 ```
 
-### Attach a service to an existing network (--network)
+### <a name=network></a> Attach a service to an existing network (--network)
 
 You can use overlay networks to connect one or more services within the swarm.
 
@@ -926,7 +925,7 @@ Containers on the same network can access each other using
 Long form syntax of `--network` allows to specify list of aliases and driver options:
 `--network name=my-network,alias=web1,driver-opt=field1=value1`
 
-### Publish service ports externally to the swarm (-p, --publish)
+### <a name=publish></a> Publish service ports externally to the swarm (-p, --publish)
 
 You can publish service ports to make them available externally to the swarm
 using the `--publish` flag. The `--publish` flag can take two different styles
@@ -997,7 +996,7 @@ on a node can only be bound once. You can only set the publication mode using
 the long syntax. For more information refer to
 [Use swarm mode routing mesh](https://docs.docker.com/engine/swarm/ingress/).
 
-### Provide credential specs for managed service accounts (Windows only)
+### <a name=credentials-spec></a> Provide credential specs for managed service accounts (--credentials-spec)
 
 This option is only used for services using Windows containers. The
 `--credential-spec` must be in the format `file://<filename>` or
@@ -1092,7 +1091,7 @@ $ docker inspect --format="{{.Config.Hostname}}" 2e7a8a9c4da2-wo41w8hg8qanxwjwsg
 x3ti0erg11rjpg64m75kej2mz-hosttempl
 ```
 
-### Specify isolation mode (Windows)
+### <a name=isolation></a> Specify isolation mode on Windows (--isolation)
 
 By default, tasks scheduled on Windows nodes are run using the default isolation mode
 configured for this particular node. To force a specific isolation mode, you can use
@@ -1107,7 +1106,7 @@ Supported isolation modes on Windows are:
 - `process`: use process isolation (Windows server only)
 - `hyperv`: use Hyper-V isolation
 
-### Create services requesting Generic Resources
+### <a name=generic-resources></a> Create services requesting Generic Resources (--generic-resources)
 
 You can narrow the kind of nodes your task can land on through the using the
 `--generic-resource` flag (if the nodes advertise these resources):

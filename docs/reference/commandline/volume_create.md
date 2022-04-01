@@ -53,7 +53,7 @@ A volume named  "hello"  already exists with the "some-other" driver. Choose a d
 If you specify a volume name already in use on the current driver, Docker
 assumes you want to re-use the existing volume and does not return an error.
 
-### Driver-specific options
+### <a name=opt></a> Driver-specific options (-o, --opt)
 
 Some volume drivers may take options to customize the volume creation. Use the
 `-o` or `--opt` flags to pass driver options:

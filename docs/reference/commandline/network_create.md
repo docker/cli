@@ -184,7 +184,7 @@ network driver, again with their approximate equivalents to `docker daemon`.
 |--------------|----------------|--------------------------------------------|
 | `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
 | `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
-| `--internal` | -              | Restrict external access to the network   |
+| `--internal` | -              | Restrict external access to the network    |
 | `--ipv6`     | `--ipv6`       | Enable IPv6 networking                     |
 | `--subnet`   | `--bip`        | Subnet for network                         |
 
@@ -197,14 +197,14 @@ $ docker network create \
     simple-network
 ```
 
-### Network internal mode
+### <a name=internal></a> Network internal mode (--internal)
 
 By default, when you connect a container to an `overlay` network, Docker also
 connects a bridge network to it to provide external connectivity. If you want
 to create an externally isolated `overlay` network, you can specify the
 `--internal` option.
 
-### Network ingress mode
+### <a name=ingress></a> Network ingress mode (--ingress)
 
 You can create the network which will be used to provide the routing-mesh in the
 swarm cluster. You do so by specifying `--ingress` when creating the network. Only

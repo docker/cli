@@ -156,21 +156,21 @@ DRIVER              VOLUME NAME
 local               rosemary
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints volumes output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder   | Description
---------------|------------------------------------------------------------------------------------------
-`.Name`       | Volume name
-`.Driver`     | Volume driver
-`.Scope`      | Volume scope (local, global)
-`.Mountpoint` | The mount point of the volume on the host
-`.Labels`     | All labels assigned to the volume
-`.Label`      | Value of a specific label for this volume. For example `{{.Label "project.version"}}`
+| Placeholder   | Description                                                                           |
+|---------------|---------------------------------------------------------------------------------------|
+| `.Name`       | Volume name                                                                           |
+| `.Driver`     | Volume driver                                                                         |
+| `.Scope`      | Volume scope (local, global)                                                          |
+| `.Mountpoint` | The mount point of the volume on the host                                             |
+| `.Labels`     | All labels assigned to the volume                                                     |
+| `.Label`      | Value of a specific label for this volume. For example `{{.Label "project.version"}}` |
 
 When using the `--format` option, the `volume ls` command will either
 output the data exactly as the template declares or, when using the
@@ -188,6 +188,7 @@ vol3: local
 ```
 
 To list all volumes in JSON format, use the `json` directive:
+
 ```console
 $ docker volume ls --format json
 {"Driver":"local","Labels":"","Links":"N/A","Mountpoint":"/var/lib/docker/volumes/docker-cli-dev-cache/_data","Name":"docker-cli-dev-cache","Scope":"local","Size":"N/A"}

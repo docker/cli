@@ -145,7 +145,7 @@ Output is in JSON format (output below is formatted for readability):
 ```
 
 
-### Formatting the output
+### <a name=format></a> Format the output (--format)
 
 ```console
 $ docker plugin inspect -f '{{.Id}}' tiborvass/sample-volume-plugin:latest

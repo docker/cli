@@ -25,14 +25,14 @@ Docker inspect provides detailed information on constructs controlled by Docker.
 
 By default, `docker inspect` will render results in a JSON array.
 
-## Request a custom response format (--format)
+### <a name=format></a> Format the output (--format)
 
 If a format is specified, the given template will be executed for each result.
 
 Go's [text/template](https://golang.org/pkg/text/template/) package
 describes all the details of the format.
 
-## Specify target type (--type)
+### <a name=type></a>Specify target type (--type)
 
 `--type container|image|node|network|secret|service|volume|task|plugin`
 

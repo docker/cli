@@ -47,21 +47,21 @@ c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mand
 511136ea3c5a        19 months ago                                                       0 B                 Imported from -
 ```
 
-### Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) will pretty-prints history output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-| Placeholder     | Description |
-| --------------- | ----------- |
-| `.ID`           | Image ID    |
+| Placeholder     | Description                                                                                               |
+|-----------------|-----------------------------------------------------------------------------------------------------------|
+| `.ID`           | Image ID                                                                                                  |
 | `.CreatedSince` | Elapsed time since the image was created if `--human=true`, otherwise timestamp of when image was created |
-| `.CreatedAt`    | Timestamp of when image was created |
-| `.CreatedBy`    | Command that was used to create the image |
-| `.Size`         | Image disk size |
-| `.Comment`      | Comment for image |
+| `.CreatedAt`    | Timestamp of when image was created                                                                       |
+| `.CreatedBy`    | Command that was used to create the image                                                                 |
+| `.Size`         | Image disk size                                                                                           |
+| `.Comment`      | Comment for image                                                                                         |
 
 When using the `--format` option, the `history` command will either
 output the data exactly as the template declares or, when using the

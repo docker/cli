@@ -57,7 +57,7 @@ e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 > `e216jshn25ckzbvmwlnh5jr3g *`) means this node is the current docker daemon.
 
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -175,23 +175,23 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints nodes output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder      | Description
------------------|------------------------------------------------------------------------------------------
-`.ID`            | Node ID
-`.Self`          | Node of the daemon (`true/false`, `true`indicates that the node is the same as current docker daemon)
-`.Hostname`      | Node hostname
-`.Status`        | Node status
-`.Availability`  | Node availability ("active", "pause", or "drain")
-`.ManagerStatus` | Manager status of the node
-`.TLSStatus`     | TLS status of the node ("Ready", or "Needs Rotation" has TLS certificate signed by an old CA)
-`.EngineVersion` | Engine version
+| Placeholder      | Description                                                                                           |
+|------------------|-------------------------------------------------------------------------------------------------------|
+| `.ID`            | Node ID                                                                                               |
+| `.Self`          | Node of the daemon (`true/false`, `true`indicates that the node is the same as current docker daemon) |
+| `.Hostname`      | Node hostname                                                                                         |
+| `.Status`        | Node status                                                                                           |
+| `.Availability`  | Node availability ("active", "pause", or "drain")                                                     |
+| `.ManagerStatus` | Manager status of the node                                                                            |
+| `.TLSStatus`     | TLS status of the node ("Ready", or "Needs Rotation" has TLS certificate signed by an old CA)         |
+| `.EngineVersion` | Engine version                                                                                        |
 
 When using the `--format` option, the `node ls` command will either
 output the data exactly as the template declares or, when using the

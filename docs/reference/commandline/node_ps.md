@@ -47,7 +47,7 @@ redis.9.dkkual96p4bb3s6b10r7coxxt   redis:3.0.6  swarm-manager1  Running        
 redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:3.0.6  swarm-manager1  Running        Running 5 seconds
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -108,23 +108,23 @@ redis.7.bg8c07zzg87di2mufeq51a2qp  redis:3.0.6  swarm-manager1  Running        R
 The `desired-state` filter can take the values `running`, `shutdown`, or `accepted`.
 
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints tasks output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder     | Description
-----------------|------------------------------------------------------------------------------------------
-`.ID`           | Task ID
-`.Name`         | Task name
-`.Image`        | Task image
-`.Node`         | Node ID
-`.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`)
-`.CurrentState` | Current state of the task
-`.Error`        | Error
-`.Ports`        | Task published ports
+| Placeholder     | Description                                                      |
+|-----------------|------------------------------------------------------------------|
+| `.ID`           | Task ID                                                          |
+| `.Name`         | Task name                                                        |
+| `.Image`        | Task image                                                       |
+| `.Node`         | Node ID                                                          |
+| `.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`) |
+| `.CurrentState` | Current state of the task                                        |
+| `.Error`        | Error                                                            |
+| `.Ports`        | Task published ports                                             |
 
 When using the `--format` option, the `node ps` command will either
 output the data exactly as the template declares or, when using the

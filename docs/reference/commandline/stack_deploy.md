@@ -36,7 +36,7 @@ Create and update a stack from a `compose` file on the swarm.
 
 ## Examples
 
-### Compose file
+### <a name=compose-file></a> Compose file (--compose-file)
 
 The `deploy` command supports compose file version `3.0` and above.
 

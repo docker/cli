@@ -131,25 +131,24 @@ CONTAINER ID        NAME                CPU %               PRIV WORKING SET    
 9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints container output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder  | Description
------------- | --------------------------------------------
-`.Container` | Container name or ID (user input)
-`.Name`      | Container name
-`.ID`        | Container ID
-`.CPUPerc`   | CPU percentage
-`.MemUsage`  | Memory usage
-`.NetIO`     | Network IO
-`.BlockIO`   | Block IO
-`.MemPerc`   | Memory percentage (Not available on Windows)
-`.PIDs`      | Number of PIDs (Not available on Windows)
-
+| Placeholder  | Description                                  |
+|--------------|----------------------------------------------|
+| `.Container` | Container name or ID (user input)            |
+| `.Name`      | Container name                               |
+| `.ID`        | Container ID                                 |
+| `.CPUPerc`   | CPU percentage                               |
+| `.MemUsage`  | Memory usage                                 |
+| `.NetIO`     | Network IO                                   |
+| `.BlockIO`   | Block IO                                     |
+| `.MemPerc`   | Memory percentage (Not available on Windows) |
+| `.PIDs`      | Number of PIDs (Not available on Windows)    |
 
 When using the `--format` option, the `stats` command either
 outputs the data exactly as the template declares or, when using the

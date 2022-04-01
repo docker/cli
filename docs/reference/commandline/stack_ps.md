@@ -56,7 +56,7 @@ kqgdmededccb        voting_vote.2         dockersamples/examplevotingapp_vote:be
 t72q3z038jeh        voting_redis.2        redis:alpine                                   node3  Running        Running 3 minutes ago
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
@@ -125,22 +125,22 @@ kqgdmededccb        voting_vote.2         dockersamples/examplevotingapp_vote:be
 t72q3z038jeh        voting_redis.2        redis:alpine                                   node3  Running        Running 21 minutes ago
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints tasks output using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder     | Description
-----------------|------------------------------------------------------------------------------------------
-`.ID`           | Task ID
-`.Name`         | Task name
-`.Image`        | Task image
-`.Node`         | Node ID
-`.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`)
-`.CurrentState` | Current state of the task
-`.Error`        | Error
-`.Ports`        | Task published ports
+| Placeholder     | Description                                                      |
+|-----------------|------------------------------------------------------------------|
+| `.ID`           | Task ID                                                          |
+| `.Name`         | Task name                                                        |
+| `.Image`        | Task image                                                       |
+| `.Node`         | Node ID                                                          |
+| `.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`) |
+| `.CurrentState` | Current state of the task                                        |
+| `.Error`        | Error                                                            |
+| `.Ports`        | Task published ports                                             |
 
 When using the `--format` option, the `stack ps` command will either
 output the data exactly as the template declares or, when using the
@@ -170,7 +170,7 @@ $ docker stack ps --format json myapp
 {"CurrentState":"Preparing 13 seconds ago","DesiredState":"Running","Error":"","ID":"yte68ouq7glh","Image":"postgres:13.2-alpine","Name":"myapp_repos-db.1","Node":"docker-desktop","Ports":""}
 ```
 
-### Do not map IDs to Names
+### <a name=no-resolve></a> Do not map IDs to Names (--no-resolve)
 
 The `--no-resolve` option shows IDs for task name, without mapping IDs to Names.
 
@@ -188,7 +188,7 @@ kqgdmededccb        qyprtqw1g5nrki557i974ou1d.2   dockersamples/examplevotingapp
 t72q3z038jeh        tg61x8myx563ueo3urmn1ic6m.2   redis:alpine                                   kanqcxfajd1r16wlnqcblobmm   Running        Running 31 minutes ago
 ```
 
-### Do not truncate output
+### <a name=no-trunc></a> Do not truncate output (--no-trunc)
 
 When deploying a service, docker resolves the digest for the service's
 image, and pins the service to that digest. The digest is not shown by
@@ -209,7 +209,7 @@ kqgdmededccbhz2wuc0e9hx7g   voting_vote.2         dockersamples/examplevotingapp
 t72q3z038jehe1wbh9gdum076   voting_redis.2        redis:alpine@sha256:9cd405cd1ec1410eaab064a1383d0d8854d1ef74a54e1e4a92fb4ec7bdc3ee7                                   node3  Running        Runnin 32 minutes ago
 ```
 
-### Only display task IDs
+### <a name=quiet></a> Only display task IDs (-q, --quiet)
 
 The `-q ` or `--quiet` option only shows IDs of the tasks in the stack.
 This example outputs all task IDs of the "voting" stack;

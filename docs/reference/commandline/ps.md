@@ -46,7 +46,7 @@ Options:
 
 ## Examples
 
-### Prevent truncating output
+### <a name=no-trunc></a> Do not truncate output (--no-trunc)
 
 Running `docker ps --no-trunc` showing 2 linked containers.
 
@@ -58,10 +58,10 @@ CONTAINER ID        IMAGE                        COMMAND                CREATED 
 d7886598dbe2        crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
-### Show both running and stopped containers
+### <a name=all></a> Show both running and stopped containers (-a, --all)
 
 The `docker ps` command only shows running containers by default. To see all
-containers, use the `-a` (or `--all`) flag:
+containers, use the `--all` (or `-a`) flag:
 
 ```console
 $ docker ps -a
@@ -71,12 +71,12 @@ $ docker ps -a
 container that exposes TCP ports `100, 101, 102` displays `100-102/tcp` in
 the `PORTS` column.
 
-### Show disk usage by container
+### <a name=size></a> Show disk usage by container (--size)
 
-The `docker ps -s` command displays two different on-disk-sizes for each container:
+The `docker ps --size` (or `-s`) command displays two different on-disk-sizes for each container:
 
 ```console
-$ docker ps -s
+$ docker ps --size
 
 CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS       PORTS   NAMES        SIZE                                                                                      SIZE
 e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours           my_nginx     35.58 kB (virtual 109.2 MB)
@@ -88,9 +88,9 @@ e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours
 For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
 
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
-The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
+The `--filter` (or `-f`) flag format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
 
 The currently supported filters are:
@@ -399,7 +399,7 @@ $ docker ps --filter publish=80/udp
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints container output using a Go
 template.
@@ -452,6 +452,7 @@ c1d3b0166030        com.docker.swarm.node=debian,com.docker.swarm.cpu=6
 ```
 
 To list all running containers in JSON format, use the `json` directive:
+
 ```console
 $ docker ps --format json
 {"Command":"\"/docker-entrypoint.…\"","CreatedAt":"2021-03-10 00:15:05 +0100 CET","ID":"a762a2b37a1d","Image":"nginx","Labels":"maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e","LocalVolumes":"0","Mounts":"","Names":"boring_keldysh","Networks":"bridge","Ports":"80/tcp","RunningFor":"4 seconds ago","Size":"0B","State":"running","Status":"Up 3 seconds"}

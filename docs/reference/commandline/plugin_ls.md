@@ -43,7 +43,7 @@ ID            NAME                                    DESCRIPTION               
 69553ca1d123  tiborvass/sample-volume-plugin:latest   A test plugin for Docker   true
 ```
 
-### Filtering
+### <a name=format></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -73,20 +73,20 @@ $ docker plugin ls --filter enabled=true
 ID                  NAME                DESCRIPTION         ENABLED
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints plugins output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder        | Description
--------------------|------------------------------------------------------------
-`.ID`              | Plugin ID
-`.Name`            | Plugin name and tag
-`.Description`     | Plugin description
-`.Enabled`         | Whether plugin is enabled or not
-`.PluginReference` | The reference used to push/pull from a registry
+| Placeholder        | Description                                     |
+|--------------------|-------------------------------------------------|
+| `.ID`              | Plugin ID                                       |
+| `.Name`            | Plugin name and tag                             |
+| `.Description`     | Plugin description                              |
+| `.Enabled`         | Whether plugin is enabled or not                |
+| `.PluginReference` | The reference used to push/pull from a registry |
 
 When using the `--format` option, the `plugin ls` command will either
 output the data exactly as the template declares or, when using the

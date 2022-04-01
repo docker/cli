@@ -100,7 +100,7 @@ Server:
   127.0.0.0/8
 ```
 
-### Show debugging output
+### <a name=debug></a> Show debugging output (--debug)
 
 Here is a sample output for a daemon running on Ubuntu, using the overlay2
 storage driver and a node that is part of a 2-node swarm:
@@ -192,7 +192,7 @@ Server:
 
 The global `-D` option causes all `docker` commands to output debug information.
 
-### Format the output
+### <a name=format></a> Format the output (--format)
 
 You can also specify the output format:
 

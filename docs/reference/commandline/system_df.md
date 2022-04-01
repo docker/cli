@@ -84,7 +84,7 @@ volumes or in systems where some images, containers, or volumes have very large
 filesystems with many files. You should also be careful not to run this command
 in systems where performance is critical.
 
-## Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints the disk usage output
 using a Go template.
@@ -92,7 +92,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder    | Description                                |
-| -------------- | ------------------------------------------ |
+|----------------|--------------------------------------------|
 | `.Type`        | `Images`, `Containers` and `Local Volumes` |
 | `.TotalCount`  | Total number of items                      |
 | `.Active`      | Number of active items                     |
@@ -128,6 +128,7 @@ Local Volumes       150.3 MB            150.3 MB (100%)
 ```
 
 To list all information in JSON format, use the `json` directive:
+
 ```console
 $ docker system df --format json
 {"Active":"2","Reclaimable":"2.498GB (94%)","Size":"2.631GB","TotalCount":"6","Type":"Images"}
@@ -136,7 +137,7 @@ $ docker system df --format json
 {"Active":"0","Reclaimable":"158B","Size":"158B","TotalCount":"17","Type":"Build Cache"}
 ```
 
-**Note** the format option is meaningless when verbose is true.
+The format option has no effect when the `--verbose` option is used.
 
 ## Related commands
 * [system prune](system_prune.md)

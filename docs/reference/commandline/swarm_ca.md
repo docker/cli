@@ -83,7 +83,7 @@ gyg5u9Iliel99l7SuMhNeLkrU7fXs+Of1nTyyM73ig==
 -----END CERTIFICATE-----
 ```
 
-### `--rotate`
+### <a name=rotate></a> Root CA rotation (--rotate)
 
 Root CA Rotation is recommended if one or more of the swarm managers have been
 compromised, so that those managers can no longer connect to or be trusted by
@@ -106,7 +106,7 @@ reasonable amount of time, try running
 see if any nodes are down or otherwise unable to rotate TLS certificates.
 
 
-### `--detach`
+### <a name=detach></a> Run root CA rotation in detached mode (--detach)
 
 Initiate the root CA rotation, but do not wait for the completion of or display the
 progress of the rotation.

@@ -56,7 +56,7 @@ the service. If the service is in `replicated-job` or `global-job`, it will
 additionally show the completion status of the job as completed tasks over
 total tasks the job will execute.
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -128,21 +128,21 @@ ID            NAME   MODE        REPLICAS  IMAGE
 0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
 ```
 
-### Formatting
+### <a name=format></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints services output
 using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder | Description
-------------|------------------------------------------------------------------------------------------
-`.ID`       | Service ID
-`.Name`     | Service name
-`.Mode`     | Service mode (replicated, global)
-`.Replicas` | Service replicas
-`.Image`    | Service image
-`.Ports`    | Service ports published in ingress mode
+| Placeholder | Description                             |
+|-------------|-----------------------------------------|
+| `.ID`       | Service ID                              |
+| `.Name`     | Service name                            |
+| `.Mode`     | Service mode (replicated, global)       |
+| `.Replicas` | Service replicas                        |
+| `.Image`    | Service image                           |
+| `.Ports`    | Service ports published in ingress mode |
 
 When using the `--format` option, the `service ls` command will either
 output the data exactly as the template declares or, when using the
@@ -159,6 +159,7 @@ fm6uf97exkul: global 5/5
 ```
 
 To list all services in JSON format, use the `json` directive:
+
 ```console
 $ docker service ls --format json
 {"ID":"ssniordqolsi","Image":"hello-world:latest","Mode":"replicated","Name":"hello","Ports":"","Replicas":"0/1"}

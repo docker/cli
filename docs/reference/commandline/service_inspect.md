@@ -116,7 +116,7 @@ $ docker service inspect dmu1ept4cxcf
 ]
 ```
 
-### Formatting
+### <a name=pretty></a> Formatting (--pretty)
 
 You can print the inspect output in a human-readable format instead of the default
 JSON output, by using the `--pretty` option:

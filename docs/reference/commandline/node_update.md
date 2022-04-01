@@ -32,7 +32,7 @@ Update metadata about a node, such as its availability, labels, or roles.
 
 ## Examples
 
-### Add label metadata to a node
+### <a name=label-add></a> Add label metadata to a node (--label-add)
 
 Add metadata to a swarm node using node labels. You can specify a node label as
 a key with an empty value:

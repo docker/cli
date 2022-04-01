@@ -51,7 +51,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 3 seconds ago       3 seconds ago
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -111,7 +111,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 About an hour ago   About an hour ago
 ```
 
-### Format the output
+### <a name=format></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints secrets output
 using a Go template.
@@ -119,7 +119,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder  | Description                                                                          |
-| ------------ | ------------------------------------------------------------------------------------ |
+|--------------|--------------------------------------------------------------------------------------|
 | `.ID`        | Secret ID                                                                            |
 | `.Name`      | Secret name                                                                          |
 | `.CreatedAt` | Time when the secret was created                                                     |
