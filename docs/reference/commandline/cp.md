@@ -94,7 +94,7 @@ you must be explicit with a relative or absolute path, for example:
 Copy a local file into container
 
 ```console
-$ docker cp ./some_file CONTAINER:/work 
+$ docker cp ./some_file CONTAINER:/work
 ```
 
 Copy files from container to local path
