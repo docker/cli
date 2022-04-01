@@ -9,7 +9,7 @@ keywords: "pull, image, hub, docker"
 ```markdown
 Usage:  docker pull [OPTIONS] NAME[:TAG|@DIGEST]
 
-Pull an image or a repository from a registry
+Download an image from a registry
 
 Options:
   -a, --all-tags                Download all tagged images in the repository

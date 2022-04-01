@@ -9,7 +9,7 @@ keywords: "command, container, run, execute"
 ```markdown
 Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 
-Run a command in a running container
+Execute a command in a running container
 
 Options:
   -d, --detach         Detached mode: run command in the background

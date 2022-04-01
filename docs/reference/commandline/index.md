@@ -53,7 +53,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [create](create.md)                   | Create a new container                                           |
 | [diff](diff.md)                       | Inspect changes on a container's filesystem                      |
 | [events](events.md)                   | Get real time events from the server                             |
-| [exec](exec.md)                       | Run a command in a running container                             |
+| [exec](exec.md)                       | Execute a command in a running container                         |
 | [export](export.md)                   | Export a container's filesystem as a tar archive                 |
 | [kill](kill.md)                       | Kill a running container                                         |
 | [logs](logs.md)                       | Fetch the logs of a container                                    |
@@ -63,7 +63,7 @@ read the [`dockerd`](dockerd.md) reference page.
 | [rename](rename.md)                   | Rename a container                                               |
 | [restart](restart.md)                 | Restart a running container                                      |
 | [rm](rm.md)                           | Remove one or more containers                                    |
-| [run](run.md)                         | Run a command in a new container                                 |
+| [run](run.md)                         | Create and run a new container from an image                     |
 | [start](start.md)                     | Start one or more stopped containers                             |
 | [stats](stats.md)                     | Display a live stream of container(s) resource usage  statistics |
 | [stop](stop.md)                       | Stop a running container                                         |
@@ -78,8 +78,8 @@ read the [`dockerd`](dockerd.md) reference page.
 |:--------------------|:------------------------------------------------------------------------|
 | [login](login.md)   | Register or log in to a Docker registry                                 |
 | [logout](logout.md) | Log out from a Docker registry                                          |
-| [pull](pull.md)     | Pull an image or a repository from a Docker registry                    |
-| [push](push.md)     | Push an image or a repository to a Docker registry                      |
+| [pull](pull.md)     | Download an image from a registry                                       |
+| [push](push.md)     | Upload an image to a registry                                           |
 | [search](search.md) | Search Docker Hub for images                                            |
 
 ### Network and connectivity commands

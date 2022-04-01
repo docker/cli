@@ -21,7 +21,7 @@ Commands:
   cp          Copy files/folders between a container and the local filesystem
   create      Create a new container
   diff        Inspect changes to files or directories on a container's filesystem
-  exec        Run a command in a running container
+  exec        Execute a command in a running container
   export      Export a container's filesystem as a tar archive
   inspect     Display detailed information on one or more containers
   kill        Kill one or more running containers
@@ -33,7 +33,7 @@ Commands:
   rename      Rename a container
   restart     Restart one or more containers
   rm          Remove one or more containers
-  run         Run a command in a new container
+  run         Create and run a new container from an image
   start       Start one or more stopped containers
   stats       Display a live stream of container(s) resource usage statistics
   stop        Stop one or more running containers

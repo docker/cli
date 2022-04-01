@@ -1,7 +1,7 @@
 % "DOCKER" "1" "JUNE 2014" "Docker Community" "Docker User Manuals"
 
 # NAME
-docker-run - Run a command in a new container
+docker-run - Create and run a new container from an image
 
 # SYNOPSIS
 **docker run**
