@@ -42,7 +42,7 @@ jobs:
     docker: [{image: 'docker:20.10-git'}]
     environment:
       DOCKER_BUILDKIT: 1
-      BUILDX_VERSION: "v0.5.1"
+      BUILDX_VERSION: "v0.8.2"
     parallelism: 3
     steps:
       - checkout
