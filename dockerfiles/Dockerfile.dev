@@ -2,7 +2,7 @@
 
 ARG GO_VERSION=1.18.0
 
-ARG BUILDX_VERSION=0.8.1
+ARG BUILDX_VERSION=0.8.2
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
 
 FROM golang:${GO_VERSION}-alpine AS golang
