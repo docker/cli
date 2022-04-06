@@ -3,16 +3,25 @@ set -eu
 
 target="${1:-}"
 
-if [ "$target" != "help" ] && [ -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]; then
-    (
-        echo
-        echo
-        echo "WARNING: you are not in a container."
-        echo "Use \"make -f docker.Makefile $target\" or set"
-        echo "DISABLE_WARN_OUTSIDE_CONTAINER=1 to disable this warning."
-        echo
-        echo "Press Ctrl+C now to abort."
-        echo
-    ) >&2
-    sleep 10
+if [ -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]; then
+		case $target in
+			clean|dev|help|shell)
+				# no warning needed for these targets
+				;;
+			*)
+				(
+						echo
+						echo "\033[1mWARNING\033[0m: you are not in a container."
+						echo
+						echo 'Use "\033[1mmake dev\033[0m" to start an interactive development container,'
+						echo "use \"\033[1mmake -f docker.Makefile $target\033[0m\" to execute this target"
+						echo "in a container, or set \033[1mDISABLE_WARN_OUTSIDE_CONTAINER=1\033[0m to"
+						echo "disable this warning."
+						echo
+						echo "Press \033[1mCtrl+C\033[0m now to abort, or wait for the script to continue.."
+						echo
+				) >&2
+				sleep 5
+				;;
+		esac
 fi
