@@ -16,10 +16,10 @@ GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
 if [ "$(uname)" = "Darwin" ]; then
     # Using BSD date (macOS), which doesn't suppoort the --date option
     # date -jf "<input format>" "<input value>" +"<output format>" (https://unix.stackexchange.com/a/86510)
-    BUILDTIME=${BUILDTIME:-$(date -jf "%s" "${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
+    BUILDTIME=${BUILDTIME:-$(TZ=UTC date -jf "%s" "${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 else
     # Using GNU date (Linux)
-    BUILDTIME=${BUILDTIME:-$(date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
+    BUILDTIME=${BUILDTIME:-$(TZ=UTC date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 fi
 
 GOOS="$(go env GOOS)"
