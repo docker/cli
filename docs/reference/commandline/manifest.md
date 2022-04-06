@@ -98,7 +98,7 @@ Options:
 
 ### Working with insecure registries
 
-The manifest command interacts solely with a Docker registry. Because of this,
+The manifest command interacts solely with a registry. Because of this,
 it has no way to query the engine for the list of allowed insecure registries.
 To allow the CLI to interact with an insecure registry, some `docker manifest`
 commands have an `--insecure` flag. For each transaction, such as a `create`,
