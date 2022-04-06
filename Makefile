@@ -34,7 +34,7 @@ shellcheck: ## run shellcheck validation
 	find scripts/ contrib/completion/bash -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck
 
 .PHONY: fmt
-fmt:
+fmt: ## run gofmt
 	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
 
 .PHONY: binary
