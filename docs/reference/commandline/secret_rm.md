@@ -9,7 +9,7 @@ keywords: ["secret, rm"]
 ```Markdown
 Usage:  docker secret rm SECRET [SECRET...]
 
-Remove one or more secrets
+Remove one or more Swarm secrets
 
 Aliases:
   rm, remove

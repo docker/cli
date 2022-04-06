@@ -9,7 +9,7 @@ keywords: ["secret, ls"]
 ```Markdown
 Usage:  docker secret ls [OPTIONS]
 
-List secrets
+List Swarm secrets
 
 Aliases:
   ls, list
