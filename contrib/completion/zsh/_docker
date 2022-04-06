@@ -2653,7 +2653,7 @@ __docker_commands() {
     then
         local -a lines
         lines=(${(f)"$(_call_program commands docker 2>&1)"})
-        _docker_subcommands=(${${${(M)${lines[$((${lines[(i)*Commands:]} + 1)),-1]}:# *}## #}/ ##/:})
+        _docker_subcommands=(${${${(M)${lines[$((${lines[(i)*Commands:]} + 1)),-1]}:# *}## #}/\*# ##/:})
         _docker_subcommands=($_docker_subcommands 'daemon:Enable daemon mode' 'help:Show help for a command')
         (( $#_docker_subcommands > 2 )) && _store_cache docker_subcommands _docker_subcommands
     fi
