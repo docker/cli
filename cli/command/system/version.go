@@ -28,7 +28,6 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
  Context:	{{.Context}}
- Experimental:	{{.Experimental}}
 {{- end}}
 
 {{- if .ServerOK}}{{with .Server}}
@@ -76,7 +75,6 @@ type clientVersion struct {
 	Arch              string
 	BuildTime         string `json:",omitempty"`
 	Context           string
-	Experimental      bool `json:",omitempty"` // Deprecated: experimental CLI features always enabled. This field is kept for backward-compatibility, and is always "true"
 }
 
 // ServerOK returns true when the client could connect to the docker server
@@ -140,7 +138,6 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			BuildTime:         reformatDate(version.BuildTime),
 			Os:                runtime.GOOS,
 			Arch:              arch(),
-			Experimental:      true,
 			Context:           dockerCli.CurrentContext(),
 		},
 	}
