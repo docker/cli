@@ -34,7 +34,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasTopCommands", hasTopCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
-	cobra.AddTemplateFunc("hasOrchestratorSubCommands", hasOrchestratorSubCommands)
+	cobra.AddTemplateFunc("hasSwarmSubCommands", hasSwarmSubCommands)
 	cobra.AddTemplateFunc("hasInvalidPlugins", hasInvalidPlugins)
 	cobra.AddTemplateFunc("topCommands", topCommands)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
@@ -246,7 +246,7 @@ func hasManagementSubCommands(cmd *cobra.Command) bool {
 	return len(managementSubCommands(cmd)) > 0
 }
 
-func hasOrchestratorSubCommands(cmd *cobra.Command) bool {
+func hasSwarmSubCommands(cmd *cobra.Command) bool {
 	return len(orchestratorSubCommands(cmd)) > 0
 }
 
@@ -431,9 +431,9 @@ Management Commands:
 {{- end}}
 
 {{- end}}
-{{- if hasOrchestratorSubCommands . }}
+{{- if hasSwarmSubCommands . }}
 
-Orchestration Commands:
+Swarm Commands:
 
 {{- range orchestratorSubCommands . }}
   {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
