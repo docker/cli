@@ -44,6 +44,9 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runLogin(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "8",
+		},
 	}
 
 	flags := cmd.Flags()

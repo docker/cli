@@ -34,6 +34,9 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 			opts.remote = args[0]
 			return RunPull(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "5",
+		},
 	}
 
 	flags := cmd.Flags()

@@ -96,6 +96,9 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVersion(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "10",
+		},
 	}
 
 	flags := cmd.Flags()

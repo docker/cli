@@ -105,6 +105,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 			options.context = args[0]
 			return runBuild(dockerCli, options)
 		},
+		Annotations: map[string]string{
+			"category-top": "4",
+		},
 	}
 
 	flags := cmd.Flags()

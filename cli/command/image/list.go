@@ -37,6 +37,9 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runImages(dockerCli, options)
 		},
+		Annotations: map[string]string{
+			"category-top": "7",
+		},
 	}
 
 	flags := cmd.Flags()

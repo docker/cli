@@ -52,6 +52,9 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 			options.Command = args[1:]
 			return RunExec(dockerCli, options)
 		},
+		Annotations: map[string]string{
+			"category-top": "2",
+		},
 	}
 
 	flags := cmd.Flags()

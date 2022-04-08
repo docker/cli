@@ -9,7 +9,7 @@ keywords: "service"
 ```markdown
 Usage:  docker service COMMAND
 
-Manage services
+Manage Swarm services
 
 Options:
       --help   Print usage
@@ -29,7 +29,7 @@ Run 'docker service COMMAND --help' for more information on a command.
 
 ## Description
 
-Manage services.
+Manage Swarm services.
 
 > **Note**
 >

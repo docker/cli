@@ -12,11 +12,12 @@ import (
 func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stack [OPTIONS]",
-		Short: "Manage Docker stacks",
+		Short: "Manage Swarm stacks",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{
 			"version": "1.25",
+			"swarm":   "",
 		},
 	}
 	defaultHelpFunc := cmd.HelpFunc()
