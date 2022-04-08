@@ -64,7 +64,13 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memoryReservation, "memory-reservation", "Memory soft limit")
 	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
-	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit")
+	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit (deprecated)")
+	// --kernel-memory is deprecated on API v1.42 and up, but our current annotations
+	// do not support only showing on < API-version. This option is no longer supported
+	// by runc, so hiding it unconditionally.
+	flags.SetAnnotation("kernel-memory", "deprecated", nil)
+	flags.MarkHidden("kernel-memory")
+
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
 	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, "Tune container pids limit (set -1 for unlimited)")
 	flags.SetAnnotation("pids-limit", "version", []string{"1.40"})
