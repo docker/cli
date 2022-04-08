@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/client"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -73,9 +74,9 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	if err := format(dockerCli, opts, contexts); err != nil {
 		return err
 	}
-	if os.Getenv("DOCKER_HOST") != "" {
-		fmt.Fprint(dockerCli.Err(), "Warning: DOCKER_HOST environment variable overrides the active context. "+
-			"To use a context, either set the global --context flag, or unset DOCKER_HOST environment variable.\n")
+	if os.Getenv(client.EnvOverrideHost) != "" {
+		fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
+			"To use a context, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost)
 	}
 	return nil
 }
