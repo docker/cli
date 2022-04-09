@@ -3495,7 +3495,7 @@ _docker_network_prune() {
 _docker_network_rm() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_networks --filter type=custom
