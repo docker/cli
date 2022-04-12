@@ -24,6 +24,7 @@
 		people = [
 			"albers",
 			"cpuguy83",
+			"ndeloof",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -87,6 +88,11 @@
 	Name = "Daniel Nephin"
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
+
+	[people.ndeloof]
+	Name = "Nicolas De Loof"
+	Email = "nicolas.deloof@gmail.com"
+	GitHub = "ndeloof"
 
 	[people.programmerq]
 	Name = "Jeff Anderson"
