@@ -115,16 +115,16 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder     | Description
-----------------|------------------------------------------------------------------------------------------
-`.ID`           | Task ID
-`.Name`         | Task name
-`.Image`        | Task image
-`.Node`         | Node ID
-`.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`)
-`.CurrentState` | Current state of the task
-`.Error`        | Error
-`.Ports`        | Task published ports
+| Placeholder     | Description                                                      |
+|-----------------|------------------------------------------------------------------|
+| `.ID`           | Task ID                                                          |
+| `.Name`         | Task name                                                        |
+| `.Image`        | Task image                                                       |
+| `.Node`         | Node ID                                                          |
+| `.DesiredState` | Desired state of the task (`running`, `shutdown`, or `accepted`) |
+| `.CurrentState` | Current state of the task                                        |
+| `.Error`        | Error                                                            |
+| `.Ports`        | Task published ports                                             |
 
 When using the `--format` option, the `node ps` command will either
 output the data exactly as the template declares or, when using the

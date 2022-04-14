@@ -54,14 +54,14 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-| Placeholder     | Description |
-| --------------- | ----------- |
-| `.ID`           | Image ID    |
+| Placeholder     | Description                                                                                               |
+|-----------------|-----------------------------------------------------------------------------------------------------------|
+| `.ID`           | Image ID                                                                                                  |
 | `.CreatedSince` | Elapsed time since the image was created if `--human=true`, otherwise timestamp of when image was created |
-| `.CreatedAt`    | Timestamp of when image was created |
-| `.CreatedBy`    | Command that was used to create the image |
-| `.Size`         | Image disk size |
-| `.Comment`      | Comment for image |
+| `.CreatedAt`    | Timestamp of when image was created                                                                       |
+| `.CreatedBy`    | Command that was used to create the image                                                                 |
+| `.Size`         | Image disk size                                                                                           |
+| `.Comment`      | Comment for image                                                                                         |
 
 When using the `--format` option, the `history` command will either
 output the data exactly as the template declares or, when using the

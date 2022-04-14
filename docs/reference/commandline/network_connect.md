@@ -36,7 +36,8 @@ $ docker network connect multi-host-network container1
 
 ### Connect a container to a network when it starts
 
-You can also use the `docker run --network=<network-name>` option to start a container and immediately connect it to a network.
+You can also use the `docker run --network=<network-name>` option to start a
+container and immediately connect it to a network.
 
 ```console
 $ docker run -itd --network=multi-host-network busybox
@@ -87,14 +88,17 @@ $ docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 multi-
 $ docker network connect --ip 172.20.128.2 multi-host-network container2
 ```
 
-To verify the container is connected, use the `docker network inspect` command. Use `docker network disconnect` to remove a container from the network.
+To verify the container is connected, use the `docker network inspect` command.
+Use `docker network disconnect` to remove a container from the network.
 
 Once connected in network, containers can communicate using only another
 container's IP address or name. For `overlay` networks or custom plugins that
 support multi-host connectivity, containers connected to the same multi-host
 network but launched from different Engines can also communicate in this way.
 
-You can connect a container to one or more networks. The networks need not be the same type. For example, you can connect a single container bridge and overlay networks.
+You can connect a container to one or more networks. The networks need not be
+the same type. For example, you can connect a single container bridge and overlay
+networks.
 
 ## Related commands
 

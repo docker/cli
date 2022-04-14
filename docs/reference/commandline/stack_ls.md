@@ -52,7 +52,7 @@ The formatting option (`--format`) pretty-prints stacks using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder     | Description        |
-| --------------- | ------------------ |
+|-----------------|--------------------|
 | `.Name`         | Stack name         |
 | `.Services`     | Number of services |
 | `.Orchestrator` | Orchestrator name  |

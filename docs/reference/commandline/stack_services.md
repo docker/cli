@@ -88,13 +88,13 @@ using a Go template.
 
 Valid placeholders for the Go template are listed below:
 
-Placeholder | Description
-------------|-------------------------------------------------------------------
-`.ID`       | Service ID
-`.Name`     | Service name
-`.Mode`     | Service mode (replicated, global)
-`.Replicas` | Service replicas
-`.Image`    | Service image
+| Placeholder | Description                       |
+|-------------|-----------------------------------|
+| `.ID`       | Service ID                        |
+| `.Name`     | Service name                      |
+| `.Mode`     | Service mode (replicated, global) |
+| `.Replicas` | Service replicas                  |
+| `.Image`    | Service image                     |
 
 When using the `--format` option, the `stack services` command will either
 output the data exactly as the template declares or, when using the

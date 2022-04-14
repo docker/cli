@@ -113,7 +113,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder  | Description                                                                          |
-| ------------ | ------------------------------------------------------------------------------------ |
+|--------------|--------------------------------------------------------------------------------------|
 | `.ID`        | Config ID                                                                            |
 | `.Name`      | Config name                                                                          |
 | `.CreatedAt` | Time when the config was created                                                     |

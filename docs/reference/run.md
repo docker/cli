@@ -1249,12 +1249,12 @@ by default a container is not allowed to access any devices, but a
 "privileged" container is given access to all devices (see
 the documentation on [cgroups devices](https://www.kernel.org/doc/Documentation/cgroup-v1/devices.txt)).
 
-When the operator executes `docker run --privileged`, Docker will enable
-access to all devices on the host as well as set some configuration
-in AppArmor or SELinux to allow the container nearly all the same access to the
-host as processes running outside containers on the host. Additional
-information about running with `--privileged` is available on the
-[Docker Blog](https://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
+The --privileged flag gives all capabilities to the container. When the operator
+executes `docker run --privileged`, Docker will enable access to all devices on
+the host as well as set some configuration in AppArmor or SELinux to allow the
+container nearly all the same access to the host as processes running outside
+containers on the host. Additional information about running with `--privileged`
+is available on the [Docker Blog](https://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
 
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
@@ -1407,16 +1407,20 @@ The container can have a different logging driver than the Docker daemon. Use
 the `--log-driver=VALUE` with the `docker run` command to configure the
 container's logging driver. The following options are supported:
 
-| Driver      | Description                                                                                                                   |
-|:------------|:------------------------------------------------------------------------------------------------------------------------------|
-| `none`      | Disables any logging for the container. `docker logs` won't be available with this driver.                                    |
-| `json-file` | Default logging driver for Docker. Writes JSON messages to file.  No logging options are supported for this driver.           |
-| `syslog`    | Syslog logging driver for Docker. Writes log messages to syslog.                                                              |
-| `journald`  | Journald logging driver for Docker. Writes log messages to `journald`.                                                        |
-| `gelf`      | Graylog Extended Log Format (GELF) logging driver for Docker. Writes log messages to a GELF endpoint likeGraylog or Logstash. |
-| `fluentd`   | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                          |
-| `awslogs`   | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs                               |
-| `splunk`    | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                 |
+| Driver       | Description                                                                                                                    |
+|:-------------|:-------------------------------------------------------------------------------------------------------------------------------|
+| `none`       | Disables any logging for the container. `docker logs` won't be available with this driver.                                     |
+| `local`      | Logs are stored in a custom format designed for minimal overhead.                                                              |
+| `json-file`  | Default logging driver for Docker. Writes JSON messages to file.  No logging options are supported for this driver.            |
+| `syslog`     | Syslog logging driver for Docker. Writes log messages to syslog.                                                               |
+| `journald`   | Journald logging driver for Docker. Writes log messages to `journald`.                                                         |
+| `gelf`       | Graylog Extended Log Format (GELF) logging driver for Docker. Writes log messages to a GELF endpoint likeGraylog or Logstash.  |
+| `fluentd`    | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                           |
+| `awslogs`    | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs.                               |
+| `splunk`     | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                  |
+| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |                                                  
+| `gcplogs`    | Google Cloud Platform (GCP) Logging. Writes log messages to Google Cloud Platform (GCP) Logging.                               |
+| `logentries` | Rapid7 Logentries. Writes log messages to Rapid7 Logentries.                                                                   |
 
 The `docker logs` command is available only for the `json-file` and `journald`
 logging drivers.  For detailed information on working with logging drivers, see

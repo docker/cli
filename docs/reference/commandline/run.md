@@ -108,6 +108,7 @@ Options:
       --privileged                    Give extended privileges to this container
   -p, --publish value                 Publish a container's port(s) to the host (default [])
   -P, --publish-all                   Publish all exposed ports to random ports
+      --pull string                   Pull image before running ("always"|"missing"|"never") (default "missing")
       --read-only                     Mount the container's root filesystem as read only
       --restart string                Restart policy to apply when a container exits (default "no")
                                       Possible values are : no, on-failure[:max-retry], always, unless-stopped
@@ -357,6 +358,48 @@ $ docker run --expose 80 ubuntu bash
 
 This exposes port `80` of the container without publishing the port to the host
 system's interfaces.
+
+### <a name="pull"></a> Set the pull policy (--pull)
+
+Use the `--pull` flag to set the image pull policy when creating (and running)
+the container.
+
+The `--pull` flag can take one of these values:
+
+| Value               | Description                                                                                                       |
+|:--------------------|:------------------------------------------------------------------------------------------------------------------|
+| `missing` (default) | Pull the image if it was not found in the image cache, or use the cached image otherwise.                         |
+| `never`             | Do not pull the image, even if it's missing, and produce an error if the image does not exist in the image cache. |
+| `always`            | Always perform a pull before creating the container.                                                              |
+
+When creating (and running) a container from an image, the daemon checks if the
+image exists in the local image cache. If the image is missing, an error is
+returned to the cli, allowing it to initiate a pull.
+
+The default (`missing`) is to only pull the image if it is not present in the
+daemon's image cache. This default allows you to run images that only exist
+locally (for example, images you built from a Dockerfile, but that have not
+been pushed to a registry), and reduces networking.
+
+The `always` option always initiates a pull before creating the container. This
+option makes sure the image is up-to-date, and prevents you from using outdated
+images, but may not be suitable in situations where you want to test a locally
+built image before pushing (as pulling the image overwrites the existing image
+in the image cache).
+
+The `never` option disables (implicit) pulling images when creating containers,
+and only uses images that are available in the image cache. If the specified
+image is not found, an error is produced, and the container is not created.
+This option is useful in situations where networking is not available, or to
+prevent images from being pulled implicitly when creating containers.
+
+The following example shows `docker run` with the `--pull=never` option set,
+which produces en error as the image is missing in the image-cache:
+
+```console
+$ docker run --pull=never hello-world
+docker: Error response from daemon: No such image: hello-world:latest.
+```
 
 ### Set environment variables (-e, --env, --env-file)
 
@@ -610,9 +653,32 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 > This option fails if the container isolation is `hyperv` or when running Linux
 > Containers on Windows (LCOW).
 
+### <a name="device-cgroup-rule"></a> Using dynamically created devices (--device-cgroup-rule)
+
+Devices available to a container are assigned at creation time. The
+assigned devices will both be added to the cgroup.allow file and
+created into the container once it is run. This poses a problem when
+a new device needs to be added to running container.
+
+One of the solutions is to add a more permissive rule to a container
+allowing it access to a wider range of devices. For example, supposing
+our container needs access to a character device with major `42` and
+any number of minor number (added as new devices appear), the
+following rule would be added:
+
+```console
+$ docker run -d --device-cgroup-rule='c 42:* rmw' -name my-container my-image
+```
+
+Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
+the required device when it is added.
+
+> **Note**: initially present devices still need to be explicitly added to the
+> `docker run` / `docker create` command.
+
 ### Access an NVIDIA GPU
 
-The `--gpus­` flag allows you to access NVIDIA GPU resources. First you need to
+The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
 Visit [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
 for more information.
@@ -775,9 +841,9 @@ and 30 seconds for Windows containers.
 ### Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
-Windows. The `--isolation <value>` option sets a container's isolation technology.
-On Linux, the only supported is the `default` option which uses
-Linux namespaces. These two commands are equivalent on Linux:
+Windows. The `--isolation=<value>` option sets a container's isolation technology.
+On Linux, the only supported is the `default` option which uses Linux namespaces.
+These two commands are equivalent on Linux:
 
 ```console
 $ docker run -d busybox top
@@ -786,16 +852,15 @@ $ docker run -d --isolation default busybox top
 
 On Windows, `--isolation` can take one of these values:
 
+| Value     | Description                                                                                |
+|:----------|:-------------------------------------------------------------------------------------------|
+| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below). |
+| `process` | Shared-kernel namespace isolation.                                                         |
+| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                              |
 
-| Value     | Description                                                                                                       |
-|:----------|:------------------------------------------------------------------------------------------------------------------|
-| `default` | Use the value specified by the Docker daemon's `--exec-opt` or system default (see below).                        |
-| `process` | Shared-kernel namespace isolation (not supported on Windows client operating systems older than Windows 10 1809). |
-| `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                     |
-
-The default isolation on Windows server operating systems is `process`. The default
-isolation on Windows client operating systems is `hyperv`. An attempt to start a container on a client
-operating system older than Windows 10 1809 with `--isolation process` will fail.
+The default isolation on Windows server operating systems is `process`, and `hyperv`
+on Windows client operating systems, such as Windows 10. Process isolation is more
+performant, but requires the image to
 
 On Windows server, assuming the default configuration, these commands are equivalent
 and result in `process` isolation:

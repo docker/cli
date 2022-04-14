@@ -28,16 +28,15 @@ specify an archive, Docker untars it in the container relative to the `/`
 the host. To import from a remote location, specify a `URI` that begins with the
 `http://` or `https://` protocol.
 
-The `--change` option will apply `Dockerfile` instructions to the image
-that is created.
-Supported `Dockerfile` instructions:
+The `--change` option applies `Dockerfile` instructions to the image that is
+created. Supported `Dockerfile` instructions:
 `CMD`|`ENTRYPOINT`|`ENV`|`EXPOSE`|`ONBUILD`|`USER`|`VOLUME`|`WORKDIR`
 
 ## Examples
 
 ### Import from a remote location
 
-This will create a new untagged image.
+This creates a new untagged image.
 
 ```console
 $ docker import https://example.com/exampleimage.tgz

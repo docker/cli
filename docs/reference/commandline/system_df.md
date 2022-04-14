@@ -87,7 +87,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder    | Description                                |
-| -------------- | ------------------------------------------ |
+|----------------|--------------------------------------------|
 | `.Type`        | `Images`, `Containers` and `Local Volumes` |
 | `.TotalCount`  | Total number of items                      |
 | `.Active`      | Number of active items                     |
@@ -122,7 +122,7 @@ Local Volumes       150.3 MB            150.3 MB (100%)
 <Paste>
 ```
 
-**Note** the format option is meaningless when verbose is true.
+The format option has no effect when the `--verbose` option is used.
 
 ## Related commands
 * [system prune](system_prune.md)

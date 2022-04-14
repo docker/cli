@@ -118,15 +118,15 @@ read the [`dockerd`](dockerd.md) reference page.
 
 ### Swarm management commands
 
-| Command | Description                                                        |
-|:--------|:-------------------------------------------------------------------|
-| [swarm init](swarm_init.md) | Initialize a swarm                             |
-| [swarm join](swarm_join.md) | Join a swarm as a manager node or worker node  |
-| [swarm leave](swarm_leave.md) | Remove the current node from the swarm       |
-| [swarm join-token](swarm_join_token.md) | Display or rotate join tokens      |
-| [swarm unlock](swarm_unlock.md) | Unlock swarm                               |
-| [swarm unlock-key](swarm_unlock_key.md) | Manage the unlock key              |
-| [swarm update](swarm_update.md) | Update attributes of a swarm               |
+| Command                                 | Description                                   |
+|:----------------------------------------|:----------------------------------------------|
+| [swarm init](swarm_init.md)             | Initialize a swarm                            |
+| [swarm join](swarm_join.md)             | Join a swarm as a manager node or worker node |
+| [swarm leave](swarm_leave.md)           | Remove the current node from the swarm        |
+| [swarm join-token](swarm_join-token.md) | Display or rotate join tokens                 |
+| [swarm unlock](swarm_unlock.md)         | Unlock swarm                                  |
+| [swarm unlock-key](swarm_unlock-key.md) | Manage the unlock key                         |
+| [swarm update](swarm_update.md)         | Update attributes of a swarm                  |
 
 ### Swarm service commands
 

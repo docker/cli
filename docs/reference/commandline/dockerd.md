@@ -773,7 +773,7 @@ time of writing, the following is the list of `libdm` log levels as well as
 their corresponding levels when output by `dockerd`.
 
 | `libdm` Level | Value | `--log-level` |
-| ------------- | -----:| ------------- |
+|---------------|------:|---------------|
 | `_LOG_FATAL`  |     2 | error         |
 | `_LOG_ERR`    |     3 | error         |
 | `_LOG_WARN`   |     4 | warn          |
@@ -1462,7 +1462,7 @@ This is a full example of the allowed configuration options on Linux:
 > daemon startup as a flag.
 > On systems that use `systemd` to start the Docker daemon, `-H` is already set, so
 > you cannot use the `hosts` key in `daemon.json` to add listening addresses.
-> See https://docs.docker.com/engine/admin/systemd/#custom-docker-daemon-options for how
+> See ["custom Docker daemon options"](https://docs.docker.com/config/daemon/systemd/#custom-docker-daemon-options) for how
 > to accomplish this task with a systemd drop-in file.
 
 ##### On Windows
