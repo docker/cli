@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-ARG COMPOSE_VERSION=1.25.1
+ARG COMPOSE_VERSION=1.29.2
 RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
@@ -39,7 +39,6 @@ ARG GITCOMMIT
 ENV VERSION=${VERSION}
 ENV GITCOMMIT=${GITCOMMIT}
 ENV DOCKER_BUILDKIT=1
-ENV COMPOSE_DOCKER_CLI_BUILD=1
 RUN ./scripts/build/binary
 RUN ./scripts/build/plugins e2e/cli-plugins/plugins/*
 
