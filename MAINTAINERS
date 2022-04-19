@@ -25,6 +25,7 @@
 			"albers",
 			"cpuguy83",
 			"ndeloof",
+			"rumpl",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -98,6 +99,11 @@
 	Name = "Jeff Anderson"
 	Email = "jeff@docker.com"
 	GitHub = "programmerq"
+
+	[people.rumpl]
+	Name = "Djordje Lukic"
+	Email = "djordje.lukic@docker.com"
+	GitHub = "rumpl"
 
 	[people.silvin-lubecki]
 	Name = "Silvin Lubecki"
