@@ -24,6 +24,8 @@
 		people = [
 			"albers",
 			"cpuguy83",
+			"ndeloof",
+			"rumpl",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -88,10 +90,20 @@
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
 
+	[people.ndeloof]
+	Name = "Nicolas De Loof"
+	Email = "nicolas.deloof@gmail.com"
+	GitHub = "ndeloof"
+
 	[people.programmerq]
 	Name = "Jeff Anderson"
 	Email = "jeff@docker.com"
 	GitHub = "programmerq"
+
+	[people.rumpl]
+	Name = "Djordje Lukic"
+	Email = "djordje.lukic@docker.com"
+	GitHub = "rumpl"
 
 	[people.silvin-lubecki]
 	Name = "Silvin Lubecki"
