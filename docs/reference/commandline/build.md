@@ -423,6 +423,16 @@ accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
 like `ENV` values do.   You must add `--build-arg` for each build argument.
 
+To use the value of an `--build-arg` argument use an ARG instruction without a
+value inside of a build stage:
+
+```dockerfile
+FROM busybox:$VERSION
+ARG HTTP_PROXY
+ARG FTP_PROXY
+RUN echo $HTTP_PROXY > HTTP_PROXY $FTP_PROXY > FTP_PROXY
+```
+
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
 
