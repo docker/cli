@@ -14,7 +14,7 @@ RUN --mount=target=/context \
     --mount=target=/go/pkg/mod,type=cache <<EOT
 set -e
 rsync -a /context/. .
-./scripts/vendor update
+./scripts/vendor update -c
 mkdir /out
 cp -r vendor.mod vendor.sum vendor /out
 EOT
@@ -30,7 +30,7 @@ rsync -a /context/. .
 git add -A
 rm -rf vendor
 cp -rf /out/* .
-./scripts/vendor validate
+./scripts/vendor validate -c
 EOT
 
 FROM psampaz/go-mod-outdated:${MODOUTDATED_VERSION} AS go-mod-outdated
@@ -39,4 +39,4 @@ ARG UUID
 RUN --mount=target=.,rw \
     --mount=target=/go/pkg/mod,type=cache \
     --mount=from=go-mod-outdated,source=/home/go-mod-outdated,target=/usr/bin/go-mod-outdated \
-    ./scripts/vendor outdated
+    ./scripts/vendor outdated -c

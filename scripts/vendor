@@ -2,19 +2,12 @@
 
 set -eu
 
-TYP=$1
-
 usage() {
-  echo "usage: ./scripts/vendor <init|update|validate|outdated>"
+  echo "usage: ./scripts/vendor <init|update|validate|outdated|clean> [-c]"
+  echo
+  echo "options:"
+  echo "  c  remove dummy go.mod after command execution"
   exit 1
-}
-
-if [ -z "$TYP" ]; then
-  usage
-fi
-
-clean() {
-  rm go.mod
 }
 
 init() {
@@ -47,29 +40,49 @@ outdated() {
   (set -x ; go list -mod=vendor -mod=readonly -modfile=vendor.mod -u -m -json all | go-mod-outdated -update -direct)
 }
 
+clean() {
+  echo "Remove dummy go.mod file"
+  rm go.mod
+}
 
-case $TYP in
+command="${1:-"usage"}"
+if [ $# -gt 1 ]; then
+  shift # Remove command from the argument list
+fi
+
+case $command in
   "init")
     init
+    exit 0
     ;;
   "update")
     init
     update
-    clean
     ;;
   "validate")
     init
     update
-    clean
     validate
     ;;
   "outdated")
     init
     outdated
+    ;;
+  "clean")
     clean
+    exit 0
     ;;
   *)
-    echo >&2 "Unknown type $TYP"
-    exit 1
+    usage
     ;;
 esac
+
+while getopts ":c" opt; do
+  case $opt in
+    c)
+      clean
+      ;;
+    *)
+      ;;
+  esac
+done

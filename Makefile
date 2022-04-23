@@ -52,15 +52,15 @@ plugins: ## build example CLI plugins
 .PHONY: vendor
 vendor: ## update vendor with go modules
 	rm -rf vendor
-	./scripts/vendor update
+	./scripts/vendor update -c
 
 .PHONY: validate-vendor
 validate-vendor: ## validate vendor
-	./scripts/vendor validate
+	./scripts/vendor validate -c
 
 .PHONY: mod-outdated
 mod-outdated: ## check outdated dependencies
-	./scripts/vendor outdated
+	./scripts/vendor outdated -c
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history

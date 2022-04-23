@@ -29,6 +29,8 @@ trap clean EXIT
   go build -mod=vendor -modfile=vendor.mod -tags manpages -o /tmp/gen-manpages ./man/generate.go
   # build go-md2man
   go build -mod=vendor -modfile=vendor.mod -o /tmp/go-md2man ./vendor/github.com/cpuguy83/go-md2man/v2
+  # clean vendor
+  ./scripts/vendor clean
 )
 
 mkdir -p man/man1

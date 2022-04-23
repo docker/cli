@@ -27,6 +27,8 @@ trap clean EXIT
   ./scripts/vendor update
   # build docsgen
   go build -mod=vendor -modfile=vendor.mod -tags docsgen -o /tmp/docsgen ./docs/generate.go
+  # clean vendor
+  ./scripts/vendor clean
 )
 
 mkdir -p docs/yaml
