@@ -3,10 +3,10 @@ package context
 import (
 	"bytes"
 	"fmt"
-	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/pkg/errors"

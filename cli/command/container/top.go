@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/spf13/cobra"
 )
 
