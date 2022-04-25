@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"io"
 	"strings"
-	"text/tabwriter"
 	"text/template"
 
+	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/templates"
 	"github.com/pkg/errors"
 )
