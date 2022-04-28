@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
 	"syscall"
 
@@ -119,12 +118,10 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		config.StdinOnce = false
 	}
 
-	// Telling the Windows daemon the initial size of the tty during start makes
-	// a far better user experience rather than relying on subsequent resizes
-	// to cause things to catch up.
-	if runtime.GOOS == "windows" {
-		hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
-	}
+	// Currently ignored on Linux daemons, in the Linux case the TTY size is
+	// set by calling MonitorTtySize.
+	// A Windows daemon will create the process with the right TTY size
+	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
 
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
