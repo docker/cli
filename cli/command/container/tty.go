@@ -45,7 +45,7 @@ func resizeTty(ctx context.Context, cli command.Cli, id string, isExec bool) err
 	return resizeTtyTo(ctx, cli.Client(), id, height, width, isExec)
 }
 
-// initTtySize is to init the tty's size to the same as the window, if there is an error, it will retry 5 times.
+// initTtySize is to init the tty's size to the same as the window, if there is an error, it will retry 10 times.
 func initTtySize(ctx context.Context, cli command.Cli, id string, isExec bool, resizeTtyFunc func(ctx context.Context, cli command.Cli, id string, isExec bool) error) {
 	rttyFunc := resizeTtyFunc
 	if rttyFunc == nil {
@@ -54,8 +54,8 @@ func initTtySize(ctx context.Context, cli command.Cli, id string, isExec bool, r
 	if err := rttyFunc(ctx, cli, id, isExec); err != nil {
 		go func() {
 			var err error
-			for retry := 0; retry < 5; retry++ {
-				time.Sleep(10 * time.Millisecond)
+			for retry := 0; retry < 10; retry++ {
+				time.Sleep(time.Duration(retry+1) * 10 * time.Millisecond)
 				if err = rttyFunc(ctx, cli, id, isExec); err == nil {
 					break
 				}
