@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -40,25 +40,23 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runStop(dockerCli command.Cli, opts *stopOptions) error {
-	ctx := context.Background()
-
-	var timeout *time.Duration
+	var timeout *int
 	if opts.timeChanged {
-		timeoutValue := time.Duration(opts.time) * time.Second
-		timeout = &timeoutValue
+		timeout = &opts.time
 	}
 
-	var errs []string
-
-	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, id string) error {
-		return dockerCli.Client().ContainerStop(ctx, id, timeout)
+	errChan := parallelOperation(context.Background(), opts.containers, func(ctx context.Context, id string) error {
+		return dockerCli.Client().ContainerStop(ctx, id, container.StopOptions{
+			Timeout: timeout,
+		})
 	})
-	for _, container := range opts.containers {
+	var errs []string
+	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), container)
+		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))

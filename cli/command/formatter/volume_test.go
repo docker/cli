@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -24,22 +24,22 @@ func TestVolumeContext(t *testing.T) {
 		call      func() string
 	}{
 		{volumeContext{
-			v: types.Volume{Name: volumeName},
+			v: volume.Volume{Name: volumeName},
 		}, volumeName, ctx.Name},
 		{volumeContext{
-			v: types.Volume{Driver: "driver_name"},
+			v: volume.Volume{Driver: "driver_name"},
 		}, "driver_name", ctx.Driver},
 		{volumeContext{
-			v: types.Volume{Scope: "local"},
+			v: volume.Volume{Scope: "local"},
 		}, "local", ctx.Scope},
 		{volumeContext{
-			v: types.Volume{Mountpoint: "mountpoint"},
+			v: volume.Volume{Mountpoint: "mountpoint"},
 		}, "mountpoint", ctx.Mountpoint},
 		{volumeContext{
-			v: types.Volume{},
+			v: volume.Volume{},
 		}, "", ctx.Labels},
 		{volumeContext{
-			v: types.Volume{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
+			v: volume.Volume{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
 		}, "label1=value1,label2=value2", ctx.Labels},
 	}
 
@@ -122,7 +122,7 @@ foobar_bar
 		},
 	}
 
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Name: "foobar_baz", Driver: "foo"},
 		{Name: "foobar_bar", Driver: "bar"},
 	}
@@ -143,7 +143,7 @@ foobar_bar
 }
 
 func TestVolumeContextWriteJSON(t *testing.T) {
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}
@@ -166,7 +166,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 }
 
 func TestVolumeContextWriteJSONField(t *testing.T) {
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}

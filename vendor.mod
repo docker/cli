@@ -76,6 +76,6 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220326171151-8941dcfcc5db+incompatible // master (v22.04-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible // master (v22.04-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 )

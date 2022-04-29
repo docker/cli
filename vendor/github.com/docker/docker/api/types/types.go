@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/go-connections/nat"
 )
 
@@ -28,7 +29,7 @@ type RootFS struct {
 type ImageInspect struct {
 	// ID is the content-addressable ID of an image.
 	//
-	// This identified is a content-addressable digest calculated from the
+	// This identifier is a content-addressable digest calculated from the
 	// image's configuration (which includes the digests of layers used by
 	// the image).
 	//
@@ -73,8 +74,11 @@ type ImageInspect struct {
 	// Depending on how the image was created, this field may be empty.
 	Container string
 
-	// ContainerConfig is the configuration of the container that was committed
-	// into the image.
+	// ContainerConfig is an optional field containing the configuration of the
+	// container that was last committed when creating the image.
+	//
+	// Previous versions of Docker builder used this field to store build cache,
+	// and it is not in active use anymore.
 	ContainerConfig *container.Config
 
 	// DockerVersion is the version of Docker that was used to build the image.
@@ -683,7 +687,7 @@ type DiskUsage struct {
 	LayersSize  int64
 	Images      []*ImageSummary
 	Containers  []*Container
-	Volumes     []*Volume
+	Volumes     []*volume.Volume
 	BuildCache  []*BuildCache
 	BuilderSize int64 `json:",omitempty"` // Deprecated: deprecated in API 1.38, and no longer used since API 1.40.
 }

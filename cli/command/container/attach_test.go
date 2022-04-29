@@ -81,16 +81,16 @@ func TestGetExitStatus(t *testing.T) {
 	var (
 		expectedErr = fmt.Errorf("unexpected error")
 		errC        = make(chan error, 1)
-		resultC     = make(chan container.ContainerWaitOKBody, 1)
+		resultC     = make(chan container.WaitResponse, 1)
 	)
 
 	testcases := []struct {
-		result        *container.ContainerWaitOKBody
+		result        *container.WaitResponse
 		err           error
 		expectedError error
 	}{
 		{
-			result: &container.ContainerWaitOKBody{
+			result: &container.WaitResponse{
 				StatusCode: 0,
 			},
 		},
@@ -99,13 +99,13 @@ func TestGetExitStatus(t *testing.T) {
 			expectedError: expectedErr,
 		},
 		{
-			result: &container.ContainerWaitOKBody{
-				Error: &container.ContainerWaitOKBodyError{Message: expectedErr.Error()},
+			result: &container.WaitResponse{
+				Error: &container.WaitExitError{Message: expectedErr.Error()},
 			},
 			expectedError: expectedErr,
 		},
 		{
-			result: &container.ContainerWaitOKBody{
+			result: &container.WaitResponse{
 				StatusCode: 15,
 			},
 			expectedError: cli.StatusError{StatusCode: 15},

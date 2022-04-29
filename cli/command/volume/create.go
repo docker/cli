@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
-	volumetypes "github.com/docker/docker/api/types/volume"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -50,20 +50,16 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCreate(dockerCli command.Cli, options createOptions) error {
-	client := dockerCli.Client()
-
-	volReq := volumetypes.VolumeCreateBody{
+	vol, err := dockerCli.Client().VolumeCreate(context.Background(), volume.CreateOptions{
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,
 		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
-	}
-
-	vol, err := client.VolumeCreate(context.Background(), volReq)
+	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", vol.Name)
+	_, _ = fmt.Fprintln(dockerCli.Out(), vol.Name)
 	return nil
 }

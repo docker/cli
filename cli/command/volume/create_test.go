@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
-	volumetypes "github.com/docker/docker/api/types/volume"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +17,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
 		flags            map[string]string
-		volumeCreateFunc func(volumetypes.VolumeCreateBody) (types.Volume, error)
+		volumeCreateFunc func(volume.CreateOptions) (volume.Volume, error)
 		expectedError    string
 	}{
 		{
@@ -33,8 +32,8 @@ func TestVolumeCreateErrors(t *testing.T) {
 			expectedError: "requires at most 1 argument",
 		},
 		{
-			volumeCreateFunc: func(createBody volumetypes.VolumeCreateBody) (types.Volume, error) {
-				return types.Volume{}, errors.Errorf("error creating volume")
+			volumeCreateFunc: func(createBody volume.CreateOptions) (volume.Volume, error) {
+				return volume.Volume{}, errors.Errorf("error creating volume")
 			},
 			expectedError: "error creating volume",
 		},
@@ -57,11 +56,11 @@ func TestVolumeCreateErrors(t *testing.T) {
 func TestVolumeCreateWithName(t *testing.T) {
 	name := "foo"
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
+		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != name {
-				return types.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
+				return volume.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
 			}
-			return types.Volume{
+			return volume.Volume{
 				Name: body.Name,
 			}, nil
 		},
@@ -96,20 +95,20 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	name := "banana"
 
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volumetypes.VolumeCreateBody) (types.Volume, error) {
+		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != "" {
-				return types.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)
+				return volume.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)
 			}
 			if body.Driver != expectedDriver {
-				return types.Volume{}, errors.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
+				return volume.Volume{}, errors.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
 			}
 			if !reflect.DeepEqual(body.DriverOpts, expectedOpts) {
-				return types.Volume{}, errors.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
+				return volume.Volume{}, errors.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
 			}
 			if !reflect.DeepEqual(body.Labels, expectedLabels) {
-				return types.Volume{}, errors.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
+				return volume.Volume{}, errors.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
 			}
-			return types.Volume{
+			return volume.Volume{
 				Name: name,
 			}, nil
 		},

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -42,18 +42,19 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 func runRestart(dockerCli command.Cli, opts *restartOptions) error {
 	ctx := context.Background()
 	var errs []string
-	var timeout *time.Duration
+	var timeout *int
 	if opts.nSecondsChanged {
-		timeoutValue := time.Duration(opts.nSeconds) * time.Second
-		timeout = &timeoutValue
+		timeout = &opts.nSeconds
 	}
-
 	for _, name := range opts.containers {
-		if err := dockerCli.Client().ContainerRestart(ctx, name, timeout); err != nil {
+		err := dockerCli.Client().ContainerRestart(ctx, name, container.StopOptions{
+			Timeout: timeout,
+		})
+		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCli.Out(), name)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))
