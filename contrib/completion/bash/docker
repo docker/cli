@@ -4882,6 +4882,7 @@ _docker_search() {
 
 _docker_stack() {
 	local subcommands="
+		config
 		deploy
 		ls
 		ps
@@ -4908,6 +4909,21 @@ _docker_stack() {
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
 			;;
 	esac
+}
+
+_docker_stack_config() {
+	case "$prev" in
+		--compose-file|-c)
+			_filedir yml
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--compose-file -c --help --skip-interpolation" -- "$cur" ) )
+			;;
+  esac
 }
 
 _docker_stack_deploy() {
