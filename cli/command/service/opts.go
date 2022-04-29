@@ -14,10 +14,10 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/swarmkit/api"
-	"github.com/docker/swarmkit/api/defaults"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
+	"github.com/moby/swarmkit/v2/api"
+	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )

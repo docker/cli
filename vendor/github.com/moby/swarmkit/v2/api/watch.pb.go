@@ -6,11 +6,11 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
-	raftselector "github.com/docker/swarmkit/manager/raftselector"
-	_ "github.com/docker/swarmkit/protobuf/plugin"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
+	raftselector "github.com/moby/swarmkit/v2/manager/raftselector"
+	_ "github.com/moby/swarmkit/v2/protobuf/plugin"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
@@ -920,61 +920,61 @@ func (m *Object) CopyFrom(src interface{}) {
 			v := Object_Node{
 				Node: &Node{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Node, o.GetNode())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Node, o.GetNode())
 			m.Object = &v
 		case *Object_Service:
 			v := Object_Service{
 				Service: &Service{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Service, o.GetService())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Service, o.GetService())
 			m.Object = &v
 		case *Object_Network:
 			v := Object_Network{
 				Network: &Network{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Network, o.GetNetwork())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Network, o.GetNetwork())
 			m.Object = &v
 		case *Object_Task:
 			v := Object_Task{
 				Task: &Task{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Task, o.GetTask())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Task, o.GetTask())
 			m.Object = &v
 		case *Object_Cluster:
 			v := Object_Cluster{
 				Cluster: &Cluster{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Cluster, o.GetCluster())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Cluster, o.GetCluster())
 			m.Object = &v
 		case *Object_Secret:
 			v := Object_Secret{
 				Secret: &Secret{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Secret, o.GetSecret())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Secret, o.GetSecret())
 			m.Object = &v
 		case *Object_Resource:
 			v := Object_Resource{
 				Resource: &Resource{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Resource, o.GetResource())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Resource, o.GetResource())
 			m.Object = &v
 		case *Object_Extension:
 			v := Object_Extension{
 				Extension: &Extension{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Extension, o.GetExtension())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Extension, o.GetExtension())
 			m.Object = &v
 		case *Object_Config:
 			v := Object_Config{
 				Config: &Config{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Config, o.GetConfig())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Config, o.GetConfig())
 			m.Object = &v
 		case *Object_Volume:
 			v := Object_Volume{
 				Volume: &Volume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Volume, o.GetVolume())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Volume, o.GetVolume())
 			m.Object = &v
 		}
 	}
@@ -1050,13 +1050,13 @@ func (m *SelectBy) CopyFrom(src interface{}) {
 			v := SelectBy_Custom{
 				Custom: &SelectByCustom{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Custom, o.GetCustom())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Custom, o.GetCustom())
 			m.By = &v
 		case *SelectBy_CustomPrefix:
 			v := SelectBy_CustomPrefix{
 				CustomPrefix: &SelectByCustom{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.CustomPrefix, o.GetCustomPrefix())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.CustomPrefix, o.GetCustomPrefix())
 			m.By = &v
 		case *SelectBy_ServiceID:
 			v := SelectBy_ServiceID{
@@ -1072,7 +1072,7 @@ func (m *SelectBy) CopyFrom(src interface{}) {
 			v := SelectBy_Slot{
 				Slot: &SelectBySlot{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Slot, o.GetSlot())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Slot, o.GetSlot())
 			m.By = &v
 		case *SelectBy_DesiredState:
 			v := SelectBy_DesiredState{
@@ -1131,13 +1131,13 @@ func (m *WatchRequest) CopyFrom(src interface{}) {
 		m.Entries = make([]*WatchRequest_WatchEntry, len(o.Entries))
 		for i := range m.Entries {
 			m.Entries[i] = &WatchRequest_WatchEntry{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Entries[i], o.Entries[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Entries[i], o.Entries[i])
 		}
 	}
 
 	if o.ResumeFrom != nil {
 		m.ResumeFrom = &Version{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.ResumeFrom, o.ResumeFrom)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.ResumeFrom, o.ResumeFrom)
 	}
 }
 
@@ -1158,7 +1158,7 @@ func (m *WatchRequest_WatchEntry) CopyFrom(src interface{}) {
 		m.Filters = make([]*SelectBy, len(o.Filters))
 		for i := range m.Filters {
 			m.Filters[i] = &SelectBy{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Filters[i], o.Filters[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Filters[i], o.Filters[i])
 		}
 	}
 
@@ -1181,13 +1181,13 @@ func (m *WatchMessage) CopyFrom(src interface{}) {
 		m.Events = make([]*WatchMessage_Event, len(o.Events))
 		for i := range m.Events {
 			m.Events[i] = &WatchMessage_Event{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Events[i], o.Events[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Events[i], o.Events[i])
 		}
 	}
 
 	if o.Version != nil {
 		m.Version = &Version{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Version, o.Version)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Version, o.Version)
 	}
 }
 
@@ -1206,11 +1206,11 @@ func (m *WatchMessage_Event) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Object != nil {
 		m.Object = &Object{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Object, o.Object)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Object, o.Object)
 	}
 	if o.OldObject != nil {
 		m.OldObject = &Object{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.OldObject, o.OldObject)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.OldObject, o.OldObject)
 	}
 }
 

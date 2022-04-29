@@ -6,11 +6,11 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
-	raftselector "github.com/docker/swarmkit/manager/raftselector"
-	_ "github.com/docker/swarmkit/protobuf/plugin"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
+	raftselector "github.com/moby/swarmkit/v2/manager/raftselector"
+	_ "github.com/moby/swarmkit/v2/protobuf/plugin"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
@@ -263,7 +263,7 @@ func (m *AttachNetworkRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Config != nil {
 		m.Config = &NetworkAttachmentConfig{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Config, o.Config)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Config, o.Config)
 	}
 }
 

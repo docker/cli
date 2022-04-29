@@ -3,7 +3,7 @@ package genericresource
 import (
 	"fmt"
 
-	"github.com/docker/swarmkit/api"
+	"github.com/moby/swarmkit/v2/api"
 )
 
 // Claim assigns GenericResources to a task by taking them from the

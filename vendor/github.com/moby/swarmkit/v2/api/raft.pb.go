@@ -6,9 +6,9 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
-	raftselector "github.com/docker/swarmkit/manager/raftselector"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
+	raftselector "github.com/moby/swarmkit/v2/manager/raftselector"
 	raftpb "go.etcd.io/etcd/raft/v3/raftpb"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -877,7 +877,7 @@ func (m *RaftMember) CopyFrom(src interface{}) {
 
 	o := src.(*RaftMember)
 	*m = *o
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.Status, &o.Status)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Status, &o.Status)
 }
 
 func (m *JoinRequest) Copy() *JoinRequest {
@@ -912,7 +912,7 @@ func (m *JoinResponse) CopyFrom(src interface{}) {
 		m.Members = make([]*RaftMember, len(o.Members))
 		for i := range m.Members {
 			m.Members[i] = &RaftMember{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Members[i], o.Members[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Members[i], o.Members[i])
 		}
 	}
 
@@ -938,7 +938,7 @@ func (m *LeaveRequest) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Node != nil {
 		m.Node = &RaftMember{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Node, o.Node)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Node, o.Node)
 	}
 }
 
@@ -1018,7 +1018,7 @@ func (m *InternalRaftRequest) CopyFrom(src interface{}) {
 	if o.Action != nil {
 		m.Action = make([]StoreAction, len(o.Action))
 		for i := range m.Action {
-			github_com_docker_swarmkit_api_deepcopy.Copy(&m.Action[i], &o.Action[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Action[i], &o.Action[i])
 		}
 	}
 
@@ -1043,61 +1043,61 @@ func (m *StoreAction) CopyFrom(src interface{}) {
 			v := StoreAction_Node{
 				Node: &Node{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Node, o.GetNode())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Node, o.GetNode())
 			m.Target = &v
 		case *StoreAction_Service:
 			v := StoreAction_Service{
 				Service: &Service{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Service, o.GetService())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Service, o.GetService())
 			m.Target = &v
 		case *StoreAction_Task:
 			v := StoreAction_Task{
 				Task: &Task{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Task, o.GetTask())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Task, o.GetTask())
 			m.Target = &v
 		case *StoreAction_Network:
 			v := StoreAction_Network{
 				Network: &Network{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Network, o.GetNetwork())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Network, o.GetNetwork())
 			m.Target = &v
 		case *StoreAction_Cluster:
 			v := StoreAction_Cluster{
 				Cluster: &Cluster{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Cluster, o.GetCluster())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Cluster, o.GetCluster())
 			m.Target = &v
 		case *StoreAction_Secret:
 			v := StoreAction_Secret{
 				Secret: &Secret{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Secret, o.GetSecret())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Secret, o.GetSecret())
 			m.Target = &v
 		case *StoreAction_Resource:
 			v := StoreAction_Resource{
 				Resource: &Resource{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Resource, o.GetResource())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Resource, o.GetResource())
 			m.Target = &v
 		case *StoreAction_Extension:
 			v := StoreAction_Extension{
 				Extension: &Extension{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Extension, o.GetExtension())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Extension, o.GetExtension())
 			m.Target = &v
 		case *StoreAction_Config:
 			v := StoreAction_Config{
 				Config: &Config{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Config, o.GetConfig())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Config, o.GetConfig())
 			m.Target = &v
 		case *StoreAction_Volume:
 			v := StoreAction_Volume{
 				Volume: &Volume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Volume, o.GetVolume())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Volume, o.GetVolume())
 			m.Target = &v
 		}
 	}

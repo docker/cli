@@ -6,11 +6,11 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
-	raftselector "github.com/docker/swarmkit/manager/raftselector"
-	_ "github.com/docker/swarmkit/protobuf/plugin"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
+	raftselector "github.com/moby/swarmkit/v2/manager/raftselector"
+	_ "github.com/moby/swarmkit/v2/protobuf/plugin"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
@@ -469,11 +469,11 @@ func (m *NodeCertificateStatusResponse) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Status != nil {
 		m.Status = &IssuanceStatus{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Status, o.Status)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Status, o.Status)
 	}
 	if o.Certificate != nil {
 		m.Certificate = &Certificate{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Certificate, o.Certificate)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Certificate, o.Certificate)
 	}
 }
 
@@ -567,7 +567,7 @@ func (m *GetUnlockKeyResponse) CopyFrom(src interface{}) {
 		m.UnlockKey = make([]byte, len(o.UnlockKey))
 		copy(m.UnlockKey, o.UnlockKey)
 	}
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.Version, &o.Version)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Version, &o.Version)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.

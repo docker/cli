@@ -5,10 +5,10 @@ package plugin
 
 import (
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
 	github_com_gogo_protobuf_proto "github.com/gogo/protobuf/proto"
 	proto "github.com/gogo/protobuf/proto"
 	descriptor "github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -267,7 +267,7 @@ func (m *StoreObject) CopyFrom(src interface{}) {
 	*m = *o
 	if o.WatchSelectors != nil {
 		m.WatchSelectors = &WatchSelectors{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.WatchSelectors, o.WatchSelectors)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.WatchSelectors, o.WatchSelectors)
 	}
 }
 

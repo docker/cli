@@ -6,12 +6,12 @@ package api
 import (
 	encoding_binary "encoding/binary"
 	fmt "fmt"
-	github_com_docker_swarmkit_api_deepcopy "github.com/docker/swarmkit/api/deepcopy"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	types "github.com/gogo/protobuf/types"
+	github_com_moby_swarmkit_v2_api_deepcopy "github.com/moby/swarmkit/v2/api/deepcopy"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -5455,7 +5455,7 @@ func (m *Annotations) CopyFrom(src interface{}) {
 	if o.Indices != nil {
 		m.Indices = make([]IndexEntry, len(o.Indices))
 		for i := range m.Indices {
-			github_com_docker_swarmkit_api_deepcopy.Copy(&m.Indices[i], &o.Indices[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Indices[i], &o.Indices[i])
 		}
 	}
 
@@ -5510,13 +5510,13 @@ func (m *GenericResource) CopyFrom(src interface{}) {
 			v := GenericResource_NamedResourceSpec{
 				NamedResourceSpec: &NamedGenericResource{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.NamedResourceSpec, o.GetNamedResourceSpec())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.NamedResourceSpec, o.GetNamedResourceSpec())
 			m.Resource = &v
 		case *GenericResource_DiscreteResourceSpec:
 			v := GenericResource_DiscreteResourceSpec{
 				DiscreteResourceSpec: &DiscreteGenericResource{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.DiscreteResourceSpec, o.GetDiscreteResourceSpec())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.DiscreteResourceSpec, o.GetDiscreteResourceSpec())
 			m.Resource = &v
 		}
 	}
@@ -5540,7 +5540,7 @@ func (m *Resources) CopyFrom(src interface{}) {
 		m.Generic = make([]*GenericResource, len(o.Generic))
 		for i := range m.Generic {
 			m.Generic[i] = &GenericResource{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Generic[i], o.Generic[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Generic[i], o.Generic[i])
 		}
 	}
 
@@ -5561,19 +5561,19 @@ func (m *ResourceRequirements) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Limits != nil {
 		m.Limits = &Resources{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Limits, o.Limits)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Limits, o.Limits)
 	}
 	if o.Reservations != nil {
 		m.Reservations = &Resources{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Reservations, o.Reservations)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Reservations, o.Reservations)
 	}
 	if o.SwapBytes != nil {
 		m.SwapBytes = &types.Int64Value{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.SwapBytes, o.SwapBytes)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.SwapBytes, o.SwapBytes)
 	}
 	if o.MemorySwappiness != nil {
 		m.MemorySwappiness = &types.Int64Value{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.MemorySwappiness, o.MemorySwappiness)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.MemorySwappiness, o.MemorySwappiness)
 	}
 }
 
@@ -5630,7 +5630,7 @@ func (m *EngineDescription) CopyFrom(src interface{}) {
 	if o.Plugins != nil {
 		m.Plugins = make([]PluginDescription, len(o.Plugins))
 		for i := range m.Plugins {
-			github_com_docker_swarmkit_api_deepcopy.Copy(&m.Plugins[i], &o.Plugins[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Plugins[i], &o.Plugins[i])
 		}
 	}
 
@@ -5651,25 +5651,25 @@ func (m *NodeDescription) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Platform != nil {
 		m.Platform = &Platform{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Platform, o.Platform)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Platform, o.Platform)
 	}
 	if o.Resources != nil {
 		m.Resources = &Resources{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Resources, o.Resources)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Resources, o.Resources)
 	}
 	if o.Engine != nil {
 		m.Engine = &EngineDescription{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Engine, o.Engine)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Engine, o.Engine)
 	}
 	if o.TLSInfo != nil {
 		m.TLSInfo = &NodeTLSInfo{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.TLSInfo, o.TLSInfo)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.TLSInfo, o.TLSInfo)
 	}
 	if o.CSIInfo != nil {
 		m.CSIInfo = make([]*NodeCSIInfo, len(o.CSIInfo))
 		for i := range m.CSIInfo {
 			m.CSIInfo[i] = &NodeCSIInfo{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.CSIInfo[i], o.CSIInfo[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.CSIInfo[i], o.CSIInfo[i])
 		}
 	}
 
@@ -5717,7 +5717,7 @@ func (m *NodeCSIInfo) CopyFrom(src interface{}) {
 	*m = *o
 	if o.AccessibleTopology != nil {
 		m.AccessibleTopology = &Topology{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.AccessibleTopology, o.AccessibleTopology)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.AccessibleTopology, o.AccessibleTopology)
 	}
 }
 
@@ -5781,15 +5781,15 @@ func (m *Mount) CopyFrom(src interface{}) {
 	*m = *o
 	if o.BindOptions != nil {
 		m.BindOptions = &Mount_BindOptions{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.BindOptions, o.BindOptions)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.BindOptions, o.BindOptions)
 	}
 	if o.VolumeOptions != nil {
 		m.VolumeOptions = &Mount_VolumeOptions{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.VolumeOptions, o.VolumeOptions)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.VolumeOptions, o.VolumeOptions)
 	}
 	if o.TmpfsOptions != nil {
 		m.TmpfsOptions = &Mount_TmpfsOptions{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.TmpfsOptions, o.TmpfsOptions)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.TmpfsOptions, o.TmpfsOptions)
 	}
 }
 
@@ -5830,7 +5830,7 @@ func (m *Mount_VolumeOptions) CopyFrom(src interface{}) {
 
 	if o.DriverConfig != nil {
 		m.DriverConfig = &Driver{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.DriverConfig, o.DriverConfig)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.DriverConfig, o.DriverConfig)
 	}
 }
 
@@ -5864,11 +5864,11 @@ func (m *RestartPolicy) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Delay != nil {
 		m.Delay = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Delay, o.Delay)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Delay, o.Delay)
 	}
 	if o.Window != nil {
 		m.Window = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Window, o.Window)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Window, o.Window)
 	}
 }
 
@@ -5885,10 +5885,10 @@ func (m *UpdateConfig) CopyFrom(src interface{}) {
 
 	o := src.(*UpdateConfig)
 	*m = *o
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.Delay, &o.Delay)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Delay, &o.Delay)
 	if o.Monitor != nil {
 		m.Monitor = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Monitor, o.Monitor)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Monitor, o.Monitor)
 	}
 }
 
@@ -5907,11 +5907,11 @@ func (m *UpdateStatus) CopyFrom(src interface{}) {
 	*m = *o
 	if o.StartedAt != nil {
 		m.StartedAt = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.StartedAt, o.StartedAt)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.StartedAt, o.StartedAt)
 	}
 	if o.CompletedAt != nil {
 		m.CompletedAt = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.CompletedAt, o.CompletedAt)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.CompletedAt, o.CompletedAt)
 	}
 }
 
@@ -5947,7 +5947,7 @@ func (m *PortStatus) CopyFrom(src interface{}) {
 		m.Ports = make([]*PortConfig, len(o.Ports))
 		for i := range m.Ports {
 			m.Ports[i] = &PortConfig{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Ports[i], o.Ports[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Ports[i], o.Ports[i])
 		}
 	}
 
@@ -5968,15 +5968,15 @@ func (m *TaskStatus) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Timestamp != nil {
 		m.Timestamp = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Timestamp, o.Timestamp)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Timestamp, o.Timestamp)
 	}
 	if o.PortStatus != nil {
 		m.PortStatus = &PortStatus{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.PortStatus, o.PortStatus)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.PortStatus, o.PortStatus)
 	}
 	if o.AppliedAt != nil {
 		m.AppliedAt = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.AppliedAt, o.AppliedAt)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.AppliedAt, o.AppliedAt)
 	}
 	if o.RuntimeStatus != nil {
 		switch o.RuntimeStatus.(type) {
@@ -5984,7 +5984,7 @@ func (m *TaskStatus) CopyFrom(src interface{}) {
 			v := TaskStatus_Container{
 				Container: &ContainerStatus{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Container, o.GetContainer())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Container, o.GetContainer())
 			m.RuntimeStatus = &v
 		}
 	}
@@ -6097,13 +6097,13 @@ func (m *IPAMOptions) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Driver != nil {
 		m.Driver = &Driver{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Driver, o.Driver)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Driver, o.Driver)
 	}
 	if o.Configs != nil {
 		m.Configs = make([]*IPAMConfig, len(o.Configs))
 		for i := range m.Configs {
 			m.Configs[i] = &IPAMConfig{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Configs[i], o.Configs[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Configs[i], o.Configs[i])
 		}
 	}
 
@@ -6139,7 +6139,7 @@ func (m *WeightedPeer) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Peer != nil {
 		m.Peer = &Peer{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Peer, o.Peer)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Peer, o.Peer)
 	}
 }
 
@@ -6175,7 +6175,7 @@ func (m *AcceptancePolicy) CopyFrom(src interface{}) {
 		m.Policies = make([]*AcceptancePolicy_RoleAdmissionPolicy, len(o.Policies))
 		for i := range m.Policies {
 			m.Policies[i] = &AcceptancePolicy_RoleAdmissionPolicy{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Policies[i], o.Policies[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Policies[i], o.Policies[i])
 		}
 	}
 
@@ -6196,7 +6196,7 @@ func (m *AcceptancePolicy_RoleAdmissionPolicy) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Secret != nil {
 		m.Secret = &AcceptancePolicy_RoleAdmissionPolicy_Secret{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Secret, o.Secret)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Secret, o.Secret)
 	}
 }
 
@@ -6260,13 +6260,13 @@ func (m *CAConfig) CopyFrom(src interface{}) {
 	*m = *o
 	if o.NodeCertExpiry != nil {
 		m.NodeCertExpiry = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.NodeCertExpiry, o.NodeCertExpiry)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.NodeCertExpiry, o.NodeCertExpiry)
 	}
 	if o.ExternalCAs != nil {
 		m.ExternalCAs = make([]*ExternalCA, len(o.ExternalCAs))
 		for i := range m.ExternalCAs {
 			m.ExternalCAs[i] = &ExternalCA{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.ExternalCAs[i], o.ExternalCAs[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.ExternalCAs[i], o.ExternalCAs[i])
 		}
 	}
 
@@ -6310,7 +6310,7 @@ func (m *TaskDefaults) CopyFrom(src interface{}) {
 	*m = *o
 	if o.LogDriver != nil {
 		m.LogDriver = &Driver{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.LogDriver, o.LogDriver)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.LogDriver, o.LogDriver)
 	}
 }
 
@@ -6329,7 +6329,7 @@ func (m *DispatcherConfig) CopyFrom(src interface{}) {
 	*m = *o
 	if o.HeartbeatPeriod != nil {
 		m.HeartbeatPeriod = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.HeartbeatPeriod, o.HeartbeatPeriod)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.HeartbeatPeriod, o.HeartbeatPeriod)
 	}
 }
 
@@ -6397,7 +6397,7 @@ func (m *PlacementPreference) CopyFrom(src interface{}) {
 			v := PlacementPreference_Spread{
 				Spread: &SpreadOver{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Spread, o.GetSpread())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Spread, o.GetSpread())
 			m.Preference = &v
 		}
 	}
@@ -6426,7 +6426,7 @@ func (m *Placement) CopyFrom(src interface{}) {
 		m.Preferences = make([]*PlacementPreference, len(o.Preferences))
 		for i := range m.Preferences {
 			m.Preferences[i] = &PlacementPreference{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Preferences[i], o.Preferences[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Preferences[i], o.Preferences[i])
 		}
 	}
 
@@ -6434,7 +6434,7 @@ func (m *Placement) CopyFrom(src interface{}) {
 		m.Platforms = make([]*Platform, len(o.Platforms))
 		for i := range m.Platforms {
 			m.Platforms[i] = &Platform{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Platforms[i], o.Platforms[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Platforms[i], o.Platforms[i])
 		}
 	}
 
@@ -6476,10 +6476,10 @@ func (m *RootCA) CopyFrom(src interface{}) {
 		m.CACert = make([]byte, len(o.CACert))
 		copy(m.CACert, o.CACert)
 	}
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.JoinTokens, &o.JoinTokens)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.JoinTokens, &o.JoinTokens)
 	if o.RootRotation != nil {
 		m.RootRotation = &RootRotation{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.RootRotation, o.RootRotation)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.RootRotation, o.RootRotation)
 	}
 }
 
@@ -6500,7 +6500,7 @@ func (m *Certificate) CopyFrom(src interface{}) {
 		m.CSR = make([]byte, len(o.CSR))
 		copy(m.CSR, o.CSR)
 	}
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.Status, &o.Status)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.Status, &o.Status)
 	if o.Certificate != nil {
 		m.Certificate = make([]byte, len(o.Certificate))
 		copy(m.Certificate, o.Certificate)
@@ -6585,7 +6585,7 @@ func (m *SecretReference) CopyFrom(src interface{}) {
 			v := SecretReference_File{
 				File: &FileTarget{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.File, o.GetFile())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.File, o.GetFile())
 			m.Target = &v
 		}
 	}
@@ -6611,13 +6611,13 @@ func (m *ConfigReference) CopyFrom(src interface{}) {
 			v := ConfigReference_File{
 				File: &FileTarget{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.File, o.GetFile())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.File, o.GetFile())
 			m.Target = &v
 		case *ConfigReference_Runtime:
 			v := ConfigReference_Runtime{
 				Runtime: &RuntimeTarget{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Runtime, o.GetRuntime())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Runtime, o.GetRuntime())
 			m.Target = &v
 		}
 	}
@@ -6639,7 +6639,7 @@ func (m *BlacklistedCertificate) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Expiry != nil {
 		m.Expiry = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Expiry, o.Expiry)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Expiry, o.Expiry)
 	}
 }
 
@@ -6663,15 +6663,15 @@ func (m *HealthConfig) CopyFrom(src interface{}) {
 
 	if o.Interval != nil {
 		m.Interval = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Interval, o.Interval)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Interval, o.Interval)
 	}
 	if o.Timeout != nil {
 		m.Timeout = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Timeout, o.Timeout)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Timeout, o.Timeout)
 	}
 	if o.StartPeriod != nil {
 		m.StartPeriod = &types.Duration{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.StartPeriod, o.StartPeriod)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.StartPeriod, o.StartPeriod)
 	}
 }
 
@@ -6740,11 +6740,11 @@ func (m *Privileges) CopyFrom(src interface{}) {
 	*m = *o
 	if o.CredentialSpec != nil {
 		m.CredentialSpec = &Privileges_CredentialSpec{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.CredentialSpec, o.CredentialSpec)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.CredentialSpec, o.CredentialSpec)
 	}
 	if o.SELinuxContext != nil {
 		m.SELinuxContext = &Privileges_SELinuxContext{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.SELinuxContext, o.SELinuxContext)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.SELinuxContext, o.SELinuxContext)
 	}
 }
 
@@ -6811,10 +6811,10 @@ func (m *JobStatus) CopyFrom(src interface{}) {
 
 	o := src.(*JobStatus)
 	*m = *o
-	github_com_docker_swarmkit_api_deepcopy.Copy(&m.JobIteration, &o.JobIteration)
+	github_com_moby_swarmkit_v2_api_deepcopy.Copy(&m.JobIteration, &o.JobIteration)
 	if o.LastExecution != nil {
 		m.LastExecution = &types.Timestamp{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.LastExecution, o.LastExecution)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.LastExecution, o.LastExecution)
 	}
 }
 
@@ -6837,13 +6837,13 @@ func (m *VolumeAccessMode) CopyFrom(src interface{}) {
 			v := VolumeAccessMode_Block{
 				Block: &VolumeAccessMode_BlockVolume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Block, o.GetBlock())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Block, o.GetBlock())
 			m.AccessType = &v
 		case *VolumeAccessMode_Mount:
 			v := VolumeAccessMode_Mount{
 				Mount: &VolumeAccessMode_MountVolume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Mount, o.GetMount())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Mount, o.GetMount())
 			m.AccessType = &v
 		}
 	}
@@ -6941,7 +6941,7 @@ func (m *VolumeInfo) CopyFrom(src interface{}) {
 		m.AccessibleTopology = make([]*Topology, len(o.AccessibleTopology))
 		for i := range m.AccessibleTopology {
 			m.AccessibleTopology[i] = &Topology{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.AccessibleTopology[i], o.AccessibleTopology[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.AccessibleTopology[i], o.AccessibleTopology[i])
 		}
 	}
 
@@ -6977,7 +6977,7 @@ func (m *VolumeAssignment) CopyFrom(src interface{}) {
 	*m = *o
 	if o.Driver != nil {
 		m.Driver = &Driver{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.Driver, o.Driver)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Driver, o.Driver)
 	}
 	if o.VolumeContext != nil {
 		m.VolumeContext = make(map[string]string, len(o.VolumeContext))
@@ -6995,13 +6995,13 @@ func (m *VolumeAssignment) CopyFrom(src interface{}) {
 
 	if o.AccessMode != nil {
 		m.AccessMode = &VolumeAccessMode{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.AccessMode, o.AccessMode)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.AccessMode, o.AccessMode)
 	}
 	if o.Secrets != nil {
 		m.Secrets = make([]*VolumeSecret, len(o.Secrets))
 		for i := range m.Secrets {
 			m.Secrets[i] = &VolumeSecret{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Secrets[i], o.Secrets[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Secrets[i], o.Secrets[i])
 		}
 	}
 
@@ -7039,7 +7039,7 @@ func (m *TopologyRequirement) CopyFrom(src interface{}) {
 		m.Requisite = make([]*Topology, len(o.Requisite))
 		for i := range m.Requisite {
 			m.Requisite[i] = &Topology{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Requisite[i], o.Requisite[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Requisite[i], o.Requisite[i])
 		}
 	}
 
@@ -7047,7 +7047,7 @@ func (m *TopologyRequirement) CopyFrom(src interface{}) {
 		m.Preferred = make([]*Topology, len(o.Preferred))
 		for i := range m.Preferred {
 			m.Preferred[i] = &Topology{}
-			github_com_docker_swarmkit_api_deepcopy.Copy(m.Preferred[i], o.Preferred[i])
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.Preferred[i], o.Preferred[i])
 		}
 	}
 
@@ -7090,7 +7090,7 @@ func (m *VolumeCapability) CopyFrom(src interface{}) {
 	*m = *o
 	if o.AccessMode != nil {
 		m.AccessMode = &VolumeCapability_AccessMode{}
-		github_com_docker_swarmkit_api_deepcopy.Copy(m.AccessMode, o.AccessMode)
+		github_com_moby_swarmkit_v2_api_deepcopy.Copy(m.AccessMode, o.AccessMode)
 	}
 	if o.AccessType != nil {
 		switch o.AccessType.(type) {
@@ -7098,13 +7098,13 @@ func (m *VolumeCapability) CopyFrom(src interface{}) {
 			v := VolumeCapability_Block{
 				Block: &VolumeCapability_BlockVolume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Block, o.GetBlock())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Block, o.GetBlock())
 			m.AccessType = &v
 		case *VolumeCapability_Mount:
 			v := VolumeCapability_Mount{
 				Mount: &VolumeCapability_MountVolume{},
 			}
-			github_com_docker_swarmkit_api_deepcopy.Copy(v.Mount, o.GetMount())
+			github_com_moby_swarmkit_v2_api_deepcopy.Copy(v.Mount, o.GetMount())
 			m.AccessType = &v
 		}
 	}

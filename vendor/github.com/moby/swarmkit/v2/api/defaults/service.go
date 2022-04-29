@@ -3,8 +3,8 @@ package defaults
 import (
 	"time"
 
-	"github.com/docker/swarmkit/api"
-	"github.com/docker/swarmkit/api/deepcopy"
+	"github.com/moby/swarmkit/v2/api"
+	"github.com/moby/swarmkit/v2/api/deepcopy"
 	gogotypes "github.com/gogo/protobuf/types"
 )
 

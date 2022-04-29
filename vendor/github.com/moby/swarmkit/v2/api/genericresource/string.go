@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/swarmkit/api"
+	"github.com/moby/swarmkit/v2/api"
 )
 
 func discreteToString(d *api.GenericResource_DiscreteResourceSpec) string {
