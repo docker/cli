@@ -35,7 +35,7 @@ DOCKER_RUN_NAME_OPTION := $(if $(DOCKER_CLI_CONTAINER_NAME),--name $(DOCKER_CLI_
 DOCKER_RUN := docker run --rm $(ENVVARS) $(DOCKER_CLI_MOUNTS) $(DOCKER_RUN_NAME_OPTION)
 
 .PHONY: binary
-binary:
+binary: ## build executable
 	PACKAGER_NAME=$(PACKAGER_NAME) docker buildx bake binary
 
 build: binary ## alias for binary

@@ -9,6 +9,17 @@ all: binary
 
 _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
 
+.PHONY: dev
+dev: ## start a build container in interactive mode for in-container development
+	@if [ -n "${DISABLE_WARN_OUTSIDE_CONTAINER}" ]; then \
+		echo "you are already in the dev container"; \
+	else \
+		$(MAKE) -f docker.Makefile dev; \
+	fi
+
+.PHONY: shell
+shell: dev ## alias for dev
+
 .PHONY: clean
 clean: ## remove build artifacts
 	rm -rf ./build/* man/man[1-9] docs/yaml
@@ -34,7 +45,7 @@ shellcheck: ## run shellcheck validation
 	find scripts/ contrib/completion/bash -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck
 
 .PHONY: fmt
-fmt:
+fmt: ## run gofmt
 	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
 
 .PHONY: binary
