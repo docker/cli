@@ -15,7 +15,7 @@ Aliases:
   rm, remove
 
 Options:
-      --help   Print usage
+  -f, --force   Do not error if the network does not exist
 ```
 
 ## Description
