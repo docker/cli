@@ -114,6 +114,41 @@ Server: Docker Engine - Community
   GitCommit:        fec3683
 ```
 
+### API version and version negotiation
+
+The API version used by the client depends on the Docker Engine that the Docker
+CLI is connecting with. When connecting with the Docker Engine, the Docker CLI
+and Docker Engine perform API version negotiation, and select the highest API
+version that is supported by both the Docker CLI and the Docker Engine.
+
+For example, if the CLI is connecting with a Docker 19.03 engine, it downgrades
+to API version 1.40 (refer to the [API version matrix](https://docs.docker.com/engine/api/#api-version-matrix)
+to learn about the supported API versions for Docker Engine):
+
+```console
+$ docker version --format '{{.Client.APIVersion}}'
+
+1.40
+```
+
+Be aware that API version can also be overridden using the `DOCKER_API_VERSION`
+environment variable, which can be useful for debugging purposes, and disables
+API version negotiation. The following example illustrates an environment where
+the `DOCKER_API_VERSION` environment variable is set. Unsetting the environment
+variable removes the override, and re-enables API version negotiation:
+
+```console
+$ env | grep DOCKER_API_VERSION
+DOCKER_API_VERSION=1.39
+
+$ docker version --format '{{.Client.APIVersion}}'
+1.39
+
+$ unset DOCKER_API_VERSION
+$ docker version --format '{{.Client.APIVersion}}'
+1.41
+```
+
 ## Examples
 
 ### <a name=format></a> Format the output (--format)
@@ -133,11 +168,17 @@ $ docker version --format '{{.Server.Version}}'
 
 ### Get the client API version
 
+The following example prints the API version that is used by the client:
+
 ```console
 $ docker version --format '{{.Client.APIVersion}}'
 
 1.41
 ```
+
+The version shown is the API version that is negotiated between the client
+and the Docker Engine. Refer to [API version and version negotiation](#api-version-and-version-negotiation)
+above for more information.
 
 ### Dump raw JSON data
 
