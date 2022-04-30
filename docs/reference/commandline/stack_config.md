@@ -11,9 +11,6 @@ Usage:	docker stack config [OPTIONS]
 
 Outputs the final config file, after doing merges and interpolations
 
-Aliases:
-  config, cfg
-
 Options:
   -c, --compose-file strings   Path to a Compose file, or "-" to read from stdin
       --orchestrator string    Orchestrator to use (swarm|kubernetes|all)
