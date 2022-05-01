@@ -99,6 +99,26 @@ func ExactArgs(number int) cobra.PositionalArgs {
 	}
 }
 
+// RequiresArgOrAllFlag ensures a cmd has either args or --all flag, but never both
+func RequiresArgOrAllFlag() cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		err := errors.Errorf(
+			"%q requires at least 1 argument or --all flag.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			cmd.CommandPath(),
+			cmd.CommandPath(),
+			cmd.UseLine(),
+			cmd.Short,
+		)
+		allFlag := cmd.Flags().Changed("all")
+		if hasArg := len(args) > 0; hasArg && allFlag {
+			return err
+		} else if !hasArg && !allFlag {
+			return err
+		}
+		return nil
+	}
+}
+
 //nolint: unparam
 func pluralize(word string, number int) string {
 	if number == 1 {
