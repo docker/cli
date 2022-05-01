@@ -18,30 +18,84 @@ Options:
 
 ## Description
 
-By default, this will render all version information in an easy to read
-layout. If a format is specified, the given template will be executed instead.
+The version command prints the current version number for all independently
+versioned Docker components. Use the [`--format`](#format) option to customize
+the output.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package
-describes all the details of the format.
-
-## Examples
+The version command (`docker version`) outputs the version numbers of Docker
+components, while the `--version` flag (`docker --version`) outputs the version
+number of the Docker CLI you are using.
 
 ### Default output
+
+The default output renders all version information divided into two sections;
+the "Client" section contains information about the Docker CLI and client
+components, and the "Server" section contains information about the Docker
+Engine and components used by the Engine, such as the "Containerd" and "Runc"
+OCI Runtimes.
+
+The information shown may differ depending on how you installed Docker and
+what components are in use. The following example shows the output on a macOS
+machine running Docker Desktop:
 
 ```console
 $ docker version
 
 Client:
- Version:           19.03.8
- API version:       1.40
- Go version:        go1.12.17
- Git commit:        afacb8b
- Built:             Wed Mar 11 01:21:11 2020
+ Version:           20.10.16
+ API version:       1.41
+ Go version:        go1.17.10
+ Git commit:        aa7e414
+ Built:             Thu May 12 09:17:28 2022
  OS/Arch:           darwin/amd64
  Context:           default
- Experimental:      true
 
-Server:
+Server: Docker Desktop 4.8.2 (77141)
+ Engine:
+  Version:          20.10.16
+  API version:      1.41 (minimum version 1.12)
+  Go version:       go1.17.10
+  Git commit:       f756502
+  Built:            Thu May 12 09:15:33 2022
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.6.4
+  GitCommit:        212e8b6fa2f44b9c21b2798135fc6fb7c53efc16
+ runc:
+  Version:          1.1.1
+  GitCommit:        v1.1.1-0-g52de29d
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+```
+
+### Client and server versions
+
+Docker uses a client/server architecture, which allows you to use the Docker CLI
+on your local machine to control a Docker Engine running on a remote machine,
+which can be (for example) a machine running in the Cloud or inside a Virtual Machine.
+
+The following example switches the Docker CLI to use a [context](context.md)
+named "remote-test-server", which runs an older version of the Docker Engine
+on a Linux server:
+
+```console
+$ docker context use remote-test-server
+remote-test-server
+
+$ docker version
+
+Client:
+ Version:           20.10.16
+ API version:       1.40 (downgraded from 1.41)
+ Go version:        go1.17.10
+ Git commit:        aa7e414
+ Built:             Thu May 12 09:17:28 2022
+ OS/Arch:           darwin/amd64
+ Context:           remote-test-server
+
+Server: Docker Engine - Community
  Engine:
   Version:          19.03.8
   API version:      1.40 (minimum version 1.12)
@@ -49,7 +103,6 @@ Server:
   Git commit:       afacb8b
   Built:            Wed Mar 11 01:29:16 2020
   OS/Arch:          linux/amd64
-  Experimental:     true
  containerd:
   Version:          v1.2.13
   GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
@@ -61,12 +114,21 @@ Server:
   GitCommit:        fec3683
 ```
 
+## Examples
+
+### <a name=format></a> Format the output (--format)
+
+The formatting option (`--format`) pretty-prints the output using a Go template,
+which allows you to customize the output format, or to obtain specific information
+from the output. Refer to the [format command and log output](https://docs.docker.com/config/formatting/)
+page for details of the format.
+
 ### Get the server version
 
 ```console
 $ docker version --format '{{.Server.Version}}'
 
-19.03.8
+20.10.16
 ```
 
 ### Get the client API version
