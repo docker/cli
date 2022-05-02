@@ -25,6 +25,6 @@ func TestInitTtySizeErrors(t *testing.T) {
 	ctx := context.Background()
 	cli := test.NewFakeCli(&fakeClient{containerExecResizeFunc: fakeContainerExecResizeFunc})
 	initTtySize(ctx, cli, "8mm8nn8tt8bb", true, fakeResizeTtyFunc)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(750 * time.Millisecond)
 	assert.Check(t, is.Equal(expectedError, cli.ErrBuffer().String()))
 }
