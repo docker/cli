@@ -5287,7 +5287,6 @@ _docker_version() {
 
 	case "$cur" in
 		-*)
-			local options="--format -f --help"
 			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 	esac
