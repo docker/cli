@@ -142,7 +142,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	return getExitStatus(errC, resultC)
 }
 
-func getExitStatus(errC <-chan error, resultC <-chan container.ContainerWaitOKBody) error {
+func getExitStatus(errC <-chan error, resultC <-chan container.WaitResponse) error {
 	select {
 	case result := <-resultC:
 		if result.Error != nil {

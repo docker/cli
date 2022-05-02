@@ -7,9 +7,8 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	volumetypes "github.com/docker/docker/api/types/volume"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,7 +18,7 @@ func TestVolumeListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
 		flags          map[string]string
-		volumeListFunc func(filter filters.Args) (volumetypes.VolumeListOKBody, error)
+		volumeListFunc func(filter filters.Args) (volume.ListResponse, error)
 		expectedError  string
 	}{
 		{
@@ -27,8 +26,8 @@ func TestVolumeListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
-				return volumetypes.VolumeListOKBody{}, errors.Errorf("error listing volumes")
+			volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+				return volume.ListResponse{}, errors.Errorf("error listing volumes")
 			},
 			expectedError: "error listing volumes",
 		},
@@ -50,9 +49,9 @@ func TestVolumeListErrors(t *testing.T) {
 
 func TestVolumeListWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
-			return volumetypes.VolumeListOKBody{
-				Volumes: []*types.Volume{
+		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+			return volume.ListResponse{
+				Volumes: []*volume.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),
 					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
@@ -69,9 +68,9 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 
 func TestVolumeListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
-			return volumetypes.VolumeListOKBody{
-				Volumes: []*types.Volume{
+		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+			return volume.ListResponse{
+				Volumes: []*volume.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),
 					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
@@ -91,9 +90,9 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 
 func TestVolumeListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
-			return volumetypes.VolumeListOKBody{
-				Volumes: []*types.Volume{
+		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+			return volume.ListResponse{
+				Volumes: []*volume.Volume{
 					Volume(),
 					Volume(VolumeName("foo"), VolumeDriver("bar")),
 					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
@@ -111,9 +110,9 @@ func TestVolumeListWithFormat(t *testing.T) {
 
 func TestVolumeListSortOrder(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeListFunc: func(filter filters.Args) (volumetypes.VolumeListOKBody, error) {
-			return volumetypes.VolumeListOKBody{
-				Volumes: []*types.Volume{
+		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+			return volume.ListResponse{
+				Volumes: []*volume.Volume{
 					Volume(VolumeName("volume-2-foo")),
 					Volume(VolumeName("volume-10-foo")),
 					Volume(VolumeName("volume-1-foo")),

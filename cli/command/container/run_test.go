@@ -16,8 +16,8 @@ import (
 
 func TestRunLabel(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.ContainerCreateCreatedBody, error) {
-			return container.ContainerCreateCreatedBody{
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
+			return container.CreateResponse{
 				ID: "id",
 			}, nil
 		},
@@ -61,8 +61,8 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 				networkingConfig *network.NetworkingConfig,
 				platform *specs.Platform,
 				containerName string,
-			) (container.ContainerCreateCreatedBody, error) {
-				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
+			) (container.CreateResponse, error) {
+				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)

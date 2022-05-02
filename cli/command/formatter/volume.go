@@ -1,10 +1,10 @@
 package formatter
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/volume"
 	units "github.com/docker/go-units"
 )
 
@@ -36,10 +36,10 @@ func NewVolumeFormat(source string, quiet bool) Format {
 }
 
 // VolumeWrite writes formatted volumes using the Context
-func VolumeWrite(ctx Context, volumes []*types.Volume) error {
+func VolumeWrite(ctx Context, volumes []*volume.Volume) error {
 	render := func(format func(subContext SubContext) error) error {
-		for _, volume := range volumes {
-			if err := format(&volumeContext{v: *volume}); err != nil {
+		for _, vol := range volumes {
+			if err := format(&volumeContext{v: *vol}); err != nil {
 				return err
 			}
 		}
@@ -50,7 +50,7 @@ func VolumeWrite(ctx Context, volumes []*types.Volume) error {
 
 type volumeContext struct {
 	HeaderContext
-	v types.Volume
+	v volume.Volume
 }
 
 func newVolumeContext() *volumeContext {
@@ -94,7 +94,7 @@ func (c *volumeContext) Labels() string {
 
 	var joinLabels []string
 	for k, v := range c.v.Labels {
-		joinLabels = append(joinLabels, fmt.Sprintf("%s=%s", k, v))
+		joinLabels = append(joinLabels, k+"="+v)
 	}
 	return strings.Join(joinLabels, ",")
 }
@@ -110,7 +110,7 @@ func (c *volumeContext) Links() string {
 	if c.v.UsageData == nil {
 		return "N/A"
 	}
-	return fmt.Sprintf("%d", c.v.UsageData.RefCount)
+	return strconv.FormatInt(c.v.UsageData.RefCount, 10)
 }
 
 func (c *volumeContext) Size() string {

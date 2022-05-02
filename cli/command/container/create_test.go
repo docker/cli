@@ -88,18 +88,18 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 	cases := []struct {
 		PullPolicy      string
 		ExpectedPulls   int
-		ExpectedBody    container.ContainerCreateCreatedBody
+		ExpectedBody    container.CreateResponse
 		ExpectedErrMsg  string
 		ResponseCounter int
 	}{
 		{
 			PullPolicy:    PullImageMissing,
 			ExpectedPulls: 1,
-			ExpectedBody:  container.ContainerCreateCreatedBody{ID: containerID},
+			ExpectedBody:  container.CreateResponse{ID: containerID},
 		}, {
 			PullPolicy:      PullImageAlways,
 			ExpectedPulls:   1,
-			ExpectedBody:    container.ContainerCreateCreatedBody{ID: containerID},
+			ExpectedBody:    container.CreateResponse{ID: containerID},
 			ResponseCounter: 1, // This lets us return a container on the first pull
 		}, {
 			PullPolicy:     PullImageNever,
@@ -118,13 +118,13 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				networkingConfig *network.NetworkingConfig,
 				platform *specs.Platform,
 				containerName string,
-			) (container.ContainerCreateCreatedBody, error) {
+			) (container.CreateResponse, error) {
 				defer func() { c.ResponseCounter++ }()
 				switch c.ResponseCounter {
 				case 0:
-					return container.ContainerCreateCreatedBody{}, fakeNotFound{}
+					return container.CreateResponse{}, fakeNotFound{}
 				default:
-					return container.ContainerCreateCreatedBody{ID: containerID}, nil
+					return container.CreateResponse{ID: containerID}, nil
 				}
 			},
 			imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
@@ -187,8 +187,8 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				networkingConfig *network.NetworkingConfig,
 				platform *specs.Platform,
 				containerName string,
-			) (container.ContainerCreateCreatedBody, error) {
-				return container.ContainerCreateCreatedBody{}, fmt.Errorf("shouldn't try to pull image")
+			) (container.CreateResponse, error) {
+				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)
@@ -248,8 +248,8 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 					networkingConfig *network.NetworkingConfig,
 					platform *specs.Platform,
 					containerName string,
-				) (container.ContainerCreateCreatedBody, error) {
-					return container.ContainerCreateCreatedBody{}, nil
+				) (container.CreateResponse, error) {
+					return container.CreateResponse{}, nil
 				},
 			})
 			cmd := NewCreateCommand(cli)
@@ -287,10 +287,10 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			networkingConfig *network.NetworkingConfig,
 			platform *specs.Platform,
 			containerName string,
-		) (container.ContainerCreateCreatedBody, error) {
+		) (container.CreateResponse, error) {
 			sort.Strings(config.Env)
 			assert.DeepEqual(t, config.Env, expected)
-			return container.ContainerCreateCreatedBody{}, nil
+			return container.CreateResponse{}, nil
 		},
 	})
 	cli.SetConfigFile(&configfile.ConfigFile{
