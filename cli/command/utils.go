@@ -195,3 +195,8 @@ func StringSliceReplaceAt(s, old, new []string, requireIndex int) ([]string, boo
 	out = append(out, s[idx+len(old):]...)
 	return out, true
 }
+
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !errors.Is(err, os.ErrNotExist)
+}

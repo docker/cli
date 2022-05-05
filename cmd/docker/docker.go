@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/commands"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/moby/buildkit/util/appcontext"
@@ -252,11 +253,10 @@ func runDocker(dockerCli *command.DockerCli) error {
 }
 
 func main() {
+	err := loadDefaultEnvFile()
+	treatError(err)
 	dockerCli, err := command.NewDockerCli()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	treatError(err)
 	logrus.SetOutput(dockerCli.Err())
 
 	if err := runDocker(dockerCli); err != nil {
@@ -279,6 +279,40 @@ func main() {
 type versionDetails interface {
 	Client() client.APIClient
 	ServerInfo() command.ServerInfo
+}
+
+func loadDefaultEnvFile() error {
+	var defaultEnvFile []string
+	var err error
+
+	if command.FileExists(opts.DefaultEnvFileName) {
+		defaultEnvFile, err = opts.ParseEnvFile(opts.DefaultEnvFileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	envMap, err := opts.BuildEnvironment(append(os.Environ(), defaultEnvFile...))
+	if err != nil {
+		return err
+	}
+	for k, v := range envMap {
+		if _, ok := os.LookupEnv(k); !ok {
+			err = os.Setenv(k, v)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func treatError(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 func hideFlagIf(f *pflag.Flag, condition func(string) bool, annotation string) {

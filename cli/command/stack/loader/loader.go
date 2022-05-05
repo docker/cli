@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/opts"
 	"github.com/pkg/errors"
 )
 
@@ -97,21 +98,8 @@ func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	}
 	// Take the first file version (2 files can't have different version)
 	details.Version = schema.Version(details.ConfigFiles[0].Config)
-	details.Environment, err = buildEnvironment(os.Environ())
+	details.Environment, err = opts.BuildEnvironment(os.Environ())
 	return details, err
-}
-
-func buildEnvironment(env []string) (map[string]string, error) {
-	result := make(map[string]string, len(env))
-	for _, s := range env {
-		// if value is empty, s is like "K=", not "K".
-		if !strings.Contains(s, "=") {
-			return result, errors.Errorf("unexpected environment %q", s)
-		}
-		kv := strings.SplitN(s, "=", 2)
-		result[kv[0]] = kv[1]
-	}
-	return result, nil
 }
 
 func loadConfigFiles(filenames []string, stdin io.Reader) ([]composetypes.ConfigFile, error) {
