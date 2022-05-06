@@ -67,11 +67,12 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
-	var info info
-
-	info.ClientInfo = &clientInfo{
-		Context: dockerCli.CurrentContext(),
-		Debug:   debug.IsEnabled(),
+	info := info{
+		ClientInfo: &clientInfo{
+			Context: dockerCli.CurrentContext(),
+			Debug:   debug.IsEnabled(),
+		},
+		Info: &types.Info{},
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -84,6 +85,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
 			info.Info = &dinfo
 		} else {
+			fmt.Fprintln(dockerCli.Err(), err)
 			info.ServerErrors = append(info.ServerErrors, err.Error())
 		}
 	}
