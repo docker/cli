@@ -85,8 +85,17 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
 			info.Info = &dinfo
 		} else {
-			fmt.Fprintln(dockerCli.Err(), err)
 			info.ServerErrors = append(info.ServerErrors, err.Error())
+			if opts.format == "" {
+				// reset the server info to prevent printing "empty" Server info
+				// and warnings, but don't reset it if a custom format was specified
+				// to prevent errors from Go's template parsing during format.
+				info.Info = nil
+			} else {
+				// if a format is provided, print the error, as it may be hidden
+				// otherwise if the template doesn't include the ServerErrors field.
+				fmt.Fprintln(dockerCli.Err(), err)
+			}
 		}
 	}
 
