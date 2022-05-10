@@ -60,7 +60,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 
 	// monitorContainerEvents watches for container creation and removal (only
 	// used when calling `docker stats` without arguments).
-	monitorContainerEvents := func(started chan<- struct{}, c chan events.Message) {
+	monitorContainerEvents := func(started chan<- struct{}, c chan events.Message, stopped <-chan struct{}) {
 		f := filters.NewArgs()
 		f.Add("type", "container")
 		options := types.EventsOptions{
@@ -72,9 +72,12 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// Whether we successfully subscribed to eventq or not, we can now
 		// unblock the main goroutine.
 		close(started)
+		defer close(c)
 
 		for {
 			select {
+			case <-stopped:
+				return
 			case event := <-eventq:
 				c <- event
 			case err := <-errq:
@@ -150,8 +153,9 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 
 		eventChan := make(chan events.Message)
 		go eh.Watch(eventChan)
-		go monitorContainerEvents(started, eventChan)
-		defer close(eventChan)
+		stopped := make(chan struct{})
+		go monitorContainerEvents(started, eventChan, stopped)
+		defer close(stopped)
 		<-started
 
 		// Start a short-lived goroutine to retrieve the initial list of
