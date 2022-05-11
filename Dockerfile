@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.18.1
+ARG GO_VERSION=1.18.2
 ARG XX_VERSION=1.1.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
