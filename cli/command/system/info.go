@@ -67,11 +67,12 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
-	var info info
-
-	info.ClientInfo = &clientInfo{
-		Context: dockerCli.CurrentContext(),
-		Debug:   debug.IsEnabled(),
+	info := info{
+		ClientInfo: &clientInfo{
+			Context: dockerCli.CurrentContext(),
+			Debug:   debug.IsEnabled(),
+		},
+		Info: &types.Info{},
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -85,6 +86,16 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 			info.Info = &dinfo
 		} else {
 			info.ServerErrors = append(info.ServerErrors, err.Error())
+			if opts.format == "" {
+				// reset the server info to prevent printing "empty" Server info
+				// and warnings, but don't reset it if a custom format was specified
+				// to prevent errors from Go's template parsing during format.
+				info.Info = nil
+			} else {
+				// if a format is provided, print the error, as it may be hidden
+				// otherwise if the template doesn't include the ServerErrors field.
+				fmt.Fprintln(dockerCli.Err(), err)
+			}
 		}
 	}
 
