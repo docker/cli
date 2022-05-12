@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,7 @@ func NewTagCommand(dockerCli command.Cli) *cobra.Command {
 			opts.name = args[1]
 			return runTag(dockerCli, opts)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 
 	flags := cmd.Flags()

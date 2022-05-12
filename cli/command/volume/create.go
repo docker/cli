@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
@@ -38,6 +39,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCreate(dockerCli, options)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&options.driver, "driver", "d", "local", "Specify volume driver name")
