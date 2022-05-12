@@ -16,7 +16,7 @@ func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{
 			"version": "1.30",
-			"swarm":   "",
+			"swarm":   "manager",
 		},
 	}
 	cmd.AddCommand(

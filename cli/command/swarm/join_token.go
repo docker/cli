@@ -28,6 +28,10 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 			opts.role = args[0]
 			return runJoinToken(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
+		},
 	}
 
 	flags := cmd.Flags()
