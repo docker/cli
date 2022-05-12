@@ -87,8 +87,8 @@ github.com/cockroachdb/datadriven v0.0.0-20200714090401-bf6692d28da5/go.mod h1:h
 github.com/cockroachdb/errors v1.2.4/go.mod h1:rQD95gz6FARkaKkQXUksEje/d9a6wBJoCr5oaCLELYA=
 github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f/go.mod h1:i/u985jwjWRlyHXQbwatDASoW0RMlZ/3i9yJHE2xLkI=
 github.com/containerd/console v1.0.3/go.mod h1:7LqA/THxQ86k76b8c/EMSiaJ3h1eZkMkXar0TQ1gf3U=
-github.com/containerd/containerd v1.6.3 h1:JfgUEIAH07xDWk6kqz0P3ArZt+KJ9YeihSC9uyFtSKg=
-github.com/containerd/containerd v1.6.3/go.mod h1:gCVGrYRYFm2E8GmuUIbj/NGD7DLZQLzSJQazjVKDOig=
+github.com/containerd/containerd v1.6.4 h1:SEDZBp10mhCp+hkO3Njz/YhGrI7ah3edNcUlRdUPOgg=
+github.com/containerd/containerd v1.6.4/go.mod h1:oWOqbuJUZmOVafhA0lj2NAXbiO1u7F0K5l1bUgdyo94=
 github.com/containerd/continuity v0.2.3-0.20220330195504-d132b287edc8 h1:yGFEcFNMhze29DxAAB33v/1OMRYF/cM9iwwgV2P0ZrE=
 github.com/coreos/go-systemd/v22 v22.3.2/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
@@ -105,8 +105,8 @@ github.com/denisenkom/go-mssqldb v0.0.0-20191128021309-1d7a30a10f73/go.mod h1:xb
 github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/distribution v2.8.1+incompatible h1:Q50tZOPR6T/hjNsyc9g8/syEs6bk8XXApsHjKukMl68=
 github.com/docker/distribution v2.8.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
-github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible h1:Bs9PQ1/7QUa5bvhBiQNK2b39Ve3gU1o0Lr4ZfNUk1gc=
-github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v20.10.3-0.20220512073244-7c69b6dc08c7+incompatible h1:QNoUa4JDYdN4PQOdB89GO9urFixZfrKTH2qcxCthbYk=
+github.com/docker/docker v20.10.3-0.20220512073244-7c69b6dc08c7+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.6.4 h1:axCks+yV+2MR3/kZhAmy07yC56WZ2Pwu/fKWtKuZB0o=
 github.com/docker/docker-credential-helpers v0.6.4/go.mod h1:ofX3UI0Gz1TteYBjtgs07O36Pyasyp66D2uKT7H8W1c=
 github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c h1:lzqkGL9b3znc+ZUgi7FlLnqjQhcXxkNM/quxIjBVMD0=
@@ -276,8 +276,8 @@ github.com/miekg/pkcs11 v1.1.1/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WT
 github.com/mitchellh/mapstructure v1.0.0/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.3.2 h1:mRS76wmkOn3KkKAyXDu42V+6ebnXWIztFSYGN7GeoRg=
 github.com/mitchellh/mapstructure v1.3.2/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/moby/buildkit v0.10.2 h1:jywa+mPPtsfCQqpIbt72RUKf49hTTCirTqIs4LG0n+8=
-github.com/moby/buildkit v0.10.2/go.mod h1:jxeOuly98l9gWHai0Ojrbnczrk/rf+o9/JqNhY+UCSo=
+github.com/moby/buildkit v0.10.3 h1:/dGykD8FW+H4p++q5+KqKEo6gAkYKyBQHdawdjVwVAU=
+github.com/moby/buildkit v0.10.3/go.mod h1:jxeOuly98l9gWHai0Ojrbnczrk/rf+o9/JqNhY+UCSo=
 github.com/moby/swarmkit/v2 v2.0.0-20220420172245-6068d1894d46 h1:FVr9eatIpN7PlE2ZHP850rIJ6AQoZxoZvPSDR+WQY38=
 github.com/moby/swarmkit/v2 v2.0.0-20220420172245-6068d1894d46/go.mod h1:/so6Lct4y1x14UprW/loFsOe6xoXVTlvh25V36ULXNQ=
 github.com/moby/sys/mountinfo v0.5.0/go.mod h1:3bMD3Rg+zkqx8MRYPi7Pyb0Ie97QEBmdxbhnCLlSvSU=

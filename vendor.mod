@@ -7,7 +7,7 @@ module github.com/docker/cli
 go 1.17
 
 require (
-	github.com/containerd/containerd v1.6.3
+	github.com/containerd/containerd v1.6.4
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v20.10.14+incompatible // see "replace" for the actual version
@@ -21,7 +21,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.10.2
+	github.com/moby/buildkit v0.10.3
 	github.com/moby/swarmkit/v2 v2.0.0-20220420172245-6068d1894d46
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
@@ -76,7 +76,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible // master (v22.04-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220512073244-7c69b6dc08c7+incompatible // master (v22.06-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via

@@ -12,7 +12,7 @@ github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/containerd/containerd v1.6.3
+# github.com/containerd/containerd v1.6.4
 ## explicit; go 1.17
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
@@ -39,7 +39,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v20.10.14+incompatible => github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible
+# github.com/docker/docker v20.10.14+incompatible => github.com/docker/docker v20.10.3-0.20220512073244-7c69b6dc08c7+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -153,7 +153,7 @@ github.com/miekg/pkcs11
 # github.com/mitchellh/mapstructure v1.3.2
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/moby/buildkit v0.10.2
+# github.com/moby/buildkit v0.10.3
 ## explicit; go 1.17
 github.com/moby/buildkit/frontend/dockerfile/dockerignore
 github.com/moby/buildkit/util/appcontext
@@ -390,6 +390,6 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220429181837-2ed904cad705+incompatible
+# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220512073244-7c69b6dc08c7+incompatible
 # github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 # github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20
