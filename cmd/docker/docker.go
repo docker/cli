@@ -47,10 +47,15 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 		},
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd:   false,
+			HiddenDefaultCmd:    true,
+			DisableDescriptions: true,
+		},
 	}
 	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
+	registerCompletionFuncForGlobalFlags(dockerCli, cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
-
 	setFlagErrorFunc(dockerCli, cmd)
 
 	setupHelpCommand(dockerCli, cmd, helpCmd)
@@ -95,13 +100,10 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 		if len(args) > 0 {
 			helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
 			if err == nil {
-				err = helpcmd.Run()
-				if err != nil {
-					return err
-				}
+				return helpcmd.Run()
 			}
 			if !pluginmanager.IsNotFound(err) {
-				return err
+				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
 			}
 		}
 		if origRunE != nil {
@@ -129,25 +131,13 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		// Add a stub entry for every plugin so they are
-		// included in the help output and so that
-		// `tryRunPluginHelp` can find them or if we fall
-		// through they will be included in the default help
-		// output.
-		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root()); err != nil {
-			ccmd.Println(err)
-			return
-		}
-
-		if len(args) >= 1 {
+		if ccmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true" {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
-			if err == nil { // Successfully ran the plugin
-				return
-			}
 			if !pluginmanager.IsNotFound(err) {
 				ccmd.Println(err)
-				return
 			}
+			cmd.PrintErrf("unknown help topic: %v\n", ccmd.Name())
+			return
 		}
 
 		if err := isSupported(ccmd, dockerCli); err != nil {
@@ -163,7 +153,7 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func setValidateArgs(dockerCli *command.DockerCli, cmd *cobra.Command) {
+func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
 	// As a result, here we replace the existing Args validation func to a wrapper,
 	// where the wrapper will check to see if the feature is supported or not.
@@ -228,13 +218,19 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
+	err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
+	if err != nil {
+		return err
+	}
+
 	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
 	if err != nil {
 		return err
 	}
 
 	if len(args) > 0 {
-		if _, _, err := cmd.Find(args); err != nil {
+		command, _, err := cmd.Find(args)
+		if err != nil || command.Annotations[pluginmanager.CommandAnnotationPlugin] == "true" {
 			err := tryPluginRun(dockerCli, cmd, args[0])
 			if !pluginmanager.IsNotFound(err) {
 				return err

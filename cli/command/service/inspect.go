@@ -35,6 +35,9 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runInspect(dockerCli, opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return CompletionFn(dockerCli)(cmd, args, toComplete)
+		},
 	}
 
 	flags := cmd.Flags()

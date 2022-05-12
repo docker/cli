@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
 	"github.com/spf13/cobra"
@@ -36,6 +37,13 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 			options.network = args[0]
 			options.container = args[1]
 			return runConnect(dockerCli, options)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if len(args) == 0 {
+				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
+			}
+			network := args[0]
+			return completion.ContainerNames(dockerCli, true, not(isConnected(network)))(cmd, args, toComplete)
 		},
 	}
 

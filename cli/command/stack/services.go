@@ -32,6 +32,9 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return RunServices(dockerCli, cmd.Flags(), opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
+		},
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display IDs")

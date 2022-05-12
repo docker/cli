@@ -1,10 +1,11 @@
 package service
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types"
+	"github.com/spf13/cobra"
 )
 
 // NewServiceCommand returns a cobra command for `service` subcommands
@@ -31,4 +32,19 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 		newRollbackCommand(dockerCli),
 	)
 	return cmd
+}
+
+// CompletionFn offers completion for swarm services
+func CompletionFn(dockerCli command.Cli) completion.ValidArgsFn {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		list, err := dockerCli.Client().ServiceList(cmd.Context(), types.ServiceListOptions{})
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		var names []string
+		for _, service := range list {
+			names = append(names, service.ID)
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
+	}
 }

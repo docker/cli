@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/debug"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
@@ -57,6 +58,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "12",
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

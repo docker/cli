@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/swarm/progress"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -39,6 +40,7 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 			"version": "1.30",
 			"swarm":   "manager",
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

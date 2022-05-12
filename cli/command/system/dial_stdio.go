@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -22,6 +23,7 @@ func newDialStdioCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runDialStdio(dockerCli)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	return cmd
 }

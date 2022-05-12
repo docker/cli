@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
@@ -43,6 +44,9 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 			opts.Containers = args
 			return RunStart(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(container types.Container) bool {
+			return container.State == "exited" || container.State == "created"
+		}),
 	}
 
 	flags := cmd.Flags()

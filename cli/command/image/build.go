@@ -108,6 +108,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "4",
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveFilterDirs
+		},
 	}
 
 	flags := cmd.Flags()

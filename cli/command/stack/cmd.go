@@ -5,6 +5,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
 )
 
@@ -41,4 +43,19 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("orchestrator", "deprecated", nil)
 	flags.MarkDeprecated("orchestrator", "option will be ignored")
 	return cmd
+}
+
+// completeNames offers completion for swarm stacks
+func completeNames(dockerCli command.Cli) completion.ValidArgsFn {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		list, err := swarm.GetStacks(dockerCli)
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		var names []string
+		for _, stack := range list {
+			names = append(names, stack.Name)
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
+	}
 }

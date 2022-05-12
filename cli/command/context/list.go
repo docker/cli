@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	flagsHelper "github.com/docker/cli/cli/flags"
@@ -30,6 +31,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(dockerCli, opts)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

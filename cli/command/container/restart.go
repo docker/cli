@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -32,6 +33,7 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 			opts.nSecondsChanged = cmd.Flags().Changed("time")
 			return runRestart(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()

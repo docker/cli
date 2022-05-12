@@ -125,6 +125,11 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 		},
 		TraverseChildren:      true,
 		DisableFlagsInUseLine: true,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd:   false,
+			HiddenDefaultCmd:    true,
+			DisableDescriptions: true,
+		},
 	}
 	opts, flags := cli.SetupPluginRootCommand(cmd)
 

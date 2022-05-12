@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 			"version": "1.24",
 			"swarm":   "manager",
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	return cmd

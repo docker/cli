@@ -10,6 +10,7 @@ import (
 	"github.com/containerd/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
@@ -56,6 +57,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCreate(dockerCli, cmd.Flags(), &opts, copts)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 
 	flags := cmd.Flags()

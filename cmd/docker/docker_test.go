@@ -42,6 +42,7 @@ func runCliCommand(t *testing.T, r io.ReadCloser, w io.Writer, args ...string) e
 	cli, err := command.NewDockerCli(command.WithInputStream(r), command.WithCombinedStreams(w))
 	assert.NilError(t, err)
 	tcmd := newDockerCommand(cli)
+
 	tcmd.SetArgs(args)
 	cmd, _, err := tcmd.HandleGlobalFlags()
 	assert.NilError(t, err)

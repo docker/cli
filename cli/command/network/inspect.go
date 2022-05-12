@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
@@ -28,6 +29,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.names = args
 			return runInspect(dockerCli, opts)
 		},
+		ValidArgsFunction: completion.NetworkNames(dockerCli),
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)

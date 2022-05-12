@@ -28,6 +28,9 @@ func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runScale(dockerCli, options, args)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return CompletionFn(dockerCli)(cmd, args, toComplete)
+		},
 	}
 
 	flags := cmd.Flags()
