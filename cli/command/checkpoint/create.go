@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 )
@@ -29,6 +30,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			opts.checkpoint = args[1]
 			return runCreate(dockerCli, opts)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

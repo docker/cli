@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/system"
@@ -36,6 +37,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 			createOpts.File = args[1]
 			return RunConfigCreate(dockerCli, createOpts)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
 	flags.VarP(&createOpts.Labels, "label", "l", "Config labels")
