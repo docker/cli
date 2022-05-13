@@ -22,11 +22,17 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(dockerCli, args[0], availability, cmd.Flags())
 		},
+		Annotations: map[string]string{
+			"version": "1.42",
+			"swarm":   "manager",
+		},
 		ValidArgsFunction: completion.VolumeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
 	flags.StringVar(&availability, "availability", "active", `Cluster Volume availability ("active"|"pause"|"drain")`)
+	flags.SetAnnotation("availability", "version", []string{"1.42"})
+	flags.SetAnnotation("availability", "swarm", []string{"manager"})
 
 	return cmd
 }

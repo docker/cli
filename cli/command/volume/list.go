@@ -44,6 +44,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'dangling=true')")
 	flags.BoolVar(&options.cluster, "cluster", false, "Display only cluster volumes, and use cluster volume list formatting")
+	flags.SetAnnotation("cluster", "version", []string{"1.42"})
+	flags.SetAnnotation("cluster", "swarm", []string{"manager"})
 
 	return cmd
 }
