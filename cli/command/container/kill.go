@@ -34,7 +34,7 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.signal, "signal", "s", "KILL", "Signal to send to the container")
+	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
 	return cmd
 }
 
