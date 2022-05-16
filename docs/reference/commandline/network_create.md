@@ -49,9 +49,17 @@ create new ones using the `network create` command.
 $ docker network create -d bridge my-bridge-network
 ```
 
+![resim](https://user-images.githubusercontent.com/31003683/125525581-a0b20f9c-efdb-4029-928d-4d68e1c672fe.png)
+
+
 Bridge networks are isolated networks on a single Engine installation. If you
 want to create a network that spans multiple Docker hosts each running an
-Engine, you must create an `overlay` network. Unlike `bridge` networks, overlay
+Engine, you must create an `overlay` network. 
+
+![resim](https://user-images.githubusercontent.com/31003683/125526204-763ceb96-4c87-434b-8467-c176136142bd.png)
+
+
+Unlike `bridge` networks, overlay
 networks require some pre-existing conditions before you can create one. These
 conditions are:
 
