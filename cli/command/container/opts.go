@@ -506,7 +506,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
-	securityOpts, err := parseSecurityOpts(copts.securityOpt.GetAll())
+	securityOpts, err := ParseSecurityOpts(copts.securityOpt.GetAll(), filepath.Abs)
 	if err != nil {
 		return nil, err
 	}
@@ -849,9 +849,10 @@ func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]st
 	return loggingOptsMap, nil
 }
 
-// takes a local seccomp daemon, reads the file contents for sending to the daemon
-func parseSecurityOpts(securityOpts []string) ([]string, error) {
-	for key, opt := range securityOpts {
+// ParseSecurityOpts takes a local seccomp daemon, reads the file contents for sending to the daemon
+func ParseSecurityOpts(securityOpts []string, rel func(path string) (string, error)) ([]string, error) {
+	var parsed []string
+	for _, opt := range securityOpts {
 		con := strings.SplitN(opt, "=", 2)
 		if len(con) == 1 && con[0] != "no-new-privileges" {
 			if strings.Contains(opt, ":") {
@@ -861,7 +862,11 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 			}
 		}
 		if con[0] == "seccomp" && con[1] != "unconfined" {
-			f, err := os.ReadFile(con[1])
+			s, err := rel(con[1])
+			if err != nil {
+				return securityOpts, errors.Errorf("accessing seccomp profile (%s) failed: %v", con[1], err)
+			}
+			f, err := os.ReadFile(s)
 			if err != nil {
 				return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", con[1], err)
 			}
@@ -869,7 +874,9 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 			if err := json.Compact(b, f); err != nil {
 				return securityOpts, errors.Errorf("compacting json for seccomp profile (%s) failed: %v", con[1], err)
 			}
-			securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
+			parsed = append(parsed, fmt.Sprintf("seccomp=%s", b.Bytes()))
+		} else {
+			parsed = append(parsed, opt)
 		}
 	}
 
