@@ -321,8 +321,6 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	}
 
 	fmt.Fprintln(dockerCli.Out(), " Experimental:", info.ExperimentalBuild)
-	fprintlnNonEmpty(dockerCli.Out(), " Cluster Store:", info.ClusterStore)
-	fprintlnNonEmpty(dockerCli.Out(), " Cluster Advertise:", info.ClusterAdvertise)
 
 	if info.RegistryConfig != nil && (len(info.RegistryConfig.InsecureRegistryCIDRs) > 0 || len(info.RegistryConfig.IndexConfigs) > 0) {
 		fmt.Fprintln(dockerCli.Out(), " Insecure Registries:")
