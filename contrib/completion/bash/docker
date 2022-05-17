@@ -2523,9 +2523,6 @@ _docker_daemon() {
 		--bip
 		--bridge -b
 		--cgroup-parent
-		--cluster-advertise
-		--cluster-store
-		--cluster-store-opt
 		--config-file
 		--containerd
 		--containerd-namespace
@@ -2574,15 +2571,6 @@ _docker_daemon() {
 
 	__docker_complete_log_driver_options && return
 
- 	key=$(__docker_map_key_of_current_option '--cluster-store-opt')
- 	case "$key" in
- 		kv.*file)
-			cur=${cur##*=}
- 			_filedir
- 			return
- 			;;
- 	esac
-
  	local key=$(__docker_map_key_of_current_option '--storage-opt')
  	case "$key" in
  		dm.blkdiscard|dm.override_udev_sync_check|dm.use_deferred_removal|dm.use_deferred_deletion)
@@ -2607,16 +2595,6 @@ _docker_daemon() {
 	case "$prev" in
 		--authorization-plugin)
 			__docker_complete_plugins_bundled --type Authorization
-			return
-			;;
-		--cluster-store)
-			COMPREPLY=( $( compgen -W "consul etcd zk" -S "://" -- "$cur" ) )
-			__docker_nospace
-			return
-			;;
-		--cluster-store-opt)
-			COMPREPLY=( $( compgen -W "discovery.heartbeat discovery.ttl kv.cacertfile kv.certfile kv.keyfile kv.path" -S = -- "$cur" ) )
-			__docker_nospace
 			return
 			;;
 		--config-file|--containerd|--init-path|--pidfile|-p|--tlscacert|--tlscert|--tlskey|--userland-proxy-path)
