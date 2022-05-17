@@ -123,3 +123,100 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(name, strings.TrimSpace(cli.OutBuffer().String())))
 }
+
+func TestVolumeCreateCluster(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
+			if body.Driver == "csi" && body.ClusterVolumeSpec == nil {
+				return volume.Volume{}, errors.New("expected ClusterVolumeSpec, but none present")
+			}
+			if body.Driver == "notcsi" && body.ClusterVolumeSpec != nil {
+				return volume.Volume{}, errors.New("expected no ClusterVolumeSpec, but present")
+			}
+			return volume.Volume{}, nil
+		},
+	})
+
+	cmd := newCreateCommand(cli)
+	cmd.Flags().Set("type", "block")
+	cmd.Flags().Set("group", "gronp")
+	cmd.Flags().Set("driver", "csi")
+	cmd.SetArgs([]string{"name"})
+
+	assert.NilError(t, cmd.Execute())
+
+	cmd = newCreateCommand(cli)
+	cmd.Flags().Set("driver", "notcsi")
+	cmd.SetArgs([]string{"name"})
+
+	assert.NilError(t, cmd.Execute())
+}
+
+func TestVolumeCreateClusterOpts(t *testing.T) {
+	expectedBody := volume.CreateOptions{
+		Name:       "name",
+		Driver:     "csi",
+		DriverOpts: map[string]string{},
+		Labels:     map[string]string{},
+		ClusterVolumeSpec: &volume.ClusterVolumeSpec{
+			Group: "gronp",
+			AccessMode: &volume.AccessMode{
+				Scope:   volume.ScopeMultiNode,
+				Sharing: volume.SharingOneWriter,
+				// TODO(dperny): support mount options
+				MountVolume: &volume.TypeMount{},
+			},
+			// TODO(dperny): topology requirements
+			CapacityRange: &volume.CapacityRange{
+				RequiredBytes: 1234,
+				LimitBytes:    567890,
+			},
+			Secrets: []volume.Secret{
+				{Key: "key1", Secret: "secret1"},
+				{Key: "key2", Secret: "secret2"},
+			},
+			Availability: volume.AvailabilityActive,
+			AccessibilityRequirements: &volume.TopologyRequirement{
+				Requisite: []volume.Topology{
+					{Segments: map[string]string{"region": "R1", "zone": "Z1"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z2"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z3"}},
+				},
+				Preferred: []volume.Topology{
+					{Segments: map[string]string{"region": "R1", "zone": "Z2"}},
+					{Segments: map[string]string{"region": "R1", "zone": "Z3"}},
+				},
+			},
+		},
+	}
+
+	cli := test.NewFakeCli(&fakeClient{
+		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
+			assert.DeepEqual(t, body, expectedBody)
+			return volume.Volume{}, nil
+		},
+	})
+
+	cmd := newCreateCommand(cli)
+	cmd.SetArgs([]string{"name"})
+	cmd.Flags().Set("driver", "csi")
+	cmd.Flags().Set("group", "gronp")
+	cmd.Flags().Set("scope", "multi")
+	cmd.Flags().Set("sharing", "onewriter")
+	cmd.Flags().Set("type", "mount")
+	cmd.Flags().Set("sharing", "onewriter")
+	cmd.Flags().Set("required-bytes", "1234")
+	cmd.Flags().Set("limit-bytes", "567890")
+
+	cmd.Flags().Set("secret", "key1=secret1")
+	cmd.Flags().Set("secret", "key2=secret2")
+
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z1")
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z2")
+	cmd.Flags().Set("topology-required", "region=R1,zone=Z3")
+
+	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z2")
+	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z3")
+
+	cmd.Execute()
+}

@@ -1,6 +1,7 @@
 package formatter
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -12,10 +13,13 @@ const (
 	defaultVolumeQuietFormat = "{{.Name}}"
 	defaultVolumeTableFormat = "table {{.Driver}}\t{{.Name}}"
 
-	volumeNameHeader = "VOLUME NAME"
-	mountpointHeader = "MOUNTPOINT"
-	linksHeader      = "LINKS"
-	// Status header ?
+	idHeader           = "ID"
+	volumeNameHeader   = "VOLUME NAME"
+	mountpointHeader   = "MOUNTPOINT"
+	linksHeader        = "LINKS"
+	groupHeader        = "GROUP"
+	availabilityHeader = "AVAILABILITY"
+	statusHeader       = "STATUS"
 )
 
 // NewVolumeFormat returns a format for use with a volume Context
@@ -56,13 +60,17 @@ type volumeContext struct {
 func newVolumeContext() *volumeContext {
 	volumeCtx := volumeContext{}
 	volumeCtx.Header = SubHeaderContext{
-		"Name":       volumeNameHeader,
-		"Driver":     DriverHeader,
-		"Scope":      ScopeHeader,
-		"Mountpoint": mountpointHeader,
-		"Labels":     LabelsHeader,
-		"Links":      linksHeader,
-		"Size":       SizeHeader,
+		"ID":           idHeader,
+		"Name":         volumeNameHeader,
+		"Group":        groupHeader,
+		"Driver":       DriverHeader,
+		"Scope":        ScopeHeader,
+		"Availability": availabilityHeader,
+		"Mountpoint":   mountpointHeader,
+		"Labels":       LabelsHeader,
+		"Links":        linksHeader,
+		"Size":         SizeHeader,
+		"Status":       statusHeader,
 	}
 	return &volumeCtx
 }
@@ -118,4 +126,40 @@ func (c *volumeContext) Size() string {
 		return "N/A"
 	}
 	return units.HumanSize(float64(c.v.UsageData.Size))
+}
+
+func (c *volumeContext) Group() string {
+	if c.v.ClusterVolume == nil {
+		return "N/A"
+	}
+
+	return c.v.ClusterVolume.Spec.Group
+}
+
+func (c *volumeContext) Availability() string {
+	if c.v.ClusterVolume == nil {
+		return "N/A"
+	}
+
+	return string(c.v.ClusterVolume.Spec.Availability)
+}
+
+func (c *volumeContext) Status() string {
+	if c.v.ClusterVolume == nil {
+		return "N/A"
+	}
+
+	if c.v.ClusterVolume.Info == nil || c.v.ClusterVolume.Info.VolumeID == "" {
+		return "pending creation"
+	}
+
+	l := len(c.v.ClusterVolume.PublishStatus)
+	switch l {
+	case 0:
+		return "created"
+	case 1:
+		return "in use (1 node)"
+	default:
+		return fmt.Sprintf("in use (%d nodes)", l)
+	}
 }
