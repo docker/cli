@@ -12,8 +12,8 @@ Usage:  docker restart [OPTIONS] CONTAINER [CONTAINER...]
 Restart one or more containers
 
 Options:
-      --help       Print usage
-  -t, --time int   Seconds to wait for stop before killing the container (default 10)
+  -s, --signal string   Signal to send to the container
+  -t, --time int        Seconds to wait before killing the container
 ```
 
 ## Examples
