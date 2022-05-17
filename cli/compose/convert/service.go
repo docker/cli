@@ -616,11 +616,21 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	serviceMode := swarm.ServiceMode{}
 
 	switch mode {
+	case "global-job":
+		if replicas != nil {
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+		}
+		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	case "global":
 		if replicas != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 		serviceMode.Global = &swarm.GlobalService{}
+	case "replicated-job":
+		serviceMode.ReplicatedJob = &swarm.ReplicatedJob{
+			MaxConcurrent:    replicas,
+			TotalCompletions: replicas,
+		}
 	case "replicated", "":
 		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: replicas}
 	default:
