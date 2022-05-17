@@ -98,8 +98,6 @@ var sampleInfoNoSwarm = types.Info{
 	Labels:            []string{"provider=digitalocean"},
 	ExperimentalBuild: false,
 	ServerVersion:     "17.06.1-ce",
-	ClusterStore:      "",
-	ClusterAdvertise:  "",
 	Runtimes: map[string]types.Runtime{
 		"runc": {
 			Path: "docker-runc",

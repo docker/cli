@@ -51,33 +51,23 @@ $ docker network create -d bridge my-bridge-network
 
 Bridge networks are isolated networks on a single Engine installation. If you
 want to create a network that spans multiple Docker hosts each running an
-Engine, you must create an `overlay` network. Unlike `bridge` networks, overlay
-networks require some pre-existing conditions before you can create one. These
-conditions are:
+Engine, you must enable Swarm mode, and create an `overlay` network. To read more
+about overlay networks with Swarm mode, see ["*use overlay networks*"](https://docs.docker.com/network/overlay/).
 
-* Access to a key-value store. Engine supports Consul, Etcd, and ZooKeeper (Distributed store) key-value stores.
-* A cluster of hosts with connectivity to the key-value store.
-* A properly configured Engine `daemon` on each host in the cluster.
-
-The `dockerd` options that support the `overlay` network are:
-
-* `--cluster-store`
-* `--cluster-store-opt`
-* `--cluster-advertise`
-
-To read more about these options and how to configure them, see ["*Get started
-with multi-host network*"](https://docs.docker.com/engine/userguide/networking/get-started-overlay).
-
-While not required, it is a good idea to install Docker Swarm to
-manage the cluster that makes up your network. Swarm provides sophisticated
-discovery and server management tools that can assist your implementation.
-
-Once you have prepared the `overlay` network prerequisites you simply choose a
-Docker host in the cluster and issue the following to create the network:
+Once you have enabled swarm mode, you can create a swarm-scoped overlay network:
 
 ```console
-$ docker network create -d overlay my-multihost-network
+$ docker network create --scope=swarm --attachable -d overlay my-multihost-network
 ```
+
+By default, swarm-scoped networks do not allow manually started containers to
+be attached. This restriction is added to prevent someone that has access to
+a non-manager node in the swarm cluster from running a container that is able
+to access the network stack of a swarm service.
+
+The `--attachable` option used in the example above disables this restriction,
+and allows for both swarm services and manually started containers to attach to
+the oerlay network.
 
 Network names must be unique. The Docker daemon attempts to identify naming
 conflicts but this is not guaranteed. It is the user's responsibility to avoid
@@ -121,9 +111,9 @@ disconnect` command.
 ### Specify advanced options
 
 When you create a network, Engine creates a non-overlapping subnetwork for the
-network by default. This subnetwork is not a subdivision of an existing
-network. It is purely for ip-addressing purposes. You can override this default
-and specify subnetwork values directly using the `--subnet` option. On a
+network by default. This subnetwork is not a subdivision of an existing network.
+It is purely for ip-addressing purposes. You can override this default and
+specify subnetwork values directly using the `--subnet` option. On a
 `bridge` network you can only create a single subnet:
 
 ```console
@@ -219,6 +209,43 @@ $ docker network create -d overlay \
   --opt com.docker.network.driver.mtu=9216 \
   --opt encrypted=true \
   my-ingress-network
+```
+
+### Run services on predefined networks
+
+You can create services on the predefined docker networks `bridge` and `host`.
+
+```console
+$ docker service create --name my-service \
+  --network host \
+  --replicas 2 \
+  busybox top
+```
+
+### Swarm networks with local scope drivers
+
+You can create a swarm network with local scope network drivers. You do so
+by promoting the network scope to `swarm` during the creation of the network.
+You will then be able to use this network when creating services.
+
+```console
+$ docker network create -d bridge \
+  --scope swarm \
+  --attachable \
+  swarm-network
+```
+
+For network drivers which provide connectivity across hosts (ex. macvlan), if
+node specific configurations are needed in order to plumb the network on each
+host, you will supply that configuration via a configuration only network.
+When you create the swarm scoped network, you will then specify the name of the
+network which contains the configuration.
+
+
+```console
+node1$ docker network create --config-only --subnet 192.168.100.0/24 --gateway 192.168.100.115 mv-config
+node2$ docker network create --config-only --subnet 192.168.200.0/24 --gateway 192.168.200.202 mv-config
+node1$ docker network create -d macvlan --scope swarm --config-from mv-config --attachable swarm-network
 ```
 
 ## Related commands

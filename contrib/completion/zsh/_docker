@@ -2731,9 +2731,6 @@ __docker_subcommand() {
                 "($help -b --bridge)"{-b=,--bridge=}"[Attach containers to a network bridge]:bridge:_net_interfaces" \
                 "($help)--bip=[Network bridge IP]:IP address: " \
                 "($help)--cgroup-parent=[Parent cgroup for all containers]:cgroup: " \
-                "($help)--cluster-advertise=[Address or interface name to advertise]:Instance to advertise (host\:port): " \
-                "($help)--cluster-store=[URL of the distributed storage backend]:Cluster Store:->cluster-store" \
-                "($help)*--cluster-store-opt=[Cluster store options]:Cluster options:->cluster-store-options" \
                 "($help)--config-file=[Path to daemon configuration file]:Config File:_files" \
                 "($help)--containerd=[Path to containerd socket]:socket:_files -g \"*.sock\"" \
                 "($help)--containerd-namespace=[Containerd namespace to use]:containerd namespace:" \
@@ -2792,22 +2789,6 @@ __docker_subcommand() {
                 "($help)--validate[Validate daemon configuration and exit]" && ret=0
 
             case $state in
-                (cluster-store)
-                    if compset -P '*://'; then
-                        _message 'host:port' && ret=0
-                    else
-                        store=('consul' 'etcd' 'zk')
-                        _describe -t cluster-store "Cluster Store" store -qS "://" && ret=0
-                    fi
-                    ;;
-                (cluster-store-options)
-                    if compset -P '*='; then
-                        _files && ret=0
-                    else
-                        opts=('discovery.heartbeat' 'discovery.ttl' 'kv.cacertfile' 'kv.certfile' 'kv.keyfile' 'kv.path')
-                        _describe -t cluster-store-opts "Cluster Store Options" opts -qS "=" && ret=0
-                    fi
-                    ;;
                 (users-groups)
                     if compset -P '*:'; then
                         _groups && ret=0

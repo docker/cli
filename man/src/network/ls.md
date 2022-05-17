@@ -1,18 +1,18 @@
 Lists all the networks the Engine `daemon` knows about. This includes the
 networks that span across multiple hosts in a cluster, for example:
 
-```bash
-    $ docker network ls
-    NETWORK ID          NAME                DRIVER          SCOPE
-    7fca4eb8c647        bridge              bridge          local
-    9f904ee27bf5        none                null            local
-    cf03ee007fb4        host                host            local
-    78b03ee04fc4        multi-host          overlay         swarm
+```console
+$ docker network ls
+NETWORK ID          NAME                DRIVER          SCOPE
+7fca4eb8c647        bridge              bridge          local
+9f904ee27bf5        none                null            local
+cf03ee007fb4        host                host            local
+78b03ee04fc4        multi-host          overlay         swarm
 ```
 
 Use the `--no-trunc` option to display the full network id:
 
-```bash
+```console
 $ docker network ls --no-trunc
 NETWORK ID                                                         NAME                DRIVER
 18a2866682b85619a026c81b98a5e375bd33e1b0936a26cc497c283d27bae9b3   none                null                
@@ -44,7 +44,7 @@ The `driver` filter matches networks based on their driver.
 
 The following example matches networks with the `bridge` driver:
 
-```bash
+```console
 $ docker network ls --filter driver=bridge
 NETWORK ID          NAME                DRIVER
 db9db329f835        test1               bridge
@@ -58,7 +58,7 @@ The `id` filter matches on all or part of a network's ID.
 The following filter matches all networks with an ID containing the
 `63d1ff1f77b0...` string.
 
-```bash
+```console
 $ docker network ls --filter id=63d1ff1f77b07ca51070a8c227e962238358bd310bde1529cf62e6c307ade161
 NETWORK ID          NAME                DRIVER
 63d1ff1f77b0        dev                 bridge
@@ -66,7 +66,7 @@ NETWORK ID          NAME                DRIVER
 
 You can also filter for a substring in an ID as this shows:
 
-```bash
+```console
 $ docker network ls --filter id=95e74588f40d
 NETWORK ID          NAME                DRIVER
 95e74588f40d        foo                 bridge
@@ -83,7 +83,7 @@ value.
 
 The following filter matches networks with the `usage` label regardless of its value.
 
-```bash
+```console
 $ docker network ls -f "label=usage"
 NETWORK ID          NAME                DRIVER
 db9db329f835        test1               bridge              
@@ -92,7 +92,7 @@ f6e212da9dfd        test2               bridge
 
 The following filter matches networks with the `usage` label with the `prod` value.
 
-```bash
+```console
 $ docker network ls -f "label=usage=prod"
 NETWORK ID          NAME                DRIVER
 f6e212da9dfd        test2               bridge
@@ -104,7 +104,7 @@ The `name` filter matches on all or part of a network's name.
 
 The following filter matches all networks with a name containing the `foobar` string.
 
-```bash
+```console
 $ docker network ls --filter name=foobar
 NETWORK ID          NAME                DRIVER
 06e7eef0a170        foobar              bridge
@@ -112,7 +112,7 @@ NETWORK ID          NAME                DRIVER
 
 You can also filter for a substring in a name as this shows:
 
-```bash
+```console
 $ docker network ls --filter name=foo
 NETWORK ID          NAME                DRIVER
 95e74588f40d        foo                 bridge
@@ -125,7 +125,7 @@ The `scope` filter matches networks based on their scope.
 
 The following example matches networks with the `swarm` scope:
 
-```bash
+```console
 $ docker network ls --filter scope=swarm
 NETWORK ID          NAME                DRIVER              SCOPE
 xbtm0v4f1lfh        ingress             overlay             swarm
@@ -134,7 +134,7 @@ ic6r88twuu92        swarmnet            overlay             swarm
 
 The following example matches networks with the `local` scope:
 
-```bash
+```console
 $ docker network ls --filter scope=local
 NETWORK ID          NAME                DRIVER              SCOPE
 e85227439ac7        bridge              bridge              local
@@ -150,7 +150,7 @@ The `type` filter supports two values; `builtin` displays predefined networks
 
 The following filter matches all user defined networks:
 
-```bash
+```console
 $ docker network ls --filter type=custom
 NETWORK ID          NAME                DRIVER
 95e74588f40d        foo                 bridge
@@ -160,7 +160,7 @@ NETWORK ID          NAME                DRIVER
 By having this flag it allows for batch cleanup. For example, use this filter
 to delete all user defined networks:
 
-```bash
+```console
 $ docker network rm `docker network ls --filter type=custom -q`
 ```
 
