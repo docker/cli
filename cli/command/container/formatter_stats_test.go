@@ -308,3 +308,38 @@ func TestContainerStatsContextWriteTrunc(t *testing.T) {
 		out.Reset()
 	}
 }
+
+func BenchmarkStatsFormat(b *testing.B) {
+	b.ReportAllocs()
+	stats := genStats()
+
+	for i := 0; i < b.N; i++ {
+		for _, s := range stats {
+			_ = s.CPUPerc()
+			_ = s.MemUsage()
+			_ = s.MemPerc()
+			_ = s.NetIO()
+			_ = s.BlockIO()
+			_ = s.PIDs()
+		}
+	}
+}
+
+func genStats() []statsContext {
+	entry := statsContext{s: StatsEntry{
+		CPUPercentage:    12.3456789,
+		Memory:           123.456789,
+		MemoryLimit:      987.654321,
+		MemoryPercentage: 12.3456789,
+		BlockRead:        123.456789,
+		BlockWrite:       987.654321,
+		NetworkRx:        123.456789,
+		NetworkTx:        987.654321,
+		PidsCurrent:      123456789,
+	}}
+	stats := make([]statsContext, 100)
+	for i := 0; i < 100; i++ {
+		stats = append(stats, entry)
+	}
+	return stats
+}

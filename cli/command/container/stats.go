@@ -184,13 +184,13 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		waitFirst.Wait()
 
 		var errs []string
-		cStats.mu.Lock()
+		cStats.mu.RLock()
 		for _, c := range cStats.cs {
 			if err := c.GetError(); err != nil {
 				errs = append(errs, err.Error())
 			}
 		}
-		cStats.mu.Unlock()
+		cStats.mu.RUnlock()
 		if len(errs) > 0 {
 			return errors.New(strings.Join(errs, "\n"))
 		}
@@ -221,11 +221,11 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 	for range ticker.C {
 		cleanScreen()
 		ccstats := []StatsEntry{}
-		cStats.mu.Lock()
+		cStats.mu.RLock()
 		for _, c := range cStats.cs {
 			ccstats = append(ccstats, c.GetStatistics())
 		}
-		cStats.mu.Unlock()
+		cStats.mu.RUnlock()
 		if err = statsFormatWrite(statsCtx, ccstats, daemonOSType, !opts.noTrunc); err != nil {
 			break
 		}
