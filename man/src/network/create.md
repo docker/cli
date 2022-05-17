@@ -8,7 +8,7 @@ on. When you launch a new container with  `docker run` it automatically connects
 this bridge network. You cannot remove this default bridge network but you can
 create new ones using the `network create` command.
 
-```bash
+```console
 $ docker network create -d bridge my-bridge-network
 ```
 
@@ -39,7 +39,7 @@ discovery and server management that can assist your implementation.
 Once you have prepared the `overlay` network prerequisites you simply choose a
 Docker host in the cluster and issue the following to create the network:
 
-```bash
+```console
 $ docker network create -d overlay my-multihost-network
 ```
 
@@ -52,7 +52,7 @@ name conflicts.
 When you start a container use the `--network` flag to connect it to a network.
 This adds the `busybox` container to the `mynet` network.
 
-```bash
+```console
 $ docker run -itd --network=mynet busybox
 ```
 
@@ -76,14 +76,14 @@ It is purely for ip-addressing purposes. You can override this default and
 specify subnetwork values directly using the `--subnet` option. On a
 `bridge` network you can only create a single subnet:
 
-```bash
+```console
 $ docker network create -d bridge --subnet=192.168.0.0/16 br0
 ```
 
 Additionally, you also specify the `--gateway` `--ip-range` and `--aux-address`
 options.
 
-```bash
+```console
 $ docker network create \
   --driver=bridge \
   --subnet=172.28.0.0/16 \
@@ -96,7 +96,7 @@ If you omit the `--gateway` flag the Engine selects one for you from inside a
 preferred pool. For `overlay` networks and for network driver plugins that
 support it you can create multiple subnetworks.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=192.168.0.0/16 \
   --subnet=192.170.0.0/16 \
@@ -126,7 +126,7 @@ one ingress network can be created at the time. The network can be removed only
 if no services depend on it. Any option available when creating an overlay network
 is also available when creating the ingress network, besides the `--attachable` option.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=10.11.0.0/16 \
   --ingress \
@@ -139,7 +139,7 @@ $ docker network create -d overlay \
 
 You can create services on the predefined docker networks `bridge` and `host`.
 
-```bash
+```console
 $ docker service create --name my-service \
   --network host \
   --replicas 2 \
@@ -152,7 +152,7 @@ You can create a swarm network with local scope network drivers. You do so
 by promoting the network scope to `swarm` during the creation of the network. 
 You will then be able to use this network when creating services. 
 
-```bash
+```console
 $ docker network create -d bridge \
   --scope swarm \
   --attachable \
@@ -166,7 +166,7 @@ When you create the swarm scoped network, you will then specify the name of the
 network which contains the configuration.
 
 
-```bash
+```console
 node1$ docker network create --config-only --subnet 192.168.100.0/24 --gateway 192.168.100.115 mv-config
 node2$ docker network create --config-only --subnet 192.168.200.0/24 --gateway 192.168.200.202 mv-config
 node1$ docker network create -d macvlan --scope swarm --config-from mv-config --attachable swarm-network

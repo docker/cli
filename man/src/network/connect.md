@@ -2,15 +2,16 @@ Connects a container to a network. You can connect a container by name
 or by ID. Once connected, the container can communicate with other containers in
 the same network.
 
-```bash
+```console
 $ docker network connect multi-host-network container1
 ```
 
 You can also use the `docker run --network=<network-name>` option to start a container and immediately connect it to a network.
 
-```bash
+```console
 $ docker run -itd --network=multi-host-network --ip 172.20.88.22 --ip6 2001:db8::8822 busybox
 ```
+
 You can pause, restart, and stop containers that are connected to a network.
 A container connects to its configured networks when it runs.
 
@@ -21,11 +22,9 @@ to specify an `--ip-range` when creating the network, and choose the static IP
 address(es) from outside that range. This ensures that the IP address is not
 given to another container while this container is not on the network.
 
-```bash
+```console
 $ docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 multi-host-network
-```
 
-```bash
 $ docker network connect --ip 172.20.128.2 multi-host-network container2
 ```
 
