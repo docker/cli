@@ -117,7 +117,6 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 // nolint: gocyclo
 func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptions, containerConfig *containerConfig) error {
 	config := containerConfig.Config
-	hostConfig := containerConfig.HostConfig
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	client := dockerCli.Client()
 
@@ -137,11 +136,6 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		config.AttachStderr = false
 		config.StdinOnce = false
 	}
-
-	// Currently ignored on Linux daemons, in the Linux case the TTY size is
-	// set by calling MonitorTtySize.
-	// A Windows daemon will create the process with the right TTY size
-	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
 
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
