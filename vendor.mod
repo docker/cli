@@ -76,7 +76,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220519092807-c9d04033d443+incompatible // master (v22.06-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220519210601-d633169483bb+incompatible // master (v22.06-dev)
 	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
