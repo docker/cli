@@ -118,6 +118,19 @@ func (s *store) List() ([]Metadata, error) {
 	return s.meta.list()
 }
 
+// Names return Metadata names for a Lister
+func Names(s Lister) ([]string, error) {
+	list, err := s.List()
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, item := range list {
+		names = append(names, item.Name)
+	}
+	return names, nil
+}
+
 func (s *store) CreateOrUpdate(meta Metadata) error {
 	return s.meta.createOrUpdate(meta)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ func newShowCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runShow(dockerCli)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	return cmd
 }

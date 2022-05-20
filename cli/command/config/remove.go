@@ -28,6 +28,9 @@ func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return RunConfigRemove(dockerCli, opts)
 		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
+		},
 	}
 }
 

@@ -22,6 +22,9 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 			return runRollback(dockerCli, options, args[0])
 		},
 		Annotations: map[string]string{"version": "1.31"},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return CompletionFn(dockerCli)(cmd, args, toComplete)
+		},
 	}
 
 	flags := cmd.Flags()

@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -33,6 +34,7 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runRm(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()

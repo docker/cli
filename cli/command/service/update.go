@@ -17,7 +17,7 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	units "github.com/docker/go-units"
-	"github.com/docker/swarmkit/api/defaults"
+	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -32,6 +32,9 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(dockerCli, cmd.Flags(), options, args[0])
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return CompletionFn(dockerCli)(cmd, args, toComplete)
 		},
 	}
 

@@ -25,7 +25,8 @@ import (
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/moby/term"
@@ -132,6 +133,7 @@ func (cli *DockerCli) loadConfigFile() {
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
+	// TODO(thaJeztah) make ServerInfo() lazily load the info (ping only when needed)
 	return cli.serverInfo
 }
 
@@ -170,7 +172,7 @@ func (cli *DockerCli) ManifestStore() manifeststore.Store {
 // RegistryClient returns a client for communicating with a Docker distribution
 // registry
 func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
-	resolver := func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig {
+	resolver := func(ctx context.Context, index *registry.IndexInfo) types.AuthConfig {
 		return ResolveAuthConfig(ctx, cli, index)
 	}
 	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
@@ -336,6 +338,7 @@ func (cli *DockerCli) initializeFromClient() {
 		HasExperimental: ping.Experimental,
 		OSType:          ping.OSType,
 		BuildkitVersion: ping.BuilderVersion,
+		SwarmStatus:     ping.SwarmStatus,
 	}
 	cli.client.NegotiateAPIVersionPing(ping)
 }
@@ -376,6 +379,15 @@ type ServerInfo struct {
 	HasExperimental bool
 	OSType          string
 	BuildkitVersion types.BuilderVersion
+
+	// SwarmStatus provides information about the current swarm status of the
+	// engine, obtained from the "Swarm" header in the API response.
+	//
+	// It can be a nil struct if the API version does not provide this header
+	// in the ping response, or if an error occurred, in which case the client
+	// should use other ways to get the current swarm status, such as the /swarm
+	// endpoint.
+	SwarmStatus *swarm.Status
 }
 
 // NewDockerCli returns a DockerCli instance with all operators applied on it.

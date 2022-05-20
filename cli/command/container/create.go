@@ -10,6 +10,7 @@ import (
 	"github.com/containerd/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
@@ -56,6 +57,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCreate(dockerCli, cmd.Flags(), &opts, copts)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
@@ -191,7 +193,7 @@ func newCIDFile(path string) (*cidFile, error) {
 }
 
 // nolint: gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.ContainerCreateCreatedBody, error) {
+func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.CreateResponse, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig
@@ -260,6 +262,8 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 			return nil, err
 		}
 	}
+
+	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
 
 	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
 	if err != nil {

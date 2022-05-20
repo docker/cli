@@ -40,7 +40,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `CreatedSince` entries separated by a colon for all images:
 
-```bash
+```console
 $ docker images --format "{{.ID}}: {{.CreatedSince}} ago"
 
 cc1b61406712: 2 weeks ago

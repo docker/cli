@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
@@ -48,6 +49,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 			options.nFlag = cmd.Flags().NFlag()
 			return runUpdate(dockerCli, &options)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()

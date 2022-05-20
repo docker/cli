@@ -125,7 +125,7 @@ func (c *ContainerContext) ID() string {
 // slash (/) prefix stripped. Additional names for the container (related to the
 // legacy `--link` feature) are omitted.
 func (c *ContainerContext) Names() string {
-	names := stripNamePrefix(c.c.Names)
+	names := StripNamePrefix(c.c.Names)
 	if c.trunc {
 		for _, name := range names {
 			if len(strings.Split(name, "/")) == 1 {
@@ -135,6 +135,15 @@ func (c *ContainerContext) Names() string {
 		}
 	}
 	return strings.Join(names, ",")
+}
+
+// StripNamePrefix removes prefix from string, typically container names as returned by `ContainersList` API
+func StripNamePrefix(ss []string) []string {
+	sss := make([]string, len(ss))
+	for i, s := range ss {
+		sss[i] = s[1:]
+	}
+	return sss
 }
 
 // Image returns the container's image reference. If the trunc option is set,

@@ -22,12 +22,12 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/builder/remotecontext/urlutil"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/urlutil"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -107,6 +107,9 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		},
 		Annotations: map[string]string{
 			"category-top": "4",
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return nil, cobra.ShellCompDirectiveFilterDirs
 		},
 	}
 

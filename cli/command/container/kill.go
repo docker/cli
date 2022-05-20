@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -32,6 +33,7 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runKill(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()

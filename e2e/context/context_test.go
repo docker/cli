@@ -11,7 +11,7 @@ import (
 
 func TestContextList(t *testing.T) {
 	cmd := icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env, "DOCKER_CONFIG=./testdata/test-dockerconfig")
+	cmd.Env = append(cmd.Env, "DOCKER_CONFIG=testdata/test-dockerconfig")
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Expected{
 		Err:      icmd.None,
 		ExitCode: 0,

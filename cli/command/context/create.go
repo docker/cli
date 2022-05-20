@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
@@ -44,7 +45,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			opts.Name = args[0]
 			return RunCreate(dockerCli, opts)
 		},
-		Long: longCreateDescription(),
+		Long:              longCreateDescription(),
+		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")

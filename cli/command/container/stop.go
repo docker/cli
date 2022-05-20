@@ -4,17 +4,19 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 type stopOptions struct {
-	time        int
-	timeChanged bool
+	signal         string
+	timeout        int
+	timeoutChanged bool
 
 	containers []string
 }
@@ -29,36 +31,37 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			opts.timeChanged = cmd.Flags().Changed("time")
+			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runStop(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.time, "time", "t", 10, "Seconds to wait for stop before killing it")
+	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
+	flags.IntVarP(&opts.timeout, "time", "t", 0, "Seconds to wait before killing the container")
 	return cmd
 }
 
 func runStop(dockerCli command.Cli, opts *stopOptions) error {
-	ctx := context.Background()
-
-	var timeout *time.Duration
-	if opts.timeChanged {
-		timeoutValue := time.Duration(opts.time) * time.Second
-		timeout = &timeoutValue
+	var timeout *int
+	if opts.timeoutChanged {
+		timeout = &opts.timeout
 	}
 
-	var errs []string
-
-	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, id string) error {
-		return dockerCli.Client().ContainerStop(ctx, id, timeout)
+	errChan := parallelOperation(context.Background(), opts.containers, func(ctx context.Context, id string) error {
+		return dockerCli.Client().ContainerStop(ctx, id, container.StopOptions{
+			Signal:  opts.signal,
+			Timeout: timeout,
+		})
 	})
-	for _, container := range opts.containers {
+	var errs []string
+	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), container)
+		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))

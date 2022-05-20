@@ -45,12 +45,3 @@ type HeaderContext struct {
 func (c *HeaderContext) FullHeader() interface{} {
 	return c.Header
 }
-
-func stripNamePrefix(ss []string) []string {
-	sss := make([]string, len(ss))
-	for i, s := range ss {
-		sss[i] = s[1:]
-	}
-
-	return sss
-}

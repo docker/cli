@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/swarm/progress"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -35,7 +36,11 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCA(dockerCli, cmd.Flags(), opts)
 		},
-		Annotations: map[string]string{"version": "1.30"},
+		Annotations: map[string]string{
+			"version": "1.30",
+			"swarm":   "manager",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

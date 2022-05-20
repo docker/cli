@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	units "github.com/docker/go-units"
@@ -39,7 +40,8 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 			fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 			return nil
 		},
-		Annotations: map[string]string{"version": "1.39"},
+		Annotations:       map[string]string{"version": "1.39"},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

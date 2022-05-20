@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -24,6 +25,11 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUnlock(dockerCli)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	return cmd

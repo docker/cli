@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
@@ -97,6 +98,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "10",
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

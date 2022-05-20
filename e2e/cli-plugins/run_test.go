@@ -83,7 +83,7 @@ func TestHelpBad(t *testing.T) {
 
 	res := icmd.RunCmd(run("help", "badmeta"))
 	res.Assert(t, icmd.Expected{
-		ExitCode: 1,
+		ExitCode: 0,
 		Out:      icmd.None,
 	})
 	golden.Assert(t, res.Stderr(), "docker-help-badmeta-err.golden")
@@ -105,13 +105,13 @@ func TestBadHelp(t *testing.T) {
 		Err: icmd.None,
 	})
 	// Short -h should be the same, modulo the deprecation message
-	exp := shortHFlagDeprecated + res.Stdout()
+	usage := res.Stdout()
 	res = icmd.RunCmd(run("badmeta", "-h"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
 		// This should be identical to the --help case above
-		Out: exp,
-		Err: icmd.None,
+		Out: usage,
+		Err: shortHFlagDeprecated,
 	})
 }
 

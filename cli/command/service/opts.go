@@ -14,10 +14,10 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/swarmkit/api"
-	"github.com/docker/swarmkit/api/defaults"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
+	"github.com/moby/swarmkit/v2/api"
+	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
@@ -840,7 +840,6 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.Var(&opts.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
 	flags.Int64Var(&opts.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
 	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
-	flags.SetAnnotation(flagLimitPids, "swarm", nil)
 
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")

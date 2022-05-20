@@ -329,7 +329,6 @@ func convertTarget(t client.Target) (target, error) {
 }
 
 // TagTrusted tags a trusted ref
-// nolint: interfacer
 func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
 	// Use familiar references when interacting with client and output
 	familiarRef := reference.FamiliarString(ref)

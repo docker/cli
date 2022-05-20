@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/spf13/cobra"
@@ -34,6 +35,7 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 			opts.container = args[0]
 			return runLogs(dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()

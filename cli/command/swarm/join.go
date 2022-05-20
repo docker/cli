@@ -36,6 +36,10 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 			opts.remote = args[0]
 			return runJoin(dockerCli, cmd.Flags(), opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "", // swarm join does not require swarm to be active, and is always available on API 1.24 and up
+		},
 	}
 
 	flags := cmd.Flags()

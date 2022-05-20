@@ -21,6 +21,7 @@ func NewVolumeCommand(dockerCli command.Cli) *cobra.Command {
 		newListCommand(dockerCli),
 		newRemoveCommand(dockerCli),
 		NewPruneCommand(dockerCli),
+		newUpdateCommand(dockerCli),
 	)
 	return cmd
 }

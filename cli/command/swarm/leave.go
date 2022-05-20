@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +24,11 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runLeave(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "active",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

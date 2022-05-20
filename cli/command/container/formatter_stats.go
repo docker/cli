@@ -1,7 +1,7 @@
 package container
 
 import (
-	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -43,7 +43,7 @@ type StatsEntry struct {
 
 // Stats represents an entity to store containers statistics synchronously
 type Stats struct {
-	mutex sync.Mutex
+	mutex sync.RWMutex
 	StatsEntry
 	err error
 }
@@ -51,8 +51,8 @@ type Stats struct {
 // GetError returns the container statistics error.
 // This is used to determine whether the statistics are valid or not
 func (cs *Stats) GetError() error {
-	cs.mutex.Lock()
-	defer cs.mutex.Unlock()
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
 	return cs.err
 }
 
@@ -94,8 +94,8 @@ func (cs *Stats) SetStatistics(s StatsEntry) {
 
 // GetStatistics returns container statistics with other meta data such as the container name
 func (cs *Stats) GetStatistics() StatsEntry {
-	cs.mutex.Lock()
-	defer cs.mutex.Unlock()
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
 	return cs.StatsEntry
 }
 
@@ -183,7 +183,7 @@ func (c *statsContext) CPUPerc() string {
 	if c.s.IsInvalid {
 		return "--"
 	}
-	return fmt.Sprintf("%.2f%%", c.s.CPUPercentage)
+	return formatPercentage(c.s.CPUPercentage)
 }
 
 func (c *statsContext) MemUsage() string {
@@ -193,33 +193,37 @@ func (c *statsContext) MemUsage() string {
 	if c.os == winOSType {
 		return units.BytesSize(c.s.Memory)
 	}
-	return fmt.Sprintf("%s / %s", units.BytesSize(c.s.Memory), units.BytesSize(c.s.MemoryLimit))
+	return units.BytesSize(c.s.Memory) + " / " + units.BytesSize(c.s.MemoryLimit)
 }
 
 func (c *statsContext) MemPerc() string {
 	if c.s.IsInvalid || c.os == winOSType {
 		return "--"
 	}
-	return fmt.Sprintf("%.2f%%", c.s.MemoryPercentage)
+	return formatPercentage(c.s.MemoryPercentage)
 }
 
 func (c *statsContext) NetIO() string {
 	if c.s.IsInvalid {
 		return "--"
 	}
-	return fmt.Sprintf("%s / %s", units.HumanSizeWithPrecision(c.s.NetworkRx, 3), units.HumanSizeWithPrecision(c.s.NetworkTx, 3))
+	return units.HumanSizeWithPrecision(c.s.NetworkRx, 3) + " / " + units.HumanSizeWithPrecision(c.s.NetworkTx, 3)
 }
 
 func (c *statsContext) BlockIO() string {
 	if c.s.IsInvalid {
 		return "--"
 	}
-	return fmt.Sprintf("%s / %s", units.HumanSizeWithPrecision(c.s.BlockRead, 3), units.HumanSizeWithPrecision(c.s.BlockWrite, 3))
+	return units.HumanSizeWithPrecision(c.s.BlockRead, 3) + " / " + units.HumanSizeWithPrecision(c.s.BlockWrite, 3)
 }
 
 func (c *statsContext) PIDs() string {
 	if c.s.IsInvalid || c.os == winOSType {
 		return "--"
 	}
-	return fmt.Sprintf("%d", c.s.PidsCurrent)
+	return strconv.FormatUint(c.s.PidsCurrent, 10)
+}
+
+func formatPercentage(val float64) string {
+	return strconv.FormatFloat(val, 'f', 2, 64) + "%"
 }

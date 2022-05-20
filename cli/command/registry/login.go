@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -47,6 +48,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "8",
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()

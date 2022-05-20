@@ -13,10 +13,10 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {
-	resC := make(chan container.ContainerWaitOKBody)
+func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
+	resC := make(chan container.WaitResponse)
 	errC := make(chan error, 1)
-	var res container.ContainerWaitOKBody
+	var res container.WaitResponse
 
 	go func() {
 		switch {
@@ -24,10 +24,10 @@ func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {
 			res.StatusCode = 42
 			resC <- res
 		case strings.Contains(cid, "non-existent"):
-			err := errors.Errorf("No such container: %v", cid)
+			err := errors.Errorf("no such container: %v", cid)
 			errC <- err
 		case strings.Contains(cid, "wait-error"):
-			res.Error = &container.ContainerWaitOKBodyError{Message: "removal failed"}
+			res.Error = &container.WaitExitError{Message: "removal failed"}
 			resC <- res
 		default:
 			// normal exit

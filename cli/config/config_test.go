@@ -60,10 +60,7 @@ func TestMissingFile(t *testing.T) {
 }
 
 func TestSaveFileToDirs(t *testing.T) {
-	tmpHome := t.TempDir()
-
-	tmpHome += "/.docker"
-
+	tmpHome := filepath.Join(t.TempDir(), ".docker")
 	config, err := Load(tmpHome)
 	assert.NilError(t, err)
 
