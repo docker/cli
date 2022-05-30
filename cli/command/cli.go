@@ -229,7 +229,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	}
 
 	if cli.client == nil {
-		cli.client, err = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
+		cli.client, err = newAPIClientFromEndpoint(opts.Common, cli.dockerEndpoint, cli.configFile)
 		if err != nil {
 			return err
 		}
@@ -255,18 +255,26 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
-	return newAPIClientFromEndpoint(endpoint, configFile)
+	return newAPIClientFromEndpoint(opts, endpoint, configFile)
 }
 
-func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func newAPIClientFromEndpoint(opts *cliflags.CommonOptions, ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	clientOpts, err := ep.ClientOpts()
 	if err != nil {
 		return nil, err
 	}
-	customHeaders := make(map[string]string, len(configFile.HTTPHeaders))
+	customHeaders := make(map[string]string, len(configFile.HTTPHeaders)+len(opts.HttpHeaders))
 	for k, v := range configFile.HTTPHeaders {
 		customHeaders[k] = v
 	}
+
+	for i := 0; i < len(opts.HttpHeaders); i++ {
+		split := strings.Split(opts.HttpHeaders[i], ":")
+		k := strings.TrimSpace(split[0])
+		v := strings.TrimSpace(split[1])
+		customHeaders[k] = v
+	}
+
 	customHeaders["User-Agent"] = UserAgent()
 	clientOpts = append(clientOpts, client.WithHTTPHeaders(customHeaders))
 	return client.NewClientWithOpts(clientOpts...)
