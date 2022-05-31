@@ -77,8 +77,7 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 		options.Limit = 1
 	}
 
-	options.Size = opts.size
-	if !options.Size && len(opts.format) > 0 {
+	if !opts.quiet && !options.Size && len(opts.format) > 0 {
 		// The --size option isn't set, but .Size may be used in the template.
 		// Parse and execute the given template to detect if the .Size field is
 		// used. If it is, then automatically enable the --size option. See #24696
@@ -109,6 +108,11 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 func runPs(dockerCli command.Cli, options *psOptions) error {
 	ctx := context.Background()
 
+	if len(options.format) == 0 {
+		// load custom psFormat from CLI config (if any)
+		options.format = dockerCli.ConfigFile().PsFormat
+	}
+
 	listOptions, err := buildContainerListOptions(options)
 	if err != nil {
 		return err
@@ -119,18 +123,9 @@ func runPs(dockerCli command.Cli, options *psOptions) error {
 		return err
 	}
 
-	format := options.format
-	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().PsFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().PsFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
-	}
-
 	containerCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: formatter.NewContainerFormat(format, options.quiet, listOptions.Size),
+		Format: formatter.NewContainerFormat(options.format, options.quiet, listOptions.Size),
 		Trunc:  !options.noTrunc,
 	}
 	return formatter.ContainerWrite(containerCtx, containers)

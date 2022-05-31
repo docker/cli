@@ -246,13 +246,13 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
 			return []types.Container{
-				*Container("c1", WithLabel("some.label", "value")),
-				*Container("c2", WithName("foo/bar"), WithLabel("foo", "bar")),
+				*Container("c1", WithLabel("some.label", "value"), WithSize(10700000)),
+				*Container("c2", WithName("foo/bar"), WithLabel("foo", "bar"), WithSize(3200000)),
 			}, nil
 		},
 	})
 	cli.SetConfigFile(&configfile.ConfigFile{
-		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }}",
+		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }} {{ .Size}}",
 	})
 	cmd := newListCommand(cli)
 	assert.NilError(t, cmd.Execute())
