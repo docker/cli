@@ -269,7 +269,7 @@ func newAPIClientFromEndpoint(opts *cliflags.CommonOptions, ep docker.Endpoint, 
 	}
 
 	for i := 0; i < len(opts.HttpHeaders); i++ {
-		split := strings.Split(opts.HttpHeaders[i], ":")
+		split := strings.SplitN(opts.HttpHeaders[i], ":", 2)
 		k := strings.TrimSpace(split[0])
 		v := strings.TrimSpace(split[1])
 		customHeaders[k] = v
