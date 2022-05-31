@@ -89,7 +89,7 @@ func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(&commonOpts.Context, "context", "c", "",
 		`Name of the context to use to connect to the daemon (overrides `+client.EnvOverrideHost+` env var and default context set with "docker context use")`)
 	httpHeaderOpt := opts.NewNamedListOptsRef("http-headers", &commonOpts.HttpHeaders, nil)
-	flags.VarP(httpHeaderOpt, "http-header", "", "Custom HTTP headers")
+	flags.Var(httpHeaderOpt, "http-header", "Custom HTTP headers")
 }
 
 // SetDefaultOptions sets default values for options after flag parsing is
