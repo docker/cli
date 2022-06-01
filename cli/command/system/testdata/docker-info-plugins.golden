@@ -2,8 +2,11 @@ Client:
  Context:    default
  Debug Mode: false
  Plugins:
-  goodplugin: unit test is good (ACME Corp, 0.1.0)
+  goodplugin: unit test is good (ACME Corp)
+    Version:  0.1.0
+    Path:     /path/to/docker-goodplugin
   unversionedplugin: this plugin has no version (ACME Corp)
+    Path:     /path/to/docker-unversionedplugin
 
 Server:
  Containers: 0
