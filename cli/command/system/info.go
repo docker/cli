@@ -180,11 +180,9 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 		fmt.Fprintln(dockerCli.Out(), " Plugins:")
 		for _, p := range info.Plugins {
 			if p.Err == nil {
-				var version string
-				if p.Version != "" {
-					version = ", " + p.Version
-				}
-				fmt.Fprintf(dockerCli.Out(), "  %s: %s (%s%s)\n", p.Name, p.ShortDescription, p.Vendor, version)
+				fmt.Fprintf(dockerCli.Out(), "  %s: %s (%s)\n", p.Name, p.ShortDescription, p.Vendor)
+				fprintlnNonEmpty(dockerCli.Out(), "    Version: ", p.Version)
+				fprintlnNonEmpty(dockerCli.Out(), "    Path:    ", p.Path)
 			} else {
 				info.Warnings = append(info.Warnings, fmt.Sprintf("WARNING: Plugin %q is not valid: %s", p.Path, p.Err))
 			}
