@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.18.2
+ARG GO_VERSION=1.18.3
 
 ARG BUILDX_VERSION=0.8.2
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
