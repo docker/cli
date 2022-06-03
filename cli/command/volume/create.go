@@ -3,6 +3,7 @@ package volume
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -153,6 +154,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 				},
 			)
 		}
+		sort.SliceStable(volOpts.ClusterVolumeSpec.Secrets, func(i, j int) bool {
+			return volOpts.ClusterVolumeSpec.Secrets[i].Key < volOpts.ClusterVolumeSpec.Secrets[j].Key
+		})
 
 		// TODO(dperny): ignore if no topology specified
 		topology := &volume.TopologyRequirement{}

@@ -3,6 +3,7 @@ package volume
 import (
 	"io"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -192,6 +193,9 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
+			sort.SliceStable(body.ClusterVolumeSpec.Secrets, func(i, j int) bool {
+				return body.ClusterVolumeSpec.Secrets[i].Key < body.ClusterVolumeSpec.Secrets[j].Key
+			})
 			assert.DeepEqual(t, body, expectedBody)
 			return volume.Volume{}, nil
 		},
