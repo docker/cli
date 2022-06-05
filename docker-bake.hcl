@@ -110,10 +110,7 @@ target "mod-outdated" {
     inherits = ["_common"]
     dockerfile = "./dockerfiles/Dockerfile.vendor"
     target = "outdated"
-    args = {
-        // used to invalidate cache (more info https://github.com/moby/buildkit/issues/1213)
-        UUID = uuidv4()
-    }
+    no-cache-filter = ["outdated"]
     output = ["type=cacheonly"]
 }
 
