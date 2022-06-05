@@ -51,7 +51,7 @@ Options:
 Running `docker ps --no-trunc` showing 2 linked containers.
 
 ```console
-$ docker ps
+$ docker ps --no-trunc
 
 CONTAINER ID        IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
 4c01db0b339c        ubuntu:12.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
