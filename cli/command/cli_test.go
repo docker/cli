@@ -5,12 +5,15 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
@@ -162,6 +165,56 @@ func TestInitializeFromClient(t *testing.T) {
 			assert.DeepEqual(t, cli.ServerInfo(), testcase.expectedServer)
 			assert.Equal(t, apiclient.negotiated, testcase.negotiated)
 		})
+	}
+}
+
+// Makes sure we don't hang forever on the initial connection.
+// https://github.com/docker/cli/issues/3652
+func TestInitializeFromClientHangs(t *testing.T) {
+	dir := t.TempDir()
+	socket := filepath.Join(dir, "my.sock")
+	l, err := net.Listen("unix", socket)
+	assert.NilError(t, err)
+
+	receiveReqCh := make(chan bool)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	// Simulate a server that hangs on connections.
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-timeoutCtx.Done():
+		case receiveReqCh <- true: // Blocks until someone receives on the channel.
+		}
+		_, _ = w.Write([]byte("OK"))
+	}))
+	ts.Listener = l
+	ts.Start()
+	defer ts.Close()
+
+	opts := &flags.CommonOptions{Hosts: []string{fmt.Sprintf("unix://%s", socket)}}
+	configFile := &configfile.ConfigFile{}
+	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+
+	initializedCh := make(chan bool)
+
+	go func() {
+		cli := &DockerCli{client: apiClient, initTimeout: time.Millisecond}
+		cli.Initialize(flags.NewClientOptions())
+		close(initializedCh)
+	}()
+
+	select {
+	case <-timeoutCtx.Done():
+		t.Fatal("timeout waiting for initialization to complete")
+	case <-initializedCh:
+	}
+
+	select {
+	case <-timeoutCtx.Done():
+		t.Fatal("server never received an init request")
+	case <-receiveReqCh:
 	}
 }
 
