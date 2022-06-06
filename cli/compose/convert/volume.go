@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"strings"
+
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/pkg/errors"
@@ -44,6 +46,9 @@ func handleVolumeToMount(
 	}
 	if volume.Bind != nil {
 		return mount.Mount{}, errors.New("bind options are incompatible with type volume")
+	}
+	if volume.Cluster != nil {
+		return mount.Mount{}, errors.New("cluster options are incompatible with type volume")
 	}
 	// Anonymous volumes
 	if volume.Source == "" {
@@ -94,6 +99,9 @@ func handleBindToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, er
 	if volume.Tmpfs != nil {
 		return mount.Mount{}, errors.New("tmpfs options are incompatible with type bind")
 	}
+	if volume.Cluster != nil {
+		return mount.Mount{}, errors.New("cluster options are incompatible with type bind")
+	}
 	if volume.Bind != nil {
 		result.BindOptions = &mount.BindOptions{
 			Propagation: mount.Propagation(volume.Bind.Propagation),
@@ -113,6 +121,9 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	}
 	if volume.Volume != nil {
 		return mount.Mount{}, errors.New("volume options are incompatible with type tmpfs")
+	}
+	if volume.Cluster != nil {
+		return mount.Mount{}, errors.New("cluster options are incompatible with type tmpfs")
 	}
 	if volume.Tmpfs != nil {
 		result.TmpfsOptions = &mount.TmpfsOptions{
@@ -142,6 +153,49 @@ func handleNpipeToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	return result, nil
 }
 
+func handleClusterToMount(
+	volume composetypes.ServiceVolumeConfig,
+	stackVolumes volumes,
+	namespace Namespace,
+) (mount.Mount, error) {
+	if volume.Source == "" {
+		return mount.Mount{}, errors.New("invalid cluster source, source cannot be empty")
+	}
+	if volume.Tmpfs != nil {
+		return mount.Mount{}, errors.New("tmpfs options are incompatible with type cluster")
+	}
+	if volume.Bind != nil {
+		return mount.Mount{}, errors.New("bind options are incompatible with type cluster")
+	}
+	if volume.Volume != nil {
+		return mount.Mount{}, errors.New("volume options are incompatible with type cluster")
+	}
+
+	result := createMountFromVolume(volume)
+	result.ClusterOptions = &mount.ClusterOptions{}
+
+	if !strings.HasPrefix(volume.Source, "group:") {
+		// if the volume is a cluster volume and the source is a volumegroup, we
+		// will ignore checking to see if such a volume is defined. the volume
+		// group isn't namespaced, and there's no simple way to indicate that
+		// external volumes with a given group exist.
+		stackVolume, exists := stackVolumes[volume.Source]
+		if !exists {
+			return mount.Mount{}, errors.Errorf("undefined volume %q", volume.Source)
+		}
+
+		// if the volume is not specified with a group source, we may namespace
+		// the name, if one is not otherwise specified.
+		if stackVolume.Name != "" {
+			result.Source = stackVolume.Name
+		} else {
+			result.Source = namespace.Scope(volume.Source)
+		}
+	}
+
+	return result, nil
+}
+
 func convertVolumeToMount(
 	volume composetypes.ServiceVolumeConfig,
 	stackVolumes volumes,
@@ -156,6 +210,8 @@ func convertVolumeToMount(
 		return handleTmpfsToMount(volume)
 	case "npipe":
 		return handleNpipeToMount(volume)
+	case "cluster":
+		return handleClusterToMount(volume, stackVolumes, namespace)
 	}
-	return mount.Mount{}, errors.New("volume type must be volume, bind, tmpfs or npipe")
+	return mount.Mount{}, errors.New("volume type must be volume, bind, tmpfs, npipe, or cluster")
 }

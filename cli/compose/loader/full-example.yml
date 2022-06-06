@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.10"
 
 services:
   foo:
@@ -287,6 +287,9 @@ services:
         target: /opt
         tmpfs:
           size: 10000
+      - type: cluster
+        source: group:mygroup
+        target: /srv
 
     working_dir: /code
     x-bar: baz
@@ -378,6 +381,36 @@ volumes:
     external: true
     x-bar: baz
     x-foo: bar
+
+  cluster-volume:
+    driver: my-csi-driver
+    x-cluster-spec:
+      group: mygroup
+      access_mode:
+        scope: single
+        sharing: none
+        block_volume: {}
+      accessibility_requirements:
+        requisite:
+        - segments:
+          - region=R1
+          - zone=Z1
+        - segments:
+            region: R1
+            zone: Z2
+        preferred:
+        - segments:
+            region: R1
+            zone: Z1
+      capacity_range:
+        required_bytes: 1G
+        limit_bytes: 8G
+      secrets:
+      - key: mycsisecret
+        secret: secret1
+      - key: mycsisecret2
+        secret: secret4
+      availability: active
 
 configs:
   config1:

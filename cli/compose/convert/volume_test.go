@@ -41,7 +41,7 @@ func TestConvertVolumeToMountUnapprovedType(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.Error(t, err, "volume type must be volume, bind, tmpfs or npipe")
+	assert.Error(t, err, "volume type must be volume, bind, tmpfs, npipe, or cluster")
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInVolume(t *testing.T) {
@@ -356,6 +356,74 @@ func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
 		Target: `\\.\pipe\foo`,
 	}
 	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
+}
+
+func TestConvertVolumeMountClusterName(t *testing.T) {
+	stackVolumes := volumes{
+		"my-csi": composetypes.VolumeConfig{
+			Driver: "mycsidriver",
+			Spec: &composetypes.ClusterVolumeSpec{
+				Group: "mygroup",
+				AccessMode: &composetypes.AccessMode{
+					Scope:       "single",
+					Sharing:     "none",
+					BlockVolume: &composetypes.BlockVolume{},
+				},
+				Availability: "active",
+			},
+		},
+	}
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "my-csi",
+		Target: "/srv",
+	}
+
+	expected := mount.Mount{
+		Type:           mount.TypeCluster,
+		Source:         "foo_my-csi",
+		Target:         "/srv",
+		ClusterOptions: &mount.ClusterOptions{},
+	}
+
+	mount, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mount))
+}
+
+func TestConvertVolumeMountClusterGroup(t *testing.T) {
+	stackVolumes := volumes{
+		"my-csi": composetypes.VolumeConfig{
+			Driver: "mycsidriver",
+			Spec: &composetypes.ClusterVolumeSpec{
+				Group: "mygroup",
+				AccessMode: &composetypes.AccessMode{
+					Scope:       "single",
+					Sharing:     "none",
+					BlockVolume: &composetypes.BlockVolume{},
+				},
+				Availability: "active",
+			},
+		},
+	}
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "group:mygroup",
+		Target: "/srv",
+	}
+
+	expected := mount.Mount{
+		Type:           mount.TypeCluster,
+		Source:         "group:mygroup",
+		Target:         "/srv",
+		ClusterOptions: &mount.ClusterOptions{},
+	}
+
+	mount, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mount))
 }

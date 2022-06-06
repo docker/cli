@@ -523,7 +523,59 @@
           },
           "additionalProperties": false
         },
-        "labels": {"$ref": "#/definitions/list_or_dict"}
+        "labels": {"$ref": "#/definitions/list_or_dict"},
+        "x-cluster-spec": {
+          "type": "object",
+          "properties": {
+            "group": {"type": "string"},
+            "access_mode": {
+              "type": "object",
+              "properties": {
+                "scope": {"type": "string"},
+                "sharing": {"type": "string"},
+                "block_volume": {"type": "object"},
+                "mount_volume": {
+                  "type": "object",
+                  "properties": {
+                    "fs_type": {"type": "string"},
+                    "mount_flags": {"type": "array", "items": {"type": "string"}}
+                  }
+                }
+              }
+            },
+            "accessibility_requirements": {
+              "type": "object",
+              "properties": {
+                "requisite": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "segments": {"$ref": "#/definitions/list_or_dict"}
+                    }
+                  }
+                },
+                "preferred": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "segments": {"$ref": "#/definitions/list_or_dict"}
+                    }
+                  }
+                }
+              }
+            },
+            "capacity_range": {
+              "type": "object",
+              "properties": {
+                "required_bytes": {"type": "string"},
+                "limit_bytes": {"type": "string"}
+              }
+            },
+            "availability": {"type": "string"}
+          }
+        }
       },
       "patternProperties": {"^x-": {}},
       "additionalProperties": false
