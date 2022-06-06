@@ -26,6 +26,22 @@ target "_common" {
     }
 }
 
+target "_platforms" {
+    platforms = [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm/v6",
+        "linux/arm/v7",
+        "linux/arm64",
+        "linux/ppc64le",
+        "linux/riscv64",
+        "linux/s390x",
+        "windows/amd64",
+        "windows/arm64"
+    ]
+}
+
 group "default" {
     targets = ["binary"]
 }
@@ -62,20 +78,16 @@ target "plugins" {
     }
 }
 
-target "platforms" {
-    platforms = concat(["linux/amd64", "linux/386", "linux/arm64", "linux/arm", "linux/ppc64le", "linux/s390x", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/arm", "windows/386"], USE_GLIBC!=""?[]:["windows/arm64"])
-}
-
 target "cross" {
-    inherits = ["binary", "platforms"]
+    inherits = ["binary", "_platforms"]
 }
 
 target "dynbinary-cross" {
-    inherits = ["dynbinary", "platforms"]
+    inherits = ["dynbinary", "_platforms"]
 }
 
 target "plugins-cross" {
-    inherits = ["plugins", "platforms"]
+    inherits = ["plugins", "_platforms"]
 }
 
 target "lint" {
