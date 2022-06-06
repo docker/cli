@@ -35,6 +35,8 @@ import (
 	notaryclient "github.com/theupdateframework/notary/client"
 )
 
+const defaultInitTimeout = 2 * time.Second
+
 // Streams is an interface which exposes the standard input and output streams
 type Streams interface {
 	In() *streams.In
@@ -77,6 +79,7 @@ type DockerCli struct {
 	currentContext     string
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
+	initTimeout        time.Duration
 }
 
 // DefaultVersion returns api.defaultVersion.
@@ -313,13 +316,20 @@ func resolveDefaultDockerEndpoint(opts *cliflags.CommonOptions) (docker.Endpoint
 	}, nil
 }
 
+func (cli *DockerCli) getInitTimeout() time.Duration {
+	if cli.initTimeout != 0 {
+		return cli.initTimeout
+	}
+	return defaultInitTimeout
+}
+
 func (cli *DockerCli) initializeFromClient() {
 	ctx := context.Background()
-	if strings.HasPrefix(cli.DockerEndpoint().Host, "tcp://") {
+	if !strings.HasPrefix(cli.DockerEndpoint().Host, "ssh://") {
 		// @FIXME context.WithTimeout doesn't work with connhelper / ssh connections
 		// time="2020-04-10T10:16:26Z" level=warning msg="commandConn.CloseWrite: commandconn: failed to wait: signal: killed"
 		var cancel func()
-		ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
+		ctx, cancel = context.WithTimeout(ctx, cli.getInitTimeout())
 		defer cancel()
 	}
 
