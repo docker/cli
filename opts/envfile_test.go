@@ -35,6 +35,8 @@ func TestParseEnvFileGoodFile(t *testing.T) {
 _foobar=foobaz
 with.dots=working
 and_underscore=working too
+single_quotes='quotes working'
+double_quotes="quotes working"
 `
 	// Adding a newline + a line with pure whitespace.
 	// This is being done like this instead of the block above
@@ -55,6 +57,8 @@ and_underscore=working too
 		"_foobar=foobaz",
 		"with.dots=working",
 		"and_underscore=working too",
+		"single_quotes=quotes working",
+		"double_quotes=quotes working",
 	}
 
 	if !reflect.DeepEqual(lines, expectedLines) {
