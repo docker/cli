@@ -55,6 +55,9 @@ ports: {{- pad .Ports 1 0}}
 		}
 		return Format(format)
 	default: // custom format
+		if quiet {
+			return DefaultQuietFormat
+		}
 		return Format(source)
 	}
 }
