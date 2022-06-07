@@ -456,7 +456,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	if len(opts.Hosts) > 0 {
 		return DefaultContextName, nil
 	}
-	if _, present := os.LookupEnv(client.EnvOverrideHost); present {
+	if os.Getenv(client.EnvOverrideHost) != "" {
 		return DefaultContextName, nil
 	}
 	if ctxName, ok := os.LookupEnv("DOCKER_CONTEXT"); ok {

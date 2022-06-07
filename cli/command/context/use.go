@@ -42,7 +42,7 @@ func RunUse(dockerCli command.Cli, name string) error {
 	}
 	fmt.Fprintln(dockerCli.Out(), name)
 	fmt.Fprintf(dockerCli.Err(), "Current context is now %q\n", name)
-	if os.Getenv(client.EnvOverrideHost) != "" {
+	if name != command.DefaultContextName && os.Getenv(client.EnvOverrideHost) != "" {
 		fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
 			"To use %[2]q, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost, name)
 	}
