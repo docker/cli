@@ -27,7 +27,7 @@ const (
 // NewContainerFormat returns a Format for rendering using a Context
 func NewContainerFormat(source string, quiet bool, size bool) Format {
 	switch source {
-	case TableFormatKey:
+	case TableFormatKey, "": // table formatting is the default if none is set.
 		if quiet {
 			return DefaultQuietFormat
 		}
@@ -54,8 +54,9 @@ ports: {{- pad .Ports 1 0}}
 			format += `size: {{.Size}}\n`
 		}
 		return Format(format)
+	default: // custom format
+		return Format(source)
 	}
-	return Format(source)
 }
 
 // ContainerWrite renders the context for a list of containers
