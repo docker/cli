@@ -283,6 +283,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 
 	fprintlnNonEmpty(dockerCli.Out(), " Kernel Version:", info.KernelVersion)
 	fprintlnNonEmpty(dockerCli.Out(), " Operating System:", info.OperatingSystem)
+	fprintlnNonEmpty(dockerCli.Out(), " OSVersion:", info.OSVersion)
 	fprintlnNonEmpty(dockerCli.Out(), " OSType:", info.OSType)
 	fprintlnNonEmpty(dockerCli.Out(), " Architecture:", info.Architecture)
 	fmt.Fprintln(dockerCli.Out(), " CPUs:", info.NCPU)
