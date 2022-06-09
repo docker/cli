@@ -10,10 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	whiteSpaces = " \t"
-	quotes      = "'\""
-)
+const whiteSpaces = " \t"
 
 // ErrBadKey typed error for bad environment variable
 type ErrBadKey struct {
@@ -62,11 +59,7 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 
 			if len(data) > 1 {
 				// pass the value through, trimming leading and trailing quotes
-				value := data[1]
-				value = strings.TrimLeft(value, quotes)
-				value = strings.TrimRight(value, quotes)
-
-				lines = append(lines, fmt.Sprintf("%s=%s", variable, value))
+				lines = append(lines, variable+"="+trimQuotes(data[1]))
 			} else {
 				var value string
 				var present bool
