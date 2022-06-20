@@ -1060,7 +1060,7 @@ If an environment variable is only needed during build, and not in the final
 image, consider setting a value for a single command instead:
 
 ```dockerfile
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ...
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y ...
 ```
  
 Or using [`ARG`](#arg), which is not persisted in the final image:
