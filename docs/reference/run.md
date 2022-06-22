@@ -1241,7 +1241,7 @@ uid=0(root) gid=0(root) groups=10(wheel),29(audio),99(nogroup),777
 | `--cap-add`    | Add Linux capabilities                                                        |
 | `--cap-drop`   | Drop Linux capabilities                                                       |
 | `--privileged` | Give extended privileges to this container                                    |
-| `--device=[]`  | Allows you to run devices inside the container without the --privileged flag. |
+| `--device=[]`  | Allows you to run devices inside the container without the `--privileged` flag. |
 
 By default, Docker containers are "unprivileged" and cannot, for
 example, run a Docker daemon inside a Docker container. This is because
@@ -1249,7 +1249,7 @@ by default a container is not allowed to access any devices, but a
 "privileged" container is given access to all devices (see
 the documentation on [cgroups devices](https://www.kernel.org/doc/Documentation/cgroup-v1/devices.txt)).
 
-The --privileged flag gives all capabilities to the container. When the operator
+The `--privileged` flag gives all capabilities to the container. When the operator
 executes `docker run --privileged`, Docker will enable access to all devices on
 the host as well as set some configuration in AppArmor or SELinux to allow the
 container nearly all the same access to the host as processes running outside
