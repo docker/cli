@@ -31,7 +31,7 @@ type runOptions struct {
 
 // NewRunCommand create a new `docker run` command
 func NewRunCommand(dockerCli command.Cli) *cobra.Command {
-	var opts runOptions
+	var options runOptions
 	var copts *containerOptions
 
 	cmd := &cobra.Command{
@@ -43,7 +43,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runRun(dockerCli, cmd.Flags(), &opts, copts)
+			return runRun(dockerCli, cmd.Flags(), &options, copts)
 		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
@@ -55,20 +55,19 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetInterspersed(false)
 
 	// These are flags not stored in Config/HostConfig
-	flags.BoolVarP(&opts.detach, "detach", "d", false, "Run container in background and print container ID")
-	flags.BoolVar(&opts.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
-	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
-	flags.StringVar(&opts.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
-	flags.StringVar(&opts.createOptions.pull, "pull", PullImageMissing,
-		`Pull image before running ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
-	flags.BoolVarP(&opts.createOptions.quiet, "quiet", "q", false, "Suppress the pull output")
+	flags.BoolVarP(&options.detach, "detach", "d", false, "Run container in background and print container ID")
+	flags.BoolVar(&options.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
+	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
-	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	command.AddPlatformFlag(flags, &options.platform)
+	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
 
 	cmd.RegisterFlagCompletionFunc(
