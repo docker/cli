@@ -77,7 +77,7 @@ line:
 | `DOCKER_HIDE_LEGACY_COMMANDS` | When set, Docker hides "legacy" top-level commands (such as `docker rm`, and `docker pull`) in `docker help` output, and only `Management commands` per object-type (e.g., `docker container`) are printed. This may become the default in a future release, at which point this environment-variable is removed. |
 | `DOCKER_HOST`                 | Daemon socket to connect to.                                                                                                            |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md) |
-| `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](build.md) with [BuildKit backend](../builder.md#buildkit). Use plain to show container output (default `auto`). |
+| `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](build.md) with [BuildKit backend](https://docs.docker.com/engine/reference/builder/#buildkit). Use plain to show container output (default `auto`). |
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
