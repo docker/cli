@@ -117,6 +117,8 @@ func RunExec(dockerCli command.Cli, options ExecOptions) error {
 		}
 	}
 
+	fillConsoleSize(execConfig, dockerCli)
+
 	response, err := client.ContainerExecCreate(ctx, options.Container, *execConfig)
 	if err != nil {
 		return err
@@ -129,12 +131,20 @@ func RunExec(dockerCli command.Cli, options ExecOptions) error {
 
 	if execConfig.Detach {
 		execStartCheck := types.ExecStartCheck{
-			Detach: execConfig.Detach,
-			Tty:    execConfig.Tty,
+			Detach:      execConfig.Detach,
+			Tty:         execConfig.Tty,
+			ConsoleSize: execConfig.ConsoleSize,
 		}
 		return client.ContainerExecStart(ctx, execID, execStartCheck)
 	}
 	return interactiveExec(ctx, dockerCli, execConfig, execID)
+}
+
+func fillConsoleSize(execConfig *types.ExecConfig, dockerCli command.Cli) {
+	if execConfig.Tty {
+		height, width := dockerCli.Out().GetTtySize()
+		execConfig.ConsoleSize = &[2]uint{height, width}
+	}
 }
 
 func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *types.ExecConfig, execID string) error {
@@ -157,10 +167,12 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 			stderr = dockerCli.Err()
 		}
 	}
+	fillConsoleSize(execConfig, dockerCli)
 
 	client := dockerCli.Client()
 	execStartCheck := types.ExecStartCheck{
-		Tty: execConfig.Tty,
+		Tty:         execConfig.Tty,
+		ConsoleSize: execConfig.ConsoleSize,
 	}
 	resp, err := client.ContainerExecAttach(ctx, execID, execStartCheck)
 	if err != nil {
