@@ -91,6 +91,10 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+	if err := validatePullOpt(ropts.pull); err != nil {
+		reportError(dockerCli.Err(), "run", err.Error(), true)
+		return cli.StatusError{StatusCode: 125}
+	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {

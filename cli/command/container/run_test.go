@@ -1,15 +1,18 @@
 package container
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
 
+	"github.com/docker/cli/cli"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -72,5 +75,38 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		err := cmd.Execute()
 		assert.Assert(t, err != nil)
 		assert.Assert(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
+	}
+}
+
+func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
+	cases := []struct {
+		PullPolicy     string
+		ExpectedErrMsg string
+	}{
+		{
+			PullPolicy:     "busybox:latest",
+			ExpectedErrMsg: `invalid pull option: 'busybox:latest': must be one of "always", "missing" or "never"`,
+		},
+		{
+			PullPolicy:     "--network=foo",
+			ExpectedErrMsg: `invalid pull option: '--network=foo': must be one of "always", "missing" or "never"`,
+		},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.PullPolicy, func(t *testing.T) {
+			dockerCli := test.NewFakeCli(&fakeClient{})
+			err := runRun(
+				dockerCli,
+				&pflag.FlagSet{},
+				&runOptions{createOptions: createOptions{pull: tc.PullPolicy}},
+				&containerOptions{},
+			)
+
+			statusErr := cli.StatusError{}
+			assert.Check(t, errors.As(err, &statusErr))
+			assert.Equal(t, statusErr.StatusCode, 125)
+			assert.Check(t, is.Contains(dockerCli.ErrBuffer().String(), tc.ExpectedErrMsg))
+		})
 	}
 }
