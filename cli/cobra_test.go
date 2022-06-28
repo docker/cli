@@ -81,9 +81,18 @@ func TestInvalidPlugin(t *testing.T) {
 func TestCommandAliases(t *testing.T) {
 	root := &cobra.Command{Use: "root"}
 	sub := &cobra.Command{Use: "subcommand", Aliases: []string{"alias1", "alias2"}}
+	sub2 := &cobra.Command{Use: "subcommand2", Annotations: map[string]string{"aliases": "root foo, root bar"}}
 	root.AddCommand(sub)
+	root.AddCommand(sub2)
 
+	assert.Equal(t, hasAliases(sub), true)
 	assert.Equal(t, commandAliases(sub), "root subcommand, root alias1, root alias2")
+	assert.Equal(t, hasAliases(sub2), true)
+	assert.Equal(t, commandAliases(sub2), "root foo, root bar")
+
+	sub.Annotations = map[string]string{"aliases": "custom alias, custom alias 2"}
+	assert.Equal(t, hasAliases(sub), true)
+	assert.Equal(t, commandAliases(sub), "custom alias, custom alias 2")
 }
 
 func TestDecoratedName(t *testing.T) {

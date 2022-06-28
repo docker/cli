@@ -11,6 +11,9 @@ Usage:  docker stats [OPTIONS] [CONTAINER...]
 
 Display a live stream of container(s) resource usage statistics
 
+Aliases:
+  docker container stats, docker stats
+
 Options:
   -a, --all             Show all containers (default shows just running)
       --format string   Pretty-print images using a Go template

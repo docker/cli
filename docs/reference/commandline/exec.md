@@ -11,6 +11,9 @@ Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 
 Execute a command in a running container
 
+Aliases:
+  docker container exec, docker exec
+
 Options:
   -d, --detach         Detached mode: run command in the background
       --detach-keys    Override the key sequence for detaching a container

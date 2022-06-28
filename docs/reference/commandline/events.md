@@ -11,6 +11,9 @@ Usage:  docker events [OPTIONS]
 
 Get real time events from the server
 
+Aliases:
+  docker system events, docker events
+
 Options:
   -f, --filter value   Filter output based on conditions provided (default [])
       --format string  Format the output using the given Go template

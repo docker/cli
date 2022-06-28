@@ -13,6 +13,9 @@ Usage:  docker create [OPTIONS] IMAGE [COMMAND] [ARG...]
 
 Create a new container
 
+Aliases:
+  docker container create, docker create
+
 Options:
       --add-host value                Add a custom host-to-IP mapping (host:ip) (default [])
   -a, --attach value                  Attach to STDIN, STDOUT or STDERR (default [])

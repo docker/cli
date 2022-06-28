@@ -11,6 +11,9 @@ Usage:  docker logs [OPTIONS] CONTAINER
 
 Fetch the logs of a container
 
+Aliases:
+  docker container logs, docker logs
+
 Options:
       --details        Show extra details provided to logs
   -f, --follow         Follow log output

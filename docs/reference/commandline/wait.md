@@ -11,6 +11,9 @@ Usage:  docker wait CONTAINER [CONTAINER...]
 
 Block until one or more containers stop, then print their exit codes
 
+Aliases:
+  docker container wait, docker wait
+
 Options:
       --help        Print usage
 ```

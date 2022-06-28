@@ -11,6 +11,9 @@ Usage:  docker rm [OPTIONS] CONTAINER [CONTAINER...]
 
 Remove one or more containers
 
+Aliases:
+  docker container rm, docker rm
+
 Options:
   -f, --force     Force the removal of a running container (uses SIGKILL)
       --help      Print usage

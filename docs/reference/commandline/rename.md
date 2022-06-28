@@ -11,6 +11,9 @@ Usage:  docker rename CONTAINER NEW_NAME
 
 Rename a container
 
+Aliases:
+  docker container rename, docker rename
+
 Options:
       --help   Print usage
 ```

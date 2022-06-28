@@ -29,6 +29,9 @@ func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runUnpause(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container unpause, docker unpause",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
 			return container.State == "paused"
 		}),

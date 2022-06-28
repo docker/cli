@@ -59,6 +59,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 		}),
 		Annotations: map[string]string{
 			"category-top": "2",
+			"aliases":      "docker container exec, docker exec",
 		},
 	}
 

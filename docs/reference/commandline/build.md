@@ -11,6 +11,9 @@ Usage:  docker build [OPTIONS] PATH | URL | -
 
 Build an image from a Dockerfile
 
+Aliases:
+  docker image build, docker build, docker buildx build, docker builder build
+
 Options:
       --add-host value          Add a custom host-to-IP mapping (host:ip) (default [])
       --build-arg value         Set build-time variables (default [])

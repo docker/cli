@@ -12,6 +12,9 @@ Usage:  docker load [OPTIONS]
 Load an image or repository from a tar archive (even if compressed with gzip,
 bzip2, or xz) from a file or STDIN.
 
+Aliases:
+  docker image load, docker load
+
 Options:
       --help           Print usage
   -i, --input string   Read from tar archive file, instead of STDIN.

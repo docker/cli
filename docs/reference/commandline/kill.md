@@ -11,6 +11,9 @@ Usage:  docker kill [OPTIONS] CONTAINER [CONTAINER...]
 
 Kill one or more running containers
 
+Aliases:
+  docker container kill, docker kill
+
 Options:
       --help            Print usage
   -s, --signal string   Signal to send to the container

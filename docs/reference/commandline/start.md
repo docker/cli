@@ -11,6 +11,9 @@ Usage:  docker start [OPTIONS] CONTAINER [CONTAINER...]
 
 Start one or more stopped containers
 
+Aliases:
+  docker container start, docker start
+
 Options:
   -a, --attach               Attach STDOUT/STDERR and forward signals
       --detach-keys string   Override the key sequence for detaching a container

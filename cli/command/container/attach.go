@@ -55,6 +55,9 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 			opts.container = args[0]
 			return runAttach(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container attach, docker attach",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
 			return container.State != "paused"
 		}),

@@ -35,6 +35,9 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 			opts.container = args[0]
 			return runLogs(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container logs, docker logs",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 

@@ -28,6 +28,9 @@ func NewWaitCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runWait(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container wait, docker wait",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 

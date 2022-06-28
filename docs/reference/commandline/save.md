@@ -11,6 +11,9 @@ Usage:  docker save [OPTIONS] IMAGE [IMAGE...]
 
 Save one or more images to a tar archive (streamed to STDOUT by default)
 
+Aliases:
+  docker image save, docker save
+
 Options:
       --help            Print usage
   -o, --output string   Write to a file, instead of STDOUT

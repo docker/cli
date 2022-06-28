@@ -37,6 +37,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 		},
 		Annotations: map[string]string{
 			"category-top": "5",
+			"aliases":      "docker image pull, docker pull",
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

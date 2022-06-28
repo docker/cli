@@ -11,6 +11,9 @@ Usage:  docker images [OPTIONS] [REPOSITORY[:TAG]]
 
 List images
 
+Aliases:
+  docker image ls, docker image list, docker images
+
 Options:
   -a, --all             Show all images (default hides intermediate images)
       --digests         Show digests

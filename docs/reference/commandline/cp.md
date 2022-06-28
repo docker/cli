@@ -17,6 +17,9 @@ and extract it to a directory destination in a container.
 Use '-' as the destination to stream a tar archive of a
 container source to stdout.
 
+Aliases:
+  docker container cp, docker cp
+
 Options:
   -L, --follow-link   Always follow symbol link in SRC_PATH
   -a, --archive       Archive mode (copy all uid/gid information)

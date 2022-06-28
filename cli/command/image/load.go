@@ -29,6 +29,9 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runLoad(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker image load, docker load",
+		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 

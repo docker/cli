@@ -28,6 +28,9 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 			opts.images = args
 			return RunSave(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker image save, docker save",
+		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 

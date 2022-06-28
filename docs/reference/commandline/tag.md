@@ -11,6 +11,9 @@ Usage:  docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
 
 Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
 
+Aliases:
+  docker image tag, docker tag
+
 Options:
       --help   Print usage
 ```

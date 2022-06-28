@@ -37,6 +37,9 @@ func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runEvents(dockerCli, &options)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker system events, docker events",
+		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 

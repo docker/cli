@@ -11,6 +11,9 @@ Usage: docker ps [OPTIONS]
 
 List containers
 
+Aliases:
+  docker container ls, docker container list, docker container ps, docker ps
+
 Options:
   -a, --all             Show all containers (default shows just running)
   -f, --filter value    Filter output based on conditions provided (default [])

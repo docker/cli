@@ -11,6 +11,9 @@ Usage:  docker diff CONTAINER
 
 Inspect changes to files or directories on a container's filesystem
 
+Aliases:
+  docker container diff, docker diff
+
 Options:
       --help   Print usage
 ```
