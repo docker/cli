@@ -78,6 +78,14 @@ func TestInvalidPlugin(t *testing.T) {
 	assert.DeepEqual(t, invalidPlugins(root), []*cobra.Command{sub1}, cmpopts.IgnoreUnexported(cobra.Command{}))
 }
 
+func TestCommandAliases(t *testing.T) {
+	root := &cobra.Command{Use: "root"}
+	sub := &cobra.Command{Use: "subcommand", Aliases: []string{"alias1", "alias2"}}
+	root.AddCommand(sub)
+
+	assert.Equal(t, commandAliases(sub), "root subcommand, root alias1, root alias2")
+}
+
 func TestDecoratedName(t *testing.T) {
 	root := &cobra.Command{Use: "root"}
 	topLevelCommand := &cobra.Command{Use: "pluginTopLevelCommand"}

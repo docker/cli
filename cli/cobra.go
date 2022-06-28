@@ -37,6 +37,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	cobra.AddTemplateFunc("hasSwarmSubCommands", hasSwarmSubCommands)
 	cobra.AddTemplateFunc("hasInvalidPlugins", hasInvalidPlugins)
 	cobra.AddTemplateFunc("topCommands", topCommands)
+	cobra.AddTemplateFunc("commandAliases", commandAliases)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
 	cobra.AddTemplateFunc("orchestratorSubCommands", orchestratorSubCommands)
@@ -258,6 +259,21 @@ func hasTopCommands(cmd *cobra.Command) bool {
 	return len(topCommands(cmd)) > 0
 }
 
+// commandAliases is a templating function to return aliases for the command,
+// formatted as the full command as they're called (contrary to the default
+// Aliases function, which only returns the subcommand).
+func commandAliases(cmd *cobra.Command) string {
+	var parentPath string
+	if cmd.HasParent() {
+		parentPath = cmd.Parent().CommandPath() + " "
+	}
+	aliases := cmd.CommandPath()
+	for _, alias := range cmd.Aliases {
+		aliases += ", " + parentPath + alias
+	}
+	return aliases
+}
+
 func topCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	if cmd.Parent() != nil {
@@ -398,7 +414,7 @@ EXPERIMENTAL:
 {{- if gt .Aliases 0}}
 
 Aliases:
-  {{.NameAndAliases}}
+  {{ commandAliases . }}
 
 {{- end}}
 {{- if .HasExample}}

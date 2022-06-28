@@ -4,7 +4,7 @@ Usage:  docker stack deploy [OPTIONS] STACK
 Deploy a new stack or update an existing stack
 
 Aliases:
-  deploy, up
+  docker stack deploy, docker stack up
 
 Options:
   -c, --compose-file strings   Path to a Compose file, or "-" to read
