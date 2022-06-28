@@ -952,6 +952,11 @@ $ docker image inspect --format='{{json .Config.Labels}}' myimage
 }
 ```
 
+> **Note**:
+> When providing a `LABEL` in a Dockerfile, be sure to use double quotes and not single quotes. Particularly when you are 
+> using string interpolation (e.g. `LABEL example=$ENV_VAR`) single quotes will take the string as is without
+> unpacking the variable's value.
+
 ## MAINTAINER (deprecated)
 
 ```dockerfile
