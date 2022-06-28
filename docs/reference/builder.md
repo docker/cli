@@ -676,6 +676,10 @@ Or
 FROM [--platform=<platform>] <image>[@<digest>] [AS <name>]
 ```
 
+Or combined(though `<tag>` is ignored)
+
+    FROM <image>[:<tag>@<digest>] [AS <name>]
+
 The `FROM` instruction initializes a new build stage and sets the
 [*Base Image*](https://docs.docker.com/glossary/#base-image) for subsequent instructions. As such, a
 valid `Dockerfile` must start with a `FROM` instruction. The image can be
