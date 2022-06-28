@@ -43,7 +43,7 @@ type createOptions struct {
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
 func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
-	var opts createOptions
+	var options createOptions
 	var copts *containerOptions
 
 	cmd := &cobra.Command{
@@ -55,7 +55,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), &opts, copts)
+			return runCreate(dockerCli, cmd.Flags(), &options, copts)
 		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
@@ -63,17 +63,16 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
-	flags.StringVar(&opts.pull, "pull", PullImageMissing,
-		`Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
-	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress the pull output")
+	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
-	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	command.AddPlatformFlag(flags, &options.platform)
+	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
 	return cmd
 }
