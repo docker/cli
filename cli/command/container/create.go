@@ -81,6 +81,10 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+	if err := validatePullOpt(options.pull); err != nil {
+		reportError(dockerCli.Err(), "create", err.Error(), true)
+		return cli.StatusError{StatusCode: 125}
+	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {
@@ -324,4 +328,20 @@ var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
 // localhost addresses
 func isLocalhost(ip string) bool {
 	return localhostIPRegexp.MatchString(ip)
+}
+
+func validatePullOpt(val string) error {
+	switch val {
+	case PullImageAlways, PullImageMissing, PullImageNever, "":
+		// valid option, but nothing to do yet
+		return nil
+	default:
+		return fmt.Errorf(
+			"invalid pull option: '%s': must be one of %q, %q or %q",
+			val,
+			PullImageAlways,
+			PullImageMissing,
+			PullImageNever,
+		)
+	}
 }
