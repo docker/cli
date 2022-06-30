@@ -101,6 +101,9 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCopy(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container cp, docker cp",
+		},
 	}
 
 	flags := cmd.Flags()

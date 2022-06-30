@@ -31,6 +31,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	opts.Common.InstallFlags(flags)
 
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })
+	cobra.AddTemplateFunc("hasAliases", hasAliases)
 	cobra.AddTemplateFunc("hasSubCommands", hasSubCommands)
 	cobra.AddTemplateFunc("hasTopCommands", hasTopCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)
@@ -239,6 +240,10 @@ func isPlugin(cmd *cobra.Command) bool {
 	return cmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true"
 }
 
+func hasAliases(cmd *cobra.Command) bool {
+	return len(cmd.Aliases) > 0 || cmd.Annotations["aliases"] != ""
+}
+
 func hasSubCommands(cmd *cobra.Command) bool {
 	return len(operationSubCommands(cmd)) > 0
 }
@@ -263,6 +268,9 @@ func hasTopCommands(cmd *cobra.Command) bool {
 // formatted as the full command as they're called (contrary to the default
 // Aliases function, which only returns the subcommand).
 func commandAliases(cmd *cobra.Command) string {
+	if cmd.Annotations["aliases"] != "" {
+		return cmd.Annotations["aliases"]
+	}
 	var parentPath string
 	if cmd.HasParent() {
 		parentPath = cmd.Parent().CommandPath() + " "
@@ -411,7 +419,7 @@ EXPERIMENTAL:
   https://docs.docker.com/go/experimental/
 
 {{- end}}
-{{- if gt .Aliases 0}}
+{{- if hasAliases . }}
 
 Aliases:
   {{ commandAliases . }}

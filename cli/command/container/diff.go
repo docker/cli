@@ -27,6 +27,9 @@ func NewDiffCommand(dockerCli command.Cli) *cobra.Command {
 			opts.container = args[0]
 			return runDiff(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container diff, docker diff",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 }

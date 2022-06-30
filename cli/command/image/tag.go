@@ -27,6 +27,9 @@ func NewTagCommand(dockerCli command.Cli) *cobra.Command {
 			opts.name = args[1]
 			return runTag(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker image tag, docker tag",
+		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 

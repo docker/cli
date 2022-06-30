@@ -48,6 +48,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
 			"category-top": "1",
+			"aliases":      "docker container run, docker run",
 		},
 	}
 

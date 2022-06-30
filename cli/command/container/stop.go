@@ -34,6 +34,9 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runStop(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container stop, docker stop",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 

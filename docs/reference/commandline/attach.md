@@ -11,6 +11,9 @@ Usage: docker attach [OPTIONS] CONTAINER
 
 Attach local standard input, output, and error streams to a running container
 
+Aliases:
+  docker container attach, docker attach
+
 Options:
       --detach-keys string   Override the key sequence for detaching a container
       --help                 Print usage

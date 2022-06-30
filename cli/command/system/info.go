@@ -57,6 +57,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		},
 		Annotations: map[string]string{
 			"category-top": "12",
+			"aliases":      "docker system info, docker info",
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

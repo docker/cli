@@ -49,6 +49,9 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 			options.nFlag = cmd.Flags().NFlag()
 			return runUpdate(dockerCli, &options)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container update, docker update",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 

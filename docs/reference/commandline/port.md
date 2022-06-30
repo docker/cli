@@ -11,6 +11,9 @@ Usage:  docker port CONTAINER [PRIVATE_PORT[/PROTO]]
 
 List port mappings or a specific mapping for the container
 
+Aliases:
+  docker container port, docker port
+
 Options:
       --help   Print usage
 ```

@@ -31,6 +31,9 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 			opts.image = args[0]
 			return runHistory(dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker image history, docker history",
+		},
 	}
 
 	flags := cmd.Flags()

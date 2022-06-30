@@ -57,6 +57,9 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCreate(dockerCli, cmd.Flags(), &options, copts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container create, docker create",
+		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 	}
 

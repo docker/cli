@@ -11,6 +11,9 @@ Usage:  docker restart [OPTIONS] CONTAINER [CONTAINER...]
 
 Restart one or more containers
 
+Aliases:
+  docker container restart, docker restart
+
 Options:
   -s, --signal string   Signal to send to the container
   -t, --time int        Seconds to wait before killing the container

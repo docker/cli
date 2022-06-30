@@ -11,6 +11,9 @@ Usage:  docker rmi [OPTIONS] IMAGE [IMAGE...]
 
 Remove one or more images
 
+Aliases:
+  docker image rm, docker rmi
+
 Options:
   -f, --force      Force removal of the image
       --help       Print usage

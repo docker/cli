@@ -11,6 +11,9 @@ Usage:  docker stop [OPTIONS] CONTAINER [CONTAINER...]
 
 Stop one or more running containers
 
+Aliases:
+  docker container stop, docker stop
+
 Options:
   -s, --signal string   Signal to send to the container
   -t, --time int        Seconds to wait before killing the container

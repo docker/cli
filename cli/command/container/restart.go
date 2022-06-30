@@ -34,6 +34,9 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runRestart(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container restart, docker restart",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 

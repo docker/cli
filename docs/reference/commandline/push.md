@@ -11,6 +11,9 @@ Usage:  docker push [OPTIONS] NAME[:TAG]
 
 Upload an image to a registry
 
+Aliases:
+  docker image push, docker push
+
 Options:
   -a, --all-tags                Push all tags of an image to the repository
       --disable-content-trust   Skip image signing (default true)

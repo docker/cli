@@ -11,6 +11,9 @@ Usage:  docker top CONTAINER [ps OPTIONS]
 
 Display the running processes of a container
 
+Aliases:
+  docker container top, docker top
+
 Options:
       --help   Print usage
 ```

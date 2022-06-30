@@ -35,6 +35,9 @@ func NewPortCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runPort(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container port, docker port",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 	return cmd

@@ -11,6 +11,9 @@ Usage:  docker update [OPTIONS] CONTAINER [CONTAINER...]
 
 Update configuration of one or more containers
 
+Aliases:
+  docker container update, docker update
+
 Options:
       --blkio-weight uint16         Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)
       --cpu-period int              Limit CPU CFS (Completely Fair Scheduler) period

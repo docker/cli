@@ -40,6 +40,9 @@ func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runStats(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container stats, docker stats",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 

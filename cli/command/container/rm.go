@@ -34,6 +34,9 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runRm(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container rm, docker rm",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 

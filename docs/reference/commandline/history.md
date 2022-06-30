@@ -11,6 +11,9 @@ Usage:  docker history [OPTIONS] IMAGE
 
 Show the history of an image
 
+Aliases:
+  docker image history, docker history
+
 Options:
       --format string   Pretty-print images using a Go template
       --help            Print usage

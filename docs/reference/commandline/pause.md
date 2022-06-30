@@ -11,6 +11,9 @@ Usage:  docker pause CONTAINER [CONTAINER...]
 
 Pause all processes within one or more containers
 
+Aliases:
+  docker container pause, docker pause
+
 Options:
       --help   Print usage
 ```

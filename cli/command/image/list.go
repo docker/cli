@@ -39,6 +39,7 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 		},
 		Annotations: map[string]string{
 			"category-top": "7",
+			"aliases":      "docker image ls, docker image list, docker images",
 		},
 	}
 

@@ -11,6 +11,9 @@ Usage:  docker export [OPTIONS] CONTAINER
 
 Export a container's filesystem as a tar archive
 
+Aliases:
+  docker container export, docker export
+
 Options:
       --help            Print usage
   -o, --output string   Write to a file, instead of STDOUT

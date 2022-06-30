@@ -37,6 +37,9 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runCommit(dockerCli, &options)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container commit, docker commit",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 

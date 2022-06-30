@@ -30,6 +30,9 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 			opts.containers = args
 			return runKill(dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container kill, docker kill",
+		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
