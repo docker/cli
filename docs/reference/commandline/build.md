@@ -65,7 +65,7 @@ Options:
 The `docker build` command builds Docker images from a Dockerfile and a
 "context". A build's context is the set of files located in the specified
 `PATH` or `URL`. The build process can refer to any of the files in the
-context. For example, your build can use a [*COPY*](../builder.md#copy)
+context. For example, your build can use a [*COPY*](https://docs.docker.com/engine/reference/builder/#copy)
 instruction to reference a file in the context.
 
 The `URL` parameter can refer to three kinds of resources: Git repositories,
@@ -158,7 +158,7 @@ In most cases, it's best to put each Dockerfile in an empty directory. Then,
 add to that directory only the files needed for building the Dockerfile. To
 increase the build's performance, you can exclude files and directories by
 adding a `.dockerignore` file to that directory as well. For information on
-creating one, see the [.dockerignore file](../builder.md#dockerignore-file).
+creating one, see the [.dockerignore file](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
 
 If the Docker client loses connection to the daemon, the build is canceled.
 This happens if you interrupt the Docker client with `CTRL-c` or if the Docker
@@ -189,7 +189,7 @@ $ echo $?
 
 See also:
 
-[*Dockerfile Reference*](../builder.md).
+[*Dockerfile Reference*](https://docs.docker.com/engine/reference/builder/).
 
 ## Examples
 
@@ -230,7 +230,8 @@ where to find the files for the "context" of the build on the Docker daemon.
 Remember that the daemon could be running on a remote machine and that no
 parsing of the Dockerfile happens at the client side (where you're running
 `docker build`). That means that *all* the files at `PATH` get sent, not just
-the ones listed to [*ADD*](../builder.md#add) in the Dockerfile.
+the ones listed to [*ADD*](https://docs.docker.com/engine/reference/builder/#add)
+in the Dockerfile.
 
 The transfer of context from the local machine to the Docker daemon is what the
 `docker` client means when you see the "Sending build context" message.
@@ -318,15 +319,15 @@ Successfully built 99cc1ad10469
 This example shows the use of the `.dockerignore` file to exclude the `.git`
 directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
-[creating a .dockerignore file](../builder.md#dockerignore-file).
+[creating a .dockerignore file](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
 
-When using the [BuildKit backend](../builder.md#buildkit), `docker build` searches
-for a `.dockerignore` file relative to the Dockerfile name. For example, running
-`docker build -f myapp.Dockerfile .` will first look for an ignore file named
-`myapp.Dockerfile.dockerignore`. If such a file is not found, the `.dockerignore`
-file is used if present. Using a Dockerfile based `.dockerignore` is useful if a
-project contains multiple Dockerfiles that expect to ignore different sets of
-files.
+When using the [BuildKit backend](https://docs.docker.com/engine/reference/builder/#buildkit),
+`docker build` searches for a `.dockerignore` file relative to the Dockerfile
+name. For example, running `docker build -f myapp.Dockerfile .` will first look
+for an ignore file named `myapp.Dockerfile.dockerignore`. If such a file is not
+found, the `.dockerignore` file is used if present. Using a Dockerfile based
+`.dockerignore` is useful if a project contains multiple Dockerfiles that expect
+to ignore different sets of files.
 
 
 ### <a name=tag></a> Tag an image (-t, --tag)
@@ -430,7 +431,7 @@ Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
 
 For detailed information on using `ARG` and `ENV` instructions, see the
-[Dockerfile reference](../builder.md).
+[Dockerfile reference](https://docs.docker.com/engine/reference/builder/).
 
 You may also use the `--build-arg` flag without a value, in which case the value
 from the local environment will be propagated into the Docker container being
@@ -543,7 +544,7 @@ $ docker build -o - . > out.tar
 
 The `--output` option exports all files from the target stage. A common pattern
 for exporting only specific files is to do multi-stage builds and to copy the
-desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
+desired files to a new scratch stage with [`COPY --from`](https://docs.docker.com/engine/reference/builder/#copy).
 
 The example `Dockerfile` below uses a separate stage to collect the
 build-artifacts for exporting:
@@ -582,8 +583,9 @@ vndr
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
-> plugin which provides more output type options.
+> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
+> use the [buildx](https://github.com/docker/buildx) plugin which provides more
+> output type options.
 
 ### <a name=cache-from></a> Specifying external cache sources (--cache-from)
 
@@ -624,9 +626,9 @@ $ docker build --cache-from myname/myapp .
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
-> plugin. The previous builder has limited support for reusing cache from
-> pre-pulled images.
+> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
+> use the [buildx](https://github.com/docker/buildx) plugin. The previous
+> builder has limited support for reusing cache from pre-pulled images.
 
 ### <a name=squash></a> Squash an image's layers (--squash) (experimental)
 
