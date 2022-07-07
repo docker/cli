@@ -48,6 +48,7 @@
 	# - close an issue or pull request when it's inappropriate or off-topic
 
 		people = [
+			"bsousaa",
 			"programmerq",
 			"thajeztah"
 		]
@@ -79,6 +80,11 @@
 	Name = "Harald Albers"
 	Email = "github@albersweb.de"
 	GitHub = "albers"
+
+	[people.bsousaa]
+	Name = "Bruno de Sousa"
+	Email = "bruno.sousa@docker.com"
+	GitHub = "bsousaa"
 
 	[people.cpuguy83]
 	Name = "Brian Goff"
