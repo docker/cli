@@ -48,8 +48,10 @@
 	# - close an issue or pull request when it's inappropriate or off-topic
 
 		people = [
+			"bsousaa",
 			"programmerq",
-			"thajeztah"
+			"thajeztah",
+			"vvoland"
 		]
 
 	[Org.Alumni]
@@ -79,6 +81,11 @@
 	Name = "Harald Albers"
 	Email = "github@albersweb.de"
 	GitHub = "albers"
+
+	[people.bsousaa]
+	Name = "Bruno de Sousa"
+	Email = "bruno.sousa@docker.com"
+	GitHub = "bsousaa"
 
 	[people.cpuguy83]
 	Name = "Brian Goff"
@@ -139,4 +146,9 @@
 	Name = "Victor Vieux"
 	Email = "vieux@docker.com"
 	GitHub = "vieux"
+
+	[people.vvoland]
+	Name = "Paweł Gronowski"
+	Email = "pawel.gronowski@docker.com"
+	GitHub = "vvoland"
 
