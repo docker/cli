@@ -50,7 +50,8 @@
 		people = [
 			"bsousaa",
 			"programmerq",
-			"thajeztah"
+			"thajeztah",
+			"vvoland"
 		]
 
 	[Org.Alumni]
@@ -145,4 +146,9 @@
 	Name = "Victor Vieux"
 	Email = "vieux@docker.com"
 	GitHub = "vieux"
+
+	[people.vvoland]
+	Name = "Paweł Gronowski"
+	Email = "pawel.gronowski@docker.com"
+	GitHub = "vvoland"
 
