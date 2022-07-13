@@ -158,14 +158,14 @@ When creating a custom network, the default network driver (i.e. `bridge`) has
 additional options that can be passed. The following are those options and the
 equivalent docker daemon flags used for docker0 bridge:
 
-| Option                                           | Equivalent  | Description                                           |
-|--------------------------------------------------|-------------|-------------------------------------------------------|
-| `com.docker.network.bridge.name`                 | -           | Bridge name to be used when creating the Linux bridge |
-| `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq` | Enable IP masquerading                                |
-| `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        |
-| `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               |
-| `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        |
-| `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
+| Option                                           | Equivalent  | Description                                           | Example
+|--------------------------------------------------|-------------|-------------------------------------------------------|----------------------|
+| `com.docker.network.bridge.name`                 | -           | Bridge name to be used when creating the Linux bridge | dockerO              |
+| `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq` | Enable IP masquerading                                | true                 |
+| `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        | true                 |
+| `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               | 0.0.0.0              | 
+| `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        | 1500                 |
+| `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          | myprefix             |
 
 The following arguments can be passed to `docker network create` for any
 network driver, again with their approximate equivalents to `docker daemon`.
