@@ -195,7 +195,7 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 	}
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	var errs []error
 
@@ -360,7 +360,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	return errs
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 	if info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive || info.Swarm.LocalNodeState == swarm.LocalNodeStateLocked {
 		return

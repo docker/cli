@@ -368,10 +368,12 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 // in a valid LOCALPATH, like `file:name.txt`. We can resolve this ambiguity by
 // requiring a LOCALPATH with a `:` to be made explicit with a relative or
 // absolute path:
-// 	`/path/to/file:name.txt` or `./file:name.txt`
+//
+//	`/path/to/file:name.txt` or `./file:name.txt`
 //
 // This is apparently how `scp` handles this as well:
-// 	http://www.cyberciti.biz/faq/rsync-scp-file-name-with-colon-punctuation-in-it/
+//
+//	http://www.cyberciti.biz/faq/rsync-scp-file-name-with-colon-punctuation-in-it/
 //
 // We can't simply check for a filepath separator because container names may
 // have a separator, e.g., "host0/cname1" if container is in a Docker cluster,

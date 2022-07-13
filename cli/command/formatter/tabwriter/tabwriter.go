@@ -11,7 +11,8 @@
 // The text/tabwriter package is frozen and is not accepting new features.
 
 // based on https://github.com/golang/go/blob/master/src/text/tabwriter/tabwriter.go Last modified 690ac40 on 31 Jan
-//nolint
+
+//nolint:gocyclo,nakedret,revive,unused // ignore linting errors, so that we can stick close to upstream
 package tabwriter
 
 import (

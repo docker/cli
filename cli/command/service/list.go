@@ -109,7 +109,8 @@ func runList(dockerCli command.Cli, opts listOptions) error {
 // there may be other situations where the client uses the "default" version.
 // To take these situations into account, we do a quick check for services
 // that don't have ServiceStatus set, and perform a lookup for those.
-// nolint: gocyclo
+//
+//nolint:gocyclo
 func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swarm.Service) ([]swarm.Service, error) {
 	status := map[string]*swarm.ServiceStatus{}
 	taskFilter := filters.NewArgs()

@@ -176,7 +176,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 	return out.output.WriteProgress(prog)
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
 	var (
 		err           error
