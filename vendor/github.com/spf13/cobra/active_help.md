@@ -126,7 +126,7 @@ ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([
 ```
 **Note 1**: If the `<PROGRAM>_ACTIVE_HELP` environment variable is set to the string "0", Cobra will automatically disable all Active Help output (even if some output was specified by the program using the `cobra.AppendActiveHelp(...)` function).  Using "0" can simplify your code in situations where you want to blindly disable Active Help without having to call `cobra.GetActiveHelpConfig(cmd)` explicitly.
 
-**Note 2**: If a user wants to disable Active Help for every single program based on Cobra, the environment variable `COBRA_ACTIVE_HELP` can be set to "0".  In this case `cobra.GetActiveHelpConfig(cmd)` will return "0" no matter what the variable `<PROGRAM>_ACTIVE_HELP` is set to.
+**Note 2**: If a user wants to disable Active Help for every single program based on Cobra, she can set the environment variable `COBRA_ACTIVE_HELP` to "0".  In this case `cobra.GetActiveHelpConfig(cmd)` will return "0" no matter what the variable `<PROGRAM>_ACTIVE_HELP` is set to.
 
 **Note 3**: If the user does not set `<PROGRAM>_ACTIVE_HELP` or `COBRA_ACTIVE_HELP` (which will be a common case), the default value for the Active Help configuration returned by `cobra.GetActiveHelpConfig(cmd)` will be the empty string. 
 ## Active Help with Cobra's default completion command
