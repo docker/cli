@@ -4,13 +4,13 @@
 // For example, to provide an http.Client that can connect to a Docker daemon
 // running in a Docker container ("DIND"):
 //
-//  httpClient := &http.Client{
-//  	Transport: &http.Transport{
-//  		DialContext: func(ctx context.Context, _network, _addr string) (net.Conn, error) {
-//  			return commandconn.New(ctx, "docker", "exec", "-it", containerID, "docker", "system", "dial-stdio")
-//  		},
-//  	},
-//  }
+//	httpClient := &http.Client{
+//		Transport: &http.Transport{
+//			DialContext: func(ctx context.Context, _network, _addr string) (net.Conn, error) {
+//				return commandconn.New(ctx, "docker", "exec", "-it", containerID, "docker", "system", "dial-stdio")
+//			},
+//		},
+//	}
 package commandconn
 
 import (

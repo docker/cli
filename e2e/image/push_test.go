@@ -325,7 +325,7 @@ func createImage(t *testing.T, repo string, tags ...string) string {
 	return fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tags[0])
 }
 
-//nolint: unparam
+//nolint:unparam
 func withNotaryPassphrase(pwd string) func(*icmd.Cmd) {
 	return func(c *icmd.Cmd) {
 		c.Env = append(c.Env, []string{

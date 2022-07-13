@@ -175,7 +175,7 @@ func createNetworks(ctx context.Context, dockerCli command.Cli, namespace conver
 	return nil
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func deployServices(ctx context.Context, dockerCli command.Cli, services map[string]swarm.ServiceSpec, namespace convert.Namespace, sendAuth bool, resolveImage string) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()

@@ -118,7 +118,7 @@ func TestListOptsWithValidator(t *testing.T) {
 	}
 }
 
-// nolint: lll
+//nolint:lll
 func TestValidateDNSSearch(t *testing.T) {
 	valid := []string{
 		`.`,

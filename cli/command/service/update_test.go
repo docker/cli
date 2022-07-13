@@ -520,8 +520,9 @@ func (s secretAPIClientMock) SecretUpdate(ctx context.Context, id string, versio
 	return nil
 }
 
-// TestUpdateSecretUpdateInPlace tests the ability to update the "target" of an secret with "docker service update"
-// by combining "--secret-rm" and "--secret-add" for the same secret.
+// TestUpdateSecretUpdateInPlace tests the ability to update the "target" of a
+// secret with "docker service update" by combining "--secret-rm" and
+// "--secret-add" for the same secret.
 func TestUpdateSecretUpdateInPlace(t *testing.T) {
 	apiClient := secretAPIClientMock{
 		listResult: []swarm.Secret{

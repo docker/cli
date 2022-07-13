@@ -204,7 +204,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 	return out.output.WriteProgress(prog)
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
 	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
 	if err != nil {
