@@ -64,8 +64,6 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 			expectedMsg: "Authenticating with existing credentials...\n",
 			expectedErr: fmt.Sprintf("Login did not succeed, error: %s\n", testAuthErrMsg),
 		},
-		// can't easily test the 401 case because client.IsErrUnauthorized(err) involving
-		// creating an error of a private type
 	}
 	ctx := context.Background()
 	for _, tc := range testCases {
