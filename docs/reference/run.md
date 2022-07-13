@@ -1430,7 +1430,7 @@ logging drivers.  For detailed information on working with logging drivers, see
 ## Overriding Dockerfile image defaults
 
 When a developer builds an image from a [*Dockerfile*](https://docs.docker.com/engine/reference/builder/)
-or when she commits it, the developer can set a number of default parameters
+or when committing it, the developer can set a number of default parameters
 that take effect when the image starts up as a container.
 
 Four of the Dockerfile commands cannot be overridden at runtime: `FROM`,
