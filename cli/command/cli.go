@@ -459,7 +459,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	if os.Getenv(client.EnvOverrideHost) != "" {
 		return DefaultContextName, nil
 	}
-	if ctxName, ok := os.LookupEnv("DOCKER_CONTEXT"); ok {
+	if ctxName := os.Getenv("DOCKER_CONTEXT"); ctxName != "" {
 		return ctxName, nil
 	}
 	if config != nil && config.CurrentContext != "" {
