@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -168,7 +169,7 @@ func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authCon
 	cliClient := dockerCli.Client()
 	response, err := cliClient.RegistryLogin(ctx, *authConfig)
 	if err != nil {
-		if client.IsErrUnauthorized(err) {
+		if errdefs.IsUnauthorized(err) {
 			fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
 		} else {
 			fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
