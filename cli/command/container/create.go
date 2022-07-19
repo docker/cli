@@ -198,7 +198,7 @@ func newCIDFile(path string) (*cidFile, error) {
 	return &cidFile{path: path, file: f}, nil
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.CreateResponse, error) {
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig

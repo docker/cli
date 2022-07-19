@@ -101,7 +101,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocyclo
+func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	ctx := context.Background()
 	clnt := dockerCli.Client()
 	if err := verifyloginOptions(dockerCli, &opts); err != nil {

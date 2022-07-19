@@ -67,7 +67,8 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunStart executes a `start` command
-// nolint: gocyclo
+//
+//nolint:gocyclo
 func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()

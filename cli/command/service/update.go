@@ -126,7 +126,7 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 	return opts.NewListOptsRef(&[]string{}, validator)
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
 	ctx := context.Background()
@@ -252,7 +252,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
 	updateBoolPtr := func(flag string, field **bool) {
 		if flags.Changed(flag) {
@@ -1139,37 +1139,37 @@ type hostMapping struct {
 // Entries can be removed by either a specific `<host-name>:<ip-address>` mapping,
 // or by `<host>` alone:
 //
-// - If both IP-address and host-name is provided, the hostname is removed only
-//   from entries that match the given IP-address.
-// - If only a host-name is provided, the hostname is removed from any entry it
-//   is part of (either as canonical host-name, or as alias).
-// - If, after removing the host-name from an entry, no host-names remain in
-//   the entry, the entry itself is removed.
+//   - If both IP-address and host-name is provided, the hostname is removed only
+//     from entries that match the given IP-address.
+//   - If only a host-name is provided, the hostname is removed from any entry it
+//     is part of (either as canonical host-name, or as alias).
+//   - If, after removing the host-name from an entry, no host-names remain in
+//     the entry, the entry itself is removed.
 //
 // For example, the list of host-entries before processing could look like this:
 //
-//    hosts = &[]string{
-//        "127.0.0.2 host3 host1 host2 host4",
-//        "127.0.0.1 host1 host4",
-//        "127.0.0.3 host1",
-//        "127.0.0.1 host1",
-//    }
+//	hosts = &[]string{
+//		"127.0.0.2 host3 host1 host2 host4",
+//		"127.0.0.1 host1 host4",
+//		"127.0.0.3 host1",
+//		"127.0.0.1 host1",
+//	}
 //
 // Removing `host1` removes every occurrence:
 //
-//    hosts = &[]string{
-//        "127.0.0.2 host3 host2 host4",
-//        "127.0.0.1 host4",
-//    }
+//	hosts = &[]string{
+//		"127.0.0.2 host3 host2 host4",
+//		"127.0.0.1 host4",
+//	}
 //
 // Removing `host1:127.0.0.1` on the other hand, only remove the host if the
 // IP-address matches:
 //
-//    hosts = &[]string{
-//        "127.0.0.2 host3 host1 host2 host4",
-//        "127.0.0.1 host4",
-//        "127.0.0.3 host1",
-//    }
+//	hosts = &[]string{
+//		"127.0.0.2 host3 host1 host2 host4",
+//		"127.0.0.1 host4",
+//		"127.0.0.3 host1",
+//	}
 func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 	var toRemove []hostMapping
 	if flags.Changed(flagHostRemove) {
@@ -1410,34 +1410,33 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 //
 // Adding/removing capabilities when updating a service is handled as a tri-state;
 //
-// - if the capability was previously "dropped", then remove it from "CapabilityDrop",
-//   but NOT added to "CapabilityAdd". However, if the capability was not yet in
-//   the service's "CapabilityDrop", then it's simply added to the service's "CapabilityAdd"
-// - likewise, if the capability was previously "added", then it's removed from
-//   "CapabilityAdd", but NOT added to "CapabilityDrop". If the capability was
-//   not yet in the service's "CapabilityAdd", then simply add it to the service's
-//   "CapabilityDrop".
+//   - if the capability was previously "dropped", then remove it from "CapabilityDrop",
+//     but NOT added to "CapabilityAdd". However, if the capability was not yet in
+//     the service's "CapabilityDrop", then it's simply added to the service's "CapabilityAdd"
+//   - likewise, if the capability was previously "added", then it's removed from
+//     "CapabilityAdd", but NOT added to "CapabilityDrop". If the capability was
+//     not yet in the service's "CapabilityAdd", then simply add it to the service's
+//     "CapabilityDrop".
 //
 // In other words, given a service with the following:
 //
 // | CapDrop        | CapAdd        |
-// | -------------- | ------------- |
+// |----------------|---------------|
 // | CAP_SOME_CAP   |               |
 //
 // When updating the service, and applying `--cap-add CAP_SOME_CAP`, the previously
 // dropped capability is removed:
 //
 // | CapDrop        | CapAdd        |
-// | -------------- | ------------- |
+// |----------------|---------------|
 // |                |               |
 //
 // After updating the service a second time, applying `--cap-add CAP_SOME_CAP`,
 // capability is now added:
 //
 // | CapDrop        | CapAdd        |
-// | -------------- | ------------- |
+// |----------------|---------------|
 // |                | CAP_SOME_CAP  |
-//
 func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec) {
 	var (
 		toAdd, toDrop map[string]bool
