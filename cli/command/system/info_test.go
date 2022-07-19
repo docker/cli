@@ -259,6 +259,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 	sampleInfoBadSecurity := sampleInfoNoSwarm
 	sampleInfoBadSecurity.SecurityOptions = []string{"foo="}
 
+	sampleInfoLabelsNil := sampleInfoNoSwarm
+	sampleInfoLabelsNil.Labels = nil
+	sampleInfoLabelsEmpty := sampleInfoNoSwarm
+	sampleInfoLabelsEmpty.Labels = []string{}
+
 	for _, tc := range []struct {
 		doc        string
 		dockerInfo info
@@ -292,6 +297,22 @@ func TestPrettyPrintInfo(t *testing.T) {
 			prettyGolden:   "docker-info-plugins",
 			jsonGolden:     "docker-info-plugins",
 			warningsGolden: "docker-info-plugins-warnings",
+		},
+		{
+			doc: "info with nil labels",
+			dockerInfo: info{
+				Info:       &sampleInfoLabelsNil,
+				ClientInfo: &clientInfo{Context: "default"},
+			},
+			prettyGolden: "docker-info-with-labels-nil",
+		},
+		{
+			doc: "info with empty labels",
+			dockerInfo: info{
+				Info:       &sampleInfoLabelsEmpty,
+				ClientInfo: &clientInfo{Context: "default"},
+			},
+			prettyGolden: "docker-info-with-labels-empty",
 		},
 		{
 
@@ -371,10 +392,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 			}
 
-			cli = test.NewFakeCli(&fakeClient{})
-			assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
-			golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
-			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			if tc.jsonGolden != "" {
+				cli = test.NewFakeCli(&fakeClient{})
+				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
+				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
+				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			}
 		})
 	}
 }
