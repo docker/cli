@@ -391,5 +391,4 @@ gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
 # github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220624123139-4eb1c5bd52af+incompatible
-# github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
 # github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20
