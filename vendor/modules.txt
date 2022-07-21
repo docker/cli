@@ -39,7 +39,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v20.10.14+incompatible => github.com/docker/docker v20.10.3-0.20220624123139-4eb1c5bd52af+incompatible
+# github.com/docker/docker v20.10.14+incompatible => github.com/docker/docker v20.10.3-0.20220720171342-a60b458179aa+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -266,7 +266,7 @@ golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
+# golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
 ## explicit; go 1.17
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
@@ -390,6 +390,5 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220624123139-4eb1c5bd52af+incompatible
-# github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
+# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220720171342-a60b458179aa+incompatible
 # github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20

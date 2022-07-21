@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.4
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.14+incompatible // see "replace" for the actual version
+	github.com/docker/docker v20.10.14+incompatible // v22.06.x - see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0
@@ -35,7 +35,7 @@ require (
 	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
@@ -76,8 +76,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220624123139-4eb1c5bd52af+incompatible // master (v22.06-dev)
-	github.com/gogo/googleapis => github.com/gogo/googleapis v1.3.2
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220720171342-a60b458179aa+incompatible // 22.06 branch (v22.06-dev)
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
 	// swarmkit) by pinning the certificate-transparency-go version. Remove once
