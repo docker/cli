@@ -71,7 +71,7 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
 fi
 export GO_BUILDMODE
 
-GO_LDFLAGS="${GO_LDFLAGS:-} -w"
+GO_LDFLAGS="${GO_LDFLAGS:-}"
 GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
 GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
 GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
@@ -86,7 +86,7 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
     GO_BUILDTAGS="$GO_BUILDTAGS osusergo"
 fi
 if [ -n "$GO_STRIP" ]; then
-    GO_LDFLAGS="$GO_LDFLAGS -s"
+    GO_LDFLAGS="$GO_LDFLAGS -s -w"
 fi
 export GO_LDFLAGS="$GO_LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
 
