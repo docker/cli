@@ -216,7 +216,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts.Common, cli.ConfigFile(), cli.contextStoreConfig, cli.Err())
+			return ResolveDefaultContext(opts.Common, cli.contextStoreConfig)
 		},
 	}
 	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
@@ -244,7 +244,7 @@ func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.
 	contextStore := &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, configFile, storeConfig, io.Discard)
+			return ResolveDefaultContext(opts, storeConfig)
 		},
 	}
 	contextName, err := resolveContextName(opts, configFile, contextStore)

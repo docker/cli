@@ -60,7 +60,7 @@ func TestDefaultContextInitializer(t *testing.T) {
 		TLSOptions: &tlsconfig.Options{
 			CAFile: "./testdata/ca.pem",
 		},
-	}, cli.ConfigFile(), DefaultContextStoreConfig(), cli.Err())
+	}, DefaultContextStoreConfig())
 	assert.NilError(t, err)
 	assert.Equal(t, "default", ctx.Meta.Name)
 	assert.DeepEqual(t, "ssh://someswarmserver", ctx.Meta.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host)
