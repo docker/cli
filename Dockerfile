@@ -21,12 +21,19 @@ RUN xx-apk add --no-cache musl-dev gcc
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bullseye AS build-base-bullseye
 COPY --from=xx / /
-RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld file
+RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld llvm file
 WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-bullseye AS build-bullseye
 ARG TARGETPLATFORM
 RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-10-dev
+# workaround for issue with llvm 11 for darwin/amd64 platform:
+#  # github.com/docker/cli/cmd/docker
+#  /usr/local/go/pkg/tool/linux_amd64/link: /usr/local/go/pkg/tool/linux_amd64/link: running strip failed: exit status 1
+#  llvm-strip: error: unsupported load command (cmd=0x5)
+# more info: https://github.com/docker/cli/pull/3717
+# FIXME: remove once llvm 12 available on debian
+RUN [ "$TARGETPLATFORM" != "darwin/amd64" ] || ln -sfnT /bin/true /usr/bin/llvm-strip
 
 FROM build-base-${BASE_VARIANT} AS goversioninfo
 ARG GOVERSIONINFO_VERSION
