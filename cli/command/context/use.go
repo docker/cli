@@ -37,9 +37,14 @@ func RunUse(dockerCli command.Cli, name string) error {
 		configValue = name
 	}
 	dockerConfig := dockerCli.ConfigFile()
-	dockerConfig.CurrentContext = configValue
-	if err := dockerConfig.Save(); err != nil {
-		return err
+	// Avoid updating the config-file if nothing changed. This also prevents
+	// creating the file and config-directory if the default is used and
+	// no config-file existed yet.
+	if dockerConfig.CurrentContext != configValue {
+		dockerConfig.CurrentContext = configValue
+		if err := dockerConfig.Save(); err != nil {
+			return err
+		}
 	}
 	fmt.Fprintln(dockerCli.Out(), name)
 	fmt.Fprintf(dockerCli.Err(), "Current context is now %q\n", name)
