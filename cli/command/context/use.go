@@ -25,15 +25,16 @@ func newUseCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunUse set the current Docker context
 func RunUse(dockerCli command.Cli, name string) error {
-	if err := store.ValidateContextName(name); err != nil && name != "default" {
-		return err
-	}
-	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil && name != "default" {
-		return err
-	}
-	configValue := name
-	if configValue == "default" {
-		configValue = ""
+	// configValue uses an empty string for "default"
+	var configValue string
+	if name != command.DefaultContextName {
+		if err := store.ValidateContextName(name); err != nil {
+			return err
+		}
+		if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil {
+			return err
+		}
+		configValue = name
 	}
 	dockerConfig := dockerCli.ConfigFile()
 	dockerConfig.CurrentContext = configValue
