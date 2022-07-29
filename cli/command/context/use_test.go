@@ -2,6 +2,9 @@ package context
 
 import (
 	"bytes"
+	"errors"
+	"io"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/pkg/homedir"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -44,6 +48,34 @@ func TestUseNoExist(t *testing.T) {
 	cli := makeFakeCli(t)
 	err := newUseCommand(cli).RunE(nil, []string{"test"})
 	assert.Check(t, store.IsErrContextDoesNotExist(err))
+}
+
+// TestUseDefaultWithoutConfigFile verifies that the CLI does not create
+// the default config file and directory when using the default context.
+func TestUseDefaultWithoutConfigFile(t *testing.T) {
+	// We must use a temporary home-directory, because this test covers
+	// the _default_ configuration file. If we specify a custom configuration
+	// file, the CLI produces an error if the file doesn't exist.
+	tmpHomeDir := t.TempDir()
+	t.Setenv(homedir.Key(), tmpHomeDir)
+	configDir := filepath.Join(tmpHomeDir, ".docker")
+	configFilePath := filepath.Join(configDir, "config.json")
+
+	// Verify config-dir and -file don't exist before
+	_, err := os.Stat(configDir)
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
+	_, err = os.Stat(configFilePath)
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
+
+	cli, err := command.NewDockerCli(command.WithCombinedStreams(io.Discard))
+	assert.NilError(t, err)
+	assert.NilError(t, newUseCommand(cli).RunE(nil, []string{"default"}))
+
+	// Verify config-dir and -file don't exist after
+	_, err = os.Stat(configDir)
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
+	_, err = os.Stat(configFilePath)
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
 }
 
 func TestUseHostOverride(t *testing.T) {
