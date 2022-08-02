@@ -17,6 +17,7 @@ func NewVolumeCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),
+		newEventsCommand(dockerCli),
 		newInspectCommand(dockerCli),
 		newListCommand(dockerCli),
 		newRemoveCommand(dockerCli),

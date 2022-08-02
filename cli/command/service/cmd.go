@@ -22,6 +22,7 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCli),
+		newEventsCommand(dockerCli),
 		newInspectCommand(dockerCli),
 		newPsCommand(dockerCli),
 		newListCommand(dockerCli),

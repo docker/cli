@@ -23,6 +23,7 @@ func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
 	cmd.AddCommand(
 		newSecretListCommand(dockerCli),
 		newSecretCreateCommand(dockerCli),
+		newSecretEventsCommand(dockerCli),
 		newSecretInspectCommand(dockerCli),
 		newSecretRemoveCommand(dockerCli),
 	)

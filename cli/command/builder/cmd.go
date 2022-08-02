@@ -18,6 +18,7 @@ func NewBuilderCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{"version": "1.31"},
 	}
 	cmd.AddCommand(
+		newEventsCommand(dockerCli),
 		NewPruneCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
 	)

@@ -23,6 +23,7 @@ func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 	cmd.AddCommand(
 		newConfigListCommand(dockerCli),
 		newConfigCreateCommand(dockerCli),
+		newConfigEventsCommand(dockerCli),
 		newConfigInspectCommand(dockerCli),
 		newConfigRemoveCommand(dockerCli),
 	)
