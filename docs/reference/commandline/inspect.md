@@ -84,7 +84,7 @@ You can loop over arrays and maps in the results to produce simple text
 output:
 
 ```console
-$ docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{(index $conf 0).HostPort}} {{end}}' $INSTANCE_ID
+$ docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{with $conf}}{{(index . 0).HostPort}}{{else}}none{{end}} {{end}}' $INSTANCE_ID
 ```
 
 ### Find a specific port mapping
