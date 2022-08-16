@@ -495,6 +495,13 @@ $ docker build -t mybuildimage --target build-env .
 
 ### <a name=output></a> Custom build outputs (--output)
 
+> **Note**
+>
+> This feature requires the BuildKit backend. You can either
+> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
+> use the [buildx](https://github.com/docker/buildx) plugin which provides more
+> output type options.
+
 By default, a local container image is created from the build result. The
 `--output` (or `-o`) flag allows you to override this behavior, and a specify a
 custom exporter. For example, custom exporters allow you to export the build
@@ -580,14 +587,14 @@ $ ls ./out
 vndr
 ```
 
+### <a name=cache-from></a> Specifying external cache sources (--cache-from)
+
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
 > [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
-> use the [buildx](https://github.com/docker/buildx) plugin which provides more
-> output type options.
-
-### <a name=cache-from></a> Specifying external cache sources (--cache-from)
+> use the [buildx](https://github.com/docker/buildx) plugin. The previous
+> builder has limited support for reusing cache from pre-pulled images.
 
 In addition to local build cache, the builder can reuse the cache generated from
 previous builds with the `--cache-from` flag pointing to an image in the registry.
@@ -622,13 +629,6 @@ On another machine:
 ```console
 $ docker build --cache-from myname/myapp .
 ```
-
-> **Note**
->
-> This feature requires the BuildKit backend. You can either
-> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
-> use the [buildx](https://github.com/docker/buildx) plugin. The previous
-> builder has limited support for reusing cache from pre-pulled images.
 
 ### <a name=squash></a> Squash an image's layers (--squash) (experimental)
 
