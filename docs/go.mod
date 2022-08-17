@@ -7,7 +7,7 @@ go 1.16
 
 //require (
 //	github.com/docker/cli v0.0.0+incompatible
-//	github.com/docker/cli-docs-tool v0.3.0
+//	github.com/docker/cli-docs-tool v0.5.0
 //)
 //
 //replace github.com/docker/cli v0.0.0+incompatible => ../
