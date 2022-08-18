@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Contributing to Docker"
+    about: "Read guidelines and tips about contributing to Docker."
+    url: "https://github.com/docker/cli/blob/master/CONTRIBUTING.md"
+  - name: "Security and Vulnerabilities"
+    about: "Please report any security issues or vulnerabilities responsibly to the Docker security team. Please do not use the public issue tracker."
+    url: "https://github.com/moby/moby/security/policy"
+  - name: "General Support"
+    about: "Get the help you need to build, share, and run your Docker applications"
+    url: "https://www.docker.com/support/"
