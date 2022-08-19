@@ -20,7 +20,7 @@ var basicFunctions = template.FuncMap{
 	},
 	"split":    strings.Split,
 	"join":     strings.Join,
-	"title":    strings.Title,
+	"title":    strings.Title, //nolint:staticcheck // strings.Title is deprecated, but we only use it for ASCII, so replacing with golang.org/x/text is out of scope
 	"lower":    strings.ToLower,
 	"upper":    strings.ToUpper,
 	"pad":      padWithSpace,
