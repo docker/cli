@@ -26,7 +26,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 			flags: map[string]string{
 				"name": "volumeName",
 			},
-			expectedError: "Conflicting options: either specify --name or provide positional arg, not both",
+			expectedError: "conflicting options: either specify --name or provide positional arg, not both",
 		},
 		{
 			args:          []string{"too", "many"},

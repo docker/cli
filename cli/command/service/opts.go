@@ -914,7 +914,7 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 }
 
 const (
-	flagCredentialSpec          = "credential-spec"
+	flagCredentialSpec          = "credential-spec" //nolint:gosec // ignore G101: Potential hardcoded credentials
 	flagPlacementPref           = "placement-pref"
 	flagPlacementPrefAdd        = "placement-pref-add"
 	flagPlacementPrefRemove     = "placement-pref-rm"

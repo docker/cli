@@ -62,15 +62,13 @@ func TestNodeContextWrite(t *testing.T) {
 
 		// Errors
 		{
-			context: formatter.Context{Format: "{{InvalidFunction}}"},
-			expected: `Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			context:     formatter.Context{Format: "{{InvalidFunction}}"},
+			expected:    `template parsing error: template: :1: function "InvalidFunction" not defined`,
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		{
-			context: formatter.Context{Format: "{{nil}}"},
-			expected: `Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			context:     formatter.Context{Format: "{{nil}}"},
+			expected:    `template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		// Table format
