@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.8
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.14+incompatible // v22.06.x - see "replace" for the actual version
+	github.com/docker/docker v20.10.17+incompatible // v22.06.x - see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.4.0
@@ -22,7 +22,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.10.4
-	github.com/moby/swarmkit/v2 v2.0.0-20220420172245-6068d1894d46
+	github.com/moby/swarmkit/v2 v2.0.0-20220721174824-48dd89375d0a
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/morikuni/aec v1.0.0
@@ -76,7 +76,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220720171342-a60b458179aa+incompatible // 22.06 branch (v22.06-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220826112928-d2590dc3cd4f+incompatible // 22.06 branch (v22.06-dev)
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
 	// swarmkit) by pinning the certificate-transparency-go version. Remove once
