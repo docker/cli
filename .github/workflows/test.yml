@@ -12,22 +12,22 @@ on:
 
 jobs:
   ctn:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       -
         name: Test
-        uses: docker/bake-action@v1
+        uses: docker/bake-action@v2
         with:
           targets: test-coverage
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           file: ./build/coverage/coverage.txt
 
@@ -41,8 +41,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
-#          - windows-latest # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
+          - macos-11
+#          - windows-2022 # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
     steps:
       -
         name: Prepare git
@@ -52,12 +52,12 @@ jobs:
           git config --system core.eol lf
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{ env.GOPATH }}/src/github.com/docker/cli
       -
         name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.5
       -
@@ -69,7 +69,7 @@ jobs:
         shell: bash
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           file: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
