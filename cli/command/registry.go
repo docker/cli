@@ -41,7 +41,10 @@ func EncodeAuthToBase64(authConfig types.AuthConfig) (string, error) {
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
 	return func() (string, error) {
 		fmt.Fprintf(cli.Out(), "\nPlease login prior to %s:\n", cmdName)
-		indexServer := registry.GetAuthConfigKey(index)
+		indexServer := index.Name
+		if index.Official {
+			indexServer = registry.IndexServer
+		}
 		isDefaultRegistry := indexServer == registry.IndexServer
 		authConfig, err := GetDefaultAuthConfig(cli, true, indexServer, isDefaultRegistry)
 		if err != nil {
