@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/system"
+	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -47,9 +47,9 @@ func runLoad(dockerCli command.Cli, opts loadOptions) error {
 
 	var input io.Reader = dockerCli.In()
 	if opts.input != "" {
-		// We use system.OpenSequential to use sequential file access on Windows, avoiding
+		// We use sequential.Open to use sequential file access on Windows, avoiding
 		// depleting the standby list un-necessarily. On Linux, this equates to a regular os.Open.
-		file, err := system.OpenSequential(opts.input)
+		file, err := sequential.Open(opts.input)
 		if err != nil {
 			return err
 		}

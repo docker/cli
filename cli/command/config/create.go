@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/system"
+	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -54,7 +54,7 @@ func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
 
 	var in io.Reader = dockerCli.In()
 	if options.File != "-" {
-		file, err := system.OpenSequential(options.File)
+		file, err := sequential.Open(options.File)
 		if err != nil {
 			return err
 		}
