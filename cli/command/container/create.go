@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -141,12 +142,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, image string, platfor
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesStream(
-		responseBody,
-		out,
-		dockerCli.Out().FD(),
-		dockerCli.Out().IsTerminal(),
-		nil)
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(out), nil)
 }
 
 type cidFile struct {
