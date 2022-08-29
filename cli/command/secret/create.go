@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/system"
+	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -94,7 +94,7 @@ func readSecretData(in io.ReadCloser, file string) ([]byte, error) {
 	}
 	if file != "-" {
 		var err error
-		in, err = system.OpenSequential(file)
+		in, err = sequential.Open(file)
 		if err != nil {
 			return nil, err
 		}
