@@ -13,7 +13,7 @@ require (
 	github.com/docker/docker v20.10.17+incompatible // v22.06.x - see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/docker/go-connections v0.4.0
-	github.com/docker/go-units v0.4.0
+	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.5.7

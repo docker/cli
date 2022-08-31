@@ -638,7 +638,7 @@ func TestRunFlagsParseShmSize(t *testing.T) {
 	// shm-size ko
 	flags, _ := setupRunFlags()
 	args := []string{"--shm-size=a128m", "img", "cmd"}
-	expectedErr := `invalid argument "a128m" for "--shm-size" flag: invalid size: 'a128m'`
+	expectedErr := `invalid argument "a128m" for "--shm-size" flag:`
 	err := flags.Parse(args)
 	assert.ErrorContains(t, err, expectedErr)
 
