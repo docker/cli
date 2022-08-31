@@ -199,10 +199,9 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	config := containerConfig.Config
 	hostConfig := containerConfig.HostConfig
 	networkingConfig := containerConfig.NetworkingConfig
-	stderr := dockerCli.Err()
 
-	warnOnOomKillDisable(*hostConfig, stderr)
-	warnOnLocalhostDNS(*hostConfig, stderr)
+	warnOnOomKillDisable(*hostConfig, dockerCli.Err())
+	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
 
 	var (
 		trustedRef reference.Canonical
@@ -233,7 +232,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	}
 
 	pullAndTagImage := func() error {
-		pullOut := stderr
+		pullOut := dockerCli.Err()
 		if opts.quiet {
 			pullOut = io.Discard
 		}
@@ -273,7 +272,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
 			if !opts.quiet {
 				// we don't want to write to stdout anything apart from container.ID
-				fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+				fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
 			if err := pullAndTagImage(); err != nil {
@@ -291,7 +290,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintf(stderr, "WARNING: %s\n", warning)
+		fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", warning)
 	}
 	err = containerIDFile.Write(response.ID)
 	return &response, err
