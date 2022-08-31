@@ -29,7 +29,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -407,24 +406,13 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	defaultOps := []DockerCliOption{
 		WithContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
+		WithStandardStreams(),
 	}
 	ops = append(defaultOps, ops...)
 
 	cli := &DockerCli{}
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
-	}
-	if cli.out == nil || cli.in == nil || cli.err == nil {
-		stdin, stdout, stderr := term.StdStreams()
-		if cli.in == nil {
-			cli.in = streams.NewIn(stdin)
-		}
-		if cli.out == nil {
-			cli.out = streams.NewOut(stdout)
-		}
-		if cli.err == nil {
-			cli.err = stderr
-		}
 	}
 	return cli, nil
 }
