@@ -52,7 +52,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 		{
 			name:          "no-tag",
 			args:          []string{"reg/img"},
-			expectedError: "No tag specified for reg/img",
+			expectedError: "no tag specified for reg/img",
 		},
 		{
 			name:          "digest-reference",
@@ -232,7 +232,7 @@ func TestCreateTarget(t *testing.T) {
 	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, err = createTarget(notaryRepo, "")
-	assert.Error(t, err, "No tag specified")
+	assert.Error(t, err, "no tag specified")
 	_, err = createTarget(notaryRepo, "1")
 	assert.Error(t, err, "client is offline")
 }

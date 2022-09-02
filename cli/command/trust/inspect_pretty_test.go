@@ -77,7 +77,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOut(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
@@ -85,7 +85,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOut(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
+	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access nonexistent-reg-name.io/image")
 }
 
 func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
@@ -95,7 +95,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOut(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
+	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetUninitializedNotaryRepository)
@@ -103,7 +103,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOut(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
+	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access reg/unsigned-img:tag")
 }
 
 func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {

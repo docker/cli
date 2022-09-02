@@ -111,7 +111,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	cmd.SetArgs([]string{"--key", pubKeyFilepath, "alice", imageName})
 
 	cmd.SetOut(io.Discard)
-	assert.Error(t, cmd.Execute(), "Failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
+	assert.Error(t, cmd.Execute(), "failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
 	expectedErr := fmt.Sprintf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n\n", imageName)
 
 	assert.Check(t, is.Equal(expectedErr, cli.ErrBuffer().String()))

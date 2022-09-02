@@ -74,7 +74,7 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 		}
 	}
 	if len(errRepos) > 0 {
-		return fmt.Errorf("Failed to add signer to: %s", strings.Join(errRepos, ", "))
+		return fmt.Errorf("failed to add signer to: %s", strings.Join(errRepos, ", "))
 	}
 	return nil
 }

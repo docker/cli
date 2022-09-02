@@ -77,7 +77,7 @@ When adding a signer on a repo for the first time, `docker trust signer add` set
 ```console
 $ docker trust inspect --pretty example/trust-demo
 
-No signatures or cannot access example/trust-demo
+no signatures or cannot access example/trust-demo
 ```
 
 ```console
@@ -209,5 +209,5 @@ Adding signer "alice" to example/authorized...
 Enter passphrase for repository key with ID c6772a0:
 Successfully added signer: alice to example/authorized
 
-Failed to add signer to: example/unauthorized
+failed to add signer to: example/unauthorized
 ```

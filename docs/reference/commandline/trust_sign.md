@@ -137,7 +137,7 @@ When signing an image on a repo for the first time, `docker trust sign` sets up 
 ```console
 $ docker trust inspect --pretty example/trust-demo
 
-No signatures or cannot access example/trust-demo
+no signatures or cannot access example/trust-demo
 ```
 
 ```console
