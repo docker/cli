@@ -12,7 +12,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	apiclient "github.com/docker/docker/client"
-	dockerclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
 
@@ -77,7 +76,7 @@ func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) ma
 	return serviceNetworks
 }
 
-func validateExternalNetworks(ctx context.Context, client dockerclient.NetworkAPIClient, externalNetworks []string) error {
+func validateExternalNetworks(ctx context.Context, client apiclient.NetworkAPIClient, externalNetworks []string) error {
 	for _, networkName := range externalNetworks {
 		if !container.NetworkMode(networkName).IsUserDefined() {
 			// Networks that are not user defined always exist on all nodes as
@@ -86,7 +85,7 @@ func validateExternalNetworks(ctx context.Context, client dockerclient.NetworkAP
 		}
 		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 		switch {
-		case dockerclient.IsErrNotFound(err):
+		case apiclient.IsErrNotFound(err):
 			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
