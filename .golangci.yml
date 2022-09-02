@@ -1,7 +1,6 @@
 linters:
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - dogsled
     - gocyclo
@@ -14,14 +13,12 @@ linters:
     - megacheck
     - misspell
     - nakedret
+    - revive
     - staticcheck
-    - structcheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - revive
-    - varcheck
 
   disable:
     - errcheck
@@ -98,6 +95,12 @@ issues:
       linters:
         - gosec
 
+    # G113 Potential uncontrolled memory consumption in Rat.SetString (CVE-2022-23772)
+    # only affects gp < 1.16.14. and go < 1.17.7
+    - text: "(G113)"
+      linters:
+        - gosec
+
     # Looks like the match in "EXC0007" above doesn't catch this one
     # TODO: consider upstreaming this to golangci-lint's default exclusion rules
     - text: "G204: Subprocess launched with a potential tainted input or cmd arguments"
@@ -108,6 +111,11 @@ issues:
     - text: "G306: Expect WriteFile permissions to be 0600 or less"
       linters:
         - gosec
+
+    # TODO: make sure all packages have a description. Currently, there's 67 packages without.
+    - text: "package-comments: should have a package comment"
+      linters:
+        - revive
 
     # Exclude some linters from running on tests files.
     - path: _test\.go
