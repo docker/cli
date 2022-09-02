@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
@@ -80,10 +79,10 @@ func TestInspectCommandNotFound(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
 	cli.SetRegistryClient(&fakeRegistryClient{
-		getManifestFunc: func(_ context.Context, _ reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.New("missing")
+		getManifestFunc: func(_ context.Context, _ reference.Named) (types.ImageManifest, error) {
+			return types.ImageManifest{}, errors.New("missing")
 		},
-		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
+		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]types.ImageManifest, error) {
 			return nil, errors.Errorf("No such manifest: %s", ref)
 		},
 	})
@@ -119,7 +118,7 @@ func TestInspectcommandRemoteManifest(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
 	cli.SetRegistryClient(&fakeRegistryClient{
-		getManifestFunc: func(_ context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
+		getManifestFunc: func(_ context.Context, ref reference.Named) (types.ImageManifest, error) {
 			return fullImageManifest(t, ref), nil
 		},
 	})

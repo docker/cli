@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
-	dockerClient "github.com/docker/docker/client"
+	apiclient "github.com/docker/docker/client"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -24,7 +24,7 @@ import (
 // TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
-	dockerClient.Client
+	apiclient.Client
 }
 
 func (c *fakeClient) Info(ctx context.Context) (types.Info, error) {
