@@ -43,7 +43,7 @@ func (s *tlsStore) getData(contextID contextdir, endpointName, filename string) 
 	return data, nil
 }
 
-func (s *tlsStore) remove(contextID contextdir, endpointName, filename string) error { //nolint:unused
+func (s *tlsStore) remove(contextID contextdir, endpointName, filename string) error {
 	err := os.Remove(s.filePath(contextID, endpointName, filename))
 	if os.IsNotExist(err) {
 		return nil
