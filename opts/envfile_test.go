@@ -154,7 +154,7 @@ HOME
 		t.Fatal("the HOME variable is not properly imported as the first variable (but it is the only one to import)")
 	}
 
-	if 1 != len(variables) {
+	if len(variables) != 1 {
 		t.Fatal("exactly one variable is imported (as the other one is not set at all)")
 	}
 }
