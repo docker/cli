@@ -97,5 +97,5 @@ func (c *searchContext) IsOfficial() string {
 //
 // Deprecated: the "is_automated" field is deprecated and will always be "false" in the future.
 func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated) //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+	return c.formatBool(c.s.IsAutomated) //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }

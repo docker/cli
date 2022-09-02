@@ -72,7 +72,7 @@ func TestImageContext(t *testing.T) {
 		{
 			imageCtx: imageContext{i: image.Summary{Size: 10000}},
 			expValue: "10kB",
-			call:     ctx.VirtualSize, //nolint:staticcheck // ignore SA1019: field is deprecated, but still set on API < v1.44.
+			call:     ctx.VirtualSize, //nolint:nolintlint,staticcheck // ignore SA1019: field is deprecated, but still set on API < v1.44.
 		},
 		{
 			imageCtx: imageContext{i: image.Summary{SharedSize: 10000}},
