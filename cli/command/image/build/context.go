@@ -235,7 +235,7 @@ func getWithStatusError(url string) (resp *http.Response, err error) {
 	if resp, err = http.Get(url); err != nil {
 		return nil, err
 	}
-	if resp.StatusCode < 400 {
+	if resp.StatusCode < http.StatusBadRequest {
 		return resp, nil
 	}
 	msg := fmt.Sprintf("failed to GET %s with status %s", url, resp.Status)
