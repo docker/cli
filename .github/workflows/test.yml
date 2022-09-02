@@ -63,7 +63,7 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18.6
+          go-version: 1.19.0
       -
         name: Test
         run: |
