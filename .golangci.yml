@@ -5,6 +5,7 @@ linters:
     - dogsled
     - dupword       # Detects duplicate words.
     - durationcheck
+    - errchkjson
     - exportloopref # Detects pointers to enclosing loop variables.
     - gocritic      # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
