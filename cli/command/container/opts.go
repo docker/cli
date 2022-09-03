@@ -911,8 +911,7 @@ func parseDevice(device, serverOS string) (container.DeviceMapping, error) {
 // parseLinuxDevice parses a device mapping string to a container.DeviceMapping struct
 // knowing that the target is a Linux daemon
 func parseLinuxDevice(device string) (container.DeviceMapping, error) {
-	src := ""
-	dst := ""
+	var src, dst string
 	permissions := "rwm"
 	arr := strings.Split(device, ":")
 	switch len(arr) {
