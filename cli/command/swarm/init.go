@@ -66,11 +66,10 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
-	var defaultAddrPool []string
-
 	client := dockerCli.Client()
 	ctx := context.Background()
 
+	defaultAddrPool := make([]string, 0, len(opts.defaultAddrPools))
 	for _, p := range opts.defaultAddrPools {
 		defaultAddrPool = append(defaultAddrPool, p.String())
 	}

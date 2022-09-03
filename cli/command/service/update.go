@@ -727,8 +727,10 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimi
 			newUlimits[ulimit.Name] = ulimit
 		}
 	}
-
-	var limits []*units.Ulimit
+	if len(newUlimits) == 0 {
+		return nil
+	}
+	limits := make([]*units.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		limits = append(limits, ulimit)
 	}
@@ -1307,7 +1309,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	existingNetworks := make(map[string]struct{})
-	var newNetworks []swarm.NetworkAttachmentConfig
+	var newNetworks []swarm.NetworkAttachmentConfig //nolint:prealloc
 	for _, network := range specNetworks {
 		if _, exists := idsToRemove[network.Target]; exists {
 			continue
@@ -1503,10 +1505,13 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 }
 
 func capsList(caps map[string]bool) []string {
+	if len(caps) == 0 {
+		return nil
+	}
 	if caps[opts.AllCapabilities] {
 		return []string{opts.AllCapabilities}
 	}
-	var out []string
+	out := make([]string, 0, len(caps))
 	for c := range caps {
 		out = append(out, c)
 	}

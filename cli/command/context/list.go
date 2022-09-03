@@ -51,7 +51,7 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	var (
 		curContext = dockerCli.CurrentContext()
 		curFound   bool
-		contexts   []*formatter.ClientContext
+		contexts   = make([]*formatter.ClientContext, 0, len(contextMap))
 	)
 	for _, rawMeta := range contextMap {
 		isCurrent := rawMeta.Name == curContext

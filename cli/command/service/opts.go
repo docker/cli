@@ -378,8 +378,9 @@ func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, ne
 }
 
 func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {
-	var netAttach []swarm.NetworkAttachmentConfig
-	for _, net := range networks.Value() {
+	nws := networks.Value()
+	netAttach := make([]swarm.NetworkAttachmentConfig, 0, len(nws))
+	for _, net := range nws {
 		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{
 			Target:     net.Target,
 			Aliases:    net.Aliases,

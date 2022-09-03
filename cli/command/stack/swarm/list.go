@@ -36,7 +36,7 @@ func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
 			ztack.Services++
 		}
 	}
-	var stacks []*formatter.Stack
+	stacks := make([]*formatter.Stack, 0, len(m))
 	for _, stack := range m {
 		stacks = append(stacks, stack)
 	}

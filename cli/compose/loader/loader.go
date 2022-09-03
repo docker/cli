@@ -220,7 +220,7 @@ func GetUnsupportedProperties(configDicts ...map[string]interface{}) []string {
 }
 
 func sortedKeys(set map[string]bool) []string {
-	var keys []string
+	keys := make([]string, 0, len(set))
 	for key := range set {
 		keys = append(keys, key)
 	}
@@ -394,7 +394,7 @@ func formatInvalidKeyError(keyPrefix string, key interface{}) error {
 // LoadServices produces a ServiceConfig map from a compose file Dict
 // the servicesDict is not validated if directly used. Use Load() to enable validation
 func LoadServices(servicesDict map[string]interface{}, workingDir string, lookupEnv template.Mapping) ([]types.ServiceConfig, error) {
-	var services []types.ServiceConfig
+	services := make([]types.ServiceConfig, 0, len(servicesDict))
 
 	for name, serviceDef := range servicesDict {
 		serviceConfig, err := LoadService(name, serviceDef.(map[string]interface{}), workingDir, lookupEnv)

@@ -125,7 +125,7 @@ func Names(s Lister) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var names []string
+	names := make([]string, 0, len(list))
 	for _, item := range list {
 		names = append(names, item.Name)
 	}

@@ -101,7 +101,7 @@ func (c *networkContext) Labels() string {
 		return ""
 	}
 
-	var joinLabels []string
+	joinLabels := make([]string, 0, len(c.n.Labels))
 	for k, v := range c.n.Labels {
 		joinLabels = append(joinLabels, k+"="+v)
 	}

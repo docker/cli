@@ -61,7 +61,7 @@ func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{
 }
 
 func propertyWarnings(properties map[string]string) string {
-	var msgs []string
+	msgs := make([]string, 0, len(properties))
 	for name, description := range properties {
 		msgs = append(msgs, fmt.Sprintf("%s: %s", name, description))
 	}
@@ -129,7 +129,7 @@ func buildEnvironment(env []string) (map[string]string, error) {
 }
 
 func loadConfigFiles(filenames []string, stdin io.Reader) ([]composetypes.ConfigFile, error) {
-	var configFiles []composetypes.ConfigFile
+	configFiles := make([]composetypes.ConfigFile, 0, len(filenames))
 
 	for _, filename := range filenames {
 		configFile, err := loadConfigFile(filename, stdin)

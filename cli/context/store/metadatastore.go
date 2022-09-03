@@ -109,7 +109,7 @@ func (s *metadataStore) list() ([]Metadata, error) {
 		}
 		return nil, err
 	}
-	var res []Metadata
+	res := make([]Metadata, 0, len(ctxDirs))
 	for _, dir := range ctxDirs {
 		c, err := s.getByID(contextdir(dir))
 		if err != nil {

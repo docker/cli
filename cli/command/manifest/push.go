@@ -192,9 +192,9 @@ func buildManifestDescriptor(targetRepo *registry.RepositoryInfo, imageManifest 
 }
 
 func buildBlobRequestList(imageManifest types.ImageManifest, repoName reference.Named) ([]manifestBlob, error) {
-	var blobReqs []manifestBlob
-
-	for _, blobDigest := range imageManifest.Blobs() {
+	blobs := imageManifest.Blobs()
+	blobReqs := make([]manifestBlob, 0, len(blobs))
+	for _, blobDigest := range blobs {
 		canonical, err := reference.WithDigest(repoName, blobDigest)
 		if err != nil {
 			return nil, err

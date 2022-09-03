@@ -710,7 +710,7 @@ func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units
 			}
 		}
 	}
-	var ulimits []*units.Ulimit
+	ulimits := make([]*units.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		ulimits = append(ulimits, ulimit)
 	}
