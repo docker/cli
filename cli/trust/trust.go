@@ -136,7 +136,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 		Timeout:   5 * time.Second,
 	}
 	endpointStr := server + "/v2/"
-	req, err := http.NewRequest("GET", endpointStr, nil)
+	req, err := http.NewRequest(http.MethodGet, endpointStr, nil)
 	if err != nil {
 		return nil, err
 	}

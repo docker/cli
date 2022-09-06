@@ -33,8 +33,6 @@ type Plugin struct {
 // is set, and is always a `pluginError`, but the `Plugin` is still
 // returned with no error. An error is only returned due to a
 // non-recoverable error.
-//
-//nolint:gocyclo
 func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 	path := c.Path()
 	if path == "" {

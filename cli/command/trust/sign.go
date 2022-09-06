@@ -132,9 +132,9 @@ func validateTag(imgRefAndAuth trust.ImageRefAndAuth) error {
 	tag := imgRefAndAuth.Tag()
 	if tag == "" {
 		if imgRefAndAuth.Digest() != "" {
-			return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+			return errors.New("cannot use a digest reference for IMAGE:TAG")
 		}
-		return fmt.Errorf("No tag specified for %s", imgRefAndAuth.Name())
+		return fmt.Errorf("no tag specified for %s", imgRefAndAuth.Name())
 	}
 	return nil
 }
@@ -148,7 +148,7 @@ func createTarget(notaryRepo client.Repository, tag string) (client.Target, erro
 	target := &client.Target{}
 	var err error
 	if tag == "" {
-		return *target, fmt.Errorf("No tag specified")
+		return *target, errors.New("no tag specified")
 	}
 	target.Name = tag
 	target.Hashes, target.Length, err = getSignedManifestHashAndSize(notaryRepo, tag)

@@ -160,7 +160,7 @@ display any signed tags.
 ```console
 $ docker trust inspect unsigned-img
 
-No signatures or cannot access unsigned-img
+no signatures or cannot access unsigned-img
 ```
 
 However, if other tags are signed in the same image repository,

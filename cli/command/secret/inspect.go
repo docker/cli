@@ -2,7 +2,7 @@ package secret
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -54,7 +54,7 @@ func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
 	if strings.HasPrefix(f, "pretty") && f != "pretty" {
-		return fmt.Errorf("Cannot supply extra formatting options to the pretty template")
+		return errors.New("cannot supply extra formatting options to the pretty template")
 	}
 
 	secretCtx := formatter.Context{
