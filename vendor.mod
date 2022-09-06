@@ -37,7 +37,7 @@ require (
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.1.0
@@ -68,7 +68,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.2 // indirect
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
+	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect; updated for CVE-2022-27664
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
