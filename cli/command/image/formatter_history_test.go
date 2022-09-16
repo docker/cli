@@ -70,6 +70,30 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 				human: false,
 			}, dateStr, ctx.CreatedSince,
 		},
+		{
+			// The zero time is not displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: 0},
+				trunc: false,
+				human: true,
+			}, "", ctx.CreatedSince,
+		},
+		{
+			// A time before the year 2000 is not displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: time.Date(1980, time.November, 10, 10, 23, 0, 0, time.UTC).Unix()},
+				trunc: false,
+				human: true,
+			}, "", ctx.CreatedSince,
+		},
+		{
+			// A time after 2000 is displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: time.Date(2005, time.September, 27, 4, 37, 0, 0, time.UTC).Unix()},
+				trunc: false,
+				human: true,
+			}, "", ctx.CreatedSince,
+		},
 	}
 
 	for _, c := range cases {
@@ -173,6 +197,7 @@ func TestHistoryContext_Comment(t *testing.T) {
 func TestHistoryContext_Table(t *testing.T) {
 	out := bytes.NewBufferString("")
 	unixTime := time.Now().AddDate(0, 0, -1).Unix()
+	oldDate := time.Now().AddDate(-17, 0, 0).Unix()
 	histories := []image.HistoryResponseItem{
 		{
 			ID:        "imageID1",
@@ -185,6 +210,8 @@ func TestHistoryContext_Table(t *testing.T) {
 		{ID: "imageID2", Created: unixTime, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 		{ID: "imageID3", Created: unixTime, CreatedBy: "/bin/bash ls", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 		{ID: "imageID4", Created: unixTime, CreatedBy: "/bin/bash grep", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
+		{ID: "imageID5", Created: 0, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
+		{ID: "imageID6", Created: oldDate, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 	}
 
 	const expectedNoTrunc = `IMAGE      CREATED        CREATED BY                                                                                                                     SIZE      COMMENT
@@ -192,12 +219,16 @@ imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && karma -c karm
 imageID2   24 hours ago   /bin/bash echo                                                                                                                 183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                                                                                                   183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                                                                                                 183MB     Hi
+imageID5                  /bin/bash echo                                                                                                                 183MB     Hi
+imageID6   17 years ago   /bin/bash echo                                                                                                                 183MB     Hi
 `
 	const expectedTrunc = `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
 imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && kar…   183MB     Hi
 imageID2   24 hours ago   /bin/bash echo                                  183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                    183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                  183MB     Hi
+imageID5                  /bin/bash echo                                  183MB     Hi
+imageID6   17 years ago   /bin/bash echo                                  183MB     Hi
 `
 
 	cases := []struct {

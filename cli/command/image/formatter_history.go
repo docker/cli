@@ -82,9 +82,15 @@ func (c *historyContext) CreatedAt() string {
 	return time.Unix(c.h.Created, 0).Format(time.RFC3339)
 }
 
+// epoch is the time before which created-at dates are not displayed with human units.
+var epoch = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+
 func (c *historyContext) CreatedSince() string {
 	if !c.human {
 		return c.CreatedAt()
+	}
+	if c.h.Created <= epoch {
+		return ""
 	}
 	created := units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
 	return created + " ago"
