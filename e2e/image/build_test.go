@@ -12,14 +12,13 @@ import (
 	"github.com/docker/cli/internal/test/output"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
-	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, "test-build-context-dir",
 		fs.WithFile("run", "echo running", fs.WithMode(0755)),
@@ -58,7 +57,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 
 func TestTrustedBuild(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
-	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -93,7 +92,7 @@ func TestTrustedBuild(t *testing.T) {
 
 func TestTrustedBuildUntrustedImage(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
-	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -120,7 +119,7 @@ func TestTrustedBuildUntrustedImage(t *testing.T) {
 
 func TestBuildIidFileSquash(t *testing.T) {
 	environment.SkipIfNotExperimentalDaemon(t)
-	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, "test-iidfile-squash")
 	defer dir.Remove()
