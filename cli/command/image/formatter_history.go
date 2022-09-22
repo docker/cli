@@ -90,7 +90,7 @@ func (c *historyContext) CreatedSince() string {
 		return c.CreatedAt()
 	}
 	if c.h.Created <= epoch {
-		return ""
+		return "N/A"
 	}
 	created := units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
 	return created + " ago"

@@ -12,7 +12,6 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/skip"
 )
 
 type historyCase struct {
@@ -52,8 +51,8 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
-	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
-	dateStr := "2009-11-10T23:00:00Z"
+	longerAgo := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	dateStr := longerAgo.Local().Format(time.RFC3339)
 	var ctx historyContext
 	cases := []historyCase{
 		{
@@ -65,7 +64,7 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 		},
 		{
 			historyContext{
-				h:     image.HistoryResponseItem{Created: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).Unix()},
+				h:     image.HistoryResponseItem{Created: longerAgo.Unix()},
 				trunc: false,
 				human: false,
 			}, dateStr, ctx.CreatedSince,
@@ -76,7 +75,7 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 				h:     image.HistoryResponseItem{Created: 0},
 				trunc: false,
 				human: true,
-			}, "", ctx.CreatedSince,
+			}, "N/A", ctx.CreatedSince,
 		},
 		{
 			// A time before the year 2000 is not displayed.
@@ -84,15 +83,15 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 				h:     image.HistoryResponseItem{Created: time.Date(1980, time.November, 10, 10, 23, 0, 0, time.UTC).Unix()},
 				trunc: false,
 				human: true,
-			}, "", ctx.CreatedSince,
+			}, "N/A", ctx.CreatedSince,
 		},
 		{
 			// A time after 2000 is displayed.
 			historyContext{
-				h:     image.HistoryResponseItem{Created: time.Date(2005, time.September, 27, 4, 37, 0, 0, time.UTC).Unix()},
+				h:     image.HistoryResponseItem{Created: time.Now().AddDate(-11, 0, 0).Unix()},
 				trunc: false,
 				human: true,
-			}, "", ctx.CreatedSince,
+			}, "11 years ago", ctx.CreatedSince,
 		},
 	}
 
@@ -102,7 +101,7 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 		if strings.Contains(v, ",") {
 			test.CompareMultipleValues(t, v, c.expValue)
 		} else if v != c.expValue {
-			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
+			t.Fatalf("Expected %q, was %q\n", c.expValue, v)
 		}
 	}
 }
@@ -219,7 +218,7 @@ imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && karma -c karm
 imageID2   24 hours ago   /bin/bash echo                                                                                                                 183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                                                                                                   183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                                                                                                 183MB     Hi
-imageID5                  /bin/bash echo                                                                                                                 183MB     Hi
+imageID5   N/A            /bin/bash echo                                                                                                                 183MB     Hi
 imageID6   17 years ago   /bin/bash echo                                                                                                                 183MB     Hi
 `
 	const expectedTrunc = `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
@@ -227,7 +226,7 @@ imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && kar…   183M
 imageID2   24 hours ago   /bin/bash echo                                  183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                    183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                  183MB     Hi
-imageID5                  /bin/bash echo                                  183MB     Hi
+imageID5   N/A            /bin/bash echo                                  183MB     Hi
 imageID6   17 years ago   /bin/bash echo                                  183MB     Hi
 `
 
