@@ -13,7 +13,7 @@ import (
 )
 
 func TestENVTrustServer(t *testing.T) {
-	defer env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "https://notary-test.example.com:5000"})()
+	env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "https://notary-test.example.com:5000"})
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
 	output, err := trust.Server(indexInfo)
 	expectedStr := "https://notary-test.example.com:5000"
@@ -23,7 +23,7 @@ func TestENVTrustServer(t *testing.T) {
 }
 
 func TestHTTPENVTrustServer(t *testing.T) {
-	defer env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "http://notary-test.example.com:5000"})()
+	env.PatchAll(t, map[string]string{"DOCKER_CONTENT_TRUST_SERVER": "http://notary-test.example.com:5000"})
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
 	_, err := trust.Server(indexInfo)
 	if err == nil {

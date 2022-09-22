@@ -97,7 +97,7 @@ func TestOldJSONFallbackDeprecationWarning(t *testing.T) {
 	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
 	tmpHome := fs.NewDir(t, t.Name(), fs.WithFile(oldConfigfile, js))
 	defer tmpHome.Remove()
-	defer env.PatchAll(t, map[string]string{homeKey: tmpHome.Path(), "DOCKER_CONFIG": ""})()
+	env.PatchAll(t, map[string]string{homeKey: tmpHome.Path(), "DOCKER_CONFIG": ""})
 
 	// reset the homeDir, configDir, and its sync.Once, to force them being resolved again
 	resetHomeDir()

@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test/output"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 )
 
@@ -45,7 +44,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 }
 
 func TestBuildkitDisabled(t *testing.T) {
-	defer env.Patch(t, "DOCKER_BUILDKIT", "0")()
+	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0777)),
@@ -102,7 +101,7 @@ func TestBuilderBroken(t *testing.T) {
 }
 
 func TestBuilderBrokenEnforced(t *testing.T) {
-	defer env.Patch(t, "DOCKER_BUILDKIT", "1")()
+	t.Setenv("DOCKER_BUILDKIT", "1")
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0777)),

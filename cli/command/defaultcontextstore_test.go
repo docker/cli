@@ -10,7 +10,6 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/go-connections/tlsconfig"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/golden"
 )
 
@@ -53,7 +52,7 @@ func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) stor
 func TestDefaultContextInitializer(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
-	defer env.Patch(t, "DOCKER_HOST", "ssh://someswarmserver")()
+	t.Setenv("DOCKER_HOST", "ssh://someswarmserver")
 	cli.configFile = &configfile.ConfigFile{}
 	ctx, err := ResolveDefaultContext(&cliflags.CommonOptions{
 		TLS: true,

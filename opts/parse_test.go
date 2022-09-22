@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 )
 
@@ -23,7 +22,7 @@ NO_SUCH_ENV
 	defer envFile1.Remove()
 	envFile2 := fs.NewFile(t, t.Name(), fs.WithContent("Z2=z\nA2=a"))
 	defer envFile2.Remove()
-	defer env.Patch(t, "FROM_ENV", "from-env")()
+	t.Setenv("FROM_ENV", "from-env")
 
 	tests := []struct {
 		name      string
