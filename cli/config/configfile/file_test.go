@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/docker/api/types/mount"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -557,4 +559,675 @@ func TestPluginConfig(t *testing.T) {
 	cfg, err = os.ReadFile("test-plugin2")
 	assert.NilError(t, err)
 	golden.Assert(t, string(cfg), "plugin-config-2.golden")
+}
+
+func TestApplyBindMap(t *testing.T) {
+	testcases := []struct {
+		name       string
+		configData string
+		host       string
+		binds      []string
+		expected   []string
+	}{
+		{
+			name:       "no configuration",
+			configData: "{}",
+			host:       "/var/run/docker.sock",
+			binds: []string{
+				"/home/user1/data:/workspace",
+				"/home/user2/data:/workspace",
+			},
+			expected: []string{
+				"/home/user1/data:/workspace",
+				"/home/user2/data:/workspace",
+			},
+		},
+		{
+			name: "host matched",
+			configData: `{"bindMaps": {
+				"default": {
+					"/home/user1":"/mnt/server1/user1"
+				},
+				"/var/run/docker.sock": {
+					"/home/user2":"/mnt/server2/user2"
+				}
+			}}`,
+			host: "/var/run/docker.sock",
+			binds: []string{
+				"/home/user1/data:/workspace",
+				"/home/user2/data:/workspace",
+			},
+			expected: []string{
+				"/home/user1/data:/workspace",
+				"/mnt/server2/user2/data:/workspace",
+			},
+		},
+		{
+			name: "host unmatched",
+			configData: `{"bindMaps": {
+				"default": {
+					"/home/user1":"/mnt/server1/user1"
+				},
+				"/var/run/docker.sock": {
+					"/home/user2":"/mnt/server2/user2"
+				}
+			}}`,
+			host: "tcp://127.0.0.1:2375",
+			binds: []string{
+				"/home/user1/data:/workspace",
+				"/home/user2/data:/workspace",
+			},
+			expected: []string{
+				"/mnt/server1/user1/data:/workspace",
+				"/home/user2/data:/workspace",
+			},
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			config := New("config.json")
+			assert.NilError(t, config.LoadFromReader(strings.NewReader(testcase.configData)))
+			// Note: testcase.binds will be modified in-place.
+			actual := config.ApplyBindMap(testcase.host, testcase.binds)
+			assert.DeepEqual(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestApplyBindMapToMounts(t *testing.T) {
+	testcases := []struct {
+		name       string
+		configData string
+		host       string
+		mounts     []mount.Mount
+		expected   []mount.Mount
+	}{
+		{
+			name:       "no configuration",
+			configData: "{}",
+			host:       "/var/run/docker.sock",
+			mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user2/data",
+					Target: "/workspace",
+				},
+			},
+			expected: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user2/data",
+					Target: "/workspace",
+				},
+			},
+		},
+		{
+			name: "host matched",
+			configData: `{"bindMaps": {
+				"default": {
+					"/home/user1":"/mnt/server1/user1"
+				},
+				"/var/run/docker.sock": {
+					"/home/user2":"/mnt/server2/user2"
+				}
+			}}`,
+			host: "/var/run/docker.sock",
+			mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user2/data",
+					Target: "/workspace",
+				},
+			},
+			expected: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/mnt/server2/user2/data",
+					Target: "/workspace",
+				},
+			},
+		},
+		{
+			name: "host unmatched",
+			configData: `{"bindMaps": {
+				"default": {
+					"/home/user1":"/mnt/server1/user1"
+				},
+				"/var/run/docker.sock": {
+					"/home/user2":"/mnt/server2/user2"
+				}
+			}}`,
+			host: "tcp://127.0.0.1:2375",
+			mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user2/data",
+					Target: "/workspace",
+				},
+			},
+			expected: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/mnt/server1/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user2/data",
+					Target: "/workspace",
+				},
+			},
+		},
+		{
+			name: "non-bind types",
+			configData: `{"bindMaps": {
+				"default": {
+					"/home/user1":"/mnt/server1/user1"
+				}
+			}}`,
+			host: "/var/run/docker.sock",
+			mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/home/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type: mount.TypeVolume,
+					// Invalid specification, just used for testing
+					Source: "/home/user1/volume",
+					Target: "/workspace",
+				},
+			},
+			expected: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: "/mnt/server1/user1/data",
+					Target: "/workspace",
+				},
+				{
+					Type:   mount.TypeVolume,
+					Source: "/home/user1/volume",
+					Target: "/workspace",
+				},
+			},
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			config := New("config.json")
+			assert.NilError(t, config.LoadFromReader(strings.NewReader(testcase.configData)))
+			// Note: testcase.mounts will be modified in-place.
+			actual := config.ApplyBindMapToMounts(testcase.host, testcase.mounts)
+			assert.DeepEqual(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestIsWindowsAbsolutePath(t *testing.T) {
+	testcases := []struct {
+		path     string
+		expected bool
+	}{
+		{"", false},
+		{"/", false},
+		{"/p", false},
+		{"/path", false},
+		{"c:\\", true},
+		{"c:\\path", true},
+		{"C:\\path", true},
+		{"c:", false},
+		{"c:path", false},
+		{"/c/path", false},
+		{"/c:/path", false},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.path, func(t *testing.T) {
+			assert.Equal(t, testcase.expected, isWindowsAbsolutePath(testcase.path))
+		})
+	}
+}
+
+func TestMapBind(t *testing.T) {
+	testcases := []struct {
+		name         string
+		bind         string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "empty sourcePrefix",
+			bind:         "/hostpath:/containerpath",
+			sourcePrefix: "",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "empty destPrefix",
+			bind:         "/hostpath:/containerpath",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "",
+			expected:     "",
+		},
+		{
+			name:         "unmatched",
+			bind:         "/hostpath:/containerpath",
+			sourcePrefix: "/anotherpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "posix-partial",
+			bind:         "/hostpath/sub/dir:/containerpath",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir:/containerpath",
+		},
+		{
+			name:         "posix-full",
+			bind:         "/hostpath/sub/dir:/containerpath",
+			sourcePrefix: "/hostpath/sub/dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced:/containerpath",
+		},
+		{
+			name:         "posix-option",
+			bind:         "/hostpath/sub/dir:/containerpath:ro",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir:/containerpath:ro",
+		},
+		{
+			name:         "posix-invalid",
+			bind:         "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "windows-partial",
+			bind:         "c:\\hostpath\\sub\\dir:/containerpath",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir:/containerpath",
+		},
+		{
+			name:         "windows-full",
+			bind:         "c:\\hostpath\\sub\\dir:/containerpath",
+			sourcePrefix: "c:\\hostpath\\sub\\dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced:/containerpath",
+		},
+		{
+			name:         "windows-option",
+			bind:         "c:\\hostpath\\sub\\dir:/containerpath:ro",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir:/containerpath:ro",
+		},
+		{
+			name:         "windows-invalid",
+			bind:         "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			actual := mapBind(testcase.bind, testcase.sourcePrefix, testcase.destPrefix)
+			assert.Equal(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestMapBindSource(t *testing.T) {
+	testcases := []struct {
+		name         string
+		source       string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "empty sourcePrefix",
+			source:       "/hostpath",
+			sourcePrefix: "",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "empty destPrefix",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "",
+			expected:     "",
+		},
+		{
+			name:         "unmatched",
+			source:       "/hostpath",
+			sourcePrefix: "/anotherpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "posix",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+		{
+			name:         "windows",
+			source:       "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			actual := mapBindSource(testcase.source, testcase.sourcePrefix, testcase.destPrefix)
+			assert.Equal(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestMapBindSourceWithPlatformPosix(t *testing.T) {
+	testcases := []struct {
+		name         string
+		source       string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "unmatched",
+			source:       "/hostpath",
+			sourcePrefix: "/anotherpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "partial",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+		{
+			name:         "full",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath/sub/dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced",
+		},
+		{
+			name:         "non-separator",
+			source:       "/hostpathextra/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "backslash",
+			source:       "/hostpath/sub\\dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub\\dir",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			actual := mapBindSourceWithPlatform(testcase.source, testcase.sourcePrefix, testcase.destPrefix, false)
+			assert.Equal(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestMapBindSourceWithPlatformPosixTrailingSlash(t *testing.T) {
+	testcases := []struct {
+		name         string
+		source       string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "partial",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+		{
+			name:         "full",
+			source:       "/hostpath/sub/dir",
+			sourcePrefix: "/hostpath/sub/dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			// test all combinations for trailing slash with source, sourcePrefix, destPrefix
+			// trailing slash with sourcePrefix or destPrefix doesn't affect the behavior.
+			// trailing slash with source results trailing slash in the output.
+			actual := mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix,
+				testcase.destPrefix,
+				false,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix,
+				testcase.destPrefix+"/",
+				false,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix+"/",
+				testcase.destPrefix,
+				false,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix+"/",
+				testcase.destPrefix+"/",
+				false,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"/",
+				testcase.sourcePrefix,
+				testcase.destPrefix,
+				false,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"/",
+				testcase.sourcePrefix,
+				testcase.destPrefix+"/",
+				false,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"/",
+				testcase.sourcePrefix+"/",
+				testcase.destPrefix,
+				false,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"/",
+				testcase.sourcePrefix+"/",
+				testcase.destPrefix+"/",
+				false,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+		})
+	}
+}
+
+func TestMapBindSourceWithPlatformWindows(t *testing.T) {
+	testcases := []struct {
+		name         string
+		source       string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "unmatched",
+			source:       "c:\\hostpath",
+			sourcePrefix: "c:\\anotherpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+		{
+			name:         "partial",
+			source:       "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+		{
+			name:         "full",
+			source:       "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath\\sub\\dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced",
+		},
+		{
+			name:         "non-separator",
+			source:       "c:\\hostpathextra\\sub\\dir",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			actual := mapBindSourceWithPlatform(testcase.source, testcase.sourcePrefix, testcase.destPrefix, true)
+			assert.Equal(t, testcase.expected, actual)
+		})
+	}
+}
+
+func TestMapBindSourceWithPlatformWindowsTrailingSlash(t *testing.T) {
+	testcases := []struct {
+		name         string
+		source       string
+		sourcePrefix string
+		destPrefix   string
+		expected     string
+	}{
+		{
+			name:         "partial",
+			source:       "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath",
+			destPrefix:   "/replaced",
+			expected:     "/replaced/sub/dir",
+		},
+		{
+			name:         "full",
+			source:       "c:\\hostpath\\sub\\dir",
+			sourcePrefix: "c:\\hostpath\\sub\\dir",
+			destPrefix:   "/replaced",
+			expected:     "/replaced",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			// test all combinations for trailing slash with source, sourcePrefix, destPrefix
+			// trailing slash with sourcePrefix or destPrefix doesn't affect the behavior.
+			// trailing slash with source results trailing slash in the output.
+			actual := mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix,
+				testcase.destPrefix,
+				true,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix,
+				testcase.destPrefix+"/",
+				true,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix+"\\",
+				testcase.destPrefix,
+				true,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source,
+				testcase.sourcePrefix+"\\",
+				testcase.destPrefix+"/",
+				true,
+			)
+			assert.Equal(t, testcase.expected, actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"\\",
+				testcase.sourcePrefix,
+				testcase.destPrefix,
+				true,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"\\",
+				testcase.sourcePrefix,
+				testcase.destPrefix+"/",
+				true,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"\\",
+				testcase.sourcePrefix+"\\",
+				testcase.destPrefix,
+				true,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+			actual = mapBindSourceWithPlatform(
+				testcase.source+"\\",
+				testcase.sourcePrefix+"\\",
+				testcase.destPrefix+"/",
+				true,
+			)
+			assert.Equal(t, testcase.expected+"/", actual)
+		})
+	}
 }

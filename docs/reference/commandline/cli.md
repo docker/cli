@@ -220,6 +220,25 @@ sections for configuring proxy settings for the cli and daemon.
 > the container's configuration, and as such can be inspected through the remote
 > API or committed to an image when using `docker commit`.
 
+### Auto-mappings for host paths in bind mounts
+
+The property `bindMaps` specifies maps for host paths in bind mounts. It's useful when your docker daemon is running on another host and filesystem is shared via network.
+Consider a case that your home directory is located at `/home/user1` and it's mounted on `/nfs/hostA/user1` on the machine where the docker daemon is running. You can run `docker run -v /home/user1/work:/workspace ...` successfully with following configuration for that case:
+
+```json
+{% raw %}
+{
+  "bindMaps": {
+    "default": {
+      "/home/user1": "/nfs/hostA/user1"
+    }
+  }
+}
+{% endraw %}
+```
+
+docker-cli converts the volume mount option `/home/user1/work:/workspace` to `/nfs/hostA/user1/work:/workspace` automatically. `"default"` is the configuration used for any docker daemon. Instead you can configure them for a specific host (docker daemon) like `"https://docker-daemon1.example.com"`.
+
 ### Default key-sequence to detach from containers
 
 Once attached to a container, users detach from it and leave it running using
@@ -294,7 +313,16 @@ various fields:
       "httpProxy":  "http://user:pass@example.com:3128",
       "httpsProxy": "https://my-proxy.example.com:3129"
     }
-  }
+  },
+  "bindMaps": {
+    "default": {
+      "/frompath1": "/topath1",
+      "/frompath2": "/topath2"
+    },
+    "tcp://127.0.0.1:2375": {
+      "C:\\": "/mnt/c/"
+    }
+  },
 }
 {% endraw %}
 ```

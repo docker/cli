@@ -111,6 +111,8 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
+	dockerCli.ConfigFile().ApplyBindMap(dockerCli.Client().DaemonHost(), containerConfig.HostConfig.Binds)
+	dockerCli.ConfigFile().ApplyBindMapToMounts(dockerCli.Client().DaemonHost(), containerConfig.HostConfig.Mounts)
 	if err = validateAPIVersion(containerConfig, dockerCli.CurrentVersion()); err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}

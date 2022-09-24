@@ -100,6 +100,8 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
+	dockerCli.ConfigFile().ApplyBindMap(dockerCli.Client().DaemonHost(), containerConfig.HostConfig.Binds)
+	dockerCli.ConfigFile().ApplyBindMapToMounts(dockerCli.Client().DaemonHost(), containerConfig.HostConfig.Mounts)
 	if err = validateAPIVersion(containerConfig, dockerCli.Client().ClientVersion()); err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
