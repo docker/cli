@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/homedir"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -47,7 +47,7 @@ func TestUse(t *testing.T) {
 func TestUseNoExist(t *testing.T) {
 	cli := makeFakeCli(t)
 	err := newUseCommand(cli).RunE(nil, []string{"test"})
-	assert.Check(t, store.IsErrContextDoesNotExist(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 // TestUseDefaultWithoutConfigFile verifies that the CLI does not create

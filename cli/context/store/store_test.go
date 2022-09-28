@@ -12,7 +12,9 @@ import (
 	"path"
 	"testing"
 
+	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type endpoint struct {
@@ -100,7 +102,7 @@ func TestRemove(t *testing.T) {
 	}))
 	assert.NilError(t, s.Remove("source"))
 	_, err = s.GetMetadata("source")
-	assert.Check(t, IsErrContextDoesNotExist(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 	f, err := s.ListTLSFiles("source")
 	assert.NilError(t, err)
 	assert.Equal(t, 0, len(f))
@@ -115,7 +117,7 @@ func TestListEmptyStore(t *testing.T) {
 func TestErrHasCorrectContext(t *testing.T) {
 	_, err := New(t.TempDir(), testCfg).GetMetadata("no-exists")
 	assert.ErrorContains(t, err, "no-exists")
-	assert.Check(t, IsErrContextDoesNotExist(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 func TestDetectImportContentType(t *testing.T) {
@@ -173,7 +175,7 @@ func TestImportZip(t *testing.T) {
 		Name:     "source",
 	})
 	assert.NilError(t, err)
-	var files = []struct {
+	files := []struct {
 		Name, Body string
 	}{
 		{"meta.json", string(meta)},

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 )
@@ -22,7 +23,7 @@ func testMetadata(name string) Metadata {
 func TestMetadataGetNotExisting(t *testing.T) {
 	testee := metadataStore{root: t.TempDir(), config: testCfg}
 	_, err := testee.get("noexist")
-	assert.Assert(t, IsErrContextDoesNotExist(err))
+	assert.ErrorType(t, err, errdefs.IsNotFound)
 }
 
 func TestMetadataCreateGetRemove(t *testing.T) {
@@ -56,7 +57,7 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 	assert.NilError(t, testee.remove("test-context"))
 	assert.NilError(t, testee.remove("test-context")) // support duplicate remove
 	_, err = testee.get("test-context")
-	assert.Assert(t, IsErrContextDoesNotExist(err))
+	assert.ErrorType(t, err, errdefs.IsNotFound)
 }
 
 func TestMetadataRespectJsonAnnotation(t *testing.T) {

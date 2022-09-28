@@ -7,7 +7,6 @@ import (
 	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -137,20 +136,21 @@ func (s *store) CreateOrUpdate(meta Metadata) error {
 
 func (s *store) Remove(name string) error {
 	if err := s.meta.remove(name); err != nil {
-		return patchErrContextName(err, name)
+		return errors.Wrapf(err, "failed to remove context %s", name)
 	}
-	return patchErrContextName(s.tls.removeAllContextData(name), name)
+	if err := s.tls.removeAllContextData(name); err != nil {
+		return errors.Wrapf(err, "failed to remove context %s", name)
+	}
+	return nil
 }
 
 func (s *store) GetMetadata(name string) (Metadata, error) {
-	res, err := s.meta.get(name)
-	patchErrContextName(err, name)
-	return res, err
+	return s.meta.get(name)
 }
 
 func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	if err := s.tls.removeAllContextData(name); err != nil {
-		return patchErrContextName(err, name)
+		return err
 	}
 	if data == nil {
 		return nil
@@ -158,7 +158,7 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	for ep, files := range data.Endpoints {
 		for fileName, data := range files.Files {
 			if err := s.tls.createOrUpdate(name, ep, fileName, data); err != nil {
-				return patchErrContextName(err, name)
+				return err
 			}
 		}
 	}
@@ -167,27 +167,25 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 
 func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
 	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
-		return patchErrContextName(err, contextName)
+		return err
 	}
 	if data == nil {
 		return nil
 	}
 	for fileName, data := range data.Files {
 		if err := s.tls.createOrUpdate(contextName, endpointName, fileName, data); err != nil {
-			return patchErrContextName(err, contextName)
+			return err
 		}
 	}
 	return nil
 }
 
 func (s *store) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
-	res, err := s.tls.listContextData(name)
-	return res, patchErrContextName(err, name)
+	return s.tls.listContextData(name)
 }
 
 func (s *store) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
-	res, err := s.tls.getData(contextName, endpointName, fileName)
-	return res, patchErrContextName(err, contextName)
+	return s.tls.getData(contextName, endpointName, fileName)
 }
 
 func (s *store) GetStorageInfo(contextName string) StorageInfo {
@@ -206,7 +204,7 @@ func ValidateContextName(name string) error {
 		return errors.New(`"default" is a reserved context name`)
 	}
 	if !restrictedNameRegEx.MatchString(name) {
-		return fmt.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
+		return errors.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
 	}
 	return nil
 }
@@ -480,69 +478,22 @@ func importEndpointTLS(tlsData *ContextTLSData, path string, data []byte) error 
 	return nil
 }
 
-type setContextName interface {
-	setContext(name string)
-}
-
-type contextDoesNotExistError struct {
-	name string
-}
-
-func (e *contextDoesNotExistError) Error() string {
-	return fmt.Sprintf("context %q does not exist", e.name)
-}
-
-func (e *contextDoesNotExistError) setContext(name string) {
-	e.name = name
-}
-
-// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
-func (e *contextDoesNotExistError) NotFound() {}
-
-type tlsDataDoesNotExist interface {
-	errdefs.ErrNotFound
-	IsTLSDataDoesNotExist()
-}
-
-type tlsDataDoesNotExistError struct {
-	context, endpoint, file string
-}
-
-func (e *tlsDataDoesNotExistError) Error() string {
-	return fmt.Sprintf("tls data for %s/%s/%s does not exist", e.context, e.endpoint, e.file)
-}
-
-func (e *tlsDataDoesNotExistError) setContext(name string) {
-	e.context = name
-}
-
-// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
-func (e *tlsDataDoesNotExistError) NotFound() {}
-
-// IsTLSDataDoesNotExist satisfies tlsDataDoesNotExist
-func (e *tlsDataDoesNotExistError) IsTLSDataDoesNotExist() {}
-
-// IsErrContextDoesNotExist checks if the given error is a "context does not exist" condition
+// IsErrContextDoesNotExist checks if the given error is a "context does not exist" condition.
+//
+// Deprecated: use github.com/docker/docker/errdefs.IsNotFound()
 func IsErrContextDoesNotExist(err error) bool {
-	_, ok := err.(*contextDoesNotExistError)
-	return ok
+	return errdefs.IsNotFound(err)
 }
 
 // IsErrTLSDataDoesNotExist checks if the given error is a "context does not exist" condition
+//
+// Deprecated: use github.com/docker/docker/errdefs.IsNotFound()
 func IsErrTLSDataDoesNotExist(err error) bool {
-	_, ok := err.(tlsDataDoesNotExist)
-	return ok
+	return errdefs.IsNotFound(err)
 }
 
 type contextdir string
 
 func contextdirOf(name string) contextdir {
 	return contextdir(digest.FromString(name).Encoded())
-}
-
-func patchErrContextName(err error, name string) error {
-	if typed, ok := err.(setContextName); ok {
-		typed.setContext(name)
-	}
-	return err
 }
