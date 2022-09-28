@@ -82,6 +82,9 @@ func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error
 	for _, epFS := range epFSs {
 		if epFS.IsDir() {
 			fss, err := os.ReadDir(filepath.Join(contextDir, epFS.Name()))
+			if os.IsNotExist(err) {
+				continue
+			}
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to list TLS files for endpoint %s", epFS.Name())
 			}

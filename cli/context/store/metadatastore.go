@@ -110,6 +110,9 @@ func (s *metadataStore) list() ([]Metadata, error) {
 	for _, dir := range ctxDirs {
 		c, err := s.getByID(contextdir(dir))
 		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
 			return nil, errors.Wrap(err, "failed to read metadata")
 		}
 		res = append(res, c)
