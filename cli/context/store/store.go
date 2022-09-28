@@ -149,7 +149,6 @@ func (s *store) GetMetadata(name string) (Metadata, error) {
 }
 
 func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
-	id := contextdirOf(name)
 	if err := s.tls.removeAllContextData(name); err != nil {
 		return patchErrContextName(err, name)
 	}
@@ -158,7 +157,7 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	}
 	for ep, files := range data.Endpoints {
 		for fileName, data := range files.Files {
-			if err := s.tls.createOrUpdate(id, ep, fileName, data); err != nil {
+			if err := s.tls.createOrUpdate(name, ep, fileName, data); err != nil {
 				return patchErrContextName(err, name)
 			}
 		}
@@ -167,7 +166,6 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 }
 
 func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
-	id := contextdirOf(contextName)
 	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
 		return patchErrContextName(err, contextName)
 	}
@@ -175,7 +173,7 @@ func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string
 		return nil
 	}
 	for fileName, data := range data.Files {
-		if err := s.tls.createOrUpdate(id, endpointName, fileName, data); err != nil {
+		if err := s.tls.createOrUpdate(contextName, endpointName, fileName, data); err != nil {
 			return patchErrContextName(err, contextName)
 		}
 	}

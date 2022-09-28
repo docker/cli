@@ -15,12 +15,12 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	_, err := testee.getData(contextID, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 
-	err = testee.createOrUpdate(contextID, "test-ep", "test-data", []byte("data"))
+	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data"))
 	assert.NilError(t, err)
 	data, err := testee.getData(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data")
-	err = testee.createOrUpdate(contextID, "test-ep", "test-data", []byte("data2"))
+	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data2"))
 	assert.NilError(t, err)
 	data, err = testee.getData(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
@@ -53,7 +53,7 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 	contextID := contextdirOf(contextName)
 	for name, files := range all {
 		for _, file := range files {
-			err := testee.createOrUpdate(contextID, name, file, []byte("data"))
+			err := testee.createOrUpdate(contextName, name, file, []byte("data"))
 			assert.NilError(t, err)
 		}
 	}

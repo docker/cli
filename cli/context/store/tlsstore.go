@@ -23,7 +23,8 @@ func (s *tlsStore) filePath(contextID contextdir, endpointName, filename string)
 	return filepath.Join(s.root, string(contextID), endpointName, filename)
 }
 
-func (s *tlsStore) createOrUpdate(contextID contextdir, endpointName, filename string, data []byte) error {
+func (s *tlsStore) createOrUpdate(name, endpointName, filename string, data []byte) error {
+	contextID := contextdirOf(name)
 	epdir := s.endpointDir(contextID, endpointName)
 	parentOfRoot := filepath.Dir(s.root)
 	if err := os.MkdirAll(parentOfRoot, 0755); err != nil {
