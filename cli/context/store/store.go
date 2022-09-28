@@ -136,11 +136,10 @@ func (s *store) CreateOrUpdate(meta Metadata) error {
 }
 
 func (s *store) Remove(name string) error {
-	id := contextdirOf(name)
 	if err := s.meta.remove(name); err != nil {
 		return patchErrContextName(err, name)
 	}
-	return patchErrContextName(s.tls.removeAllContextData(id), name)
+	return patchErrContextName(s.tls.removeAllContextData(name), name)
 }
 
 func (s *store) GetMetadata(name string) (Metadata, error) {
@@ -151,7 +150,7 @@ func (s *store) GetMetadata(name string) (Metadata, error) {
 
 func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	id := contextdirOf(name)
-	if err := s.tls.removeAllContextData(id); err != nil {
+	if err := s.tls.removeAllContextData(name); err != nil {
 		return patchErrContextName(err, name)
 	}
 	if data == nil {

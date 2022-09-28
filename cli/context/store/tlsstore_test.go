@@ -45,26 +45,28 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 		"ep2": {"f1", "f2", "f3"},
 	}
 
+	const contextName = "test-ctx"
+	contextID := contextdirOf(contextName)
 	for name, files := range all {
 		for _, file := range files {
-			err := testee.createOrUpdate("test-ctx", name, file, []byte("data"))
+			err := testee.createOrUpdate(contextID, name, file, []byte("data"))
 			assert.NilError(t, err)
 		}
 	}
 
-	resAll, err := testee.listContextData("test-ctx")
+	resAll, err := testee.listContextData(contextID)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resAll, all)
 
-	err = testee.removeAllEndpointData("test-ctx", "ep3")
+	err = testee.removeAllEndpointData(contextID, "ep3")
 	assert.NilError(t, err)
-	resEp1ep2, err := testee.listContextData("test-ctx")
+	resEp1ep2, err := testee.listContextData(contextID)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resEp1ep2, ep1ep2)
 
-	err = testee.removeAllContextData("test-ctx")
+	err = testee.removeAllContextData(contextName)
 	assert.NilError(t, err)
-	resEmpty, err := testee.listContextData("test-ctx")
+	resEmpty, err := testee.listContextData(contextID)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resEmpty, map[string]EndpointFiles{})
 }
