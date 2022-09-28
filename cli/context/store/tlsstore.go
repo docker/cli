@@ -44,8 +44,10 @@ func (s *tlsStore) getData(name, endpointName, filename string) ([]byte, error) 
 	return data, nil
 }
 
-func (s *tlsStore) remove(contextID contextdir, endpointName, filename string) error {
-	err := os.Remove(s.filePath(contextID, endpointName, filename))
+// remove removes a TLS data from an endpoint
+// TODO(thaJeztah) tlsStore.remove() is not used anywhere outside of tests; should we use removeAllEndpointData() only?
+func (s *tlsStore) remove(name, endpointName, filename string) error {
+	err := os.Remove(s.filePath(contextdirOf(name), endpointName, filename))
 	if os.IsNotExist(err) {
 		return nil
 	}

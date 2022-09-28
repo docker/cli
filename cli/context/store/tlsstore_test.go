@@ -10,7 +10,6 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	testee := tlsStore{root: t.TempDir()}
 
 	const contextName = "test-ctx"
-	contextID := contextdirOf(contextName)
 
 	_, err := testee.getData(contextName, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
@@ -26,9 +25,9 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data2")
 
-	err = testee.remove(contextID, "test-ep", "test-data")
+	err = testee.remove(contextName, "test-ep", "test-data")
 	assert.NilError(t, err)
-	err = testee.remove(contextID, "test-ep", "test-data")
+	err = testee.remove(contextName, "test-ep", "test-data")
 	assert.NilError(t, err)
 
 	_, err = testee.getData(contextName, "test-ep", "test-data")
