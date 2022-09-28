@@ -137,14 +137,14 @@ func (s *store) CreateOrUpdate(meta Metadata) error {
 
 func (s *store) Remove(name string) error {
 	id := contextdirOf(name)
-	if err := s.meta.remove(id); err != nil {
+	if err := s.meta.remove(name); err != nil {
 		return patchErrContextName(err, name)
 	}
 	return patchErrContextName(s.tls.removeAllContextData(id), name)
 }
 
 func (s *store) GetMetadata(name string) (Metadata, error) {
-	res, err := s.meta.get(contextdirOf(name))
+	res, err := s.meta.get(name)
 	patchErrContextName(err, name)
 	return res, err
 }

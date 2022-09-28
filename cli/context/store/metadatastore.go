@@ -55,9 +55,12 @@ func parseTypedOrMap(payload []byte, getter TypeGetter) (interface{}, error) {
 	return reflect.ValueOf(typed).Elem().Interface(), nil
 }
 
-func (s *metadataStore) get(id contextdir) (Metadata, error) {
-	contextDir := s.contextDir(id)
-	bytes, err := os.ReadFile(filepath.Join(contextDir, metaFile))
+func (s *metadataStore) get(name string) (Metadata, error) {
+	return s.getByID(contextdirOf(name))
+}
+
+func (s *metadataStore) getByID(id contextdir) (Metadata, error) {
+	bytes, err := os.ReadFile(filepath.Join(s.contextDir(id), metaFile))
 	if err != nil {
 		return Metadata{}, convertContextDoesNotExist(err)
 	}
@@ -80,8 +83,8 @@ func (s *metadataStore) get(id contextdir) (Metadata, error) {
 	return r, err
 }
 
-func (s *metadataStore) remove(id contextdir) error {
-	contextDir := s.contextDir(id)
+func (s *metadataStore) remove(name string) error {
+	contextDir := s.contextDir(contextdirOf(name))
 	return os.RemoveAll(contextDir)
 }
 
@@ -95,7 +98,7 @@ func (s *metadataStore) list() ([]Metadata, error) {
 	}
 	var res []Metadata
 	for _, dir := range ctxDirs {
-		c, err := s.get(contextdir(dir))
+		c, err := s.getByID(contextdir(dir))
 		if err != nil {
 			return nil, err
 		}
