@@ -62,7 +62,8 @@ func (s *tlsStore) removeAllContextData(name string) error {
 	return os.RemoveAll(s.contextDir(contextdirOf(name)))
 }
 
-func (s *tlsStore) listContextData(contextID contextdir) (map[string]EndpointFiles, error) {
+func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error) {
+	contextID := contextdirOf(name)
 	epFSs, err := os.ReadDir(s.contextDir(contextID))
 	if err != nil {
 		if os.IsNotExist(err) {

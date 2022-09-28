@@ -181,7 +181,7 @@ func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string
 }
 
 func (s *store) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
-	res, err := s.tls.listContextData(contextdirOf(name))
+	res, err := s.tls.listContextData(name)
 	return res, patchErrContextName(err, name)
 }
 
