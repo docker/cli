@@ -11,33 +11,28 @@ type tlsStore struct {
 	root string
 }
 
-func (s *tlsStore) contextDir(id contextdir) string {
-	return filepath.Join(s.root, string(id))
+func (s *tlsStore) contextDir(name string) string {
+	return filepath.Join(s.root, string(contextdirOf(name)))
 }
 
-func (s *tlsStore) endpointDir(contextID contextdir, name string) string {
-	return filepath.Join(s.root, string(contextID), name)
-}
-
-func (s *tlsStore) filePath(contextID contextdir, endpointName, filename string) string {
-	return filepath.Join(s.root, string(contextID), endpointName, filename)
+func (s *tlsStore) endpointDir(name, endpointName string) string {
+	return filepath.Join(s.contextDir(name), endpointName)
 }
 
 func (s *tlsStore) createOrUpdate(name, endpointName, filename string, data []byte) error {
-	contextID := contextdirOf(name)
-	epdir := s.endpointDir(contextID, endpointName)
 	parentOfRoot := filepath.Dir(s.root)
 	if err := os.MkdirAll(parentOfRoot, 0755); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(epdir, 0700); err != nil {
+	endpointDir := s.endpointDir(name, endpointName)
+	if err := os.MkdirAll(endpointDir, 0700); err != nil {
 		return err
 	}
-	return os.WriteFile(s.filePath(contextID, endpointName, filename), data, 0600)
+	return os.WriteFile(filepath.Join(endpointDir, filename), data, 0600)
 }
 
 func (s *tlsStore) getData(name, endpointName, filename string) ([]byte, error) {
-	data, err := os.ReadFile(s.filePath(contextdirOf(name), endpointName, filename))
+	data, err := os.ReadFile(filepath.Join(s.endpointDir(name, endpointName), filename))
 	if err != nil {
 		return nil, convertTLSDataDoesNotExist(endpointName, filename, err)
 	}
@@ -47,7 +42,7 @@ func (s *tlsStore) getData(name, endpointName, filename string) ([]byte, error) 
 // remove removes a TLS data from an endpoint
 // TODO(thaJeztah) tlsStore.remove() is not used anywhere outside of tests; should we use removeAllEndpointData() only?
 func (s *tlsStore) remove(name, endpointName, filename string) error {
-	err := os.Remove(s.filePath(contextdirOf(name), endpointName, filename))
+	err := os.Remove(filepath.Join(s.endpointDir(name, endpointName), filename))
 	if os.IsNotExist(err) {
 		return nil
 	}
@@ -55,16 +50,16 @@ func (s *tlsStore) remove(name, endpointName, filename string) error {
 }
 
 func (s *tlsStore) removeAllEndpointData(name, endpointName string) error {
-	return os.RemoveAll(s.endpointDir(contextdirOf(name), endpointName))
+	return os.RemoveAll(s.endpointDir(name, endpointName))
 }
 
 func (s *tlsStore) removeAllContextData(name string) error {
-	return os.RemoveAll(s.contextDir(contextdirOf(name)))
+	return os.RemoveAll(s.contextDir(name))
 }
 
 func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error) {
-	contextID := contextdirOf(name)
-	epFSs, err := os.ReadDir(s.contextDir(contextID))
+	contextDir := s.contextDir(name)
+	epFSs, err := os.ReadDir(contextDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return map[string]EndpointFiles{}, nil
@@ -74,8 +69,7 @@ func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error
 	r := make(map[string]EndpointFiles)
 	for _, epFS := range epFSs {
 		if epFS.IsDir() {
-			epDir := s.endpointDir(contextID, epFS.Name())
-			fss, err := os.ReadDir(epDir)
+			fss, err := os.ReadDir(filepath.Join(contextDir, epFS.Name()))
 			if err != nil {
 				return nil, err
 			}

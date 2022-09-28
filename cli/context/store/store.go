@@ -191,10 +191,9 @@ func (s *store) GetTLSData(contextName, endpointName, fileName string) ([]byte, 
 }
 
 func (s *store) GetStorageInfo(contextName string) StorageInfo {
-	dir := contextdirOf(contextName)
 	return StorageInfo{
-		MetadataPath: s.meta.contextDir(dir),
-		TLSPath:      s.tls.contextDir(dir),
+		MetadataPath: s.meta.contextDir(contextdirOf(contextName)),
+		TLSPath:      s.tls.contextDir(contextName),
 	}
 }
 
