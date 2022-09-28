@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -134,7 +133,7 @@ func listRecursivelyMetadataDirs(root string) ([]string, error) {
 				return nil, err
 			}
 			for _, s := range subs {
-				result = append(result, fmt.Sprintf("%s/%s", fi.Name(), s))
+				result = append(result, filepath.Join(fi.Name(), s))
 			}
 		}
 	}
