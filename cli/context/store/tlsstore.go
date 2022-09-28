@@ -36,8 +36,8 @@ func (s *tlsStore) createOrUpdate(name, endpointName, filename string, data []by
 	return os.WriteFile(s.filePath(contextID, endpointName, filename), data, 0600)
 }
 
-func (s *tlsStore) getData(contextID contextdir, endpointName, filename string) ([]byte, error) {
-	data, err := os.ReadFile(s.filePath(contextID, endpointName, filename))
+func (s *tlsStore) getData(name, endpointName, filename string) ([]byte, error) {
+	data, err := os.ReadFile(s.filePath(contextdirOf(name), endpointName, filename))
 	if err != nil {
 		return nil, convertTLSDataDoesNotExist(endpointName, filename, err)
 	}

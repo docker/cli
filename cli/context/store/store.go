@@ -186,7 +186,7 @@ func (s *store) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
 }
 
 func (s *store) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
-	res, err := s.tls.getData(contextdirOf(contextName), endpointName, fileName)
+	res, err := s.tls.getData(contextName, endpointName, fileName)
 	return res, patchErrContextName(err, contextName)
 }
 

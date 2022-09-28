@@ -12,17 +12,17 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	const contextName = "test-ctx"
 	contextID := contextdirOf(contextName)
 
-	_, err := testee.getData(contextID, "test-ep", "test-data")
+	_, err := testee.getData(contextName, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 
 	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data"))
 	assert.NilError(t, err)
-	data, err := testee.getData(contextID, "test-ep", "test-data")
+	data, err := testee.getData(contextName, "test-ep", "test-data")
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data")
 	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data2"))
 	assert.NilError(t, err)
-	data, err = testee.getData(contextID, "test-ep", "test-data")
+	data, err = testee.getData(contextName, "test-ep", "test-data")
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data2")
 
@@ -31,7 +31,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	err = testee.remove(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
 
-	_, err = testee.getData(contextID, "test-ep", "test-data")
+	_, err = testee.getData(contextName, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 }
 
