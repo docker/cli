@@ -168,7 +168,7 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 
 func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
 	id := contextdirOf(contextName)
-	if err := s.tls.removeAllEndpointData(id, endpointName); err != nil {
+	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
 		return patchErrContextName(err, contextName)
 	}
 	if data == nil {

@@ -62,7 +62,7 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resAll, all)
 
-	err = testee.removeAllEndpointData(contextID, "ep3")
+	err = testee.removeAllEndpointData(contextName, "ep3")
 	assert.NilError(t, err)
 	resEp1ep2, err := testee.listContextData(contextID)
 	assert.NilError(t, err)

@@ -51,8 +51,8 @@ func (s *tlsStore) remove(contextID contextdir, endpointName, filename string) e
 	return err
 }
 
-func (s *tlsStore) removeAllEndpointData(contextID contextdir, endpointName string) error {
-	return os.RemoveAll(s.endpointDir(contextID, endpointName))
+func (s *tlsStore) removeAllEndpointData(name, endpointName string) error {
+	return os.RemoveAll(s.endpointDir(contextdirOf(name), endpointName))
 }
 
 func (s *tlsStore) removeAllContextData(name string) error {
