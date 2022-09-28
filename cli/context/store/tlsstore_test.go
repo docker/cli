@@ -8,26 +8,30 @@ import (
 
 func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	testee := tlsStore{root: t.TempDir()}
-	_, err := testee.getData("test-ctx", "test-ep", "test-data")
+
+	const contextName = "test-ctx"
+	contextID := contextdirOf(contextName)
+
+	_, err := testee.getData(contextID, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 
-	err = testee.createOrUpdate("test-ctx", "test-ep", "test-data", []byte("data"))
+	err = testee.createOrUpdate(contextID, "test-ep", "test-data", []byte("data"))
 	assert.NilError(t, err)
-	data, err := testee.getData("test-ctx", "test-ep", "test-data")
+	data, err := testee.getData(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data")
-	err = testee.createOrUpdate("test-ctx", "test-ep", "test-data", []byte("data2"))
+	err = testee.createOrUpdate(contextID, "test-ep", "test-data", []byte("data2"))
 	assert.NilError(t, err)
-	data, err = testee.getData("test-ctx", "test-ep", "test-data")
+	data, err = testee.getData(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data2")
 
-	err = testee.remove("test-ctx", "test-ep", "test-data")
+	err = testee.remove(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
-	err = testee.remove("test-ctx", "test-ep", "test-data")
+	err = testee.remove(contextID, "test-ep", "test-data")
 	assert.NilError(t, err)
 
-	_, err = testee.getData("test-ctx", "test-ep", "test-data")
+	_, err = testee.getData(contextID, "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 }
 
