@@ -93,11 +93,11 @@ type ContextTLSData struct {
 
 // New creates a store from a given directory.
 // If the directory does not exist or is empty, initialize it
-func New(dir string, cfg Config) Store {
+func New(dir string, cfg Config) *ContextStore {
 	metaRoot := filepath.Join(dir, metadataDir)
 	tlsRoot := filepath.Join(dir, tlsDir)
 
-	return &store{
+	return &ContextStore{
 		meta: &metadataStore{
 			root:   metaRoot,
 			config: cfg,
@@ -108,12 +108,14 @@ func New(dir string, cfg Config) Store {
 	}
 }
 
-type store struct {
+// ContextStore implements Store.
+type ContextStore struct {
 	meta *metadataStore
 	tls  *tlsStore
 }
 
-func (s *store) List() ([]Metadata, error) {
+// List return all contexts.
+func (s *ContextStore) List() ([]Metadata, error) {
 	return s.meta.list()
 }
 
@@ -130,11 +132,13 @@ func Names(s Lister) ([]string, error) {
 	return names, nil
 }
 
-func (s *store) CreateOrUpdate(meta Metadata) error {
+// CreateOrUpdate creates or updates metadata for the context.
+func (s *ContextStore) CreateOrUpdate(meta Metadata) error {
 	return s.meta.createOrUpdate(meta)
 }
 
-func (s *store) Remove(name string) error {
+// Remove deletes the context with the given name, if found.
+func (s *ContextStore) Remove(name string) error {
 	if err := s.meta.remove(name); err != nil {
 		return errors.Wrapf(err, "failed to remove context %s", name)
 	}
@@ -144,11 +148,15 @@ func (s *store) Remove(name string) error {
 	return nil
 }
 
-func (s *store) GetMetadata(name string) (Metadata, error) {
+// GetMetadata returns the metadata for the context with the given name.
+// It returns an errdefs.ErrNotFound if the context was not found.
+func (s *ContextStore) GetMetadata(name string) (Metadata, error) {
 	return s.meta.get(name)
 }
 
-func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
+// ResetTLSMaterial removes TLS data for all endpoints in the context and replaces
+// it with the new data.
+func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	if err := s.tls.removeAllContextData(name); err != nil {
 		return err
 	}
@@ -165,7 +173,9 @@ func (s *store) ResetTLSMaterial(name string, data *ContextTLSData) error {
 	return nil
 }
 
-func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
+// ResetEndpointTLSMaterial removes TLS data for the given context and endpoint,
+// and replaces it with the new data.
+func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
 	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
 		return err
 	}
@@ -180,15 +190,21 @@ func (s *store) ResetEndpointTLSMaterial(contextName string, endpointName string
 	return nil
 }
 
-func (s *store) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
+// ListTLSFiles returns the list of TLS files present for each endpoint in the
+// context.
+func (s *ContextStore) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
 	return s.tls.listContextData(name)
 }
 
-func (s *store) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
+// GetTLSData reads, and returns the content of the given fileName for an endpoint.
+// It returns an errdefs.ErrNotFound if the file was not found.
+func (s *ContextStore) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
 	return s.tls.getData(contextName, endpointName, fileName)
 }
 
-func (s *store) GetStorageInfo(contextName string) StorageInfo {
+// GetStorageInfo returns the paths where the Metadata and TLS data are stored
+// for the context.
+func (s *ContextStore) GetStorageInfo(contextName string) StorageInfo {
 	return StorageInfo{
 		MetadataPath: s.meta.contextDir(contextdirOf(contextName)),
 		TLSPath:      s.tls.contextDir(contextName),
