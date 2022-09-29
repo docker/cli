@@ -28,7 +28,7 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 			return args, osArgs, errors.Errorf("not allowed to alias %q (allowed: %#v)", k, allowedAliases)
 		}
 		if c, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
-			if c.Annotations[pluginmanager.CommandAnnotationPlugin] != "true" {
+			if !pluginmanager.IsPluginCommand(c) {
 				return args, osArgs, errors.Errorf("not allowed to alias with builtin %q as target", v)
 			}
 		}

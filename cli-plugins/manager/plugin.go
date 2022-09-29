@@ -69,7 +69,7 @@ func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 			// Ignore conflicts with commands which are
 			// just plugin stubs (i.e. from a previous
 			// call to AddPluginCommandStubs).
-			if p := cmd.Annotations[CommandAnnotationPlugin]; p == "true" {
+			if IsPluginCommand(cmd) {
 				continue
 			}
 			if cmd.Name() == p.Name {

@@ -237,7 +237,7 @@ func hasAdditionalHelp(cmd *cobra.Command) bool {
 }
 
 func isPlugin(cmd *cobra.Command) bool {
-	return cmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true"
+	return pluginmanager.IsPluginCommand(cmd)
 }
 
 func hasAliases(cmd *cobra.Command) bool {
