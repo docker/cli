@@ -142,7 +142,7 @@ func (s *ContextStore) Remove(name string) error {
 	if err := s.meta.remove(name); err != nil {
 		return errors.Wrapf(err, "failed to remove context %s", name)
 	}
-	if err := s.tls.removeAllContextData(name); err != nil {
+	if err := s.tls.remove(name); err != nil {
 		return errors.Wrapf(err, "failed to remove context %s", name)
 	}
 	return nil
@@ -157,7 +157,7 @@ func (s *ContextStore) GetMetadata(name string) (Metadata, error) {
 // ResetTLSMaterial removes TLS data for all endpoints in the context and replaces
 // it with the new data.
 func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) error {
-	if err := s.tls.removeAllContextData(name); err != nil {
+	if err := s.tls.remove(name); err != nil {
 		return err
 	}
 	if data == nil {
@@ -176,7 +176,7 @@ func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) error
 // ResetEndpointTLSMaterial removes TLS data for the given context and endpoint,
 // and replaces it with the new data.
 func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
-	if err := s.tls.removeAllEndpointData(contextName, endpointName); err != nil {
+	if err := s.tls.removeEndpoint(contextName, endpointName); err != nil {
 		return err
 	}
 	if data == nil {

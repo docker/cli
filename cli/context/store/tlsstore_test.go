@@ -26,11 +26,8 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, string(data), "data2")
 
-	err = testee.remove(contextName, "test-ep", "test-data")
+	err = testee.removeEndpoint(contextName, "test-ep")
 	assert.NilError(t, err)
-	err = testee.remove(contextName, "test-ep", "test-data")
-	assert.NilError(t, err)
-
 	_, err = testee.getData(contextName, "test-ep", "test-data")
 	assert.ErrorType(t, err, errdefs.IsNotFound)
 }
@@ -61,13 +58,13 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resAll, all)
 
-	err = testee.removeAllEndpointData(contextName, "ep3")
+	err = testee.removeEndpoint(contextName, "ep3")
 	assert.NilError(t, err)
 	resEp1ep2, err := testee.listContextData(contextName)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resEp1ep2, ep1ep2)
 
-	err = testee.removeAllContextData(contextName)
+	err = testee.remove(contextName)
 	assert.NilError(t, err)
 	resEmpty, err := testee.listContextData(contextName)
 	assert.NilError(t, err)
