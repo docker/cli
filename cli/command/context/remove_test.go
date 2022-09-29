@@ -27,6 +27,9 @@ func TestRemoveNotAContext(t *testing.T) {
 	createTestContext(t, cli, "other")
 	err := RunRemove(cli, RemoveOptions{}, []string{"not-a-context"})
 	assert.ErrorContains(t, err, `context "not-a-context" does not exist`)
+
+	err = RunRemove(cli, RemoveOptions{Force: true}, []string{"not-a-context"})
+	assert.NilError(t, err)
 }
 
 func TestRemoveCurrent(t *testing.T) {
