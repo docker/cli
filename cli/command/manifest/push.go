@@ -63,7 +63,6 @@ func newPushListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runPush(dockerCli command.Cli, opts pushOpts) error {
-
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
 		return err

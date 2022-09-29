@@ -69,7 +69,6 @@ func TestIPNetCalledTwice(t *testing.T) {
 }
 
 func TestIPNetBadQuoting(t *testing.T) {
-
 	tests := []struct {
 		Want    []net.IPNet
 		FlagArg []string
@@ -126,7 +125,8 @@ func TestIPNetBadQuoting(t *testing.T) {
 			},
 			FlagArg: []string{
 				`"2e5e:66b2:6441:848:5b74:76ea:574c:3a7b/128,        2e5e:66b2:6441:848:5b74:76ea:574c:3a7b/128,2e5e:66b2:6441:848:5b74:76ea:574c:3a7b/128     "`,
-				" 2e5e:66b2:6441:848:5b74:76ea:574c:3a7b/128"},
+				" 2e5e:66b2:6441:848:5b74:76ea:574c:3a7b/128",
+			},
 		},
 	}
 

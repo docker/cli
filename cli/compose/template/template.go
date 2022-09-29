@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
-var delimiter = "\\$"
-var substitution = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
+var (
+	delimiter    = "\\$"
+	substitution = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
+)
 
 var patternString = fmt.Sprintf(
 	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",

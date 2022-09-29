@@ -68,5 +68,4 @@ func RunConfigInspect(dockerCli command.Cli, opts InspectOptions) error {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil
-
 }

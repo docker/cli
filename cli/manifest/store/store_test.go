@@ -58,7 +58,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 	err := store.Save(listRef, ref("exists"), data)
 	assert.NilError(t, err)
 
-	var testcases = []struct {
+	testcases := []struct {
 		listRef     reference.Reference
 		manifestRef reference.Reference
 		expected    types.ImageManifest

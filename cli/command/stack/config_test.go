@@ -75,7 +75,6 @@ services:
 }
 
 func TestConfigMergeInterpolation(t *testing.T) {
-
 	for _, tt := range configMergeTests {
 		t.Run(tt.name, func(t *testing.T) {
 			firstConfig := []byte(tt.first)
@@ -102,5 +101,4 @@ func TestConfigMergeInterpolation(t *testing.T) {
 			assert.Equal(t, cfg, tt.merged)
 		})
 	}
-
 }

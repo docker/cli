@@ -180,7 +180,6 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
-
 }
 
 func TestToServiceNetwork(t *testing.T) {

@@ -91,7 +91,8 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 
 	// Task with DesiredState beyond Running is ignored
 	tasks = append(tasks,
-		swarm.Task{ID: "1",
+		swarm.Task{
+			ID:           "1",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateShutdown,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
@@ -140,7 +141,8 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// replacement task, not the old task.
 	tasks[0].DesiredState = swarm.TaskStateShutdown
 	tasks = append(tasks,
-		swarm.Task{ID: "2",
+		swarm.Task{
+			ID:           "2",
 			NodeID:       "b",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateRunning},
@@ -154,7 +156,8 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// Add a new task while the current one is still running, to simulate
 	// "start-then-stop" updates.
 	tasks = append(tasks,
-		swarm.Task{ID: "3",
+		swarm.Task{
+			ID:           "3",
 			NodeID:       "b",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStatePreparing},
@@ -254,7 +257,8 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 
 	// Task with DesiredState beyond Running is ignored
 	tasks = append(tasks,
-		swarm.Task{ID: "1",
+		swarm.Task{
+			ID:           "1",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateShutdown,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
@@ -304,7 +308,8 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// replacement task, not the old task.
 	tasks[0].DesiredState = swarm.TaskStateShutdown
 	tasks = append(tasks,
-		swarm.Task{ID: "2",
+		swarm.Task{
+			ID:           "2",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateRunning},
@@ -318,7 +323,8 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// Add a new task while the current one is still running, to simulate
 	// "start-then-stop" updates.
 	tasks = append(tasks,
-		swarm.Task{ID: "3",
+		swarm.Task{
+			ID:           "3",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStatePreparing},

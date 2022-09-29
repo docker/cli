@@ -289,7 +289,6 @@ func (c *diskUsageImagesContext) Active() string {
 
 func (c *diskUsageImagesContext) Size() string {
 	return units.HumanSize(float64(c.totalSize))
-
 }
 
 func (c *diskUsageImagesContext) Reclaimable() string {
@@ -391,7 +390,6 @@ func (c *diskUsageVolumesContext) TotalCount() string {
 }
 
 func (c *diskUsageVolumesContext) Active() string {
-
 	used := 0
 	for _, v := range c.volumes {
 		if v.UsageData.RefCount > 0 {

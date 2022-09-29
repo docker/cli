@@ -271,7 +271,8 @@ func (e EmptyTargetsNotaryRepository) ListRoles() ([]client.RoleWithSignatures, 
 	}
 	return []client.RoleWithSignatures{
 		{Role: rootRole},
-		{Role: targetsRole}}, nil
+		{Role: targetsRole},
+	}, nil
 }
 
 // GetDelegationRoles returns the keys and roles of the repository's delegations
@@ -306,6 +307,7 @@ var loadedReleasesRole = data.DelegationRole{
 		Threshold: 1,
 	},
 }
+
 var loadedAliceRole = data.DelegationRole{
 	BaseRole: data.BaseRole{
 		Name:      "targets/alice",
@@ -313,6 +315,7 @@ var loadedAliceRole = data.DelegationRole{
 		Threshold: 1,
 	},
 }
+
 var loadedBobRole = data.DelegationRole{
 	BaseRole: data.BaseRole{
 		Name:      "targets/bob",
@@ -320,6 +323,7 @@ var loadedBobRole = data.DelegationRole{
 		Threshold: 1,
 	},
 }
+
 var loadedDelegationRoles = []data.Role{
 	{
 		Name: loadedReleasesRole.Name,
@@ -343,6 +347,7 @@ var loadedDelegationRoles = []data.Role{
 		},
 	},
 }
+
 var loadedTargetsRole = data.DelegationRole{
 	BaseRole: data.BaseRole{
 		Name:      data.CanonicalTargetsRole,
@@ -359,14 +364,17 @@ var loadedRedTarget = client.Target{
 	Name:   "red",
 	Hashes: data.Hashes{"sha256": []byte("red-digest")},
 }
+
 var loadedBlueTarget = client.Target{
 	Name:   "blue",
 	Hashes: data.Hashes{"sha256": []byte("blue-digest")},
 }
+
 var loadedGreenTarget = client.Target{
 	Name:   "green",
 	Hashes: data.Hashes{"sha256": []byte("green-digest")},
 }
+
 var loadedTargets = []client.TargetSignedStruct{
 	// red is signed by all three delegations
 	{Target: loadedRedTarget, Role: loadedReleasesRole},

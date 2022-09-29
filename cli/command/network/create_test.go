@@ -142,6 +142,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 
 	}
 }
+
 func TestNetworkCreateWithFlags(t *testing.T) {
 	expectedDriver := "foo"
 	expectedOpts := []network.IPAMConfig{

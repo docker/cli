@@ -301,6 +301,7 @@ func TestServiceContextWriteJSON(t *testing.T) {
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)
 	}
 }
+
 func TestServiceContextWriteJSONField(t *testing.T) {
 	services := []swarm.Service{
 		{

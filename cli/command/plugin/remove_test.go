@@ -12,7 +12,6 @@ import (
 )
 
 func TestRemoveErrors(t *testing.T) {
-
 	testCases := []struct {
 		args             []string
 		pluginRemoveFunc func(name string, options types.PluginRemoveOptions) error

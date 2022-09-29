@@ -17,7 +17,7 @@ import (
 )
 
 func TestRunCopyWithInvalidArguments(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		doc         string
 		options     copyOptions
 		expectedErr string
@@ -143,7 +143,7 @@ func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 }
 
 func TestSplitCpArg(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		doc               string
 		path              string
 		os                string

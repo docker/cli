@@ -19,7 +19,8 @@ func TestDiskUsageContextFormatWrite(t *testing.T) {
 				Context: Context{
 					Format: NewDiskUsageFormat("table", false),
 				},
-				Verbose: false},
+				Verbose: false,
+			},
 			`TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
 Images          0         0         0B        0B
 Containers      0         0         0B        0B

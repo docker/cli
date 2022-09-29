@@ -26,7 +26,7 @@ func TestRunLogs(t *testing.T) {
 		}, nil
 	}
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc           string
 		options       *logsOptions
 		client        fakeClient

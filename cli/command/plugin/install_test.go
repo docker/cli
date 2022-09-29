@@ -93,7 +93,6 @@ func TestInstallContentTrustErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{
 			pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
 				return nil, fmt.Errorf("should not try to install plugin")
-
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)

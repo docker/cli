@@ -44,7 +44,8 @@ func (cli *fakeClient) ImageSave(_ context.Context, images []string) (io.ReadClo
 }
 
 func (cli *fakeClient) ImageRemove(_ context.Context, image string,
-	options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
+	options types.ImageRemoveOptions,
+) ([]types.ImageDeleteResponseItem, error) {
 	if cli.imageRemoveFunc != nil {
 		return cli.imageRemoveFunc(image, options)
 	}
@@ -101,7 +102,8 @@ func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, image string) (typ
 }
 
 func (cli *fakeClient) ImageImport(_ context.Context, source types.ImageImportSource, ref string,
-	options types.ImageImportOptions) (io.ReadCloser, error) {
+	options types.ImageImportOptions,
+) (io.ReadCloser, error) {
 	if cli.imageImportFunc != nil {
 		return cli.imageImportFunc(source, ref, options)
 	}

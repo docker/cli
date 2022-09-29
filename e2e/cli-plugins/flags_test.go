@@ -255,5 +255,4 @@ func TestCliPluginsVersion(t *testing.T) {
 			})
 		})
 	}
-
 }

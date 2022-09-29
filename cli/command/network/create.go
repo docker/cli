@@ -229,9 +229,7 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 }
 
 func subnetMatches(subnet, data string) (bool, error) {
-	var (
-		ip net.IP
-	)
+	var ip net.IP
 
 	_, s, err := net.ParseCIDR(subnet)
 	if err != nil {

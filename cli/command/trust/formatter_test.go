@@ -23,7 +23,8 @@ func TestTrustTag(t *testing.T) {
 	}{
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -33,7 +34,8 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -44,7 +46,8 @@ func TestTrustTag(t *testing.T) {
 		// Empty signers makes a row with empty string
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -54,7 +57,8 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"alice", "bob", "claire"},
 				},
@@ -65,7 +69,8 @@ func TestTrustTag(t *testing.T) {
 		// alphabetic signing on Signers
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"claire", "bob", "alice"},
 				},
@@ -85,7 +90,6 @@ func TestTrustTag(t *testing.T) {
 }
 
 func TestTrustTagContextWrite(t *testing.T) {
-
 	cases := []struct {
 		context  formatter.Context
 		expected string
@@ -140,7 +144,6 @@ tag3         bbbbbbbb
 // With no trust data, the TagWrite will print an empty table:
 // it's up to the caller to decide whether or not to print this versus an error
 func TestTrustTagContextEmptyWrite(t *testing.T) {
-
 	emptyCase := struct {
 		context  formatter.Context
 		expected string

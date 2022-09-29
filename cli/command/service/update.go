@@ -999,7 +999,6 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 	for _, nameserver := range nameservers {
 		if _, exists := toRemove[nameserver]; !exists {
 			newConfig.Nameservers = append(newConfig.Nameservers, nameserver)
-
 		}
 	}
 	// Sort so that result is predictable.

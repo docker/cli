@@ -26,5 +26,4 @@ func prepare(t *testing.T) (func(args ...string) icmd.Cmd, *configfile.ConfigFil
 	assert.NilError(t, err)
 
 	return run, cfgfile, cleanup
-
 }

@@ -19,7 +19,7 @@ func (n notFound) NotFound() bool {
 }
 
 func TestValidateExternalNetworks(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		inspectResponse types.NetworkResource
 		inspectError    error
 		expectedMsg     string

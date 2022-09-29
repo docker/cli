@@ -44,5 +44,4 @@ func TestForwardSignals(t *testing.T) {
 	case <-timer.C:
 		t.Fatal("timeout waiting for signal to be processed")
 	}
-
 }
