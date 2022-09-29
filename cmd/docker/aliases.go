@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -26,8 +27,10 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 		if _, ok := allowedAliases[k]; !ok {
 			return args, osArgs, errors.Errorf("not allowed to alias %q (allowed: %#v)", k, allowedAliases)
 		}
-		if _, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
-			return args, osArgs, errors.Errorf("not allowed to alias with builtin %q as target", v)
+		if c, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
+			if c.Annotations[pluginmanager.CommandAnnotationPlugin] != "true" {
+				return args, osArgs, errors.Errorf("not allowed to alias with builtin %q as target", v)
+			}
 		}
 		aliases = append(aliases, [2][]string{{k}, {v}})
 	}
