@@ -1,12 +1,14 @@
 package context
 
 import (
-	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/errdefs"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -50,9 +52,6 @@ func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error 
 }
 
 func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
-	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil {
-		return err
-	}
 	if isCurrent {
 		if !force {
 			return errors.New("context is in use, set -f flag to force remove")
@@ -64,5 +63,23 @@ func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
 			return err
 		}
 	}
+
+	if !force {
+		if err := checkContextExists(dockerCli, name); err != nil {
+			return err
+		}
+	}
 	return dockerCli.ContextStore().Remove(name)
+}
+
+// checkContextExists returns an error if the context directory does not exist.
+func checkContextExists(dockerCli command.Cli, name string) error {
+	contextDir := dockerCli.ContextStore().GetStorageInfo(name).MetadataPath
+	_, err := os.Stat(contextDir)
+	if os.IsNotExist(err) {
+		return errdefs.NotFound(errors.Errorf("context %q does not exist", name))
+	}
+	// Ignore other errors; if relevant, they will produce an error when
+	// performing the actual delete.
+	return nil
 }
