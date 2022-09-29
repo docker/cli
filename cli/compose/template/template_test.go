@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -125,8 +124,8 @@ func TestMandatoryVariableErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		_, err := Substitute(tc.template, defaultMapping)
-		assert.ErrorContains(t, err, tc.expectedError)
-		assert.ErrorType(t, err, reflect.TypeOf(&InvalidTemplateError{}))
+		assert.Check(t, is.ErrorContains(err, tc.expectedError))
+		assert.Check(t, is.ErrorType(err, &InvalidTemplateError{}))
 	}
 }
 

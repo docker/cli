@@ -3,7 +3,6 @@ package loader
 import (
 	"bytes"
 	"os"
-	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -792,8 +791,10 @@ services:
 	// Default behavior keeps the `env_file` entries
 	configWithEnvFiles, err := Load(configDetails)
 	assert.NilError(t, err)
-	assert.DeepEqual(t, configWithEnvFiles.Services[0].EnvFile, types.StringList{"example1.env",
-		"example2.env"})
+	assert.DeepEqual(t, configWithEnvFiles.Services[0].EnvFile, types.StringList{
+		"example1.env",
+		"example2.env",
+	})
 	assert.DeepEqual(t, configWithEnvFiles.Services[0].Environment, expectedEnvironmentMap)
 
 	// Custom behavior removes the `env_file` entries
@@ -862,7 +863,7 @@ services:
       service: foo
 `)
 
-	assert.ErrorType(t, err, reflect.TypeOf(&ForbiddenPropertiesError{}))
+	assert.ErrorType(t, err, &ForbiddenPropertiesError{})
 
 	props := err.(*ForbiddenPropertiesError).Properties
 	assert.Check(t, is.Len(props, 2))
@@ -1343,7 +1344,6 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 	}
 	assert.Check(t, is.DeepEqual(expected, volumes))
 	assert.Check(t, is.Contains(buf.String(), "volume.external.name is deprecated"))
-
 }
 
 func patchLogrus() (*bytes.Buffer, func()) {
@@ -1483,7 +1483,6 @@ func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 	}
 	assert.Check(t, is.DeepEqual(expected, networks))
 	assert.Check(t, is.Contains(buf.String(), "network.external.name is deprecated"))
-
 }
 
 func TestLoadNetworksWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
@@ -1564,7 +1563,7 @@ func TestLoadInit(t *testing.T) {
 	booleanTrue := true
 	booleanFalse := false
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc  string
 		yaml string
 		init *bool
@@ -1651,7 +1650,7 @@ services:
 }
 
 func TestTransform(t *testing.T) {
-	var source = []interface{}{
+	source := []interface{}{
 		"80-82:8080-8082",
 		"90-92:8090-8092/udp",
 		"85:8500",
