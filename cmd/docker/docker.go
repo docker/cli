@@ -218,12 +218,12 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
+	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
 	if err != nil {
 		return err
 	}
 
-	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
+	err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
 	if err != nil {
 		return err
 	}
