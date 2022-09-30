@@ -76,7 +76,7 @@ shellcheck: ## run shellcheck validation
 	docker buildx bake shellcheck
 
 .PHONY: fmt
-fmt: ## run gofmt
+fmt: ## run gofumpt
 	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make fmt
 
 .PHONY: vendor

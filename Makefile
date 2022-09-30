@@ -5,6 +5,11 @@
 # Sets the name of the company that produced the windows binary.
 PACKAGER_NAME ?=
 
+# The repository doesn't have a go.mod, but "go list", and "gotestsum"
+# expect to be run from a module.
+GO111MODULE=auto
+export GO111MODULE
+
 all: binary
 
 _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
@@ -45,8 +50,12 @@ shellcheck: ## run shellcheck validation
 	find scripts/ contrib/completion/bash -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck
 
 .PHONY: fmt
-fmt: ## run gofmt
-	go list -f {{.Dir}} ./... | xargs gofmt -w -s -d
+fmt: ## run gofumpt (if present) or gofmt
+	@if command -v gofumpt > /dev/null; then \
+		gofumpt -w -d -lang=1.19 . ; \
+	else \
+		go list -f {{.Dir}} ./... | xargs gofmt -w -s -d ; \
+	fi
 
 .PHONY: binary
 binary: ## build executable for Linux
