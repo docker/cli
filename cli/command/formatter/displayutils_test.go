@@ -8,7 +8,7 @@ import (
 )
 
 func TestEllipsis(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		source   string
 		width    int
 		expected string

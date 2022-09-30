@@ -111,7 +111,7 @@ func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFun
 }
 
 func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
-	var inspectAutodetect = []struct {
+	inspectAutodetect := []struct {
 		objectType      string
 		isSizeSupported bool
 		isSwarmObject   bool

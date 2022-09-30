@@ -146,7 +146,8 @@ func TestClusterVolumeList(t *testing.T) {
 								Availability: volume.AvailabilityActive,
 							},
 						},
-					}, {
+					},
+					{
 						Name:   "volume2",
 						Scope:  "global",
 						Driver: "driver1",
@@ -165,7 +166,8 @@ func TestClusterVolumeList(t *testing.T) {
 								VolumeID:      "driver1vol2",
 							},
 						},
-					}, {
+					},
+					{
 						Name:   "volume3",
 						Scope:  "global",
 						Driver: "driver2",
@@ -190,7 +192,8 @@ func TestClusterVolumeList(t *testing.T) {
 								VolumeID:      "driver1vol3",
 							},
 						},
-					}, {
+					},
+					{
 						Name:   "volume4",
 						Scope:  "global",
 						Driver: "driver2",

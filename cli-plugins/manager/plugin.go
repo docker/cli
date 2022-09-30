@@ -10,9 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	pluginNameRe = regexp.MustCompile("^[a-z][a-z0-9]*$")
-)
+var pluginNameRe = regexp.MustCompile("^[a-z][a-z0-9]*$")
 
 // Plugin represents a potential plugin with all it's metadata.
 type Plugin struct {

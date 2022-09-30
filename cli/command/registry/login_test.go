@@ -16,15 +16,19 @@ import (
 	"gotest.tools/v3/fs"
 )
 
-const userErr = "userunknownError"
-const testAuthErrMsg = "UNKNOWN_ERR"
+const (
+	userErr        = "userunknownError"
+	testAuthErrMsg = "UNKNOWN_ERR"
+)
 
 var testAuthErrors = map[string]error{
 	userErr: fmt.Errorf(testAuthErrMsg),
 }
 
-var expiredPassword = "I_M_EXPIRED"
-var useToken = "I_M_TOKEN"
+var (
+	expiredPassword = "I_M_EXPIRED"
+	useToken        = "I_M_TOKEN"
+)
 
 type fakeClient struct {
 	client.Client

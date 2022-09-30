@@ -170,8 +170,10 @@ func toServiceVolumeConfigsSlice(dst reflect.Value, m map[interface{}]interface{
 	return nil
 }
 
-type tomapFn func(s interface{}) (map[interface{}]interface{}, error)
-type writeValueFromMapFn func(reflect.Value, map[interface{}]interface{}) error
+type (
+	tomapFn             func(s interface{}) (map[interface{}]interface{}, error)
+	writeValueFromMapFn func(reflect.Value, map[interface{}]interface{}) error
+)
 
 func safelyMerge(mergeFn func(dst, src reflect.Value) error) func(dst, src reflect.Value) error {
 	return func(dst, src reflect.Value) error {

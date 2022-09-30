@@ -147,7 +147,6 @@ func convertVolumeToMount(
 	stackVolumes volumes,
 	namespace Namespace,
 ) (mount.Mount, error) {
-
 	switch volume.Type {
 	case "volume", "":
 		return handleVolumeToMount(volume, stackVolumes, namespace)

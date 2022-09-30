@@ -59,7 +59,7 @@ func runRemove(dockerCli command.Cli, opts removeOptions, images []string) error
 	}
 
 	var errs []string
-	var fatalErr = false
+	fatalErr := false
 	for _, img := range images {
 		dels, err := client.ImageRemove(ctx, img, options)
 		if err != nil {

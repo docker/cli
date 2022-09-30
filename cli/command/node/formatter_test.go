@@ -59,7 +59,6 @@ func TestNodeContextWrite(t *testing.T) {
 		expected    string
 		clusterInfo swarm.ClusterInfo
 	}{
-
 		// Errors
 		{
 			context:     formatter.Context{Format: "{{InvalidFunction}}"},

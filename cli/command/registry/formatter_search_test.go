@@ -108,7 +108,6 @@ func TestSearchContextWrite(t *testing.T) {
 		context  formatter.Context
 		expected string
 	}{
-
 		// Errors
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},

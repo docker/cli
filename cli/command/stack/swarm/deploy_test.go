@@ -63,7 +63,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 		},
 	})
 
-	var testcases = []struct {
+	testcases := []struct {
 		image                 string
 		expectedQueryRegistry bool
 		expectedImage         string

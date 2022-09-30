@@ -30,7 +30,6 @@ func TestMountOptString(t *testing.T) {
 }
 
 func TestMountRelative(t *testing.T) {
-
 	for _, testcase := range []struct {
 		name string
 		path string

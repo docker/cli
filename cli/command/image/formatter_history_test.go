@@ -234,18 +234,20 @@ imageID6   17 years ago   /bin/bash echo                                  183MB 
 		context  formatter.Context
 		expected string
 	}{
-		{formatter.Context{
-			Format: NewHistoryFormat("table", false, true),
-			Trunc:  true,
-			Output: out,
-		},
+		{
+			formatter.Context{
+				Format: NewHistoryFormat("table", false, true),
+				Trunc:  true,
+				Output: out,
+			},
 			expectedTrunc,
 		},
-		{formatter.Context{
-			Format: NewHistoryFormat("table", false, true),
-			Trunc:  false,
-			Output: out,
-		},
+		{
+			formatter.Context{
+				Format: NewHistoryFormat("table", false, true),
+				Trunc:  false,
+				Output: out,
+			},
 			expectedNoTrunc,
 		},
 	}

@@ -22,7 +22,6 @@ func TestStackPsErrors(t *testing.T) {
 		taskListFunc  func(options types.TaskListOptions) ([]swarm.Task, error)
 		expectedError string
 	}{
-
 		{
 			args:          []string{},
 			expectedError: "requires exactly 1 argument",

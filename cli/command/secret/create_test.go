@@ -24,10 +24,12 @@ func TestSecretCreateErrors(t *testing.T) {
 		secretCreateFunc func(swarm.SecretSpec) (types.SecretCreateResponse, error)
 		expectedError    string
 	}{
-		{args: []string{"too", "many", "arguments"},
+		{
+			args:          []string{"too", "many", "arguments"},
 			expectedError: "requires at least 1 and at most 2 arguments",
 		},
-		{args: []string{"create", "--driver", "driver", "-"},
+		{
+			args:          []string{"create", "--driver", "driver", "-"},
 			expectedError: "secret data must be empty",
 		},
 		{

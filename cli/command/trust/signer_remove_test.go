@@ -65,7 +65,6 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		cmd.Execute()
 		assert.Check(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
 	}
-
 }
 
 func TestRemoveSingleSigner(t *testing.T) {
@@ -89,6 +88,7 @@ func TestRemoveMultipleSigners(t *testing.T) {
 		"no signer test for repository signed-repo"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Removing signer \"test\" from signed-repo...\n"))
 }
+
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)

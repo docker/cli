@@ -120,7 +120,7 @@ func (c *fakeClient) NegotiateAPIVersionPing(types.Ping) {
 func TestInitializeFromClient(t *testing.T) {
 	defaultVersion := "v1.55"
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc            string
 		pingFunc       func() (types.Ping, error)
 		expectedServer ServerInfo
@@ -222,7 +222,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 func TestExperimentalCLI(t *testing.T) {
 	defaultVersion := "v1.55"
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc        string
 		configfile string
 	}{

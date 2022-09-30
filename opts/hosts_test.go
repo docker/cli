@@ -94,9 +94,7 @@ func TestParseDockerDaemonHost(t *testing.T) {
 }
 
 func TestParseTCP(t *testing.T) {
-	var (
-		defaultHTTPHost = "tcp://127.0.0.1:2376"
-	)
+	defaultHTTPHost := "tcp://127.0.0.1:2376"
 	invalids := map[string]string{
 		"tcp:a.b.c.d":          "",
 		"tcp:a.b.c.d/path":     "",

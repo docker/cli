@@ -57,7 +57,8 @@ func runEvents(dockerCli command.Cli, options *eventsOptions) error {
 	if err != nil {
 		return cli.StatusError{
 			StatusCode: 64,
-			Status:     "Error parsing format: " + err.Error()}
+			Status:     "Error parsing format: " + err.Error(),
+		}
 	}
 	eventOptions := types.EventsOptions{
 		Since:   options.since,

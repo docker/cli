@@ -44,7 +44,6 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runLoad(dockerCli command.Cli, opts loadOptions) error {
-
 	var input io.Reader = dockerCli.In()
 	if opts.input != "" {
 		// We use sequential.Open to use sequential file access on Windows, avoiding

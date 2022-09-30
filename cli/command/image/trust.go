@@ -312,7 +312,6 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	r, err := convertTarget(t.Target)
 	if err != nil {
 		return nil, err
-
 	}
 	return reference.WithDigest(reference.TrimNamed(ref), r.digest)
 }

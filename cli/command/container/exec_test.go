@@ -158,7 +158,7 @@ func TestParseExecNoSuchFile(t *testing.T) {
 }
 
 func TestRunExec(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		doc           string
 		options       ExecOptions
 		client        fakeClient

@@ -25,7 +25,6 @@ func newIPNetSliceValue(val []net.IPNet, p *[]net.IPNet) *ipNetSliceValue {
 // Set converts, and assigns, the comma-separated IPNet argument string representation as the []net.IPNet value of this flag.
 // If Set is called on a flag that already has a []net.IPNet assigned, the newly converted values will be appended.
 func (s *ipNetSliceValue) Set(val string) error {
-
 	// remove all quote characters
 	rmQuote := strings.NewReplacer(`"`, "", `'`, "", "`", "")
 
@@ -63,7 +62,6 @@ func (s *ipNetSliceValue) Type() string {
 
 // String defines a "native" format for this net.IPNet slice flag value.
 func (s *ipNetSliceValue) String() string {
-
 	ipNetStrSlice := make([]string, len(*s.value))
 	for i, n := range *s.value {
 		ipNetStrSlice[i] = n.String()

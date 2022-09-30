@@ -315,7 +315,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 			prettyGolden: "docker-info-with-labels-empty",
 		},
 		{
-
 			doc: "info with swarm",
 			dockerInfo: info{
 				Info: &infoWithSwarm,

@@ -139,7 +139,6 @@ func TestTrustRevokeCommand(t *testing.T) {
 			assert.Check(t, is.Contains(cli.OutBuffer().String(), tc.expectedMessage))
 		})
 	}
-
 }
 
 func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {

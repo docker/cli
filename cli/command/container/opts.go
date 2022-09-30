@@ -27,9 +27,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var (
-	deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
-)
+var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
 
 // containerOptions is a data object with all the options for creating a container
 type containerOptions struct {
@@ -978,7 +976,7 @@ func validateDeviceCgroupRule(val string) (string, error) {
 // validDeviceMode checks if the mode for device is valid or not.
 // Valid mode is a composition of r (read), w (write), and m (mknod).
 func validDeviceMode(mode string) bool {
-	var legalDeviceMode = map[rune]bool{
+	legalDeviceMode := map[rune]bool{
 		'r': true,
 		'w': true,
 		'm': true,

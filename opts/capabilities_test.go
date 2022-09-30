@@ -113,7 +113,6 @@ func TestEffectiveCapAddCapDrop(t *testing.T) {
 			add, drop := EffectiveCapAddCapDrop(tc.in.add, tc.in.drop)
 			assert.DeepEqual(t, add, tc.out.add)
 			assert.DeepEqual(t, drop, tc.out.drop)
-
 		})
 	}
 }

@@ -5,8 +5,7 @@ import (
 	"testing"
 )
 
-type dummy struct {
-}
+type dummy struct{}
 
 func (d *dummy) Func1() string {
 	return "Func1"

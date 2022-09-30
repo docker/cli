@@ -938,7 +938,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 				},
 				CapAdd:      []string{"NET_ADMIN", "SYS_ADMIN"},
 				Environment: types.MappingWithEquals{},
-			}},
+			},
+		},
 		Networks: map[string]types.NetworkConfig{},
 		Volumes:  map[string]types.VolumeConfig{},
 		Secrets:  map[string]types.SecretConfig{},
@@ -1002,7 +1003,8 @@ func TestLoadMultipleNetworks(t *testing.T) {
 				Name:        "foo",
 				Image:       "baz",
 				Environment: types.MappingWithEquals{},
-			}},
+			},
+		},
 		Networks: map[string]types.NetworkConfig{
 			"hostnet": {
 				Name: "host",

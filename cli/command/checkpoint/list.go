@@ -33,7 +33,6 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
 
 	return cmd
-
 }
 
 func runList(dockerCli command.Cli, container string, opts listOptions) error {

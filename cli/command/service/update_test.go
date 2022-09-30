@@ -507,15 +507,19 @@ type secretAPIClientMock struct {
 func (s secretAPIClientMock) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 	return s.listResult, nil
 }
+
 func (s secretAPIClientMock) SecretCreate(ctx context.Context, secret swarm.SecretSpec) (types.SecretCreateResponse, error) {
 	return types.SecretCreateResponse{}, nil
 }
+
 func (s secretAPIClientMock) SecretRemove(ctx context.Context, id string) error {
 	return nil
 }
+
 func (s secretAPIClientMock) SecretInspectWithRaw(ctx context.Context, name string) (swarm.Secret, []byte, error) {
 	return swarm.Secret{}, []byte{}, nil
 }
+
 func (s secretAPIClientMock) SecretUpdate(ctx context.Context, id string, version swarm.Version, secret swarm.SecretSpec) error {
 	return nil
 }

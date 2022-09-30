@@ -82,7 +82,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 		{Name: "Dockerfile"},
 		{Name: "foo"},
 	}
-	var cmpTarHeaderNameAndOwner = cmp.Comparer(func(x, y tar.Header) bool {
+	cmpTarHeaderNameAndOwner := cmp.Comparer(func(x, y tar.Header) bool {
 		return x.Name == y.Name && x.Uid == y.Uid && x.Gid == y.Gid
 	})
 	assert.DeepEqual(t, expected, headers, cmpTarHeaderNameAndOwner)

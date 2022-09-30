@@ -44,7 +44,7 @@ func TestValidateOutputPath(t *testing.T) {
 	file := filepath.Join(dir, "file")
 	err = os.WriteFile(file, []byte("hi"), 0644)
 	assert.NilError(t, err)
-	var testcases = []struct {
+	testcases := []struct {
 		path string
 		err  error
 	}{

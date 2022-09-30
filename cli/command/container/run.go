@@ -174,7 +174,6 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		}
 
 		close, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
-
 		if err != nil {
 			return err
 		}

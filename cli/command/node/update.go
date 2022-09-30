@@ -13,9 +13,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var (
-	errNoRoleChange = errors.New("role was already set to the requested value")
-)
+var errNoRoleChange = errors.New("role was already set to the requested value")
 
 func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	options := newNodeOptions()

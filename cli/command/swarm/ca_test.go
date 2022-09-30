@@ -216,7 +216,8 @@ func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
-		"--cert-expiry=3m"})
+		"--cert-expiry=3m",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -242,7 +243,8 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 		"--rotate",
 		"--detach",
 		"--ca-cert=" + certfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -280,7 +282,8 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 

@@ -75,7 +75,8 @@ func TestNetworkList(t *testing.T) {
 				return []types.NetworkResource{
 					*NetworkResource(NetworkResourceName("network-2-foo")),
 					*NetworkResource(NetworkResourceName("network-1-foo")),
-					*NetworkResource(NetworkResourceName("network-10-foo"))}, nil
+					*NetworkResource(NetworkResourceName("network-10-foo")),
+				}, nil
 			},
 		},
 	}

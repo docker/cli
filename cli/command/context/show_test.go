@@ -15,5 +15,4 @@ func TestShow(t *testing.T) {
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runShow(cli))
 	golden.Assert(t, cli.OutBuffer().String(), "show.golden")
-
 }

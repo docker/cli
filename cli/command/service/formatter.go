@@ -273,6 +273,7 @@ func (ctx *serviceInspectContext) HasLogDriver() bool {
 func (ctx *serviceInspectContext) HasLogDriverName() bool {
 	return ctx.Service.Spec.TaskTemplate.LogDriver.Name != ""
 }
+
 func (ctx *serviceInspectContext) LogDriverName() string {
 	return ctx.Service.Spec.TaskTemplate.LogDriver.Name
 }

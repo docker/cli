@@ -110,7 +110,8 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
-	expectedList := []string{"Removing service bar_service1",
+	expectedList := []string{
+		"Removing service bar_service1",
 		"Removing service bar_service2",
 		"Removing secret bar_secret1",
 		"Removing config bar_config1",

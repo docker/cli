@@ -119,7 +119,6 @@ func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
 
 func TestGetContextFromReaderString(t *testing.T) {
 	tarArchive, relDockerfile, err := GetContextFromReader(io.NopCloser(strings.NewReader(dockerfileContents)), "")
-
 	if err != nil {
 		t.Fatalf("Error when executing GetContextFromReader: %s", err)
 	}
@@ -253,7 +252,7 @@ func chdir(t *testing.T, dir string) {
 }
 
 func TestIsArchive(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		doc      string
 		header   []byte
 		expected bool
@@ -285,7 +284,7 @@ func TestIsArchive(t *testing.T) {
 }
 
 func TestDetectArchiveReader(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		file     string
 		desc     string
 		expected bool
