@@ -400,7 +400,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		if imageID == "" {
 			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
 		}
-		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
+		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0o666); err != nil {
 			return err
 		}
 	}

@@ -406,7 +406,7 @@ func convertFileObject(
 	}
 	mode := config.Mode
 	if mode == nil {
-		mode = uint32Ptr(0444)
+		mode = uint32Ptr(0o444)
 	}
 
 	return swarmReferenceObject{

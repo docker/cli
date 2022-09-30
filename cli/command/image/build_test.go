@@ -139,9 +139,9 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	buildDir := filepath.Join(t.TempDir(), "github.com", "docker", "no-such-repository")
-	err := os.MkdirAll(buildDir, 0777)
+	err := os.MkdirAll(buildDir, 0o777)
 	assert.NilError(t, err)
-	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0644)
+	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0o644)
 	assert.NilError(t, err)
 
 	client := test.NewFakeCli(&fakeClient{})

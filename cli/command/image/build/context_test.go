@@ -233,7 +233,7 @@ func createTestTempDir(t *testing.T) string {
 func createTestTempFile(t *testing.T, dir, filename, contents string) string {
 	t.Helper()
 	filePath := filepath.Join(dir, filename)
-	err := os.WriteFile(filePath, []byte(contents), 0777)
+	err := os.WriteFile(filePath, []byte(contents), 0o777)
 	assert.NilError(t, err)
 	return filePath
 }

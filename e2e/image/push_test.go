@@ -406,7 +406,7 @@ func notaryListTargetsInRole(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, 
 }
 
 func setupNotaryConfig(t *testing.T, dockerConfigDir fs.Dir) *fs.Dir {
-	return fs.NewDir(t, "notary_test", fs.WithMode(0700),
+	return fs.NewDir(t, "notary_test", fs.WithMode(0o700),
 		fs.WithFile("client-config.json", fmt.Sprintf(`
 {
 	"trust_dir": "%s",

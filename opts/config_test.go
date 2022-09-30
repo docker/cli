@@ -59,7 +59,7 @@ func TestConfigOptions(t *testing.T) {
 			fileName:   "testing",
 			uid:        "1000",
 			gid:        "1001",
-			fileMode:   0444,
+			fileMode:   0o444,
 		},
 	}
 

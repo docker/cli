@@ -1066,7 +1066,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "foo",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"barRef": {
@@ -1076,7 +1076,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "bar",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"bazRef": {
@@ -1086,7 +1086,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "baz",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"credRef": {
