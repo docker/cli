@@ -28,6 +28,7 @@ import (
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -462,8 +463,8 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 	}
 	if config != nil && config.CurrentContext != "" {
 		_, err := contextstore.GetMetadata(config.CurrentContext)
-		if store.IsErrContextDoesNotExist(err) {
-			return "", errors.Errorf("Current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
+		if errdefs.IsNotFound(err) {
+			return "", errors.Errorf("current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
 		}
 		return config.CurrentContext, err
 	}

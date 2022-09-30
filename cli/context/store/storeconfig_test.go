@@ -6,10 +6,12 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-type testCtx struct{}
-type testEP1 struct{}
-type testEP2 struct{}
-type testEP3 struct{}
+type (
+	testCtx struct{}
+	testEP1 struct{}
+	testEP2 struct{}
+	testEP3 struct{}
+)
 
 func TestConfigModification(t *testing.T) {
 	cfg := NewConfig(func() interface{} { return &testCtx{} }, EndpointTypeGetter("ep1", func() interface{} { return &testEP1{} }))

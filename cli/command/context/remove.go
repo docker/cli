@@ -40,7 +40,7 @@ func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error 
 		if name == "default" {
 			errs = append(errs, `default: context "default" cannot be removed`)
 		} else if err := doRemove(dockerCli, name, name == currentCtx, opts.Force); err != nil {
-			errs = append(errs, fmt.Sprintf("%s: %s", name, err))
+			errs = append(errs, err.Error())
 		} else {
 			fmt.Fprintln(dockerCli.Out(), name)
 		}
@@ -54,7 +54,7 @@ func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error 
 func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
 	if isCurrent {
 		if !force {
-			return errors.New("context is in use, set -f flag to force remove")
+			return errors.Errorf("context %q is in use, set -f flag to force remove", name)
 		}
 		// fallback to DOCKER_HOST
 		cfg := dockerCli.ConfigFile()

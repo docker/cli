@@ -6,8 +6,9 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRemove(t *testing.T) {
@@ -18,7 +19,7 @@ func TestRemove(t *testing.T) {
 	_, err := cli.ContextStore().GetMetadata("current")
 	assert.NilError(t, err)
 	_, err = cli.ContextStore().GetMetadata("other")
-	assert.Check(t, store.IsErrContextDoesNotExist(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 func TestRemoveNotAContext(t *testing.T) {
@@ -38,7 +39,7 @@ func TestRemoveCurrent(t *testing.T) {
 	createTestContext(t, cli, "other")
 	cli.SetCurrentContext("current")
 	err := RunRemove(cli, RemoveOptions{}, []string{"current"})
-	assert.ErrorContains(t, err, "current: context is in use, set -f flag to force remove")
+	assert.ErrorContains(t, err, `context "current" is in use, set -f flag to force remove`)
 }
 
 func TestRemoveCurrentForce(t *testing.T) {
