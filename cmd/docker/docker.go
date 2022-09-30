@@ -131,7 +131,7 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		if ccmd.Annotations[pluginmanager.CommandAnnotationPlugin] == "true" {
+		if pluginmanager.IsPluginCommand(ccmd) {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
 			if !pluginmanager.IsNotFound(err) {
 				ccmd.Println(err)
@@ -229,8 +229,8 @@ func runDocker(dockerCli *command.DockerCli) error {
 	}
 
 	if len(args) > 0 {
-		command, _, err := cmd.Find(args)
-		if err != nil || command.Annotations[pluginmanager.CommandAnnotationPlugin] == "true" {
+		ccmd, _, err := cmd.Find(args)
+		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(dockerCli, cmd, args[0])
 			if !pluginmanager.IsNotFound(err) {
 				return err
