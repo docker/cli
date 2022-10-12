@@ -61,6 +61,7 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 			reflect.TypeOf([]types.ServiceVolumeConfig{}):    mergeSlice(toServiceVolumeConfigsMap, toServiceVolumeConfigsSlice),
 			reflect.TypeOf(types.ShellCommand{}):             mergeShellCommand,
 			reflect.TypeOf(&types.ServiceNetworkConfig{}):    mergeServiceNetworkConfig,
+			reflect.PointerTo(reflect.TypeOf(uint64(1))):     mergeUint64,
 		},
 	}
 	for name, overrideService := range overrideServices {
@@ -255,6 +256,14 @@ func mergeServiceNetworkConfig(dst, src reflect.Value) error {
 		if ipv6 := src.Elem().FieldByName("Ipv6Address").Interface().(string); ipv6 != "" {
 			dst.Elem().FieldByName("Ipv6Address").SetString(ipv6)
 		}
+	}
+	return nil
+}
+
+//nolint:unparam
+func mergeUint64(dst, src reflect.Value) error {
+	if !src.IsNil() {
+		dst.Elem().Set(src.Elem())
 	}
 	return nil
 }
