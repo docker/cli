@@ -39,7 +39,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v20.10.18+incompatible => github.com/docker/docker v20.10.3-0.20220922131805-e143eed8bc4f+incompatible
+# github.com/docker/docker v20.10.18+incompatible => github.com/docker/docker v20.10.3-0.20221006185438-87d9d96ab0b6+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -62,7 +62,6 @@ github.com/docker/docker/builder/remotecontext/urlutil
 github.com/docker/docker/client
 github.com/docker/docker/errdefs
 github.com/docker/docker/pkg/archive
-github.com/docker/docker/pkg/fileutils
 github.com/docker/docker/pkg/homedir
 github.com/docker/docker/pkg/idtools
 github.com/docker/docker/pkg/ioutils
@@ -145,7 +144,7 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/mattn/go-runewidth v0.0.13
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
-# github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
+# github.com/matttproud/golang_protobuf_extensions v1.0.2
 ## explicit; go 1.9
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/miekg/pkcs11 v1.1.1
@@ -158,6 +157,9 @@ github.com/mitchellh/mapstructure
 ## explicit; go 1.17
 github.com/moby/buildkit/frontend/dockerfile/dockerignore
 github.com/moby/buildkit/util/appcontext
+# github.com/moby/patternmatcher v0.5.0
+## explicit; go 1.19
+github.com/moby/patternmatcher
 # github.com/moby/swarmkit/v2 v2.0.0-20220721174824-48dd89375d0a
 ## explicit; go 1.17
 github.com/moby/swarmkit/v2/api
@@ -166,7 +168,7 @@ github.com/moby/swarmkit/v2/api/defaults
 github.com/moby/swarmkit/v2/api/genericresource
 github.com/moby/swarmkit/v2/manager/raftselector
 github.com/moby/swarmkit/v2/protobuf/plugin
-# github.com/moby/sys/sequential v0.0.0-20220829095930-b22ba8a69b30
+# github.com/moby/sys/sequential v0.5.0
 ## explicit; go 1.17
 github.com/moby/sys/sequential
 # github.com/moby/sys/signal v0.7.0
@@ -394,5 +396,5 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20220922131805-e143eed8bc4f+incompatible
+# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221006185438-87d9d96ab0b6+incompatible
 # github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20

@@ -15,12 +15,12 @@ import (
 
 	"github.com/docker/docker/builder/remotecontext/git"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/moby/patternmatcher"
 	"github.com/pkg/errors"
 	exec "golang.org/x/sys/execabs"
 )
@@ -41,7 +41,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 		return err
 	}
 
-	pm, err := fileutils.NewPatternMatcher(excludes)
+	pm, err := patternmatcher.New(excludes)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 	})
 }
 
-func filepathMatches(matcher *fileutils.PatternMatcher, file string) (bool, error) {
+func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool, error) {
 	file = filepath.Clean(file)
 	if file == "." {
 		// Don't let them exclude everything, kind of silly.
