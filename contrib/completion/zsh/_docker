@@ -659,6 +659,7 @@ __docker_container_subcommand() {
         "($help)*--sysctl=-[sysctl options]:sysctl: "
         "($help -t --tty)"{-t,--tty}"[Allocate a pseudo-tty]"
         "($help -u --user)"{-u=,--user=}"[Username or UID]:user:_users"
+        "($help)--current-user[Run as the user that called the CLI]"
         "($help)*--ulimit=[ulimit options]:ulimit: "
         "($help)--userns=[Container user namespace]:user namespace:(host)"
         "($help)--tmpfs[mount tmpfs]"
