@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/fileutils"
+	"github.com/moby/patternmatcher"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -316,9 +316,9 @@ func TestDetectArchiveReader(t *testing.T) {
 	}
 }
 
-func mustPatternMatcher(t *testing.T, patterns []string) *fileutils.PatternMatcher {
+func mustPatternMatcher(t *testing.T, patterns []string) *patternmatcher.PatternMatcher {
 	t.Helper()
-	pm, err := fileutils.NewPatternMatcher(patterns)
+	pm, err := patternmatcher.New(patterns)
 	if err != nil {
 		t.Fatal("failed to construct pattern matcher: ", err)
 	}
