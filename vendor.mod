@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.8
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.18+incompatible // v22.06.x - see "replace" for the actual version
+	github.com/docker/docker v20.10.20+incompatible // v22.06.x - see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -78,7 +78,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221006185438-87d9d96ab0b6+incompatible // 22.06 branch (v22.06-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221021122114-f9cb47a052be+incompatible // 22.06 branch (v22.06-dev)
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
 	// swarmkit) by pinning the certificate-transparency-go version. Remove once
