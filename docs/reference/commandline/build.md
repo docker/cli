@@ -323,13 +323,13 @@ directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
 [creating a .dockerignore file](../builder.md#dockerignore-file).
 
-When using the [BuildKit backend](../builder.md#buildkit), `docker build` searches
-for a `.dockerignore` file relative to the Dockerfile name. For example, running
-`docker build -f myapp.Dockerfile .` will first look for an ignore file named
-`myapp.Dockerfile.dockerignore`. If such a file is not found, the `.dockerignore`
-file is used if present. Using a Dockerfile based `.dockerignore` is useful if a
-project contains multiple Dockerfiles that expect to ignore different sets of
-files.
+When using the [BuildKit backend](https://docs.docker.com/build/buildkit/),
+`docker build` searches for a `.dockerignore` file relative to the Dockerfile
+name. For example, running `docker build -f myapp.Dockerfile .` will first look
+for an ignore file named `myapp.Dockerfile.dockerignore`. If such a file is not
+found, the `.dockerignore` file is used if present. Using a Dockerfile based
+`.dockerignore` is useful if a project contains multiple Dockerfiles that
+expect to ignore different sets of files.
 
 
 ### Tag an image (-t)
@@ -585,8 +585,9 @@ vndr
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
-> plugin which provides more output type options.
+> [enable BuildKit](https://docs.docker.com/build/buildkit/#getting-started) or
+> use the [buildx](https://github.com/docker/buildx) plugin which provides more
+> output type options.
 
 ### Specifying external cache sources
 
@@ -627,9 +628,9 @@ $ docker build --cache-from myname/myapp .
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](../builder.md#buildkit) or use the [buildx](https://github.com/docker/buildx)
-> plugin. The previous builder has limited support for reusing cache from
-> pre-pulled images.
+> [enable BuildKit](https://docs.docker.com/build/buildkit/#getting-started) or
+> use the [buildx](https://github.com/docker/buildx) plugin. The previous
+> builder has limited support for reusing cache from pre-pulled images.
 
 ### Squash an image's layers (--squash) (experimental)
 
