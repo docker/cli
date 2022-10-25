@@ -321,7 +321,7 @@ directory from the context. Its effect can be seen in the changed size of the
 uploaded context. The builder reference contains detailed information on
 [creating a .dockerignore file](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
 
-When using the [BuildKit backend](https://docs.docker.com/engine/reference/builder/#buildkit),
+When using the [BuildKit backend](https://docs.docker.com/build/buildkit/),
 `docker build` searches for a `.dockerignore` file relative to the Dockerfile
 name. For example, running `docker build -f myapp.Dockerfile .` will first look
 for an ignore file named `myapp.Dockerfile.dockerignore`. If such a file is not
@@ -498,7 +498,7 @@ $ docker build -t mybuildimage --target build-env .
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
+> [enable BuildKit](https://docs.docker.com/build/buildkit/#getting-started) or
 > use the [buildx](https://github.com/docker/buildx) plugin which provides more
 > output type options.
 
@@ -592,7 +592,7 @@ vndr
 > **Note**
 >
 > This feature requires the BuildKit backend. You can either
-> [enable BuildKit](https://docs.docker.com/engine/reference/builder/#buildkit) or
+> [enable BuildKit](https://docs.docker.com/build/buildkit/#getting-started) or
 > use the [buildx](https://github.com/docker/buildx) plugin. The previous
 > builder has limited support for reusing cache from pre-pulled images.
 
