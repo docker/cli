@@ -153,9 +153,6 @@ specified image, and then `starts` it using the specified command. That is,
 previous changes intact using `docker start`. See `docker ps -a` to view a list
 of all containers.
 
-The `docker run` command can be used in combination with `docker commit` to
-[*change the command that a container runs*](commit.md). There is additional detailed information about `docker run` in the [Docker run reference](../run.md).
-
 For information on connecting a container to a network, see the ["*Docker network overview*"](https://docs.docker.com/network/).
 
 ## Examples
@@ -230,14 +227,14 @@ The `-w` lets the command being executed inside directory given, here
 $ docker run -it --storage-opt size=120G fedora /bin/bash
 ```
 
-This (size) will allow to set the container rootfs size to 120G at creation time.
+This (size) will allow to set the container filesystem size to 120G at creation time.
 This option is only available for the `devicemapper`, `btrfs`, `overlay2`,
 `windowsfilter` and `zfs` graph drivers.
 For the `devicemapper`, `btrfs`, `windowsfilter` and `zfs` graph drivers,
 user cannot pass a size less than the Default BaseFS Size.
 For the `overlay2` storage driver, the size option is only available if the
-backing fs is `xfs` and mounted with the `pquota` mount option.
-Under these conditions, user can pass any size less than the backing fs size.
+backing filesystem is `xfs` and mounted with the `pquota` mount option.
+Under these conditions, user can pass any size less than the backing filesystem size.
 
 ### <a name=tmpfs></a> Mount tmpfs (--tmpfs)
 
@@ -282,8 +279,8 @@ specified volumes for the container.
 $ docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/static-docker-binary:/usr/bin/docker busybox sh
 ```
 
-By bind-mounting the docker unix socket and statically linked docker
-binary (refer to [get the linux binary](https://docs.docker.com/engine/install/binaries/#install-static-binaries)),
+By bind-mounting the Docker Unix socket and statically linked Docker
+binary (refer to [get the Linux binary](https://docs.docker.com/engine/install/binaries/#install-static-binaries)),
 you give the container the full access to create and manipulate the host's
 Docker daemon.
 
@@ -322,7 +319,7 @@ mounts in a container.
 The `--mount` flag supports most options that are supported by the `-v` or the
 `--volume` flag, but uses a different syntax. For in-depth information on the
 `--mount` flag, and a comparison between `--volume` and `--mount`, refer to
-the [service create command reference](service_create.md#add-bind-mounts-volumes-or-memory-filesystems).
+[Bind mounts](https://docs.docker.com/storage/bind-mounts/).
 
 Even though there is no plan to deprecate `--volume`, usage of `--mount` is recommended.
 
@@ -374,7 +371,7 @@ The `--pull` flag can take one of these values:
 
 When creating (and running) a container from an image, the daemon checks if the
 image exists in the local image cache. If the image is missing, an error is
-returned to the cli, allowing it to initiate a pull.
+returned to the CLI, allowing it to initiate a pull.
 
 The default (`missing`) is to only pull the image if it is not present in the
 daemon's image cache. This default allows you to run images that only exist
@@ -497,9 +494,11 @@ the Docker User Guide.
 ### <a name=network></a> Connect a container to a network (--network)
 
 When you start a container use the `--network` flag to connect it to a network.
-This adds the `busybox` container to the `my-net` network.
+The following commands create a network named `my-net`, and adds a `busybox` container
+to the `my-net` network.
 
 ```console
+$ docker network create my-net
 $ docker run -itd --network=my-net busybox
 ```
 
@@ -520,9 +519,9 @@ from different Engines can also communicate in this way.
 
 > **Note**
 >
-> Service discovery is unavailable on the default bridge network. Containers can
-> communicate via their IP addresses by default. To communicate by name, they
-> must be linked.
+> The default bridge network only allow containers to communicate with each other using
+> internal IP addresses. User-created bridge networks provide DNS resolution between
+> containers using container names.
 
 You can disconnect a container from a network using the `docker network
 disconnect` command.
@@ -578,11 +577,13 @@ still store what's been written to `STDERR` and `STDOUT`.
 $ cat somefile | docker run -i -a stdin mybuilder dobuild
 ```
 
-This is how piping a file into a container could be done for a build.
+This is a way of using `--attach` to pipe a build file into a container.
 The container's ID will be printed after the build is done and the build
 logs could be retrieved using `docker logs`. This is
 useful if you need to pipe a file or something else into a container and
 retrieve the container's ID once the container has finished running.
+
+See also [the `docker cp` command](/engine/reference/commandline/cp/).
 
 ### <a name=device></a> Add host device to container (--device)
 
@@ -684,7 +685,7 @@ install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-run
 Visit [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
 for more information.
 
-To use `--gpus`, specify which GPUs (or all) to use. If no value is provied, all
+To use `--gpus`, specify which GPUs (or all) to use. If no value is provided, all
 available GPUs are used. The example below exposes all available GPUs.
 
 ```console
@@ -795,7 +796,7 @@ Docker doesn't perform any byte conversion. Take this into account when setting 
 #### For `nproc` usage
 
 Be careful setting `nproc` with the `ulimit` flag as `nproc` is designed by Linux to set the
-maximum number of processes available to a user, not to a container.  For example, start four
+maximum number of processes available to a user, not to a container. For example, start four
 containers with `daemon` user:
 
 ```console
@@ -860,8 +861,8 @@ On Windows, `--isolation` can take one of these values:
 | `hyperv`  | Hyper-V hypervisor partition-based isolation.                                              |
 
 The default isolation on Windows server operating systems is `process`, and `hyperv`
-on Windows client operating systems, such as Windows 10. Process isolation is more
-performant, but requires the image to
+on Windows client operating systems, such as Windows 10. Process isolation has better
+performance, but requires that the image and host use the same kernel version.
 
 On Windows server, assuming the default configuration, these commands are equivalent
 and result in `process` isolation:
