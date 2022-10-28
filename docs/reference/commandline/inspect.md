@@ -29,15 +29,15 @@ By default, `docker inspect` will render results in a JSON array.
 
 If a format is specified, the given template will be executed for each result.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package
-describes all the details of the format.
+Go's [text/template](https://golang.org/pkg/text/template/) package describes
+all the details of the format.
 
 ### <a name=type></a>Specify target type (--type)
 
 `--type container|image|node|network|secret|service|volume|task|plugin`
 
-The `docker inspect` command matches any type of object by either ID or name.
-In some cases multiple type of objects (for example, a container and a volume)
+The `docker inspect` command matches any type of object by either ID or name. In
+some cases multiple type of objects (for example, a container and a volume)
 exist with the same name, making the result ambiguous.
 
 To restrict `docker inspect` to a specific type of object, use the `--type`
@@ -80,8 +80,7 @@ $ docker inspect --format='{{.Config.Image}}' $INSTANCE_ID
 
 ### List all port bindings
 
-You can loop over arrays and maps in the results to produce simple text
-output:
+You can loop over arrays and maps in the results to produce simple text output:
 
 ```console
 $ docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{(index $conf 0).HostPort}} {{end}}' $INSTANCE_ID
@@ -89,13 +88,12 @@ $ docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} 
 
 ### Find a specific port mapping
 
-The `.Field` syntax doesn't work when the field name begins with a
-number, but the template language's `index` function does. The
-`.NetworkSettings.Ports` section contains a map of the internal port
-mappings to a list of external address/port objects. To grab just the
-numeric public port, you use `index` to find the specific port map, and
-then `index` 0 contains the first object inside of that. Then we ask for
-the `HostPort` field to get the public address.
+The `.Field` syntax doesn't work when the field name begins with a number, but
+the template language's `index` function does. The `.NetworkSettings.Ports`
+section contains a map of the internal port mappings to a list of external
+address/port objects. To grab just the numeric public port, you use `index` to
+find the specific port map, and then `index` 0 contains the first object inside
+of that. Then we ask for the `HostPort` field to get the public address.
 
 ```console
 $ docker inspect --format='{{(index (index .NetworkSettings.Ports "8787/tcp") 0).HostPort}}' $INSTANCE_ID
@@ -103,10 +101,9 @@ $ docker inspect --format='{{(index (index .NetworkSettings.Ports "8787/tcp") 0)
 
 ### Get a subsection in JSON format
 
-If you request a field which is itself a structure containing other
-fields, by default you get a Go-style dump of the inner values.
-Docker adds a template function, `json`, which can be applied to get
-results in JSON format.
+If you request a field which is itself a structure containing other fields, by
+default you get a Go-style dump of the inner values. Docker adds a template
+function, `json`, which can be applied to get results in JSON format.
 
 ```console
 $ docker inspect --format='{{json .Config}}' $INSTANCE_ID
