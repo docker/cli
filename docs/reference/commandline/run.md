@@ -556,7 +556,7 @@ logs could be retrieved using `docker logs`. This is
 useful if you need to pipe a file or something else into a container and
 retrieve the container's ID once the container has finished running.
 
-See also [the `docker cp` command](/engine/reference/commandline/cp/).
+See also [the `docker cp` command](cp.md).
 
 ### <a name=device></a> Add host device to container (--device)
 
