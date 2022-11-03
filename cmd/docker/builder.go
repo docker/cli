@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 const (
@@ -40,15 +43,17 @@ func newBuilderError(warn bool, err error) error {
 	return fmt.Errorf("%s", errorMsg)
 }
 
-func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, error) {
+//nolint:gocyclo
+func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, []string, error) {
 	var useLegacy, useBuilder bool
+	var envs []string
 
 	// check DOCKER_BUILDKIT env var is present and
 	// if not assume we want to use the builder component
 	if v, ok := os.LookupEnv("DOCKER_BUILDKIT"); ok {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
-			return args, osargs, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+			return args, osargs, nil, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
 		}
 		if !enabled {
 			useLegacy = true
@@ -69,13 +74,13 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	// is this a build that should be forwarded to the builder?
 	fwargs, fwosargs, forwarded := forwardBuilder(builderAlias, args, osargs)
 	if !forwarded {
-		return args, osargs, nil
+		return args, osargs, nil, nil
 	}
 
 	// wcow build command must use the legacy builder
 	// if not opt-in through a builder component
 	if !useBuilder && dockerCli.ServerInfo().OSType == "windows" {
-		return args, osargs, nil
+		return args, osargs, nil, nil
 	}
 
 	if useLegacy {
@@ -83,7 +88,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		if dockerCli.ServerInfo().OSType != "windows" {
 			_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, nil))
 		}
-		return args, osargs, nil
+		return args, osargs, nil, nil
 	}
 
 	// check plugin is available if cmd forwarded
@@ -94,14 +99,25 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	if perr != nil {
 		// if builder enforced with DOCKER_BUILDKIT=1, cmd must fail if plugin missing or broken
 		if useBuilder {
-			return args, osargs, newBuilderError(false, perr)
+			return args, osargs, nil, newBuilderError(false, perr)
 		}
 		// otherwise, display warning and continue
 		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, perr))
-		return args, osargs, nil
+		return args, osargs, nil, nil
 	}
 
-	return fwargs, fwosargs, nil
+	// If build subcommand is forwarded, user would expect "docker build" to
+	// always create a local docker image (default context builder). This is
+	// for better backward compatibility in case where a user could switch to
+	// a docker container builder with "docker buildx --use foo" which does
+	// not --load by default. Also makes sure that an arbitrary builder name is
+	// not being set in the command line or in the environment before setting
+	// the default context in env vars.
+	if forwarded && !hasBuilderName(args, os.Environ()) {
+		envs = append([]string{"BUILDX_BUILDER=" + dockerCli.CurrentContext()}, envs...)
+	}
+
+	return fwargs, fwosargs, envs, nil
 }
 
 func forwardBuilder(alias string, args, osargs []string) ([]string, []string, bool) {
@@ -126,4 +142,23 @@ func forwardBuilder(alias string, args, osargs []string) ([]string, []string, bo
 		}
 	}
 	return args, osargs, false
+}
+
+// hasBuilderName checks if a builder name is defined in args or env vars
+func hasBuilderName(args []string, envs []string) bool {
+	var builder string
+	flagset := pflag.NewFlagSet("buildx", pflag.ContinueOnError)
+	flagset.Usage = func() {}
+	flagset.SetOutput(io.Discard)
+	flagset.StringVar(&builder, "builder", "", "")
+	_ = flagset.Parse(args)
+	if builder != "" {
+		return true
+	}
+	for _, e := range envs {
+		if strings.HasPrefix(e, "BUILDX_BUILDER=") && e != "BUILDX_BUILDER=" {
+			return true
+		}
+	}
+	return false
 }

@@ -178,11 +178,12 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) error {
+func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
 	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
 		return err
 	}
+	plugincmd.Env = append(envs, plugincmd.Env...)
 
 	go func() {
 		// override SIGTERM handler so we let the plugin shut down first
@@ -217,7 +218,8 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
+	var envs []string
+	args, os.Args, envs, err = processAliases(dockerCli, cmd, args, os.Args)
 	if err != nil {
 		return err
 	}
@@ -230,7 +232,7 @@ func runDocker(dockerCli *command.DockerCli) error {
 	if len(args) > 0 {
 		ccmd, _, err := cmd.Find(args)
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
-			err := tryPluginRun(dockerCli, cmd, args[0])
+			err := tryPluginRun(dockerCli, cmd, args[0], envs)
 			if !pluginmanager.IsNotFound(err) {
 				return err
 			}
