@@ -45,7 +45,7 @@ func newBuilderError(warn bool, err error) error {
 
 //nolint:gocyclo
 func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, []string, error) {
-	var useLegacy, useBuilder bool
+	var useLegacy, useBuilder, useAlias bool
 	var envs []string
 
 	// check DOCKER_BUILDKIT env var is present and
@@ -68,6 +68,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	aliasMap := dockerCli.ConfigFile().Aliases
 	if v, ok := aliasMap[keyBuilderAlias]; ok {
 		useBuilder = true
+		useAlias = true
 		builderAlias = v
 	}
 
@@ -110,10 +111,11 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	// always create a local docker image (default context builder). This is
 	// for better backward compatibility in case where a user could switch to
 	// a docker container builder with "docker buildx --use foo" which does
-	// not --load by default. Also makes sure that an arbitrary builder name is
-	// not being set in the command line or in the environment before setting
-	// the default context in env vars.
-	if forwarded && !hasBuilderName(args, os.Environ()) {
+	// not --load by default. Also makes sure that an arbitrary builder name
+	// is not being set in the command line or in the environment before
+	// setting the default context and keep "buildx install" behavior if being
+	// set (builder alias).
+	if forwarded && !useAlias && !hasBuilderName(args, os.Environ()) {
 		envs = append([]string{"BUILDX_BUILDER=" + dockerCli.CurrentContext()}, envs...)
 	}
 

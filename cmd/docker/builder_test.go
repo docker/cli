@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/internal/test/output"
 	"gotest.tools/v3/assert"
@@ -14,62 +16,95 @@ import (
 
 var pluginFilename = "docker-buildx"
 
-func TestBuildWithBuildx(t *testing.T) {
+func TestBuildWithBuilder(t *testing.T) {
+	testcases := []struct {
+		name         string
+		context      string
+		builder      string
+		alias        bool
+		expectedEnvs []string
+	}{
+		{
+			name:         "default",
+			context:      "default",
+			alias:        false,
+			expectedEnvs: []string{"BUILDX_BUILDER=default"},
+		},
+		{
+			name:         "custom context",
+			context:      "foo",
+			alias:        false,
+			expectedEnvs: []string{"BUILDX_BUILDER=foo"},
+		},
+		{
+			name:         "custom builder name",
+			builder:      "mybuilder",
+			alias:        false,
+			expectedEnvs: nil,
+		},
+		{
+			name:         "buildx install",
+			alias:        true,
+			expectedEnvs: nil,
+		},
+	}
+
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh
 echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortDescription":"Build with BuildKit"}'`, fs.WithMode(0777)),
 	)
 	defer dir.Remove()
 
-	var b bytes.Buffer
+	for _, tt := range testcases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.builder != "" {
+				t.Setenv("BUILDX_BUILDER", tt.builder)
+			}
 
-	t.Setenv("DOCKER_CONTEXT", "default")
-	dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
-	assert.NilError(t, err)
-	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
-	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
+			var b bytes.Buffer
+			dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
+			assert.NilError(t, err)
+			assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 
-	tcmd := newDockerCommand(dockerCli)
-	tcmd.SetArgs([]string{"build", "."})
+			if tt.context != "" {
+				if tt.context != command.DefaultContextName {
+					assert.NilError(t, dockerCli.ContextStore().CreateOrUpdate(store.Metadata{
+						Name: tt.context,
+						Endpoints: map[string]interface{}{
+							"docker": map[string]interface{}{
+								"host": "unix://" + filepath.Join(t.TempDir(), "docker.sock"),
+							},
+						},
+					}))
+				}
+				opts := flags.NewClientOptions()
+				opts.Common.Context = tt.context
+				assert.NilError(t, dockerCli.Initialize(opts))
+			}
 
-	cmd, args, err := tcmd.HandleGlobalFlags()
-	assert.NilError(t, err)
+			dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
+			if tt.alias {
+				dockerCli.ConfigFile().Aliases = map[string]string{"builder": "buildx"}
+			}
 
-	var envs []string
-	args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
-	assert.DeepEqual(t, []string{"BUILDX_BUILDER=default"}, envs)
-}
+			tcmd := newDockerCommand(dockerCli)
+			tcmd.SetArgs([]string{"build", "."})
 
-func TestBuildWithBuildxAndBuilder(t *testing.T) {
-	t.Setenv("BUILDX_BUILDER", "mybuilder")
+			cmd, args, err := tcmd.HandleGlobalFlags()
+			assert.NilError(t, err)
 
-	dir := fs.NewDir(t, t.Name(),
-		fs.WithFile(pluginFilename, `#!/bin/sh
-echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortDescription":"Build with BuildKit"}'`, fs.WithMode(0777)),
-	)
-	defer dir.Remove()
-
-	var b bytes.Buffer
-
-	t.Setenv("DOCKER_CONTEXT", "default")
-	dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
-	assert.NilError(t, err)
-	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
-	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
-
-	tcmd := newDockerCommand(dockerCli)
-	tcmd.SetArgs([]string{"build", "."})
-
-	cmd, args, err := tcmd.HandleGlobalFlags()
-	assert.NilError(t, err)
-
-	var envs []string
-	args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
-	assert.NilError(t, err)
-	assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
-	assert.Check(t, len(envs) == 0)
+			var envs []string
+			args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
+			assert.NilError(t, err)
+			assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
+			if tt.expectedEnvs != nil {
+				assert.DeepEqual(t, tt.expectedEnvs, envs)
+			} else {
+				assert.Check(t, len(envs) == 0)
+			}
+		})
+	}
 }
 
 func TestBuildkitDisabled(t *testing.T) {
