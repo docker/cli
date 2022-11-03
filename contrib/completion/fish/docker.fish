@@ -16,7 +16,7 @@
 
 function __fish_docker_no_subcommand --description 'Test if docker has yet to be given the subcommand'
     for i in (commandline -opc)
-        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stop tag top trust unpause version wait stats
+        if contains -- $i attach build commit cp create diff events exec export history images import info inspect kill load login logout logs network pause port ps pull push rename restart rm rmi run save search start stop system tag top trust unpause version wait stats
             return 1
         end
     end
@@ -50,6 +50,19 @@ function __fish_docker_no_subcommand_trust --description 'Test if docker has yet
     end
     return 1
 end
+
+function __fish_docker_no_subcommand_system --description 'Test if docker has yet to be given the system subcommand'
+    if __fish_seen_subcommand_from system
+        for i in (commandline -opc)
+            if contains -- $i df events info prune
+                return 1
+            end
+        end
+        return 0
+    end
+    return 1
+end
+
 
 function __fish_docker_subcommand_path --description 'Test if command has all arguments in any order'
     set -l cmd (commandline -poc)
@@ -532,6 +545,36 @@ complete -c docker -f -n '__fish_docker_no_subcommand' -a stop -d 'Stop a contai
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -s t -l time -d 'Number of seconds to wait for the container to stop before killing it. Default is 10 seconds.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stop' -a '(__fish_print_docker_containers running)' -d "Container"
+
+# system
+complete -c docker -f -n '__fish_docker_no_subcommand' -a system -d 'Manage Docker'
+complete -c docker -A -f -n '__fish_seen_subcommand_from system' -l help -d 'Print usage'
+
+# system df
+complete -c docker -A -f -n '__fish_docker_no_subcommand_system' -a df -d 'Show docker filesystem usage'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system df' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system df' -s v -l verbose -d 'Show detailed information on space usage'
+
+# system events
+complete -c docker -A -f -n '__fish_docker_no_subcommand_system' -a events -d 'Get real time events from the server'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system events' -s f -l filter -d 'Filter values'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system events' -l format -d 'Format the output using the given go template'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system events' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system events' -l since -d 'Events created since this timestamp'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system events' -l until -d 'Events created until this timestamp'
+
+# system info
+complete -c docker -A -f -n '__fish_docker_no_subcommand_system' -a info -d 'Display system-wide information'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system info' -s f -l format -d 'Format the output using the given go template'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system info' -l help -d 'Print usage'
+
+# system prune
+complete -c docker -A -f -n '__fish_docker_no_subcommand_system' -a prune -d 'Remove unused data'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system prune' -s a -l all -d 'Remove all unused data, not just dangling ones'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system prune' -l filter -d 'Filter values'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system prune' -s f -l force -d 'Do not prompt for confirmation'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system prune' -l help -d 'Print usage'
+complete -c docker -A -f -n '__fish_docker_subcommand_path system prune' -l volumes -d 'Remove all unused volumes'
 
 # tag
 complete -c docker -f -n '__fish_docker_no_subcommand' -a tag -d 'Tag an image into a repository'
