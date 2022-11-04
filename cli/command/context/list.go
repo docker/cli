@@ -50,10 +50,14 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	}
 	var (
 		curContext = dockerCli.CurrentContext()
+		curFound   bool
 		contexts   []*formatter.ClientContext
 	)
 	for _, rawMeta := range contextMap {
 		isCurrent := rawMeta.Name == curContext
+		if isCurrent {
+			curFound = true
+		}
 		meta, err := command.GetDockerContext(rawMeta)
 		if err != nil {
 			// Add a stub-entry to the list, including the error-message
@@ -78,6 +82,21 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			Error:          errMsg,
 		}
 		contexts = append(contexts, &desc)
+	}
+	if !curFound {
+		// The currently specified context wasn't found. We add a stub-entry
+		// to the list, including the error-message indicating that the context
+		// wasn't found.
+		var errMsg string
+		_, err := dockerCli.ContextStore().GetMetadata(curContext)
+		if err != nil {
+			errMsg = err.Error()
+		}
+		contexts = append(contexts, &formatter.ClientContext{
+			Name:    curContext,
+			Current: true,
+			Error:   errMsg,
+		})
 	}
 	sort.Slice(contexts, func(i, j int) bool {
 		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
