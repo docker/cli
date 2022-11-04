@@ -68,6 +68,7 @@ type Cli interface {
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
 	configFile         *configfile.ConfigFile
+	options            *cliflags.ClientOptions
 	in                 *streams.In
 	out                *streams.Out
 	err                io.Writer
@@ -75,7 +76,6 @@ type DockerCli struct {
 	serverInfo         ServerInfo
 	contentTrust       bool
 	contextStore       store.Store
-	currentContext     string
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
 	initTimeout        time.Duration
@@ -216,16 +216,16 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	}
 
 	cli.loadConfigFile()
+	cli.options = opts
 
 	baseContextStore := store.New(config.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, cli.contextStoreConfig)
+			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext = resolveContextName(opts, cli.configFile)
-	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
+	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, resolveContextName(opts, cli.configFile))
 	if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
 	}
@@ -390,7 +390,7 @@ func (cli *DockerCli) ContextStore() store.Store {
 // CurrentContext does not validate if the given context exists or if it's
 // valid; errors may occur when trying to use it.
 func (cli *DockerCli) CurrentContext() string {
-	return cli.currentContext
+	return resolveContextName(cli.options, cli.configFile)
 }
 
 // CurrentContext returns the current context name, based on flags,
