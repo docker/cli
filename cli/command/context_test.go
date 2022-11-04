@@ -16,7 +16,8 @@ func TestDockerContextMetadataKeepAdditionalFields(t *testing.T) {
 	}
 	jsonBytes, err := json.Marshal(c)
 	assert.NilError(t, err)
-	assert.Equal(t, `{"Description":"test","foo":"bar"}`, string(jsonBytes))
+	const expected = `{"Description":"test","foo":"bar"}`
+	assert.Equal(t, string(jsonBytes), expected)
 
 	var c2 DockerContext
 	assert.NilError(t, json.Unmarshal(jsonBytes, &c2))
