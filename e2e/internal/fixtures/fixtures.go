@@ -34,7 +34,7 @@ func SetupConfigFile(t *testing.T) fs.Dir {
 // with the given notaryURL
 func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 	t.Helper()
-	dir := fs.NewDir(t, path, fs.WithMode(0700), fs.WithFile("config.json", fmt.Sprintf(`
+	dir := fs.NewDir(t, path, fs.WithMode(0o700), fs.WithFile("config.json", fmt.Sprintf(`
 	{
 		"auths": {
 			"registry:5000": {

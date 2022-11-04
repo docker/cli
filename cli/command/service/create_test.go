@@ -118,7 +118,7 @@ func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 			// these are the default field values
 			UID:  "0",
 			GID:  "0",
-			Mode: 0444,
+			Mode: 0o444,
 		},
 	}), "expected configRefs to contain bar config")
 }
@@ -229,7 +229,7 @@ func TestSetConfigsOnlyConfigs(t *testing.T) {
 			// these are the default field values
 			UID:  "0",
 			GID:  "0",
-			Mode: 0444,
+			Mode: 0o444,
 		},
 	}))
 }

@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	nonOwnerReadWriteMask = 0077
+	nonOwnerReadWriteMask = 0o077
 )
 
 type keyLoadOptions struct {

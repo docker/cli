@@ -139,7 +139,7 @@ func TestImportTarInvalid(t *testing.T) {
 	tw := tar.NewWriter(f)
 	hdr := &tar.Header{
 		Name: "dummy-file",
-		Mode: 0600,
+		Mode: 0o600,
 		Size: int64(len("hello world")),
 	}
 	err = tw.WriteHeader(hdr)

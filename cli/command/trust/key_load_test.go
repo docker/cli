@@ -175,7 +175,7 @@ func TestLoadKeyTooPermissive(t *testing.T) {
 func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	privKeyDir := t.TempDir()
 	privKeyFilepath := filepath.Join(privKeyDir, "privkey477.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0477))
+	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o477))
 
 	// import the key to our keyStorageDir
 	_, err := getPrivKeyBytesFromPath(privKeyFilepath)
@@ -183,27 +183,27 @@ func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0677))
+	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o677))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0777))
+	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o777))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
 	assert.Error(t, err, expected)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0400))
+	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o400))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NilError(t, err)
 
 	privKeyFilepath = filepath.Join(privKeyDir, "privkey600.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0600))
+	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o600))
 
 	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
 	assert.NilError(t, err)

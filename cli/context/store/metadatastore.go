@@ -28,14 +28,14 @@ func (s *metadataStore) contextDir(id contextdir) string {
 
 func (s *metadataStore) createOrUpdate(meta Metadata) error {
 	contextDir := s.contextDir(contextdirOf(meta.Name))
-	if err := os.MkdirAll(contextDir, 0755); err != nil {
+	if err := os.MkdirAll(contextDir, 0o755); err != nil {
 		return err
 	}
 	bytes, err := json.Marshal(&meta)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(contextDir, metaFile), bytes, 0644)
+	return os.WriteFile(filepath.Join(contextDir, metaFile), bytes, 0o644)
 }
 
 func parseTypedOrMap(payload []byte, getter TypeGetter) (interface{}, error) {

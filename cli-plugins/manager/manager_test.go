@@ -86,10 +86,10 @@ func TestGetPlugin(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("docker-bbb", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 		fs.WithFile("docker-aaa", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 
@@ -109,10 +109,10 @@ func TestListPluginsIsSorted(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("docker-bbb", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 		fs.WithFile("docker-aaa", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 

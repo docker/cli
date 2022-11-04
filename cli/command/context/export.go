@@ -52,7 +52,7 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 		}
 		writer = dockerCli.Out()
 	} else {
-		f, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
+		f, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600)
 		if err != nil {
 			return err
 		}

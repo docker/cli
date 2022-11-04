@@ -333,7 +333,7 @@ mind when nudging others to comply.
 
 The rules:
 
-1. All code should be formatted with `gofmt -s`.
+1. All code should be formatted with `gofumpt` (preferred) or `gofmt -s`.
 2. All code should pass the default levels of
    [`golint`](https://github.com/golang/lint).
 3. All code should follow the guidelines covered in [Effective

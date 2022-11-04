@@ -72,7 +72,7 @@ func TestEmptyFile(t *testing.T) {
 	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	err := os.WriteFile(fn, []byte(""), 0600)
+	err := os.WriteFile(fn, []byte(""), 0o600)
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
@@ -83,7 +83,7 @@ func TestEmptyJSON(t *testing.T) {
 	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	err := os.WriteFile(fn, []byte("{}"), 0600)
+	err := os.WriteFile(fn, []byte("{}"), 0o600)
 	assert.NilError(t, err)
 
 	config, err := Load(tmpHome)
@@ -116,7 +116,7 @@ func TestNewJSON(t *testing.T) {
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv" } } }`
-	if err := os.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -148,7 +148,7 @@ func TestNewJSONNoEmail(t *testing.T) {
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv" } } }`
-	if err := os.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -183,7 +183,7 @@ func TestJSONWithPsFormat(t *testing.T) {
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"psFormat": "table {{.ID}}\\t{{.Label \"com.docker.label.cpu\"}}"
 }`
-	if err := os.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -210,7 +210,7 @@ func TestJSONWithCredentialStore(t *testing.T) {
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"credsStore": "crazy-secure-storage"
 }`
-	if err := os.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -237,7 +237,7 @@ func TestJSONWithCredentialHelpers(t *testing.T) {
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"credHelpers": { "images.io": "images-io", "containers.com": "crazy-secure-storage" }
 }`
-	if err := os.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -325,7 +325,7 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	defer f.Close()
 
 	assert.NilError(t, config.SaveToWriter(f))
@@ -350,7 +350,7 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 
 	filename := filepath.Join(dir, ConfigFileName)
 	content := []byte(`{"PsFormat": "format"}`)
-	err := os.WriteFile(filename, content, 0644)
+	err := os.WriteFile(filename, content, 0o644)
 	assert.NilError(t, err)
 
 	configFile := LoadDefaultConfigFile(buffer)

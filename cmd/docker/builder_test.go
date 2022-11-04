@@ -23,7 +23,7 @@ func init() {
 func TestBuildWithBuilder(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh
-echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortDescription":"Build with BuildKit"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortDescription":"Build with BuildKit"}'`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 
@@ -47,7 +47,7 @@ func TestBuildkitDisabled(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, t.Name(),
-		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0777)),
+		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 
@@ -74,7 +74,7 @@ func TestBuildkitDisabled(t *testing.T) {
 
 func TestBuilderBroken(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
-		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0777)),
+		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 
@@ -104,7 +104,7 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "1")
 
 	dir := fs.NewDir(t, t.Name(),
-		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0777)),
+		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 

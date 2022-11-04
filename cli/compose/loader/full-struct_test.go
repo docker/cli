@@ -58,7 +58,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target: "/my_config",
 					UID:    "103",
 					GID:    "103",
-					Mode:   uint32Ptr(0440),
+					Mode:   uint32Ptr(0o440),
 				},
 			},
 			ContainerName: "my-web-container",
@@ -342,7 +342,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target: "my_secret",
 					UID:    "103",
 					GID:    "103",
-					Mode:   uint32Ptr(0440),
+					Mode:   uint32Ptr(0o440),
 				},
 			},
 			SecurityOpt: []string{

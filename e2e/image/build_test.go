@@ -21,7 +21,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, "test-build-context-dir",
-		fs.WithFile("run", "echo running", fs.WithMode(0755)),
+		fs.WithFile("run", "echo running", fs.WithMode(0o755)),
 		fs.WithDir("data", fs.WithFile("one", "1111")),
 		fs.WithFile("Dockerfile", fmt.Sprintf(`
 	FROM %s

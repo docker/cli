@@ -4,6 +4,7 @@ linters:
     - depguard
     - dogsled
     - gocyclo
+    - gofumpt
     - goimports
     - gosec
     - gosimple

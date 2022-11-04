@@ -384,7 +384,7 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		randomName: func(_ string, _ *tar.Header, _ io.Reader) (*tar.Header, []byte, error) {
 			header := &tar.Header{
 				Name:       randomName,
-				Mode:       0600,
+				Mode:       0o600,
 				ModTime:    now,
 				Typeflag:   tar.TypeReg,
 				AccessTime: now,
@@ -397,7 +397,7 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 			if h == nil {
 				h = &tar.Header{
 					Name:       ".dockerignore",
-					Mode:       0600,
+					Mode:       0o600,
 					ModTime:    now,
 					Typeflag:   tar.TypeReg,
 					AccessTime: now,

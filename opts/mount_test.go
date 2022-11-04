@@ -205,7 +205,7 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 			Target: "/target",
 			TmpfsOptions: &mounttypes.TmpfsOptions{
 				SizeBytes: 1024 * 1024, // not 1000 * 1000
-				Mode:      os.FileMode(0700),
+				Mode:      os.FileMode(0o700),
 			},
 		}, mounts[0]))
 	}

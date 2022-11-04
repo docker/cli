@@ -427,7 +427,7 @@ func TestConvertFileObject(t *testing.T) {
 		Target: "target",
 		UID:    "user",
 		GID:    "group",
-		Mode:   uint32Ptr(0644),
+		Mode:   uint32Ptr(0o644),
 	}
 	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
 	assert.NilError(t, err)
@@ -438,7 +438,7 @@ func TestConvertFileObject(t *testing.T) {
 			Name: config.Target,
 			UID:  config.UID,
 			GID:  config.GID,
-			Mode: os.FileMode(0644),
+			Mode: os.FileMode(0o644),
 		},
 	}
 	assert.Check(t, is.DeepEqual(expected, swarmRef))
@@ -463,7 +463,7 @@ func TestConvertFileObjectDefaults(t *testing.T) {
 			Name: config.Source,
 			UID:  "0",
 			GID:  "0",
-			Mode: os.FileMode(0444),
+			Mode: os.FileMode(0o444),
 		},
 	}
 	assert.Check(t, is.DeepEqual(expected, swarmRef))
@@ -511,7 +511,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 				Name: "bar_secret",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		{
@@ -520,7 +520,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 				Name: "foo_secret",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 	}
@@ -570,7 +570,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 				Name: "bar_config",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		{
@@ -583,7 +583,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 				Name: "foo_config",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 	}

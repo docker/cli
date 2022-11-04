@@ -86,8 +86,8 @@ func preparePluginDir(t *testing.T) *fs.Dir {
 	assert.NilError(t, err)
 
 	dir := fs.NewDir(t, "plugin_test",
-		fs.WithFile("config.json", string(configJSON), fs.WithMode(0644)),
-		fs.WithDir("rootfs", fs.WithMode(0755)),
+		fs.WithFile("config.json", string(configJSON), fs.WithMode(0o644)),
+		fs.WithDir("rootfs", fs.WithMode(0o755)),
 	)
 	icmd.RunCommand("/bin/cp", binPath, dir.Join("rootfs", p.Entrypoint[0])).Assert(t, icmd.Success)
 	return dir

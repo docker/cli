@@ -117,7 +117,7 @@ func ingestPublicKeys(pubKeyPaths []string) ([]data.PublicKey, error) {
 	pubKeys := []data.PublicKey{}
 	for _, pubKeyPath := range pubKeyPaths {
 		// Read public key bytes from PEM file, limit to 1 KiB
-		pubKeyFile, err := os.OpenFile(pubKeyPath, os.O_RDONLY, 0666)
+		pubKeyFile, err := os.OpenFile(pubKeyPath, os.O_RDONLY, 0o666)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read public key from file")
 		}

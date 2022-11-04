@@ -69,7 +69,7 @@ func TestExportExistingFile(t *testing.T) {
 	contextFile := filepath.Join(t.TempDir(), "exported")
 	cli := makeFakeCli(t)
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, os.WriteFile(contextFile, []byte{}, 0644))
+	assert.NilError(t, os.WriteFile(contextFile, []byte{}, 0o644))
 	err := RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
 	assert.Assert(t, os.IsExist(err))
 }
