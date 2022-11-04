@@ -25,10 +25,10 @@ func newShowCommand(dockerCli command.Cli) *cobra.Command {
 
 func runShow(dockerCli command.Cli) error {
 	context := dockerCli.CurrentContext()
-	metadata, err := dockerCli.ContextStore().GetMetadata(context)
+	fmt.Fprintln(dockerCli.Out(), context)
+	_, err := dockerCli.ContextStore().GetMetadata(context)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), metadata.Name)
 	return nil
 }
