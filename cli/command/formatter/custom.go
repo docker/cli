@@ -16,6 +16,7 @@ const (
 	StatusHeader       = "STATUS"
 	PortsHeader        = "PORTS"
 	ImageHeader        = "IMAGE"
+	ErrorHeader        = "ERROR"
 	ContainerIDHeader  = "CONTAINER ID"
 )
 
