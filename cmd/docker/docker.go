@@ -306,7 +306,7 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	var (
 		notExperimental = func(_ string) bool { return !details.ServerInfo().HasExperimental }
-		notOSType       = func(v string) bool { return v != details.ServerInfo().OSType }
+		notOSType       = func(v string) bool { return details.ServerInfo().OSType != "" && v != details.ServerInfo().OSType }
 		notSwarmStatus  = func(v string) bool {
 			s := details.ServerInfo().SwarmStatus
 			if s == nil {
@@ -419,10 +419,11 @@ func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.CurrentVersion(), cmdVersion) {
 			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.CurrentVersion())
 		}
-		if ost, ok := curr.Annotations["ostype"]; ok && ost != details.ServerInfo().OSType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, details.ServerInfo().OSType)
+		si := details.ServerInfo()
+		if ost, ok := curr.Annotations["ostype"]; ok && si.OSType != "" && ost != si.OSType {
+			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, si.OSType)
 		}
-		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
+		if _, ok := curr.Annotations["experimental"]; ok && !si.HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
 		}
 	}
