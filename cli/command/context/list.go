@@ -56,17 +56,26 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		isCurrent := rawMeta.Name == curContext
 		meta, err := command.GetDockerContext(rawMeta)
 		if err != nil {
-			return err
+			// Add a stub-entry to the list, including the error-message
+			// indicating that the context couldn't be loaded.
+			contexts = append(contexts, &formatter.ClientContext{
+				Name:    rawMeta.Name,
+				Current: isCurrent,
+				Error:   err.Error(),
+			})
+			continue
 		}
+		var errMsg string
 		dockerEndpoint, err := docker.EndpointFromContext(rawMeta)
 		if err != nil {
-			return err
+			errMsg = err.Error()
 		}
 		desc := formatter.ClientContext{
 			Name:           rawMeta.Name,
 			Current:        isCurrent,
 			Description:    meta.Description,
 			DockerEndpoint: dockerEndpoint.Host,
+			Error:          errMsg,
 		}
 		contexts = append(contexts, &desc)
 	}
