@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -374,8 +375,12 @@ func findCommand(cmd *cobra.Command, commands []string) bool {
 	return findCommand(cmd.Parent(), commands)
 }
 
-func isSupported(cmd *cobra.Command, details versionDetails) error {
+func isSupported(cmd *cobra.Command, details command.Cli) error {
 	if err := areSubcommandsSupported(cmd, details); err != nil {
+		// Check if the command not being supported is due to Ping failing
+		if _, connectError := details.Client().Ping(context.Background()); connectError != nil {
+			return connectError
+		}
 		return err
 	}
 	return areFlagsSupported(cmd, details)
