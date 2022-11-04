@@ -69,6 +69,7 @@ type Cli interface {
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
 	configFile         *configfile.ConfigFile
+	options            *cliflags.ClientOptions
 	in                 *streams.In
 	out                *streams.Out
 	err                io.Writer
@@ -222,17 +223,16 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		return errors.New("conflicting options: either specify --host or --context, not both")
 	}
 
+	cli.options = opts
 	cli.configFile = config.LoadDefaultConfigFile(cli.err)
-
-	baseContextStore := store.New(config.ContextStoreDir(), cli.contextStoreConfig)
+	cli.currentContext = resolveContextName(cli.options, cli.configFile)
 	cli.contextStore = &ContextStoreWithDefault{
-		Store: baseContextStore,
+		Store: store.New(config.ContextStoreDir(), cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, cli.contextStoreConfig)
+			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext = resolveContextName(opts, cli.configFile)
-	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
+	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, resolveContextName(opts, cli.configFile))
 	if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
 	}
