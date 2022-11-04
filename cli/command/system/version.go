@@ -136,7 +136,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 		Client: clientVersion{
 			Platform:          struct{ Name string }{version.PlatformName},
 			Version:           version.Version,
-			APIVersion:        dockerCli.Client().ClientVersion(),
+			APIVersion:        dockerCli.CurrentVersion(),
 			DefaultAPIVersion: dockerCli.DefaultVersion(),
 			GoVersion:         runtime.Version(),
 			GitCommit:         version.GitCommit,

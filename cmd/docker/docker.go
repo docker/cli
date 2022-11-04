@@ -14,7 +14,6 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -274,7 +273,7 @@ func main() {
 }
 
 type versionDetails interface {
-	Client() client.APIClient
+	CurrentVersion() string
 	ServerInfo() command.ServerInfo
 }
 
@@ -333,7 +332,7 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 				return false
 			}
 		}
-		versionOlderThan = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
+		versionOlderThan = func(v string) bool { return versions.LessThan(details.CurrentVersion(), v) }
 	)
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -390,8 +389,8 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 		if !f.Changed {
 			return
 		}
-		if !isVersionSupported(f, details.Client().ClientVersion()) {
-			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.Client().ClientVersion()))
+		if !isVersionSupported(f, details.CurrentVersion()) {
+			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.CurrentVersion()))
 			return
 		}
 		if !isOSTypeSupported(f, details.ServerInfo().OSType) {
@@ -417,11 +416,11 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
-		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.Client().ClientVersion(), cmdVersion) {
-			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.Client().ClientVersion())
+		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.CurrentVersion(), cmdVersion) {
+			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.CurrentVersion())
 		}
-		if os, ok := curr.Annotations["ostype"]; ok && os != details.ServerInfo().OSType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, details.ServerInfo().OSType)
+		if ost, ok := curr.Annotations["ostype"]; ok && ost != details.ServerInfo().OSType {
+			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, details.ServerInfo().OSType)
 		}
 		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())

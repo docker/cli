@@ -55,6 +55,7 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 	DefaultVersion() string
+	CurrentVersion() string
 	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
@@ -84,6 +85,15 @@ type DockerCli struct {
 // DefaultVersion returns api.defaultVersion.
 func (cli *DockerCli) DefaultVersion() string {
 	return api.DefaultVersion
+}
+
+// CurrentVersion returns the API version currently negotiated, or the default
+// version otherwise.
+func (cli *DockerCli) CurrentVersion() string {
+	if cli.client == nil {
+		return api.DefaultVersion
+	}
+	return cli.client.ClientVersion()
 }
 
 // Client returns the APIClient
