@@ -118,7 +118,7 @@ func (c *fakeClient) NegotiateAPIVersionPing(types.Ping) {
 }
 
 func TestInitializeFromClient(t *testing.T) {
-	defaultVersion := "v1.55"
+	const defaultVersion = "v1.55"
 
 	testcases := []struct {
 		doc            string
@@ -160,7 +160,8 @@ func TestInitializeFromClient(t *testing.T) {
 			}
 
 			cli := &DockerCli{client: apiclient}
-			cli.initializeFromClient()
+			err := cli.Initialize(flags.NewClientOptions())
+			assert.NilError(t, err)
 			assert.DeepEqual(t, cli.ServerInfo(), testcase.expectedServer)
 			assert.Equal(t, apiclient.negotiated, testcase.negotiated)
 		})
@@ -202,6 +203,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 		cli := &DockerCli{client: apiClient, initTimeout: time.Millisecond}
 		err := cli.Initialize(flags.NewClientOptions())
 		assert.Check(t, err)
+		cli.CurrentVersion()
 		close(initializedCh)
 	}()
 
