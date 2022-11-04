@@ -28,7 +28,6 @@ import (
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -222,7 +221,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return ResolveDefaultContext(opts, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext, err = resolveContextName(opts, cli.configFile, cli.contextStore)
+	cli.currentContext, err = resolveContextName(opts, cli.configFile)
 	if err != nil {
 		return err
 	}
@@ -250,7 +249,7 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 			return ResolveDefaultContext(opts, storeConfig)
 		},
 	}
-	contextName, err := resolveContextName(opts, configFile, contextStore)
+	contextName, err := resolveContextName(opts, configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +444,10 @@ func UserAgent() string {
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
 // - fallbacks to default HOST, uses TLS config from flags/env vars
-func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
+//
+// resolveContextName does not validate if the given context exists; errors may
+// occur when trying to use it.
+func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) (string, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return "", errors.New("Conflicting options: either specify --host or --context, not both")
 	}
@@ -462,11 +464,8 @@ func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigF
 		return ctxName, nil
 	}
 	if config != nil && config.CurrentContext != "" {
-		_, err := contextstore.GetMetadata(config.CurrentContext)
-		if errdefs.IsNotFound(err) {
-			return "", errors.Errorf("current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
-		}
-		return config.CurrentContext, err
+		// We don't validate if this context exists: errors may occur when trying to use it.
+		return config.CurrentContext, nil
 	}
 	return DefaultContextName, nil
 }
