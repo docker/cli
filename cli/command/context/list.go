@@ -44,13 +44,16 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	if opts.format == "" {
 		opts.format = formatter.TableFormatKey
 	}
-	curContext := dockerCli.CurrentContext()
 	contextMap, err := dockerCli.ContextStore().List()
 	if err != nil {
 		return err
 	}
-	var contexts []*formatter.ClientContext
+	var (
+		curContext = dockerCli.CurrentContext()
+		contexts   []*formatter.ClientContext
+	)
 	for _, rawMeta := range contextMap {
+		isCurrent := rawMeta.Name == curContext
 		meta, err := command.GetDockerContext(rawMeta)
 		if err != nil {
 			return err
@@ -61,7 +64,7 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		}
 		desc := formatter.ClientContext{
 			Name:           rawMeta.Name,
-			Current:        rawMeta.Name == curContext,
+			Current:        isCurrent,
 			Description:    meta.Description,
 			DockerEndpoint: dockerEndpoint.Host,
 		}
@@ -74,7 +77,7 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		return err
 	}
 	if os.Getenv(client.EnvOverrideHost) != "" {
-		fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
+		_, _ = fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
 			"To use a context, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost)
 	}
 	return nil
