@@ -211,6 +211,9 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	if opts.Debug {
 		debug.Enable()
 	}
+	if opts.Context != "" && len(opts.Hosts) > 0 {
+		return errors.New("conflicting options: either specify --host or --context, not both")
+	}
 
 	cli.loadConfigFile()
 
@@ -221,10 +224,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return ResolveDefaultContext(opts, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext, err = resolveContextName(opts, cli.configFile)
-	if err != nil {
-		return err
-	}
+	cli.currentContext = resolveContextName(opts, cli.configFile)
 	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
 	if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
@@ -242,6 +242,10 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
+	if opts.Context != "" && len(opts.Hosts) > 0 {
+		return nil, errors.New("conflicting options: either specify --host or --context, not both")
+	}
+
 	storeConfig := DefaultContextStoreConfig()
 	contextStore := &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), storeConfig),
@@ -249,11 +253,7 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 			return ResolveDefaultContext(opts, storeConfig)
 		},
 	}
-	contextName, err := resolveContextName(opts, configFile)
-	if err != nil {
-		return nil, err
-	}
-	endpoint, err := resolveDockerEndpoint(contextStore, contextName)
+	endpoint, err := resolveDockerEndpoint(contextStore, resolveContextName(opts, configFile))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
@@ -447,27 +447,24 @@ func UserAgent() string {
 //
 // resolveContextName does not validate if the given context exists; errors may
 // occur when trying to use it.
-func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) (string, error) {
-	if opts.Context != "" && len(opts.Hosts) > 0 {
-		return "", errors.New("Conflicting options: either specify --host or --context, not both")
+func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) string {
+	if opts != nil && opts.Context != "" {
+		return opts.Context
 	}
-	if opts.Context != "" {
-		return opts.Context, nil
-	}
-	if len(opts.Hosts) > 0 {
-		return DefaultContextName, nil
+	if opts != nil && len(opts.Hosts) > 0 {
+		return DefaultContextName
 	}
 	if os.Getenv(client.EnvOverrideHost) != "" {
-		return DefaultContextName, nil
+		return DefaultContextName
 	}
 	if ctxName := os.Getenv("DOCKER_CONTEXT"); ctxName != "" {
-		return ctxName, nil
+		return ctxName
 	}
 	if config != nil && config.CurrentContext != "" {
 		// We don't validate if this context exists: errors may occur when trying to use it.
-		return config.CurrentContext, nil
+		return config.CurrentContext
 	}
-	return DefaultContextName, nil
+	return DefaultContextName
 }
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
