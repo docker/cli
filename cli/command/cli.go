@@ -203,13 +203,13 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return err
 		}
 	}
-	cliflags.SetLogLevel(opts.Common.LogLevel)
+	cliflags.SetLogLevel(opts.LogLevel)
 
 	if opts.ConfigDir != "" {
 		config.SetDir(opts.ConfigDir)
 	}
 
-	if opts.Common.Debug {
+	if opts.Debug {
 		debug.Enable()
 	}
 
@@ -219,10 +219,10 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: baseContextStore,
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts.Common, cli.contextStoreConfig)
+			return ResolveDefaultContext(opts, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext, err = resolveContextName(opts.Common, cli.configFile, cli.contextStore)
+	cli.currentContext, err = resolveContextName(opts, cli.configFile, cli.contextStore)
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
-func NewAPIClientFromFlags(opts *cliflags.CommonOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	storeConfig := DefaultContextStoreConfig()
 	contextStore := &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), storeConfig),
@@ -288,7 +288,7 @@ func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint,
 }
 
 // Resolve the Docker endpoint for the default context (based on config, env vars and CLI flags)
-func resolveDefaultDockerEndpoint(opts *cliflags.CommonOptions) (docker.Endpoint, error) {
+func resolveDefaultDockerEndpoint(opts *cliflags.ClientOptions) (docker.Endpoint, error) {
 	host, err := getServerHost(opts.Hosts, opts.TLSOptions)
 	if err != nil {
 		return docker.Endpoint{}, err
@@ -445,7 +445,7 @@ func UserAgent() string {
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
 // - fallbacks to default HOST, uses TLS config from flags/env vars
-func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
+func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return "", errors.New("Conflicting options: either specify --host or --context, not both")
 	}

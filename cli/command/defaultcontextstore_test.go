@@ -56,7 +56,7 @@ func TestDefaultContextInitializer(t *testing.T) {
 	assert.NilError(t, err)
 	t.Setenv("DOCKER_HOST", "ssh://someswarmserver")
 	cli.configFile = &configfile.ConfigFile{}
-	ctx, err := ResolveDefaultContext(&cliflags.CommonOptions{
+	ctx, err := ResolveDefaultContext(&cliflags.ClientOptions{
 		TLS: true,
 		TLSOptions: &tlsconfig.Options{
 			CAFile: "./testdata/ca.pem",

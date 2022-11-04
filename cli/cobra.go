@@ -28,7 +28,7 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	flags := rootCmd.Flags()
 
 	flags.StringVar(&opts.ConfigDir, "config", config.Dir(), "Location of client config files")
-	opts.Common.InstallFlags(flags)
+	opts.InstallFlags(flags)
 
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })
 	cobra.AddTemplateFunc("hasAliases", hasAliases)
@@ -172,7 +172,7 @@ func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, erro
 
 // Initialize finalises global option parsing and initializes the docker client.
 func (tcmd *TopLevelCommand) Initialize(ops ...command.InitializeOpt) error {
-	tcmd.opts.Common.SetDefaultOptions(tcmd.flags)
+	tcmd.opts.SetDefaultOptions(tcmd.flags)
 	return tcmd.dockerCli.Initialize(tcmd.opts, ops...)
 }
 

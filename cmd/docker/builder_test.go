@@ -79,7 +79,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 					}))
 				}
 				opts := flags.NewClientOptions()
-				opts.Common.Context = tt.context
+				opts.Context = tt.context
 				assert.NilError(t, dockerCli.Initialize(opts))
 			}
 

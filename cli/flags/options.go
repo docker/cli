@@ -43,8 +43,8 @@ var (
 	dockerTLS = os.Getenv("DOCKER_TLS") != ""
 )
 
-// CommonOptions are options common to both the client and the daemon.
-type CommonOptions struct {
+// ClientOptions are the options used to configure the client cli.
+type ClientOptions struct {
 	Debug      bool
 	Hosts      []string
 	LogLevel   string
@@ -52,59 +52,60 @@ type CommonOptions struct {
 	TLSVerify  bool
 	TLSOptions *tlsconfig.Options
 	Context    string
+	ConfigDir  string
 }
 
-// NewCommonOptions returns a new CommonOptions
-func NewCommonOptions() *CommonOptions {
-	return &CommonOptions{}
+// NewClientOptions returns a new ClientOptions.
+func NewClientOptions() *ClientOptions {
+	return &ClientOptions{}
 }
 
 // InstallFlags adds flags for the common options on the FlagSet
-func (commonOpts *CommonOptions) InstallFlags(flags *pflag.FlagSet) {
+func (o *ClientOptions) InstallFlags(flags *pflag.FlagSet) {
 	if dockerCertPath == "" {
 		dockerCertPath = config.Dir()
 	}
 
-	flags.BoolVarP(&commonOpts.Debug, "debug", "D", false, "Enable debug mode")
-	flags.StringVarP(&commonOpts.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
-	flags.BoolVar(&commonOpts.TLS, "tls", dockerTLS, "Use TLS; implied by --tlsverify")
-	flags.BoolVar(&commonOpts.TLSVerify, FlagTLSVerify, dockerTLSVerify, "Use TLS and verify the remote")
+	flags.BoolVarP(&o.Debug, "debug", "D", false, "Enable debug mode")
+	flags.StringVarP(&o.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
+	flags.BoolVar(&o.TLS, "tls", dockerTLS, "Use TLS; implied by --tlsverify")
+	flags.BoolVar(&o.TLSVerify, FlagTLSVerify, dockerTLSVerify, "Use TLS and verify the remote")
 
 	// TODO use flag flags.String("identity"}, "i", "", "Path to libtrust key file")
 
-	commonOpts.TLSOptions = &tlsconfig.Options{
+	o.TLSOptions = &tlsconfig.Options{
 		CAFile:   filepath.Join(dockerCertPath, DefaultCaFile),
 		CertFile: filepath.Join(dockerCertPath, DefaultCertFile),
 		KeyFile:  filepath.Join(dockerCertPath, DefaultKeyFile),
 	}
-	tlsOptions := commonOpts.TLSOptions
+	tlsOptions := o.TLSOptions
 	flags.Var(opts.NewQuotedString(&tlsOptions.CAFile), "tlscacert", "Trust certs signed only by this CA")
 	flags.Var(opts.NewQuotedString(&tlsOptions.CertFile), "tlscert", "Path to TLS certificate file")
 	flags.Var(opts.NewQuotedString(&tlsOptions.KeyFile), "tlskey", "Path to TLS key file")
 
 	// opts.ValidateHost is not used here, so as to allow connection helpers
-	hostOpt := opts.NewNamedListOptsRef("hosts", &commonOpts.Hosts, nil)
+	hostOpt := opts.NewNamedListOptsRef("hosts", &o.Hosts, nil)
 	flags.VarP(hostOpt, "host", "H", "Daemon socket(s) to connect to")
-	flags.StringVarP(&commonOpts.Context, "context", "c", "",
+	flags.StringVarP(&o.Context, "context", "c", "",
 		`Name of the context to use to connect to the daemon (overrides `+client.EnvOverrideHost+` env var and default context set with "docker context use")`)
 }
 
 // SetDefaultOptions sets default values for options after flag parsing is
 // complete
-func (commonOpts *CommonOptions) SetDefaultOptions(flags *pflag.FlagSet) {
+func (o *ClientOptions) SetDefaultOptions(flags *pflag.FlagSet) {
 	// Regardless of whether the user sets it to true or false, if they
 	// specify --tlsverify at all then we need to turn on TLS
 	// TLSVerify can be true even if not set due to DOCKER_TLS_VERIFY env var, so we need
 	// to check that here as well
-	if flags.Changed(FlagTLSVerify) || commonOpts.TLSVerify {
-		commonOpts.TLS = true
+	if flags.Changed(FlagTLSVerify) || o.TLSVerify {
+		o.TLS = true
 	}
 
-	if !commonOpts.TLS {
-		commonOpts.TLSOptions = nil
+	if !o.TLS {
+		o.TLSOptions = nil
 	} else {
-		tlsOptions := commonOpts.TLSOptions
-		tlsOptions.InsecureSkipVerify = !commonOpts.TLSVerify
+		tlsOptions := o.TLSOptions
+		tlsOptions.InsecureSkipVerify = !o.TLSVerify
 
 		// Reset CertFile and KeyFile to empty string if the user did not specify
 		// the respective flags and the respective default files were not found.
