@@ -39,3 +39,11 @@ func TestListQuiet(t *testing.T) {
 	assert.NilError(t, runList(cli, &listOptions{quiet: true}))
 	golden.Assert(t, cli.OutBuffer().String(), "quiet-list.golden")
 }
+
+func TestListError(t *testing.T) {
+	cli := makeFakeCli(t)
+	cli.SetCurrentContext("nosuchcontext")
+	cli.OutBuffer().Reset()
+	assert.NilError(t, runList(cli, &listOptions{}))
+	golden.Assert(t, cli.OutBuffer().String(), "list-with-error.golden")
+}
