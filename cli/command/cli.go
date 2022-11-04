@@ -48,9 +48,7 @@ type Streams interface {
 // Cli represents the docker command line client.
 type Cli interface {
 	Client() client.APIClient
-	Out() *streams.Out
-	Err() io.Writer
-	In() *streams.In
+	Streams
 	SetIn(in *streams.In)
 	Apply(ops ...DockerCliOption) error
 	ConfigFile() *configfile.ConfigFile
