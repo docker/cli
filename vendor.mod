@@ -20,7 +20,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/mattn/go-runewidth v0.0.13
-	github.com/mitchellh/mapstructure v1.3.2
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/buildkit v0.10.5
 	github.com/moby/patternmatcher v0.5.0
 	github.com/moby/swarmkit/v2 v2.0.0-20220721174824-48dd89375d0a
@@ -31,15 +31,15 @@ require (
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.3-0.20220303224323-02efb9a75ee1
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
-	github.com/theupdateframework/notary v0.7.1-0.20221031134025-887a007da884
+	github.com/theupdateframework/notary v0.7.1-0.20221031134025-887a007da884 // replaced // TODO(thaJeztah): temporary replacing to test https://github.com/notaryproject/notary/pull/1657
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
-	golang.org/x/text v0.3.7
+	golang.org/x/sys v0.1.0
+	golang.org/x/term v0.1.0
+	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.4.0
 )
@@ -68,12 +68,12 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.2 // indirect
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
-	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect; updated for CVE-2022-27664
+	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/net v0.1.0 // indirect; updated for CVE-2022-27664
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
+	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )
 
 replace (
@@ -84,4 +84,7 @@ replace (
 	// module go.etcd.io/etcd/server/v3 has upgraded its dependency on
 	// go.opentelemetry.io/otel to v1.
 	github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20
+
+	// TODO(thaJeztah): temporary replacing to test https://github.com/notaryproject/notary/pull/1657
+	github.com/theupdateframework/notary => github.com/thaJeztah/notary v0.3.1-0.20221106171132-b34cef2523ca
 )

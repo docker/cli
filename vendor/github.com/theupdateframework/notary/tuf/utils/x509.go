@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -19,7 +20,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/tuf/data"
-	"golang.org/x/crypto/ed25519"
 )
 
 // CanonicalKeyID returns the ID of the public bytes version of a TUF key.
