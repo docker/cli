@@ -212,11 +212,11 @@ func translateDelegationsToCanonicalIDs(delegationInfo data.Delegations) ([]data
 		for _, keyID := range delegation.KeyIDs {
 			pubKey, ok := delegationKeys[keyID]
 			if !ok {
-				return []data.Role{}, fmt.Errorf("Could not translate canonical key IDs for %s", delegation.Name)
+				return []data.Role{}, fmt.Errorf("could not translate canonical key IDs for %s", delegation.Name)
 			}
 			canonicalKeyID, err := utils.CanonicalKeyID(pubKey)
 			if err != nil {
-				return []data.Role{}, fmt.Errorf("Could not translate canonical key IDs for %s: %v", delegation.Name, err)
+				return []data.Role{}, fmt.Errorf("could not translate canonical key IDs for %s: %v", delegation.Name, err)
 			}
 			canonicalKeyIDs = append(canonicalKeyIDs, canonicalKeyID)
 		}

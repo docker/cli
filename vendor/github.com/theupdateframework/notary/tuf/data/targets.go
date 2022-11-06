@@ -151,7 +151,7 @@ func (t *SignedTargets) AddTarget(path string, meta FileMeta) {
 // ensuring the keys either already exist, or are added to the map
 // of delegation keys
 func (t *SignedTargets) AddDelegation(role *Role, keys []*PublicKey) error {
-	return errors.New("Not Implemented")
+	return errors.New("not Implemented")
 }
 
 // ToSigned partially serializes a SignedTargets for further signing

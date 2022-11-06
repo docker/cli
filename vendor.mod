@@ -34,7 +34,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
-	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
+	github.com/theupdateframework/notary v0.7.1-0.20221031134025-887a007da884
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64
@@ -72,7 +72,7 @@ require (
 	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect; updated for CVE-2022-27664
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
-	google.golang.org/grpc v1.45.0 // indirect
+	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
 

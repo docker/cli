@@ -88,7 +88,10 @@ func X509PublicKeyID(certPubKey data.PublicKey) (string, error) {
 func parseLegacyPrivateKey(block *pem.Block, passphrase string) (data.PrivateKey, error) {
 	var privKeyBytes []byte
 	var err error
+
+	//lint:ignore SA1019 needed for legacy keys.
 	if x509.IsEncryptedPEMBlock(block) {
+		//lint:ignore SA1019 needed for legacy keys.
 		privKeyBytes, err = x509.DecryptPEMBlock(block, []byte(passphrase))
 		if err != nil {
 			return nil, errors.New("could not decrypt private key")

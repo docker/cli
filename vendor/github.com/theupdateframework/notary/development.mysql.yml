@@ -30,7 +30,9 @@ services:
       - mysql
   mysql:
     networks:
-      - mdb
+      mdb:
+        aliases:
+          - mysql
     volumes:
       - ./notarysql/mysql-initdb.d:/docker-entrypoint-initdb.d
     image: mariadb:10.4

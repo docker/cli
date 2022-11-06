@@ -86,7 +86,7 @@ func (s *GenericKeyStore) GetKeyInfo(keyID string) (KeyInfo, error) {
 	if info, ok := s.keyInfoMap[keyID]; ok {
 		return info, nil
 	}
-	return KeyInfo{}, fmt.Errorf("Could not find info for keyID %s", keyID)
+	return KeyInfo{}, fmt.Errorf("could not find info for keyID %s", keyID)
 }
 
 // AddKey stores the contents of a PEM-encoded private key as a PEM block
@@ -197,8 +197,7 @@ func copyKeyInfoMap(keyInfoMap map[string]KeyInfo) map[string]KeyInfo {
 
 // KeyInfoFromPEM attempts to get a keyID and KeyInfo from the filename and PEM bytes of a key
 func KeyInfoFromPEM(pemBytes []byte, filename string) (string, KeyInfo, error) {
-	var keyID string
-	keyID = filepath.Base(filename)
+	keyID := filepath.Base(filename)
 	role, gun, err := utils.ExtractPrivateKeyAttributes(pemBytes)
 	if err != nil {
 		return "", KeyInfo{}, err

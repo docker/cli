@@ -9,14 +9,50 @@
 [Org]
 	[Org."Notary Alumni"]
 		people = [
+			"cyli",
+			"diogomonica",
 			"dmcgowan",
+			"endophage",
+			"ecordell",
+			"nathanmccauley",
+			"riyazdf",
 		]
 
 [people]
 
 	# ADD YOURSELF HERE IN ALPHABETICAL ORDER
 
+	[people.cyli]
+	Name = "Ying Li"
+	Email = "ying.li@docker.com"
+	GitHub = "cyli"
+
+	[people.diogomonica]
+	Name = "Diogo Monica"
+	Email = "diogo@docker.com"
+	GitHub = "diogomonica"
+
 	[people.dmcgowan]
 	Name = "Derek McGowan"
 	Email = "derek@docker.com"
 	GitHub = "dmcgowan"
+
+	[people.endophage]
+	Name = "David Lawrence"
+	Email = "david.lawrence@docker.com"
+	GitHub = "endophage"
+
+	[people.ecordell]
+	Name = "Evan Cordell"
+	Email = "evan.cordell@coreos.com"
+	GitHub = "ecordell"
+
+	[people.nathanmccauley]
+	Name = "Nathan McCauley"
+	Email = "nathan.mccauley@docker.com"
+	GitHub = "nathanmccauley"
+
+	[people.riyazdf]
+	Name = "Riyaz Faizullabhoy"
+	Email = "riyazdf@berkeley.edu"
+	GitHub = "riyazdf"

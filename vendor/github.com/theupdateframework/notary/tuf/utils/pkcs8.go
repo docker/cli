@@ -54,7 +54,6 @@ import (
 // Copy from crypto/x509
 var (
 	oidPublicKeyRSA   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
-	oidPublicKeyDSA   = asn1.ObjectIdentifier{1, 2, 840, 10040, 4, 1}
 	oidPublicKeyECDSA = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
 	// crypto/x509 doesn't have support for ED25519
 	// http://www.oid-info.com/get/1.3.6.1.4.1.11591.15.1
@@ -91,13 +90,6 @@ var (
 	oidPBES2       = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 5, 13}
 	oidAES256CBC   = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 42}
 )
-
-type ecPrivateKey struct {
-	Version       int
-	PrivateKey    []byte
-	NamedCurveOID asn1.ObjectIdentifier `asn1:"optional,explicit,tag:0"`
-	PublicKey     asn1.BitString        `asn1:"optional,explicit,tag:1"`
-}
 
 type privateKeyInfo struct {
 	Version             int

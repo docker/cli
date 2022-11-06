@@ -233,7 +233,6 @@ func (c *tufClient) downloadTargets() error {
 				return err
 			}
 			logrus.Warnf("Error getting %s: %s", role.Name, err)
-			break
 		case nil:
 			toDownload = append(children, toDownload...)
 		default:

@@ -234,7 +234,7 @@ func (f FilesystemStore) Location() string {
 // ListFiles returns a list of all the filenames that can be used with Get*
 // to retrieve content from this filestore
 func (f FilesystemStore) ListFiles() []string {
-	files := make([]string, 0, 0)
+	files := make([]string, 0)
 	filepath.Walk(f.baseDir, func(fp string, fi os.FileInfo, err error) error {
 		// If there are errors, ignore this particular file
 		if err != nil {

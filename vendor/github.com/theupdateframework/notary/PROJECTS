@@ -1,0 +1,23 @@
+# These are the current projects under the overall Notary project umbrella
+
+## Notary
+
+Notary is the original project. It is an implementation of TUF that runs next to a container
+registry and adds the ability to sign and verify content in the registry. By default it makes
+some different security choices, such as using TOFU by default. As it runs next to a registry
+it is not a standard part of the registry protocol and requires independent storage and for
+clients to have different code to handle signed content.
+
+## Notation
+
+Notation is a project to add signatures as standard items in the registry ecosystem, and to
+build a set of simple tooling for signing and verifying these signatures. This should be
+viewed as similar in security to checking git commit signatures, although the signatures are
+generic and can be used for additional purposes.
+
+## TUF
+
+TUF is a project to implement the full TUF specification in a registry native way. This may
+require upstream TUF spec changes or extensions, as there are some differences between the
+registry model and common usage to other TUF use cases. This project will use existing
+registry extensions where available but may need its own document types in addition.

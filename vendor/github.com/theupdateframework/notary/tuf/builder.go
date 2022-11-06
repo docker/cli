@@ -633,7 +633,6 @@ func (rb *repoBuilder) validateChecksumsFromSnapshot(sn *data.SignedSnapshot) er
 	for roleName, loadedBytes := range rb.loadedNotChecksummed {
 		switch roleName {
 		case data.CanonicalSnapshotRole, data.CanonicalTimestampRole:
-			break
 		default:
 			if err := data.CheckHashes(loadedBytes, roleName.String(), sn.Signed.Meta[roleName.String()].Hashes); err != nil {
 				return err

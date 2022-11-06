@@ -1,4 +1,4 @@
-FROM golang:1.14.1-alpine AS build-env
+FROM golang:1.17.13-alpine AS build-env
 
 RUN apk add --update git gcc libc-dev
 
