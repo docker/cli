@@ -18,26 +18,27 @@ var allowedAliases = map[string]struct{}{
 	keyBuilderAlias: {},
 }
 
-func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []string) ([]string, []string, error) {
+func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []string) ([]string, []string, []string, error) {
 	var err error
+	var envs []string
 	aliasMap := dockerCli.ConfigFile().Aliases
 	aliases := make([][2][]string, 0, len(aliasMap))
 
 	for k, v := range aliasMap {
 		if _, ok := allowedAliases[k]; !ok {
-			return args, osArgs, errors.Errorf("not allowed to alias %q (allowed: %#v)", k, allowedAliases)
+			return args, osArgs, envs, errors.Errorf("not allowed to alias %q (allowed: %#v)", k, allowedAliases)
 		}
 		if c, _, err := cmd.Find(strings.Split(v, " ")); err == nil {
 			if !pluginmanager.IsPluginCommand(c) {
-				return args, osArgs, errors.Errorf("not allowed to alias with builtin %q as target", v)
+				return args, osArgs, envs, errors.Errorf("not allowed to alias with builtin %q as target", v)
 			}
 		}
 		aliases = append(aliases, [2][]string{{k}, {v}})
 	}
 
-	args, osArgs, err = processBuilder(dockerCli, cmd, args, os.Args)
+	args, osArgs, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
 	if err != nil {
-		return args, os.Args, err
+		return args, os.Args, envs, err
 	}
 
 	for _, al := range aliases {
@@ -49,5 +50,5 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 		}
 	}
 
-	return args, osArgs, nil
+	return args, osArgs, envs, nil
 }
