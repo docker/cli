@@ -65,7 +65,6 @@ type buildOptions struct {
 	squash         bool
 	target         string
 	imageIDFile    string
-	stream         bool
 	platform       string
 	untrusted      bool
 }
@@ -154,9 +153,6 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("squash", "experimental", nil)
 	flags.SetAnnotation("squash", "version", []string{"1.25"})
 
-	flags.BoolVar(&options.stream, "stream", false, "Stream attaches to server to negotiate build context")
-	flags.MarkHidden("stream")
-
 	return cmd
 }
 
@@ -189,14 +185,6 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		buildBuff     io.Writer
 		remote        string
 	)
-
-	if options.stream {
-		_, _ = fmt.Fprint(dockerCli.Err(), `DEPRECATED: The experimental --stream flag has been removed and the build context
-            will be sent non-streaming. Enable BuildKit instead with DOCKER_BUILDKIT=1
-            to stream build context, see https://docs.docker.com/go/buildkit/
-
-`)
-	}
 
 	if options.dockerfileFromStdin() {
 		if options.contextFromStdin() {
