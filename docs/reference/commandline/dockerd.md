@@ -1339,7 +1339,7 @@ This is a full example of the allowed configuration options on Linux:
 > daemon startup as a flag.
 > On systems that use `systemd` to start the Docker daemon, `-H` is already set, so
 > you cannot use the `hosts` key in `daemon.json` to add listening addresses.
-> See ["custom Docker daemon options"](https://docs.docker.com/config/daemon/systemd/#custom-docker-daemon-options) for how
+> See ["custom Docker daemon options"](https://docs.docker.com/engine/daemon/systemd/#custom-docker-daemon-options) for how
 > to accomplish this task with a systemd drop-in file.
 
 ##### On Windows
@@ -1423,7 +1423,7 @@ The list of currently supported options that can be reconfigured is this:
 
 - `debug`: it changes the daemon to debug mode when set to true.
 - `labels`: it replaces the daemon labels with a new set of labels.
-- `live-restore`: Enables [keeping containers alive during daemon downtime](https://docs.docker.com/config/containers/live-restore/).
+- `live-restore`: Enables [keeping containers alive during daemon downtime](https://docs.docker.com/engine/containers/live-restore/).
 - `max-concurrent-downloads`: it updates the max concurrent downloads for each pull.
 - `max-concurrent-uploads`: it updates the max concurrent uploads for each push.
 - `max-download-attempts`: it updates the max download attempts for each pull.

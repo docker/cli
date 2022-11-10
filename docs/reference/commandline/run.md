@@ -654,7 +654,7 @@ the required device when it is added.
 
 The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
-Visit [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
+Visit [Specify a container's resources](https://docs.docker.com/engine/containers/resource_constraints/)
 for more information.
 
 To use `--gpus`, specify which GPUs (or all) to use. If no value is provided, all
