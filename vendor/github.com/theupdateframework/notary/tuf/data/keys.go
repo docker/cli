@@ -3,6 +3,7 @@ package data
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/docker/go/canonical/json"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ed25519"
 )
 
 // PublicKey is the necessary interface for public keys

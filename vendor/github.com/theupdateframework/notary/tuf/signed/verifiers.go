@@ -3,6 +3,7 @@ package signed
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/data"
-	"golang.org/x/crypto/ed25519"
 )
 
 const (

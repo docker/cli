@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -19,7 +20,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/tuf/data"
-	"golang.org/x/crypto/ed25519"
 )
 
 // CanonicalKeyID returns the ID of the public bytes version of a TUF key.
@@ -88,7 +88,10 @@ func X509PublicKeyID(certPubKey data.PublicKey) (string, error) {
 func parseLegacyPrivateKey(block *pem.Block, passphrase string) (data.PrivateKey, error) {
 	var privKeyBytes []byte
 	var err error
+
+	//lint:ignore SA1019 needed for legacy keys.
 	if x509.IsEncryptedPEMBlock(block) {
+		//lint:ignore SA1019 needed for legacy keys.
 		privKeyBytes, err = x509.DecryptPEMBlock(block, []byte(passphrase))
 		if err != nil {
 			return nil, errors.New("could not decrypt private key")

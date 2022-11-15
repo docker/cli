@@ -20,7 +20,7 @@ type ErrValidationFail struct {
 	Reason string
 }
 
-// ErrValidationFail is returned when there is no valid trusted certificates
+// Error is returned when there is no valid trusted certificates
 // being served inside of the roots.json
 func (err ErrValidationFail) Error() string {
 	return fmt.Sprintf("could not validate the path to a trusted root: %s", err.Reason)
@@ -32,7 +32,7 @@ type ErrRootRotationFail struct {
 	Reason string
 }
 
-// ErrRootRotationFail is returned when we fail to do a full root key rotation
+// Error is returned when we fail to do a full root key rotation
 // by either failing to add the new root certificate, or delete the old ones
 func (err ErrRootRotationFail) Error() string {
 	return fmt.Sprintf("could not rotate trust to a new trusted root: %s", err.Reason)
