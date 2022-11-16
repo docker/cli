@@ -289,7 +289,7 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
+# golang.org/x/time v0.1.0
 ## explicit
 golang.org/x/time/rate
 # google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
