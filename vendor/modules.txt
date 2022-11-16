@@ -258,7 +258,7 @@ github.com/xeipuuv/gojsonschema
 # go.etcd.io/etcd/raft/v3 v3.5.2
 ## explicit; go 1.16
 go.etcd.io/etcd/raft/v3/raftpb
-# golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+# golang.org/x/crypto v0.1.0
 ## explicit; go 1.17
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
