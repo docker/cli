@@ -441,7 +441,8 @@ func (u *UlimitsConfig) MarshalYAML() (interface{}, error) {
 	if u.Single != 0 {
 		return u.Single, nil
 	}
-	return u, nil
+	// Return as a value to avoid re-entering this method and use the default implementation
+	return *u, nil
 }
 
 // MarshalJSON makes UlimitsConfig implement json.Marshaller
