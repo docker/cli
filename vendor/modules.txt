@@ -160,7 +160,7 @@ github.com/moby/buildkit/util/appcontext
 # github.com/moby/patternmatcher v0.5.0
 ## explicit; go 1.19
 github.com/moby/patternmatcher
-# github.com/moby/swarmkit/v2 v2.0.0-20220721174824-48dd89375d0a
+# github.com/moby/swarmkit/v2 v2.0.0-20221102165002-6341884e5fc9
 ## explicit; go 1.17
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy
