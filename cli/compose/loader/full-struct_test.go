@@ -197,7 +197,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			},
 			Pid: "host",
 			Ports: []types.ServicePortConfig{
-				//"3000",
+				// "3000",
 				{
 					Mode:     "ingress",
 					Target:   3000,
@@ -228,14 +228,14 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target:   3005,
 					Protocol: "tcp",
 				},
-				//"8000:8000",
+				// "8000:8000",
 				{
 					Mode:      "ingress",
 					Target:    8000,
 					Published: 8000,
 					Protocol:  "tcp",
 				},
-				//"9090-9091:8080-8081",
+				// "9090-9091:8080-8081",
 				{
 					Mode:      "ingress",
 					Target:    8080,
@@ -248,21 +248,21 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Published: 9091,
 					Protocol:  "tcp",
 				},
-				//"49100:22",
+				// "49100:22",
 				{
 					Mode:      "ingress",
 					Target:    22,
 					Published: 49100,
 					Protocol:  "tcp",
 				},
-				//"127.0.0.1:8001:8001",
+				// "127.0.0.1:8001:8001",
 				{
 					Mode:      "ingress",
 					Target:    8001,
 					Published: 8001,
 					Protocol:  "tcp",
 				},
-				//"127.0.0.1:5000-5010:5000-5010",
+				// "127.0.0.1:5000-5010:5000-5010",
 				{
 					Mode:      "ingress",
 					Target:    5000,
