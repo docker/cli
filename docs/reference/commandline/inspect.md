@@ -49,6 +49,35 @@ The following example inspects a _volume_ named "myvolume"
 $ docker inspect --type=volume myvolume
 ```
 
+### <a name=size></a> Inspect the size of a container (-s, --size)
+
+The `--size`, or short-form `-s`, option adds two additional fields to the
+`docker inspect` output. This option only works for containers. The container
+doesn't have to be running, it also works for stopped containers.
+
+```console
+$ docker inspect --size mycontainer
+```
+
+The output includes the full output of a regular `docker inspect` command, with
+the following additional fields:
+
+- `SizeRootFs`: the total size of all the files in the container, in bytes.
+- `SizeRw`: the size of the files that have been created or changed in the
+  container, compared to it's image, in bytes.
+
+```console
+$ docker run --name database -d redis
+3b2cbf074c99db4a0cad35966a9e24d7bc277f5565c17233386589029b7db273
+$ docker inspect --size database -f '{{ .SizeRootFs }}'
+123125760
+$ docker inspect --size database -f '{{ .SizeRw }}'                 
+8192
+$ docker exec database fallocate -l 1000 /newfile 
+$ docker inspect --size database -f '{{ .SizeRw }}'
+12288
+```
+
 ## Examples
 
 ### Get an instance's IP address
