@@ -51,7 +51,7 @@ func ParseYAML(source []byte) (map[string]interface{}, error) {
 	}
 	cfgMap, ok := cfg.(map[interface{}]interface{})
 	if !ok {
-		return nil, errors.Errorf("Top-level object must be a mapping")
+		return nil, errors.Errorf("top-level object must be a mapping")
 	}
 	converted, err := convertToStringKeysRecursive(cfgMap, "")
 	if err != nil {
@@ -386,9 +386,9 @@ func formatInvalidKeyError(keyPrefix string, key interface{}) error {
 	if keyPrefix == "" {
 		location = "at top level"
 	} else {
-		location = fmt.Sprintf("in %s", keyPrefix)
+		location = "in " + keyPrefix
 	}
-	return errors.Errorf("Non-string key %s: %#v", location, key)
+	return errors.Errorf("non-string key %s: %#v", location, key)
 }
 
 // LoadServices produces a ServiceConfig map from a compose file Dict

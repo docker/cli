@@ -1,24 +1,24 @@
 package manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestPluginError(t *testing.T) {
 	err := NewPluginError("new error")
-	assert.Error(t, err, "new error")
+	assert.Check(t, is.Error(err, "new error"))
 
 	inner := fmt.Errorf("testing")
 	err = wrapAsPluginError(inner, "wrapping")
-	assert.Error(t, err, "wrapping: testing")
-	assert.Assert(t, errors.Is(err, inner))
+	assert.Check(t, is.Error(err, "wrapping: testing"))
+	assert.Check(t, is.ErrorIs(err, inner))
 
-	actual, err := yaml.Marshal(err)
-	assert.NilError(t, err)
-	assert.Equal(t, "'wrapping: testing'\n", string(actual))
+	actual, err := json.Marshal(err)
+	assert.Check(t, err)
+	assert.Check(t, is.Equal(`"wrapping: testing"`, string(actual)))
 }
