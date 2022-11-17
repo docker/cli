@@ -77,7 +77,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221116131102-cd8873dd3d21+incompatible // 22.06 branch (v22.06-dev)
+	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221117094850-d15be0c54de9+incompatible // 22.06 branch (v22.06-dev)
 
 	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
 	// swarmkit) by pinning the certificate-transparency-go version. Remove once
