@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO111MODULE=on go install github.com/mjibson/esc@${ESC_VERSION}
 
 FROM golang AS gotestsum
-ARG GOTESTSUM_VERSION=v0.4.0
+ARG GOTESTSUM_VERSION=v1.8.2
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
