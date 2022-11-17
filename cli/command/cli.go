@@ -362,9 +362,61 @@ func (cli *DockerCli) ContextStore() store.Store {
 	return cli.contextStore
 }
 
-// CurrentContext returns the current context name
+// CurrentContext returns the current context name, based on flags,
+// environment variables and the cli configuration file, in the following
+// order of preference:
+//
+//  1. The "--context" command-line option.
+//  2. The "DOCKER_CONTEXT" environment variable.
+//  3. The current context as configured through the in "currentContext"
+//     field in the CLI configuration file ("~/.docker/config.json").
+//  4. If no context is configured, use the "default" context.
+//
+// # Fallbacks for backward-compatibility
+//
+// To preserve backward-compatibility with the "pre-contexts" behavior,
+// the "default" context is used if:
+//
+//   - The "--host" option is set
+//   - The "DOCKER_HOST" ([DefaultContextName]) environment variable is set
+//     to a non-empty value.
+//
+// In these cases, the default context is used, which uses the host as
+// specified in "DOCKER_HOST", and TLS config from flags/env vars.
+//
+// Setting both the "--context" and "--host" flags is ambiguous and results
+// in an error when the cli is started.
+//
+// CurrentContext does not validate if the given context exists or if it's
+// valid; errors may occur when trying to use it.
 func (cli *DockerCli) CurrentContext() string {
 	return cli.currentContext
+}
+
+// CurrentContext returns the current context name, based on flags,
+// environment variables and the cli configuration file. It does not
+// validate if the given context exists or if it's valid; errors may
+// occur when trying to use it.
+//
+// Refer to [DockerCli.CurrentContext] above for further details.
+func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) string {
+	if opts != nil && opts.Context != "" {
+		return opts.Context
+	}
+	if opts != nil && len(opts.Hosts) > 0 {
+		return DefaultContextName
+	}
+	if os.Getenv(client.EnvOverrideHost) != "" {
+		return DefaultContextName
+	}
+	if ctxName := os.Getenv("DOCKER_CONTEXT"); ctxName != "" {
+		return ctxName
+	}
+	if config != nil && config.CurrentContext != "" {
+		// We don't validate if this context exists: errors may occur when trying to use it.
+		return config.CurrentContext
+	}
+	return DefaultContextName
 }
 
 // DockerEndpoint returns the current docker endpoint
@@ -434,37 +486,6 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
 	return "Docker-Client/" + version.Version + " (" + runtime.GOOS + ")"
-}
-
-// resolveContextName resolves the current context name with the following rules:
-// - setting both --context and --host flags is ambiguous
-// - if --context is set, use this value
-// - if --host flag or DOCKER_HOST (client.EnvOverrideHost) is set, fallbacks to use the same logic as before context-store was added
-// for backward compatibility with existing scripts
-// - if DOCKER_CONTEXT is set, use this value
-// - if Config file has a globally set "CurrentContext", use this value
-// - fallbacks to default HOST, uses TLS config from flags/env vars
-//
-// resolveContextName does not validate if the given context exists; errors may
-// occur when trying to use it.
-func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) string {
-	if opts != nil && opts.Context != "" {
-		return opts.Context
-	}
-	if opts != nil && len(opts.Hosts) > 0 {
-		return DefaultContextName
-	}
-	if os.Getenv(client.EnvOverrideHost) != "" {
-		return DefaultContextName
-	}
-	if ctxName := os.Getenv("DOCKER_CONTEXT"); ctxName != "" {
-		return ctxName
-	}
-	if config != nil && config.CurrentContext != "" {
-		// We don't validate if this context exists: errors may occur when trying to use it.
-		return config.CurrentContext
-	}
-	return DefaultContextName
 }
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
