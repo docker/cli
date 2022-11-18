@@ -28,11 +28,6 @@ Options:
 
 The `docker logs` command batch-retrieves logs present at the time of execution.
 
-> **Note**
->
-> This command is only functional for containers that are started with the
-> `json-file` or `journald` logging driver.
-
 For more information about selecting and configuring logging drivers, refer to
 [Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
 
