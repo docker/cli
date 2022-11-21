@@ -52,36 +52,30 @@ require (
 	github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect; updated to v1.8.0 to get rid of old compatibility for "context"
+	github.com/google/certificate-transparency-go v1.1.4 // indirect; updated to v1.1.4 to force updating go.etcd.io/etcd to v3.5.5.
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/sys/symlink v0.2.0 // indirect
 	github.com/opencontainers/runc v1.1.2 // indirect
-	github.com/prometheus/client_golang v1.12.1 // indirect
+	github.com/prometheus/client_golang v1.13.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.32.1 // indirect
-	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/prometheus/common v0.37.0 // indirect
+	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	go.etcd.io/etcd/raft/v3 v3.5.2 // indirect
+	go.etcd.io/etcd/raft/v3 v3.5.5 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
-	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21 // indirect
-	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/genproto v0.0.0-20220706185917-7780775163c4 // indirect
+	google.golang.org/grpc v1.48.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 )
 
-replace (
-	github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221120201202-394f6c14add7+incompatible // 22.06 branch (v22.06-dev)
-
-	// Resolve dependency hell with github.com/cloudflare/cfssl (transitive via
-	// swarmkit) by pinning the certificate-transparency-go version. Remove once
-	// module go.etcd.io/etcd/server/v3 has upgraded its dependency on
-	// go.opentelemetry.io/otel to v1.
-	github.com/google/certificate-transparency-go => github.com/google/certificate-transparency-go v1.0.20
-)
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221120201202-394f6c14add7+incompatible // 22.06 branch (v22.06-dev)
