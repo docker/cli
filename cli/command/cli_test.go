@@ -200,7 +200,8 @@ func TestInitializeFromClientHangs(t *testing.T) {
 
 	go func() {
 		cli := &DockerCli{client: apiClient, initTimeout: time.Millisecond}
-		cli.Initialize(flags.NewClientOptions())
+		err := cli.Initialize(flags.NewClientOptions())
+		assert.Check(t, err)
 		close(initializedCh)
 	}()
 
