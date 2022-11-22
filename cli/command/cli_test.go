@@ -31,7 +31,7 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		host = "npipe://./"
 	}
-	opts := &flags.CommonOptions{Hosts: []string{host}}
+	opts := &flags.ClientOptions{Hosts: []string{host}}
 	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), host)
@@ -44,7 +44,7 @@ func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		slug = "tcp://127.0.0.1"
 	}
-	opts := &flags.CommonOptions{Hosts: []string{host}}
+	opts := &flags.ClientOptions{Hosts: []string{host}}
 	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), slug+host)
@@ -62,7 +62,7 @@ func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
 	}))
 	defer ts.Close()
 	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
-	opts := &flags.CommonOptions{Hosts: []string{host}}
+	opts := &flags.ClientOptions{Hosts: []string{host}}
 	configFile := &configfile.ConfigFile{
 		HTTPHeaders: map[string]string{
 			"My-Header": "Custom-Value",
@@ -91,7 +91,7 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	t.Setenv("DOCKER_API_VERSION", customVersion)
 	t.Setenv("DOCKER_HOST", ":2375")
 
-	opts := &flags.CommonOptions{}
+	opts := &flags.ClientOptions{}
 	configFile := &configfile.ConfigFile{}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
@@ -191,7 +191,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	opts := &flags.CommonOptions{Hosts: []string{fmt.Sprintf("unix://%s", socket)}}
+	opts := &flags.ClientOptions{Hosts: []string{fmt.Sprintf("unix://%s", socket)}}
 	configFile := &configfile.ConfigFile{}
 	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)

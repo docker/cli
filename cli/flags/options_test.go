@@ -10,9 +10,9 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func TestCommonOptionsInstallFlags(t *testing.T) {
+func TestClientOptionsInstallFlags(t *testing.T) {
 	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
-	opts := NewCommonOptions()
+	opts := NewClientOptions()
 	opts.InstallFlags(flags)
 
 	err := flags.Parse([]string{
@@ -30,9 +30,9 @@ func defaultPath(filename string) string {
 	return filepath.Join(config.Dir(), filename)
 }
 
-func TestCommonOptionsInstallFlagsWithDefaults(t *testing.T) {
+func TestClientOptionsInstallFlagsWithDefaults(t *testing.T) {
 	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
-	opts := NewCommonOptions()
+	opts := NewClientOptions()
 	opts.InstallFlags(flags)
 
 	err := flags.Parse([]string{})

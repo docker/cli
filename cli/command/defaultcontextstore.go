@@ -42,7 +42,7 @@ type EndpointDefaultResolver interface {
 }
 
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
-func ResolveDefaultContext(opts *cliflags.CommonOptions, config store.Config) (*DefaultContext, error) {
+func ResolveDefaultContext(opts *cliflags.ClientOptions, config store.Config) (*DefaultContext, error) {
 	contextTLSData := store.ContextTLSData{
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
