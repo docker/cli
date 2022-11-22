@@ -22,4 +22,4 @@ ignore:
   - ".*generated.*"
 codecov:
   ci:
-    - app.harness.io       # add my custom jenkins server
+    - app.harness.io       # add my custom Harness domain for codecov
