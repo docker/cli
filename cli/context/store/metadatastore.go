@@ -101,7 +101,7 @@ func (s *metadataStore) remove(name string) error {
 func (s *metadataStore) list() ([]Metadata, error) {
 	ctxDirs, err := listRecursivelyMetadataDirs(s.root)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil
 		}
 		return nil, err
@@ -110,7 +110,7 @@ func (s *metadataStore) list() ([]Metadata, error) {
 	for _, dir := range ctxDirs {
 		c, err := s.getByID(contextdir(dir))
 		if err != nil {
-			if os.IsNotExist(err) {
+			if errors.Is(err, os.ErrNotExist) {
 				continue
 			}
 			return nil, errors.Wrap(err, "failed to read metadata")
