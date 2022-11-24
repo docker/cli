@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.10
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.21+incompatible // v22.06.x - see "replace" for the actual version
+	github.com/docker/docker v20.10.21+incompatible // v23.0.0-dev - see "replace" for the actual version
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -23,7 +23,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.10.6
 	github.com/moby/patternmatcher v0.5.0
-	github.com/moby/swarmkit/v2 v2.0.0-20221102165002-6341884e5fc9
+	github.com/moby/swarmkit/v2 v2.0.0-20221123162438-b17f02f0a054
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.0.0-20221120202655-abb19827d345
@@ -54,7 +54,6 @@ require (
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/certificate-transparency-go v1.1.4 // indirect; updated to v1.1.4 to force updating go.etcd.io/etcd to v3.5.5.
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
@@ -69,7 +68,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	go.etcd.io/etcd/raft/v3 v3.5.5 // indirect
+	go.etcd.io/etcd/raft/v3 v3.5.6 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
@@ -78,4 +77,4 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 )
 
-replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221120201202-394f6c14add7+incompatible // 22.06 branch (v22.06-dev)
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221124164242-a913b5ad7ef1+incompatible // 22.06 branch (v23.0.0-dev)
