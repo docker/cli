@@ -50,6 +50,7 @@
 		people = [
 			"bsousaa",
 			"programmerq",
+			"sam-thibault",
 			"thajeztah",
 			"vvoland"
 		]
@@ -111,6 +112,11 @@
 	Name = "Djordje Lukic"
 	Email = "djordje.lukic@docker.com"
 	GitHub = "rumpl"
+
+	[people.sam-thibault]
+	Name = "Sam Thibault"
+	Email = "sam.thibault@docker.com"
+	GitHub = "sam-thibault"
 
 	[people.silvin-lubecki]
 	Name = "Silvin Lubecki"
