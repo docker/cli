@@ -69,6 +69,7 @@ type Cli interface {
 // Instances of the client can be returned from NewDockerCli.
 type DockerCli struct {
 	configFile         *configfile.ConfigFile
+	options            *cliflags.ClientOptions
 	in                 *streams.In
 	out                *streams.Out
 	err                io.Writer
@@ -132,14 +133,11 @@ func ShowHelp(err io.Writer) func(*cobra.Command, []string) error {
 
 // ConfigFile returns the ConfigFile
 func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
+	// TODO(thaJeztah): when would this happen? Is this only in tests (where cli.Initialize() is not called first?)
 	if cli.configFile == nil {
-		cli.loadConfigFile()
+		cli.configFile = config.LoadDefaultConfigFile(cli.err)
 	}
 	return cli.configFile
-}
-
-func (cli *DockerCli) loadConfigFile() {
-	cli.configFile = config.LoadDefaultConfigFile(cli.err)
 }
 
 // ServerInfo returns the server version details for the host this client is
@@ -225,17 +223,16 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		return errors.New("conflicting options: either specify --host or --context, not both")
 	}
 
-	cli.loadConfigFile()
-
-	baseContextStore := store.New(config.ContextStoreDir(), cli.contextStoreConfig)
+	cli.options = opts
+	cli.configFile = config.LoadDefaultConfigFile(cli.err)
+	cli.currentContext = resolveContextName(cli.options, cli.configFile)
 	cli.contextStore = &ContextStoreWithDefault{
-		Store: baseContextStore,
+		Store: store.New(config.ContextStoreDir(), cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, cli.contextStoreConfig)
+			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
 		},
 	}
-	cli.currentContext = resolveContextName(opts, cli.configFile)
-	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, cli.currentContext)
+	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, resolveContextName(opts, cli.configFile))
 	if err != nil {
 		return errors.Wrap(err, "unable to resolve docker endpoint")
 	}

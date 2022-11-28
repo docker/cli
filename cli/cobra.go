@@ -116,7 +116,13 @@ type TopLevelCommand struct {
 
 // NewTopLevelCommand returns a new TopLevelCommand object
 func NewTopLevelCommand(cmd *cobra.Command, dockerCli *command.DockerCli, opts *cliflags.ClientOptions, flags *pflag.FlagSet) *TopLevelCommand {
-	return &TopLevelCommand{cmd, dockerCli, opts, flags, os.Args[1:]}
+	return &TopLevelCommand{
+		cmd:       cmd,
+		dockerCli: dockerCli,
+		opts:      opts,
+		flags:     flags,
+		args:      os.Args[1:],
+	}
 }
 
 // SetArgs sets the args (default os.Args[:1] used to invoke the command
