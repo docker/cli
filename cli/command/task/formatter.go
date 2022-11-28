@@ -123,11 +123,11 @@ func (c *taskContext) CurrentState() string {
 func (c *taskContext) Error() string {
 	// Trim and quote the error message.
 	taskErr := c.task.Status.Err
-	if c.trunc && len(taskErr) > maxErrLength {
-		taskErr = fmt.Sprintf("%s…", taskErr[:maxErrLength-1])
+	if c.trunc {
+		taskErr = formatter.Ellipsis(taskErr, maxErrLength)
 	}
 	if len(taskErr) > 0 {
-		taskErr = fmt.Sprintf("\"%s\"", taskErr)
+		taskErr = fmt.Sprintf(`"%s"`, taskErr)
 	}
 	return taskErr
 }
