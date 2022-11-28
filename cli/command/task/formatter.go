@@ -20,7 +20,6 @@ const (
 	taskIDHeader       = "ID"
 	desiredStateHeader = "DESIRED STATE"
 	currentStateHeader = "CURRENT STATE"
-	errorHeader        = "ERROR"
 
 	maxErrLength = 30
 )
@@ -61,7 +60,7 @@ func FormatWrite(ctx formatter.Context, tasks []swarm.Task, names map[string]str
 		"Node":         nodeHeader,
 		"DesiredState": desiredStateHeader,
 		"CurrentState": currentStateHeader,
-		"Error":        errorHeader,
+		"Error":        formatter.ErrorHeader,
 		"Ports":        formatter.PortsHeader,
 	}
 	return ctx.Write(&taskCtx, render)
