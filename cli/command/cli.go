@@ -2,12 +2,14 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/cli/cli/config"
@@ -78,6 +80,8 @@ type DockerCli struct {
 	contentTrust       bool
 	contextStore       store.Store
 	currentContext     string
+	init               sync.Once
+	initErr            error
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
 	initTimeout        time.Duration
@@ -91,6 +95,7 @@ func (cli *DockerCli) DefaultVersion() string {
 // CurrentVersion returns the API version currently negotiated, or the default
 // version otherwise.
 func (cli *DockerCli) CurrentVersion() string {
+	_ = cli.initialize()
 	if cli.client == nil {
 		return api.DefaultVersion
 	}
@@ -99,6 +104,10 @@ func (cli *DockerCli) CurrentVersion() string {
 
 // Client returns the APIClient
 func (cli *DockerCli) Client() client.APIClient {
+	if err := cli.initialize(); err != nil {
+		_, _ = fmt.Fprintf(cli.Err(), "Failed to initialize: %s\n", err)
+		os.Exit(1)
+	}
 	return cli.client
 }
 
@@ -143,7 +152,7 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
-	// TODO(thaJeztah) make ServerInfo() lazily load the info (ping only when needed)
+	_ = cli.initialize()
 	return cli.serverInfo
 }
 
@@ -203,8 +212,6 @@ func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClien
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...InitializeOpt) error {
-	var err error
-
 	for _, o := range ops {
 		if err := o(cli); err != nil {
 			return err
@@ -232,18 +239,6 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
 		},
 	}
-	cli.dockerEndpoint, err = resolveDockerEndpoint(cli.contextStore, resolveContextName(opts, cli.configFile))
-	if err != nil {
-		return errors.Wrap(err, "unable to resolve docker endpoint")
-	}
-
-	if cli.client == nil {
-		cli.client, err = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile)
-		if err != nil {
-			return err
-		}
-	}
-	cli.initializeFromClient()
 	return nil
 }
 
@@ -282,6 +277,9 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 }
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
+	if s == nil {
+		return docker.Endpoint{}, fmt.Errorf("no context store initialized")
+	}
 	ctxMeta, err := s.GetMetadata(contextName)
 	if err != nil {
 		return docker.Endpoint{}, err
@@ -331,7 +329,7 @@ func (cli *DockerCli) getInitTimeout() time.Duration {
 
 func (cli *DockerCli) initializeFromClient() {
 	ctx := context.Background()
-	if !strings.HasPrefix(cli.DockerEndpoint().Host, "ssh://") {
+	if !strings.HasPrefix(cli.dockerEndpoint.Host, "ssh://") {
 		// @FIXME context.WithTimeout doesn't work with connhelper / ssh connections
 		// time="2020-04-10T10:16:26Z" level=warning msg="commandConn.CloseWrite: commandconn: failed to wait: signal: killed"
 		var cancel func()
@@ -428,7 +426,37 @@ func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigF
 
 // DockerEndpoint returns the current docker endpoint
 func (cli *DockerCli) DockerEndpoint() docker.Endpoint {
+	if err := cli.initialize(); err != nil {
+		// Note that we're not terminating here, as this function may be used
+		// in cases where we're able to continue.
+		_, _ = fmt.Fprintf(cli.Err(), "%v\n", cli.initErr)
+	}
 	return cli.dockerEndpoint
+}
+
+func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
+	cn := cli.CurrentContext()
+	if cn == DefaultContextName {
+		return resolveDefaultDockerEndpoint(cli.options)
+	}
+	return resolveDockerEndpoint(cli.contextStore, cn)
+}
+
+func (cli *DockerCli) initialize() error {
+	cli.init.Do(func() {
+		cli.dockerEndpoint, cli.initErr = cli.getDockerEndPoint()
+		if cli.initErr != nil {
+			cli.initErr = errors.Wrap(cli.initErr, "unable to resolve docker endpoint")
+			return
+		}
+		if cli.client == nil {
+			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile); cli.initErr != nil {
+				return
+			}
+		}
+		cli.initializeFromClient()
+	})
+	return cli.initErr
 }
 
 // Apply all the operation on the cli

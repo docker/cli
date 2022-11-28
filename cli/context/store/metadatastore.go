@@ -59,7 +59,7 @@ func parseTypedOrMap(payload []byte, getter TypeGetter) (interface{}, error) {
 func (s *metadataStore) get(name string) (Metadata, error) {
 	m, err := s.getByID(contextdirOf(name))
 	if err != nil {
-		return m, errors.Wrapf(err, "load context %q", name)
+		return m, errors.Wrapf(err, "context %q", name)
 	}
 	return m, nil
 }
@@ -68,7 +68,7 @@ func (s *metadataStore) getByID(id contextdir) (Metadata, error) {
 	bytes, err := os.ReadFile(filepath.Join(s.contextDir(id), metaFile))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return Metadata{}, errdefs.NotFound(errors.Wrap(err, "context does not exist"))
+			return Metadata{}, errdefs.NotFound(errors.Wrap(err, "context not found"))
 		}
 		return Metadata{}, err
 	}
