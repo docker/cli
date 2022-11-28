@@ -16,19 +16,14 @@ func newShowCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Print the name of the current context",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShow(dockerCli)
+			runShow(dockerCli)
+			return nil
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 	return cmd
 }
 
-func runShow(dockerCli command.Cli) error {
-	context := dockerCli.CurrentContext()
-	metadata, err := dockerCli.ContextStore().GetMetadata(context)
-	if err != nil {
-		return err
-	}
-	fmt.Fprintln(dockerCli.Out(), metadata.Name)
-	return nil
+func runShow(dockerCli command.Cli) {
+	fmt.Fprintln(dockerCli.Out(), dockerCli.CurrentContext())
 }
