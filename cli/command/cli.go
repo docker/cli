@@ -152,7 +152,7 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 // ServerInfo returns the server version details for the host this client is
 // connected to
 func (cli *DockerCli) ServerInfo() ServerInfo {
-	// TODO(thaJeztah) make ServerInfo() lazily load the info (ping only when needed)
+	_ = cli.initialize()
 	return cli.serverInfo
 }
 
