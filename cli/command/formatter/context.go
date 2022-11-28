@@ -11,10 +11,10 @@ const (
 // NewClientContextFormat returns a Format for rendering using a Context
 func NewClientContextFormat(source string, quiet bool) Format {
 	if quiet {
-		return Format(quietContextFormat)
+		return quietContextFormat
 	}
 	if source == TableFormatKey {
-		return Format(ClientContextTableFormat)
+		return ClientContextTableFormat
 	}
 	return Format(source)
 }
