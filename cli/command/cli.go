@@ -132,14 +132,11 @@ func ShowHelp(err io.Writer) func(*cobra.Command, []string) error {
 
 // ConfigFile returns the ConfigFile
 func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
+	// TODO(thaJeztah): when would this happen? Is this only in tests (where cli.Initialize() is not called first?)
 	if cli.configFile == nil {
-		cli.loadConfigFile()
+		cli.configFile = config.LoadDefaultConfigFile(cli.err)
 	}
 	return cli.configFile
-}
-
-func (cli *DockerCli) loadConfigFile() {
-	cli.configFile = config.LoadDefaultConfigFile(cli.err)
 }
 
 // ServerInfo returns the server version details for the host this client is
@@ -225,7 +222,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 		return errors.New("conflicting options: either specify --host or --context, not both")
 	}
 
-	cli.loadConfigFile()
+	cli.configFile = config.LoadDefaultConfigFile(cli.err)
 
 	baseContextStore := store.New(config.ContextStoreDir(), cli.contextStoreConfig)
 	cli.contextStore = &ContextStoreWithDefault{
