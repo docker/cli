@@ -205,6 +205,26 @@ func sortStrings(strs []string) []string {
 	return strs
 }
 
+// src2 wins
+func unionMaps(src1, src2 map[string]string) map[string]string {
+	switch {
+	case len(src1)+len(src2) == 0:
+		return nil
+	case len(src1) == 0:
+		return src2
+	case len(src2) == 0:
+		return src1
+	default:
+		u := make(map[string]string)
+		for _, src := range []map[string]string{src1, src2} {
+			for k, v := range src {
+				u[k] = v
+			}
+		}
+		return u
+	}
+}
+
 func convertServiceNetworks(
 	networks map[string]*composetypes.ServiceNetworkConfig,
 	networkConfigs networkMap,
@@ -224,16 +244,19 @@ func convertServiceNetworks(
 			return nil, errors.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
+		driverOpts := networkConfig.DriverOpts
 		if network != nil {
 			aliases = network.Aliases
+			driverOpts = unionMaps(driverOpts, network.DriverOpts)
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.Name != "" {
 			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
-			Target:  target,
-			Aliases: aliases,
+			Target:     target,
+			Aliases:    aliases,
+			DriverOpts: driverOpts,
 		}
 		// Only add default aliases to user defined networks. Other networks do
 		// not support aliases.
