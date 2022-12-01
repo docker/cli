@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/go-connections/nat"
+	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -58,6 +60,7 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 		return err
 	}
 
+	var out []string
 	if opts.port != "" {
 		port, proto, _ := strings.Cut(opts.port, "/")
 		if proto == "" {
@@ -71,15 +74,21 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 			return errors.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
 		}
 		for _, frontend := range frontends {
-			_, _ = fmt.Fprintln(dockerCli.Out(), net.JoinHostPort(frontend.HostIP, frontend.HostPort))
+			out = append(out, net.JoinHostPort(frontend.HostIP, frontend.HostPort))
 		}
-		return nil
+	} else {
+		for from, frontends := range c.NetworkSettings.Ports {
+			for _, frontend := range frontends {
+				out = append(out, fmt.Sprintf("%s -> %s", from, net.JoinHostPort(frontend.HostIP, frontend.HostPort)))
+			}
+		}
 	}
 
-	for from, frontends := range c.NetworkSettings.Ports {
-		for _, frontend := range frontends {
-			_, _ = fmt.Fprintf(dockerCli.Out(), "%s -> %s\n", from, net.JoinHostPort(frontend.HostIP, frontend.HostPort))
-		}
+	if len(out) > 0 {
+		sort.Slice(out, func(i, j int) bool {
+			return sortorder.NaturalLess(out[i], out[j])
+		})
+		_, _ = fmt.Fprintln(dockerCli.Out(), strings.Join(out, "\n"))
 	}
 
 	return nil

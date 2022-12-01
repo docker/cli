@@ -37,6 +37,10 @@ func TestNewPortCommandOutput(t *testing.T) {
 			ips:  []string{"::", "0.0.0.0"},
 			port: "443/udp",
 		},
+		{
+			name: "container-port-all-ports",
+			ips:  []string{"::", "0.0.0.0"},
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
