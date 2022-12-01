@@ -43,6 +43,12 @@ func NewPortCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
+// runPort shows the port mapping for a given container. Optionally, it
+// allows showing the mapping for a specific (container)port and proto.
+//
+// TODO(thaJeztah): currently this defaults to show the TCP port if no
+// proto is specified. We should consider changing this to "any" protocol
+// for the given private port.
 func runPort(dockerCli command.Cli, opts *portOptions) error {
 	ctx := context.Background()
 
