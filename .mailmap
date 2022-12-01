@@ -6,6 +6,7 @@
 #
 # For explanation on this file format: man git-shortlog
 
+<lmscrewy@gmail.com> <1674195+squeegels@users.noreply.github.com>
 Aaron L. Xu <liker.xu@foxmail.com>
 Aaron Lehmann <alehmann@netflix.com>
 Aaron Lehmann <alehmann@netflix.com> <aaron.lehmann@docker.com>
@@ -32,6 +33,7 @@ Alexander Larsson <alexl@redhat.com> <alexander.larsson@gmail.com>
 Alexander Morozov <lk4d4math@gmail.com>
 Alexander Morozov <lk4d4math@gmail.com> <lk4d4@docker.com>
 Alexandre Beslic <alexandre.beslic@gmail.com> <abronan@docker.com>
+Alexis Couvreur <alexiscouvreur.pro@gmail.com>
 Alicia Lauerman <alicia@eta.im> <allydevour@me.com>
 Allen Sun <allensun.shl@alibaba-inc.com> <allen.sun@daocloud.io>
 Allen Sun <allensun.shl@alibaba-inc.com> <shlallen1990@gmail.com>
@@ -380,6 +382,8 @@ Nathan LeClaire <nathan.leclaire@docker.com> <nathan.leclaire@gmail.com>
 Nathan LeClaire <nathan.leclaire@docker.com> <nathanleclaire@gmail.com>
 Neil Horman <nhorman@tuxdriver.com> <nhorman@hmswarspite.think-freely.org>
 Nick Russo <nicholasjamesrusso@gmail.com> <nicholasrusso@icloud.com>
+Nick Santos <nick.santos@docker.com>
+Nick Santos <nick.santos@docker.com> <nick@tilt.dev>
 Nicolas Borboën <ponsfrilus@gmail.com> <ponsfrilus@users.noreply.github.com>
 Nicolas De Loof <nicolas.deloof@gmail.com>
 Nigel Poulton <nigelpoulton@hotmail.com>
@@ -446,6 +450,7 @@ Solomon Hykes <solomon@docker.com> <solomon.hykes@dotcloud.com>
 Solomon Hykes <solomon@docker.com> <solomon@dotcloud.com>
 Soshi Katsuta <soshi.katsuta@gmail.com>
 Soshi Katsuta <soshi.katsuta@gmail.com> <katsuta_soshi@cyberagent.co.jp>
+Spring Lee <xi.shuai@outlook.com>
 Sridhar Ratnakumar <sridharr@activestate.com>
 Sridhar Ratnakumar <sridharr@activestate.com> <github@srid.name>
 Srini Brahmaroutu <srbrahma@us.ibm.com> <sbrahma@us.ibm.com>
