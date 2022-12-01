@@ -77,4 +77,4 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 )
 
-replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221124164242-a913b5ad7ef1+incompatible // 22.06 branch (v23.0.0-dev)
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221201081640-bb2eab21c6db+incompatible // 22.06 branch (v23.0.0-dev)
