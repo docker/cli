@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -58,31 +59,26 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 	}
 
 	if opts.port != "" {
-		port := opts.port
-		proto := "tcp"
-		parts := strings.SplitN(port, "/", 2)
-
-		if len(parts) == 2 && len(parts[1]) != 0 {
-			port = parts[0]
-			proto = parts[1]
+		port, proto, _ := strings.Cut(opts.port, "/")
+		if proto == "" {
+			proto = "tcp"
 		}
-		natPort := port + "/" + proto
-		newP, err := nat.NewPort(proto, port)
-		if err != nil {
-			return err
+		if _, err = strconv.ParseUint(port, 10, 16); err != nil {
+			return errors.Wrapf(err, "Error: invalid port (%s)", port)
 		}
-		if frontends, exists := c.NetworkSettings.Ports[newP]; exists && frontends != nil {
-			for _, frontend := range frontends {
-				fmt.Fprintln(dockerCli.Out(), net.JoinHostPort(frontend.HostIP, frontend.HostPort))
-			}
-			return nil
+		frontends, exists := c.NetworkSettings.Ports[nat.Port(port+"/"+proto)]
+		if !exists || frontends == nil {
+			return errors.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
 		}
-		return errors.Errorf("Error: No public port '%s' published for %s", natPort, opts.container)
+		for _, frontend := range frontends {
+			_, _ = fmt.Fprintln(dockerCli.Out(), net.JoinHostPort(frontend.HostIP, frontend.HostPort))
+		}
+		return nil
 	}
 
 	for from, frontends := range c.NetworkSettings.Ports {
 		for _, frontend := range frontends {
-			fmt.Fprintf(dockerCli.Out(), "%s -> %s\n", from, net.JoinHostPort(frontend.HostIP, frontend.HostPort))
+			_, _ = fmt.Fprintf(dockerCli.Out(), "%s -> %s\n", from, net.JoinHostPort(frontend.HostIP, frontend.HostPort))
 		}
 	}
 
