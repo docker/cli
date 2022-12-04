@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 
-FROM alpine:3.14 AS gen
+ARG ALPINE_VERSION=3.16
+
+FROM alpine:${ALPINE_VERSION} AS gen
 RUN apk add --no-cache bash git
 WORKDIR /src
 RUN --mount=type=bind,target=. \
