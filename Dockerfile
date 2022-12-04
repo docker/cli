@@ -2,11 +2,12 @@
 
 ARG BASE_VARIANT=alpine
 ARG GO_VERSION=1.18.8
+ARG ALPINE_VERSION=3.16
 ARG XX_VERSION=1.1.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS build-base-alpine
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
 COPY --from=xx / /
 RUN apk add --no-cache clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
