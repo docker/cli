@@ -1,29 +1,40 @@
-variable "GO_VERSION" {
-    default = "1.19.3"
-}
-variable "VERSION" {
-    default = ""
-}
-variable "USE_GLIBC" {
-    default = ""
-}
-variable "STRIP_TARGET" {
-    default = ""
-}
+variable "GO_VERSION" {}
+variable "VERSION" {}
+variable "USE_GLIBC" {}
+variable "STRIP_TARGET" {}
 variable "IMAGE_NAME" {
     default = "docker-cli"
 }
 
 # Sets the name of the company that produced the windows binary.
-variable "PACKAGER_NAME" {
-    default = ""
+variable "PACKAGER_NAME" {}
+
+variable "binary_args" {
+    default = {}
+}
+
+variable "go_version" {
+    default = GO_VERSION != "" ? { GO_VERSION = GO_VERSION } : {}
+}
+
+variable "go_strip" {
+    default = STRIP_TARGET != "" ? { GO_STRIP = STRIP_TARGET } : {}
+}
+
+variable "variant" {
+    default = USE_GLIBC != "" ? { BASE_VARIANT = "bullseye" } : {}
+}
+
+variable "version" {
+    default = VERSION != "" ? { VERSION = VERSION } : {}
+}
+
+variable "packager_name" {
+    default = PACKAGER_NAME != "" ? { PACKAGER_NAME = PACKAGER_NAME } : {}
 }
 
 target "_common" {
-    args = {
-        GO_VERSION = GO_VERSION
-        BUILDKIT_CONTEXT_KEEP_GIT_DIR = 1
-    }
+    args = merge(go_version, { BUILDKIT_CONTEXT_KEEP_GIT_DIR = 1 })
 }
 
 target "_platforms" {
@@ -51,12 +62,7 @@ target "binary" {
     target = "binary"
     platforms = ["local"]
     output = ["build"]
-    args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
-        VERSION = VERSION
-        PACKAGER_NAME = PACKAGER_NAME
-        GO_STRIP = STRIP_TARGET
-    }
+    args = merge(go_strip, variant, version, packager_name)
 }
 
 target "dynbinary" {
@@ -71,11 +77,7 @@ target "plugins" {
     target = "plugins"
     platforms = ["local"]
     output = ["build"]
-    args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
-        VERSION = VERSION
-        GO_STRIP = STRIP_TARGET
-    }
+    args = merge(go_strip, variant, version)
 }
 
 target "cross" {
@@ -154,8 +156,5 @@ target "e2e-image" {
     target = "e2e"
     output = ["type=docker"]
     tags = ["${IMAGE_NAME}"]
-    args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
-        VERSION = VERSION
-    }
+    args = merge(go_version, variant, version)
 }
