@@ -30,7 +30,7 @@ func RunDeploy(dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Con
 	}
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
-	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
+	if versions.LessThan(dockerCli.CurrentVersion(), "1.30") {
 		opts.ResolveImage = ResolveImageNever
 	}
 
