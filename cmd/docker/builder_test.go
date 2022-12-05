@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/internal/test/output"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 )
@@ -63,7 +66,11 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			}
 
 			var b bytes.Buffer
-			dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(&b))
+			dockerCli, err := command.NewDockerCli(
+				command.WithAPIClient(&fakeClient{}),
+				command.WithInputStream(discard),
+				command.WithCombinedStreams(&b),
+			)
 			assert.NilError(t, err)
 			assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 
@@ -107,6 +114,14 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 	}
 }
 
+type fakeClient struct {
+	client.Client
+}
+
+func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
+	return types.Ping{OSType: "linux"}, nil
+}
+
 func TestBuildkitDisabled(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
@@ -117,7 +132,11 @@ func TestBuildkitDisabled(t *testing.T) {
 
 	b := bytes.NewBuffer(nil)
 
-	dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(b))
+	dockerCli, err := command.NewDockerCli(
+		command.WithAPIClient(&fakeClient{}),
+		command.WithInputStream(discard),
+		command.WithCombinedStreams(b),
+	)
 	assert.NilError(t, err)
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
@@ -147,7 +166,11 @@ func TestBuilderBroken(t *testing.T) {
 
 	b := bytes.NewBuffer(nil)
 
-	dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(b))
+	dockerCli, err := command.NewDockerCli(
+		command.WithAPIClient(&fakeClient{}),
+		command.WithInputStream(discard),
+		command.WithCombinedStreams(b),
+	)
 	assert.NilError(t, err)
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
@@ -180,7 +203,11 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 
 	b := bytes.NewBuffer(nil)
 
-	dockerCli, err := command.NewDockerCli(command.WithInputStream(discard), command.WithCombinedStreams(b))
+	dockerCli, err := command.NewDockerCli(
+		command.WithAPIClient(&fakeClient{}),
+		command.WithInputStream(discard),
+		command.WithCombinedStreams(b),
+	)
 	assert.NilError(t, err)
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
