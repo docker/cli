@@ -61,7 +61,11 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 
 	plugin := makeCmd(dockerCli)
 
-	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
+	err = RunPlugin(dockerCli, plugin, meta)
+	if client := dockerCli.Client(); client != nil {
+		client.Close()
+	}
+	if err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)

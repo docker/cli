@@ -255,7 +255,11 @@ func main() {
 	}
 	logrus.SetOutput(dockerCli.Err())
 
-	if err := runDocker(dockerCli); err != nil {
+	err = runDocker(dockerCli)
+	if client := dockerCli.Client(); client != nil {
+		client.Close()
+	}
+	if err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
