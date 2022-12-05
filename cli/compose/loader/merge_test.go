@@ -1237,3 +1237,60 @@ func TestMergeServiceNetworkConfig(t *testing.T) {
 		},
 	)
 }
+
+// issue #3293
+func TestMergeServiceOverrideReplicasZero(t *testing.T) {
+	base := types.ServiceConfig{
+		Name: "someService",
+		Deploy: types.DeployConfig{
+			Replicas: uint64Ptr(3),
+		},
+	}
+	override := types.ServiceConfig{
+		Name: "someService",
+		Deploy: types.DeployConfig{
+			Replicas: uint64Ptr(0),
+		},
+	}
+	services, err := mergeServices([]types.ServiceConfig{base}, []types.ServiceConfig{override})
+	assert.NilError(t, err)
+	assert.Equal(t, len(services), 1)
+	actual := services[0]
+	assert.DeepEqual(
+		t,
+		actual,
+		types.ServiceConfig{
+			Name: "someService",
+			Deploy: types.DeployConfig{
+				Replicas: uint64Ptr(0),
+			},
+		},
+	)
+}
+
+func TestMergeServiceOverrideReplicasNotNil(t *testing.T) {
+	base := types.ServiceConfig{
+		Name: "someService",
+		Deploy: types.DeployConfig{
+			Replicas: uint64Ptr(3),
+		},
+	}
+	override := types.ServiceConfig{
+		Name:   "someService",
+		Deploy: types.DeployConfig{},
+	}
+	services, err := mergeServices([]types.ServiceConfig{base}, []types.ServiceConfig{override})
+	assert.NilError(t, err)
+	assert.Equal(t, len(services), 1)
+	actual := services[0]
+	assert.DeepEqual(
+		t,
+		actual,
+		types.ServiceConfig{
+			Name: "someService",
+			Deploy: types.DeployConfig{
+				Replicas: uint64Ptr(3),
+			},
+		},
+	)
+}
