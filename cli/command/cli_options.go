@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/docker/client"
 	"github.com/moby/term"
 )
 
@@ -83,6 +84,14 @@ func WithContentTrust(enabled bool) DockerCliOption {
 func WithDefaultContextStoreConfig() DockerCliOption {
 	return func(cli *DockerCli) error {
 		cli.contextStoreConfig = DefaultContextStoreConfig()
+		return nil
+	}
+}
+
+// WithAPIClient configures the cli to use the given API client.
+func WithAPIClient(c client.APIClient) DockerCliOption {
+	return func(cli *DockerCli) error {
+		cli.client = c
 		return nil
 	}
 }
