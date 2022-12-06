@@ -416,14 +416,21 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
+		// Important: in the code below, calls to "details.CurrentVersion()" and
+		// "details.ServerInfo()" are deliberately executed inline to make them
+		// be executed "lazily". This is to prevent making a connection with the
+		// daemon to perform a "ping" (even for commands that do not require a
+		// daemon connection).
+		//
+		// See commit b39739123b845f872549e91be184cc583f5b387c for details.
+
 		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.CurrentVersion(), cmdVersion) {
 			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.CurrentVersion())
 		}
-		si := details.ServerInfo()
-		if ost, ok := curr.Annotations["ostype"]; ok && si.OSType != "" && ost != si.OSType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, si.OSType)
+		if ost, ok := curr.Annotations["ostype"]; ok && details.ServerInfo().OSType != "" && ost != details.ServerInfo().OSType {
+			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, details.ServerInfo().OSType)
 		}
-		if _, ok := curr.Annotations["experimental"]; ok && !si.HasExperimental {
+		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())
 		}
 	}
