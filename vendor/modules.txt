@@ -39,7 +39,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v20.10.21+incompatible => github.com/docker/docker v20.10.3-0.20221201203946-b21e8f72f254+incompatible
+# github.com/docker/docker v23.0.0-beta.1+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -400,4 +400,3 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
-# github.com/docker/docker => github.com/docker/docker v20.10.3-0.20221201203946-b21e8f72f254+incompatible
