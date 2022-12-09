@@ -18,34 +18,30 @@ const (
 	builderDefaultPlugin = "buildx"
 	buildxMissingWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
             Install the buildx component to build images with BuildKit:
-            https://docs.docker.com/go/buildx/
-`
+            https://docs.docker.com/go/buildx/`
+
+	buildkitDisabledWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enabled it by removing the DOCKER_BUILDKIT=0
+            environment-variable.`
 
 	buildxMissingError = `ERROR: BuildKit is enabled but the buildx component is missing or broken.
        Install the buildx component to build images with BuildKit:
-       https://docs.docker.com/go/buildx/
-`
+       https://docs.docker.com/go/buildx/`
 )
 
-func newBuilderError(warn bool, err error) error {
-	var errorMsg string
-	if warn {
-		errorMsg = buildxMissingWarning
-	} else {
-		errorMsg = buildxMissingError
-	}
-	if pluginmanager.IsNotFound(err) {
+func newBuilderError(errorMsg string, pluginLoadErr error) error {
+	if pluginmanager.IsNotFound(pluginLoadErr) {
 		return errors.New(errorMsg)
 	}
-	if err != nil {
-		return fmt.Errorf("%w\n\n%s", err, errorMsg)
+	if pluginLoadErr != nil {
+		return fmt.Errorf("%w\n\n%s", pluginLoadErr, errorMsg)
 	}
-	return fmt.Errorf("%s", errorMsg)
+	return errors.New(errorMsg)
 }
 
 //nolint:gocyclo
 func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []string) ([]string, []string, []string, error) {
-	var useLegacy, useBuilder, useAlias bool
+	var buildKitDisabled, useBuilder, useAlias bool
 	var envs []string
 
 	// check DOCKER_BUILDKIT env var is present and
@@ -56,7 +52,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 			return args, osargs, nil, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
 		}
 		if !enabled {
-			useLegacy = true
+			buildKitDisabled = true
 		} else {
 			useBuilder = true
 		}
@@ -84,10 +80,10 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		return args, osargs, nil, nil
 	}
 
-	if useLegacy {
+	if buildKitDisabled {
 		// display warning if not wcow and continue
 		if dockerCli.ServerInfo().OSType != "windows" {
-			_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, nil))
+			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n\n", buildkitDisabledWarning)
 		}
 		return args, osargs, nil, nil
 	}
@@ -98,12 +94,13 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		perr = plugin.Err
 	}
 	if perr != nil {
-		// if builder enforced with DOCKER_BUILDKIT=1, cmd must fail if plugin missing or broken
+		// if builder is enforced with DOCKER_BUILDKIT=1, cmd must fail
+		// if the plugin is missing or broken.
 		if useBuilder {
-			return args, osargs, nil, newBuilderError(false, perr)
+			return args, osargs, nil, newBuilderError(buildxMissingError, perr)
 		}
 		// otherwise, display warning and continue
-		_, _ = fmt.Fprintln(dockerCli.Err(), newBuilderError(true, perr))
+		_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n\n", newBuilderError(buildxMissingWarning, perr))
 		return args, osargs, nil, nil
 	}
 

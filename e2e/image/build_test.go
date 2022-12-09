@@ -36,12 +36,12 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		withWorkingDir(dir))
 	defer icmd.RunCommand("docker", "image", "rm", "myimage")
 
-	const buildxMissingWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
-            Install the buildx component to build images with BuildKit:
-            https://docs.docker.com/go/buildx/
+	const buildkitDisabledWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enabled it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
 `
 
-	result.Assert(t, icmd.Expected{Err: buildxMissingWarning})
+	result.Assert(t, icmd.Expected{Err: buildkitDisabledWarning})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Prefix("Sending build context to Docker daemon"),
 		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:3.6"),

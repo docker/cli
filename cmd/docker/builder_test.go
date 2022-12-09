@@ -155,6 +155,7 @@ func TestBuildkitDisabled(t *testing.T) {
 
 	output.Assert(t, b.String(), map[int]func(string) error{
 		0: output.Suffix("DEPRECATED: The legacy builder is deprecated and will be removed in a future release."),
+		1: output.Suffix("BuildKit is currently disabled; enabled it by removing the DOCKER_BUILDKIT=0"),
 	})
 }
 
