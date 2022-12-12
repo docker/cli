@@ -1,6 +1,7 @@
+[![.github/workflows/azure.yml](https://github.com/Terux101/cli/actions/workflows/azure.yml/badge.svg?branch=master&event=branch_protection_rule)](https://github.com/Terux101/cli/actions/workflows/azure.yml)
+
 [![build status](https://circleci.com/gh/docker/cli.svg?style=shield)](https://circleci.com/gh/docker/cli/tree/master)
-[![Build Status](https://ci.docker.com/public/job/cli/job/master/badge/icon)](https://ci.docker.com/public/job/cli/job/master)
-    
+
 docker/cli
 ==========
 
