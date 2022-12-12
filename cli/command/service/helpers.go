@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service/progress"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/term"
 )
 
 // waitOnService waits for the service to converge. It outputs a progress bar,
@@ -24,7 +25,8 @@ func waitOnService(ctx context.Context, dockerCli command.Cli, serviceID string,
 		return <-errChan
 	}
 
-	err := jsonmessage.DisplayJSONMessagesToStream(pipeReader, dockerCli.Out(), nil)
+	errFD, errIsTerminal := term.GetFdInfo(dockerCli.Err())
+	err := jsonmessage.DisplayJSONMessagesStream(pipeReader, dockerCli.Err(), errFD, errIsTerminal, nil)
 	if err == nil {
 		err = <-errChan
 	}
