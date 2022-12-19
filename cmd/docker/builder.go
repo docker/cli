@@ -21,7 +21,7 @@ const (
             https://docs.docker.com/go/buildx/`
 
 	buildkitDisabledWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
-            BuildKit is currently disabled; enabled it by removing the DOCKER_BUILDKIT=0
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
             environment-variable.`
 
 	buildxMissingError = `ERROR: BuildKit is enabled but the buildx component is missing or broken.
