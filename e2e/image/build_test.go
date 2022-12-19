@@ -37,7 +37,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 	defer icmd.RunCommand("docker", "image", "rm", "myimage")
 
 	const buildkitDisabledWarning = `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
-            BuildKit is currently disabled; enabled it by removing the DOCKER_BUILDKIT=0
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
             environment-variable.
 `
 
