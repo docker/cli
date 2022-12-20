@@ -291,7 +291,7 @@ service with two labels:
 ```console
 $ docker service create \
   --name redis_2 \
-  --label com.example.foo="bar"
+  --label com.example.foo="bar" \
   --label bar=baz \
   redis:3.0.6
 ```
