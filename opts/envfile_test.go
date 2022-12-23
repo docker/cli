@@ -3,9 +3,11 @@ package opts
 import (
 	"bufio"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
+
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func tmpFileWithContent(t *testing.T, content string) string {
@@ -35,6 +37,15 @@ func TestParseEnvFileGoodFile(t *testing.T) {
 _foobar=foobaz
 with.dots=working
 and_underscore=working too
+single_quotes='quotes working'
+double_quotes="quotes working"
+mixed_quotes1='quotes working"
+mixed_quotes2="quotes working'
+nested_quotes1="'quotes working'"
+nested_quotes2='"quotes working"'
+whitespace1=    string with whitespace    
+whitespace2='    string with single-quoted whitespace    '
+whitespace3="    string with double-quoted whitespace    "
 `
 	// Adding a newline + a line with pure whitespace.
 	// This is being done like this instead of the block above
@@ -55,10 +66,18 @@ and_underscore=working too
 		"_foobar=foobaz",
 		"with.dots=working",
 		"and_underscore=working too",
+		"single_quotes=quotes working",
+		"double_quotes=quotes working",
+		`mixed_quotes1='quotes working"`,
+		`mixed_quotes2="quotes working'`,
+		`nested_quotes1='quotes working'`,
+		`nested_quotes2="quotes working"`,
+		`whitespace1=    string with whitespace    `,
+		`whitespace2=    string with single-quoted whitespace    `,
+		`whitespace3=    string with double-quoted whitespace    `,
 	}
-
-	if !reflect.DeepEqual(lines, expectedLines) {
-		t.Fatal("lines not equal to expectedLines")
+	for i, expected := range expectedLines {
+		assert.Check(t, is.Equal(lines[i], expected))
 	}
 }
 

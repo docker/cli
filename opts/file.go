@@ -58,8 +58,8 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 			}
 
 			if len(data) > 1 {
-				// pass the value through, no trimming
-				lines = append(lines, fmt.Sprintf("%s=%s", variable, data[1]))
+				// pass the value through, trimming leading and trailing quotes
+				lines = append(lines, variable+"="+trimQuotes(data[1]))
 			} else {
 				var value string
 				var present bool
