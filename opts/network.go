@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -13,6 +14,7 @@ const (
 	networkOptIPv4Address = "ip"
 	networkOptIPv6Address = "ip6"
 	driverOpt             = "driver-opt"
+	networkPriority       = "priority"
 )
 
 // NetworkAttachmentOpts represents the network options for endpoint creation
@@ -24,6 +26,7 @@ type NetworkAttachmentOpts struct {
 	IPv4Address  string
 	IPv6Address  string
 	LinkLocalIPs []string // TODO add support for LinkLocalIPs in the csv notation of `--network` ?
+	Priority     int
 }
 
 // NetworkOpt represents a network config in swarm mode.
@@ -76,6 +79,12 @@ func (n *NetworkOpt) Set(value string) error {
 				} else {
 					return err
 				}
+			case networkPriority:
+				prior, err := strconv.Atoi(value)
+				if err != nil {
+					return fmt.Errorf("invalid priority value %s", value)
+				}
+				netOpt.Priority = prior
 			default:
 				return fmt.Errorf("invalid field key %s", key)
 			}
