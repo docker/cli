@@ -118,6 +118,11 @@ func Service(
 		}
 	}
 
+	devices, err := convertDevices(service.Devices)
+	if err != nil {
+		return swarm.ServiceSpec{}, err
+	}
+
 	capAdd, capDrop := opts.EffectiveCapAddCapDrop(service.CapAdd, service.CapDrop)
 
 	serviceSpec := swarm.ServiceSpec{
@@ -153,6 +158,7 @@ func Service(
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         convertUlimits(service.Ulimits),
+				Devices:         devices,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -718,4 +724,31 @@ func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units
 		return ulimits[i].Name < ulimits[j].Name
 	})
 	return ulimits
+}
+
+func convertDevices(devices []string) ([]container.DeviceMapping, error) {
+	newDevices := make([]container.DeviceMapping, len(devices))
+	for i, device := range devices {
+		parts := strings.Split(device, ":")
+		if len(parts) < 1 || len(parts) > 3 {
+			return nil, errors.New("failed to parse device")
+		}
+
+		mapping := container.DeviceMapping{
+			PathOnHost:      parts[0],
+			PathInContainer: parts[0],
+		}
+
+		if len(parts) > 1 {
+			mapping.PathInContainer = parts[1]
+		}
+
+		if len(parts) == 3 {
+			mapping.CgroupPermissions = parts[2]
+		}
+
+		newDevices[i] = mapping
+	}
+
+	return newDevices, nil
 }

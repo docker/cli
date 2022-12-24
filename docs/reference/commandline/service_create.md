@@ -14,6 +14,7 @@ Create a new service
 | `--container-label`                                 | `list`            |              | Container labels                                                                                    |
 | `--credential-spec`                                 | `credential-spec` |              | Credential spec for managed service account (Windows only)                                          |
 | `-d`, `--detach`                                    |                   |              | Exit immediately instead of waiting for the service to converge                                     |
+| `--device`                                    | string                  |              | Add devices                                     |
 | `--dns`                                             | `list`            |              | Set custom DNS servers                                                                              |
 | `--dns-option`                                      | `list`            |              | Set DNS options                                                                                     |
 | `--dns-search`                                      | `list`            |              | Set custom DNS search domains                                                                       |
@@ -144,12 +145,12 @@ $ docker service create --name redis --replicas=5 redis:3.0.6
 4cdgfyky7ozwh3htjfw0d12qv
 ```
 
-The above command sets the *desired* number of tasks for the service. Even
+The above command sets the _desired_ number of tasks for the service. Even
 though the command returns immediately, actual scaling of the service may take
-some time. The `REPLICAS` column shows both the *actual* and *desired* number
+some time. The `REPLICAS` column shows both the _actual_ and _desired_ number
 of replica tasks for the service.
 
-In the following example the desired state is  `5` replicas, but the current
+In the following example the desired state is `5` replicas, but the current
 number of `RUNNING` tasks is `3`:
 
 ```console
@@ -406,7 +407,6 @@ volumes in a service:
 
 The following options can only be used for bind mounts (`type=bind`):
 
-
 <table>
   <tr>
     <th>Option</th>
@@ -461,25 +461,25 @@ The `bind-propagation` option defaults to `rprivate` for both bind mounts and
 volume mounts, and is only configurable for bind mounts. In other words, named
 volumes do not support bind propagation.
 
-- **`shared`**: Sub-mounts of the original mount are exposed to replica mounts,
-                and sub-mounts of replica mounts are also propagated to the
-                original mount.
-- **`slave`**: similar to a shared mount, but only in one direction. If the
-               original mount exposes a sub-mount, the replica mount can see it.
-               However, if the replica mount exposes a sub-mount, the original
-               mount cannot see it.
-- **`private`**: The mount is private. Sub-mounts within it are not exposed to
-                 replica mounts, and sub-mounts of replica mounts are not
-                 exposed to the original mount.
-- **`rshared`**: The same as shared, but the propagation also extends to and from
-                 mount points nested within any of the original or replica mount
-                 points.
-- **`rslave`**: The same as `slave`, but the propagation also extends to and from
-                 mount points nested within any of the original or replica mount
-                 points.
-- **`rprivate`**: The default. The same as `private`, meaning that no mount points
-                  anywhere within the original or replica mount points propagate
-                  in either direction.
+-   **`shared`**: Sub-mounts of the original mount are exposed to replica mounts,
+    and sub-mounts of replica mounts are also propagated to the
+    original mount.
+-   **`slave`**: similar to a shared mount, but only in one direction. If the
+    original mount exposes a sub-mount, the replica mount can see it.
+    However, if the replica mount exposes a sub-mount, the original
+    mount cannot see it.
+-   **`private`**: The mount is private. Sub-mounts within it are not exposed to
+    replica mounts, and sub-mounts of replica mounts are not
+    exposed to the original mount.
+-   **`rshared`**: The same as shared, but the propagation also extends to and from
+    mount points nested within any of the original or replica mount
+    points.
+-   **`rslave`**: The same as `slave`, but the propagation also extends to and from
+    mount points nested within any of the original or replica mount
+    points.
+-   **`rprivate`**: The default. The same as `private`, meaning that no mount points
+    anywhere within the original or replica mount points propagate
+    in either direction.
 
 For more information about bind propagation, see the
 [Linux kernel documentation for shared subtree](https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt).
@@ -487,7 +487,6 @@ For more information about bind propagation, see the
 #### Options for named volumes
 
 The following options can only be used for named volumes (`type=volume`):
-
 
 <table>
   <tr>
@@ -542,11 +541,9 @@ The following options can only be used for named volumes (`type=volume`):
   </tr>
 </table>
 
-
 #### Options for tmpfs
 
 The following options can only be used for tmpfs mounts (`type=tmpfs`);
-
 
 <table>
   <tr>
@@ -563,26 +560,25 @@ The following options can only be used for tmpfs mounts (`type=tmpfs`);
   </tr>
 </table>
 
-
 #### Differences between "--mount" and "--volume"
 
 The `--mount` flag supports most options that are supported by the `-v`
 or `--volume` flag for `docker run`, with some important exceptions:
 
-- The `--mount` flag allows you to specify a volume driver and volume driver
-  options *per volume*, without creating the volumes in advance. In contrast,
-  `docker run` allows you to specify a single volume driver which is shared
-  by all volumes, using the `--volume-driver` flag.
+-   The `--mount` flag allows you to specify a volume driver and volume driver
+    options _per volume_, without creating the volumes in advance. In contrast,
+    `docker run` allows you to specify a single volume driver which is shared
+    by all volumes, using the `--volume-driver` flag.
 
-- The `--mount` flag allows you to specify custom metadata ("labels") for a volume,
-  before the volume is created.
+-   The `--mount` flag allows you to specify custom metadata ("labels") for a volume,
+    before the volume is created.
 
-- When you use `--mount` with `type=bind`, the host-path must refer to an *existing*
-  path on the host. The path will not be created for you and the service will fail
-  with an error if the path does not exist.
+-   When you use `--mount` with `type=bind`, the host-path must refer to an _existing_
+    path on the host. The path will not be created for you and the service will fail
+    with an error if the path does not exist.
 
-- The `--mount` flag does not allow you to relabel a volume with `Z` or `z` flags,
-  which are used for `selinux` labeling.
+-   The `--mount` flag does not allow you to relabel a volume with `Z` or `z` flags,
+    which are used for `selinux` labeling.
 
 #### Create a service using a named volume
 
@@ -606,7 +602,7 @@ the container.
 
 Be aware that the default ("local") volume is a locally scoped volume driver.
 This means that depending on where a task is deployed, either that task gets a
-*new* volume named "my-volume", or shares the same "my-volume" with other tasks
+_new_ volume named "my-volume", or shares the same "my-volume" with other tasks
 of the same service. Multiple containers writing to a single shared volume can
 cause data corruption if the software running inside the container is not
 designed to handle concurrent processes writing to the same location. Also take
@@ -667,7 +663,7 @@ expression (AND match). Constraints can match node or Docker Engine labels as
 follows:
 
 | node attribute       | matches                        | example                                       |
-|----------------------|--------------------------------|-----------------------------------------------|
+| -------------------- | ------------------------------ | --------------------------------------------- |
 | `node.id`            | Node ID                        | `node.id==2ivku8v2gvtg4`                      |
 | `node.hostname`      | Node hostname                  | `node.hostname!=node-2`                       |
 | `node.role`          | Node role (`manager`/`worker`) | `node.role==manager`                          |
@@ -747,9 +743,9 @@ nodes in the swarm, one third of the tasks will be placed on the nodes
 associated with each value. This is true even if there are more nodes with one
 value than another. For example, consider the following set of nodes:
 
-- Three nodes with `node.labels.datacenter=east`
-- Two nodes with `node.labels.datacenter=south`
-- One node with `node.labels.datacenter=west`
+-   Three nodes with `node.labels.datacenter=east`
+-   Two nodes with `node.labels.datacenter=south`
+-   One node with `node.labels.datacenter=west`
 
 Since we are spreading over the values of the `datacenter` label and the
 service has 9 replicas, 3 replicas will end up in each datacenter. There are
@@ -846,15 +842,15 @@ for those "peaks") results in 400MB of memory being wasted most of the time.
 
 In short, you can take a more conservative or more flexible approach:
 
-- **Conservative**: reserve 500MB, and limit to 500MB. Basically you're now
-  treating the service containers as VMs, and you may be losing a big advantage
-  containers, which is greater density of services per host.
+-   **Conservative**: reserve 500MB, and limit to 500MB. Basically you're now
+    treating the service containers as VMs, and you may be losing a big advantage
+    containers, which is greater density of services per host.
 
-- **Flexible**: limit to 500MB in the assumption that if the service requires
-  more than 500MB, it is malfunctioning. Reserve something between the 100MB
-  "normal" requirement and the 500MB "peak" requirement". This assumes that when
-  this service is at "peak", other services or non-container workloads probably
-  won't be.
+-   **Flexible**: limit to 500MB in the assumption that if the service requires
+    more than 500MB, it is malfunctioning. Reserve something between the 100MB
+    "normal" requirement and the 500MB "peak" requirement". This assumes that when
+    this service is at "peak", other services or non-container workloads probably
+    won't be.
 
 The approach you take depends heavily on the memory-usage patterns of your
 workloads. You should test under normal and peak conditions before settling
@@ -1009,7 +1005,6 @@ registry value must be located in:
 
     HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Virtualization\Containers\CredentialSpecs
 
-
 ### Create services using templates
 
 You can use templates for some flags of `service create`, using the syntax
@@ -1017,12 +1012,11 @@ provided by the Go's [text/template](https://golang.org/pkg/text/template/) pack
 
 The supported flags are the following :
 
-- `--hostname`
-- `--mount`
-- `--env`
+-   `--hostname`
+-   `--mount`
+-   `--env`
 
 Valid placeholders for the Go template are listed below:
-
 
 <table>
   <tr>
@@ -1063,7 +1057,6 @@ Valid placeholders for the Go template are listed below:
   </tr>
 </table>
 
-
 #### Template example
 
 In this example, we are going to set the template of the created containers based on the
@@ -1098,9 +1091,10 @@ $ docker service create --name myservice --isolation=process microsoft/nanoserve
 ```
 
 Supported isolation modes on Windows are:
-- `default`: use default settings specified on the node running the task
-- `process`: use process isolation (Windows server only)
-- `hyperv`: use Hyper-V isolation
+
+-   `default`: use default settings specified on the node running the task
+-   `process`: use process isolation (Windows server only)
+-   `hyperv`: use Hyper-V isolation
 
 ### <a name="generic-resources"></a> Create services requesting Generic Resources (--generic-resources)
 
@@ -1136,12 +1130,12 @@ command `true`, which will return 0 and then exit.
 Though Jobs are ultimately a different kind of service, they a couple of
 caveats compared to other services:
 
-- None of the update or rollback configuration options are valid.  Jobs can be
-  updated, but cannot be rolled out or rolled back, making these configuration
-  options moot.
-- Jobs are never restarted on reaching the `Complete` state. This means that
-  for jobs, setting `--restart-condition` to `any` is the same as setting it to
-  `on-failure`.
+-   None of the update or rollback configuration options are valid. Jobs can be
+    updated, but cannot be rolled out or rolled back, making these configuration
+    options moot.
+-   Jobs are never restarted on reaching the `Complete` state. This means that
+    for jobs, setting `--restart-condition` to `any` is the same as setting it to
+    `on-failure`.
 
 Jobs are available in both replicated and global modes.
 
@@ -1178,13 +1172,13 @@ constraints has a Completed task.
 
 ## Related commands
 
-* [service inspect](service_inspect.md)
-* [service logs](service_logs.md)
-* [service ls](service_ls.md)
-* [service ps](service_ps.md)
-* [service rm](service_rm.md)
-* [service rollback](service_rollback.md)
-* [service scale](service_scale.md)
-* [service update](service_update.md)
+-   [service inspect](service_inspect.md)
+-   [service logs](service_logs.md)
+-   [service ls](service_ls.md)
+-   [service ps](service_ps.md)
+-   [service rm](service_rm.md)
+-   [service rollback](service_rollback.md)
+-   [service scale](service_scale.md)
+-   [service update](service_update.md)
 
 <style>table tr > td:first-child { white-space: nowrap;}</style>

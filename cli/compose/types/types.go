@@ -11,7 +11,6 @@ var UnsupportedProperties = []string{
 	"build",
 	"cgroupns_mode",
 	"cgroup_parent",
-	"devices",
 	"domainname",
 	"external_links",
 	"ipc",

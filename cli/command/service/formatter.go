@@ -116,6 +116,13 @@ Ulimits:
 {{- range $k, $v := .ContainerUlimits }}
  {{ $k }}: {{ $v }}
 {{- end }}{{ end }}
+{{- if .ContainerDevices }}
+Devices:
+{{- range $port := .ContainerDevices }}
+ PathOnHost = {{ $port.PathOnHost }}
+  PathInContainer = {{ $port.PathInContainer }}
+  CgroupPermissions = {{ $port.CgroupPermissions }}
+{{- end }} {{ end -}}
 {{- if .ContainerMounts }}
 Mounts:
 {{- end }}
@@ -485,6 +492,15 @@ func (ctx *serviceInspectContext) ContainerUlimits() map[string]string {
 
 func (ctx *serviceInspectContext) HasContainerUlimits() bool {
 	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Ulimits) > 0
+}
+
+
+func (ctx *serviceInspectContext) ContainerDevices() []container.DeviceMapping {
+	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Devices;
+}
+
+func (ctx *serviceInspectContext) HasContainerDevices() bool {
+	return len(ctx.Service.Spec.TaskTemplate.ContainerSpec.Devices) > 0
 }
 
 func (ctx *serviceInspectContext) HasResources() bool {
