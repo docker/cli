@@ -1,0 +1,17 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.autoImportUserSymbols": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.exclude": [
+        "tahug.atlassian.com",
+        "https://pouri88.applicantstack.com/public/login",
+        "https://github.com/Terux101/Hello-world.git"
+    ],
+    "python.analysis.ignore": [
+        "./config.sh --url https://github.com/tehux/node --token ANH6YAQPQRQ3SOJC3NK3GB3DTLVHE"
+    ],
+    "python.analysis.inlayHints.variableTypes": true,
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.analysis.logLevel": "Trace"
+}
