@@ -77,7 +77,7 @@ func (opt *ThrottledeviceOpt) Set(val string) error {
 		}
 		value = v
 	}
-	(opt.values) = append((opt.values), value)
+	opt.values = append(opt.values, value)
 	return nil
 }
 
@@ -93,10 +93,7 @@ func (opt *ThrottledeviceOpt) String() string {
 
 // GetList returns a slice of pointers to ThrottleDevices.
 func (opt *ThrottledeviceOpt) GetList() []*blkiodev.ThrottleDevice {
-	var throttledevice []*blkiodev.ThrottleDevice
-	throttledevice = append(throttledevice, opt.values...)
-
-	return throttledevice
+	return append([]*blkiodev.ThrottleDevice{}, opt.values...)
 }
 
 // Type returns the option type

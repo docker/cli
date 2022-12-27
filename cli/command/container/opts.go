@@ -390,7 +390,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	)
 
 	if len(copts.Args) > 0 {
-		runCmd = strslice.StrSlice(copts.Args)
+		runCmd = copts.Args
 	}
 
 	if copts.entrypoint != "" {
@@ -529,13 +529,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if haveHealthSettings {
 			return nil, errors.Errorf("--no-healthcheck conflicts with --health-* options")
 		}
-		test := strslice.StrSlice{"NONE"}
-		healthConfig = &container.HealthConfig{Test: test}
+		healthConfig = &container.HealthConfig{Test: strslice.StrSlice{"NONE"}}
 	} else if haveHealthSettings {
 		var probe strslice.StrSlice
 		if copts.healthCmd != "" {
-			args := []string{"CMD-SHELL", copts.healthCmd}
-			probe = strslice.StrSlice(args)
+			probe = []string{"CMD-SHELL", copts.healthCmd}
 		}
 		if copts.healthInterval < 0 {
 			return nil, errors.Errorf("--health-interval cannot be negative")

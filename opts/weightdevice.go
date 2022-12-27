@@ -59,7 +59,7 @@ func (opt *WeightdeviceOpt) Set(val string) error {
 		}
 		value = v
 	}
-	(opt.values) = append((opt.values), value)
+	opt.values = append(opt.values, value)
 	return nil
 }
 
