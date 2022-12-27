@@ -20,16 +20,17 @@ func ParseLogDetails(details string) (map[string]string, error) {
 	pairs := strings.Split(details, ",")
 	detailsMap := make(map[string]string, len(pairs))
 	for _, pair := range pairs {
-		p := strings.SplitN(pair, "=", 2)
-		// if there is no equals sign, we will only get 1 part back
-		if len(p) != 2 {
+		k, v, ok := strings.Cut(pair, "=")
+		if !ok || k == "" {
+			// missing equal sign, or no key.
 			return nil, errors.New("invalid details format")
 		}
-		k, err := url.QueryUnescape(p[0])
+		var err error
+		k, err = url.QueryUnescape(k)
 		if err != nil {
 			return nil, err
 		}
-		v, err := url.QueryUnescape(p[1])
+		v, err = url.QueryUnescape(v)
 		if err != nil {
 			return nil, err
 		}
