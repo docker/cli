@@ -81,13 +81,13 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 func convertDriverOpt(opts []string) (map[string]string, error) {
 	driverOpt := make(map[string]string)
 	for _, opt := range opts {
-		parts := strings.SplitN(opt, "=", 2)
-		if len(parts) != 2 {
+		k, v, ok := strings.Cut(opt, "=")
+		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
+		k = strings.TrimSpace(k)
+		if !ok || k == "" {
 			return nil, fmt.Errorf("invalid key/value pair format in driver options")
 		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		driverOpt[key] = value
+		driverOpt[k] = strings.TrimSpace(v)
 	}
 	return driverOpt, nil
 }
