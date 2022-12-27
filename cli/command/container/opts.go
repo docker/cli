@@ -598,24 +598,20 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		ExposedPorts: ports,
 		User:         copts.user,
 		Tty:          copts.tty,
-		// TODO: deprecated, it comes from -n, --networking
-		// it's still needed internally to set the network to disabled
-		// if e.g. bridge is none in daemon opts, and in inspect
-		NetworkDisabled: false,
-		OpenStdin:       copts.stdin,
-		AttachStdin:     attachStdin,
-		AttachStdout:    attachStdout,
-		AttachStderr:    attachStderr,
-		Env:             envVariables,
-		Cmd:             runCmd,
-		Image:           copts.Image,
-		Volumes:         volumes,
-		MacAddress:      copts.macAddress,
-		Entrypoint:      entrypoint,
-		WorkingDir:      copts.workingDir,
-		Labels:          opts.ConvertKVStringsToMap(labels),
-		StopSignal:      copts.stopSignal,
-		Healthcheck:     healthConfig,
+		OpenStdin:    copts.stdin,
+		AttachStdin:  attachStdin,
+		AttachStdout: attachStdout,
+		AttachStderr: attachStderr,
+		Env:          envVariables,
+		Cmd:          runCmd,
+		Image:        copts.Image,
+		Volumes:      volumes,
+		MacAddress:   copts.macAddress,
+		Entrypoint:   entrypoint,
+		WorkingDir:   copts.workingDir,
+		Labels:       opts.ConvertKVStringsToMap(labels),
+		StopSignal:   copts.stopSignal,
+		Healthcheck:  healthConfig,
 	}
 	if flags.Changed("stop-timeout") {
 		config.StopTimeout = &copts.stopTimeout
