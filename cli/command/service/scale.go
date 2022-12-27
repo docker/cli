@@ -43,7 +43,7 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	for _, arg := range args {
-		if parts := strings.SplitN(arg, "=", 2); len(parts) != 2 {
+		if k, v, ok := strings.Cut(arg, "="); !ok || k == "" || v == "" {
 			return errors.Errorf(
 				"Invalid scale specifier '%s'.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
 				arg,
@@ -62,8 +62,7 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 	ctx := context.Background()
 
 	for _, arg := range args {
-		parts := strings.SplitN(arg, "=", 2)
-		serviceID, scaleStr := parts[0], parts[1]
+		serviceID, scaleStr, _ := strings.Cut(arg, "=")
 
 		// validate input arg scale number
 		scale, err := strconv.ParseUint(scaleStr, 10, 64)
