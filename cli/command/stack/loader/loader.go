@@ -104,12 +104,12 @@ func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 func buildEnvironment(env []string) (map[string]string, error) {
 	result := make(map[string]string, len(env))
 	for _, s := range env {
-		// if value is empty, s is like "K=", not "K".
-		if !strings.Contains(s, "=") {
+		k, v, ok := strings.Cut(s, "=")
+		if !ok || k == "" {
 			return result, errors.Errorf("unexpected environment %q", s)
 		}
-		kv := strings.SplitN(s, "=", 2)
-		result[kv[0]] = kv[1]
+		// value may be set, but empty if "s" is like "K=", not "K".
+		result[k] = v
 	}
 	return result, nil
 }
