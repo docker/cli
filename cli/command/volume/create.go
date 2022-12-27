@@ -165,9 +165,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
 			for _, segment := range strings.Split(top, ",") {
-				parts := strings.SplitN(segment, "=", 2)
 				// TODO(dperny): validate topology syntax
-				segments[parts[0]] = parts[1]
+				k, v, _ := strings.Cut(segment, "=")
+				segments[k] = v
 			}
 			topology.Requisite = append(
 				topology.Requisite,
@@ -180,9 +180,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
 			for _, segment := range strings.Split(top, ",") {
-				parts := strings.SplitN(segment, "=", 2)
 				// TODO(dperny): validate topology syntax
-				segments[parts[0]] = parts[1]
+				k, v, _ := strings.Cut(segment, "=")
+				segments[k] = v
 			}
 
 			topology.Preferred = append(
