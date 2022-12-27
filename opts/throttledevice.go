@@ -14,14 +14,15 @@ type ValidatorThrottleFctType func(val string) (*blkiodev.ThrottleDevice, error)
 
 // ValidateThrottleBpsDevice validates that the specified string has a valid device-rate format.
 func ValidateThrottleBpsDevice(val string) (*blkiodev.ThrottleDevice, error) {
-	split := strings.SplitN(val, ":", 2)
-	if len(split) != 2 {
+	k, v, ok := strings.Cut(val, ":")
+	if !ok || k == "" {
 		return nil, fmt.Errorf("bad format: %s", val)
 	}
-	if !strings.HasPrefix(split[0], "/dev/") {
+	// TODO(thaJeztah): should we really validate this on the client?
+	if !strings.HasPrefix(k, "/dev/") {
 		return nil, fmt.Errorf("bad format for device path: %s", val)
 	}
-	rate, err := units.RAMInBytes(split[1])
+	rate, err := units.RAMInBytes(v)
 	if err != nil {
 		return nil, fmt.Errorf("invalid rate for device: %s. The correct format is <device-path>:<number>[<unit>]. Number must be a positive integer. Unit is optional and can be kb, mb, or gb", val)
 	}
@@ -30,26 +31,27 @@ func ValidateThrottleBpsDevice(val string) (*blkiodev.ThrottleDevice, error) {
 	}
 
 	return &blkiodev.ThrottleDevice{
-		Path: split[0],
+		Path: v,
 		Rate: uint64(rate),
 	}, nil
 }
 
 // ValidateThrottleIOpsDevice validates that the specified string has a valid device-rate format.
 func ValidateThrottleIOpsDevice(val string) (*blkiodev.ThrottleDevice, error) {
-	split := strings.SplitN(val, ":", 2)
-	if len(split) != 2 {
+	k, v, ok := strings.Cut(val, ":")
+	if !ok || k == "" {
 		return nil, fmt.Errorf("bad format: %s", val)
 	}
-	if !strings.HasPrefix(split[0], "/dev/") {
+	// TODO(thaJeztah): should we really validate this on the client?
+	if !strings.HasPrefix(k, "/dev/") {
 		return nil, fmt.Errorf("bad format for device path: %s", val)
 	}
-	rate, err := strconv.ParseUint(split[1], 10, 64)
+	rate, err := strconv.ParseUint(v, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid rate for device: %s. The correct format is <device-path>:<number>. Number must be a positive integer", val)
 	}
 
-	return &blkiodev.ThrottleDevice{Path: split[0], Rate: rate}, nil
+	return &blkiodev.ThrottleDevice{Path: k, Rate: rate}, nil
 }
 
 // ThrottledeviceOpt defines a map of ThrottleDevices
