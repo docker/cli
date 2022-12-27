@@ -175,14 +175,12 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	)
 
 	for _, field := range fields {
-		parts := strings.SplitN(field, "=", 2)
-
-		if len(parts) != 2 {
+		key, value, ok := strings.Cut(field, "=")
+		if !ok {
 			return nil, errors.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
-		key, value := parts[0], parts[1]
-
+		// TODO(thaJeztah): these options should not be case-insensitive.
 		switch strings.ToLower(key) {
 		case "protocol":
 			hasProtocol = true
