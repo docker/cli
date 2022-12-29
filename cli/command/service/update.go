@@ -879,8 +879,8 @@ func removeConfigs(flags *pflag.FlagSet, spec *swarm.ContainerSpec, credSpecName
 }
 
 func envKey(value string) string {
-	kv := strings.SplitN(value, "=", 2)
-	return kv[0]
+	k, _, _ := strings.Cut(value, "=")
+	return k
 }
 
 func buildToRemoveSet(flags *pflag.FlagSet, flag string) map[string]struct{} {
@@ -1174,12 +1174,8 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 	if flags.Changed(flagHostRemove) {
 		extraHostsToRemove := flags.Lookup(flagHostRemove).Value.(*opts.ListOpts).GetAll()
 		for _, entry := range extraHostsToRemove {
-			v := strings.SplitN(entry, ":", 2)
-			if len(v) > 1 {
-				toRemove = append(toRemove, hostMapping{IPAddr: v[1], Host: v[0]})
-			} else {
-				toRemove = append(toRemove, hostMapping{Host: v[0]})
-			}
+			hostName, ipAddr, _ := strings.Cut(entry, ":")
+			toRemove = append(toRemove, hostMapping{IPAddr: ipAddr, Host: hostName})
 		}
 	}
 

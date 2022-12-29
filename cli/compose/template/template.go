@@ -239,9 +239,9 @@ func matchGroups(matches []string, pattern *regexp.Regexp) map[string]string {
 //
 // If the separator is not found, return the string itself, followed by an empty string.
 func partition(s, sep string) (string, string) {
-	if strings.Contains(s, sep) {
-		parts := strings.SplitN(s, sep, 2)
-		return parts[0], parts[1]
+	k, v, ok := strings.Cut(s, sep)
+	if !ok {
+		return s, ""
 	}
-	return s, ""
+	return k, v
 }

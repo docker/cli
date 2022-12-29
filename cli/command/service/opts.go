@@ -93,17 +93,17 @@ func (opts *placementPrefOpts) String() string {
 // Note: in the future strategies other than "spread", may be supported,
 // as well as additional comma-separated options.
 func (opts *placementPrefOpts) Set(value string) error {
-	fields := strings.Split(value, "=")
-	if len(fields) != 2 {
+	strategy, arg, ok := strings.Cut(value, "=")
+	if !ok || strategy == "" {
 		return errors.New(`placement preference must be of the format "<strategy>=<arg>"`)
 	}
-	if fields[0] != "spread" {
-		return errors.Errorf("unsupported placement preference %s (only spread is supported)", fields[0])
+	if strategy != "spread" {
+		return errors.Errorf("unsupported placement preference %s (only spread is supported)", strategy)
 	}
 
 	opts.prefs = append(opts.prefs, swarm.PlacementPreference{
 		Spread: &swarm.SpreadOver{
-			SpreadDescriptor: fields[1],
+			SpreadDescriptor: arg,
 		},
 	})
 	opts.strings = append(opts.strings, value)
@@ -121,8 +121,11 @@ type ShlexOpt []string
 // Set the value
 func (s *ShlexOpt) Set(value string) error {
 	valueSlice, err := shlex.Split(value)
-	*s = ShlexOpt(valueSlice)
-	return err
+	if err != nil {
+		return err
+	}
+	*s = valueSlice
+	return nil
 }
 
 // Type returns the tyep of the value
@@ -475,10 +478,12 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 //
 // This assumes input value (<host>:<ip>) has already been validated
 func convertExtraHostsToSwarmHosts(extraHosts []string) []string {
-	hosts := []string{}
+	hosts := make([]string, 0, len(extraHosts))
 	for _, extraHost := range extraHosts {
-		parts := strings.SplitN(extraHost, ":", 2)
-		hosts = append(hosts, fmt.Sprintf("%s %s", parts[1], parts[0]))
+		host, ip, ok := strings.Cut(extraHost, ":")
+		if ok {
+			hosts = append(hosts, ip+" "+host)
+		}
 	}
 	return hosts
 }
@@ -628,7 +633,7 @@ func (options *serviceOptions) makeEnv() ([]string, error) {
 	}
 	currentEnv := make([]string, 0, len(envVariables))
 	for _, env := range envVariables { // need to process each var, in order
-		k := strings.SplitN(env, "=", 2)[0]
+		k, _, _ := strings.Cut(env, "=")
 		for i, current := range currentEnv { // remove duplicates
 			if current == env {
 				continue // no update required, may hide this behind flag to preserve order of envVariables

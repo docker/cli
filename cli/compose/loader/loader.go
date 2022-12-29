@@ -829,21 +829,20 @@ func transformListOrMapping(listOrMapping interface{}, sep string, allowNil bool
 }
 
 func transformMappingOrList(mappingOrList interface{}, sep string, allowNil bool) interface{} {
-	switch value := mappingOrList.(type) {
+	switch values := mappingOrList.(type) {
 	case map[string]interface{}:
-		return toMapStringString(value, allowNil)
-	case ([]interface{}):
+		return toMapStringString(values, allowNil)
+	case []interface{}:
 		result := make(map[string]interface{})
-		for _, value := range value {
-			parts := strings.SplitN(value.(string), sep, 2)
-			key := parts[0]
+		for _, v := range values {
+			key, val, hasValue := strings.Cut(v.(string), sep)
 			switch {
-			case len(parts) == 1 && allowNil:
+			case !hasValue && allowNil:
 				result[key] = nil
-			case len(parts) == 1 && !allowNil:
+			case !hasValue && !allowNil:
 				result[key] = ""
 			default:
-				result[key] = parts[1]
+				result[key] = val
 			}
 		}
 		return result

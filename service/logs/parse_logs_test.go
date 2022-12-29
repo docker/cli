@@ -3,33 +3,59 @@ package logs
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestParseLogDetails(t *testing.T) {
 	testCases := []struct {
-		line     string
-		expected map[string]string
-		err      error
+		line        string
+		expected    map[string]string
+		expectedErr string
 	}{
-		{"key=value", map[string]string{"key": "value"}, nil},
-		{"key1=value1,key2=value2", map[string]string{"key1": "value1", "key2": "value2"}, nil},
-		{"key+with+spaces=value%3Dequals,asdf%2C=", map[string]string{"key with spaces": "value=equals", "asdf,": ""}, nil},
-		{"key=,=nothing", map[string]string{"key": "", "": "nothing"}, nil},
-		{"=", map[string]string{"": ""}, nil},
-		{"errors", nil, errors.New("invalid details format")},
+		{
+			line:     "key=value",
+			expected: map[string]string{"key": "value"},
+		},
+		{
+			line:     "key1=value1,key2=value2",
+			expected: map[string]string{"key1": "value1", "key2": "value2"},
+		},
+		{
+			line:     "key+with+spaces=value%3Dequals,asdf%2C=",
+			expected: map[string]string{"key with spaces": "value=equals", "asdf,": ""},
+		},
+		{
+			line:     "key=,key2=",
+			expected: map[string]string{"key": "", "key2": ""},
+		},
+		{
+			line:        "key=,=nothing",
+			expectedErr: "invalid details format",
+		},
+		{
+			line:        "=nothing",
+			expectedErr: "invalid details format",
+		},
+		{
+			line:        "=",
+			expectedErr: "invalid details format",
+		},
+		{
+			line:        "errors",
+			expectedErr: "invalid details format",
+		},
 	}
-	for _, testcase := range testCases {
-		testcase := testcase
-		t.Run(testcase.line, func(t *testing.T) {
-			actual, err := ParseLogDetails(testcase.line)
-			if testcase.err != nil {
-				assert.Error(t, err, testcase.err.Error())
-				return
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.line, func(t *testing.T) {
+			actual, err := ParseLogDetails(tc.line)
+			if tc.expectedErr != "" {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			} else {
+				assert.Check(t, err)
 			}
-			assert.Check(t, is.DeepEqual(testcase.expected, actual))
+			assert.Check(t, is.DeepEqual(tc.expected, actual))
 		})
 	}
 }

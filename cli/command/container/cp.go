@@ -386,13 +386,12 @@ func splitCpArg(arg string) (container, path string) {
 		return "", arg
 	}
 
-	parts := strings.SplitN(arg, ":", 2)
-
-	if len(parts) == 1 || strings.HasPrefix(parts[0], ".") {
+	container, path, ok := strings.Cut(arg, ":")
+	if !ok || strings.HasPrefix(container, ".") {
 		// Either there's no `:` in the arg
 		// OR it's an explicit local relative path like `./file:name.txt`.
 		return "", arg
 	}
 
-	return parts[0], parts[1]
+	return container, path
 }
