@@ -1254,7 +1254,7 @@ executes `docker run --privileged`, Docker will enable access to all devices on
 the host as well as set some configuration in AppArmor or SELinux to allow the
 container nearly all the same access to the host as processes running outside
 containers on the host. Additional information about running with `--privileged`
-is available on the [Docker Blog](https://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
+is available on the [Docker Blog](https://www.docker.com/blog/docker-can-now-run-within-docker/).
 
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
