@@ -11,6 +11,26 @@ keywords: "API, Usage, plugins, documentation, developer"
      requests which include edits to this file in other repositories
      will be rejected.
 -->
+# Run linting in a Docker container using the command line
+
+1. First, pull the Docker image for the linting tool that you want to use. For example, to pull the latest version of the ESLint Docker image, you can run the following command:
+
+'*docker pull eslint*'
+
+2. Next, create a Docker container for the linting tool. You can do this by running the docker run command and specifying the name of the image and any additional arguments or options that you want to use. For example:
+
+'*docker run -it --name my-eslint-container eslint*'
+
+This will create a new Docker container named my-eslint-container using the eslint image. The -it flag will start the container in interactive mode and allocate a TTY for it.
+
+3. Once the container is running, you can use the command line to run linting on your code. For example, to run ESLint on a JavaScript file in the current directory, you can run the following command:
+
+'*docker exec my-eslint-container eslint my-file.js*'
+
+This will run the eslint command inside the my-eslint-container container, linting the my-file.js file.
+
+
+
 
 # Docker Engine managed plugin system
 
