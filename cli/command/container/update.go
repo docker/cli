@@ -56,7 +56,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Uint16Var(&options.blkioWeight, "blkio-weight", 0, "Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)")
+	flags.Uint16Var(&options.blkioWeight, "blkio-weight", 0, `Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)`)
 	flags.Int64Var(&options.cpuPeriod, "cpu-period", 0, "Limit CPU CFS (Completely Fair Scheduler) period")
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit CPU CFS (Completely Fair Scheduler) quota")
 	flags.Int64Var(&options.cpuRealtimePeriod, "cpu-rt-period", 0, "Limit the CPU real-time period in microseconds")
@@ -68,7 +68,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memoryReservation, "memory-reservation", "Memory soft limit")
-	flags.Var(&options.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+	flags.Var(&options.memorySwap, "memory-swap", `Swap limit equal to memory plus swap: -1 to enable unlimited swap`)
 	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit (deprecated)")
 	// --kernel-memory is deprecated on API v1.42 and up, but our current annotations
 	// do not support only showing on < API-version. This option is no longer supported
@@ -77,7 +77,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.MarkHidden("kernel-memory")
 
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
-	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, "Tune container pids limit (set -1 for unlimited)")
+	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, `Tune container pids limit (set -1 for unlimited)`)
 	flags.SetAnnotation("pids-limit", "version", []string{"1.40"})
 
 	flags.Var(&options.cpus, "cpus", "Number of CPUs")

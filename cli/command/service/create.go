@@ -33,7 +33,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.mode, flagMode, "replicated", "Service mode (replicated, global, replicated-job, or global-job)")
+	flags.StringVar(&opts.mode, flagMode, "replicated", `Service mode ("replicated", "global", "replicated-job", "global-job")`)
 	flags.StringVar(&opts.name, flagName, "", "Service name")
 
 	addServiceFlags(flags, opts, buildServiceDefaultFlagMapping())

@@ -40,7 +40,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display plugin IDs")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
-	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'enabled=true')")
+	flags.VarP(&options.filter, "filter", "f", `Provide filter values (e.g. "enabled=true")`)
 
 	return cmd
 }
