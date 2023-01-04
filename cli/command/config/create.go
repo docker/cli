@@ -33,9 +33,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create a config from a file or STDIN",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			createOpts.Name = args[0]
-			createOpts.File = args[1]
-			return RunConfigCreate(dockerCli, createOpts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

@@ -22,10 +22,7 @@ func newSecretRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more secrets",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts := removeOptions{
-				names: args,
-			}
-			return runSecretRemove(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

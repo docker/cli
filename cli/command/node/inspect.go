@@ -26,8 +26,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display detailed information on one or more nodes",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.nodeIds = args
-			return runInspect(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 	}
 

@@ -18,7 +18,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more services",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(dockerCli, args)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)

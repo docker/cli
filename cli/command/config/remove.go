@@ -23,10 +23,7 @@ func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more configs",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts := RemoveOptions{
-				Names: args,
-			}
-			return RunConfigRemove(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

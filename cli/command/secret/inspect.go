@@ -26,7 +26,7 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
-			return runSecretInspect(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

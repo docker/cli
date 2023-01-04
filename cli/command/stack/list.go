@@ -23,7 +23,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunList(cmd, dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

@@ -26,7 +26,7 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.role = args[0]
-			return runJoinToken(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",

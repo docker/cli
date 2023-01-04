@@ -33,7 +33,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			if opts.pretty && len(opts.format) > 0 {
 				return errors.Errorf("--format is incompatible with human friendly format")
 			}
-			return runInspect(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)

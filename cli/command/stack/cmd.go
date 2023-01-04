@@ -16,7 +16,9 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 		Use:   "stack [OPTIONS]",
 		Short: "Manage Swarm stacks",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return command.RunSwarm(dockerCli)
+		},
 		Annotations: map[string]string{
 			"version": "1.25",
 			"swarm":   "manager",

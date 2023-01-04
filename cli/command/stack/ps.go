@@ -23,7 +23,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunPs(dockerCli, cmd.Flags(), opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

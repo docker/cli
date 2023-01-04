@@ -31,7 +31,7 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List configs",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunConfigList(dockerCli, listOpts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

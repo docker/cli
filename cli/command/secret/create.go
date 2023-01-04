@@ -36,7 +36,7 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) == 2 {
 				options.file = args[1]
 			}
-			return runSecretCreate(dockerCli, options)
+			return command.RunSwarm(dockerCli)
 		},
 	}
 	flags := cmd.Flags()

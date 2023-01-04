@@ -26,8 +26,7 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display detailed information on one or more configs",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.Names = args
-			return RunConfigInspect(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

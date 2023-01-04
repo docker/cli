@@ -26,7 +26,7 @@ func newUnlockKeyCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Manage the unlock key",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlockKey(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",

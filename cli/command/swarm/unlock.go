@@ -23,7 +23,7 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(dockerCli)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
