@@ -7,7 +7,7 @@ keywords: "build, docker, image"
 # build
 
 ```markdown
-Usage:  docker build [OPTIONS] PATH | URL | -
+Usage:  docker build [OPTIONS] [PATH | URL | -]
 
 Build an image from a Dockerfile
 
@@ -238,6 +238,9 @@ The transfer of context from the local machine to the Docker daemon is what the
 
 If you wish to keep the intermediate containers after the build is complete,
 you must use `--rm=false`. This does not affect the build cache.
+
+If no context is specified, docker infers the context to be the local
+directory. This means `docker build` is equivalent to "`docker build .`".
 
 ### Build with URL
 
