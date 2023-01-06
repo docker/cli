@@ -41,7 +41,7 @@ Options:
 
 ## Examples
 
-### <a name=no-trunc></a> Do not truncate output (--no-trunc)
+### <a name="no-trunc"></a> Do not truncate output (--no-trunc)
 
 Running `docker ps --no-trunc` showing 2 linked containers.
 
@@ -53,7 +53,7 @@ CONTAINER ID        IMAGE                        COMMAND                CREATED 
 d7886598dbe2        crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
-### <a name=all></a> Show both running and stopped containers (-a, --all)
+### <a name="all"></a> Show both running and stopped containers (-a, --all)
 
 The `docker ps` command only shows running containers by default. To see all
 containers, use the `--all` (or `-a`) flag:
@@ -66,7 +66,7 @@ $ docker ps -a
 container that exposes TCP ports `100, 101, 102` displays `100-102/tcp` in
 the `PORTS` column.
 
-### <a name=size></a> Show disk usage by container (--size)
+### <a name="size"></a> Show disk usage by container (--size)
 
 The `docker ps --size` (or `-s`) command displays two different on-disk-sizes for each container:
 
@@ -83,7 +83,7 @@ e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours
 For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
 
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The `--filter` (or `-f`) flag format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
@@ -394,7 +394,7 @@ $ docker ps --filter publish=80/udp
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints container output using a Go
 template.

@@ -73,7 +73,7 @@ $ docker exec -it mycontainer sh
 
 This starts a new shell session in the container `mycontainer`.
 
-### <a name=env></a> Set environment variables for the exec process (--env, -e)
+### <a name="env"></a> Set environment variables for the exec process (--env, -e)
 
 Next, set environment variables in the current bash session.
 
@@ -97,7 +97,7 @@ VAR_B=2
 HOME=/root
 ```
 
-### <a name=workdir></a> Set the working directory for the exec process (--workdir, -w)
+### <a name="workdir"></a> Set the working directory for the exec process (--workdir, -w)
 
 By default `docker exec` command runs in the same working directory set when 
 the container was created.

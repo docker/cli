@@ -51,7 +51,7 @@ The following example sends the default `SIGKILL` signal to the container named
 $ docker kill my_container
 ```
 
-### <a name=signal></a>Send a custom signal to a container (--signal)
+### <a name="signal"></a> Send a custom signal to a container (--signal)
 
 The following example sends a `SIGHUP` signal to the container named
 `my_container`:

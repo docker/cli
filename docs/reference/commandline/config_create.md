@@ -57,7 +57,7 @@ ID                          NAME                CREATED             UPDATED
 dg426haahpi5ezmkkj5kyl3sn   my_config           7 seconds ago       7 seconds ago
 ```
 
-### <a name=label></a> Create a config with labels (-l, --label)
+### <a name="label"></a> Create a config with labels (-l, --label)
 
 ```console
 $ docker config create \

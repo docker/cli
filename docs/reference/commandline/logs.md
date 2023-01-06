@@ -58,7 +58,7 @@ fraction of a second no more than nine digits long. You can combine the
 
 ## Examples
 
-### <a name=until></a> Retrieve logs until a specific point in time (--until)
+### <a name="until"></a> Retrieve logs until a specific point in time (--until)
 
 In order to retrieve logs before a specific point in time, run:
 

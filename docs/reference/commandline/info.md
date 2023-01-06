@@ -112,7 +112,7 @@ Server:
  Live Restore Enabled: false
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can also specify the output format:
 

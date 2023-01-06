@@ -51,7 +51,7 @@ local               rosemary
 local               tyler
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -151,7 +151,7 @@ DRIVER              VOLUME NAME
 local               rosemary
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints volumes output
 using a Go template.

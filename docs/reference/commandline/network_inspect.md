@@ -204,7 +204,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-### <a name=verbose></a> View detailed information of a network (--verbose)
+### <a name="verbose"></a> View detailed information of a network (--verbose)
 
 `docker network inspect --verbose` for swarm mode overlay networks shows service-specific
 details such as the service's VIP and port mappings. It also shows IPs of service tasks,
