@@ -156,7 +156,7 @@ point, effectively removing the `test-data` volume. Each command returns the
 service name.
 
 - The `--mount-add` flag takes the same parameters as the `--mount` flag on
-  `service create`. Refer to the [volumes and bind mounts](service_create.md#add-bind-mounts-volumes-or-memory-filesystems)
+  `service create`. Refer to the [volumes and bind mounts](service_create.md#mount-add)
   section in the `service create` reference for details.
 
 - The `--mount-rm` flag takes the `target` path of the mount.
@@ -184,7 +184,7 @@ myservice
 
 Use the `--publish-add` or `--publish-rm` flags to add or remove a published
 port for a service. You can use the short or long syntax discussed in the
-[docker service create](service_create.md#publish-service-ports-externally-to-the-swarm--p---publish)
+[docker service create](service_create.md#publish)
 reference.
 
 The following example adds a published service port to an existing service.
@@ -199,7 +199,7 @@ $ docker service update \
 
 Use the `--network-add` or `--network-rm` flags to add or remove a network for
 a service. You can use the short or long syntax discussed in the
-[docker service create](service_create.md#attach-a-service-to-an-existing-network---network)
+[docker service create](service_create.md#network)
 reference.
 
 The following example adds a new alias name to an existing service already connected to network my-network:
