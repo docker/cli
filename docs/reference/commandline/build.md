@@ -405,7 +405,7 @@ used in the build will be run with the [corresponding `docker run` flag](../run.
 ### <a name=ulimit></a> Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
-container to be started using those [`--ulimit` flag values](run.md#set-ulimits-in-container---ulimit).
+container to be started using those [`--ulimit` flag values](run.md#ulimit).
 
 ### <a name=build-arg></a> Set build-time variables (--build-arg)
 
@@ -442,7 +442,7 @@ $ export HTTP_PROXY=http://10.20.30.2:1234
 $ docker build --build-arg HTTP_PROXY .
 ```
 
-This is similar to how `docker run -e` works. Refer to the [`docker run` documentation](https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file)
+This is similar to how `docker run -e` works. Refer to the [`docker run` documentation](run.md#env)
 for more information.
 
 ### <a name=security-opt></a> Optional security options (--security-opt)
