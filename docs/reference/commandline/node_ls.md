@@ -24,7 +24,7 @@ Options:
 ## Description
 
 Lists all the nodes that the Docker Swarm manager knows about. You can filter
-using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section
+using the `-f` or `--filter` flag. Refer to the [filtering](#filter) section
 for more information about available filter options.
 
 > **Note**

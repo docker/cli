@@ -156,7 +156,7 @@ point, effectively removing the `test-data` volume. Each command returns the
 service name.
 
 - The `--mount-add` flag takes the same parameters as the `--mount` flag on
-  `service create`. Refer to the [volumes and bind mounts](service_create.md#mount-add)
+  `service create`. Refer to the [volumes and bind mounts](service_create.md#mount)
   section in the `service create` reference for details.
 
 - The `--mount-rm` flag takes the `target` path of the mount.
