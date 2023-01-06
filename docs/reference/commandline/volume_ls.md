@@ -33,7 +33,7 @@ Options:
 ## Description
 
 List all the volumes known to Docker. You can filter using the `-f` or
-`--filter` flag. Refer to the [filtering](#filtering) section for more
+`--filter` flag. Refer to the [filtering](#filter) section for more
 information about available filter options.
 
 ## Examples
@@ -56,7 +56,7 @@ local               rosemary
 local               tyler
 ```
 
-### Filtering
+### <a name=filter></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
