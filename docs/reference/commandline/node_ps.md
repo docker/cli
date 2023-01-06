@@ -24,7 +24,7 @@ Options:
 ## Description
 
 Lists all the tasks on a Node that Docker knows about. You can filter using the
-`-f` or `--filter` flag. Refer to the [filtering](#filtering) section for more
+`-f` or `--filter` flag. Refer to the [filtering](#filter) section for more
 information about available filter options.
 
 > **Note**

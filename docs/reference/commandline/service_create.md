@@ -299,7 +299,7 @@ $ docker service create \
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/config/labels-custom-metadata/).
 
-### Add bind mounts, volumes or memory filesystems
+### <a name=mount></a> Add bind mounts, volumes or memory filesystems (--mount)
 
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
