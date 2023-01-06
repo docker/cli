@@ -1,20 +1,10 @@
----
-title: "node demote"
-description: "The node demote command description and usage"
-keywords: "node, demote"
----
-
 # node demote
 
-```markdown
-Usage:  docker node demote NODE [NODE...]
-
+<!---MARKER_GEN_START-->
 Demote one or more nodes from manager in the swarm
 
-Options:
-      --help   Print usage
 
-```
+<!---MARKER_GEN_END-->
 
 ## Description
 

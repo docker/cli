@@ -1,22 +1,17 @@
----
-title: "container prune"
-description: "Remove all stopped containers"
-keywords: container, prune, delete, remove
----
-
 # container prune
 
-```markdown
-Usage:  docker container prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove all stopped containers
 
-Options:
-Options:
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

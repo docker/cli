@@ -1,20 +1,16 @@
----
-title: "trust revoke"
-description: "The revoke command description and usage"
-keywords: "revoke, notary, trust"
----
-
 # trust revoke
 
-```markdown
-Usage:  docker trust revoke [OPTIONS] IMAGE[:TAG]
-
+<!---MARKER_GEN_START-->
 Remove trust for an image
 
-Options:
-      --help   Print usage
-  -y, --yes    Do not prompt for confirmation
-```
+### Options
+
+| Name          | Type | Default | Description                    |
+|:--------------|:-----|:--------|:-------------------------------|
+| `-y`, `--yes` |      |         | Do not prompt for confirmation |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

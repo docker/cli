@@ -1,23 +1,19 @@
----
-title: "system prune"
-description: "Remove unused data"
-keywords: "system, prune, delete, remove"
----
-
 # system prune
 
-```markdown
-Usage:  docker system prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove unused data
 
-Options:
-  -a, --all             Remove all unused images not just dangling ones
-      --filter filter   Provide filter values (e.g. 'label=<key>=<value>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-      --volumes         Prune volumes
-```
+### Options
+
+| Name                  | Type     | Default | Description                                        |
+|:----------------------|:---------|:--------|:---------------------------------------------------|
+| `-a`, `--all`         |          |         | Remove all unused images not just dangling ones    |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<key>=<value>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                     |
+| `--volumes`           |          |         | Prune volumes                                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

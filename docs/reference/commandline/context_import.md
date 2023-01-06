@@ -1,16 +1,10 @@
----
-title: "context import"
-description: "The context import command description and usage"
-keywords: "context, import"
----
-
 # context import
 
-```markdown
-Usage:  docker context import [OPTIONS] CONTEXT FILE|-
+<!---MARKER_GEN_START-->
+Import a context from a tar or zip file
 
-Import a context from a tar file
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

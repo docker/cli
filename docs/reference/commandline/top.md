@@ -1,19 +1,11 @@
----
-title: "top"
-description: "The top command description and usage"
-keywords: "container, running, processes"
----
-
 # top
 
-```markdown
-Usage:  docker top CONTAINER [ps OPTIONS]
-
+<!---MARKER_GEN_START-->
 Display the running processes of a container
 
-Aliases:
-  docker container top, docker top
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker container top`, `docker top`
+
+
+<!---MARKER_GEN_END-->

@@ -1,21 +1,17 @@
----
-title: "swarm join-token"
-description: "The swarm join-token command description and usage"
-keywords: "swarm, join-token"
----
-
 # swarm join-token
 
-```markdown
-Usage:  docker swarm join-token [OPTIONS] (worker|manager)
-
+<!---MARKER_GEN_START-->
 Manage join tokens
 
-Options:
-      --help     Print usage
-  -q, --quiet    Only display token
-      --rotate   Rotate join token
-```
+### Options
+
+| Name            | Type | Default | Description        |
+|:----------------|:-----|:--------|:-------------------|
+| `-q`, `--quiet` |      |         | Only display token |
+| `--rotate`      |      |         | Rotate join token  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,22 +1,28 @@
----
-title: "volume create"
-description: "The volume create command description and usage"
-keywords: "volume, create"
----
-
 # volume create
 
-```markdown
-Usage:  docker volume create [OPTIONS] [VOLUME]
-
+<!---MARKER_GEN_START-->
 Create a volume
 
-Options:
-  -d, --driver string   Specify volume driver name (default "local")
-      --help            Print usage
-      --label value     Set metadata for a volume (default [])
-  -o, --opt value       Set driver specific options (default map[])
-```
+### Options
+
+| Name                          | Type     | Default  | Description                                                            |
+|:------------------------------|:---------|:---------|:-----------------------------------------------------------------------|
+| `--availability`              | `string` | `active` | Cluster Volume availability (`active`, `pause`, `drain`)               |
+| `-d`, `--driver`              | `string` | `local`  | Specify volume driver name                                             |
+| `--group`                     | `string` |          | Cluster Volume group (cluster volumes)                                 |
+| `--label`                     | `list`   |          | Set metadata for a volume                                              |
+| `--limit-bytes`               | `bytes`  | `0`      | Minimum size of the Cluster Volume in bytes                            |
+| [`-o`](#opt), [`--opt`](#opt) | `map`    | `map[]`  | Set driver specific options                                            |
+| `--required-bytes`            | `bytes`  | `0`      | Maximum size of the Cluster Volume in bytes                            |
+| `--scope`                     | `string` | `single` | Cluster Volume access scope (`single`, `multi`)                        |
+| `--secret`                    | `map`    | `map[]`  | Cluster Volume secrets                                                 |
+| `--sharing`                   | `string` | `none`   | Cluster Volume access sharing (`none`, `readonly`, `onewriter`, `all`) |
+| `--topology-preferred`        | `list`   |          | A topology that the Cluster Volume would be preferred in               |
+| `--topology-required`         | `list`   |          | A topology that the Cluster Volume must be accessible from             |
+| `--type`                      | `string` | `block`  | Cluster Volume access type (`mount`, `block`)                          |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

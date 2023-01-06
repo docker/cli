@@ -31,4 +31,4 @@ trap clean EXIT
 
 mkdir -p docs/yaml
 set -x
-/tmp/docsgen --source "$(pwd)/docs/reference/commandline" --target "$(pwd)/docs/yaml"
+/tmp/docsgen --formats yaml --source "$(pwd)/docs/reference/commandline" --target "$(pwd)/docs/yaml"

@@ -1,22 +1,14 @@
----
-title: "diff"
-description: "The diff command description and usage"
-keywords: "list, changed, files, container"
----
-
 # diff
 
-```markdown
-Usage:  docker diff CONTAINER
-
+<!---MARKER_GEN_START-->
 Inspect changes to files or directories on a container's filesystem
 
-Aliases:
-  docker container diff, docker diff
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker container diff`, `docker diff`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

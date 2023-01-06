@@ -1,24 +1,17 @@
----
-title: "config inspect"
-description: "The config inspect command description and usage"
-keywords: ["config, inspect"]
----
-
 # config inspect
 
-```Markdown
-Usage:  docker config inspect [OPTIONS] CONFIG [CONFIG...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more configs
 
-Options:
-  -f, --format string   Format output using a custom template:
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --pretty          Print the information in a human friendly format
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `--pretty`                             |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

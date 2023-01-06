@@ -1,20 +1,17 @@
----
-title: "config create"
-description: "The config create command description and usage"
-keywords: ["config, create"]
----
-
 # config create
 
-```Markdown
-Usage:  docker config create [OPTIONS] CONFIG [file|-]
+<!---MARKER_GEN_START-->
+Create a config from a file or STDIN
 
-Create a config from a file or STDIN as content
+### Options
 
-Options:
-  -l, --label list               Config labels
-      --template-driver string   Template driver
-```
+| Name                                | Type     | Default | Description     |
+|:------------------------------------|:---------|:--------|:----------------|
+| [`-l`](#label), [`--label`](#label) | `list`   |         | Config labels   |
+| `--template-driver`                 | `string` |         | Template driver |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,25 +1,20 @@
----
-title: "service ps"
-description: "The service ps command description and usage"
-keywords: "service, tasks, ps"
-aliases: ["/engine/reference/commandline/service_tasks/"]
----
-
 # service ps
 
-```Markdown
-Usage:  docker service ps [OPTIONS] SERVICE [SERVICE...]
-
+<!---MARKER_GEN_START-->
 List the tasks of one or more services
 
-Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print tasks using a Go template
-      --help            Print usage
-      --no-resolve      Do not map IDs to Names
-      --no-trunc        Do not truncate output
-  -q, --quiet           Only display task IDs
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
+| [`--format`](#format)                  | `string` |         | Pretty-print tasks using a Go template     |
+| `--no-resolve`                         |          |         | Do not map IDs to Names                    |
+| `--no-trunc`                           |          |         | Do not truncate output                     |
+| `-q`, `--quiet`                        |          |         | Only display task IDs                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

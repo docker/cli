@@ -1,22 +1,14 @@
----
-title: "secret rm"
-description: "The secret rm command description and usage"
-keywords: ["secret, rm"]
----
-
 # secret rm
 
-```Markdown
-Usage:  docker secret rm SECRET [SECRET...]
-
+<!---MARKER_GEN_START-->
 Remove one or more secrets
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker secret rm`, `docker secret remove`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

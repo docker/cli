@@ -1,23 +1,20 @@
----
-title: "kill"
-description: "The kill command description and usage"
-keywords: "container, kill, signal"
----
-
 # kill
 
-```markdown
-Usage:  docker kill [OPTIONS] CONTAINER [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Kill one or more running containers
 
-Aliases:
-  docker container kill, docker kill
+### Aliases
 
-Options:
-      --help            Print usage
-  -s, --signal string   Signal to send to the container
-```
+`docker container kill`, `docker kill`
+
+### Options
+
+| Name                                   | Type     | Default | Description                     |
+|:---------------------------------------|:---------|:--------|:--------------------------------|
+| [`-s`](#signal), [`--signal`](#signal) | `string` |         | Signal to send to the container |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

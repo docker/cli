@@ -1,20 +1,12 @@
----
-title: "context create"
-description: "The context create command description and usage"
-keywords: "context, create"
----
-
 # context create
 
-```markdown
-Usage:  docker context create [OPTIONS] CONTEXT
-
+<!---MARKER_GEN_START-->
 Create a context
 
 Docker endpoint config:
 
 NAME                DESCRIPTION
-from                Copy Docker endpoint configuration from an existing context
+from                Copy named context's Docker endpoint configuration
 host                Docker endpoint on which to connect
 ca                  Trust certs signed only by this CA
 cert                Path to TLS certificate file
@@ -23,16 +15,19 @@ skip-tls-verify     Skip TLS certificate validation
 
 Example:
 
-$ docker context create my-context \
-      --description "some description" \
-      --docker "host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file"
+$ docker context create my-context --description "some description" --docker "host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file"
 
-Options:
-      --description string                  Description of the context
-      --docker stringToString               set the docker endpoint
-                                            (default [])
-      --from string                         Create the context from an existing context
-```
+
+### Options
+
+| Name                  | Type             | Default | Description                         |
+|:----------------------|:-----------------|:--------|:------------------------------------|
+| `--description`       | `string`         |         | Description of the context          |
+| [`--docker`](#docker) | `stringToString` |         | set the docker endpoint             |
+| [`--from`](#from)     | `string`         |         | create context from a named context |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

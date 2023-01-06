@@ -1,51 +1,27 @@
----
-title: "ps"
-description: "The ps command description and usage"
-keywords: "container, running, list"
----
-
 # ps
 
-```markdown
-Usage: docker ps [OPTIONS]
-
+<!---MARKER_GEN_START-->
 List containers
 
-Aliases:
-  docker container ls, docker container list, docker container ps, docker ps
+### Aliases
 
-Options:
-  -a, --all             Show all containers (default shows just running)
-  -f, --filter value    Filter output based on conditions provided (default [])
-                        - ancestor=(<image-name>[:tag]|<image-id>|<image@digest>)
-                          containers created from an image or a descendant.
-                        - before=(<container-name>|<container-id>)
-                        - expose=(<port>[/<proto>]|<startport-endport>/[<proto>])
-                        - exited=<int> an exit code of <int>
-                        - health=(starting|healthy|unhealthy|none)
-                        - id=<ID> a container's ID
-                        - isolation=(`default`|`process`|`hyperv`) (Windows daemon only)
-                        - is-task=(true|false)
-                        - label=<key> or label=<key>=<value>
-                        - name=<string> a container's name
-                        - network=(<network-id>|<network-name>)
-                        - publish=(<port>[/<proto>]|<startport-endport>/[<proto>])
-                        - since=(<container-name>|<container-id>)
-                        - status=(created|restarting|removing|running|paused|exited)
-                        - volume=(<volume name>|<mount point destination>)
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-  -n, --last int        Show n last created containers (includes all states) (default -1)
-  -l, --latest          Show the latest created container (includes all states)
-      --no-trunc        Don't truncate output
-  -q, --quiet           Only display numeric IDs
-  -s, --size            Display total file sizes
-```
+`docker container ls`, `docker container list`, `docker container ps`, `docker ps`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-a`](#all), [`--all`](#all)          |          |         | Show all containers (default shows just running)                                                                                                                                                                                                                                                                                                                                                                                     |
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-n`, `--last`                         | `int`    | `-1`    | Show n last created containers (includes all states)                                                                                                                                                                                                                                                                                                                                                                                 |
+| `-l`, `--latest`                       |          |         | Show the latest created container (includes all states)                                                                                                                                                                                                                                                                                                                                                                              |
+| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `-q`, `--quiet`                        |          |         | Only display container IDs                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`-s`](#size), [`--size`](#size)       |          |         | Display total file sizes                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+
+<!---MARKER_GEN_END-->
 
 ## Examples
 

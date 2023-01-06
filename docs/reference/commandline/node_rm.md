@@ -1,23 +1,20 @@
----
-title: "node rm"
-description: "The node rm command description and usage"
-keywords: "node, remove"
----
-
 # node rm
 
-```markdown
-Usage:  docker node rm [OPTIONS] NODE [NODE...]
-
+<!---MARKER_GEN_START-->
 Remove one or more nodes from the swarm
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-  -f, --force   Force remove a node from the swarm
-      --help    Print usage
-```
+`docker node rm`, `docker node remove`
+
+### Options
+
+| Name                                | Type | Default | Description                        |
+|:------------------------------------|:-----|:--------|:-----------------------------------|
+| [`-f`](#force), [`--force`](#force) |      |         | Force remove a node from the swarm |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

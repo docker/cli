@@ -1,19 +1,10 @@
----
-title: "swarm unlock"
-description: "The swarm unlock command description and usage"
-keywords: "swarm, unlock"
----
-
 # swarm unlock
 
-```markdown
-Usage:  docker swarm unlock
-
+<!---MARKER_GEN_START-->
 Unlock swarm
 
-Options:
-      --help   Print usage
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

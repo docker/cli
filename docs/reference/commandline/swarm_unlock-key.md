@@ -1,21 +1,17 @@
----
-title: "swarm unlock-key"
-description: "The swarm unlock-keycommand description and usage"
-keywords: "swarm, unlock-key"
----
-
 # swarm unlock-key
 
-```markdown
-Usage:  docker swarm unlock-key [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Manage the unlock key
 
-Options:
-      --help     Print usage
-  -q, --quiet    Only display token
-      --rotate   Rotate unlock key
-```
+### Options
+
+| Name            | Type | Default | Description        |
+|:----------------|:-----|:--------|:-------------------|
+| `-q`, `--quiet` |      |         | Only display token |
+| `--rotate`      |      |         | Rotate unlock key  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

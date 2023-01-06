@@ -1,26 +1,19 @@
----
-title: "search"
-description: "The search command description and usage"
-keywords: "search, hub, images"
----
-
 # search
 
-```markdown
-Usage:  docker search [OPTIONS] TERM
-
+<!---MARKER_GEN_START-->
 Search Docker Hub for images
 
-Options:
-  -f, --filter value   Filter output based on conditions provided (default [])
-                       - is-automated=(true|false)
-                       - is-official=(true|false)
-                       - stars=<number> - image has at least 'number' stars
-      --format string  Pretty-print images using a Go template
-      --help           Print usage
-      --limit int      Max number of search results
-      --no-trunc       Don't truncate output
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
+| [`--format`](#format)                  | `string` |         | Pretty-print search using a Go template    |
+| [`--limit`](#limit)                    | `int`    | `0`     | Max number of search results               |
+| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

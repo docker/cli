@@ -1,16 +1,10 @@
----
-title: "context export"
-description: "The context export command description and usage"
-keywords: "context, export"
----
-
 # context export
 
-```markdown
-Usage:  docker context export [OPTIONS] CONTEXT [FILE|-]
-
+<!---MARKER_GEN_START-->
 Export a context to a tar archive FILE or a tar stream on STDOUT.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,37 +1,31 @@
----
-title: "network create"
-description: "The network create command description and usage"
-keywords: "network, create"
----
-
 # network create
 
-```markdown
-Usage:  docker network create [OPTIONS] NETWORK
-
+<!---MARKER_GEN_START-->
 Create a network
 
-Options:
-      --attachable           Enable manual container attachment
-      --ingress              Specify the network provides the routing-mesh
-      --aux-address value    Auxiliary IPv4 or IPv6 addresses used by Network
-                             driver (default map[])
-  -d, --driver string        Driver to manage the Network (default "bridge")
-      --gateway value        IPv4 or IPv6 Gateway for the master subnet (default [])
-      --help                 Print usage
-      --internal             Restrict external access to the network
-      --ip-range value       Allocate container ip from a sub-range (default [])
-      --ipam-driver string   IP Address Management Driver (default "default")
-      --ipam-opt value       Set IPAM driver specific options (default map[])
-      --ipv6                 Enable IPv6 networking
-      --label value          Set metadata on a network (default [])
-  -o, --opt value            Set driver specific options (default map[])
-      --subnet value         Subnet in CIDR format that represents a
-                             network segment (default [])
-      --scope value          Promote a network to swarm scope (value = [ local | swarm ])
-      --config-only          Creates a configuration only network
-      --config-from          The name of the network from which to copy the configuration
-```
+### Options
+
+| Name                      | Type          | Default   | Description                                             |
+|:--------------------------|:--------------|:----------|:--------------------------------------------------------|
+| `--attachable`            |               |           | Enable manual container attachment                      |
+| `--aux-address`           | `map`         | `map[]`   | Auxiliary IPv4 or IPv6 addresses used by Network driver |
+| `--config-from`           | `string`      |           | The network from which to copy the configuration        |
+| `--config-only`           |               |           | Create a configuration only network                     |
+| `-d`, `--driver`          | `string`      | `bridge`  | Driver to manage the Network                            |
+| `--gateway`               | `stringSlice` |           | IPv4 or IPv6 Gateway for the master subnet              |
+| [`--ingress`](#ingress)   |               |           | Create swarm routing-mesh network                       |
+| [`--internal`](#internal) |               |           | Restrict external access to the network                 |
+| `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
+| `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
+| `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
+| `--ipv6`                  |               |           | Enable IPv6 networking                                  |
+| `--label`                 | `list`        |           | Set metadata on a network                               |
+| `-o`, `--opt`             | `map`         | `map[]`   | Set driver specific options                             |
+| `--scope`                 | `string`      |           | Control the network's scope                             |
+| `--subnet`                | `stringSlice` |           | Subnet in CIDR format that represents a network segment |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

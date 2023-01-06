@@ -1,24 +1,20 @@
----
-title: "swarm join"
-description: "The swarm join command description and usage"
-keywords: "swarm, join"
----
-
 # swarm join
 
-```markdown
-Usage:  docker swarm join [OPTIONS] HOST:PORT
-
+<!---MARKER_GEN_START-->
 Join a swarm as a node and/or manager
 
-Options:
-      --advertise-addr string   Advertised address (format: <ip|interface>[:port])
-      --availability string     Availability of the node ("active"|"pause"|"drain") (default "active")
-      --data-path-addr string   Address or interface to use for data path traffic (format: <ip|interface>)
-      --help                    Print usage
-      --listen-addr node-addr   Listen address (format: <ip|interface>[:port]) (default 0.0.0.0:2377)
-      --token string            Token for entry into the swarm
-```
+### Options
+
+| Name               | Type        | Default        | Description                                                                   |
+|:-------------------|:------------|:---------------|:------------------------------------------------------------------------------|
+| `--advertise-addr` | `string`    |                | Advertised address (format: `<ip\|interface>[:port]`)                         |
+| `--availability`   | `string`    | `active`       | Availability of the node (`active`, `pause`, `drain`)                         |
+| `--data-path-addr` | `string`    |                | Address or interface to use for data path traffic (format: `<ip\|interface>`) |
+| `--listen-addr`    | `node-addr` | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                             |
+| `--token`          | `string`    |                | Token for entry into the swarm                                                |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

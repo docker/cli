@@ -1,16 +1,10 @@
----
-title: "context show"
-description: "The context show command description and usage"
-keywords: "context, show"
----
-
 # context show
 
-```markdown
-Usage:  docker context show
-
+<!---MARKER_GEN_START-->
 Print the name of the current context
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

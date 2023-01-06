@@ -1,21 +1,17 @@
----
-title: "network prune"
-description: "Remove unused networks"
-keywords: "network, prune, delete"
----
-
 # network prune
 
-```markdown
-Usage:  docker network prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove all unused networks
 
-Options:
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,25 +1,20 @@
----
-title: "node ps"
-description: "The node ps command description and usage"
-keywords: node, tasks, ps
-aliases: ["/engine/reference/commandline/node_tasks/"]
----
-
 # node ps
 
-```markdown
-Usage:  docker node ps [OPTIONS] [NODE...]
+<!---MARKER_GEN_START-->
+List tasks running on one or more nodes, defaults to current node
 
-List tasks running on one or more nodes, defaults to current node.
+### Options
 
-Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print tasks using a Go template
-      --help            Print usage
-      --no-resolve      Do not map IDs to Names
-      --no-trunc        Do not truncate output
-  -q, --quiet           Only display task IDs
-```
+| Name                                   | Type     | Default | Description                                |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
+| [`--format`](#format)                  | `string` |         | Pretty-print tasks using a Go template     |
+| `--no-resolve`                         |          |         | Do not map IDs to Names                    |
+| `--no-trunc`                           |          |         | Do not truncate output                     |
+| `-q`, `--quiet`                        |          |         | Only display task IDs                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

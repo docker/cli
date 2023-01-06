@@ -1,23 +1,20 @@
----
-title: "plugin rm"
-description: "the plugin rm command description and usage"
-keywords: "plugin, rm"
----
-
 # plugin rm
 
-```markdown
-Usage:  docker plugin rm [OPTIONS] PLUGIN [PLUGIN...]
-
+<!---MARKER_GEN_START-->
 Remove one or more plugins
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      -f, --force  Force the removal of an active plugin
-          --help   Print usage
-```
+`docker plugin rm`, `docker plugin remove`
+
+### Options
+
+| Name            | Type | Default | Description                           |
+|:----------------|:-----|:--------|:--------------------------------------|
+| `-f`, `--force` |      |         | Force the removal of an active plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

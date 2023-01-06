@@ -1,20 +1,16 @@
----
-title: "service scale"
-description: "The service scale command description and usage"
-keywords: "service, scale"
----
-
 # service scale
 
-```markdown
-Usage:  docker service scale [OPTIONS] SERVICE=REPLICAS [SERVICE=REPLICAS...]
-
+<!---MARKER_GEN_START-->
 Scale one or multiple replicated services
 
-Options:
-  -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
-      --help   Print usage
-```
+### Options
+
+| Name             | Type | Default | Description                                                     |
+|:-----------------|:-----|:--------|:----------------------------------------------------------------|
+| `-d`, `--detach` |      |         | Exit immediately instead of waiting for the service to converge |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

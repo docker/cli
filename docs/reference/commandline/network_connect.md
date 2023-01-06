@@ -1,24 +1,21 @@
----
-title: "network connect"
-description: "The network connect command description and usage"
-keywords: "network, connect, user-defined"
----
-
 # network connect
 
-```markdown
-Usage:  docker network connect [OPTIONS] NETWORK CONTAINER
-
+<!---MARKER_GEN_START-->
 Connect a container to a network
 
-Options:
-      --alias value           Add network-scoped alias for the container (default [])
-      --help                  Print usage
-      --ip string             IPv4 address (e.g., 172.30.100.104)
-      --ip6 string            IPv6 address (e.g., 2001:db8::33)
-      --link value            Add link to another container (default [])
-      --link-local-ip value   Add a link-local address for the container (default [])
-```
+### Options
+
+| Name                | Type          | Default | Description                                |
+|:--------------------|:--------------|:--------|:-------------------------------------------|
+| [`--alias`](#alias) | `stringSlice` |         | Add network-scoped alias for the container |
+| `--driver-opt`      | `stringSlice` |         | driver options for the network             |
+| [`--ip`](#ip)       | `string`      |         | IPv4 address (e.g., `172.30.100.104`)      |
+| `--ip6`             | `string`      |         | IPv6 address (e.g., `2001:db8::33`)        |
+| [`--link`](#link)   | `list`        |         | Add link to another container              |
+| `--link-local-ip`   | `stringSlice` |         | Add a link-local address for the container |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

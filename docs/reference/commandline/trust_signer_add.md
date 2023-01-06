@@ -1,20 +1,16 @@
----
-title: "signer add"
-description: "The signer add command description and usage"
-keywords: "signer, notary, trust"
----
-
 # trust signer add
 
-```markdown
-Usage:  docker trust signer add [OPTIONS] NAME REPOSITORY [REPOSITORY...]
-
+<!---MARKER_GEN_START-->
 Add a signer
 
-Options:
-      --help       Print usage
-  -k, --key list   Path to the signer's public key file
-```
+### Options
+
+| Name    | Type   | Default | Description                          |
+|:--------|:-------|:--------|:-------------------------------------|
+| `--key` | `list` |         | Path to the signer's public key file |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

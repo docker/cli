@@ -1,25 +1,22 @@
----
-title: "push"
-description: "The push command description and usage"
-keywords: "share, push, image"
----
-
 # push
 
-```markdown
-Usage:  docker push [OPTIONS] NAME[:TAG]
-
+<!---MARKER_GEN_START-->
 Upload an image to a registry
 
-Aliases:
-  docker image push, docker push
+### Aliases
 
-Options:
-  -a, --all-tags                Push all tags of an image to the repository
-      --disable-content-trust   Skip image signing (default true)
-      --help                    Print usage
-  -q, --quiet                   Suppress verbose output
-```
+`docker image push`, `docker push`
+
+### Options
+
+| Name                                         | Type | Default | Description                                 |
+|:---------------------------------------------|:-----|:--------|:--------------------------------------------|
+| [`-a`](#all-tags), [`--all-tags`](#all-tags) |      |         | Push all tags of an image to the repository |
+| `--disable-content-trust`                    |      |         | Skip image signing                          |
+| `-q`, `--quiet`                              |      |         | Suppress verbose output                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

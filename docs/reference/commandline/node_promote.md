@@ -1,19 +1,10 @@
----
-title: "node promote"
-description: "The node promote command description and usage"
-keywords: "node, promote"
----
-
 # node promote
 
-```markdown
-Usage:  docker node promote NODE [NODE...]
-
+<!---MARKER_GEN_START-->
 Promote one or more nodes to manager in the swarm
 
-Options:
-      --help   Print usage
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

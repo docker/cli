@@ -1,22 +1,14 @@
----
-title: "tag"
-description: "The tag command description and usage"
-keywords: "tag, name, image"
----
-
 # tag
 
-```markdown
-Usage:  docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
-
+<!---MARKER_GEN_START-->
 Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
 
-Aliases:
-  docker image tag, docker tag
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker image tag`, `docker tag`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,23 +1,18 @@
----
-title: "inspect"
-description: "The inspect command description and usage"
-keywords: "inspect, container, json"
----
-
 # inspect
 
-```markdown
-Usage:  docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+<!---MARKER_GEN_START-->
+Return low-level information on Docker objects
 
-Return low-level information on Docker object(s) (e.g. container, image, volume,
-network, node, service, or task) identified by name or ID
+### Options
 
-Options:
-  -f, --format       Format the output using the given Go template
-      --help         Print usage
-  -s, --size         Display total file sizes if the type is container
-      --type         Return JSON for specified type
-```
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| [`-s`](#size), [`--size`](#size)       |          |         | Display total file sizes if the type is container                                                                                                                                                                                                                  |
+| [`--type`](#type)                      | `string` |         | Return JSON for specified type                                                                                                                                                                                                                                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

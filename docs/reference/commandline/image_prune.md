@@ -1,22 +1,18 @@
----
-title: "image prune"
-description: "Remove all stopped images"
-keywords: "image, prune, delete, remove"
----
-
 # image prune
 
-```markdown
-Usage:  docker image prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove unused images
 
-Options:
-  -a, --all             Remove all unused images, not just dangling ones
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| `-a`, `--all`         |          |         | Remove all unused images, not just dangling ones |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,26 +1,23 @@
----
-title: "commit"
-description: "The commit command description and usage"
-keywords: "commit, file, changes"
----
-
 # commit
 
-```markdown
-Usage:  docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
-
+<!---MARKER_GEN_START-->
 Create a new image from a container's changes
 
-Aliases:
-  docker container commit, docker commit
+### Aliases
 
-Options:
-  -a, --author string    Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")
-  -c, --change value     Apply Dockerfile instruction to the created image (default [])
-      --help             Print usage
-  -m, --message string   Commit message
-  -p, --pause            Pause container during commit (default true)
-```
+`docker container commit`, `docker commit`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                |
+|:---------------------------------------|:---------|:--------|:-----------------------------------------------------------|
+| `-a`, `--author`                       | `string` |         | Author (e.g., `John Hannibal Smith <hannibal@a-team.com>`) |
+| [`-c`](#change), [`--change`](#change) | `list`   |         | Apply Dockerfile instruction to the created image          |
+| `-m`, `--message`                      | `string` |         | Commit message                                             |
+| `-p`, `--pause`                        |          |         | Pause container during commit                              |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

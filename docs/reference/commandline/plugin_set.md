@@ -1,19 +1,10 @@
----
-title: "plugin set"
-description: "the plugin set command description and usage"
-keywords: "plugin, set"
----
-
 # plugin set
 
-```markdown
-Usage:  docker plugin set PLUGIN KEY=VALUE [KEY=VALUE...]
-
+<!---MARKER_GEN_START-->
 Change settings for a plugin
 
-Options:
-      --help                    Print usage
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

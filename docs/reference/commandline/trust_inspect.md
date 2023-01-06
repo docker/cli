@@ -1,20 +1,16 @@
----
-title: "trust inspect"
-description: "The inspect command description and usage"
-keywords: "inspect, notary, trust"
----
-
 # trust inspect
 
-```markdown
-Usage:  docker trust inspect IMAGE[:TAG] [IMAGE[:TAG]...]
-
+<!---MARKER_GEN_START-->
 Return low-level information about keys and signatures
 
-Options:
-      --help            Print usage
-      --pretty          Print the information in a human friendly format
-```
+### Options
+
+| Name       | Type | Default | Description                                      |
+|:-----------|:-----|:--------|:-------------------------------------------------|
+| `--pretty` |      |         | Print the information in a human friendly format |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

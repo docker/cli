@@ -1,23 +1,19 @@
----
-title: "login"
-description: "The login command description and usage"
-keywords: "registry, login, image"
----
-
 # login
 
-```markdown
-Usage:  docker login [OPTIONS] [SERVER]
-
+<!---MARKER_GEN_START-->
 Log in to a registry.
 If no server is specified, the default is defined by the daemon.
 
-Options:
-      --help                    Print usage
-  -p, --password       string   Password
-      --password-stdin          Read password from stdin
-  -u, --username       string   Username
-```
+### Options
+
+| Name                                  | Type     | Default | Description                  |
+|:--------------------------------------|:---------|:--------|:-----------------------------|
+| `-p`, `--password`                    | `string` |         | Password                     |
+| [`--password-stdin`](#password-stdin) |          |         | Take the password from stdin |
+| `-u`, `--username`                    | `string` |         | Username                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,22 +1,14 @@
----
-title: "service rm"
-description: "The service rm command description and usage"
-keywords: "service, rm"
----
-
 # service rm
 
-```Markdown
-Usage:  docker service rm SERVICE [SERVICE...]
-
+<!---MARKER_GEN_START-->
 Remove one or more services
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker service rm`, `docker service remove`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
