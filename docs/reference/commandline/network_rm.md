@@ -1,22 +1,20 @@
----
-title: "network rm"
-description: "the network rm command description and usage"
-keywords: "network, rm, user-defined"
----
-
 # network rm
 
-```markdown
-Usage:  docker network rm NETWORK [NETWORK...]
-
+<!---MARKER_GEN_START-->
 Remove one or more networks
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-  -f, --force   Do not error if the network does not exist
-```
+`docker network rm`, `docker network remove`
+
+### Options
+
+| Name            | Type | Default | Description                                |
+|:----------------|:-----|:--------|:-------------------------------------------|
+| `-f`, `--force` |      |         | Do not error if the network does not exist |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

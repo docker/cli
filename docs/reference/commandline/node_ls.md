@@ -1,30 +1,22 @@
----
-title: "node ls"
-description: "The node ls command description and usage"
-keywords: "node, list"
----
-
 # node ls
 
-```markdown
-Usage:  docker node ls [OPTIONS]
-
+<!---MARKER_GEN_START-->
 List nodes in the swarm
 
-Aliases:
-  ls, list
+### Aliases
 
-Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-  -q, --quiet           Only display IDs
-```
+`docker node ls`, `docker node list`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-q`, `--quiet`                        |          |         | Only display IDs                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -57,7 +49,7 @@ e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 > `e216jshn25ckzbvmwlnh5jr3g *`) means this node is the current docker daemon.
 
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -175,7 +167,7 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints nodes output
 using a Go template.

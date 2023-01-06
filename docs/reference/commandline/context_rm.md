@@ -1,19 +1,17 @@
----
-title: "context rm"
-description: "The context rm command description and usage"
-keywords: "context, rm"
----
-
 # context rm
 
-```markdown
-Usage:  docker context rm CONTEXT [CONTEXT...]
-
+<!---MARKER_GEN_START-->
 Remove one or more contexts
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-  -f, --force   Force the removal of a context in use
-```
+`docker context rm`, `docker context remove`
+
+### Options
+
+| Name            | Type | Default | Description                           |
+|:----------------|:-----|:--------|:--------------------------------------|
+| `-f`, `--force` |      |         | Force the removal of a context in use |
+
+
+<!---MARKER_GEN_END-->

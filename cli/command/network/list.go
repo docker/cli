@@ -40,7 +40,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display network IDs")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate the output")
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
-	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'driver=bridge')")
+	flags.VarP(&options.filter, "filter", "f", `Provide filter values (e.g. "driver=bridge")`)
 
 	return cmd
 }

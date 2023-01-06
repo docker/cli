@@ -1,22 +1,18 @@
----
-title: "image prune"
-description: "Remove all stopped images"
-keywords: "image, prune, delete, remove"
----
-
 # image prune
 
-```markdown
-Usage:  docker image prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove unused images
 
-Options:
-  -a, --all             Remove all unused images, not just dangling ones
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| `-a`, `--all`         |          |         | Remove all unused images, not just dangling ones |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -59,7 +55,7 @@ deleted: sha256:2c675ee9ed53425e31a13e3390bf3f539bf8637000e4bcfbb85ee03ef4d910a1
 Total reclaimed space: 16.43 MB
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

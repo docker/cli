@@ -1,20 +1,16 @@
----
-title: "key generate"
-description: "The key generate command description and usage"
-keywords: "key, notary, trust"
----
-
 # trust key generate
 
-```markdown
-Usage:  docker trust key generate NAME
-
+<!---MARKER_GEN_START-->
 Generate and load a signing key-pair
 
-Options:
-      --dir string   Directory to generate key in, defaults to current directory
-      --help         Print usage
-```
+### Options
+
+| Name    | Type     | Default | Description                                                 |
+|:--------|:---------|:--------|:------------------------------------------------------------|
+| `--dir` | `string` |         | Directory to generate key in, defaults to current directory |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,20 +1,16 @@
----
-title: "swarm leave"
-description: "The swarm leave command description and usage"
-keywords: "swarm, leave"
----
-
 # swarm leave
 
-```markdown
-Usage:  docker swarm leave [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Leave the swarm
 
-Options:
-  -f, --force   Force this node to leave the swarm, ignoring warnings
-      --help    Print usage
-```
+### Options
+
+| Name            | Type | Default | Description                                           |
+|:----------------|:-----|:--------|:------------------------------------------------------|
+| `-f`, `--force` |      |         | Force this node to leave the swarm, ignoring warnings |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

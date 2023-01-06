@@ -1,25 +1,23 @@
----
-title: "pull"
-description: "The pull command description and usage"
-keywords: "pull, image, hub, docker"
----
-
 # pull
 
-```markdown
-Usage:  docker pull [OPTIONS] NAME[:TAG|@DIGEST]
-
+<!---MARKER_GEN_START-->
 Download an image from a registry
 
-Aliases:
-  docker image pull, docker pull
+### Aliases
 
-Options:
-  -a, --all-tags                Download all tagged images in the repository
-      --disable-content-trust   Skip image verification (default true)
-      --help                    Print usage
-  -q, --quiet                   Suppress verbose output
-```
+`docker image pull`, `docker pull`
+
+### Options
+
+| Name                                         | Type     | Default | Description                                      |
+|:---------------------------------------------|:---------|:--------|:-------------------------------------------------|
+| [`-a`](#all-tags), [`--all-tags`](#all-tags) |          |         | Download all tagged images in the repository     |
+| `--disable-content-trust`                    |          |         | Skip image verification                          |
+| `--platform`                                 | `string` |         | Set platform if server is multi-platform capable |
+| `-q`, `--quiet`                              |          |         | Suppress verbose output                          |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -191,7 +189,7 @@ registry is allowed to be accessed over an insecure connection. Refer to the
 [insecure registries](dockerd.md#insecure-registries) section for more information.
 
 
-### <a name=all-tags></a> Pull a repository with multiple images (-a, --all-tags)
+### <a name="all-tags"></a> Pull a repository with multiple images (-a, --all-tags)
 
 By default, `docker pull` pulls a *single* image from the registry. A repository
 can contain multiple images. To pull all images from a repository, provide the

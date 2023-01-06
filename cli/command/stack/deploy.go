@@ -42,7 +42,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.Prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
 	flags.StringVar(&opts.ResolveImage, "resolve-image", swarm.ResolveImageAlways,
-		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
+		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`", "`+swarm.ResolveImageChanged+`", "`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	return cmd
 }

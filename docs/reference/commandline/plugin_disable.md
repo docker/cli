@@ -1,20 +1,16 @@
----
-title: "plugin disable"
-description: "the plugin disable command description and usage"
-keywords: "plugin, disable"
----
-
 # plugin disable
 
-```markdown
-Usage:  docker plugin disable [OPTIONS] PLUGIN
-
+<!---MARKER_GEN_START-->
 Disable a plugin
 
-Options:
-  -f, --force   Force the disable of an active plugin
-      --help    Print usage
-```
+### Options
+
+| Name            | Type | Default | Description                           |
+|:----------------|:-----|:--------|:--------------------------------------|
+| `-f`, `--force` |      |         | Force the disable of an active plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

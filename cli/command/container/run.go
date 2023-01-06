@@ -60,7 +60,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&options.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
-	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict

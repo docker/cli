@@ -1,64 +1,49 @@
----
-title: "build"
-description: "The build command description and usage"
-keywords: "build, docker, image"
----
-
 # build
 
-```markdown
-Usage:  docker build [OPTIONS] PATH | URL | -
-
+<!---MARKER_GEN_START-->
 Build an image from a Dockerfile
 
-Aliases:
-  docker image build, docker build, docker buildx build, docker builder build
+### Aliases
 
-Options:
-      --add-host value          Add a custom host-to-IP mapping (host:ip) (default [])
-      --build-arg value         Set build-time variables (default [])
-      --cache-from value        Images to consider as cache sources (default [])
-      --cgroup-parent string    Optional parent cgroup for the container
-      --compress                Compress the build context using gzip
-      --cpu-period int          Limit the CPU CFS (Completely Fair Scheduler) period
-      --cpu-quota int           Limit the CPU CFS (Completely Fair Scheduler) quota
-  -c, --cpu-shares int          CPU shares (relative weight)
-      --cpuset-cpus string      CPUs in which to allow execution (0-3, 0,1)
-      --cpuset-mems string      MEMs in which to allow execution (0-3, 0,1)
-      --disable-content-trust   Skip image verification (default true)
-  -f, --file string             Name of the Dockerfile (Default is 'PATH/Dockerfile')
-      --force-rm                Always remove intermediate containers
-      --help                    Print usage
-      --iidfile string          Write the image ID to the file
-      --isolation string        Container isolation technology
-      --label value             Set metadata for an image (default [])
-  -m, --memory string           Memory limit
-      --memory-swap string      Swap limit equal to memory plus swap: '-1' to enable unlimited swap
-      --network string          Set the networking mode for the RUN instructions during build
-                                'bridge': use default Docker bridge
-                                'none': no networking
-                                'container:<name|id>': reuse another container's network stack
-                                'host': use the Docker host network stack
-                                '<network-name>|<network-id>': connect to a user-defined network
-      --no-cache                Do not use cache when building the image
-  -o, --output                  Output destination (format: type=local,dest=path)
-      --pull                    Always attempt to pull a newer version of the image
-      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty).
-                                Use plain to show container output
-  -q, --quiet                   Suppress the build output and print image ID on success
-      --rm                      Remove intermediate containers after a successful build (default true)
-      --secret                  Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret"
-      --security-opt value      Security Options (default [])
-      --shm-size bytes          Size of /dev/shm
-                                The format is `<number><unit>`. `number` must be greater than `0`.
-                                Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes),
-                                or `g` (gigabytes). If you omit the unit, the system uses bytes.
-      --squash                  Squash newly built layers into a single new layer (**Experimental Only**)
-      --ssh                     SSH agent socket or keys to expose to the build (only if BuildKit enabled) (format: default|<id>[=<socket>|<key>[,<key>]])
-  -t, --tag value               Name and optionally a tag in the 'name:tag' format (default [])
-      --target string           Set the target build stage to build.
-      --ulimit value            Ulimit options (default [])
-```
+`docker image build`, `docker build`, `docker buildx build`, `docker builder build`
+
+### Options
+
+| Name                                | Type          | Default   | Description                                                       |
+|:------------------------------------|:--------------|:----------|:------------------------------------------------------------------|
+| [`--add-host`](#add-host)           | `list`        |           | Add a custom host-to-IP mapping (`host:ip`)                       |
+| [`--build-arg`](#build-arg)         | `list`        |           | Set build-time variables                                          |
+| [`--cache-from`](#cache-from)       | `stringSlice` |           | Images to consider as cache sources                               |
+| [`--cgroup-parent`](#cgroup-parent) | `string`      |           | Optional parent cgroup for the container                          |
+| `--compress`                        |               |           | Compress the build context using gzip                             |
+| `--cpu-period`                      | `int64`       | `0`       | Limit the CPU CFS (Completely Fair Scheduler) period              |
+| `--cpu-quota`                       | `int64`       | `0`       | Limit the CPU CFS (Completely Fair Scheduler) quota               |
+| `-c`, `--cpu-shares`                | `int64`       | `0`       | CPU shares (relative weight)                                      |
+| `--cpuset-cpus`                     | `string`      |           | CPUs in which to allow execution (0-3, 0,1)                       |
+| `--cpuset-mems`                     | `string`      |           | MEMs in which to allow execution (0-3, 0,1)                       |
+| `--disable-content-trust`           |               |           | Skip image verification                                           |
+| [`-f`](#file), [`--file`](#file)    | `string`      |           | Name of the Dockerfile (Default is `PATH/Dockerfile`)             |
+| `--force-rm`                        |               |           | Always remove intermediate containers                             |
+| `--iidfile`                         | `string`      |           | Write the image ID to the file                                    |
+| [`--isolation`](#isolation)         | `string`      |           | Container isolation technology                                    |
+| `--label`                           | `list`        |           | Set metadata for an image                                         |
+| `-m`, `--memory`                    | `bytes`       | `0`       | Memory limit                                                      |
+| `--memory-swap`                     | `bytes`       | `0`       | Swap limit equal to memory plus swap: -1 to enable unlimited swap |
+| `--network`                         | `string`      | `default` | Set the networking mode for the RUN instructions during build     |
+| `--no-cache`                        |               |           | Do not use cache when building the image                          |
+| `--platform`                        | `string`      |           | Set platform if server is multi-platform capable                  |
+| `--pull`                            |               |           | Always attempt to pull a newer version of the image               |
+| `-q`, `--quiet`                     |               |           | Suppress the build output and print image ID on success           |
+| `--rm`                              |               |           | Remove intermediate containers after a successful build           |
+| [`--security-opt`](#security-opt)   | `stringSlice` |           | Security options                                                  |
+| `--shm-size`                        | `bytes`       | `0`       | Size of `/dev/shm`                                                |
+| [`--squash`](#squash)               |               |           | Squash newly built layers into a single new layer                 |
+| [`-t`](#tag), [`--tag`](#tag)       | `list`        |           | Name and optionally a tag in the `name:tag` format                |
+| [`--target`](#target)               | `string`      |           | Set the target build stage to build.                              |
+| [`--ulimit`](#ulimit)               | `ulimit`      |           | Ulimit options                                                    |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -330,7 +315,7 @@ found, the `.dockerignore` file is used if present. Using a Dockerfile based
 to ignore different sets of files.
 
 
-### <a name=tag></a> Tag an image (-t, --tag)
+### <a name="tag"></a> Tag an image (-t, --tag)
 
 ```console
 $ docker build -t vieux/apache:2.0 .
@@ -350,7 +335,7 @@ For example, to tag an image both as `whenry/fedora-jboss:latest` and
 $ docker build -t whenry/fedora-jboss:latest -t whenry/fedora-jboss:v2.1 .
 ```
 
-### <a name=file></a> Specify a Dockerfile (-f, --file)
+### <a name="file"></a> Specify a Dockerfile (-f, --file)
 
 ```console
 $ docker build -f Dockerfile.debug .
@@ -397,17 +382,17 @@ the command line.
 > repeatable builds on remote Docker hosts. This is also the reason why
 > `ADD ../file` does not work.
 
-### <a name=cgroup-parent></a> Use a custom parent cgroup (--cgroup-parent)
+### <a name="cgroup-parent"></a> Use a custom parent cgroup (--cgroup-parent)
 
 When `docker build` is run with the `--cgroup-parent` option the containers
 used in the build will be run with the [corresponding `docker run` flag](../run.md#specify-custom-cgroups).
 
-### <a name=ulimit></a> Set ulimits in container (--ulimit)
+### <a name="ulimit"></a> Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
 container to be started using those [`--ulimit` flag values](run.md#ulimit).
 
-### <a name=build-arg></a> Set build-time variables (--build-arg)
+### <a name="build-arg"></a> Set build-time variables (--build-arg)
 
 You can use `ENV` instructions in a Dockerfile to define variable
 values. These values persist in the built image. However, often
@@ -445,13 +430,13 @@ $ docker build --build-arg HTTP_PROXY .
 This is similar to how `docker run -e` works. Refer to the [`docker run` documentation](run.md#env)
 for more information.
 
-### <a name=security-opt></a> Optional security options (--security-opt)
+### <a name="security-opt"></a> Optional security options (--security-opt)
 
 This flag is only supported on a daemon running on Windows, and only supports
 the `credentialspec` option. The `credentialspec` must be in the format
 `file://spec.txt` or `registry://keyname`.
 
-### <a name=isolation></a> Specify isolation technology for container (--isolation)
+### <a name="isolation"></a> Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
 Windows. The `--isolation=<value>` option sets a container's isolation
@@ -467,7 +452,7 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 
 Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
 
-### <a name=add-host></a> Add entries to container hosts file (--add-host)
+### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 
 You can add other hosts into a container's `/etc/hosts` file by using one or
 more `--add-host` flags. This example adds a static address for a host named
@@ -475,7 +460,7 @@ more `--add-host` flags. This example adds a static address for a host named
 
     $ docker build --add-host=docker:10.180.0.1 .
 
-### <a name=target></a> Specifying target build stage (--target)
+### <a name="target"></a> Specifying target build stage (--target)
 
 When building a Dockerfile with multiple build stages, `--target` can be used to
 specify an intermediate build stage by name as a final stage for the resulting
@@ -493,7 +478,7 @@ FROM alpine AS production-env
 $ docker build -t mybuildimage --target build-env .
 ```
 
-### <a name=output></a> Custom build outputs (--output)
+### <a name="output"></a> Custom build outputs (--output)
 
 > **Note**
 >
@@ -587,7 +572,7 @@ $ ls ./out
 vndr
 ```
 
-### <a name=cache-from></a> Specifying external cache sources (--cache-from)
+### <a name="cache-from"></a> Specifying external cache sources (--cache-from)
 
 > **Note**
 >
@@ -630,7 +615,7 @@ On another machine:
 $ docker build --cache-from myname/myapp .
 ```
 
-### <a name=squash></a> Squash an image's layers (--squash) (experimental)
+### <a name="squash"></a> Squash an image's layers (--squash) (experimental)
 
 #### Overview
 

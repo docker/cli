@@ -1,26 +1,19 @@
----
-title: "search"
-description: "The search command description and usage"
-keywords: "search, hub, images"
----
-
 # search
 
-```markdown
-Usage:  docker search [OPTIONS] TERM
-
+<!---MARKER_GEN_START-->
 Search Docker Hub for images
 
-Options:
-  -f, --filter value   Filter output based on conditions provided (default [])
-                       - is-automated=(true|false)
-                       - is-official=(true|false)
-                       - stars=<number> - image has at least 'number' stars
-      --format string  Pretty-print images using a Go template
-      --help           Print usage
-      --limit int      Max number of search results
-      --no-trunc       Don't truncate output
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
+| [`--format`](#format)                  | `string` |         | Pretty-print search using a Go template    |
+| [`--limit`](#limit)                    | `int`    | `0`     | Max number of search results               |
+| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -63,7 +56,7 @@ scottabernethy/busybox                                                          
 marclop/busybox-solr
 ```
 
-### <a name=no-trunc></a> Display non-truncated description (--no-trunc)
+### <a name="no-trunc"></a> Display non-truncated description (--no-trunc)
 
 This example displays images with a name containing 'busybox',
 at least 3 stars and the description isn't truncated in the output:
@@ -77,12 +70,12 @@ progrium/busybox                                                                
 radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Comes in git and cURL flavors.   8                    [OK]
 ```
 
-### <a name=limit></a> Limit search results (--limit)
+### <a name="limit"></a> Limit search results (--limit)
 
 The flag `--limit` is the maximum number of results returned by a search. If no
 value is set, the default is set by the daemon.
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g. `--filter is-automated=true --filter stars=3`)
@@ -132,7 +125,7 @@ NAME      DESCRIPTION           STARS     OFFICIAL   AUTOMATED
 busybox   Busybox base image.   325       [OK]
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints search output
 using a Go template.

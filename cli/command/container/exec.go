@@ -70,7 +70,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.Interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
 	flags.BoolVarP(&options.TTY, "tty", "t", false, "Allocate a pseudo-TTY")
 	flags.BoolVarP(&options.Detach, "detach", "d", false, "Detached mode: run command in the background")
-	flags.StringVarP(&options.User, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
+	flags.StringVarP(&options.User, "user", "u", "", `Username or UID (format: "<name|uid>[:<group|gid>]")`)
 	flags.BoolVarP(&options.Privileged, "privileged", "", false, "Give extended privileges to the command")
 	flags.VarP(&options.Env, "env", "e", "Set environment variables")
 	flags.SetAnnotation("env", "version", []string{"1.25"})

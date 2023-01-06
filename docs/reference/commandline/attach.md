@@ -1,25 +1,22 @@
----
-title: "attach"
-description: "The attach command description and usage"
-keywords: "attach, running, container"
----
-
 # attach
 
-```markdown
-Usage: docker attach [OPTIONS] CONTAINER
-
+<!---MARKER_GEN_START-->
 Attach local standard input, output, and error streams to a running container
 
-Aliases:
-  docker container attach, docker attach
+### Aliases
 
-Options:
-      --detach-keys string   Override the key sequence for detaching a container
-      --help                 Print usage
-      --no-stdin             Do not attach STDIN
-      --sig-proxy            Proxy all received signals to the process (default true)
-```
+`docker container attach`, `docker attach`
+
+### Options
+
+| Name            | Type     | Default | Description                                         |
+|:----------------|:---------|:--------|:----------------------------------------------------|
+| `--detach-keys` | `string` |         | Override the key sequence for detaching a container |
+| `--no-stdin`    |          |         | Do not attach STDIN                                 |
+| `--sig-proxy`   |          |         | Proxy all received signals to the process           |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

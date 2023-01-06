@@ -1,20 +1,16 @@
----
-title: "plugin enable"
-description: "the plugin enable command description and usage"
-keywords: "plugin, enable"
----
-
 # plugin enable
 
-```markdown
-Usage:  docker plugin enable [OPTIONS] PLUGIN
-
+<!---MARKER_GEN_START-->
 Enable a plugin
 
-Options:
-      --help          Print usage
-      --timeout int   HTTP client timeout (in seconds)
-```
+### Options
+
+| Name        | Type  | Default | Description                      |
+|:------------|:------|:--------|:---------------------------------|
+| `--timeout` | `int` | `30`    | HTTP client timeout (in seconds) |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

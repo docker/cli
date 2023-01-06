@@ -1,25 +1,22 @@
----
-title: "rm"
-description: "The rm command description and usage"
-keywords: "remove, Docker, container"
----
-
 # rm
 
-```markdown
-Usage:  docker rm [OPTIONS] CONTAINER [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Remove one or more containers
 
-Aliases:
-  docker container rm, docker rm
+### Aliases
 
-Options:
-  -f, --force     Force the removal of a running container (uses SIGKILL)
-      --help      Print usage
-  -l, --link      Remove the specified link
-  -v, --volumes   Remove anonymous volumes associated with the container
-```
+`docker container rm`, `docker rm`
+
+### Options
+
+| Name                                      | Type | Default | Description                                             |
+|:------------------------------------------|:-----|:--------|:--------------------------------------------------------|
+| [`-f`](#force), [`--force`](#force)       |      |         | Force the removal of a running container (uses SIGKILL) |
+| [`-l`](#link), [`--link`](#link)          |      |         | Remove the specified link                               |
+| [`-v`](#volumes), [`--volumes`](#volumes) |      |         | Remove anonymous volumes associated with the container  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Examples
 
@@ -33,7 +30,7 @@ $ docker rm /redis
 /redis
 ```
 
-### <a name=link></a> Remove a link specified with `--link` on the default bridge network (--link)
+### <a name="link"></a> Remove a link specified with `--link` on the default bridge network (--link)
 
 This removes the underlying link between `/webapp` and the `/redis`
 containers on the default bridge network, removing all network communication
@@ -46,7 +43,7 @@ $ docker rm --link /webapp/redis
 /webapp/redis
 ```
 
-### <a name=force></a> Force-remove a running container (--force)
+### <a name="force"></a> Force-remove a running container (--force)
 
 This command force-removes a running container.
 
@@ -89,7 +86,7 @@ Or, using the `xargs` Linux utility;
 $ docker ps --filter status=exited -q | xargs docker rm
 ```
 
-### <a name=volumes></a> Remove a container and its volumes (-v, --volumes)
+### <a name="volumes"></a> Remove a container and its volumes (-v, --volumes)
 
 ```console
 $ docker rm --volumes redis

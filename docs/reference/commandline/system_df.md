@@ -1,26 +1,17 @@
----
-title: "system df"
-description: "The system df command description and usage"
-keywords: "system, data, usage, disk"
----
-
 # system df
 
-```markdown
-Usage:  docker system df [OPTIONS]
+<!---MARKER_GEN_START-->
+Show docker disk usage
 
-Show docker filesystem usage
+### Options
 
-Options:
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-  -v, --verbose         Show detailed information on space usage
-```
+| Name                  | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:----------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`--format`](#format) | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-v`, `--verbose`     |          |         | Show detailed information on space usage                                                                                                                                                                                                                                                                                                                                                                                             |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -84,7 +75,7 @@ volumes or in systems where some images, containers, or volumes have very large
 filesystems with many files. You should also be careful not to run this command
 in systems where performance is critical.
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints the disk usage output
 using a Go template.

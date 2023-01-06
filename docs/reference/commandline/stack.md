@@ -1,30 +1,23 @@
----
-title: "stack"
-description: "The stack command description and usage"
-keywords: "stack"
----
-
 # stack
 
-```markdown
-Usage:  docker stack [OPTIONS] COMMAND
-
+<!---MARKER_GEN_START-->
 Manage Swarm stacks
 
-Options:
-      --help                  Print usage
+### Subcommands
 
-Commands:
-  deploy      Deploy a new stack or update an existing stack
-  ls          List stacks
-  ps          List the tasks in the stack
-  rm          Remove one or more stacks
-  services    List the services in the stack
+| Name                            | Description                                                          |
+|:--------------------------------|:---------------------------------------------------------------------|
+| [`config`](stack_config.md)     | Outputs the final config file, after doing merges and interpolations |
+| [`deploy`](stack_deploy.md)     | Deploy a new stack or update an existing stack                       |
+| [`ls`](stack_ls.md)             | List stacks                                                          |
+| [`ps`](stack_ps.md)             | List the tasks in the stack                                          |
+| [`rm`](stack_rm.md)             | Remove one or more stacks                                            |
+| [`services`](stack_services.md) | List the services in the stack                                       |
 
-Run 'docker stack COMMAND --help' for more information on a command.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Manage stacks.
-

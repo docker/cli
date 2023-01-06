@@ -1,20 +1,16 @@
----
-title: "key load"
-description: "The key load command description and usage"
-keywords: "key, notary, trust"
----
-
 # trust key load
 
-```markdown
-Usage:  docker trust key load [OPTIONS] KEYFILE
-
+<!---MARKER_GEN_START-->
 Load a private key file for signing
 
-Options:
-      --help          Print usage
-      --name string   Name for the loaded key (default "signer")
-```
+### Options
+
+| Name     | Type     | Default  | Description             |
+|:---------|:---------|:---------|:------------------------|
+| `--name` | `string` | `signer` | Name for the loaded key |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

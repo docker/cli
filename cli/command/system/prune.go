@@ -49,7 +49,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
 	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune volumes")
-	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'label=<key>=<value>')")
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "label=<key>=<value>")`)
 	// "filter" flag is available in 1.28 (docker 17.04) and up
 	flags.SetAnnotation("filter", "version", []string{"1.28"})
 

@@ -1,22 +1,17 @@
----
-title: "container prune"
-description: "Remove all stopped containers"
-keywords: container, prune, delete, remove
----
-
 # container prune
 
-```markdown
-Usage:  docker container prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove all stopped containers
 
-Options:
-Options:
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -37,7 +32,7 @@ f98f9c2aa1eaf727e4ec9c0283bc7d4aa4762fbdba7f26191f26c97f64090360
 Total reclaimed space: 212 B
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

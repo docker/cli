@@ -857,7 +857,7 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.Uint64Var(&opts.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
 	flags.SetAnnotation(flagMaxReplicas, "version", []string{"1.40"})
 
-	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", flagDesc(flagRestartCondition, `Restart when condition is met ("none"|"on-failure"|"any")`))
+	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", flagDesc(flagRestartCondition, `Restart when condition is met ("none", "on-failure", "any")`))
 	flags.Var(&opts.restartPolicy.delay, flagRestartDelay, flagDesc(flagRestartDelay, "Delay between restart attempts (ns|us|ms|s|m|h)"))
 	flags.Var(&opts.restartPolicy.maxAttempts, flagRestartMaxAttempts, flagDesc(flagRestartMaxAttempts, "Maximum number of restarts before giving up"))
 
@@ -867,10 +867,10 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.DurationVar(&opts.update.delay, flagUpdateDelay, 0, flagDesc(flagUpdateDelay, "Delay between updates (ns|us|ms|s|m|h)"))
 	flags.DurationVar(&opts.update.monitor, flagUpdateMonitor, 0, flagDesc(flagUpdateMonitor, "Duration after each task update to monitor for failure (ns|us|ms|s|m|h)"))
 	flags.SetAnnotation(flagUpdateMonitor, "version", []string{"1.25"})
-	flags.StringVar(&opts.update.onFailure, flagUpdateFailureAction, "", flagDesc(flagUpdateFailureAction, `Action on update failure ("pause"|"continue"|"rollback")`))
+	flags.StringVar(&opts.update.onFailure, flagUpdateFailureAction, "", flagDesc(flagUpdateFailureAction, `Action on update failure ("pause", "continue", "rollback")`))
 	flags.Var(&opts.update.maxFailureRatio, flagUpdateMaxFailureRatio, flagDesc(flagUpdateMaxFailureRatio, "Failure rate to tolerate during an update"))
 	flags.SetAnnotation(flagUpdateMaxFailureRatio, "version", []string{"1.25"})
-	flags.StringVar(&opts.update.order, flagUpdateOrder, "", flagDesc(flagUpdateOrder, `Update order ("start-first"|"stop-first")`))
+	flags.StringVar(&opts.update.order, flagUpdateOrder, "", flagDesc(flagUpdateOrder, `Update order ("start-first", "stop-first")`))
 	flags.SetAnnotation(flagUpdateOrder, "version", []string{"1.29"})
 
 	flags.Uint64Var(&opts.rollback.parallelism, flagRollbackParallelism, defaultFlagValues.getUint64(flagRollbackParallelism),
@@ -880,11 +880,11 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.SetAnnotation(flagRollbackDelay, "version", []string{"1.28"})
 	flags.DurationVar(&opts.rollback.monitor, flagRollbackMonitor, 0, flagDesc(flagRollbackMonitor, "Duration after each task rollback to monitor for failure (ns|us|ms|s|m|h)"))
 	flags.SetAnnotation(flagRollbackMonitor, "version", []string{"1.28"})
-	flags.StringVar(&opts.rollback.onFailure, flagRollbackFailureAction, "", flagDesc(flagRollbackFailureAction, `Action on rollback failure ("pause"|"continue")`))
+	flags.StringVar(&opts.rollback.onFailure, flagRollbackFailureAction, "", flagDesc(flagRollbackFailureAction, `Action on rollback failure ("pause", "continue")`))
 	flags.SetAnnotation(flagRollbackFailureAction, "version", []string{"1.28"})
 	flags.Var(&opts.rollback.maxFailureRatio, flagRollbackMaxFailureRatio, flagDesc(flagRollbackMaxFailureRatio, "Failure rate to tolerate during a rollback"))
 	flags.SetAnnotation(flagRollbackMaxFailureRatio, "version", []string{"1.28"})
-	flags.StringVar(&opts.rollback.order, flagRollbackOrder, "", flagDesc(flagRollbackOrder, `Rollback order ("start-first"|"stop-first")`))
+	flags.StringVar(&opts.rollback.order, flagRollbackOrder, "", flagDesc(flagRollbackOrder, `Rollback order ("start-first", "stop-first")`))
 	flags.SetAnnotation(flagRollbackOrder, "version", []string{"1.29"})
 
 	flags.StringVar(&opts.endpoint.mode, flagEndpointMode, defaultFlagValues.getString(flagEndpointMode), "Endpoint mode (vip or dnsrr)")

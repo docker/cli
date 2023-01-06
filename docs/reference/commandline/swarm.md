@@ -1,31 +1,24 @@
----
-title: "swarm"
-description: "The swarm command description and usage"
-keywords: "swarm"
----
-
 # swarm
 
-```markdown
-Usage:  docker swarm COMMAND
-
+<!---MARKER_GEN_START-->
 Manage Swarm
 
-Options:
-      --help   Print usage
+### Subcommands
 
-Commands:
-  ca          Manage root CA
-  init        Initialize a swarm
-  join        Join a swarm as a node and/or manager
-  join-token  Manage join tokens
-  leave       Leave the swarm
-  unlock      Unlock swarm
-  unlock-key  Manage the unlock key
-  update      Update the swarm
+| Name                                | Description                           |
+|:------------------------------------|:--------------------------------------|
+| [`ca`](swarm_ca.md)                 | Display and rotate the root CA        |
+| [`init`](swarm_init.md)             | Initialize a swarm                    |
+| [`join`](swarm_join.md)             | Join a swarm as a node and/or manager |
+| [`join-token`](swarm_join-token.md) | Manage join tokens                    |
+| [`leave`](swarm_leave.md)           | Leave the swarm                       |
+| [`unlock`](swarm_unlock.md)         | Unlock swarm                          |
+| [`unlock-key`](swarm_unlock-key.md) | Manage the unlock key                 |
+| [`update`](swarm_update.md)         | Update the swarm                      |
 
-Run 'docker swarm COMMAND --help' for more information on a command.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

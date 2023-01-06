@@ -1,23 +1,19 @@
----
-title: "login"
-description: "The login command description and usage"
-keywords: "registry, login, image"
----
-
 # login
 
-```markdown
-Usage:  docker login [OPTIONS] [SERVER]
-
+<!---MARKER_GEN_START-->
 Log in to a registry.
 If no server is specified, the default is defined by the daemon.
 
-Options:
-      --help                    Print usage
-  -p, --password       string   Password
-      --password-stdin          Read password from stdin
-  -u, --username       string   Username
-```
+### Options
+
+| Name                                  | Type     | Default | Description                  |
+|:--------------------------------------|:---------|:--------|:-----------------------------|
+| `-p`, `--password`                    | `string` |         | Password                     |
+| [`--password-stdin`](#password-stdin) |          |         | Take the password from stdin |
+| `-u`, `--username`                    | `string` |         | Username                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -34,7 +30,7 @@ adding the server name.
 $ docker login localhost:8080
 ```
 
-### <a name=password-stdin></a> Provide a password using STDIN (--password-stdin)
+### <a name="password-stdin"></a> Provide a password using STDIN (--password-stdin)
 
 To run the `docker login` command non-interactively, you can set the
 `--password-stdin` flag to provide a password through `STDIN`. Using

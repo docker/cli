@@ -1,23 +1,19 @@
----
-title: "system prune"
-description: "Remove unused data"
-keywords: "system, prune, delete, remove"
----
-
 # system prune
 
-```markdown
-Usage:  docker system prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove unused data
 
-Options:
-  -a, --all             Remove all unused images not just dangling ones
-      --filter filter   Provide filter values (e.g. 'label=<key>=<value>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-      --volumes         Prune volumes
-```
+### Options
+
+| Name                  | Type     | Default | Description                                        |
+|:----------------------|:---------|:--------|:---------------------------------------------------|
+| `-a`, `--all`         |          |         | Remove all unused images not just dangling ones    |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<key>=<value>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation                     |
+| `--volumes`           |          |         | Prune volumes                                      |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -97,7 +93,7 @@ deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
 Total reclaimed space: 13.5 MB
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

@@ -1,24 +1,32 @@
----
-title: "manifest"
-description: "The manifest command description and usage"
-keywords: "docker, manifest"
----
+# manifest
 
-```markdown
-Usage:  docker manifest COMMAND
+<!---MARKER_GEN_START-->
 
-Manage Docker image manifests and manifest lists
+The **docker manifest** command has subcommands for managing image manifests and
+manifest lists. A manifest list allows you to use one name to refer to the same image
+built for multiple architectures.
 
-Options:
-      --help   Print usage
+To see help for a subcommand, use:
 
-Commands:
-  annotate    Add additional information to a local image manifest
-  create      Create a local manifest list for annotating and pushing to a registry
-  inspect     Display an image manifest, or manifest list
-  push        Push a manifest list to a repository
+    docker manifest CMD --help
 
-```
+For full details on using docker manifest lists, see the registry v2 specification.
+
+
+
+### Subcommands
+
+| Name                               | Description                                                           |
+|:-----------------------------------|:----------------------------------------------------------------------|
+| [`annotate`](manifest_annotate.md) | Add additional information to a local image manifest                  |
+| [`create`](manifest_create.md)     | Create a local manifest list for annotating and pushing to a registry |
+| [`inspect`](manifest_inspect.md)   | Display an image manifest, or manifest list                           |
+| [`push`](manifest_push.md)         | Push a manifest list to a repository                                  |
+| [`rm`](manifest_rm.md)             | Delete one or more manifest lists from local storage                  |
+
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

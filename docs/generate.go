@@ -10,8 +10,10 @@ import (
 	"os"
 
 	clidocstool "github.com/docker/cli-docs-tool"
+	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -19,8 +21,9 @@ import (
 const defaultSourcePath = "docs/reference/commandline/"
 
 type options struct {
-	source string
-	target string
+	source  string
+	target  string
+	formats []string
 }
 
 func gen(opts *options) error {
@@ -34,6 +37,10 @@ func gen(opts *options) error {
 		Use:   "docker [OPTIONS] COMMAND [ARG...]",
 		Short: "The base command for the Docker CLI.",
 	}
+	clientOpts, _, _ := cli.SetupRootCommand(cmd)
+	if err := dockerCLI.Initialize(clientOpts); err != nil {
+		return err
+	}
 	commands.AddCommands(cmd, dockerCLI)
 
 	c, err := clidocstool.New(clidocstool.Options{
@@ -46,7 +53,22 @@ func gen(opts *options) error {
 		return err
 	}
 
-	return c.GenYamlTree(cmd)
+	for _, format := range opts.formats {
+		switch format {
+		case "md":
+			if err = c.GenMarkdownTree(cmd); err != nil {
+				return err
+			}
+		case "yaml":
+			if err = c.GenYamlTree(cmd); err != nil {
+				return err
+			}
+		default:
+			return errors.Errorf("unknown format %q", format)
+		}
+	}
+
+	return nil
 }
 
 func run() error {
@@ -54,8 +76,12 @@ func run() error {
 	flags := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	flags.StringVar(&opts.source, "source", defaultSourcePath, "Docs source folder")
 	flags.StringVar(&opts.target, "target", defaultSourcePath, "Docs target folder")
+	flags.StringSliceVar(&opts.formats, "formats", []string{}, "Format (md, yaml)")
 	if err := flags.Parse(os.Args[1:]); err != nil {
 		return err
+	}
+	if len(opts.formats) == 0 {
+		return errors.New("Docs format required")
 	}
 	return gen(opts)
 }

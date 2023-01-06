@@ -1,22 +1,14 @@
----
-title: "stack rm"
-description: "The stack rm command description and usage"
-keywords: "stack, rm, remove, down"
----
-
 # stack rm
 
-```markdown
-Usage:  docker stack rm [OPTIONS] STACK [STACK...]
-
+<!---MARKER_GEN_START-->
 Remove one or more stacks
 
-Aliases:
-  rm, remove, down
+### Aliases
 
-Options:
-      --help                  Print usage
-```
+`docker stack rm`, `docker stack remove`, `docker stack down`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

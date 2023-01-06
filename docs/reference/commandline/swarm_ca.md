@@ -1,26 +1,22 @@
----
-title: "swarm ca"
-description: "The swarm ca command description and usage"
-keywords: "swarm, ca"
----
-
 # swarm ca
 
-```markdown
-Usage:  docker swarm ca [OPTIONS]
+<!---MARKER_GEN_START-->
+Display and rotate the root CA
 
-Manage root CA
+### Options
 
-Options:
-      --ca-cert pem-file          Path to the PEM-formatted root CA certificate to use for the new cluster
-      --ca-key pem-file           Path to the PEM-formatted root CA key to use for the new cluster
-      --cert-expiry duration      Validity period for node certificates (ns|us|ms|s|m|h) (default 2160h0m0s)
-  -d, --detach                    Exit immediately instead of waiting for the root rotation to converge
-      --external-ca external-ca   Specifications of one or more certificate signing endpoints
-      --help                      Print usage
-  -q, --quiet                     Suppress progress output
-      --rotate                    Rotate the swarm CA - if no certificate or key are provided, new ones will be generated
-```
+| Name                                   | Type          | Default     | Description                                                                             |
+|:---------------------------------------|:--------------|:------------|:----------------------------------------------------------------------------------------|
+| `--ca-cert`                            | `pem-file`    |             | Path to the PEM-formatted root CA certificate to use for the new cluster                |
+| `--ca-key`                             | `pem-file`    |             | Path to the PEM-formatted root CA key to use for the new cluster                        |
+| `--cert-expiry`                        | `duration`    | `2160h0m0s` | Validity period for node certificates (ns\|us\|ms\|s\|m\|h)                             |
+| [`-d`](#detach), [`--detach`](#detach) |               |             | Exit immediately instead of waiting for the root rotation to converge                   |
+| `--external-ca`                        | `external-ca` |             | Specifications of one or more certificate signing endpoints                             |
+| `-q`, `--quiet`                        |               |             | Suppress progress output                                                                |
+| [`--rotate`](#rotate)                  |               |             | Rotate the swarm CA - if no certificate or key are provided, new ones will be generated |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -83,7 +79,7 @@ gyg5u9Iliel99l7SuMhNeLkrU7fXs+Of1nTyyM73ig==
 -----END CERTIFICATE-----
 ```
 
-### <a name=rotate></a> Root CA rotation (--rotate)
+### <a name="rotate"></a> Root CA rotation (--rotate)
 
 Root CA Rotation is recommended if one or more of the swarm managers have been
 compromised, so that those managers can no longer connect to or be trusted by
@@ -106,7 +102,7 @@ reasonable amount of time, try running
 see if any nodes are down or otherwise unable to rotate TLS certificates.
 
 
-### <a name=detach></a> Run root CA rotation in detached mode (--detach)
+### <a name="detach"></a> Run root CA rotation in detached mode (--detach)
 
 Initiate the root CA rotation, but do not wait for the completion of or display the
 progress of the rotation.

@@ -1,31 +1,24 @@
 
----
-title: "node"
-description: "The node command description and usage"
-keywords: "node"
----
-
 # node
 
-```markdown
-Usage:  docker node COMMAND
-
+<!---MARKER_GEN_START-->
 Manage Swarm nodes
 
-Options:
-      --help   Print usage
+### Subcommands
 
-Commands:
-  demote      Demote one or more nodes from manager in the swarm
-  inspect     Display detailed information on one or more nodes
-  ls          List nodes in the swarm
-  promote     Promote one or more nodes to manager in the swarm
-  ps          List tasks running on one or more nodes, defaults to current node
-  rm          Remove one or more nodes from the swarm
-  update      Update a node
+| Name                         | Description                                                       |
+|:-----------------------------|:------------------------------------------------------------------|
+| [`demote`](node_demote.md)   | Demote one or more nodes from manager in the swarm                |
+| [`inspect`](node_inspect.md) | Display detailed information on one or more nodes                 |
+| [`ls`](node_ls.md)           | List nodes in the swarm                                           |
+| [`promote`](node_promote.md) | Promote one or more nodes to manager in the swarm                 |
+| [`ps`](node_ps.md)           | List tasks running on one or more nodes, defaults to current node |
+| [`rm`](node_rm.md)           | Remove one or more nodes from the swarm                           |
+| [`update`](node_update.md)   | Update a node                                                     |
 
-Run 'docker node COMMAND --help' for more information on a command.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

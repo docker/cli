@@ -1,108 +1,105 @@
----
-title: "service update"
-description: "The service update command description and usage"
-keywords: "service, update"
----
-
 # service update
 
-```Markdown
-Usage:  docker service update [OPTIONS] SERVICE
-
+<!---MARKER_GEN_START-->
 Update a service
 
-Options:
-      --args command                       Service command args
-      --cap-add list                       Add Linux capabilities
-      --cap-drop list                      Drop Linux capabilities
-      --config-add config                  Add or update a config file on a service
-      --config-rm list                     Remove a configuration file
-      --constraint-add list                Add or update a placement constraint
-      --constraint-rm list                 Remove a constraint
-      --container-label-add list           Add or update a container label
-      --container-label-rm list            Remove a container label by its key
-      --credential-spec credential-spec    Credential spec for managed service account (Windows only)
-  -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
-      --dns-add list                       Add or update a custom DNS server
-      --dns-option-add list                Add or update a DNS option
-      --dns-option-rm list                 Remove a DNS option
-      --dns-rm list                        Remove a custom DNS server
-      --dns-search-add list                Add or update a custom DNS search domain
-      --dns-search-rm list                 Remove a DNS search domain
-      --endpoint-mode string               Endpoint mode (vip or dnsrr)
-      --entrypoint command                 Overwrite the default ENTRYPOINT of the image
-      --env-add list                       Add or update an environment variable
-      --env-rm list                        Remove an environment variable
-      --force                              Force update even if no changes require it
-      --generic-resource-add list          Add an additional generic resource to the service's resources requirements
-      --generic-resource-rm list           Remove a previously added generic resource to the service's resources requirements
-      --group-add list                     Add an additional supplementary user group to the container
-      --group-rm list                      Remove a previously added supplementary user group from the container
-      --health-cmd string                  Command to run to check health
-      --health-interval duration           Time between running the check (ms|s|m|h)
-      --health-retries int                 Consecutive failures needed to report unhealthy
-      --health-start-period duration       Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)
-      --health-timeout duration            Maximum time to allow one check to run (ms|s|m|h)
-      --help                               Print usage
-      --host-add list                      Add a custom host-to-IP mapping (host:ip)
-      --host-rm list                       Remove a custom host-to-IP mapping (host:ip)
-      --hostname string                    Container hostname
-      --init bool                          Use an init inside each service container to forward signals and reap processes
-      --image string                       Service image tag
-      --isolation string                   Service container isolation mode
-      --label-add list                     Add or update a service label
-      --label-rm list                      Remove a label by its key
-      --limit-cpu decimal                  Limit CPUs
-      --limit-memory bytes                 Limit Memory
-      --limit-pids int                     Limit maximum number of processes (default 0 = unlimited)
-      --log-driver string                  Logging driver for service
-      --log-opt list                       Logging driver options
-      --max-concurrent                     Number of job tasks to run at once (default equal to --replicas)
-      --mount-add mount                    Add or update a mount on a service
-      --mount-rm list                      Remove a mount by its target path
-      --network-add network                Add a network
-      --network-rm list                    Remove a network
-      --no-healthcheck                     Disable any container-specified HEALTHCHECK
-      --no-resolve-image                   Do not query the registry to resolve image digest and supported platforms
-      --placement-pref-add pref            Add a placement preference
-      --placement-pref-rm pref             Remove a placement preference
-      --publish-add port                   Add or update a published port
-      --publish-rm port                    Remove a published port by its target port
-  -q, --quiet                              Suppress progress output
-      --read-only                          Mount the container's root filesystem as read only
-      --replicas uint                      Number of tasks
-      --reserve-cpu decimal                Reserve CPUs
-      --reserve-memory bytes               Reserve Memory
-      --restart-condition string           Restart when condition is met ("none"|"on-failure"|"any")
-      --restart-delay duration             Delay between restart attempts (ns|us|ms|s|m|h)
-      --restart-max-attempts uint          Maximum number of restarts before giving up
-      --restart-window duration            Window used to evaluate the restart policy (ns|us|ms|s|m|h)
-      --rollback                           Rollback to previous specification
-      --rollback-delay duration            Delay between task rollbacks (ns|us|ms|s|m|h)
-      --rollback-failure-action string     Action on rollback failure ("pause"|"continue")
-      --rollback-max-failure-ratio float   Failure rate to tolerate during a rollback
-      --rollback-monitor duration          Duration after each task rollback to monitor for failure (ns|us|ms|s|m|h)
-      --rollback-order string              Rollback order ("start-first"|"stop-first")
-      --rollback-parallelism uint          Maximum number of tasks rolled back simultaneously (0 to roll back all at once)
-      --secret-add secret                  Add or update a secret on a service
-      --secret-rm list                     Remove a secret
-      --stop-grace-period duration         Time to wait before force killing a container (ns|us|ms|s|m|h)
-      --stop-signal string                 Signal to stop the container
-      --sysctl-add list                    Add or update a Sysctl option
-      --sysctl-rm list                     Remove a Sysctl option
-  -t, --tty                                Allocate a pseudo-TTY
-      --ulimit-add ulimit                  Add or update a ulimit option (default [])
-      --ulimit-rm list                     Remove a ulimit option
-      --update-delay duration              Delay between updates (ns|us|ms|s|m|h)
-      --update-failure-action string       Action on update failure ("pause"|"continue"|"rollback")
-      --update-max-failure-ratio float     Failure rate to tolerate during an update
-      --update-monitor duration            Duration after each task update to monitor for failure (ns|us|ms|s|m|h)
-      --update-order string                Update order ("start-first"|"stop-first")
-      --update-parallelism uint            Maximum number of tasks updated simultaneously (0 to update all at once)
-  -u, --user string                        Username or UID (format: <name|uid>[:<group|gid>])
-      --with-registry-auth                 Send registry authentication details to swarm agents
-  -w, --workdir string                     Working directory inside the container
-```
+### Options
+
+| Name                                          | Type              | Default | Description                                                                                         |
+|:----------------------------------------------|:------------------|:--------|:----------------------------------------------------------------------------------------------------|
+| `--args`                                      | `command`         |         | Service command args                                                                                |
+| `--cap-add`                                   | `list`            |         | Add Linux capabilities                                                                              |
+| `--cap-drop`                                  | `list`            |         | Drop Linux capabilities                                                                             |
+| `--config-add`                                | `config`          |         | Add or update a config file on a service                                                            |
+| `--config-rm`                                 | `list`            |         | Remove a configuration file                                                                         |
+| `--constraint-add`                            | `list`            |         | Add or update a placement constraint                                                                |
+| `--constraint-rm`                             | `list`            |         | Remove a constraint                                                                                 |
+| `--container-label-add`                       | `list`            |         | Add or update a container label                                                                     |
+| `--container-label-rm`                        | `list`            |         | Remove a container label by its key                                                                 |
+| `--credential-spec`                           | `credential-spec` |         | Credential spec for managed service account (Windows only)                                          |
+| `-d`, `--detach`                              |                   |         | Exit immediately instead of waiting for the service to converge                                     |
+| `--dns-add`                                   | `list`            |         | Add or update a custom DNS server                                                                   |
+| `--dns-option-add`                            | `list`            |         | Add or update a DNS option                                                                          |
+| `--dns-option-rm`                             | `list`            |         | Remove a DNS option                                                                                 |
+| `--dns-rm`                                    | `list`            |         | Remove a custom DNS server                                                                          |
+| `--dns-search-add`                            | `list`            |         | Add or update a custom DNS search domain                                                            |
+| `--dns-search-rm`                             | `list`            |         | Remove a DNS search domain                                                                          |
+| `--endpoint-mode`                             | `string`          |         | Endpoint mode (vip or dnsrr)                                                                        |
+| `--entrypoint`                                | `command`         |         | Overwrite the default ENTRYPOINT of the image                                                       |
+| `--env-add`                                   | `list`            |         | Add or update an environment variable                                                               |
+| `--env-rm`                                    | `list`            |         | Remove an environment variable                                                                      |
+| `--force`                                     |                   |         | Force update even if no changes require it                                                          |
+| `--generic-resource-add`                      | `list`            |         | Add a Generic resource                                                                              |
+| `--generic-resource-rm`                       | `list`            |         | Remove a Generic resource                                                                           |
+| `--group-add`                                 | `list`            |         | Add an additional supplementary user group to the container                                         |
+| `--group-rm`                                  | `list`            |         | Remove a previously added supplementary user group from the container                               |
+| `--health-cmd`                                | `string`          |         | Command to run to check health                                                                      |
+| `--health-interval`                           | `duration`        |         | Time between running the check (ms\|s\|m\|h)                                                        |
+| `--health-retries`                            | `int`             | `0`     | Consecutive failures needed to report unhealthy                                                     |
+| `--health-start-period`                       | `duration`        |         | Start period for the container to initialize before counting retries towards unstable (ms\|s\|m\|h) |
+| `--health-timeout`                            | `duration`        |         | Maximum time to allow one check to run (ms\|s\|m\|h)                                                |
+| `--host-add`                                  | `list`            |         | Add a custom host-to-IP mapping (`host:ip`)                                                         |
+| `--host-rm`                                   | `list`            |         | Remove a custom host-to-IP mapping (`host:ip`)                                                      |
+| `--hostname`                                  | `string`          |         | Container hostname                                                                                  |
+| `--image`                                     | `string`          |         | Service image tag                                                                                   |
+| `--init`                                      |                   |         | Use an init inside each service container to forward signals and reap processes                     |
+| [`--isolation`](#isolation)                   | `string`          |         | Service container isolation mode                                                                    |
+| `--label-add`                                 | `list`            |         | Add or update a service label                                                                       |
+| `--label-rm`                                  | `list`            |         | Remove a label by its key                                                                           |
+| `--limit-cpu`                                 | `decimal`         |         | Limit CPUs                                                                                          |
+| `--limit-memory`                              | `bytes`           | `0`     | Limit Memory                                                                                        |
+| `--limit-pids`                                | `int64`           | `0`     | Limit maximum number of processes (default 0 = unlimited)                                           |
+| `--log-driver`                                | `string`          |         | Logging driver for service                                                                          |
+| `--log-opt`                                   | `list`            |         | Logging driver options                                                                              |
+| `--max-concurrent`                            | `uint`            |         | Number of job tasks to run concurrently (default equal to --replicas)                               |
+| [`--mount-add`](#mount-add)                   | `mount`           |         | Add or update a mount on a service                                                                  |
+| `--mount-rm`                                  | `list`            |         | Remove a mount by its target path                                                                   |
+| [`--network-add`](#network-add)               | `network`         |         | Add a network                                                                                       |
+| `--network-rm`                                | `list`            |         | Remove a network                                                                                    |
+| `--no-healthcheck`                            |                   |         | Disable any container-specified HEALTHCHECK                                                         |
+| `--no-resolve-image`                          |                   |         | Do not query the registry to resolve image digest and supported platforms                           |
+| `--placement-pref-add`                        | `pref`            |         | Add a placement preference                                                                          |
+| `--placement-pref-rm`                         | `pref`            |         | Remove a placement preference                                                                       |
+| [`--publish-add`](#publish-add)               | `port`            |         | Add or update a published port                                                                      |
+| `--publish-rm`                                | `port`            |         | Remove a published port by its target port                                                          |
+| `-q`, `--quiet`                               |                   |         | Suppress progress output                                                                            |
+| `--read-only`                                 |                   |         | Mount the container's root filesystem as read only                                                  |
+| `--replicas`                                  | `uint`            |         | Number of tasks                                                                                     |
+| `--replicas-max-per-node`                     | `uint64`          | `0`     | Maximum number of tasks per node (default 0 = unlimited)                                            |
+| `--reserve-cpu`                               | `decimal`         |         | Reserve CPUs                                                                                        |
+| `--reserve-memory`                            | `bytes`           | `0`     | Reserve Memory                                                                                      |
+| `--restart-condition`                         | `string`          |         | Restart when condition is met (`none`, `on-failure`, `any`)                                         |
+| `--restart-delay`                             | `duration`        |         | Delay between restart attempts (ns\|us\|ms\|s\|m\|h)                                                |
+| `--restart-max-attempts`                      | `uint`            |         | Maximum number of restarts before giving up                                                         |
+| `--restart-window`                            | `duration`        |         | Window used to evaluate the restart policy (ns\|us\|ms\|s\|m\|h)                                    |
+| [`--rollback`](#rollback)                     |                   |         | Rollback to previous specification                                                                  |
+| `--rollback-delay`                            | `duration`        | `0s`    | Delay between task rollbacks (ns\|us\|ms\|s\|m\|h)                                                  |
+| `--rollback-failure-action`                   | `string`          |         | Action on rollback failure (`pause`, `continue`)                                                    |
+| `--rollback-max-failure-ratio`                | `float`           | `0`     | Failure rate to tolerate during a rollback                                                          |
+| `--rollback-monitor`                          | `duration`        | `0s`    | Duration after each task rollback to monitor for failure (ns\|us\|ms\|s\|m\|h)                      |
+| `--rollback-order`                            | `string`          |         | Rollback order (`start-first`, `stop-first`)                                                        |
+| `--rollback-parallelism`                      | `uint64`          | `0`     | Maximum number of tasks rolled back simultaneously (0 to roll back all at once)                     |
+| [`--secret-add`](#secret-add)                 | `secret`          |         | Add or update a secret on a service                                                                 |
+| `--secret-rm`                                 | `list`            |         | Remove a secret                                                                                     |
+| `--stop-grace-period`                         | `duration`        |         | Time to wait before force killing a container (ns\|us\|ms\|s\|m\|h)                                 |
+| `--stop-signal`                               | `string`          |         | Signal to stop the container                                                                        |
+| `--sysctl-add`                                | `list`            |         | Add or update a Sysctl option                                                                       |
+| `--sysctl-rm`                                 | `list`            |         | Remove a Sysctl option                                                                              |
+| `-t`, `--tty`                                 |                   |         | Allocate a pseudo-TTY                                                                               |
+| `--ulimit-add`                                | `ulimit`          |         | Add or update a ulimit option                                                                       |
+| `--ulimit-rm`                                 | `list`            |         | Remove a ulimit option                                                                              |
+| `--update-delay`                              | `duration`        | `0s`    | Delay between updates (ns\|us\|ms\|s\|m\|h)                                                         |
+| `--update-failure-action`                     | `string`          |         | Action on update failure (`pause`, `continue`, `rollback`)                                          |
+| `--update-max-failure-ratio`                  | `float`           | `0`     | Failure rate to tolerate during an update                                                           |
+| `--update-monitor`                            | `duration`        | `0s`    | Duration after each task update to monitor for failure (ns\|us\|ms\|s\|m\|h)                        |
+| `--update-order`                              | `string`          |         | Update order (`start-first`, `stop-first`)                                                          |
+| [`--update-parallelism`](#update-parallelism) | `uint64`          | `0`     | Maximum number of tasks updated simultaneously (0 to update all at once)                            |
+| `-u`, `--user`                                | `string`          |         | Username or UID (format: <name\|uid>[:<group\|gid>])                                                |
+| `--with-registry-auth`                        |                   |         | Send registry authentication details to swarm agents                                                |
+| `-w`, `--workdir`                             | `string`          |         | Working directory inside the container                                                              |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -131,7 +128,7 @@ rolling restart without any changes to the service parameters.
 $ docker service update --limit-cpu 2 redis
 ```
 
-### <a name=update-parallelism></a> Perform a rolling restart with no parameter changes
+### <a name="update-parallelism"></a> Perform a rolling restart with no parameter changes
 
 ```console
 $ docker service update --force --update-parallelism 1 --update-delay 30s redis
@@ -144,7 +141,7 @@ that only one task is replaced at a time (this is the default behavior). The
 `--update-delay 30s` setting introduces a 30 second delay between tasks, so
 that the rolling restart happens gradually.
 
-### <a name=mount-add></a> Add or remove mounts (--mount-add, --mount-rm)
+### <a name="mount-add"></a> Add or remove mounts (--mount-add, --mount-rm)
 
 Use the `--mount-add` or `--mount-rm` options add or remove a service's bind mounts
 or volumes.
@@ -180,7 +177,7 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
-### <a name=publish-add></a> Add or remove published service ports (--publish-add, --publish-rm)
+### <a name="publish-add"></a> Add or remove published service ports (--publish-add, --publish-rm)
 
 Use the `--publish-add` or `--publish-rm` flags to add or remove a published
 port for a service. You can use the short or long syntax discussed in the
@@ -195,7 +192,7 @@ $ docker service update \
   myservice
 ```
 
-### <a name=network-add></a> Add or remove network (--network-add, --network-rm)
+### <a name="network-add"></a> Add or remove network (--network-add, --network-rm)
 
 Use the `--network-add` or `--network-rm` flags to add or remove a network for
 a service. You can use the short or long syntax discussed in the
@@ -211,7 +208,7 @@ $ docker service update \
   myservice
 ```
 
-### <a name=rollback></a> Roll back to the previous version of a service (--rollback)
+### <a name="rollback"></a> Roll back to the previous version of a service (--rollback)
 
 Use the `--rollback` option to roll back to the previous version of the service.
 
@@ -277,7 +274,7 @@ will update one task at a time during a normal update, but during a rollback, 3
 tasks at a time will get rolled back. These rollback parameters are respected both
 during automatic rollbacks and for rollbacks initiated manually using `--rollback`.
 
-### <a name=secret-add></a> Add or remove secrets (--secret-add, --secret-rm)
+### <a name="secret-add"></a> Add or remove secrets (--secret-add, --secret-rm)
 
 Use the `--secret-add` or `--secret-rm` options add or remove a service's
 secrets.
@@ -297,7 +294,7 @@ Some flags of `service update` support the use of templating.
 See [`service create`](service_create.md#create-services-using-templates) for the reference.
 
 
-### <a name=isolation></a> Specify isolation mode on Windows (--isolation)
+### <a name="isolation"></a> Specify isolation mode on Windows (--isolation)
 
 `service update` supports the same `--isolation` flag as `service create`
 See [`service create`](service_create.md) for the reference.

@@ -1,31 +1,23 @@
----
-title: "network ls"
-description: "The network ls command description and usage"
-keywords: "network, list, user-defined"
----
+# network ls
 
-# docker network ls
-
-```markdown
-Usage:  docker network ls [OPTIONS]
-
+<!---MARKER_GEN_START-->
 List networks
 
-Aliases:
-  ls, list
+### Aliases
 
-Options:
-  -f, --filter filter   Provide filter values (e.g. 'driver=bridge')
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-      --no-trunc        Do not truncate the output
-  -q, --quiet           Only display network IDs
-```
+`docker network ls`, `docker network list`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `driver=bridge`)                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `--no-trunc`                           |          |         | Do not truncate the output                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `-q`, `--quiet`                        |          |         | Only display network IDs                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -57,7 +49,7 @@ c288470c46f6c8949c5f7e5099b5b7947b07eabe8d9a27d79a9cbf111adcbf47   host         
 63d1ff1f77b07ca51070a8c227e962238358bd310bde1529cf62e6c307ade161   dev                 bridge           local
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
@@ -202,7 +194,7 @@ $ docker network rm `docker network ls --filter type=custom -q`
 A warning will be issued when trying to remove a network that has containers
 attached.
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints networks output
 using a Go template.

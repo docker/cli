@@ -1,31 +1,22 @@
----
-title: "secret ls"
-description: "The secret ls command description and usage"
-keywords: ["secret, ls"]
----
-
 # secret ls
 
-```Markdown
-Usage:  docker secret ls [OPTIONS]
-
+<!---MARKER_GEN_START-->
 List secrets
 
-Aliases:
-  ls, list
+### Aliases
 
-Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
+`docker secret ls`, `docker secret list`
 
-      --help            Print usage
-  -q, --quiet           Only display IDs
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-q`, `--quiet`                        |          |         | Only display IDs                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -51,7 +42,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 3 seconds ago       3 seconds ago
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -111,7 +102,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 About an hour ago   About an hour ago
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints secrets output
 using a Go template.

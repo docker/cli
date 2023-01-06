@@ -1,23 +1,19 @@
----
-title: "plugin install"
-description: "the plugin install command description and usage"
-keywords: "plugin, install"
----
-
 # plugin install
 
-```markdown
-Usage:  docker plugin install [OPTIONS] PLUGIN [KEY=VALUE...]
-
+<!---MARKER_GEN_START-->
 Install a plugin
 
-Options:
-      --alias string            Local name for plugin
-      --disable                 Do not enable the plugin on install
-      --disable-content-trust   Skip image verification (default true)
-      --grant-all-permissions   Grant all permissions necessary to run the plugin
-      --help                    Print usage
-```
+### Options
+
+| Name                      | Type     | Default | Description                                       |
+|:--------------------------|:---------|:--------|:--------------------------------------------------|
+| `--alias`                 | `string` |         | Local name for plugin                             |
+| `--disable`               |          |         | Do not enable the plugin on install               |
+| `--disable-content-trust` |          |         | Skip image verification                           |
+| `--grant-all-permissions` |          |         | Grant all permissions necessary to run the plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

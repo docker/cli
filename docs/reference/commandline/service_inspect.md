@@ -1,24 +1,17 @@
----
-title: "service inspect"
-description: "The service inspect command description and usage"
-keywords: "service, inspect"
----
-
 # service inspect
 
-```Markdown
-Usage:  docker service inspect [OPTIONS] SERVICE [SERVICE...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more services
 
-Options:
-  -f, --format string   Format output using a custom template:
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --pretty          Print the information in a human friendly format
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| [`--pretty`](#pretty)                  |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -116,7 +109,7 @@ $ docker service inspect dmu1ept4cxcf
 ]
 ```
 
-### <a name=pretty></a> Formatting (--pretty)
+### <a name="pretty"></a> Formatting (--pretty)
 
 You can print the inspect output in a human-readable format instead of the default
 JSON output, by using the `--pretty` option:
@@ -149,7 +142,7 @@ Ports:
 
 You can also use `--format pretty` for the same effect.
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can use the --format option to obtain specific information about a
 The `--format` option can be used to obtain specific information about a

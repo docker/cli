@@ -1,22 +1,14 @@
----
-title: "pause"
-description: "The pause command description and usage"
-keywords: "cgroups, container, suspend, SIGSTOP"
----
-
 # pause
 
-```markdown
-Usage:  docker pause CONTAINER [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Pause all processes within one or more containers
 
-Aliases:
-  docker container pause, docker pause
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker container pause`, `docker pause`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

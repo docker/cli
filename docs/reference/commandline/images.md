@@ -1,38 +1,25 @@
----
-title: "images"
-description: "The images command description and usage"
-keywords: "list, docker, images"
----
-
 # images
 
-```markdown
-Usage:  docker images [OPTIONS] [REPOSITORY[:TAG]]
-
+<!---MARKER_GEN_START-->
 List images
 
-Aliases:
-  docker image ls, docker image list, docker images
+### Aliases
 
-Options:
-  -a, --all             Show all images (default hides intermediate images)
-      --digests         Show digests
-  -f, --filter value    Filter output based on conditions provided (default [])
-                        - dangling=(true|false)
-                        - label=<key> or label=<key>=<value>
-                        - before=(<image-name>[:tag]|<image-id>|<image@digest>)
-                        - since=(<image-name>[:tag]|<image-id>|<image@digest>)
-                        - reference=(pattern of an image reference)
-      --format string   Format output using a custom template:
-                        'table':            Print output in table format with column headers (default)
-                        'table TEMPLATE':   Print output in table format using the given Go template
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-      --no-trunc        Don't truncate output
-  -q, --quiet           Only show image IDs
-```
+`docker image ls`, `docker image list`, `docker images`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-a`, `--all`                          |          |         | Show all images (default hides intermediate images)                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`--digests`](#digests)                |          |         | Show digests                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `-q`, `--quiet`                        |          |         | Only show image IDs                                                                                                                                                                                                                                                                                                                                                                                                                  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -111,7 +98,7 @@ $ docker images java:0
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 ```
 
-### <a name=no-trunc></a> List the full length image IDs (--no-trunc)
+### <a name="no-trunc"></a> List the full length image IDs (--no-trunc)
 
 ```console
 $ docker images --no-trunc
@@ -128,7 +115,7 @@ tryout                        latest              sha256:2629d1fa0b81b222fca6337
 <none>                        <none>              sha256:5ed6274db6ceb2397844896966ea239290555e74ef307030ebb01ff91b1914df   24 hours ago        1.089 GB
 ```
 
-### <a name=digests></a> List image digests (--digests)
+### <a name="digests"></a> List image digests (--digests)
 
 Images that use the v2 or later format have a content-addressable identifier
 called a `digest`. As long as the input used to generate the image is
@@ -146,7 +133,7 @@ output includes the image digest. You can `pull` using a digest value. You can
 also reference by digest in `create`, `run`, and `rmi` commands, as well as the
 `FROM` image reference in a Dockerfile.
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -294,7 +281,7 @@ busybox             uclibc              e02e811dd08f        5 weeks ago         
 busybox             glibc               21c16b6787c6        5 weeks ago         4.19 MB
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) will pretty print container output
 using a Go template.

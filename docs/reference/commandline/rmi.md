@@ -1,24 +1,21 @@
----
-title: "rmi"
-description: "The rmi command description and usage"
-keywords: "remove, image, Docker"
----
-
 # rmi
 
-```markdown
-Usage:  docker rmi [OPTIONS] IMAGE [IMAGE...]
-
+<!---MARKER_GEN_START-->
 Remove one or more images
 
-Aliases:
-  docker image rm, docker rmi
+### Aliases
 
-Options:
-  -f, --force      Force removal of the image
-      --help       Print usage
-      --no-prune   Do not delete untagged parents
-```
+`docker image rm`, `docker image remove`, `docker rmi`
+
+### Options
+
+| Name            | Type | Default | Description                    |
+|:----------------|:-----|:--------|:-------------------------------|
+| `-f`, `--force` |      |         | Force removal of the image     |
+| `--no-prune`    |      |         | Do not delete untagged parents |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

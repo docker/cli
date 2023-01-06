@@ -1,23 +1,20 @@
----
-title: "kill"
-description: "The kill command description and usage"
-keywords: "container, kill, signal"
----
-
 # kill
 
-```markdown
-Usage:  docker kill [OPTIONS] CONTAINER [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Kill one or more running containers
 
-Aliases:
-  docker container kill, docker kill
+### Aliases
 
-Options:
-      --help            Print usage
-  -s, --signal string   Signal to send to the container
-```
+`docker container kill`, `docker kill`
+
+### Options
+
+| Name                                   | Type     | Default | Description                     |
+|:---------------------------------------|:---------|:--------|:--------------------------------|
+| [`-s`](#signal), [`--signal`](#signal) | `string` |         | Signal to send to the container |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -54,7 +51,7 @@ The following example sends the default `SIGKILL` signal to the container named
 $ docker kill my_container
 ```
 
-### <a name=signal></a>Send a custom signal to a container (--signal)
+### <a name="signal"></a> Send a custom signal to a container (--signal)
 
 The following example sends a `SIGHUP` signal to the container named
 `my_container`:

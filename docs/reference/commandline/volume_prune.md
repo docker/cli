@@ -1,21 +1,17 @@
----
-title: "volume prune"
-description: "Remove unused local volumes"
-keywords: "volume, prune, delete"
----
-
 # volume prune
 
-```markdown
-Usage:  docker volume prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove all unused local volumes
 
-Options:
-      --filter filter   Provide filter values (e.g. 'label=<label>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                  |
+|:----------------------|:---------|:--------|:---------------------------------------------|
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<label>`) |
+| `-f`, `--force`       |          |         | Do not prompt for confirmation               |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -35,7 +31,7 @@ my-named-vol
 Total reclaimed space: 36 B
 ```
 
-### <a name=filter></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)

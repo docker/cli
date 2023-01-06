@@ -30,7 +30,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&availability, "availability", "active", `Cluster Volume availability ("active"|"pause"|"drain")`)
+	flags.StringVar(&availability, "availability", "active", `Cluster Volume availability ("active", "pause", "drain")`)
 	flags.SetAnnotation("availability", "version", []string{"1.42"})
 	flags.SetAnnotation("availability", "swarm", []string{"manager"})
 

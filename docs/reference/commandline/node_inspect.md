@@ -1,24 +1,17 @@
----
-title: "node inspect"
-description: "The node inspect command description and usage"
-keywords: "node, inspect"
----
-
 # node inspect
 
-```markdown
-Usage:  docker node inspect [OPTIONS] self|NODE [NODE...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more nodes
 
-Options:
-  -f, --format string   Format output using a custom template:
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --pretty          Print the information in a human friendly format
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `--pretty`                             |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -114,7 +107,7 @@ $ docker node inspect swarm-manager
 ]
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 ```console
 $ docker node inspect --format '{{ .ManagerStatus.Leader }}' self

@@ -1,20 +1,16 @@
----
-title: "signer remove"
-description: "The signer remove command description and usage"
-keywords: "signer, notary, trust"
----
-
 # trust signer remove
 
-```markdown
-Usage:  docker trust signer remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]
-
+<!---MARKER_GEN_START-->
 Remove a signer
 
-Options:
-  -f, --force   Do not prompt for confirmation before removing the most recent signer
-  --help        Print usage
-```
+### Options
+
+| Name            | Type | Default | Description                                                           |
+|:----------------|:-----|:--------|:----------------------------------------------------------------------|
+| `-f`, `--force` |      |         | Do not prompt for confirmation before removing the most recent signer |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

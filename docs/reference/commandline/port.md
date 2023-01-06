@@ -1,22 +1,14 @@
----
-title: "port"
-description: "The port command description and usage"
-keywords: "port, mapping, container"
----
-
 # port
 
-```markdown
-Usage:  docker port CONTAINER [PRIVATE_PORT[/PROTO]]
-
+<!---MARKER_GEN_START-->
 List port mappings or a specific mapping for the container
 
-Aliases:
-  docker container port, docker port
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker container port`, `docker port`
+
+
+<!---MARKER_GEN_END-->
 
 ## Examples
 

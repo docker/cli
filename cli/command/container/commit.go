@@ -48,7 +48,7 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVarP(&options.pause, "pause", "p", true, "Pause container during commit")
 	flags.StringVarP(&options.comment, "message", "m", "", "Commit message")
-	flags.StringVarP(&options.author, "author", "a", "", "Author (e.g., \"John Hannibal Smith <hannibal@a-team.com>\")")
+	flags.StringVarP(&options.author, "author", "a", "", `Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")`)
 
 	options.changes = opts.NewListOpts(nil)
 	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")

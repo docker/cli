@@ -1,25 +1,22 @@
----
-title: "push"
-description: "The push command description and usage"
-keywords: "share, push, image"
----
-
 # push
 
-```markdown
-Usage:  docker push [OPTIONS] NAME[:TAG]
-
+<!---MARKER_GEN_START-->
 Upload an image to a registry
 
-Aliases:
-  docker image push, docker push
+### Aliases
 
-Options:
-  -a, --all-tags                Push all tags of an image to the repository
-      --disable-content-trust   Skip image signing (default true)
-      --help                    Print usage
-  -q, --quiet                   Suppress verbose output
-```
+`docker image push`, `docker push`
+
+### Options
+
+| Name                                         | Type | Default | Description                                 |
+|:---------------------------------------------|:-----|:--------|:--------------------------------------------|
+| [`-a`](#all-tags), [`--all-tags`](#all-tags) |      |         | Push all tags of an image to the repository |
+| `--disable-content-trust`                    |      |         | Skip image signing                          |
+| `-q`, `--quiet`                              |      |         | Suppress verbose output                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -77,7 +74,7 @@ $ docker image ls
 You should see both `rhel-httpd` and `registry-host:5000/myadmin/rhel-httpd`
 listed.
 
-### <a name=all-tags></a> Push all tags of an image (-a, --all-tags)
+### <a name="all-tags"></a> Push all tags of an image (-a, --all-tags)
 
 Use the `-a` (or `--all-tags`) option to push all tags of a local image.
 

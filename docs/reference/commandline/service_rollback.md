@@ -1,21 +1,17 @@
----
-title: "service rollback"
-description: "The service rollback command description and usage"
-keywords: "service, rollback"
----
-
 # service rollback
 
-```markdown
-Usage:  docker service rollback SERVICE
-
+<!---MARKER_GEN_START-->
 Revert changes to a service's configuration
 
-Options:
-  -d, --detach       Exit immediately instead of waiting for the service to converge (default true)
-      --help         Print usage
-  -q, --quiet        Suppress progress output
-```
+### Options
+
+| Name             | Type | Default | Description                                                     |
+|:-----------------|:-----|:--------|:----------------------------------------------------------------|
+| `-d`, `--detach` |      |         | Exit immediately instead of waiting for the service to converge |
+| `-q`, `--quiet`  |      |         | Suppress progress output                                        |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

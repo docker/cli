@@ -1,28 +1,25 @@
----
-title: "logs"
-description: "The logs command description and usage"
-keywords: "logs, retrieve, docker"
----
-
 # logs
 
-```markdown
-Usage:  docker logs [OPTIONS] CONTAINER
-
+<!---MARKER_GEN_START-->
 Fetch the logs of a container
 
-Aliases:
-  docker container logs, docker logs
+### Aliases
 
-Options:
-      --details        Show extra details provided to logs
-  -f, --follow         Follow log output
-      --help           Print usage
-      --since string   Show logs since timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)
-      --until string   Show logs before timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)
-  -n, --tail string    Number of lines to show from the end of the logs (default "all")
-  -t, --timestamps     Show timestamps
-```
+`docker container logs`, `docker logs`
+
+### Options
+
+| Name                 | Type     | Default | Description                                                                                        |
+|:---------------------|:---------|:--------|:---------------------------------------------------------------------------------------------------|
+| `--details`          |          |         | Show extra details provided to logs                                                                |
+| `-f`, `--follow`     |          |         | Follow log output                                                                                  |
+| `--since`            | `string` |         | Show logs since timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes)    |
+| `-n`, `--tail`       | `string` | `all`   | Number of lines to show from the end of the logs                                                   |
+| `-t`, `--timestamps` |          |         | Show timestamps                                                                                    |
+| [`--until`](#until)  | `string` |         | Show logs before a timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes) |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -61,7 +58,7 @@ fraction of a second no more than nine digits long. You can combine the
 
 ## Examples
 
-### <a name=until></a> Retrieve logs until a specific point in time (--until)
+### <a name="until"></a> Retrieve logs until a specific point in time (--until)
 
 In order to retrieve logs before a specific point in time, run:
 

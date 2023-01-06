@@ -1,23 +1,20 @@
----
-title: "info"
-description: "The info command description and usage"
-keywords: "display, docker, information"
----
-
 # info
 
-```markdown
-Usage:  docker info [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Display system-wide information
 
-Aliases:
-  docker system info, docker info
+### Aliases
 
-Options:
-  -f, --format string   Format the output using the given Go template
-      --help            Print usage
-```
+`docker system info`, `docker info`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                   |
+|:---------------------------------------|:---------|:--------|:----------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format the output using the given Go template |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -115,7 +112,7 @@ Server:
  Live Restore Enabled: false
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can also specify the output format:
 

@@ -1,20 +1,16 @@
----
-title: "version"
-description: "The version command description and usage"
-keywords: "version, architecture, api"
----
-
 # version
 
-```markdown
-Usage:  docker version [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Show the Docker version information
 
-Options:
-  -f, --format string       Format the output using the given Go template
-      --help                Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                   |
+|:---------------------------------------|:---------|:--------|:----------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format the output using the given Go template |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -151,7 +147,7 @@ $ docker version --format '{{.Client.APIVersion}}'
 
 ## Examples
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints the output using a Go template,
 which allows you to customize the output format, or to obtain specific information

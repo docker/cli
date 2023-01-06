@@ -1,25 +1,22 @@
----
-title: "import"
-description: "The import command description and usage"
-keywords: "import, file, system, container"
----
-
 # import
 
-```markdown
-Usage:  docker import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
-
+<!---MARKER_GEN_START-->
 Import the contents from a tarball to create a filesystem image
 
-Aliases:
-  docker image import, docker import
+### Aliases
 
-Options:
-  -c, --change value     Apply Dockerfile instruction to the created image (default [])
-      --help             Print usage
-  -m, --message string   Set commit message for imported image
-      --platform string  Set platform if server is multi-platform capable
-```
+`docker image import`, `docker import`
+
+### Options
+
+| Name              | Type     | Default | Description                                       |
+|:------------------|:---------|:--------|:--------------------------------------------------|
+| `-c`, `--change`  | `list`   |         | Apply Dockerfile instruction to the created image |
+| `-m`, `--message` | `string` |         | Set commit message for imported image             |
+| `--platform`      | `string` |         | Set platform if server is multi-platform capable  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

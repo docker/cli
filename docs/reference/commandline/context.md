@@ -1,33 +1,25 @@
----
-title: "context"
-description: "The context command description and usage"
-keywords: "context"
----
-
 # config
 
-```markdown
+<!---MARKER_GEN_START-->
 Manage contexts
 
-Usage:
-docker context [command]
+### Subcommands
 
-Available Commands:
-create      Create new context
-export      Export a context to a tar or kubeconfig file
-import      Import a context from a tar or zip file
-inspect     Display detailed information on one or more contexts
-list        List available contexts
-rm          Remove one or more contexts
-show        Print the current context
-update      Update a context
-use         Set the default context
+| Name                            | Description                                                       |
+|:--------------------------------|:------------------------------------------------------------------|
+| [`create`](context_create.md)   | Create a context                                                  |
+| [`export`](context_export.md)   | Export a context to a tar archive FILE or a tar stream on STDOUT. |
+| [`import`](context_import.md)   | Import a context from a tar or zip file                           |
+| [`inspect`](context_inspect.md) | Display detailed information on one or more contexts              |
+| [`ls`](context_ls.md)           | List contexts                                                     |
+| [`rm`](context_rm.md)           | Remove one or more contexts                                       |
+| [`show`](context_show.md)       | Print the name of the current context                             |
+| [`update`](context_update.md)   | Update a context                                                  |
+| [`use`](context_use.md)         | Set the current docker context                                    |
 
-Flags:
--h, --help   Help for context
 
-Use "docker context [command] --help" for more information about a command.
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

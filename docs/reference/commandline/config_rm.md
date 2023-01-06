@@ -1,22 +1,14 @@
----
-title: "config rm"
-description: "The config rm command description and usage"
-keywords: ["config, rm"]
----
-
 # config rm
 
-```Markdown
-Usage:  docker config rm CONFIG [CONFIG...]
-
+<!---MARKER_GEN_START-->
 Remove one or more configs
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker config rm`, `docker config remove`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

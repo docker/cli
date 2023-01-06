@@ -1,18 +1,16 @@
----
-title: "plugin push"
-description: "the plugin push command description and usage"
-keywords: "plugin, push"
----
+# plugin push
 
-```markdown
-Usage:  docker plugin push [OPTIONS] PLUGIN[:TAG]
-
+<!---MARKER_GEN_START-->
 Push a plugin to a registry
 
-Options:
-      --disable-content-trust   Skip image signing (default true)
-      --help                    Print usage
-```
+### Options
+
+| Name                      | Type | Default | Description        |
+|:--------------------------|:-----|:--------|:-------------------|
+| `--disable-content-trust` |      |         | Skip image signing |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,23 +1,19 @@
----
-title: "node update"
-description: "The node update command description and usage"
-keywords: "resources, update, dynamically"
----
-
 # update
 
-```markdown
-Usage:  docker node update [OPTIONS] NODE
-
+<!---MARKER_GEN_START-->
 Update a node
 
-Options:
-      --availability string   Availability of the node ("active"|"pause"|"drain")
-      --help                  Print usage
-      --label-add value       Add or update a node label (key=value) (default [])
-      --label-rm value        Remove a node label if exists (default [])
-      --role string           Role of the node ("worker"|"manager")
-```
+### Options
+
+| Name                        | Type     | Default | Description                                           |
+|:----------------------------|:---------|:--------|:------------------------------------------------------|
+| `--availability`            | `string` |         | Availability of the node (`active`, `pause`, `drain`) |
+| [`--label-add`](#label-add) | `list`   |         | Add or update a node label (`key=value`)              |
+| `--label-rm`                | `list`   |         | Remove a node label if exists                         |
+| `--role`                    | `string` |         | Role of the node (`worker`, `manager`)                |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -32,7 +28,7 @@ Update metadata about a node, such as its availability, labels, or roles.
 
 ## Examples
 
-### <a name=label-add></a> Add label metadata to a node (--label-add)
+### <a name="label-add"></a> Add label metadata to a node (--label-add)
 
 Add metadata to a swarm node using node labels. You can specify a node label as
 a key with an empty value:

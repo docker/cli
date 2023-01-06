@@ -1,20 +1,16 @@
----
-title: "plugin create"
-description: "the plugin create command description and usage"
-keywords: "plugin, create"
----
-
 # plugin create
 
-```markdown
-Usage:  docker plugin create [OPTIONS] PLUGIN PLUGIN-DATA-DIR
-
+<!---MARKER_GEN_START-->
 Create a plugin from a rootfs and configuration. Plugin data directory must contain config.json and rootfs directory.
 
-Options:
-      --compress   Compress the context using gzip
-      --help       Print usage
-```
+### Options
+
+| Name         | Type | Default | Description                     |
+|:-------------|:-----|:--------|:--------------------------------|
+| `--compress` |      |         | Compress the context using gzip |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

@@ -1,20 +1,18 @@
----
-title: "secret create"
-description: "The secret create command description and usage"
-keywords: ["secret, create"]
----
-
 # secret create
 
-```Markdown
-Usage:  docker secret create [OPTIONS] SECRET [file|-]
-
+<!---MARKER_GEN_START-->
 Create a secret from a file or STDIN as content
 
-Options:
-  -l, --label list               Secret labels
-      --template-driver string   Template driver
-```
+### Options
+
+| Name                                | Type     | Default | Description     |
+|:------------------------------------|:---------|:--------|:----------------|
+| `-d`, `--driver`                    | `string` |         | Secret driver   |
+| [`-l`](#label), [`--label`](#label) | `list`   |         | Secret labels   |
+| `--template-driver`                 | `string` |         | Template driver |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -57,7 +55,7 @@ ID                          NAME                CREATED             UPDATED
 dg426haahpi5ezmkkj5kyl3sn   my_secret           7 seconds ago       7 seconds ago
 ```
 
-### <a name=label></a> Create a secret with labels (--label)
+### <a name="label"></a> Create a secret with labels (--label)
 
 ```console
 $ docker secret create \

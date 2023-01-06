@@ -1,24 +1,17 @@
----
-title: "secret inspect"
-description: "The secret inspect command description and usage"
-keywords: ["secret, inspect"]
----
-
 # secret inspect
 
-```Markdown
-Usage:  docker secret inspect [OPTIONS] SECRET [SECRET...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more secrets
 
-Options:
-  -f, --format string   Format output using a custom template:
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --pretty          Print the information in a human friendly format
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `--pretty`                             |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -80,7 +73,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can use the --format option to obtain specific information about a
 secret. The following example command outputs the creation time of the

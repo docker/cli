@@ -90,6 +90,10 @@ authors: ## generate AUTHORS file from git history
 manpages: ## generate man pages from go source and markdown
 	scripts/docs/generate-man.sh
 
+.PHONY: mddocs
+mddocs: ## generate markdown files from go source
+	scripts/docs/generate-md.sh
+
 .PHONY: yamldocs
 yamldocs: ## generate documentation YAML files consumed by docs repo
 	scripts/docs/generate-yaml.sh

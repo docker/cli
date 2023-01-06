@@ -42,7 +42,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
-	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=<timestamp>')")
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "until=<timestamp>")`)
 
 	return cmd
 }

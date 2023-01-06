@@ -61,7 +61,10 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 	rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 	rootCmd.PersistentFlags().Lookup("help").Hidden = true
 
-	rootCmd.Annotations = map[string]string{"additionalHelp": "For more help on how to use Docker, head to https://docs.docker.com/go/guides/"}
+	rootCmd.Annotations = map[string]string{
+		"additionalHelp":      "For more help on how to use Docker, head to https://docs.docker.com/go/guides/",
+		"docs.code-delimiter": `"`, // https://github.com/docker/cli-docs-tool/blob/77abede22166eaea4af7335096bdcedd043f5b19/annotation/annotation.go#L20-L22
+	}
 
 	// Configure registry.CertsDir() when running in rootless-mode
 	if os.Getenv("ROOTLESSKIT_STATE_DIR") != "" {

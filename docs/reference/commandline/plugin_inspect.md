@@ -1,23 +1,16 @@
----
-title: "plugin inspect"
-description: "The plugin inspect command description and usage"
-keywords: "plugin, inspect"
----
-
 # plugin inspect
 
-```markdown
-Usage:  docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more plugins
 
-Options:
-  -f, --format string   Format output using a custom template:
-                        'json':             Print in JSON format
-                        'TEMPLATE':         Print output using the given Go template.
-                        Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -145,7 +138,7 @@ Output is in JSON format (output below is formatted for readability):
 ```
 
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 ```console
 $ docker plugin inspect -f '{{.Id}}' tiborvass/sample-volume-plugin:latest
