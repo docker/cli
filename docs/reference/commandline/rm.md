@@ -33,7 +33,7 @@ $ docker rm /redis
 /redis
 ```
 
-### <a name=link></a> Remove a link specified with `--link` on the default bridge network (--link)
+### <a name="link"></a> Remove a link specified with `--link` on the default bridge network (--link)
 
 This removes the underlying link between `/webapp` and the `/redis`
 containers on the default bridge network, removing all network communication
@@ -46,7 +46,7 @@ $ docker rm --link /webapp/redis
 /webapp/redis
 ```
 
-### <a name=force></a> Force-remove a running container (--force)
+### <a name="force"></a> Force-remove a running container (--force)
 
 This command force-removes a running container.
 
@@ -89,7 +89,7 @@ Or, using the `xargs` Linux utility;
 $ docker ps --filter status=exited -q | xargs docker rm
 ```
 
-### <a name=volumes></a> Remove a container and its volumes (-v, --volumes)
+### <a name="volumes"></a> Remove a container and its volumes (-v, --volumes)
 
 ```console
 $ docker rm --volumes redis

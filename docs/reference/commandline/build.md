@@ -330,7 +330,7 @@ found, the `.dockerignore` file is used if present. Using a Dockerfile based
 to ignore different sets of files.
 
 
-### <a name=tag></a> Tag an image (-t, --tag)
+### <a name="tag"></a> Tag an image (-t, --tag)
 
 ```console
 $ docker build -t vieux/apache:2.0 .
@@ -350,7 +350,7 @@ For example, to tag an image both as `whenry/fedora-jboss:latest` and
 $ docker build -t whenry/fedora-jboss:latest -t whenry/fedora-jboss:v2.1 .
 ```
 
-### <a name=file></a> Specify a Dockerfile (-f, --file)
+### <a name="file"></a> Specify a Dockerfile (-f, --file)
 
 ```console
 $ docker build -f Dockerfile.debug .
@@ -397,17 +397,17 @@ the command line.
 > repeatable builds on remote Docker hosts. This is also the reason why
 > `ADD ../file` does not work.
 
-### <a name=cgroup-parent></a> Use a custom parent cgroup (--cgroup-parent)
+### <a name="cgroup-parent"></a> Use a custom parent cgroup (--cgroup-parent)
 
 When `docker build` is run with the `--cgroup-parent` option the containers
 used in the build will be run with the [corresponding `docker run` flag](../run.md#specify-custom-cgroups).
 
-### <a name=ulimit></a> Set ulimits in container (--ulimit)
+### <a name="ulimit"></a> Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` will cause each build step's
 container to be started using those [`--ulimit` flag values](run.md#ulimit).
 
-### <a name=build-arg></a> Set build-time variables (--build-arg)
+### <a name="build-arg"></a> Set build-time variables (--build-arg)
 
 You can use `ENV` instructions in a Dockerfile to define variable
 values. These values persist in the built image. However, often
@@ -445,13 +445,13 @@ $ docker build --build-arg HTTP_PROXY .
 This is similar to how `docker run -e` works. Refer to the [`docker run` documentation](run.md#env)
 for more information.
 
-### <a name=security-opt></a> Optional security options (--security-opt)
+### <a name="security-opt"></a> Optional security options (--security-opt)
 
 This flag is only supported on a daemon running on Windows, and only supports
 the `credentialspec` option. The `credentialspec` must be in the format
 `file://spec.txt` or `registry://keyname`.
 
-### <a name=isolation></a> Specify isolation technology for container (--isolation)
+### <a name="isolation"></a> Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
 Windows. The `--isolation=<value>` option sets a container's isolation
@@ -467,7 +467,7 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 
 Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
 
-### <a name=add-host></a> Add entries to container hosts file (--add-host)
+### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 
 You can add other hosts into a container's `/etc/hosts` file by using one or
 more `--add-host` flags. This example adds a static address for a host named
@@ -475,7 +475,7 @@ more `--add-host` flags. This example adds a static address for a host named
 
     $ docker build --add-host=docker:10.180.0.1 .
 
-### <a name=target></a> Specifying target build stage (--target)
+### <a name="target"></a> Specifying target build stage (--target)
 
 When building a Dockerfile with multiple build stages, `--target` can be used to
 specify an intermediate build stage by name as a final stage for the resulting
@@ -493,7 +493,7 @@ FROM alpine AS production-env
 $ docker build -t mybuildimage --target build-env .
 ```
 
-### <a name=output></a> Custom build outputs (--output)
+### <a name="output"></a> Custom build outputs (--output)
 
 > **Note**
 >
@@ -587,7 +587,7 @@ $ ls ./out
 vndr
 ```
 
-### <a name=cache-from></a> Specifying external cache sources (--cache-from)
+### <a name="cache-from"></a> Specifying external cache sources (--cache-from)
 
 > **Note**
 >
@@ -630,7 +630,7 @@ On another machine:
 $ docker build --cache-from myname/myapp .
 ```
 
-### <a name=squash></a> Squash an image's layers (--squash) (experimental)
+### <a name="squash"></a> Squash an image's layers (--squash) (experimental)
 
 #### Overview
 

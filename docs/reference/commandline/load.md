@@ -46,7 +46,7 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 busybox             latest              769b9341d937        7 weeks ago         2.489 MB
 ```
 
-### <a name=input></a> Load images from a file (--input)
+### <a name="input"></a> Load images from a file (--input)
 
 ```console
 $ docker load --input fedora.tar

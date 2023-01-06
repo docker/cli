@@ -57,7 +57,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 Use the `--format` flag to format the output using a Go template, for example,
 to print the `Mountpoint` property:

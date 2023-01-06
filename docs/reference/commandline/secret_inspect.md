@@ -80,7 +80,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can use the --format option to obtain specific information about a
 secret. The following example command outputs the creation time of the

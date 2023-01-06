@@ -47,7 +47,7 @@ myapp              2                   Kubernetes
 vossibility-stack  6                   Swarm
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty-prints stacks using a Go template.
 
