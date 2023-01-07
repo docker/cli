@@ -69,15 +69,15 @@ $ docker exec -it ubuntu_bash bash
 
 This will create a new Bash session in the container `ubuntu_bash`.
 
-Next, set an environment variable in the current bash session.
+Next, set environment variables in the current bash session.
 
 ```console
-$ docker exec -it -e VAR=1 ubuntu_bash bash
+$ docker exec -it -e VAR_A=1 -e VAR_B=2 ubuntu_bash bash
 ```
 
 This will create a new Bash session in the container `ubuntu_bash` with environment
-variable `$VAR` set to "1". Note that this environment variable will only be valid
-on the current Bash session.
+variables `$VAR_A` and `$VAR_B` set to "1" and "2" respectively. Note that these
+environment variables will only be valid on the current Bash session.
 
 By default `docker exec` command runs in the same working directory set when container was created.
 
