@@ -71,9 +71,9 @@ $ docker run --name database -d redis
 3b2cbf074c99db4a0cad35966a9e24d7bc277f5565c17233386589029b7db273
 $ docker inspect --size database -f '{{ .SizeRootFs }}'
 123125760
-$ docker inspect --size database -f '{{ .SizeRw }}'                 
+$ docker inspect --size database -f '{{ .SizeRw }}'
 8192
-$ docker exec database fallocate -l 1000 /newfile 
+$ docker exec database fallocate -l 1000 /newfile
 $ docker inspect --size database -f '{{ .SizeRw }}'
 12288
 ```
