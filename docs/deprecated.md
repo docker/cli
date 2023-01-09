@@ -50,6 +50,7 @@ The table below provides an overview of the current status of deprecated feature
 
 | Status     | Feature                                                                                                                            | Deprecated | Remove |
 |------------|------------------------------------------------------------------------------------------------------------------------------------|------------|--------|
+| Deprecated | [Btrfs storage driver on CentOS 7 and RHEL 7](#btrfs-storage-driver-on-centos-7-and-rhel-7)                                        | v20.10     | -      |
 | Deprecated | [Support for encrypted TLS private keys](#support-for-encrypted-tls-private-keys)                                                  | v20.10     | -      |
 | Deprecated | [Kubernetes stack and context support](#kubernetes-stack-and-context-support)                                                      | v20.10     | -      |
 | Deprecated | [Pulling images from non-compliant image registries](#pulling-images-from-non-compliant-image-registries)                          | v20.10     | -      |
@@ -100,6 +101,21 @@ The table below provides an overview of the current status of deprecated feature
 | Removed    | [`--api-enable-cors` flag on `dockerd`](#--api-enable-cors-flag-on-dockerd)                                                        | v1.6       | v17.09 |
 | Removed    | [`--run` flag on `docker commit`](#--run-flag-on-docker-commit)                                                                    | v0.10      | v1.13  |
 | Removed    | [Three arguments form in `docker import`](#three-arguments-form-in-docker-import)                                                  | v0.6.7     | v1.12  |
+
+
+### Btrfs storage driver on CentOS 7 and RHEL 7
+
+**Deprecated in Release: v20.10.0**
+
+**Target For Removal In Release: v23.0.0**
+
+The `btrfs` storage driver on CentOS and RHEL was provided as a technology preview
+by CentOS and RHEL, but has been deprecated since the [Red Hat Enterprise Linux 7.4 release](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/ch-btrfs),
+and removed in CentOS 8 and RHEL 8. Users of the `btrfs` storage driver on CentOS
+are recommended to migrate to a different storage driver, such as `overlay2`, which
+is now the default storage driver. Docker 23.0 continues to provide the `btrfs`
+storage driver to allow users to migrate to an alternative driver. The next release
+of Docker will no longer provide this driver.
 
 ### Support for encrypted TLS private keys
 
