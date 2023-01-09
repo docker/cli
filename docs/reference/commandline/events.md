@@ -141,7 +141,7 @@ Docker configs report the following events:
 
 ### Limiting, filtering, and formatting the output
 
-#### Limit events by time
+#### <a name="since"></a> Limit events by time (--since, --until)
 
 The `--since` and `--until` parameters can be Unix timestamps, date formatted
 timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
@@ -159,7 +159,7 @@ fraction of a second no more than nine digits long.
 Only the last 1000 log events are returned. You can use filters to further limit
 the number of events returned.
 
-#### Filtering
+#### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
 like to use multiple filters, pass multiple flags (e.g.,
@@ -190,7 +190,7 @@ The currently supported filters are:
 * type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
 * volume (`volume=<name>`)
 
-#### Format
+#### <a name="format"></a> Format the output (--format)
 
 If a format (`--format`) is specified, the given template will be executed
 instead of the default
@@ -340,8 +340,8 @@ $ docker events --filter 'type=network'
 
 $ docker events --filter 'container=container_1' --filter 'container=container_2'
 
-2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu-1:14.04)
-2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu-1:14.04)
+2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:22.04)
+2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
 2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (imager=redis:2.8)
 2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
 

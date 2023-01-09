@@ -69,7 +69,7 @@ $ docker context create \
     my-context
 ```
 
-### Create a context based on an existing context
+### <a name="from"></a> Create a context based on an existing context (--from)
 
 Use the `--from=<context-name>` option to create a new context from
 an existing context. The example below creates a new context named `my-context`

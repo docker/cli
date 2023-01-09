@@ -45,12 +45,12 @@ a container and leave it running using the `CTRL-p CTRL-q` key sequence.
 > so.
 
 It is forbidden to redirect the standard input of a `docker attach` command
-while attaching to a tty-enabled container (i.e.: launched with `-t`).
+while attaching to a TTY-enabled container (using the `-i` and `-t` options).
 
-While a client is connected to container's stdio using `docker attach`, Docker
-uses a ~1MB memory buffer to maximize the throughput of the application. If
-this buffer is filled, the speed of the API connection will start to have an
-effect on the process output writing speed. This is similar to other
+While a client is connected to container's `stdio` using `docker attach`, Docker
+uses a ~1MB memory buffer to maximize the throughput of the application.
+Once this buffer is full, the speed of the API connection is affected, and so
+this impacts the output process' writing speed. This is similar to other
 applications like SSH. Because of this, it is not recommended to run
 performance critical applications that generate a lot of output in the
 foreground over a slow client connection. Instead, users should use the
@@ -84,45 +84,68 @@ containers, see [**Configuration file** section](cli.md#configuration-files).
 
 ### Attach to and detach from a running container
 
+The following example starts an ubuntu container running `top` in detached mode,
+then attaches to the container;
+
 ```console
-$ docker run -d --name topdemo ubuntu /usr/bin/top -b
+$ docker run -d --name topdemo ubuntu:22.04 /usr/bin/top -b
 
 $ docker attach topdemo
 
-top - 02:05:52 up  3:05,  0 users,  load average: 0.01, 0.02, 0.05
+top - 12:27:44 up 3 days, 21:54,  0 users,  load average: 0.00, 0.00, 0.00
 Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
-Cpu(s):  0.1%us,  0.2%sy,  0.0%ni, 99.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
-Mem:    373572k total,   355560k used,    18012k free,    27872k buffers
-Swap:   786428k total,        0k used,   786428k free,   221740k cached
+%Cpu(s):  0.1 us,  0.1 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3934.3 total,    770.1 free,    674.2 used,   2490.1 buff/cache
+MiB Swap:   1024.0 total,    839.3 free,    184.7 used.   2814.0 avail Mem
 
-PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
- 1 root      20   0 17200 1116  912 R    0  0.3   0:00.03 top
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+    1 root      20   0    7180   2896   2568 R   0.0   0.1   0:00.02 top
+```
 
- top - 02:05:55 up  3:05,  0 users,  load average: 0.01, 0.02, 0.05
- Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
- Cpu(s):  0.0%us,  0.2%sy,  0.0%ni, 99.8%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
- Mem:    373572k total,   355244k used,    18328k free,    27872k buffers
- Swap:   786428k total,        0k used,   786428k free,   221776k cached
+As the container was started without the `-i`, and `-t` options, signals are
+forwarded to the attached process, which means that the default `CTRL-p CTRL-q`
+detach key sequence produces no effect, but pressing `CTRL-c` terminates the
+container:
 
-   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
-       1 root      20   0 17208 1144  932 R    0  0.3   0:00.03 top
+```console
+<...>
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+    1 root      20   0    7180   2896   2568 R   0.0   0.1   0:00.02 top^P^Q
+^C
 
+$ docker ps -a --filter name=topdemo
 
- top - 02:05:58 up  3:06,  0 users,  load average: 0.01, 0.02, 0.05
- Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
- Cpu(s):  0.2%us,  0.3%sy,  0.0%ni, 99.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
- Mem:    373572k total,   355780k used,    17792k free,    27880k buffers
- Swap:   786428k total,        0k used,   786428k free,   221776k cached
+CONTAINER ID   IMAGE          COMMAND             CREATED              STATUS                          PORTS     NAMES
+4cf0d0ebb079   ubuntu:22.04   "/usr/bin/top -b"   About a minute ago   Exited (0) About a minute ago             topdemo
+```
 
- PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
-      1 root      20   0 17208 1144  932 R    0  0.3   0:00.03 top
-^C$
+Repeating the example above, but this time with the `-i` and `-t` options set;
 
-$ echo $?
-0
-$ docker ps -a | grep topdemo
+```console
+$ docker run -dit --name topdemo2 ubuntu:22.04 /usr/bin/top -b
+```
 
-7998ac8581f9        ubuntu:14.04        "/usr/bin/top -b"   38 seconds ago      Exited (0) 21 seconds ago                          topdemo
+Now, when attaching to the container, and pressing the `CTRL-p CTRL-q` ("read
+escape sequence"), the Docker CLI is handling the detach sequence, and the
+`attach` command is detached from the container. Checking the container's status
+with `docker ps` shows that the container is still running in the background:
+
+```console
+$ docker attach topdemo2
+
+top - 12:44:32 up 3 days, 22:11,  0 users,  load average: 0.00, 0.00, 0.00
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 50.0 us,  0.0 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3934.3 total,    770.6 free,    672.4 used,   2491.4 buff/cache
+MiB Swap:   1024.0 total,    839.3 free,    184.7 used.   2815.8 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+    1 root      20   0    7180   2776   2452 R   0.0   0.1   0:00.02 topread escape sequence
+
+$ docker ps -a --filter name=topdemo2
+
+CONTAINER ID   IMAGE          COMMAND             CREATED         STATUS         PORTS     NAMES
+b1661dce0fc2   ubuntu:22.04   "/usr/bin/top -b"   2 minutes ago   Up 2 minutes             topdemo2
 ```
 
 ### Get the exit code of the container's command
@@ -131,18 +154,17 @@ And in this second example, you can see the exit code returned by the `bash`
 process is returned by the `docker attach` command to its caller too:
 
 ```console
-$ docker run --name test -d -it debian
+$ docker run --name test -dit alpine
 275c44472aebd77c926d4527885bb09f2f6db21d878c75f0a1c212c03d3bcfab
 
 $ docker attach test
-root@f38c87f2a42d:/# exit 13
-
-exit
+/# exit 13
 
 $ echo $?
 13
 
-$ docker ps -a | grep test
+$ docker ps -a --filter name=test
 
-275c44472aeb        debian:7            "/bin/bash"         26 seconds ago      Exited (13) 17 seconds ago                         test
+CONTAINER ID   IMAGE     COMMAND     CREATED              STATUS                       PORTS     NAMES
+a2fe3fd886db   alpine    "/bin/sh"   About a minute ago   Exited (13) 40 seconds ago             test
 ```

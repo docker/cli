@@ -112,7 +112,7 @@ $ docker cp CONTAINER:/var/logs/app.log - | tar x -O | grep "ERROR"
 ### Corner cases
 
 It is not possible to copy certain system files such as resources under
-`/proc`, `/sys`, `/dev`, [tmpfs](run.md#mount-tmpfs---tmpfs), and mounts created by
+`/proc`, `/sys`, `/dev`, [tmpfs](run.md#tmpfs), and mounts created by
 the user in the container. However, you can still copy such files by manually
 running `tar` in `docker exec`. Both of the following examples do the same thing
 in different ways (consider `SRC_PATH` and `DEST_PATH` are directories):

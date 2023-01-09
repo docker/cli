@@ -63,7 +63,7 @@ e5c383697914        test-1951.1.kay7x1lh1twk9c0oig50sd5tr   0.00%               
 4bda148efbc0        random.1.vnc8on831idyr42slu578u3cr      0.00%               1.672MiB / 1.952GiB   0.08%               110kB / 0B          578kB / 0B          2
 ```
 
-If you don't [specify a format string using `--format`](#formatting), the
+If you don't [specify a format string using `--format`](#format), the
 following columns are shown.
 
 | Column name               | Description                                                                                   |
@@ -131,7 +131,7 @@ CONTAINER ID        NAME                CPU %               PRIV WORKING SET    
 9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
 ```
 
-### Formatting
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints container output
 using a Go template.

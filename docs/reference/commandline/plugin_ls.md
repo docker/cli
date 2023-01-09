@@ -27,7 +27,7 @@ Options:
 Lists all the plugins that are currently installed. You can install plugins
 using the [`docker plugin install`](plugin_install.md) command.
 You can also filter using the `-f` or `--filter` flag.
-Refer to the [filtering](#filtering) section for more information about available filter options.
+Refer to the [filtering](#filter) section for more information about available filter options.
 
 ## Examples
 
@@ -38,7 +38,7 @@ ID            NAME                                    DESCRIPTION               
 69553ca1d123  tiborvass/sample-volume-plugin:latest   A test plugin for Docker   true
 ```
 
-### Filtering
+### <a name="format"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -68,7 +68,7 @@ $ docker plugin ls --filter enabled=true
 ID                  NAME                DESCRIPTION         ENABLED
 ```
 
-### Formatting
+### <a name="format"></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints plugins output
 using a Go template.

@@ -50,36 +50,36 @@ this via the `--max-concurrent-downloads` daemon option. See the
 ### Pull an image from Docker Hub
 
 To download a particular image, or set of images (i.e., a repository), use
-`docker pull`. If no tag is provided, Docker Engine uses the `:latest` tag as a
-default. This command pulls the `debian:latest` image:
+`docker image pull` (or the `docker pull` shorthand). If no tag is provided,
+Docker Engine uses the `:latest` tag as a default. This example pulls the
+`debian:latest` image:
 
 ```console
-$ docker pull debian
+$ docker image pull debian
 
 Using default tag: latest
 latest: Pulling from library/debian
-fdd5d7827f33: Pull complete
-a3ed95caeb02: Pull complete
-Digest: sha256:e7d38b3517548a1c71e41bffe9c8ae6d6d29546ce46bf62159837aad072c90aa
+e756f3fdd6a3: Pull complete
+Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
 Status: Downloaded newer image for debian:latest
+docker.io/library/debian:latest
 ```
 
 Docker images can consist of multiple layers. In the example above, the image
-consists of two layers; `fdd5d7827f33` and `a3ed95caeb02`.
+consists of a single layer; `e756f3fdd6a3`.
 
-Layers can be reused by images. For example, the `debian:jessie` image shares
-both layers with `debian:latest`. Pulling the `debian:jessie` image therefore
-only pulls its metadata, but not its layers, because all layers are already
-present locally:
+Layers can be reused by images. For example, the `debian:bullseye` image shares
+its layer with the `debian:latest`. Pulling the `debian:bullseye` image therefore
+only pulls its metadata, but not its layers, because the layer is already present
+locally:
 
 ```console
-$ docker pull debian:jessie
+$ docker image pull debian:bullseye
 
-jessie: Pulling from library/debian
-fdd5d7827f33: Already exists
-a3ed95caeb02: Already exists
-Digest: sha256:a9c958be96d7d40df920e7041608f2f017af81800ca5ad23e327bc402626b58e
-Status: Downloaded newer image for debian:jessie
+bullseye: Pulling from library/debian
+Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
+Status: Downloaded newer image for debian:bullseye
+docker.io/library/debian:bullseye
 ```
 
 To see which images are present locally, use the [`docker images`](images.md)
@@ -88,17 +88,16 @@ command:
 ```console
 $ docker images
 
-REPOSITORY   TAG      IMAGE ID        CREATED      SIZE
-debian       jessie   f50f9524513f    5 days ago   125.1 MB
-debian       latest   f50f9524513f    5 days ago   125.1 MB
+REPOSITORY   TAG        IMAGE ID       CREATED        SIZE
+debian       bullseye   4eacea30377a   8 days ago     124MB
+debian       latest     4eacea30377a   8 days ago     124MB
 ```
 
 Docker uses a content-addressable image store, and the image ID is a SHA256
 digest covering the image's configuration and layers. In the example above,
-`debian:jessie` and `debian:latest` have the same image ID because they are
-actually the *same* image tagged with different names. Because they are the
-same image, their layers are stored only once and do not consume extra disk
-space.
+`debian:bullseye` and `debian:latest` have the same image ID because they are
+the *same* image tagged with different names. Because they are the same image,
+their layers are stored only once and do not consume extra disk space.
 
 For more information about images, layers, and the content-addressable store,
 refer to [understand images, containers, and storage drivers](https://docs.docker.com/storage/storagedriver/).
@@ -109,8 +108,8 @@ refer to [understand images, containers, and storage drivers](https://docs.docke
 So far, you've pulled images by their name (and "tag"). Using names and tags is
 a convenient way to work with images. When using tags, you can `docker pull` an
 image again to make sure you have the most up-to-date version of that image.
-For example, `docker pull ubuntu:20.04` pulls the latest version of the Ubuntu
-20.04 image.
+For example, `docker pull ubuntu:22.04` pulls the latest version of the Ubuntu
+22.04 image.
 
 In some cases you don't want images to be updated to newer versions, but prefer
 to use a fixed version of an image. Docker enables you to pull an image by its
@@ -119,23 +118,23 @@ of an image to pull. Doing so, allows you to "pin" an image to that version,
 and guarantee that the image you're using is always the same.
 
 To know the digest of an image, pull the image first. Let's pull the latest
-`ubuntu:20.04` image from Docker Hub:
+`ubuntu:22.04` image from Docker Hub:
 
 ```console
-$ docker pull ubuntu:20.04
+$ docker pull ubuntu:22.04
 
-20.04: Pulling from library/ubuntu
-16ec32c2132b: Pull complete
-Digest: sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
-Status: Downloaded newer image for ubuntu:20.04
-docker.io/library/ubuntu:20.04
+22.04: Pulling from library/ubuntu
+125a6e411906: Pull complete
+Digest: sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+Status: Downloaded newer image for ubuntu:22.04
+docker.io/library/ubuntu:22.04
 ```
 
 Docker prints the digest of the image after the pull has finished. In the example
 above, the digest of the image is:
 
 ```console
-sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
 ```
 
 Docker also prints the digest of an image when *pushing* to a registry. This
@@ -145,25 +144,25 @@ A digest takes the place of the tag when pulling an image, for example, to
 pull the above image by digest, run the following command:
 
 ```console
-$ docker pull ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+$ docker pull ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
 
-docker.io/library/ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3: Pulling from library/ubuntu
-Digest: sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
-Status: Image is up to date for ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
-docker.io/library/ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+docker.io/library/ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d: Pulling from library/ubuntu
+Digest: sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+Status: Image is up to date for ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+docker.io/library/ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
 ```
 
 Digest can also be used in the `FROM` of a Dockerfile, for example:
 
 ```dockerfile
-FROM ubuntu@sha256:82becede498899ec668628e7cb0ad87b6e1c371cb8a1e597d83a47fac21d6af3
+FROM ubuntu@sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
 LABEL org.opencontainers.image.authors="some maintainer <maintainer@example.com>"
 ```
 
 > **Note**
 >
 > Using this feature "pins" an image to a specific version in time.
-> Docker will therefore not pull updated versions of an image, which may include
+> Docker does therefore not pull updated versions of an image, which may include
 > security updates. If you want to pull an updated image, you need to change the
 > digest accordingly.
 
@@ -179,7 +178,7 @@ The following command pulls the `testing/test-image` image from a local registry
 listening on port 5000 (`myregistry.local:5000`):
 
 ```console
-$ docker pull myregistry.local:5000/testing/test-image
+$ docker image pull myregistry.local:5000/testing/test-image
 ```
 
 Registry credentials are managed by [docker login](login.md).
@@ -189,39 +188,41 @@ registry is allowed to be accessed over an insecure connection. Refer to the
 [insecure registries](dockerd.md#insecure-registries) section for more information.
 
 
-### Pull a repository with multiple images
+### <a name="all-tags"></a> Pull a repository with multiple images (-a, --all-tags)
 
 By default, `docker pull` pulls a *single* image from the registry. A repository
 can contain multiple images. To pull all images from a repository, provide the
 `-a` (or `--all-tags`) option when using `docker pull`.
 
-This command pulls all images from the `fedora` repository:
+This command pulls all images from the `ubuntu` repository:
 
 ```console
-$ docker pull --all-tags fedora
+$ docker image pull --all-tags ubuntu
 
-Pulling repository fedora
+Pulling repository ubuntu
 ad57ef8d78d7: Download complete
 105182bb5e8b: Download complete
 511136ea3c5a: Download complete
 73bd853d2ea5: Download complete
 ....
 
-Status: Downloaded newer image for fedora
+Status: Downloaded newer image for ubuntu
 ```
 
-After the pull has completed use the `docker images` command to see the
-images that were pulled. The example below shows all the `fedora` images
-that are present locally:
+After the pull has completed use the `docker image ls` command (or the `docker images`
+shorthand) to see the images that were pulled. The example below shows all the
+`ubuntu` images that are present locally:
 
 ```console
-$ docker images fedora
-
-REPOSITORY   TAG         IMAGE ID        CREATED      SIZE
-fedora       rawhide     ad57ef8d78d7    5 days ago   359.3 MB
-fedora       20          105182bb5e8b    5 days ago   372.7 MB
-fedora       heisenbug   105182bb5e8b    5 days ago   372.7 MB
-fedora       latest      105182bb5e8b    5 days ago   372.7 MB
+$ docker image ls --filter reference=ubuntu
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+ubuntu       18.04     c6ad7e71ba7d   5 weeks ago    63.2MB
+ubuntu       bionic    c6ad7e71ba7d   5 weeks ago    63.2MB
+ubuntu       22.04     5ccefbfc0416   2 months ago   78MB
+ubuntu       focal     ff0fea8310f3   2 months ago   72.8MB
+ubuntu       latest    ff0fea8310f3   2 months ago   72.8MB
+ubuntu       jammy     41ba606c8ab9   3 months ago   79MB
+ubuntu       20.04     ba6acccedd29   7 months ago   72.8MB
 ```
 
 ### Cancel a pull
@@ -230,18 +231,15 @@ Killing the `docker pull` process, for example by pressing `CTRL-c` while it is
 running in a terminal, will terminate the pull operation.
 
 ```console
-$ docker pull fedora
+$ docker pull ubuntu
 
 Using default tag: latest
-latest: Pulling from library/fedora
+latest: Pulling from library/ubuntu
 a3ed95caeb02: Pulling fs layer
 236608c7b546: Pulling fs layer
 ^C
 ```
 
-> **Note**
->
-> The Engine terminates a pull operation when the connection between the Docker
-> Engine daemon and the Docker Engine client initiating the pull is lost. If the
-> connection with the Engine daemon is lost for other reasons than a manual
-> interaction, the pull is also aborted.
+The Engine terminates a pull operation when the connection between the daemon
+and the client (initiating the pull) is cut or lost for any reason or the
+command is manually terminated.

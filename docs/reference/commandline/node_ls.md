@@ -24,7 +24,7 @@ Options:
 ## Description
 
 Lists all the nodes that the Docker Swarm manager knows about. You can filter
-using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section
+using the `-f` or `--filter` flag. Refer to the [filtering](#filter) section
 for more information about available filter options.
 
 > **Note**
@@ -52,7 +52,7 @@ e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 > `e216jshn25ckzbvmwlnh5jr3g *`) means this node is the current docker daemon.
 
 
-### Filtering
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -170,7 +170,7 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
 
-### Formatting
+### <a name="format"></a> Format the output (--format)
 
 The formatting options (`--format`) pretty-prints nodes output
 using a Go template.
