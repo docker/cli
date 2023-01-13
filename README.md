@@ -1,10 +1,10 @@
 # Docker CLI
 
 [![PkgGoDev](https://img.shields.io/badge/go.dev-docs-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/docker/cli)
-[![Build Status](https://img.shields.io/github/workflow/status/docker/cli/build?label=build&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Abuild)
-[![Test Status](https://img.shields.io/github/workflow/status/docker/cli/test?label=test&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Atest)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/docker/cli/build.yml?branch=master&label=build&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Abuild)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/docker/cli/test.yml?branch=master&label=test&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Atest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/docker/cli)](https://goreportcard.com/report/github.com/docker/cli)
-[![Codecov](https://codecov.io/gh/docker/cli/branch/master/graph/badge.svg)](https://codecov.io/gh/docker/cli)
+[![Codecov](https://img.shields.io/codecov/c/github/docker/cli?logo=codecov)](https://codecov.io/gh/docker/cli)
 
 ## About
 
