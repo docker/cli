@@ -38,7 +38,7 @@ ID            NAME                                    DESCRIPTION               
 69553ca1d123  tiborvass/sample-volume-plugin:latest   A test plugin for Docker   true
 ```
 
-### <a name="format"></a> Filtering (--filter)
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
