@@ -383,6 +383,7 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- if hasAdditionalHelp .}}
 
 {{ additionalHelp . }}
+
 {{- end}}
 `
 
