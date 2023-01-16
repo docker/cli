@@ -14,7 +14,7 @@ The `--since` and `--until` options can be Unix timestamps, date formatted times
 or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the client machine's
 time. Supported formats for date formatted time stamps include RFC3339Nano,
 RFC3339, `2006-01-02T15:04:05`, `2006-01-02T15:04:05.999999999`,
-`2006-01-02Z07:00`, and `2006-01-02`. The local timezone on the client will be
+`2006-01-02T07:00`, and `2006-01-02`. The local timezone on the client will be
 used if you do not provide either a `Z` or a `+-00:00` timezone offset at the
 end of the timestamp.  When providing Unix timestamps enter
 seconds[.nanoseconds], where seconds is the number of seconds that have elapsed
