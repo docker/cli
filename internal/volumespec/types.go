@@ -1,8 +1,10 @@
 package volumespec
 
+import "github.com/moby/moby/api/types/mount"
+
 // VolumeConfig are references to a volume used by a service
 type VolumeConfig struct {
-	Type        string       `yaml:",omitempty" json:"type,omitempty"`
+	Type        mount.Type   `yaml:",omitempty" json:"type,omitempty"`
 	Source      string       `yaml:",omitempty" json:"source,omitempty"`
 	Target      string       `yaml:",omitempty" json:"target,omitempty"`
 	ReadOnly    bool         `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
