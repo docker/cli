@@ -1772,6 +1772,7 @@ the `USER` instruction by passing the `-u` option.
     --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
 
 > **Note:** if you pass a numeric uid, it must be in the range of 0-2147483647.
+> If you pass a username, the user must exist in the container.
 
 ### WORKDIR
 
