@@ -21,7 +21,7 @@ func ParseVolume(spec string) (types.ServiceVolumeConfig, error) {
 		return volume, errors.New("invalid empty volume spec")
 	case 1, 2:
 		volume.Target = spec
-		volume.Type = string(mount.TypeVolume)
+		volume.Type = mount.TypeVolume
 		return volume, nil
 	}
 
@@ -98,11 +98,11 @@ func populateType(volume *types.ServiceVolumeConfig) {
 	switch {
 	// Anonymous volume
 	case volume.Source == "":
-		volume.Type = string(mount.TypeVolume)
+		volume.Type = mount.TypeVolume
 	case isFilePath(volume.Source):
-		volume.Type = string(mount.TypeBind)
+		volume.Type = mount.TypeBind
 	default:
-		volume.Type = string(mount.TypeVolume)
+		volume.Type = mount.TypeVolume
 	}
 }
 

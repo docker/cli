@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/docker/docker/api/types/mount"
 )
 
 // UnsupportedProperties not yet supported by this implementation of the compose file
@@ -384,7 +386,7 @@ type ServicePortConfig struct {
 
 // ServiceVolumeConfig are references to a volume used by a service
 type ServiceVolumeConfig struct {
-	Type        string                `yaml:",omitempty" json:"type,omitempty"`
+	Type        mount.Type            `yaml:",omitempty" json:"type,omitempty"`
 	Source      string                `yaml:",omitempty" json:"source,omitempty"`
 	Target      string                `yaml:",omitempty" json:"target,omitempty"`
 	ReadOnly    bool                  `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
