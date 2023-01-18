@@ -210,9 +210,13 @@ func isExperimental(cmd *cobra.Command) bool {
 }
 
 func additionalHelp(cmd *cobra.Command) string {
-	if additionalHelp, ok := cmd.Annotations["additionalHelp"]; ok {
+	if msg, ok := cmd.Annotations["additionalHelp"]; ok {
+		out := cmd.OutOrStderr()
+		if _, isTerminal := term.GetFdInfo(out); !isTerminal {
+			return msg
+		}
 		style := aec.EmptyBuilder.Bold().ANSI
-		return style.Apply(additionalHelp)
+		return style.Apply(msg)
 	}
 	return ""
 }
@@ -379,6 +383,7 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- if hasAdditionalHelp .}}
 
 {{ additionalHelp . }}
+
 {{- end}}
 `
 
