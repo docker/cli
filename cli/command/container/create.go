@@ -95,16 +95,16 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	containerConfig, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
+	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	if err = validateAPIVersion(containerConfig, dockerCli.Client().ClientVersion()); err != nil {
+	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerConfig, options)
+	response, err := createContainer(context.Background(), dockerCli, containerCfg, options)
 	if err != nil {
 		return err
 	}
@@ -199,10 +199,10 @@ func newCIDFile(path string) (*cidFile, error) {
 }
 
 //nolint:gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.CreateResponse, error) {
-	config := containerConfig.Config
-	hostConfig := containerConfig.HostConfig
-	networkingConfig := containerConfig.NetworkingConfig
+func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, opts *createOptions) (*container.CreateResponse, error) {
+	config := containerCfg.Config
+	hostConfig := containerCfg.HostConfig
+	networkingConfig := containerCfg.NetworkingConfig
 
 	warnOnOomKillDisable(*hostConfig, dockerCli.Err())
 	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
@@ -293,8 +293,8 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 		}
 	}
 
-	for _, warning := range response.Warnings {
-		fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", warning)
+	for _, w := range response.Warnings {
+		fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", w)
 	}
 	err = containerIDFile.Write(response.ID)
 	return &response, err
