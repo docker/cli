@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/buildkit/util/appcontext"
 	"github.com/spf13/cobra"
 	exec "golang.org/x/sys/execabs"
 )
@@ -207,7 +208,7 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 			// TODO: why are we not returning plugin.Err?
 			return nil, errPluginNotFound(name)
 		}
-		cmd := exec.Command(plugin.Path, args...)
+		cmd := exec.CommandContext(appcontext.Context(), plugin.Path, args...)
 		// Using dockerCli.{In,Out,Err}() here results in a hang until something is input.
 		// See: - https://github.com/golang/go/issues/10338
 		//      - https://github.com/golang/go/commit/d000e8742a173aa0659584aa01b7ba2834ba28ab
