@@ -27,15 +27,16 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 	var opts rmOptions
 
 	cmd := &cobra.Command{
-		Use:   "rm [OPTIONS] CONTAINER [CONTAINER...]",
-		Short: "Remove one or more containers",
-		Args:  cli.RequiresMinArgs(1),
+		Use:     "rm [OPTIONS] CONTAINER [CONTAINER...]",
+		Aliases: []string{"remove"},
+		Short:   "Remove one or more containers",
+		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
 			return runRm(dockerCli, &opts)
 		},
 		Annotations: map[string]string{
-			"aliases": "docker container rm, docker rm",
+			"aliases": "docker container rm, docker container remove, docker rm",
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
