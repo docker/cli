@@ -37,7 +37,7 @@ has a custom directory specified with the WORKDIR directive in its Dockerfile,
 this directory is used instead.
 
 COMMAND must be an executable. A chained or a quoted command does not work.
-For example, `docker exec -it my_container sh -c "echo a && echo b"` works,
+For example, `docker exec -it my_container sh -c "echo a && echo b"` does
 work, but `docker exec -it my_container "echo a && echo b"` does not.
 
 ## Examples
