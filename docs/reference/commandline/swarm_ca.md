@@ -81,6 +81,13 @@ gyg5u9Iliel99l7SuMhNeLkrU7fXs+Of1nTyyM73ig==
 
 ### <a name="rotate"></a> Root CA rotation (--rotate)
 
+> **Note**
+>
+> Mirantis Kubernetes Engine (MKE), formerly known as Docker UCP, provides an external
+> certificate manager service for the swarm. If you run swarm on MKE, you shouldn't
+> rotate the CA certificates manually. Instead, contact Mirantis support if you need
+> to rotate a certificate.
+
 Root CA Rotation is recommended if one or more of the swarm managers have been
 compromised, so that those managers can no longer connect to or be trusted by
 any other node in the cluster.
