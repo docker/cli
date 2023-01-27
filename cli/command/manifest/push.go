@@ -219,7 +219,7 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 	}
 
 	// Attempt to reconstruct indentation of the manifest to ensure sha parity
-	// with the registry.
+	// with the registry - if we haven't preserved the raw content.
 	//
 	// This is necessary because our previous internal storage format did not
 	// preserve whitespace. If we don't have the newer format present, we can
@@ -227,9 +227,12 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 	// reconstruction failed!
 	switch {
 	case imageManifest.SchemaV2Manifest != nil:
-		dt, err := json.MarshalIndent(imageManifest.SchemaV2Manifest, "", "   ")
-		if err != nil {
-			return mountRequest{}, err
+		dt := imageManifest.Raw
+		if len(dt) == 0 {
+			dt, err = json.MarshalIndent(imageManifest.SchemaV2Manifest, "", "   ")
+			if err != nil {
+				return mountRequest{}, err
+			}
 		}
 
 		dig := imageManifest.Descriptor.Digest
@@ -243,9 +246,12 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 		}
 		imageManifest.SchemaV2Manifest = &manifest
 	case imageManifest.OCIManifest != nil:
-		dt, err := json.MarshalIndent(imageManifest.OCIManifest, "", "  ")
-		if err != nil {
-			return mountRequest{}, err
+		dt := imageManifest.Raw
+		if len(dt) == 0 {
+			dt, err = json.MarshalIndent(imageManifest.OCIManifest, "", "  ")
+			if err != nil {
+				return mountRequest{}, err
+			}
 		}
 
 		dig := imageManifest.Descriptor.Digest

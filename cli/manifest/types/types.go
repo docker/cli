@@ -17,8 +17,7 @@ import (
 type ImageManifest struct {
 	Ref        *SerializableNamed
 	Descriptor ocispec.Descriptor
-
-	// TODO: Deprecate this and store manifest blobs
+	Raw        []byte `json:",omitempty"`
 
 	// SchemaV2Manifest is used for inspection
 	SchemaV2Manifest *schema2.DeserializedManifest `json:",omitempty"`
@@ -99,9 +98,15 @@ func (i ImageManifest) References() []distribution.Descriptor {
 // NewImageManifest returns a new ImageManifest object. The values for Platform
 // are initialized from those in the image
 func NewImageManifest(ref reference.Named, desc ocispec.Descriptor, manifest *schema2.DeserializedManifest) ImageManifest {
+	raw, err := manifest.MarshalJSON()
+	if err != nil {
+		raw = nil
+	}
+
 	return ImageManifest{
 		Ref:              &SerializableNamed{Named: ref},
 		Descriptor:       desc,
+		Raw:              raw,
 		SchemaV2Manifest: manifest,
 	}
 }
@@ -109,9 +114,15 @@ func NewImageManifest(ref reference.Named, desc ocispec.Descriptor, manifest *sc
 // NewOCIImageManifest returns a new ImageManifest object. The values for
 // Platform are initialized from those in the image
 func NewOCIImageManifest(ref reference.Named, desc ocispec.Descriptor, manifest *ocischema.DeserializedManifest) ImageManifest {
+	raw, err := manifest.MarshalJSON()
+	if err != nil {
+		raw = nil
+	}
+
 	return ImageManifest{
 		Ref:         &SerializableNamed{Named: ref},
 		Descriptor:  desc,
+		Raw:         raw,
 		OCIManifest: manifest,
 	}
 }
