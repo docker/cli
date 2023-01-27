@@ -76,6 +76,8 @@ func getManifest(ctx context.Context, dockerCli command.Cli, listRef, namedRef r
 		return dockerCli.RegistryClient(insecure).GetManifest(ctx, namedRef)
 	case err != nil:
 		return types.ImageManifest{}, err
+	case len(data.Raw) == 0:
+		return dockerCli.RegistryClient(insecure).GetManifest(ctx, namedRef)
 	default:
 		return data, nil
 	}
