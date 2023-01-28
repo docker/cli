@@ -17,7 +17,7 @@ The following enables the default GC on your docker daemon:
     }
   }
 ```
-The garbage collection config file can be created incase you dont have one located in your `etc/docker` folder, and if you do have
+The garbage collection config file can be created in case you dont have one located in your `etc/docker` folder, and if you do have
 one it migth be there and be set to `false` so you need to enable the garbage collection by setting it as true, if you don't see
 any gc JSON, copy the above JSON and paste it in the file. That is the very first step to configure your garbage collection.
 Garbage collection config JSON are optional, i.e some fields can be left out, like the example above about enabling GC, the policy
