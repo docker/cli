@@ -55,14 +55,14 @@ func TestStoreRemove(t *testing.T) {
 func TestStoreSaveAndGet(t *testing.T) {
 	store := NewStore(t.TempDir())
 	listRef := ref("list")
-	data := types.ImageManifest{Ref: sref(t, "abcdef")}
-	err := store.Save(listRef, ref("exists"), data)
+	data := []types.ImageManifest{{Ref: sref(t, "abcdef")}}
+	err := store.Save(listRef, ref("exists"), data...)
 	assert.NilError(t, err)
 
 	testcases := []struct {
 		listRef     reference.Reference
 		manifestRef reference.Reference
-		expected    types.ImageManifest
+		expected    []types.ImageManifest
 		expectedErr error
 	}{
 		{

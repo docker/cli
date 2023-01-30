@@ -58,7 +58,7 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 	}
 
 	manifestStore := dockerCli.ManifestStore()
-	imageManifest, err := manifestStore.Get(targetRef, imgRef)
+	imageManifests, err := manifestStore.Get(targetRef, imgRef)
 	switch {
 	case errors.Is(err, types.ErrManifestNotFound):
 		return fmt.Errorf("manifest for image %s does not exist in %s", opts.image, opts.target)
@@ -66,30 +66,32 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 		return err
 	}
 
-	// Update the mf
-	if imageManifest.Descriptor.Platform == nil {
-		imageManifest.Descriptor.Platform = new(ocispec.Platform)
+	for i, imageManifest := range imageManifests {
+		// Update the mf
+		if imageManifest.Descriptor.Platform == nil {
+			imageManifest.Descriptor.Platform = new(ocispec.Platform)
+		}
+		if opts.os != "" {
+			imageManifest.Descriptor.Platform.OS = opts.os
+		}
+		if opts.arch != "" {
+			imageManifest.Descriptor.Platform.Architecture = opts.arch
+		}
+		for _, osFeature := range opts.osFeatures {
+			imageManifest.Descriptor.Platform.OSFeatures = appendIfUnique(imageManifest.Descriptor.Platform.OSFeatures, osFeature)
+		}
+		if opts.variant != "" {
+			imageManifest.Descriptor.Platform.Variant = opts.variant
+		}
+		if opts.osVersion != "" {
+			imageManifest.Descriptor.Platform.OSVersion = opts.osVersion
+		}
+		if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
+			return errors.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
+		}
+		imageManifests[i] = imageManifest
 	}
-	if opts.os != "" {
-		imageManifest.Descriptor.Platform.OS = opts.os
-	}
-	if opts.arch != "" {
-		imageManifest.Descriptor.Platform.Architecture = opts.arch
-	}
-	for _, osFeature := range opts.osFeatures {
-		imageManifest.Descriptor.Platform.OSFeatures = appendIfUnique(imageManifest.Descriptor.Platform.OSFeatures, osFeature)
-	}
-	if opts.variant != "" {
-		imageManifest.Descriptor.Platform.Variant = opts.variant
-	}
-	if opts.osVersion != "" {
-		imageManifest.Descriptor.Platform.OSVersion = opts.osVersion
-	}
-
-	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
-		return errors.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
-	}
-	return manifestStore.Save(targetRef, imgRef, imageManifest)
+	return manifestStore.Save(targetRef, imgRef, imageManifests...)
 }
 
 func appendIfUnique(list []string, str string) []string {

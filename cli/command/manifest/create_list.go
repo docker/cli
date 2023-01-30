@@ -69,11 +69,11 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 			return err
 		}
 
-		manifest, err := getManifest(ctx, dockerCli, targetRef, namedRef, opts.insecure)
+		manifests, err := getManifests(ctx, dockerCli, targetRef, namedRef, opts.insecure)
 		if err != nil {
 			return err
 		}
-		if err := manifestStore.Save(targetRef, namedRef, manifest); err != nil {
+		if err := manifestStore.Save(targetRef, namedRef, manifests...); err != nil {
 			return err
 		}
 	}

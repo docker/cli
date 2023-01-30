@@ -67,17 +67,23 @@ func normalizeReference(ref string) (reference.Named, error) {
 	return namedRef, nil
 }
 
-// getManifest from the local store, and fallback to the remote registry if it
+// getManifests from the local store, and fallback to the remote registry if it
 // doesn't exist locally
-func getManifest(ctx context.Context, dockerCli command.Cli, listRef, namedRef reference.Named, insecure bool) (types.ImageManifest, error) {
+func getManifests(ctx context.Context, dockerCli command.Cli, listRef, namedRef reference.Named, insecure bool) ([]types.ImageManifest, error) {
 	// load from the local store
 	if listRef != nil {
 		data, err := dockerCli.ManifestStore().Get(listRef, namedRef)
 		if err == nil {
 			return data, nil
 		} else if !errors.Is(err, types.ErrManifestNotFound) {
-			return types.ImageManifest{}, err
+			return nil, err
 		}
+	}
+	datas, err := dockerCli.ManifestStore().GetList(namedRef)
+	if err == nil {
+		return datas, nil
+	} else if !errors.Is(err, types.ErrManifestNotFound) {
+		return nil, err
 	}
 
 	// load from the remote registry
@@ -85,11 +91,18 @@ func getManifest(ctx context.Context, dockerCli command.Cli, listRef, namedRef r
 	if client != nil {
 		data, err := client.GetManifest(ctx, namedRef)
 		if err == nil {
-			return data, nil
+			return []types.ImageManifest{data}, nil
 		} else if !errors.Is(err, types.ErrManifestNotFound) {
-			return types.ImageManifest{}, err
+			return nil, err
+		}
+
+		datas, err = client.GetManifestList(ctx, namedRef)
+		if err == nil {
+			return datas, nil
+		} else if !errors.Is(err, types.ErrManifestNotFound) {
+			return nil, err
 		}
 	}
 
-	return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", namedRef)
+	return nil, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", namedRef)
 }

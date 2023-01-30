@@ -55,40 +55,28 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 		return err
 	}
 
-	// If list reference is provided, display the local manifest in a list
+	var listRef reference.Named
 	if opts.list != "" {
-		listRef, err := normalizeReference(opts.list)
+		listRef, err = normalizeReference(opts.list)
 		if err != nil {
 			return err
 		}
-
-		imageManifest, err := dockerCli.ManifestStore().Get(listRef, namedRef)
-		if err != nil {
-			return err
-		}
-		return printManifest(dockerCli, imageManifest, opts)
 	}
 
-	// Try a local manifest list first
-	localManifestList, err := dockerCli.ManifestStore().GetList(namedRef)
-	if err == nil {
-		return printManifestList(dockerCli, namedRef, localManifestList, opts)
-	}
-
-	// Next try a remote manifest
 	ctx := context.Background()
-	registryClient := dockerCli.RegistryClient(opts.insecure)
-	imageManifest, err := registryClient.GetManifest(ctx, namedRef)
-	if err == nil {
-		return printManifest(dockerCli, imageManifest, opts)
-	}
-
-	// Finally try a remote manifest list
-	manifestList, err := registryClient.GetManifestList(ctx, namedRef)
+	manifests, err := getManifests(ctx, dockerCli, listRef, namedRef, opts.insecure)
 	if err != nil {
 		return err
 	}
-	return printManifestList(dockerCli, namedRef, manifestList, opts)
+
+	switch len(manifests) {
+	case 0:
+		return nil
+	case 1:
+		return printManifest(dockerCli, manifests[0], opts)
+	default:
+		return printManifestList(dockerCli, namedRef, manifests, opts)
+	}
 }
 
 func printManifest(dockerCli command.Cli, manifest types.ImageManifest, opts inspectOptions) error {
