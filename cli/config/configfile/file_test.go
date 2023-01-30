@@ -3,6 +3,7 @@ package configfile
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
 
@@ -166,8 +167,9 @@ func TestConfigFile(t *testing.T) {
 }
 
 type mockNativeStore struct {
-	GetAllCallCount int
-	authConfigs     map[string]types.AuthConfig
+	GetAllCallCount  int
+	authConfigs      map[string]types.AuthConfig
+	authConfigErrors map[string]error
 }
 
 func (c *mockNativeStore) Erase(registryHostname string) error {
@@ -176,7 +178,7 @@ func (c *mockNativeStore) Erase(registryHostname string) error {
 }
 
 func (c *mockNativeStore) Get(registryHostname string) (types.AuthConfig, error) {
-	return c.authConfigs[registryHostname], nil
+	return c.authConfigs[registryHostname], c.authConfigErrors[registryHostname]
 }
 
 func (c *mockNativeStore) GetAll() (map[string]types.AuthConfig, error) {
@@ -191,8 +193,8 @@ func (c *mockNativeStore) Store(authConfig types.AuthConfig) error {
 // make sure it satisfies the interface
 var _ credentials.Store = (*mockNativeStore)(nil)
 
-func NewMockNativeStore(authConfigs map[string]types.AuthConfig) credentials.Store {
-	return &mockNativeStore{authConfigs: authConfigs}
+func NewMockNativeStore(authConfigs map[string]types.AuthConfig, authConfigErrors map[string]error) credentials.Store {
+	return &mockNativeStore{authConfigs: authConfigs, authConfigErrors: authConfigErrors}
 }
 
 func TestGetAllCredentialsFileStoreOnly(t *testing.T) {
@@ -220,7 +222,7 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 		Password: "pass",
 	}
 
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedAuth})
+	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -235,6 +237,48 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 	expected[testRegistryHostname] = expectedAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
+}
+
+func TestGetAllCredentialsCredStoreErrorHandling(t *testing.T) {
+	const (
+		workingHelperRegistryHostname = "working-helper.example.com"
+		brokenHelperRegistryHostname  = "broken-helper.example.com"
+	)
+	configFile := New("filename")
+	configFile.CredentialHelpers = map[string]string{
+		workingHelperRegistryHostname: "cred_helper",
+		brokenHelperRegistryHostname:  "broken_cred_helper",
+	}
+	expectedAuth := types.AuthConfig{
+		Username: "username",
+		Password: "pass",
+	}
+	// configure the mock store to throw an error
+	// when calling the helper for this registry
+	authErrors := map[string]error{
+		brokenHelperRegistryHostname: errors.New("an error"),
+	}
+
+	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{
+		workingHelperRegistryHostname: expectedAuth,
+		// configure an auth entry for the "broken" credential
+		// helper that will throw an error
+		brokenHelperRegistryHostname: {},
+	}, authErrors)
+
+	tmpNewNativeStore := newNativeStore
+	defer func() { newNativeStore = tmpNewNativeStore }()
+	newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
+		return testCredsStore
+	}
+
+	authConfigs, err := configFile.GetAllCredentials()
+
+	// make sure we're still returning the expected credentials
+	// and skipping the ones throwing an error
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(1, len(authConfigs)))
+	assert.Check(t, is.DeepEqual(expectedAuth, authConfigs[workingHelperRegistryHostname]))
 }
 
 func TestGetAllCredentialsCredHelper(t *testing.T) {
@@ -261,7 +305,7 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 		// Add in an extra auth entry which doesn't appear in CredentialHelpers section of the configFile.
 		// This verifies that only explicitly configured registries are being requested from the cred helpers.
 		testExtraCredHelperRegistryHostname: unexpectedCredHelperAuth,
-	})
+	}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -298,7 +342,7 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 	configFile.CredentialHelpers = map[string]string{testCredHelperRegistryHostname: testCredHelperSuffix}
 	configFile.AuthConfigs[testFileStoreRegistryHostname] = expectedFileStoreAuth
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth})
+	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
 
 	newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
 		return testCredHelper
@@ -337,8 +381,8 @@ func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
 		Password: "cred_helper_pass",
 	}
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth})
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testCredStoreRegistryHostname: expectedCredStoreAuth})
+	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
+	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testCredStoreRegistryHostname: expectedCredStoreAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -380,8 +424,8 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 		Password: "cred_helper_pass",
 	}
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedCredHelperAuth})
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: unexpectedCredStoreAuth})
+	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedCredHelperAuth}, nil)
+	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: unexpectedCredStoreAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
