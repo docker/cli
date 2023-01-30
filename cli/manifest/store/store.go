@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,7 +48,7 @@ func (s *fsStore) getFromFilename(ref reference.Reference, filename string) (typ
 	bytes, err := os.ReadFile(filename)
 	switch {
 	case os.IsNotExist(err):
-		return types.ImageManifest{}, newNotFoundError(ref.String())
+		return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", ref.String())
 	case err != nil:
 		return types.ImageManifest{}, err
 	}
@@ -93,7 +92,7 @@ func (s *fsStore) GetList(listRef reference.Reference) ([]types.ImageManifest, e
 	case err != nil:
 		return nil, err
 	case filenames == nil:
-		return nil, newNotFoundError(listRef.String())
+		return nil, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", listRef.String())
 	}
 
 	manifests := []types.ImageManifest{}
@@ -151,29 +150,4 @@ func manifestToFilename(root, manifestList, manifest string) string {
 func makeFilesafeName(ref string) string {
 	fileName := strings.Replace(ref, ":", "-", -1)
 	return strings.Replace(fileName, "/", "_", -1)
-}
-
-type notFoundError struct {
-	object string
-}
-
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{object: ref}
-}
-
-func (n *notFoundError) Error() string {
-	return fmt.Sprintf("No such manifest: %s", n.object)
-}
-
-// NotFound interface
-func (n *notFoundError) NotFound() {}
-
-// IsNotFound returns true if the error is a not found error
-func IsNotFound(err error) bool {
-	_, ok := err.(notFound)
-	return ok
-}
-
-type notFound interface {
-	NotFound()
 }

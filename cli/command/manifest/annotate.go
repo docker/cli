@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/cli/manifest/types"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -60,7 +60,7 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 	manifestStore := dockerCli.ManifestStore()
 	imageManifest, err := manifestStore.Get(targetRef, imgRef)
 	switch {
-	case store.IsNotFound(err):
+	case errors.Is(err, types.ErrManifestNotFound):
 		return fmt.Errorf("manifest for image %s does not exist in %s", opts.image, opts.target)
 	case err != nil:
 		return err

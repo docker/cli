@@ -70,7 +70,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
+	assert.Error(t, err, `"example.com/alpine:3.0" does not exist: manifest not found`)
 }
 
 func TestInspectCommandNotFound(t *testing.T) {
@@ -79,11 +79,11 @@ func TestInspectCommandNotFound(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 	cli.SetManifestStore(store)
 	cli.SetRegistryClient(&fakeRegistryClient{
-		getManifestFunc: func(_ context.Context, _ reference.Named) (types.ImageManifest, error) {
-			return types.ImageManifest{}, errors.New("missing")
+		getManifestFunc: func(ctx context.Context, ref reference.Named) (types.ImageManifest, error) {
+			return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", ref)
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]types.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", ref)
 		},
 	})
 
@@ -91,7 +91,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
-	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
+	assert.Error(t, err, `"example.com/alpine:3.0" does not exist: manifest not found`)
 }
 
 func TestInspectCommandLocalManifest(t *testing.T) {

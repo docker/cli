@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
+	"github.com/pkg/errors"
 )
 
 type osArch struct {
@@ -70,15 +70,26 @@ func normalizeReference(ref string) (reference.Named, error) {
 // getManifest from the local store, and fallback to the remote registry if it
 // doesn't exist locally
 func getManifest(ctx context.Context, dockerCli command.Cli, listRef, namedRef reference.Named, insecure bool) (types.ImageManifest, error) {
-	data, err := dockerCli.ManifestStore().Get(listRef, namedRef)
-	switch {
-	case store.IsNotFound(err):
-		return dockerCli.RegistryClient(insecure).GetManifest(ctx, namedRef)
-	case err != nil:
-		return types.ImageManifest{}, err
-	case len(data.Raw) == 0:
-		return dockerCli.RegistryClient(insecure).GetManifest(ctx, namedRef)
-	default:
-		return data, nil
+	// load from the local store
+	if listRef != nil {
+		data, err := dockerCli.ManifestStore().Get(listRef, namedRef)
+		if err == nil {
+			return data, nil
+		} else if !errors.Is(err, types.ErrManifestNotFound) {
+			return types.ImageManifest{}, err
+		}
 	}
+
+	// load from the remote registry
+	client := dockerCli.RegistryClient(insecure)
+	if client != nil {
+		data, err := client.GetManifest(ctx, namedRef)
+		if err == nil {
+			return data, nil
+		} else if !errors.Is(err, types.ErrManifestNotFound) {
+			return types.ImageManifest{}, err
+		}
+	}
+
+	return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", namedRef)
 }

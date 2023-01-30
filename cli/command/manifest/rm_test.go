@@ -37,8 +37,8 @@ func TestRmSeveralManifests(t *testing.T) {
 
 	_, search1 := cli.ManifestStore().GetList(list1)
 	_, search2 := cli.ManifestStore().GetList(list2)
-	assert.Error(t, search1, "No such manifest: example.com/first:1")
-	assert.Error(t, search2, "No such manifest: example.com/second:2")
+	assert.Error(t, search1, `"example.com/first:1" does not exist: manifest not found`)
+	assert.Error(t, search2, `"example.com/second:2" does not exist: manifest not found`)
 }
 
 // attempt to remove a manifest list which was never created
@@ -57,8 +57,8 @@ func TestRmManifestNotCreated(t *testing.T) {
 	cmd.SetArgs([]string{"example.com/first:1", "example.com/second:2"})
 	cmd.SetOut(io.Discard)
 	err = cmd.Execute()
-	assert.Error(t, err, "No such manifest: example.com/first:1")
+	assert.Error(t, err, `"example.com/first:1" does not exist: manifest not found`)
 
 	_, err = cli.ManifestStore().GetList(list2)
-	assert.Error(t, err, "No such manifest: example.com/second:2")
+	assert.Error(t, err, `"example.com/second:2" does not exist: manifest not found`)
 }

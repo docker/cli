@@ -13,6 +13,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	// ErrManifestNotFound is an error returned when a requested manifest or
+	// manifest list cannot be found in the store or the registry
+	ErrManifestNotFound = errors.New("manifest not found")
+
+	// ErrUnknownType is an error returned when a manifest was found, but it
+	// was of an unrecognized type
+	ErrUnknownType = errors.New("unknown manifest type")
+)
+
 // ImageManifest contains info to output for a manifest object.
 type ImageManifest struct {
 	Ref        *SerializableNamed
