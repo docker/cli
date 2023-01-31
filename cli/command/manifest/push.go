@@ -12,6 +12,7 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/docker/distribution/manifest/ocischema"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/registry"
@@ -217,18 +218,53 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 		return mountRequest{}, err
 	}
 
-	// This indentation has to be added to ensure sha parity with the registry
-	v2ManifestBytes, err := json.MarshalIndent(imageManifest.SchemaV2Manifest, "", "   ")
-	if err != nil {
-		return mountRequest{}, err
+	// Attempt to reconstruct indentation of the manifest to ensure sha parity
+	// with the registry - if we haven't preserved the raw content.
+	//
+	// This is necessary because our previous internal storage format did not
+	// preserve whitespace. If we don't have the newer format present, we can
+	// attempt the reconstruction like before, but explicitly error if the
+	// reconstruction failed!
+	switch {
+	case imageManifest.SchemaV2Manifest != nil:
+		dt := imageManifest.Raw
+		if len(dt) == 0 {
+			dt, err = json.MarshalIndent(imageManifest.SchemaV2Manifest, "", "   ")
+			if err != nil {
+				return mountRequest{}, err
+			}
+		}
+
+		dig := imageManifest.Descriptor.Digest
+		if dig2 := dig.Algorithm().FromBytes(dt); dig != dig2 {
+			return mountRequest{}, errors.Errorf("internal digest mismatch for %s: expected %s, got %s", imageManifest.Ref, dig, dig2)
+		}
+
+		var manifest schema2.DeserializedManifest
+		if err = manifest.UnmarshalJSON(dt); err != nil {
+			return mountRequest{}, err
+		}
+		imageManifest.SchemaV2Manifest = &manifest
+	case imageManifest.OCIManifest != nil:
+		dt := imageManifest.Raw
+		if len(dt) == 0 {
+			dt, err = json.MarshalIndent(imageManifest.OCIManifest, "", "  ")
+			if err != nil {
+				return mountRequest{}, err
+			}
+		}
+
+		dig := imageManifest.Descriptor.Digest
+		if dig2 := dig.Algorithm().FromBytes(dt); dig != dig2 {
+			return mountRequest{}, errors.Errorf("internal digest mismatch for %s: expected %s, got %s", imageManifest.Ref, dig, dig2)
+		}
+
+		var manifest ocischema.DeserializedManifest
+		if err = manifest.UnmarshalJSON(dt); err != nil {
+			return mountRequest{}, err
+		}
+		imageManifest.OCIManifest = &manifest
 	}
-	// indent only the DeserializedManifest portion of this, in order to maintain parity with the registry
-	// and not alter the sha
-	var v2Manifest schema2.DeserializedManifest
-	if err = v2Manifest.UnmarshalJSON(v2ManifestBytes); err != nil {
-		return mountRequest{}, err
-	}
-	imageManifest.SchemaV2Manifest = &v2Manifest
 
 	return mountRequest{ref: mountRef, manifest: imageManifest}, err
 }
