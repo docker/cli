@@ -18,7 +18,7 @@ keywords: "docker, documentation, about, technology, deprecate"
 This page provides an overview of features that are deprecated in Engine. Changes
 in packaging, and supported (Linux) distributions are not included. To learn
 about end of support for Linux distributions, refer to the
-[release notes](https://docs.docker.com/engine/release-notes/).
+[release notes](https://docs.docker.com/engine/release-notes/23.0/).
 
 ## Feature Deprecation Policy
 
