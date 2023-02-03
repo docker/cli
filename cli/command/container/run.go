@@ -308,7 +308,8 @@ func runStartContainerErr(err error) error {
 		strings.Contains(trimmedErr, "no such file or directory") ||
 		strings.Contains(trimmedErr, "system cannot find the file specified") {
 		statusError = cli.StatusError{StatusCode: 127}
-	} else if strings.Contains(trimmedErr, syscall.EACCES.Error()) {
+	} else if strings.Contains(trimmedErr, syscall.EACCES.Error()) ||
+		strings.Contains(trimmedErr, syscall.EISDIR.Error()) {
 		statusError = cli.StatusError{StatusCode: 126}
 	}
 
