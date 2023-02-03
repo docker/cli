@@ -31,7 +31,7 @@ func ValidateThrottleBpsDevice(val string) (*blkiodev.ThrottleDevice, error) {
 	}
 
 	return &blkiodev.ThrottleDevice{
-		Path: v,
+		Path: k,
 		Rate: uint64(rate),
 	}, nil
 }
