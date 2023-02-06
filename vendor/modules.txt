@@ -12,7 +12,7 @@ github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/containerd/containerd v1.6.15
+# github.com/containerd/containerd v1.6.16
 ## explicit; go 1.17
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
@@ -40,7 +40,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v23.0.0-rc.3+incompatible
+# github.com/docker/docker v23.0.0+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
