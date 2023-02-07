@@ -49,9 +49,9 @@
 
 		people = [
 			"bsousaa",
+			"neersighted",
 			"programmerq",
 			"sam-thibault",
-			"thajeztah",
 			"vvoland"
 		]
 
@@ -102,6 +102,11 @@
 	Name = "Nicolas De Loof"
 	Email = "nicolas.deloof@gmail.com"
 	GitHub = "ndeloof"
+
+	[people.neersighted]
+	Name = "Bjorn Neergaard"
+	Email = "bneergaard@mirantis.com"
+	GitHub = "neersighted"
 
 	[people.programmerq]
 	Name = "Jeff Anderson"
