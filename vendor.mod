@@ -6,11 +6,23 @@ module github.com/docker/cli
 
 go 1.18
 
+// This is github.com/docker/docker "master". Unfortunately, go modules version
+// resolution is very broken, and updating the dependency to "master" without
+// a replace rule will roll it back to v23.0.0-rc.2+incompatible, likely because
+// that version is used by some dependencies (BuildKit, SwarmKit).
+//
+// Why 20.10.3? Go modules generates pseudo versions based on the latest non-
+// pre-release on the branch that "looks like SemVer" (v20.10.2 in this case).
+// Pseudo versions are prefixed with "vMajor.Minor.Patch+1", so the version
+// becomes "v20.10.3-0.20230207102624-b5568723cee5+incompatible" (latest stable
+// (v20.10.2) "+1" (v20.10.3), followed by the commit-date, and sha.
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230327175735-54130b542db4+incompatible
+
 require (
 	github.com/containerd/containerd v1.6.19
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v23.0.2+incompatible
+	github.com/docker/docker v23.0.2+incompatible // replaced; currently using master branch (v24.0.0-dev)
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0

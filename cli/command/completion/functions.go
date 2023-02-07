@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/spf13/cobra"
 )
 
@@ -66,13 +66,13 @@ func ContainerNames(dockerCli command.Cli, all bool, filters ...func(types.Conta
 // VolumeNames offers completion for volumes
 func VolumeNames(dockerCli command.Cli) ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCli.Client().VolumeList(cmd.Context(), filters.Args{})
+		list, err := dockerCli.Client().VolumeList(cmd.Context(), volume.ListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, volume := range list.Volumes {
-			names = append(names, volume.Name)
+		for _, vol := range list.Volumes {
+			names = append(names, vol.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
