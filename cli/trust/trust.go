@@ -17,7 +17,6 @@ import (
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
@@ -79,7 +78,7 @@ func Server(index *registrytypes.IndexInfo) (string, error) {
 }
 
 type simpleCredentialStore struct {
-	auth types.AuthConfig
+	auth registrytypes.AuthConfig
 }
 
 func (scs simpleCredentialStore) Basic(*url.URL) (string, string) {
@@ -95,7 +94,7 @@ func (scs simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
-func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *types.AuthConfig, actions ...string) (client.Repository, error) {
+func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *registrytypes.AuthConfig, actions ...string) (client.Repository, error) {
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
@@ -291,7 +290,7 @@ func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.Rol
 // ImageRefAndAuth contains all reference information and the auth config for an image request
 type ImageRefAndAuth struct {
 	original   string
-	authConfig *types.AuthConfig
+	authConfig *registrytypes.AuthConfig
 	reference  reference.Named
 	repoInfo   *registry.RepositoryInfo
 	tag        string
@@ -301,7 +300,7 @@ type ImageRefAndAuth struct {
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
 // as an ImageRefAndAuth struct
 func GetImageReferencesAndAuth(ctx context.Context,
-	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig,
+	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig,
 	imgName string,
 ) (ImageRefAndAuth, error) {
 	ref, err := reference.ParseNormalizedNamed(imgName)
@@ -349,7 +348,7 @@ func getDigest(ref reference.Named) digest.Digest {
 }
 
 // AuthConfig returns the auth information (username, etc) for a given ImageRefAndAuth
-func (imgRefAuth *ImageRefAndAuth) AuthConfig() *types.AuthConfig {
+func (imgRefAuth *ImageRefAndAuth) AuthConfig() *registrytypes.AuthConfig {
 	return imgRefAuth.authConfig
 }
 

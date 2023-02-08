@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	configtypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -164,7 +163,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	return nil
 }
 
-func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authConfig *types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authConfig *registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
 	cliClient := dockerCli.Client()
 	response, err := cliClient.RegistryLogin(ctx, *authConfig)
@@ -178,7 +177,7 @@ func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authCon
 	return response, err
 }
 
-func loginClientSide(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	svc, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
 		return registrytypes.AuthenticateOKBody{}, err
