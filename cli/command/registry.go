@@ -22,7 +22,7 @@ import (
 )
 
 // EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload
-func EncodeAuthToBase64(authConfig types.AuthConfig) (string, error) {
+func EncodeAuthToBase64(authConfig registrytypes.AuthConfig) (string, error) {
 	buf, err := json.Marshal(authConfig)
 	if err != nil {
 		return "", err
@@ -52,19 +52,19 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 // ResolveAuthConfig is like registry.ResolveAuthConfig, but if using the
 // default index, it uses the default index name for the daemon's platform,
 // not the client's platform.
-func ResolveAuthConfig(_ context.Context, cli Cli, index *registrytypes.IndexInfo) types.AuthConfig {
+func ResolveAuthConfig(_ context.Context, cli Cli, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
 		configKey = registry.IndexServer
 	}
 
 	a, _ := cli.ConfigFile().GetAuthConfig(configKey)
-	return types.AuthConfig(a)
+	return registrytypes.AuthConfig(a)
 }
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
-func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (types.AuthConfig, error) {
+func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
 	if !isDefaultRegistry {
 		serverAddress = registry.ConvertToHostname(serverAddress)
 	}
@@ -73,19 +73,19 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 	if checkCredStore {
 		authconfig, err = cli.ConfigFile().GetAuthConfig(serverAddress)
 		if err != nil {
-			return types.AuthConfig{
+			return registrytypes.AuthConfig{
 				ServerAddress: serverAddress,
 			}, err
 		}
 	}
 	authconfig.ServerAddress = serverAddress
 	authconfig.IdentityToken = ""
-	res := types.AuthConfig(authconfig)
+	res := registrytypes.AuthConfig(authconfig)
 	return res, nil
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed
-func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *types.AuthConfig, isDefaultRegistry bool) error {
+func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes.AuthConfig, isDefaultRegistry bool) error {
 	// On Windows, force the use of the regular OS stdin stream. Fixes #14336/#14210
 	if runtime.GOOS == "windows" {
 		cli.SetIn(streams.NewIn(os.Stdin))
@@ -175,14 +175,14 @@ func RetrieveAuthTokenFromImage(ctx context.Context, cli Cli, image string) (str
 }
 
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
-func resolveAuthConfigFromImage(ctx context.Context, cli Cli, image string) (types.AuthConfig, error) {
+func resolveAuthConfigFromImage(ctx context.Context, cli Cli, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
-		return types.AuthConfig{}, err
+		return registrytypes.AuthConfig{}, err
 	}
 	repoInfo, err := registry.ParseRepositoryInfo(registryRef)
 	if err != nil {
-		return types.AuthConfig{}, err
+		return registrytypes.AuthConfig{}, err
 	}
 	return ResolveAuthConfig(ctx, cli, repoInfo.Index), nil
 }
