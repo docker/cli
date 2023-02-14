@@ -100,11 +100,11 @@ $ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}
 CONTAINER                CPU %               MEM USAGE / LIMIT
 fervent_panini           0.00%               56KiB / 15.57GiB
 5acfcb1b4fd1             0.07%               32.86MiB / 15.57GiB
-drunk_visvesvaraya       0.00%               0B / 0B
+humble_visvesvaraya       0.00%               0B / 0B
 big_heisenberg           0.00%               0B / 0B
 ```
 
-`drunk_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
+`humble_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
 
 Running `docker stats` on all running containers against a Windows daemon.
 
