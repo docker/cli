@@ -109,7 +109,7 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 func runPs(dockerCli command.Cli, options *psOptions) error {
 	ctx := context.Background()
 
-	if len(options.format) == 0 {
+	if !options.quiet && len(options.format) == 0 {
 		// load custom psFormat from CLI config (if any)
 		options.format = dockerCli.ConfigFile().PsFormat
 	}
