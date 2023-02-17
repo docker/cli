@@ -34,7 +34,7 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display and rotate the root CA",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCA(dockerCli, cmd.Flags(), opts)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.30",

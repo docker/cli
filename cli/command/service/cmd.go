@@ -14,7 +14,9 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 		Use:   "service",
 		Short: "Manage Swarm services",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return command.RunSwarm(dockerCli)
+		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "manager",

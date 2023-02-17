@@ -3,7 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -20,15 +19,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Deploy a new stack or update an existing stack",
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.Namespace = args[0]
-			if err := validateStackName(opts.Namespace); err != nil {
-				return err
-			}
-			config, err := loader.LoadComposefile(dockerCli, opts)
-			if err != nil {
-				return err
-			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

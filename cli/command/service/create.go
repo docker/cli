@@ -28,7 +28,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), opts)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

@@ -33,13 +33,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "List tasks running on one or more nodes, defaults to current node",
 		Args:  cli.RequiresMinArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.nodeIDs = []string{"self"}
-
-			if len(args) != 0 {
-				options.nodeIDs = args
-			}
-
-			return runPs(dockerCli, options)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

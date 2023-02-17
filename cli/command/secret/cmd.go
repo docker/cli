@@ -14,7 +14,9 @@ func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
 		Use:   "secret",
 		Short: "Manage Swarm secrets",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return command.RunSwarm(dockerCli)
+		},
 		Annotations: map[string]string{
 			"version": "1.25",
 			"swarm":   "manager",

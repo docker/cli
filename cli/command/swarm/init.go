@@ -1,18 +1,12 @@
 package swarm
 
 import (
-	"context"
-	"fmt"
 	"net"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type initOptions struct {
@@ -38,7 +32,7 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Initialize a swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInit(dockerCli, cmd.Flags(), opts)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
@@ -63,61 +57,4 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagDefaultAddrPoolMaskLength, "version", []string{"1.39"})
 	addSwarmFlags(flags, &opts.swarmOptions)
 	return cmd
-}
-
-func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
-	var defaultAddrPool []string
-
-	client := dockerCli.Client()
-	ctx := context.Background()
-
-	for _, p := range opts.defaultAddrPools {
-		defaultAddrPool = append(defaultAddrPool, p.String())
-	}
-	req := swarm.InitRequest{
-		ListenAddr:       opts.listenAddr.String(),
-		AdvertiseAddr:    opts.advertiseAddr,
-		DataPathAddr:     opts.dataPathAddr,
-		DataPathPort:     opts.dataPathPort,
-		DefaultAddrPool:  defaultAddrPool,
-		ForceNewCluster:  opts.forceNewCluster,
-		Spec:             opts.swarmOptions.ToSpec(flags),
-		AutoLockManagers: opts.swarmOptions.autolock,
-		SubnetSize:       opts.DefaultAddrPoolMaskLength,
-	}
-	if flags.Changed(flagAvailability) {
-		availability := swarm.NodeAvailability(strings.ToLower(opts.availability))
-		switch availability {
-		case swarm.NodeAvailabilityActive, swarm.NodeAvailabilityPause, swarm.NodeAvailabilityDrain:
-			req.Availability = availability
-		default:
-			return errors.Errorf("invalid availability %q, only active, pause and drain are supported", opts.availability)
-		}
-	}
-
-	nodeID, err := client.SwarmInit(ctx, req)
-	if err != nil {
-		if strings.Contains(err.Error(), "could not choose an IP address to advertise") || strings.Contains(err.Error(), "could not find the system's IP address") {
-			return errors.New(err.Error() + " - specify one with --advertise-addr")
-		}
-		return err
-	}
-
-	fmt.Fprintf(dockerCli.Out(), "Swarm initialized: current node (%s) is now a manager.\n\n", nodeID)
-
-	if err := printJoinCommand(ctx, dockerCli, nodeID, true, false); err != nil {
-		return err
-	}
-
-	fmt.Fprint(dockerCli.Out(), "To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.\n\n")
-
-	if req.AutoLockManagers {
-		unlockKeyResp, err := client.SwarmGetUnlockKey(ctx)
-		if err != nil {
-			return errors.Wrap(err, "could not fetch unlock key")
-		}
-		printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
-	}
-
-	return nil
 }

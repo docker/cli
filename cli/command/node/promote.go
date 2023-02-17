@@ -15,7 +15,7 @@ func newPromoteCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Promote one or more nodes to manager in the swarm",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPromote(dockerCli, args)
+			return command.RunSwarm(dockerCli)
 		},
 	}
 }

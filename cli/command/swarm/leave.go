@@ -22,7 +22,7 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Leave the swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLeave(dockerCli, opts)
+			return command.RunSwarm(dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",

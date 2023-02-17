@@ -1,12 +1,9 @@
 package stack
 
 import (
-	"fmt"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	composeLoader "github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -22,18 +19,7 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Outputs the final config file, after doing merges and interpolations",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configDetails, err := loader.GetConfigDetails(opts.Composefiles, dockerCli.In())
-			if err != nil {
-				return err
-			}
-
-			cfg, err := outputConfig(configDetails, opts.SkipInterpolation)
-			if err != nil {
-				return err
-			}
-
-			_, err = fmt.Fprintf(dockerCli.Out(), "%s", cfg)
-			return err
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}

@@ -29,7 +29,7 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List secrets",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSecretList(dockerCli, options)
+			return command.RunSwarm(dockerCli)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
