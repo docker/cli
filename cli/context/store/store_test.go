@@ -7,9 +7,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/docker/errdefs"
@@ -229,4 +231,29 @@ func TestImportZipInvalid(t *testing.T) {
 	s := New(testDir, testCfg)
 	err = Import("zipInvalid", s, r)
 	assert.ErrorContains(t, err, "unexpected context file")
+}
+
+func TestCorruptMetadata(t *testing.T) {
+	tempDir := t.TempDir()
+	s := New(tempDir, testCfg)
+	err := s.CreateOrUpdate(
+		Metadata{
+			Endpoints: map[string]interface{}{
+				"ep1": endpoint{Foo: "bar"},
+			},
+			Metadata: context{Bar: "baz"},
+			Name:     "source",
+		})
+	assert.NilError(t, err)
+
+	// Simulate the meta.json file getting corrupted
+	// by some external process.
+	contextDir := s.meta.contextDir(contextdirOf("source"))
+	contextFile := filepath.Join(contextDir, metaFile)
+	err = os.WriteFile(contextFile, nil, 0o600)
+	assert.NilError(t, err)
+
+	// Assert that the error message gives the user some clue where to look.
+	_, err = s.GetMetadata("source")
+	assert.ErrorContains(t, err, fmt.Sprintf("parsing %s: unexpected end of JSON input", contextFile))
 }
