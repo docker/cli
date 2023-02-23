@@ -1,4 +1,4 @@
 Unable to find image 'registry:5000/alpine:test-run-pulls' locally
 test-run-pulls: Pulling from alpine
-Digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d
+Digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501
 Status: Downloaded newer image for registry:5000/alpine:test-run-pulls
