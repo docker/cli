@@ -41,7 +41,7 @@ func TestPullWithContentTrust(t *testing.T) {
 func TestPullQuiet(t *testing.T) {
 	result := icmd.RunCommand("docker", "pull", "--quiet", fixtures.AlpineImage)
 	result.Assert(t, icmd.Success)
-	assert.Check(t, is.Equal(result.Stdout(), "registry:5000/alpine:3.6\n"))
+	assert.Check(t, is.Equal(result.Stdout(), "registry:5000/alpine:frozen\n"))
 	assert.Check(t, is.Equal(result.Stderr(), ""))
 }
 

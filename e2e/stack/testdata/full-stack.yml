@@ -2,8 +2,8 @@ version: '3.3'
 
 services:
   one:
-    image: registry:5000/alpine:3.6
+    image: registry:5000/alpine:frozen
     command: top
   two:
-    image: registry:5000/alpine:3.6
+    image: registry:5000/alpine:frozen
     command: top
