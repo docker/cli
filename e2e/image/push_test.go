@@ -33,6 +33,10 @@ const (
 func TestPushAllTags(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
+
 	_ = createImage(t, "push-all-tags", "latest", "v1", "v1.0", "v1.0.1")
 	result := icmd.RunCmd(icmd.Command("docker", "push", "--all-tags", registryPrefix+"/push-all-tags"))
 
@@ -50,6 +54,10 @@ func TestPushAllTags(t *testing.T) {
 
 func TestPushWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
