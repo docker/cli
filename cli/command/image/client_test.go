@@ -91,7 +91,7 @@ func (cli *fakeClient) ImageList(ctx context.Context, options types.ImageListOpt
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(options)
 	}
-	return []types.ImageSummary{{}}, nil
+	return []types.ImageSummary{}, nil
 }
 
 func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, image string) (types.ImageInspect, []byte, error) {
