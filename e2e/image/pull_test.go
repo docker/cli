@@ -17,6 +17,10 @@ const registryPrefix = "registry:5000"
 func TestPullWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
+	// Digests in golden files are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
+
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 	image := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-pull", "latest")

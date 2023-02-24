@@ -18,6 +18,10 @@ const registryPrefix = "registry:5000"
 func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
+	// Digests in golden file are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
+
 	image := createRemoteImage(t)
 
 	result := icmd.RunCommand("docker", "run", "--rm", image,
