@@ -30,7 +30,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 			name:          "failed-list",
 			expectedError: "something went wrong",
 			imageListFunc: func(options types.ImageListOptions) ([]types.ImageSummary, error) {
-				return []types.ImageSummary{{}}, errors.Errorf("something went wrong")
+				return []types.ImageSummary{}, errors.Errorf("something went wrong")
 			},
 		},
 	}
@@ -66,7 +66,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			args: []string{"image"},
 			imageListFunc: func(options types.ImageListOptions) ([]types.ImageSummary, error) {
 				assert.Check(t, is.Equal("image", options.Filters.Get("reference")[0]))
-				return []types.ImageSummary{{}}, nil
+				return []types.ImageSummary{}, nil
 			},
 		},
 		{
@@ -74,7 +74,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			args: []string{"--filter", "name=value"},
 			imageListFunc: func(options types.ImageListOptions) ([]types.ImageSummary, error) {
 				assert.Check(t, is.Equal("value", options.Filters.Get("name")[0]))
-				return []types.ImageSummary{{}}, nil
+				return []types.ImageSummary{}, nil
 			},
 		},
 	}
