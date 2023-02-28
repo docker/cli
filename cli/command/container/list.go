@@ -2,7 +2,6 @@ package container
 
 import (
 	"context"
-	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -10,9 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -76,31 +73,6 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 
 	if opts.nLatest && opts.last == -1 {
 		options.Limit = 1
-	}
-
-	if !opts.quiet && !options.Size && len(opts.format) > 0 {
-		// The --size option isn't set, but .Size may be used in the template.
-		// Parse and execute the given template to detect if the .Size field is
-		// used. If it is, then automatically enable the --size option. See #24696
-		//
-		// Only requesting container size information when needed is an optimization,
-		// because calculating the size is a costly operation.
-		tmpl, err := templates.NewParse("", opts.format)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse template")
-		}
-
-		optionsProcessor := formatter.NewContainerContext()
-
-		// This shouldn't error out but swallowing the error makes it harder
-		// to track down if preProcessor issues come up.
-		if err := tmpl.Execute(io.Discard, optionsProcessor); err != nil {
-			return nil, errors.Wrap(err, "failed to execute template")
-		}
-
-		if _, ok := optionsProcessor.FieldsUsed["Size"]; ok {
-			options.Size = true
-		}
 	}
 
 	return options, nil

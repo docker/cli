@@ -60,7 +60,24 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				size:   false,
 				last:   5,
 				filter: filters,
-				// With .Size, size should be true
+				// With .Size but without --size, size should be false
+				format: "{{.Size}}",
+			},
+			expectedAll:   true,
+			expectedSize:  false,
+			expectedLimit: 5,
+			expectedFilters: map[string]string{
+				"foo": "bar",
+				"baz": "foo",
+			},
+		},
+		{
+			psOpts: &psOptions{
+				all:    true,
+				size:   true,
+				last:   5,
+				filter: filters,
+				// With .Size and --size, size should be true
 				format: "{{.Size}}",
 			},
 			expectedAll:   true,
@@ -74,10 +91,10 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 		{
 			psOpts: &psOptions{
 				all:    true,
-				size:   false,
+				size:   true,
 				last:   5,
 				filter: filters,
-				// With .Size, size should be true
+				// With .Size and --size, size should be true
 				format: "{{.Size}} {{.CreatedAt}} {{upper .Networks}}",
 			},
 			expectedAll:   true,
@@ -132,18 +149,6 @@ func TestContainerListErrors(t *testing.T) {
 		containerListFunc func(types.ContainerListOptions) ([]types.Container, error)
 		expectedError     string
 	}{
-		{
-			flags: map[string]string{
-				"format": "{{invalid}}",
-			},
-			expectedError: `function "invalid" not defined`,
-		},
-		{
-			flags: map[string]string{
-				"format": "{{join}}",
-			},
-			expectedError: `wrong number of args for join`,
-		},
 		{
 			containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
 				return nil, fmt.Errorf("error listing containers")
@@ -230,18 +235,6 @@ func TestContainerListFormatTemplateWithArg(t *testing.T) {
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-with-arg.golden")
 }
 
-func TestContainerListFormatSizeSetsOption(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(options types.ContainerListOptions) ([]types.Container, error) {
-			assert.Check(t, options.Size)
-			return []types.Container{}, nil
-		},
-	})
-	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", `{{.Size}}`)
-	assert.NilError(t, cmd.Execute())
-}
-
 func TestContainerListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
@@ -255,6 +248,7 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }} {{ .Size}}",
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{"--size"})
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-config-format.golden")
 }
