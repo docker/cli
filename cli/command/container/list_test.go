@@ -150,6 +150,18 @@ func TestContainerListErrors(t *testing.T) {
 		expectedError     string
 	}{
 		{
+			flags: map[string]string{
+				"format": "{{invalid}}",
+			},
+			expectedError: `function "invalid" not defined`,
+		},
+		{
+			flags: map[string]string{
+				"format": "{{join}}",
+			},
+			expectedError: `wrong number of args for join`,
+		},
+		{
 			containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
 				return nil, fmt.Errorf("error listing containers")
 			},
