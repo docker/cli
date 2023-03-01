@@ -110,6 +110,12 @@ issues:
         - errcheck
         - gosec
 
+    # Fixing these lints would change user-facing output, which would be
+    # undesirable to introduce in a patch release.
+    - text: "ST1005: error strings should not be capitalized"
+      linters:
+        - stylecheck
+
   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-issues-per-linter: 0
 
