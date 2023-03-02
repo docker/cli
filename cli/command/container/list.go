@@ -17,14 +17,15 @@ import (
 )
 
 type psOptions struct {
-	quiet   bool
-	size    bool
-	all     bool
-	noTrunc bool
-	nLatest bool
-	last    int
-	format  string
-	filter  opts.FilterOpt
+	quiet       bool
+	size        bool
+	sizeChanged bool
+	all         bool
+	noTrunc     bool
+	nLatest     bool
+	last        int
+	format      string
+	filter      opts.FilterOpt
 }
 
 // NewPsCommand creates a new cobra.Command for `docker ps`
@@ -36,6 +37,7 @@ func NewPsCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "List containers",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			options.sizeChanged = cmd.Flags().Changed("size")
 			return runPs(dockerCli, &options)
 		},
 		Annotations: map[string]string{
@@ -78,13 +80,8 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 		options.Limit = 1
 	}
 
-	if !opts.quiet && !options.Size && len(opts.format) > 0 {
-		// The --size option isn't set, but .Size may be used in the template.
-		// Parse and execute the given template to detect if the .Size field is
-		// used. If it is, then automatically enable the --size option. See #24696
-		//
-		// Only requesting container size information when needed is an optimization,
-		// because calculating the size is a costly operation.
+	// always validate template when `--format` is used, for consistency
+	if len(opts.format) > 0 {
 		tmpl, err := templates.NewParse("", opts.format)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse template")
@@ -98,8 +95,19 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 			return nil, errors.Wrap(err, "failed to execute template")
 		}
 
-		if _, ok := optionsProcessor.FieldsUsed["Size"]; ok {
-			options.Size = true
+		// if `size` was not explicitly set to false (with `--size=false`)
+		// and `--quiet` is not set, request size if the template requires it
+		if !opts.quiet && !options.Size && !opts.sizeChanged {
+			// The --size option isn't set, but .Size may be used in the template.
+			// Parse and execute the given template to detect if the .Size field is
+			// used. If it is, then automatically enable the --size option. See #24696
+			//
+			// Only requesting container size information when needed is an optimization,
+			// because calculating the size is a costly operation.
+
+			if _, ok := optionsProcessor.FieldsUsed["Size"]; ok {
+				options.Size = true
+			}
 		}
 	}
 
