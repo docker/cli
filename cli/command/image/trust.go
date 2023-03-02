@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sort"
 
 	"github.com/docker/cli/cli/command"
@@ -43,7 +42,8 @@ func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
-// nolint: gocyclo
+//
+//nolint:gocyclo
 func PushTrustedReference(streams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig types.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
@@ -283,7 +283,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 
 	out := cli.Out()
 	if opts.quiet {
-		out = streams.NewOut(ioutil.Discard)
+		out = streams.NewOut(io.Discard)
 	}
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
 }

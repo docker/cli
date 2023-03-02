@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -205,7 +204,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 	return out.output.WriteProgress(prog)
 }
 
-// nolint: gocyclo
+//nolint:gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
 	buildkitEnabled, err := command.BuildKitEnabled(dockerCli.ServerInfo())
 	if err != nil {
@@ -340,7 +339,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			if err != nil {
 				return err
 			}
-			dockerfileCtx = ioutil.NopCloser(bytes.NewBuffer(newDockerfile))
+			dockerfileCtx = io.NopCloser(bytes.NewBuffer(newDockerfile))
 		}
 	}
 
@@ -436,7 +435,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		if imageID == "" {
 			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
 		}
-		if err := ioutil.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
+		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
 			return err
 		}
 	}

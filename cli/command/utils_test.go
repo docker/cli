@@ -1,7 +1,6 @@
 package command
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,15 +36,13 @@ func TestStringSliceReplaceAt(t *testing.T) {
 }
 
 func TestValidateOutputPath(t *testing.T) {
-	basedir, err := ioutil.TempDir("", "TestValidateOutputPath")
-	assert.NilError(t, err)
-	defer os.RemoveAll(basedir)
+	basedir := t.TempDir()
 	dir := filepath.Join(basedir, "dir")
 	notexist := filepath.Join(basedir, "notexist")
-	err = os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0755)
 	assert.NilError(t, err)
 	file := filepath.Join(dir, "file")
-	err = ioutil.WriteFile(file, []byte("hi"), 0644)
+	err = os.WriteFile(file, []byte("hi"), 0644)
 	assert.NilError(t, err)
 	var testcases = []struct {
 		path string

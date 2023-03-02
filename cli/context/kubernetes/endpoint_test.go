@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -41,17 +40,13 @@ var testStoreCfg = store.NewConfig(
 )
 
 func TestSaveLoadContexts(t *testing.T) {
-	storeDir, err := ioutil.TempDir("", "test-load-save-k8-context")
-	assert.NilError(t, err)
-	defer os.RemoveAll(storeDir)
-	store := store.New(storeDir, testStoreCfg)
+	store := store.New(t.TempDir(), testStoreCfg)
 	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, false), "raw-notls"))
 	assert.NilError(t, save(store, testEndpoint("https://test", "test", nil, nil, nil, true), "raw-notls-skip"))
 	assert.NilError(t, save(store, testEndpoint("https://test", "test", []byte("ca"), []byte("cert"), []byte("key"), true), "raw-tls"))
 
-	kcFile, err := ioutil.TempFile(os.TempDir(), "test-load-save-k8-context")
+	kcFile, err := os.CreateTemp(t.TempDir(), "test-load-save-k8-context")
 	assert.NilError(t, err)
-	defer os.Remove(kcFile.Name())
 	defer kcFile.Close()
 	cfg := clientcmdapi.NewConfig()
 	cfg.AuthInfos["user"] = clientcmdapi.NewAuthInfo()
@@ -146,10 +141,7 @@ func save(s store.Writer, ep Endpoint, name string) error {
 }
 
 func TestSaveLoadGKEConfig(t *testing.T) {
-	storeDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(storeDir)
-	store := store.New(storeDir, testStoreCfg)
+	store := store.New(t.TempDir(), testStoreCfg)
 	cfg, err := clientcmd.LoadFromFile("testdata/gke-kubeconfig")
 	assert.NilError(t, err)
 	clientCfg := clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})
@@ -171,10 +163,7 @@ func TestSaveLoadGKEConfig(t *testing.T) {
 }
 
 func TestSaveLoadEKSConfig(t *testing.T) {
-	storeDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(storeDir)
-	store := store.New(storeDir, testStoreCfg)
+	store := store.New(t.TempDir(), testStoreCfg)
 	cfg, err := clientcmd.LoadFromFile("testdata/eks-kubeconfig")
 	assert.NilError(t, err)
 	clientCfg := clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})
@@ -196,10 +185,7 @@ func TestSaveLoadEKSConfig(t *testing.T) {
 }
 
 func TestSaveLoadK3SConfig(t *testing.T) {
-	storeDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(storeDir)
-	store := store.New(storeDir, testStoreCfg)
+	store := store.New(t.TempDir(), testStoreCfg)
 	cfg, err := clientcmd.LoadFromFile("testdata/k3s-kubeconfig")
 	assert.NilError(t, err)
 	clientCfg := clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{})

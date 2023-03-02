@@ -1,7 +1,6 @@
 package store
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -29,41 +28,31 @@ func ref(name string) fakeRef {
 }
 
 func sref(t *testing.T, name string) *types.SerializableNamed {
+	t.Helper()
 	named, err := reference.ParseNamed("example.com/" + name)
 	assert.NilError(t, err)
 	return &types.SerializableNamed{Named: named}
 }
 
-func newTestStore(t *testing.T) (Store, func()) {
-	tmpdir, err := ioutil.TempDir("", "manifest-store-test")
-	assert.NilError(t, err)
-
-	return NewStore(tmpdir), func() { os.RemoveAll(tmpdir) }
-}
-
-func getFiles(t *testing.T, store Store) []os.FileInfo {
-	infos, err := ioutil.ReadDir(store.(*fsStore).root)
-	assert.NilError(t, err)
-	return infos
-}
-
 func TestStoreRemove(t *testing.T) {
-	store, cleanup := newTestStore(t)
-	defer cleanup()
-
+	tmpDir := t.TempDir()
+	store := NewStore(tmpDir)
 	listRef := ref("list")
 	data := types.ImageManifest{Ref: sref(t, "abcdef")}
 	assert.NilError(t, store.Save(listRef, ref("manifest"), data))
-	assert.Assert(t, is.Len(getFiles(t, store), 1))
+
+	files, err := os.ReadDir(tmpDir)
+	assert.NilError(t, err)
+	assert.Assert(t, is.Len(files, 1))
 
 	assert.Check(t, store.Remove(listRef))
-	assert.Check(t, is.Len(getFiles(t, store), 0))
+	files, err = os.ReadDir(tmpDir)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(files, 0))
 }
 
 func TestStoreSaveAndGet(t *testing.T) {
-	store, cleanup := newTestStore(t)
-	defer cleanup()
-
+	store := NewStore(t.TempDir())
 	listRef := ref("list")
 	data := types.ImageManifest{Ref: sref(t, "abcdef")}
 	err := store.Save(listRef, ref("exists"), data)
@@ -112,9 +101,7 @@ var cmpReferenceNamed = cmp.Transformer("namedref", func(r reference.Named) stri
 })
 
 func TestStoreGetList(t *testing.T) {
-	store, cleanup := newTestStore(t)
-	defer cleanup()
-
+	store := NewStore(t.TempDir())
 	listRef := ref("list")
 	first := types.ImageManifest{Ref: sref(t, "first")}
 	assert.NilError(t, store.Save(listRef, ref("first"), first))
@@ -127,9 +114,7 @@ func TestStoreGetList(t *testing.T) {
 }
 
 func TestStoreGetListDoesNotExist(t *testing.T) {
-	store, cleanup := newTestStore(t)
-	defer cleanup()
-
+	store := NewStore(t.TempDir())
 	listRef := ref("list")
 	_, err := store.GetList(listRef)
 	assert.Error(t, err, "No such manifest: list")

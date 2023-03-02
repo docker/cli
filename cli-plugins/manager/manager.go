@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -57,12 +56,12 @@ func getPluginDirs(dockerCli command.Cli) ([]string, error) {
 }
 
 func addPluginCandidatesFromDir(res map[string][]string, d string) error {
-	dentries, err := ioutil.ReadDir(d)
+	dentries, err := os.ReadDir(d)
 	if err != nil {
 		return err
 	}
 	for _, dentry := range dentries {
-		switch dentry.Mode() & os.ModeType {
+		switch dentry.Type() & os.ModeType {
 		case 0, os.ModeSymlink:
 			// Regular file or symlink, keep going
 		default:

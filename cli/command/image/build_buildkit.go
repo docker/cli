@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -43,7 +42,7 @@ const uploadRequestRemote = "upload-request"
 
 var errDockerfileConflict = errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
 
-//nolint: gocyclo
+// nolint: gocyclo
 func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	ctx := appcontext.Context()
 
@@ -92,7 +91,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 			dockerfileReader = rc
 			remote = clientSessionRemote
 			// TODO: make fssync handle empty contextdir
-			contextDir, _ = ioutil.TempDir("", "empty-dir")
+			contextDir, _ = os.MkdirTemp("", "empty-dir")
 			defer os.RemoveAll(contextDir)
 		}
 	case isLocalDir(options.context):
@@ -249,7 +248,7 @@ func runBuildBuildKit(dockerCli command.Cli, options buildOptions) error {
 	return eg.Wait()
 }
 
-//nolint: gocyclo
+// nolint: gocyclo
 func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, stdoutUsed bool, options buildOptions, buildOptions types.ImageBuildOptions, at session.Attachable) (finalErr error) {
 	response, err := dockerCli.Client().ImageBuild(context.Background(), nil, buildOptions)
 	if err != nil {
@@ -360,7 +359,7 @@ func doBuild(ctx context.Context, eg *errgroup.Group, dockerCli command.Cli, std
 			return errors.Errorf("cannot write %s because server did not provide an image ID", options.imageIDFile)
 		}
 		imageID = strings.TrimSpace(imageID)
-		if err := ioutil.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
+		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0666); err != nil {
 			return errors.Wrap(err, "cannot write image ID file")
 		}
 	}

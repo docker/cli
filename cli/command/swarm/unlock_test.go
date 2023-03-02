@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -70,7 +70,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 				swarmUnlockFunc: tc.swarmUnlockFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -92,7 +92,7 @@ func TestSwarmUnlock(t *testing.T) {
 			return nil
 		},
 	})
-	dockerCli.SetIn(streams.NewIn(ioutil.NopCloser(strings.NewReader(input))))
+	dockerCli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
 	assert.NilError(t, cmd.Execute())
 }

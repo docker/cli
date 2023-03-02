@@ -3,7 +3,7 @@ package registry
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -84,7 +84,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 			return errors.New("Must provide --username with --password-stdin")
 		}
 
-		contents, err := ioutil.ReadAll(dockerCli.In())
+		contents, err := io.ReadAll(dockerCli.In())
 		if err != nil {
 			return err
 		}
@@ -95,7 +95,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocyclo
+func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	ctx := context.Background()
 	clnt := dockerCli.Client()
 	if err := verifyloginOptions(dockerCli, &opts); err != nil {

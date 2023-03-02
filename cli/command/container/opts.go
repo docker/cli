@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"reflect"
 	"regexp"
@@ -310,7 +310,8 @@ type containerConfig struct {
 // parse parses the args for the specified command and generates a Config,
 // a HostConfig and returns them with the specified command.
 // If the specified args are not valid, it will return an error.
-// nolint: gocyclo
+//
+//nolint:gocyclo
 func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*containerConfig, error) {
 	var (
 		attachStdin  = copts.attach.Get("stdin")
@@ -848,7 +849,7 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 			}
 		}
 		if con[0] == "seccomp" && con[1] != "unconfined" {
-			f, err := ioutil.ReadFile(con[1])
+			f, err := os.ReadFile(con[1])
 			if err != nil {
 				return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", con[1], err)
 			}
@@ -910,8 +911,7 @@ func parseDevice(device, serverOS string) (container.DeviceMapping, error) {
 // parseLinuxDevice parses a device mapping string to a container.DeviceMapping struct
 // knowing that the target is a Linux daemon
 func parseLinuxDevice(device string) (container.DeviceMapping, error) {
-	src := ""
-	dst := ""
+	var src, dst string
 	permissions := "rwm"
 	arr := strings.Split(device, ":")
 	switch len(arr) {
@@ -951,7 +951,8 @@ func parseWindowsDevice(device string) (container.DeviceMapping, error) {
 
 // validateDeviceCgroupRule validates a device cgroup rule string format
 // It will make sure 'val' is in the form:
-//    'type major:minor mode'
+//
+//	'type major:minor mode'
 func validateDeviceCgroupRule(val string) (string, error) {
 	if deviceCgroupRuleRegexp.MatchString(val) {
 		return val, nil
@@ -995,7 +996,9 @@ func validateDevice(val string, serverOS string) (string, error) {
 // validateLinuxPath is the implementation of validateDevice knowing that the
 // target server operating system is a Linux daemon.
 // It will make sure 'val' is in the form:
-//    [host-dir:]container-path[:mode]
+//
+//	[host-dir:]container-path[:mode]
+//
 // It also validates the device mode.
 func validateLinuxPath(val string, validator func(string) bool) (string, error) {
 	var containerPath string

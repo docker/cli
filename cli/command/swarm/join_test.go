@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -54,7 +54,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 				infoFunc:      tc.infoFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

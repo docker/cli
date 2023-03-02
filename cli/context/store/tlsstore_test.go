@@ -1,19 +1,14 @@
 package store
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
 )
 
 func TestTlsCreateUpdateGetRemove(t *testing.T) {
-	testDir, err := ioutil.TempDir("", "TestTlsCreateUpdateGetRemove")
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := tlsStore{root: testDir}
-	_, err = testee.getData("test-ctx", "test-ep", "test-data")
+	testee := tlsStore{root: t.TempDir()}
+	_, err := testee.getData("test-ctx", "test-ep", "test-data")
 	assert.Equal(t, true, IsErrTLSDataDoesNotExist(err))
 
 	err = testee.createOrUpdate("test-ctx", "test-ep", "test-data", []byte("data"))
@@ -37,10 +32,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 }
 
 func TestTlsListAndBatchRemove(t *testing.T) {
-	testDir, err := ioutil.TempDir("", "TestTlsListAndBatchRemove")
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := tlsStore{root: testDir}
+	testee := tlsStore{root: t.TempDir()}
 
 	all := map[string]EndpointFiles{
 		"ep1": {"f1", "f2", "f3"},
@@ -55,7 +47,7 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 
 	for name, files := range all {
 		for _, file := range files {
-			err = testee.createOrUpdate("test-ctx", name, file, []byte("data"))
+			err := testee.createOrUpdate("test-ctx", name, file, []byte("data"))
 			assert.NilError(t, err)
 		}
 	}

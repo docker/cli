@@ -1,7 +1,7 @@
 package secret
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 	"time"
 
@@ -40,7 +40,7 @@ func TestSecretListErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

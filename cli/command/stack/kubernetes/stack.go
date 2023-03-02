@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -59,7 +59,7 @@ func (s *Stack) createFileBasedConfigMaps(configMaps corev1.ConfigMapInterface) 
 		}
 
 		fileName := filepath.Base(config.File)
-		content, err := ioutil.ReadFile(config.File)
+		content, err := os.ReadFile(config.File)
 		if err != nil {
 			return resources, err
 		}
@@ -116,7 +116,7 @@ func (s *Stack) createFileBasedSecrets(secrets corev1.SecretInterface) ([]childR
 		}
 
 		fileName := filepath.Base(secret.File)
-		content, err := ioutil.ReadFile(secret.File)
+		content, err := os.ReadFile(secret.File)
 		if err != nil {
 			return resources, err
 		}

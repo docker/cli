@@ -11,8 +11,7 @@ import (
 )
 
 func TestUpdateDescriptionOnly(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	err := RunCreate(cli, &CreateOptions{
 		Name:                     "test",
 		DefaultStackOrchestrator: "swarm",
@@ -37,8 +36,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 }
 
 func TestUpdateDockerOnly(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContextWithKubeAndSwarm(t, cli, "test", "swarm")
 	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
 		Name: "test",
@@ -58,8 +56,7 @@ func TestUpdateDockerOnly(t *testing.T) {
 }
 
 func TestUpdateStackOrchestratorStrategy(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	err := RunCreate(cli, &CreateOptions{
 		Name:                     "test",
 		DefaultStackOrchestrator: "swarm",
@@ -74,8 +71,7 @@ func TestUpdateStackOrchestratorStrategy(t *testing.T) {
 }
 
 func TestUpdateStackOrchestratorStrategyRemoveKubeEndpoint(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContextWithKubeAndSwarm(t, cli, "test", "kubernetes")
 	err := RunUpdate(cli, &UpdateOptions{
 		Name:       "test",
@@ -85,8 +81,7 @@ func TestUpdateStackOrchestratorStrategyRemoveKubeEndpoint(t *testing.T) {
 }
 
 func TestUpdateInvalidDockerHost(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},

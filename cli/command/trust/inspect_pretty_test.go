@@ -5,14 +5,13 @@ import (
 	"context"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"testing"
 
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
-	dockerClient "github.com/docker/docker/client"
+	apiclient "github.com/docker/docker/client"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -25,7 +24,7 @@ import (
 // TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
-	dockerClient.Client
+	apiclient.Client
 }
 
 func (c *fakeClient) Info(ctx context.Context) (types.Info, error) {
@@ -65,7 +64,7 @@ func TestTrustInspectPrettyCommandErrors(t *testing.T) {
 		cmd := newInspectCommand(
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.Flags().Set("pretty", "true")
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -77,7 +76,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -85,7 +84,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access nonexistent-reg-name.io/image")
 }
 
@@ -95,7 +94,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -103,7 +102,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "No signatures or cannot access reg/unsigned-img:tag")
 }
 
@@ -113,7 +112,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
@@ -123,7 +122,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd = newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))

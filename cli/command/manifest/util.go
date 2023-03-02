@@ -68,7 +68,7 @@ func normalizeReference(ref string) (reference.Named, error) {
 }
 
 // getManifest from the local store, and fallback to the remote registry if it
-//  doesn't exist locally
+// doesn't exist locally
 func getManifest(ctx context.Context, dockerCli command.Cli, listRef, namedRef reference.Named, insecure bool) (types.ImageManifest, error) {
 	data, err := dockerCli.ManifestStore().Get(listRef, namedRef)
 	switch {

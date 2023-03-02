@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"io"
-	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -115,7 +114,7 @@ func stackFromV1beta1(in *v1beta1.Stack) (Stack, error) {
 	if err != nil {
 		return Stack{}, err
 	}
-	spec, err := fromComposeConfig(ioutil.Discard, cfg, v1beta1Capabilities)
+	spec, err := fromComposeConfig(io.Discard, cfg, v1beta1Capabilities)
 	if err != nil {
 		return Stack{}, err
 	}

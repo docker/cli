@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -87,7 +87,7 @@ func getUserVisibleNamespaces(dockerCli command.Cli) ([]string, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "received %d status and unable to read response", resp.StatusCode)
 	}

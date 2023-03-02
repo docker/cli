@@ -24,8 +24,7 @@ func createTestContextWithKubeAndSwarm(t *testing.T, cli command.Cli, name strin
 }
 
 func TestList(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "unset", "unset")
@@ -36,8 +35,7 @@ func TestList(t *testing.T) {
 }
 
 func TestListQuiet(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 	createTestContextWithKubeAndSwarm(t, cli, "current", "all")
 	createTestContextWithKubeAndSwarm(t, cli, "other", "all")
 	cli.SetCurrentContext("current")

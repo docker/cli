@@ -2,7 +2,8 @@ package kubernetes
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -170,7 +171,7 @@ func TestConvertFromToV1alpha3(t *testing.T) {
 func loadTestStackWith(t *testing.T, with string) *composetypes.Config {
 	t.Helper()
 	filePath := fmt.Sprintf("testdata/compose-with-%s.yml", with)
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	assert.NilError(t, err)
 	yamlData, err := loader.ParseYAML(data)
 	assert.NilError(t, err)
@@ -199,7 +200,7 @@ func TestHandlePullSecret(t *testing.T) {
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
-			s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+			s, err := conv.FromCompose(io.Discard, "test", testData)
 			if c.err != "" {
 				assert.Error(t, err, c.err)
 
@@ -227,7 +228,7 @@ func TestHandlePullPolicy(t *testing.T) {
 		t.Run(c.version, func(t *testing.T) {
 			conv, err := NewStackConverter(c.version)
 			assert.NilError(t, err)
-			s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+			s, err := conv.FromCompose(io.Discard, "test", testData)
 			if c.err != "" {
 				assert.Error(t, err, c.err)
 
@@ -299,7 +300,7 @@ func TestIgnoreExpose(t *testing.T) {
 	for _, version := range []string{"v1beta1", "v1beta2"} {
 		conv, err := NewStackConverter(version)
 		assert.NilError(t, err)
-		s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+		s, err := conv.FromCompose(io.Discard, "test", testData)
 		assert.NilError(t, err)
 		assert.Equal(t, len(s.Spec.Services[0].InternalPorts), 0)
 	}
@@ -309,7 +310,7 @@ func TestParseExpose(t *testing.T) {
 	testData := loadTestStackWith(t, "expose")
 	conv, err := NewStackConverter("v1alpha3")
 	assert.NilError(t, err)
-	s, err := conv.FromCompose(ioutil.Discard, "test", testData)
+	s, err := conv.FromCompose(io.Discard, "test", testData)
 	assert.NilError(t, err)
 	expected := []v1alpha3.InternalPort{
 		{

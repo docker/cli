@@ -3,7 +3,7 @@ package container
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"sort"
 	"sync"
 	"testing"
@@ -44,7 +44,7 @@ func TestRemoveForce(t *testing.T) {
 				Version: "1.36",
 			})
 			cmd := NewRmCommand(cli)
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 
 			err := cmd.Execute()

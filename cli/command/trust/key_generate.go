@@ -3,7 +3,6 @@ package trust
 import (
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -126,7 +125,7 @@ func writePubKeyPEMToDir(pubPEM pem.Block, keyName, workingDir string) (string, 
 	// Output the public key to a file in the CWD or specified dir
 	pubFileName := strings.Join([]string{keyName, "pub"}, ".")
 	pubFilePath := filepath.Join(workingDir, pubFileName)
-	if err := ioutil.WriteFile(pubFilePath, pem.EncodeToMemory(&pubPEM), notary.PrivNoExecPerms); err != nil {
+	if err := os.WriteFile(pubFilePath, pem.EncodeToMemory(&pubPEM), notary.PrivNoExecPerms); err != nil {
 		return "", errors.Wrapf(err, "failed to write public key to %s", pubFilePath)
 	}
 	return pubFilePath, nil

@@ -1,7 +1,7 @@
 package checkpoint
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -41,7 +41,7 @@ func TestCheckpointListErrors(t *testing.T) {
 		})
 		cmd := newListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

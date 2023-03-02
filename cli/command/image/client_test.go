@@ -3,7 +3,6 @@ package image
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -41,7 +40,7 @@ func (cli *fakeClient) ImageSave(_ context.Context, images []string) (io.ReadClo
 	if cli.imageSaveFunc != nil {
 		return cli.imageSaveFunc(images)
 	}
-	return ioutil.NopCloser(strings.NewReader("")), nil
+	return io.NopCloser(strings.NewReader("")), nil
 }
 
 func (cli *fakeClient) ImageRemove(_ context.Context, image string,
@@ -56,7 +55,7 @@ func (cli *fakeClient) ImagePush(_ context.Context, ref string, options types.Im
 	if cli.imagePushFunc != nil {
 		return cli.imagePushFunc(ref, options)
 	}
-	return ioutil.NopCloser(strings.NewReader("")), nil
+	return io.NopCloser(strings.NewReader("")), nil
 }
 
 func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
@@ -70,7 +69,7 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options types.Im
 	if cli.imagePullFunc != nil {
 		cli.imagePullFunc(ref, options)
 	}
-	return ioutil.NopCloser(strings.NewReader("")), nil
+	return io.NopCloser(strings.NewReader("")), nil
 }
 
 func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter filters.Args) (types.ImagesPruneReport, error) {
@@ -106,7 +105,7 @@ func (cli *fakeClient) ImageImport(_ context.Context, source types.ImageImportSo
 	if cli.imageImportFunc != nil {
 		return cli.imageImportFunc(source, ref, options)
 	}
-	return ioutil.NopCloser(strings.NewReader("")), nil
+	return io.NopCloser(strings.NewReader("")), nil
 }
 
 func (cli *fakeClient) ImageHistory(_ context.Context, img string) ([]image.HistoryResponseItem, error) {
@@ -120,5 +119,5 @@ func (cli *fakeClient) ImageBuild(ctx context.Context, context io.Reader, option
 	if cli.imageBuildFunc != nil {
 		return cli.imageBuildFunc(ctx, context, options)
 	}
-	return types.ImageBuildResponse{Body: ioutil.NopCloser(strings.NewReader(""))}, nil
+	return types.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
 }

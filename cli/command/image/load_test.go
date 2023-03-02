@@ -3,7 +3,6 @@ package image
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -44,7 +43,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 		cli.In().SetIsTerminal(tc.isTerminalIn)
 		cmd := NewLoadCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -53,7 +52,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 func TestNewLoadCommandInvalidInput(t *testing.T) {
 	expectedError := "open *"
 	cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{}))
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"--input", "*"})
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, expectedError)
@@ -68,7 +67,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 		{
 			name: "simple",
 			imageLoadFunc: func(input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
-				return types.ImageLoadResponse{Body: ioutil.NopCloser(strings.NewReader("Success"))}, nil
+				return types.ImageLoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
@@ -76,7 +75,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			imageLoadFunc: func(input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
 				json := "{\"ID\": \"1\"}"
 				return types.ImageLoadResponse{
-					Body: ioutil.NopCloser(strings.NewReader(json)),
+					Body: io.NopCloser(strings.NewReader(json)),
 					JSON: true,
 				}, nil
 			},
@@ -85,14 +84,14 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			name: "input-file",
 			args: []string{"--input", "testdata/load-command-success.input.txt"},
 			imageLoadFunc: func(input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
-				return types.ImageLoadResponse{Body: ioutil.NopCloser(strings.NewReader("Success"))}, nil
+				return types.ImageLoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 		cmd := NewLoadCommand(cli)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.NilError(t, err)

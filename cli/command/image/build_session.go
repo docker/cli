@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -54,13 +53,13 @@ func tryNodeIdentifier() string {
 				if _, err := rand.Read(b); err != nil {
 					return out
 				}
-				if err := ioutil.WriteFile(sessionFile, []byte(hex.EncodeToString(b)), 0600); err != nil {
+				if err := os.WriteFile(sessionFile, []byte(hex.EncodeToString(b)), 0600); err != nil {
 					return out
 				}
 			}
 		}
 
-		dt, err := ioutil.ReadFile(sessionFile)
+		dt, err := os.ReadFile(sessionFile)
 		if err == nil {
 			return string(dt)
 		}
