@@ -32,8 +32,10 @@ func TestParseURL(t *testing.T) {
 			expectedError: "plain-text password is not supported",
 		},
 		{
-			url:           "ssh://foo/bar",
-			expectedError: `extra path after the host: "/bar"`,
+			url: "ssh://foo/bar",
+			expectedArgs: []string{
+				"--", "foo",
+			},
 		},
 		{
 			url:           "ssh://foo?bar",
