@@ -78,28 +78,16 @@ func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, er
 		options.Limit = 1
 	}
 
-	if !opts.quiet && !options.Size && len(opts.format) > 0 {
-		// The --size option isn't set, but .Size may be used in the template.
-		// Parse and execute the given template to detect if the .Size field is
-		// used. If it is, then automatically enable the --size option. See #24696
-		//
-		// Only requesting container size information when needed is an optimization,
-		// because calculating the size is a costly operation.
+	// if `--format` is used, check if template is valid
+	if len(opts.format) > 0 {
 		tmpl, err := templates.NewParse("", opts.format)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse template")
 		}
 
 		optionsProcessor := formatter.NewContainerContext()
-
-		// This shouldn't error out but swallowing the error makes it harder
-		// to track down if preProcessor issues come up.
 		if err := tmpl.Execute(io.Discard, optionsProcessor); err != nil {
 			return nil, errors.Wrap(err, "failed to execute template")
-		}
-
-		if _, ok := optionsProcessor.FieldsUsed["Size"]; ok {
-			options.Size = true
 		}
 	}
 
