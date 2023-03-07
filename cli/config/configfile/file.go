@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -42,6 +43,7 @@ type ConfigFile struct {
 	CLIPluginsExtraDirs  []string                     `json:"cliPluginsExtraDirs,omitempty"`
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
+	BindMaps             map[string]map[string]string `json:"bindMaps,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -210,6 +212,144 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*
 		}
 	}
 	return m
+}
+
+// ApplyBindMap updates bind mount options in-place with `bindMap` configurations
+func (configFile *ConfigFile) ApplyBindMap(host string, binds []string) []string {
+	maps, ok := configFile.BindMaps[host]
+	if !ok {
+		maps = configFile.BindMaps["default"]
+	}
+	if len(maps) == 0 {
+		return binds
+	}
+	for index, bind := range binds {
+		for sourcePrefix, destPrefix := range maps {
+			newBind := mapBind(bind, sourcePrefix, destPrefix)
+			if newBind != "" {
+				binds[index] = newBind
+				break
+			}
+		}
+	}
+	return binds
+}
+
+// ApplyBindMapToMounts updates mount options with bind type in-place with `bindMap` configurations
+func (configFile *ConfigFile) ApplyBindMapToMounts(host string, mounts []mount.Mount) []mount.Mount {
+	maps, ok := configFile.BindMaps[host]
+	if !ok {
+		maps = configFile.BindMaps["default"]
+	}
+	if len(maps) == 0 {
+		return mounts
+	}
+	for index, mountSpec := range mounts {
+		if mountSpec.Type != mount.TypeBind {
+			continue
+		}
+		for sourcePrefix, destPrefix := range maps {
+			newBind := mapBindSource(mountSpec.Source, sourcePrefix, destPrefix)
+			if newBind != "" {
+				mounts[index].Source = newBind
+				break
+			}
+		}
+	}
+	return mounts
+}
+
+func isWindowsAbsolutePath(path string) bool {
+	if len(path) < 3 {
+		return false
+	}
+	return path[1] == ':' &&
+		path[2] == '\\' &&
+		(('a' <= path[0] && path[0] <= 'z') || ('A' <= path[0] && path[0] <= 'Z'))
+}
+
+func mapBind(bind, sourcePrefix, destPrefix string) string {
+	if len(sourcePrefix) == 0 || len(destPrefix) == 0 {
+		return ""
+	}
+
+	isWindows := isWindowsAbsolutePath(bind)
+	var source string
+	var rest string
+	if isWindows {
+		// bind specification must be like "C:\windows:/bind:ro"
+		arr := strings.SplitN(bind, ":", 3)
+		if len(arr) < 3 {
+			// invalid specification
+			return ""
+		}
+		source = arr[0] + ":" + arr[1]
+		rest = arr[2]
+	} else {
+		// bind specification must be like "/home/user/path:/bind:ro"
+		arr := strings.SplitN(bind, ":", 2)
+		if len(arr) < 2 {
+			// invalid specification
+			return ""
+		}
+		source = arr[0]
+		rest = arr[1]
+	}
+
+	source = mapBindSourceWithPlatform(source, sourcePrefix, destPrefix, isWindows)
+	if source == "" {
+		return ""
+	}
+
+	return source + ":" + rest
+}
+
+func mapBindSource(source, sourcePrefix, destPrefix string) string {
+	if len(sourcePrefix) == 0 || len(destPrefix) == 0 {
+		return ""
+	}
+	return mapBindSourceWithPlatform(
+		source,
+		sourcePrefix,
+		destPrefix,
+		isWindowsAbsolutePath(source),
+	)
+}
+
+func mapBindSourceWithPlatform(source, sourcePrefix, destPrefix string, isWindows bool) string {
+	// precondition: sourcePrefix and destPrefix must not be empty.
+	// normalize prefixes
+	if (!isWindows && sourcePrefix[len(sourcePrefix)-1] == '/') ||
+		(isWindows && sourcePrefix[len(sourcePrefix)-1] == '\\') {
+		sourcePrefix = sourcePrefix[0 : len(sourcePrefix)-1]
+	}
+
+	if !strings.HasPrefix(source, sourcePrefix) {
+		return ""
+	}
+
+	if destPrefix[len(destPrefix)-1] == '/' {
+		destPrefix = destPrefix[0 : len(destPrefix)-1]
+	}
+
+	// Replace sourcePrefix with destPrefix.
+	// Note: destPrefix is always assumed Unix-like paths here.
+	rest := source[len(sourcePrefix):]
+
+	// Ignore if matched with non-separator boundary
+	// Example:
+	// * source: /pathspecification/...
+	// * sourcePrefix: /path
+	if len(rest) != 0 &&
+		!((!isWindows && rest[0] == '/') || (isWindows && rest[0] == '\\')) {
+		return ""
+	}
+
+	if !isWindows {
+		// can be simply replaced.
+		return destPrefix + rest
+	}
+	return destPrefix + strings.ReplaceAll(rest, "\\", "/")
 }
 
 // encodeAuth creates a base64 encoded string to containing authorization information
