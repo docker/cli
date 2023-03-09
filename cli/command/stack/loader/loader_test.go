@@ -3,6 +3,7 @@ package loader
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -44,4 +45,35 @@ services:
 	assert.Assert(t, is.Len(details.ConfigFiles, 1))
 	assert.Check(t, is.Equal("3.0", details.ConfigFiles[0].Config["version"]))
 	assert.Check(t, is.Len(details.Environment, len(os.Environ())))
+}
+
+func TestBuildEnvironment(t *testing.T) {
+	inputEnv := []string{
+		"LEGIT_VAR=LEGIT_VALUE",
+		"EMPTY_VARIABLE=",
+	}
+
+	if runtime.GOOS == "windows" {
+		inputEnv = []string{
+			"LEGIT_VAR=LEGIT_VALUE",
+
+			// cmd.exe has some special environment variables which start with "=".
+			// These should be ignored as they're only there for MS-DOS compatibility.
+			"=ExitCode=00000041",
+			"=ExitCodeAscii=A",
+			`=C:=C:\some\dir`,
+			`=D:=D:\some\different\dir`,
+			`=X:=X:\`,
+			`=::=::\`,
+
+			"EMPTY_VARIABLE=",
+		}
+	}
+
+	env, err := buildEnvironment(inputEnv)
+	assert.NilError(t, err)
+
+	assert.Check(t, is.Len(env, 2))
+	assert.Check(t, is.Equal("LEGIT_VALUE", env["LEGIT_VAR"]))
+	assert.Check(t, is.Equal("", env["EMPTY_VARIABLE"]))
 }
