@@ -120,7 +120,7 @@ func buildEnvironment(env []string) (map[string]string, error) {
 
 		k, v, ok := strings.Cut(s, "=")
 		if !ok || k == "" {
-			return result, errors.Errorf("unexpected environment %q", s)
+			return result, errors.Errorf("unexpected environment variable '%s'", s)
 		}
 		// value may be set, but empty if "s" is like "K=", not "K".
 		result[k] = v
