@@ -77,6 +77,23 @@ func TestVolumePruneForce(t *testing.T) {
 	}
 }
 
+func TestVolumePrunePromptAllNo(t *testing.T) {
+	// FIXME(vdemeester) make it work..
+	skip.If(t, runtime.GOOS == "windows", "TODO: fix test on windows")
+
+	for _, input := range []string{"1", "true"} {
+		cli := test.NewFakeCli(&fakeClient{
+			volumePruneFunc: simplePruneFunc,
+		})
+
+		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader("n"))))
+		cmd := NewPruneCommand(cli)
+		cmd.Flags().Set("filter", fmt.Sprintf("all=%s", input))
+		assert.NilError(t, cmd.Execute())
+		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-all-no.golden")
+	}
+}
+
 func TestVolumePrunePromptYes(t *testing.T) {
 	// FIXME(vdemeester) make it work..
 	skip.If(t, runtime.GOOS == "windows", "TODO: fix test on windows")

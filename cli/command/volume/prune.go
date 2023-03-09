@@ -23,7 +23,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
-		Short: "Remove all unused anonymous local volumes",
+		Short: "Remove unused local volumes",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spaceReclaimed, output, err := runPrune(dockerCli, options)
@@ -47,13 +47,21 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-const warning = `WARNING! This will remove all anonymous local volumes not used by at least one container.
+const warning = `WARNING! This will remove all %s local volumes not used by at least one container.
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
+	var removed_volumes string
+	if pruneFilters.Contains("all") &&
+		(pruneFilters.ExactMatch("all", "true") || pruneFilters.ExactMatch("all", "1")) {
+		removed_volumes = "named and anonymous"
+	} else {
+		removed_volumes = "anonymous"
+	}
+
+	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), fmt.Sprintf(warning, removed_volumes)) {
 		return 0, "", nil
 	}
 
