@@ -114,7 +114,7 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 		"all networks not used by at least one container",
 	}
 	if options.pruneVolumes {
-		warnings = append(warnings, "all volumes not used by at least one container")
+		warnings = append(warnings, "all anonymous volumes not used by at least one container")
 	}
 	if options.all {
 		warnings = append(warnings, "all images without at least one container associated to them")

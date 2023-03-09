@@ -15,14 +15,27 @@ Remove all unused local volumes
 
 ## Description
 
-Remove all unused local volumes. Unused local volumes are those which are not referenced by any containers
+Remove all unused anonymous local volumes. Unused local volumes are those which
+are not referenced by any containers. Anonymous volumes have random names and
+are created by Docker during container or service creation.
+
+Named volumes can be also removed using the filter `all=1`.
 
 ## Examples
 
 ```console
 $ docker volume prune
 
-WARNING! This will remove all local volumes not used by at least one container.
+WARNING! This will remove all anonymous local volumes not used by at least one container.
+Are you sure you want to continue? [y/N] y
+Deleted Volumes:
+07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
+
+Total reclaimed space: 36 B
+
+$ docker volume prune --filter all=1
+
+WARNING! This will remove all anonymous local volumes not used by at least one container.
 Are you sure you want to continue? [y/N] y
 Deleted Volumes:
 07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
@@ -39,6 +52,7 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 The currently supported filters are:
 
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove volumes with (or without, in case `label!=...` is used) the specified labels.
+* all (`all=0`, `all=1`) - whether named volumes should also be removed.
 
 The `label` filter accepts two formats. One is the `label=...` (`label=<key>` or `label=<key>=<value>`),
 which removes volumes with the specified labels. The other
