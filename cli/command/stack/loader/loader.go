@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -104,9 +105,22 @@ func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 func buildEnvironment(env []string) (map[string]string, error) {
 	result := make(map[string]string, len(env))
 	for _, s := range env {
+		if runtime.GOOS == "windows" && len(s) > 0 {
+			// cmd.exe can have special environment variables which names start with "=".
+			// They are only there for MS-DOS compatibility and we should ignore them.
+			// See TestBuildEnvironment for examples.
+			//
+			// https://ss64.com/nt/syntax-variables.html
+			// https://devblogs.microsoft.com/oldnewthing/20100506-00/?p=14133
+			// https://github.com/docker/cli/issues/4078
+			if s[0] == '=' {
+				continue
+			}
+		}
+
 		k, v, ok := strings.Cut(s, "=")
 		if !ok || k == "" {
-			return result, errors.Errorf("unexpected environment %q", s)
+			return result, errors.Errorf("unexpected environment variable '%s'", s)
 		}
 		// value may be set, but empty if "s" is like "K=", not "K".
 		result[k] = v
