@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	cdi "github.com/container-orchestrated-devices/container-device-interface/pkg/parser"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
@@ -449,12 +450,17 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	// parsing flags, we haven't yet sent a _ping to the daemon to determine
 	// what operating system it is.
 	deviceMappings := []container.DeviceMapping{}
+	var cdiDeviceNames []string
 	for _, device := range copts.devices.GetAll() {
 		var (
 			validated     string
 			deviceMapping container.DeviceMapping
 			err           error
 		)
+		if cdi.IsQualifiedName(device) {
+			cdiDeviceNames = append(cdiDeviceNames, device)
+			continue
+		}
 		validated, err = validateDevice(device, serverOS)
 		if err != nil {
 			return nil, err
@@ -559,6 +565,15 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		}
 	}
 
+	deviceRequests := copts.gpus.Value()
+	if len(cdiDeviceNames) > 0 {
+		cdiDeviceRequest := container.DeviceRequest{
+			Driver:    "cdi",
+			DeviceIDs: cdiDeviceNames,
+		}
+		deviceRequests = append(deviceRequests, cdiDeviceRequest)
+	}
+
 	resources := container.Resources{
 		CgroupParent:         copts.cgroupParent,
 		Memory:               copts.memory.Value(),
@@ -589,7 +604,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Ulimits:              copts.ulimits.GetList(),
 		DeviceCgroupRules:    copts.deviceCgroupRules.GetAll(),
 		Devices:              deviceMappings,
-		DeviceRequests:       copts.gpus.Value(),
+		DeviceRequests:       deviceRequests,
 	}
 
 	config := &container.Config{
