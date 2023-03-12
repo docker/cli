@@ -5395,6 +5395,23 @@ _docker_wait() {
 	_docker_container_wait
 }
 
+BUILDX_PLUGIN_PATH=$(docker info --format '{{range .ClientInfo.Plugins}}{{if eq .Name "buildx"}}{{.Path}}{{end}}{{end}}')
+
+_docker_buildx() {
+	local completionCommand="__completeNoDesc"
+	local resultArray=($BUILDX_PLUGIN_PATH $completionCommand)
+	for value in "${words[@]:2}"; do
+		if [ -z "$value" ]; then
+			resultArray+=( "''" )
+		else
+			resultArray+=( "$value" )
+		fi
+	done
+	local result=$(eval "${resultArray[*]}" 2> /dev/null | grep -v '^:[0-9]*$')
+
+	COMPREPLY=( $(compgen -W "${result}" -- "${current-}") )
+}
+
 COMPOSE_PLUGIN_PATH=$(docker info --format '{{range .ClientInfo.Plugins}}{{if eq .Name "compose"}}{{.Path}}{{end}}{{end}}')
 
 _docker_compose() {
@@ -5483,6 +5500,9 @@ _docker() {
 
 	local known_plugin_commands=()
 
+	if [ -f "$BUILDX_PLUGIN_PATH" ] ; then
+		known_plugin_commands+=("buildx")
+	fi
 	if [ -f "$COMPOSE_PLUGIN_PATH" ] ; then
 		known_plugin_commands+=("compose")
 	fi
