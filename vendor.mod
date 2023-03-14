@@ -7,7 +7,7 @@ module github.com/docker/cli
 go 1.18
 
 require (
-	github.com/containerd/containerd v1.6.16
+	github.com/containerd/containerd v1.6.19
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v23.0.1+incompatible
