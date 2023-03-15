@@ -72,7 +72,7 @@ require (
 	go.etcd.io/etcd/raft/v3 v3.5.6 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/time v0.1.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20220706185917-7780775163c4 // indirect
 	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
