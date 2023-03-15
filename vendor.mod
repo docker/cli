@@ -21,7 +21,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.10.6
+	github.com/moby/buildkit v0.11.4
 	github.com/moby/patternmatcher v0.5.0
 	github.com/moby/swarmkit/v2 v2.0.0-20230309194213-a745a8755ce3
 	github.com/moby/sys/sequential v0.5.0
