@@ -186,7 +186,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, AuthResolver(cli), trustedRef.String())
+		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), trustedRef.String())
 		if err != nil {
 			return err
 		}
@@ -289,8 +289,8 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference
-func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs registry.Service) (reference.Canonical, error) {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, rs, AuthResolver(cli), ref.String())
+func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), ref.String())
 	if err != nil {
 		return nil, err
 	}

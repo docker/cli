@@ -227,7 +227,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !opts.untrusted {
 			var err error
-			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef, nil)
+			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef)
 			if err != nil {
 				return nil, err
 			}
