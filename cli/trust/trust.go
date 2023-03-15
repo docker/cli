@@ -299,9 +299,12 @@ type ImageRefAndAuth struct {
 	digest     digest.Digest
 }
 
+// RepositoryInfoResolver returns repository info for the given reference.
+type RepositoryInfoResolver func(name reference.Named) (*registry.RepositoryInfo, error)
+
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
 // as an ImageRefAndAuth struct
-func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
+func GetImageReferencesAndAuth(ctx context.Context, resolveFn RepositoryInfoResolver,
 	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig,
 	imgName string,
 ) (ImageRefAndAuth, error) {
@@ -312,8 +315,8 @@ func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
 
 	// Resolve the Repository name from fqn to RepositoryInfo
 	var repoInfo *registry.RepositoryInfo
-	if rs != nil {
-		repoInfo, err = rs.ResolveRepository(ref)
+	if resolveFn != nil {
+		repoInfo, err = resolveFn(ref)
 	} else {
 		repoInfo, err = registry.ParseRepositoryInfo(ref)
 	}

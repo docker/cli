@@ -289,7 +289,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference
-func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs registry.Service) (reference.Canonical, error) {
+func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged, rs trust.RepositoryInfoResolver) (reference.Canonical, error) {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, rs, AuthResolver(cli), ref.String())
 	if err != nil {
 		return nil, err
