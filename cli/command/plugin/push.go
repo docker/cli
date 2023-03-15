@@ -68,7 +68,6 @@ func runPush(dockerCli command.Cli, opts pushOptions) error {
 	defer responseBody.Close()
 
 	if !opts.untrusted {
-		repoInfo.Class = "plugin"
 		return image.PushTrustedReference(dockerCli, repoInfo, named, authConfig, responseBody)
 	}
 

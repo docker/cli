@@ -160,7 +160,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	scope := auth.RepositoryScope{
 		Repository: repoInfo.Name.Name(),
 		Actions:    actions,
-		Class:      repoInfo.Class,
+		Class:      repoInfo.Class, // TODO(thaJeztah): Class is no longer needed for plugins and can likely be removed; see https://github.com/docker/cli/pull/4114#discussion_r1145430825
 	}
 	creds := simpleCredentialStore{auth: *authConfig}
 	tokenHandlerOptions := auth.TokenHandlerOptions{
@@ -301,7 +301,7 @@ type ImageRefAndAuth struct {
 
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
 // as an ImageRefAndAuth struct
-func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
+func GetImageReferencesAndAuth(ctx context.Context,
 	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig,
 	imgName string,
 ) (ImageRefAndAuth, error) {
@@ -311,13 +311,7 @@ func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	var repoInfo *registry.RepositoryInfo
-	if rs != nil {
-		repoInfo, err = rs.ResolveRepository(ref)
-	} else {
-		repoInfo, err = registry.ParseRepositoryInfo(ref)
-	}
-
+	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return ImageRefAndAuth{}, err
 	}
