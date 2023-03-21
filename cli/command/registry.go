@@ -21,8 +21,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ElectAuthServer returns the default registry to use
-// Deprecated: use registry.IndexServer instead
+// ElectAuthServer returns the default registry to use.
+//
+// Deprecated: use [registry.IndexServer] instead.
 func ElectAuthServer(_ context.Context, _ Cli) string {
 	return registry.IndexServer
 }
