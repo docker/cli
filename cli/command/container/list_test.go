@@ -231,15 +231,56 @@ func TestContainerListFormatTemplateWithArg(t *testing.T) {
 }
 
 func TestContainerListFormatSizeSetsOption(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(options types.ContainerListOptions) ([]types.Container, error) {
-			assert.Check(t, options.Size)
-			return []types.Container{}, nil
+	tests := []struct {
+		doc, format, sizeFlag string
+		sizeExpected          bool
+	}{
+		{
+			doc:          "detect with all fields",
+			format:       `{{json .}}`,
+			sizeExpected: true,
 		},
-	})
-	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", `{{.Size}}`)
-	assert.NilError(t, cmd.Execute())
+		{
+			doc:          "detect with explicit field",
+			format:       `{{.Size}}`,
+			sizeExpected: true,
+		},
+		{
+			doc:          "detect no size",
+			format:       `{{.Names}}`,
+			sizeExpected: false,
+		},
+		{
+			doc:          "override enable",
+			format:       `{{.Names}}`,
+			sizeFlag:     "true",
+			sizeExpected: true,
+		},
+		{
+			doc:          "override disable",
+			format:       `{{.Size}}`,
+			sizeFlag:     "false",
+			sizeExpected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				containerListFunc: func(options types.ContainerListOptions) ([]types.Container, error) {
+					assert.Check(t, is.Equal(options.Size, tc.sizeExpected))
+					return []types.Container{}, nil
+				},
+			})
+			cmd := newListCommand(cli)
+			cmd.Flags().Set("format", tc.format)
+			if tc.sizeFlag != "" {
+				cmd.Flags().Set("size", tc.sizeFlag)
+			}
+			assert.NilError(t, cmd.Execute())
+		})
+	}
 }
 
 func TestContainerListWithConfigFormat(t *testing.T) {
