@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
@@ -45,7 +46,7 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		hostnameAddress = serverAddress
 	)
 	if !isDefaultRegistry {
-		hostnameAddress = registry.ConvertToHostname(serverAddress)
+		hostnameAddress = credentials.ConvertToHostname(serverAddress)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
