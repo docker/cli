@@ -6,16 +6,13 @@ import (
 	"fmt"
 	"testing"
 
-	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
-
-	// Prevents a circular import with "github.com/docker/cli/internal/test"
-
-	. "github.com/docker/cli/cli/command"
+	. "github.com/docker/cli/cli/command" // Prevents a circular import with "github.com/docker/cli/internal/test"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type fakeClient struct {
