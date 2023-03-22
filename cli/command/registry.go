@@ -21,13 +21,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ElectAuthServer returns the default registry to use.
-//
-// Deprecated: use [registry.IndexServer] instead.
-func ElectAuthServer(_ context.Context, _ Cli) string {
-	return registry.IndexServer
-}
-
 // EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload
 func EncodeAuthToBase64(authConfig types.AuthConfig) (string, error) {
 	buf, err := json.Marshal(authConfig)
