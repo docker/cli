@@ -83,7 +83,7 @@ The following filter matches only services with the `project` label with the
 `project-a` value.
 
 ```console
-$ docker config ls --filter label=project=test
+$ docker config ls --filter label=project=project-a
 
 ID                          NAME                        CREATED             UPDATED
 mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   About an hour ago
@@ -96,7 +96,7 @@ The `name` filter matches on all or prefix of a config's name.
 The following filter matches config with a name containing a prefix of `test`.
 
 ```console
-$ docker config ls --filter name=test_config
+$ docker config ls --filter name=test
 
 ID                          NAME                        CREATED             UPDATED
 mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   About an hour ago
