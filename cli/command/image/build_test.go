@@ -48,7 +48,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	options.dockerfileName = "-"
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, RunBuild(cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "foo"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -75,7 +75,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	options := newBuildOptions()
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, RunBuild(cli, options))
 
 	headers := fakeBuild.headers(t)
 	expected := []*tar.Header{
@@ -110,7 +110,7 @@ COPY data /data
 	options.context = dir.Path()
 	options.dockerfileName = df.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, RunBuild(cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "data"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -119,7 +119,7 @@ COPY data /data
 // TestRunBuildFromLocalGitHubDirNonExistingRepo tests that build contexts
 // starting with `github.com/` are special-cased, and the build command attempts
 // to clone the remote repo.
-// TODO: test "context selection" logic directly when runBuild is refactored
+// TODO: test "context selection" logic directly when RunBuild is refactored
 // to support testing (ex: docker/cli#294)
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
@@ -170,7 +170,7 @@ RUN echo hello world
 	options := newBuildOptions()
 	options.context = tmpDir.Join("context-link")
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, RunBuild(cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
 }
