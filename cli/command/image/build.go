@@ -279,7 +279,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	var resolvedTags []*resolvedTag
 	if !options.untrusted {
 		translator := func(ctx context.Context, ref reference.NamedTagged) (reference.Canonical, error) {
-			return TrustedReference(ctx, dockerCli, ref, nil)
+			return TrustedReference(ctx, dockerCli, ref)
 		}
 		// if there is a tar wrapper, the dockerfile needs to be replaced inside it
 		if buildCtx != nil {
