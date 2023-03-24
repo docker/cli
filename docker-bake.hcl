@@ -1,14 +1,14 @@
 variable "GO_VERSION" {
-    default = "1.19.7"
+    default = null
 }
 variable "VERSION" {
-    default = ""
+    default = null
 }
 variable "USE_GLIBC" {
-    default = ""
+    default = null
 }
 variable "STRIP_TARGET" {
-    default = ""
+    default = null
 }
 variable "IMAGE_NAME" {
     default = "docker-cli"
@@ -52,7 +52,7 @@ target "binary" {
     platforms = ["local"]
     output = ["build"]
     args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
         VERSION = VERSION
         PACKAGER_NAME = PACKAGER_NAME
         GO_STRIP = STRIP_TARGET
@@ -72,7 +72,7 @@ target "plugins" {
     platforms = ["local"]
     output = ["build"]
     args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
         VERSION = VERSION
         GO_STRIP = STRIP_TARGET
     }
@@ -155,7 +155,7 @@ target "e2e-image" {
     output = ["type=docker"]
     tags = ["${IMAGE_NAME}"]
     args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
         VERSION = VERSION
     }
 }
