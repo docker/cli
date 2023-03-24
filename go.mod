@@ -1,9 +1,5 @@
 module github.com/docker/cli
 
-// 'vendor.mod' enables use of 'go mod vendor' to managed 'vendor/' directory.
-// There is no 'go.mod' file, as that would imply opting in for all the rules
-// around SemVer, which this repo cannot abide by as it uses CalVer.
-
 go 1.18
 
 require (

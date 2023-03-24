@@ -5,7 +5,7 @@ set -eu
 TYP=$1
 
 usage() {
-  echo "usage: ./scripts/vendor <init|update|validate|outdated>"
+  echo "usage: ./scripts/vendor <update|validate|outdated>"
   exit 1
 }
 
@@ -13,21 +13,16 @@ if [ -z "$TYP" ]; then
   usage
 fi
 
-init() {
-  # create dummy go.mod, see comment in vendor.mod
-  cat > go.mod <<EOL
-module github.com/docker/cli
-
-go 1.18
-EOL
-}
-
 update() {
-  (set -x ; go mod tidy -compat=1.18 -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
+  (
+    set -x
+    go mod tidy -compat=1.18
+    go mod vendor
+  )
 }
 
 validate() {
-  diff=$(git status --porcelain -- vendor.mod vendor.sum vendor)
+  diff=$(git status --porcelain -- go.mod go.sum vendor)
   if [ -n "$diff" ]; then
     echo >&2 'ERROR: Vendor result differs. Please vendor your package with "make -f docker.Makefile vendor"'
     echo "$diff"
@@ -40,24 +35,21 @@ outdated() {
     echo "go-mod-outdated not found. Install with 'go install github.com/psampaz/go-mod-outdated@v0.8.0'"
     exit 1
   fi
-  (set -x ; go list -mod=vendor -mod=readonly -modfile=vendor.mod -u -m -json all | go-mod-outdated -update -direct)
+  (
+    set -x
+    go list -mod=vendor -mod=readonly -u -m -json all | go-mod-outdated -update -direct
+  )
 }
 
 case $TYP in
-  "init")
-    init
-    ;;
   "update")
-    init
     update
     ;;
   "validate")
-    init
     update
     validate
     ;;
   "outdated")
-    init
     outdated
     ;;
   *)
