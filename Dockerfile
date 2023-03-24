@@ -125,8 +125,8 @@ CMD ./scripts/test/e2e/entry
 FROM build-base-${BASE_VARIANT} AS dev
 COPY . .
 
-FROM scratch AS binary
-COPY --from=build /out .
-
 FROM scratch AS plugins
 COPY --from=build-plugins /out .
+
+FROM scratch AS binary
+COPY --from=build /out .
