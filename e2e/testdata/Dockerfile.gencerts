@@ -8,7 +8,7 @@ WORKDIR /tmp/gencerts/notary
 RUN --mount=type=bind,source=e2e/testdata/notary,target=/tmp/gencerts/notary,rw <<EOT
   set -eu
   mkdir -p ../notary-evil /out
-  quicktls -org=Docker -with-san notary-server notaryserver evil-notary-server evilnotaryserver localhost 127.0.0.1
+  quicktls -exp 87600h -org=Docker -with-san notary-server notaryserver evil-notary-server evilnotaryserver localhost 127.0.0.1
   cat ca.pem >> notary-server.cert
   mv ca.pem root-ca.cert
   cp notary-server.cert notary-server.key root-ca.cert ../notary-evil
