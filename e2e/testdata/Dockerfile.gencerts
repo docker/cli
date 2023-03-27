@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+
+ARG GO_VERSION=1.19.7
+
+FROM golang:${GO_VERSION}-alpine AS generated
+RUN go install github.com/dmcgowan/quicktls@master
+WORKDIR /tmp/gencerts/notary
+RUN --mount=type=bind,source=e2e/testdata/notary,target=/tmp/gencerts/notary,rw <<EOT
+  set -eu
+  mkdir -p ../notary-evil /out
+  quicktls -exp 87600h -org=Docker -with-san notary-server notaryserver evil-notary-server evilnotaryserver localhost 127.0.0.1
+  cat ca.pem >> notary-server.cert
+  mv ca.pem root-ca.cert
+  cp notary-server.cert notary-server.key root-ca.cert ../notary-evil
+  cp -r /tmp/gencerts/notary* /out/
+EOT
+
+FROM scratch
+COPY --from=generated /out /
