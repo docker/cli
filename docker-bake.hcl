@@ -1,14 +1,14 @@
 variable "GO_VERSION" {
-    default = null
+    default = "1.19.7"
 }
 variable "VERSION" {
-    default = null
+    default = ""
 }
 variable "USE_GLIBC" {
-    default = null
+    default = ""
 }
 variable "STRIP_TARGET" {
-    default = null
+    default = ""
 }
 variable "IMAGE_NAME" {
     default = "docker-cli"
