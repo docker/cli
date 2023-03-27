@@ -159,3 +159,9 @@ target "e2e-image" {
         VERSION = VERSION
     }
 }
+
+target "e2e-gencerts" {
+    inherits = ["_common"]
+    dockerfile = "./e2e/testdata/Dockerfile.gencerts"
+    output = ["./e2e/testdata"]
+}
