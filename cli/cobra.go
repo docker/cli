@@ -204,6 +204,16 @@ func DisableFlagsInUseLine(cmd *cobra.Command) {
 	})
 }
 
+// HasCompletionArg returns true if a cobra completion arg request is found.
+func HasCompletionArg(args []string) bool {
+	for _, arg := range args {
+		if arg == cobra.ShellCompRequestCmd || arg == cobra.ShellCompNoDescRequestCmd {
+			return true
+		}
+	}
+	return false
+}
+
 var helpCommand = &cobra.Command{
 	Use:               "help [command]",
 	Short:             "Help about the command",
