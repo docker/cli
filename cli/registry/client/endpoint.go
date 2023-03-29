@@ -120,7 +120,7 @@ type existingTokenHandler struct {
 	token string
 }
 
-func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, params map[string]string) error {
+func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string]string) error {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", th.token))
 	return nil
 }
