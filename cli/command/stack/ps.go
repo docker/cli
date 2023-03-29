@@ -23,7 +23,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunPs(dockerCli, cmd.Flags(), opts)
+			return swarm.RunPS(dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -38,7 +38,9 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// RunPs performs a stack ps against the specified swarm cluster
-func RunPs(dockerCli command.Cli, flags *pflag.FlagSet, opts options.PS) error {
+// RunPs performs a stack ps against the specified swarm cluster.
+//
+// Deprecated: use [swarm.RunPS] instead.
+func RunPs(dockerCli command.Cli, _ *pflag.FlagSet, opts options.PS) error {
 	return swarm.RunPS(dockerCli, opts)
 }
