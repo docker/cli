@@ -118,10 +118,7 @@ func createNewContext(o *CreateOptions, cli command.Cli, s store.Writer) error {
 	if err := s.CreateOrUpdate(contextMetadata); err != nil {
 		return err
 	}
-	if err := s.ResetTLSMaterial(o.Name, &contextTLSData); err != nil {
-		return err
-	}
-	return nil
+	return s.ResetTLSMaterial(o.Name, &contextTLSData)
 }
 
 func checkContextNameForCreation(s store.Reader, name string) error {
