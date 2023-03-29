@@ -94,6 +94,6 @@ func NetworkNames(dockerCli command.Cli) ValidArgsFn {
 }
 
 // NoComplete is used for commands where there's no relevant completion
-func NoComplete(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func NoComplete(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }
