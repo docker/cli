@@ -414,7 +414,7 @@ type globalProgressUpdater struct {
 	done        bool
 }
 
-func (u *globalProgressUpdater) update(service swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error) {
+func (u *globalProgressUpdater) update(_ swarm.Service, tasks []swarm.Task, activeNodes map[string]struct{}, rollback bool) (bool, error) {
 	tasksByNode := u.tasksByNode(tasks)
 
 	// We don't have perfect knowledge of how many nodes meet the
