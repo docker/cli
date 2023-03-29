@@ -58,16 +58,24 @@ type copyProgressPrinter struct {
 func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
 	n, err := pt.ReadCloser.Read(p)
 	if n > 0 {
+		isFirst := *pt.total == 0
 		*pt.total += float64(n)
 
 		if pt.isTerm {
-			fmt.Fprint(pt.writer, aec.Restore)
-			fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
+			var header string
 			if pt.toContainer {
-				fmt.Fprintln(pt.writer, "Copying to container - "+units.HumanSize(*pt.total))
+				header = "Copying to container - "
 			} else {
-				fmt.Fprintln(pt.writer, "Copying from container - "+units.HumanSize(*pt.total))
+				header = "Copying from container - "
 			}
+			if isFirst {
+				fmt.Fprint(pt.writer, aec.Restore)
+				fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
+				fmt.Fprint(pt.writer, header)
+			}
+			fmt.Fprint(pt.writer, aec.Column(uint(len(header)+1)))
+			fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
+			fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
 		}
 	}
 
@@ -239,6 +247,7 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	}
 
 	if stderrIsTerm {
+		fmt.Fprint(dockerCli.Err(), aec.Hide)
 		fmt.Fprint(dockerCli.Err(), aec.Save)
 		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
 	}
@@ -246,6 +255,7 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	if stderrIsTerm {
 		fmt.Fprint(dockerCli.Err(), aec.Restore)
 		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
+		fmt.Fprint(dockerCli.Err(), aec.Show)
 	}
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", dstPath)
 
@@ -369,6 +379,7 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	}
 
 	if stderrIsTerm {
+		fmt.Fprint(dockerCli.Err(), aec.Hide)
 		fmt.Fprint(dockerCli.Err(), aec.Save)
 		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
 	}
@@ -376,6 +387,7 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	if stderrIsTerm {
 		fmt.Fprint(dockerCli.Err(), aec.Restore)
 		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
+		fmt.Fprint(dockerCli.Err(), aec.Show)
 	}
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
