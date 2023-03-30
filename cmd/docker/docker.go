@@ -133,13 +133,20 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		if pluginmanager.IsPluginCommand(ccmd) {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root()); err != nil {
+			ccmd.Println(err)
+			return
+		}
+
+		if len(args) >= 1 {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
+			if err == nil {
+				return
+			}
 			if !pluginmanager.IsNotFound(err) {
 				ccmd.Println(err)
+				return
 			}
-			cmd.PrintErrf("unknown help topic: %v\n", ccmd.Name())
-			return
 		}
 
 		if err := isSupported(ccmd, dockerCli); err != nil {
@@ -227,9 +234,14 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
-	if err != nil {
-		return err
+	if cli.HasCompletionArg(args) {
+		// We add plugin command stubs early only for completion. We don't
+		// want to add them for normal command execution as it would cause
+		// a significant performance hit.
+		err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(args) > 0 {
