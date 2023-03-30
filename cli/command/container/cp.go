@@ -1,12 +1,15 @@
 package container
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/docker/cli/cli"
@@ -50,11 +53,7 @@ type cpConfig struct {
 // copying files to/from a container.
 type copyProgressPrinter struct {
 	io.ReadCloser
-	total      *float64
-	writer     io.Writer
-	isTerm     bool
-	header     string
-	lastUpdate time.Time
+	total *int64
 }
 
 const (
@@ -65,35 +64,62 @@ const (
 
 func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
 	n, err := pt.ReadCloser.Read(p)
-	isFirst := *pt.total == 0
-	if n > 0 {
-		*pt.total += float64(n)
-	}
-	if !pt.isTerm {
-		return n, err
-	}
-
-	doUpdate := func() {
-		fmt.Fprint(pt.writer, aec.Hide)
-		fmt.Fprint(pt.writer, aec.Column(uint(len(pt.header)+1)))
-		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
-		fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
-		fmt.Fprint(pt.writer, aec.Show)
-		pt.lastUpdate = time.Now()
-	}
-
-	if isFirst {
-		fmt.Fprint(pt.writer, aec.Restore)
-		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
-		fmt.Fprint(pt.writer, pt.header)
-		doUpdate()
-		return n, err
-	}
-
-	if err != nil || time.Since(pt.lastUpdate) > copyProgressUpdateThreshold {
-		doUpdate()
-	}
+	atomic.AddInt64(pt.total, int64(n))
 	return n, err
+}
+
+func copyProgress(ctx context.Context, dst io.Writer, header string, total *int64) (func(), <-chan struct{}) {
+	done := make(chan struct{})
+	if !streams.NewOut(dst).IsTerminal() {
+		close(done)
+		return func() {}, done
+	}
+
+	fmt.Fprint(dst, aec.Save)
+	fmt.Fprint(dst, "Preparing to copy...")
+
+	restore := func() {
+		fmt.Fprint(dst, aec.Restore)
+		fmt.Fprint(dst, aec.EraseLine(aec.EraseModes.All))
+	}
+
+	go func() {
+		defer close(done)
+		fmt.Fprint(dst, aec.Hide)
+		defer fmt.Fprint(dst, aec.Show)
+
+		fmt.Fprint(dst, aec.Restore)
+		fmt.Fprint(dst, aec.EraseLine(aec.EraseModes.All))
+		fmt.Fprint(dst, header)
+
+		var last int64
+		fmt.Fprint(dst, progressHumanSize(last))
+
+		buf := bytes.NewBuffer(nil)
+		ticker := time.NewTicker(copyProgressUpdateThreshold)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				n := atomic.LoadInt64(total)
+				if n == last {
+					// Don't write to the terminal, if we don't need to.
+					continue
+				}
+
+				// Write to the buffer first to avoid flickering and context switching
+				fmt.Fprint(buf, aec.Column(uint(len(header)+1)))
+				fmt.Fprint(buf, aec.EraseLine(aec.EraseModes.Tail))
+				fmt.Fprint(buf, progressHumanSize(n))
+
+				buf.WriteTo(dst)
+				buf.Reset()
+				last += n
+			}
+		}
+	}()
+	return restore, done
 }
 
 // NewCopyCommand creates a new `docker cp` command
@@ -137,6 +163,10 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
 	return cmd
+}
+
+func progressHumanSize(n int64) string {
+	return units.HumanSizeWithPrecision(float64(n), 3)
 }
 
 func runCopy(dockerCli command.Cli, opts copyOptions) error {
@@ -219,6 +249,9 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 
 	}
 
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
 	content, stat, err := client.CopyFromContainer(ctx, copyConfig.container, srcPath)
 	if err != nil {
 		return err
@@ -237,14 +270,11 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		RebaseName: rebaseName,
 	}
 
-	var copiedSize float64
+	var copiedSize int64
 	if !copyConfig.quiet {
 		content = &copyProgressPrinter{
 			ReadCloser: content,
-			writer:     dockerCli.Err(),
 			total:      &copiedSize,
-			isTerm:     streams.NewOut(dockerCli.Err()).IsTerminal(),
-			header:     copyFromContainerHeader,
 		}
 	}
 
@@ -258,10 +288,12 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return archive.CopyTo(preArchive, srcInfo, dstPath)
 	}
 
-	restore := prepareTTYCopyProgress(dockerCli)
+	restore, done := copyProgress(ctx, dockerCli.Err(), copyFromContainerHeader, &copiedSize)
 	res := archive.CopyTo(preArchive, srcInfo, dstPath)
+	cancel()
+	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", dstPath)
+	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
 
 	return res
 }
@@ -318,7 +350,7 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	var (
 		content         io.ReadCloser
 		resolvedDstPath string
-		copiedSize      float64
+		copiedSize      int64
 	)
 
 	if srcPath == "-" {
@@ -363,10 +395,7 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		if !copyConfig.quiet {
 			content = &copyProgressPrinter{
 				ReadCloser: content,
-				writer:     dockerCli.Err(),
 				total:      &copiedSize,
-				isTerm:     streams.NewOut(dockerCli.Err()).IsTerminal(),
-				header:     copyToContainerHeader,
 			}
 		}
 	}
@@ -380,25 +409,15 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	}
 
-	restore := prepareTTYCopyProgress(dockerCli)
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	restore, done := copyProgress(ctx, dockerCli.Err(), copyToContainerHeader, &copiedSize)
 	res := client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+	cancel()
+	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
-}
-
-func prepareTTYCopyProgress(cli command.Cli) func() {
-	if !streams.NewOut(cli.Err()).IsTerminal() {
-		return func() {}
-	}
-
-	fmt.Fprint(cli.Err(), aec.Save)
-	fmt.Fprintln(cli.Err(), "Preparing to copy...")
-	return func() {
-		fmt.Fprint(cli.Err(), aec.Restore)
-		fmt.Fprint(cli.Err(), aec.EraseLine(aec.EraseModes.All))
-	}
 }
 
 // We use `:` as a delimiter between CONTAINER and PATH, but `:` could also be
