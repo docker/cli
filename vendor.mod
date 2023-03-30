@@ -19,7 +19,7 @@ go 1.18
 replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230327175735-54130b542db4+incompatible
 
 require (
-	github.com/containerd/containerd v1.6.19
+	github.com/containerd/containerd v1.6.20
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v23.0.2+incompatible // replaced; currently using master branch (v24.0.0-dev)
