@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/plugin"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v24/cli-plugins/manager"
+	"github.com/docker/cli/v24/cli-plugins/plugin"
+	"github.com/docker/cli/v24/cli/command"
 	"github.com/spf13/cobra"
 )
 

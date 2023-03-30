@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v24/cli/command/formatter"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"

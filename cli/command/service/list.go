@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/formatter"
-	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/command/completion"
+	"github.com/docker/cli/v24/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/v24/cli/flags"
+	"github.com/docker/cli/v24/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"

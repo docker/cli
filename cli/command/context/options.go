@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/context"
+	"github.com/docker/cli/v24/cli/context/docker"
+	"github.com/docker/cli/v24/cli/context/store"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )

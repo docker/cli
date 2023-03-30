@@ -1,7 +1,7 @@
 package checkpoint
 
 import (
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v24/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 )
 

@@ -4,9 +4,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/compose/loader"
-	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/cli/compose/loader"
+	composetypes "github.com/docker/cli/v24/cli/compose/types"
+	"github.com/docker/cli/v24/internal/test"
 	"gotest.tools/v3/assert"
 )
 

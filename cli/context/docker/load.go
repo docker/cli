@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/cli/cli/connhelper"
-	"github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v24/cli/connhelper"
+	"github.com/docker/cli/v24/cli/context"
+	"github.com/docker/cli/v24/cli/context/store"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"

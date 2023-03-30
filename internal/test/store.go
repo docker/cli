@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v24/cli/config/credentials"
+	"github.com/docker/cli/v24/cli/config/types"
 )
 
 // FakeStore implements a credentials.Store that only acts as an in memory map

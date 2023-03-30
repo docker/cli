@@ -3,8 +3,8 @@ package system
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/cli/config/configfile"
+	"github.com/docker/cli/v24/internal/test"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

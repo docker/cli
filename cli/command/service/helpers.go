@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/service/progress"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/command/service/progress"
 	"github.com/docker/docker/pkg/jsonmessage"
 )
 
