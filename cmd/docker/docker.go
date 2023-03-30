@@ -102,7 +102,10 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 		if len(args) > 0 {
 			helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
 			if err == nil {
-				return helpcmd.Run()
+				err = helpcmd.Run()
+				if err != nil {
+					return err
+				}
 			}
 			if !pluginmanager.IsNotFound(err) {
 				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
