@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"io"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ import (
 func TestConfigListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
-		configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
+		configListFunc func(context.Context, types.ConfigListOptions) ([]swarm.Config, error)
 		expectedError  string
 	}{
 		{
@@ -27,7 +28,7 @@ func TestConfigListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+			configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 				return []swarm.Config{}, errors.Errorf("error listing configs")
 			},
 			expectedError: "error listing configs",
@@ -47,7 +48,7 @@ func TestConfigListErrors(t *testing.T) {
 
 func TestConfigList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-1-foo"),
 					ConfigName("1-foo"),
@@ -77,7 +78,7 @@ func TestConfigList(t *testing.T) {
 
 func TestConfigListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
 				*Config(ConfigID("ID-bar"), ConfigName("bar"), ConfigLabels(map[string]string{
@@ -94,7 +95,7 @@ func TestConfigListWithQuietOption(t *testing.T) {
 
 func TestConfigListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
 				*Config(ConfigID("ID-bar"), ConfigName("bar"), ConfigLabels(map[string]string{
@@ -113,7 +114,7 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 
 func TestConfigListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*Config(ConfigID("ID-foo"), ConfigName("foo")),
 				*Config(ConfigID("ID-bar"), ConfigName("bar"), ConfigLabels(map[string]string{
@@ -130,7 +131,7 @@ func TestConfigListWithFormat(t *testing.T) {
 
 func TestConfigListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]))
 			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
 			return []swarm.Config{
