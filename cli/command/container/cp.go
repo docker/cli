@@ -237,15 +237,13 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		RebaseName: rebaseName,
 	}
 
-	stderrIsTerm := streams.NewOut(dockerCli.Err()).IsTerminal()
-
 	var copiedSize float64
 	if !copyConfig.quiet {
 		content = &copyProgressPrinter{
 			ReadCloser: content,
 			writer:     dockerCli.Err(),
 			total:      &copiedSize,
-			isTerm:     stderrIsTerm,
+			isTerm:     streams.NewOut(dockerCli.Err()).IsTerminal(),
 			header:     copyFromContainerHeader,
 		}
 	}
@@ -260,15 +258,9 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return archive.CopyTo(preArchive, srcInfo, dstPath)
 	}
 
-	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Save)
-		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
-	}
+	restore := prepareTTYCopyProgress(dockerCli)
 	res := archive.CopyTo(preArchive, srcInfo, dstPath)
-	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Restore)
-		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
-	}
+	restore()
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", dstPath)
 
 	return res
@@ -329,8 +321,6 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		copiedSize      float64
 	)
 
-	stderrIsTerm := streams.NewOut(dockerCli.Err()).IsTerminal()
-
 	if srcPath == "-" {
 		content = os.Stdin
 		resolvedDstPath = dstInfo.Path
@@ -375,7 +365,7 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 				ReadCloser: content,
 				writer:     dockerCli.Err(),
 				total:      &copiedSize,
-				isTerm:     stderrIsTerm,
+				isTerm:     streams.NewOut(dockerCli.Err()).IsTerminal(),
 				header:     copyToContainerHeader,
 			}
 		}
@@ -390,18 +380,25 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	}
 
-	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Save)
-		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
-	}
+	restore := prepareTTYCopyProgress(dockerCli)
 	res := client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
-	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Restore)
-		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
-	}
+	restore()
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
+}
+
+func prepareTTYCopyProgress(cli command.Cli) func() {
+	if !streams.NewOut(cli.Err()).IsTerminal() {
+		return func() {}
+	}
+
+	fmt.Fprint(cli.Err(), aec.Save)
+	fmt.Fprintln(cli.Err(), "Preparing to copy...")
+	return func() {
+		fmt.Fprint(cli.Err(), aec.Restore)
+		fmt.Fprint(cli.Err(), aec.EraseLine(aec.EraseModes.All))
+	}
 }
 
 // We use `:` as a delimiter between CONTAINER and PATH, but `:` could also be
