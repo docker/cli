@@ -169,7 +169,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 	}
 }
 
-func simplePruneFunc(args filters.Args) (types.VolumesPruneReport, error) {
+func simplePruneFunc(filters.Args) (types.VolumesPruneReport, error) {
 	return types.VolumesPruneReport{
 		VolumesDeleted: []string{
 			"foo", "bar", "baz",
