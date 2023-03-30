@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ import (
 func TestSecretRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		secretRemoveFunc func(string) error
+		secretRemoveFunc func(context.Context, string) error
 		expectedError    string
 	}{
 		{
@@ -23,7 +24,7 @@ func TestSecretRemoveErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			secretRemoveFunc: func(name string) error {
+			secretRemoveFunc: func(_ context.Context, name string) error {
 				return errors.Errorf("error removing secret")
 			},
 			expectedError: "error removing secret",
@@ -45,7 +46,7 @@ func TestSecretRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
 	var removedSecrets []string
 	cli := test.NewFakeCli(&fakeClient{
-		secretRemoveFunc: func(name string) error {
+		secretRemoveFunc: func(_ context.Context, name string) error {
 			removedSecrets = append(removedSecrets, name)
 			return nil
 		},
@@ -62,7 +63,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 	var removedSecrets []string
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretRemoveFunc: func(name string) error {
+		secretRemoveFunc: func(_ context.Context, name string) error {
 			removedSecrets = append(removedSecrets, name)
 			if name == "foo" {
 				return errors.Errorf("error removing secret: %s", name)

@@ -173,11 +173,11 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 			dockerCli.ConfigFile().DetachKeys = opts.detachKeys
 		}
 
-		close, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
+		closeFn, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
 		if err != nil {
 			return err
 		}
-		defer close()
+		defer closeFn()
 	}
 
 	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)

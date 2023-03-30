@@ -64,7 +64,7 @@ func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (typ
 	return types.ContainerExecInspect{}, nil
 }
 
-func (f *fakeClient) ContainerExecStart(ctx context.Context, execID string, config types.ExecStartCheck) error {
+func (f *fakeClient) ContainerExecStart(context.Context, string, types.ExecStartCheck) error {
 	return nil
 }
 
@@ -89,7 +89,7 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, container string, opti
 	return nil
 }
 
-func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ImageCreate(_ context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
 	if f.imageCreateFunc != nil {
 		return f.imageCreateFunc(parentReference, options)
 	}

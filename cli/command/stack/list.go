@@ -23,7 +23,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunList(cmd, dockerCli, opts)
+			return RunList(dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -34,24 +34,24 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunList performs a stack list against the specified swarm cluster
-func RunList(cmd *cobra.Command, dockerCli command.Cli, opts options.List) error {
-	stacks := []*formatter.Stack{}
+func RunList(dockerCli command.Cli, opts options.List) error {
 	ss, err := swarm.GetStacks(dockerCli)
 	if err != nil {
 		return err
 	}
+	stacks := make([]*formatter.Stack, 0, len(ss))
 	stacks = append(stacks, ss...)
 	return format(dockerCli, opts, stacks)
 }
 
 func format(dockerCli command.Cli, opts options.List, stacks []*formatter.Stack) error {
-	format := formatter.Format(opts.Format)
-	if format == "" || format == formatter.TableFormatKey {
-		format = formatter.SwarmStackTableFormat
+	fmt := formatter.Format(opts.Format)
+	if fmt == "" || fmt == formatter.TableFormatKey {
+		fmt = formatter.SwarmStackTableFormat
 	}
 	stackCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: format,
+		Format: fmt,
 	}
 	sort.Slice(stacks, func(i, j int) bool {
 		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name) ||
