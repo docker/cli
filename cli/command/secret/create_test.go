@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ const secretDataFile = "secret-create-with-name.golden"
 func TestSecretCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		secretCreateFunc func(swarm.SecretSpec) (types.SecretCreateResponse, error)
+		secretCreateFunc func(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error)
 		expectedError    string
 	}{
 		{
@@ -34,7 +35,7 @@ func TestSecretCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", secretDataFile)},
-			secretCreateFunc: func(secretSpec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+			secretCreateFunc: func(_ context.Context, secretSpec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 				return types.SecretCreateResponse{}, errors.Errorf("error creating secret")
 			},
 			expectedError: "error creating secret",
@@ -66,7 +67,7 @@ func TestSecretCreateWithName(t *testing.T) {
 	}
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if !reflect.DeepEqual(spec, expected) {
 				return types.SecretCreateResponse{}, errors.Errorf("expected %+v, got %+v", expected, spec)
 			}
@@ -89,7 +90,7 @@ func TestSecretCreateWithDriver(t *testing.T) {
 	name := "foo"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
 			}
@@ -118,7 +119,7 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	name := "foo"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
 			}
@@ -148,7 +149,7 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	name := "foo"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
+		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
 			if spec.Name != name {
 				return types.SecretCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
 			}

@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"context"
 	"io"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ import (
 func TestSecretListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
-		secretListFunc func(types.SecretListOptions) ([]swarm.Secret, error)
+		secretListFunc func(context.Context, types.SecretListOptions) ([]swarm.Secret, error)
 		expectedError  string
 	}{
 		{
@@ -27,7 +28,7 @@ func TestSecretListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+			secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 				return []swarm.Secret{}, errors.Errorf("error listing secrets")
 			},
 			expectedError: "error listing secrets",
@@ -47,7 +48,7 @@ func TestSecretListErrors(t *testing.T) {
 
 func TestSecretList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-1-foo"),
 					SecretName("1-foo"),
@@ -79,7 +80,7 @@ func TestSecretList(t *testing.T) {
 
 func TestSecretListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
 				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
@@ -96,7 +97,7 @@ func TestSecretListWithQuietOption(t *testing.T) {
 
 func TestSecretListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
 				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
@@ -115,7 +116,7 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 
 func TestSecretListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
 				*Secret(SecretID("ID-foo"), SecretName("foo")),
 				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
@@ -132,7 +133,7 @@ func TestSecretListWithFormat(t *testing.T) {
 
 func TestSecretListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(options types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]), "foo")
 			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
 			return []swarm.Secret{

@@ -1,6 +1,7 @@
 package secret
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -18,7 +19,7 @@ func TestSecretInspectErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		secretInspectFunc func(secretID string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(ctx context.Context, secretID string) (swarm.Secret, []byte, error)
 		expectedError     string
 	}{
 		{
@@ -26,7 +27,7 @@ func TestSecretInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			secretInspectFunc: func(secretID string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
 				return swarm.Secret{}, nil, errors.Errorf("error while inspecting the secret")
 			},
 			expectedError: "error while inspecting the secret",
@@ -40,7 +41,7 @@ func TestSecretInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			secretInspectFunc: func(secretID string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
 				if secretID == "foo" {
 					return *Secret(SecretName("foo")), nil, nil
 				}
@@ -68,12 +69,12 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 	testCases := []struct {
 		name              string
 		args              []string
-		secretInspectFunc func(secretID string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(ctx context.Context, secretID string) (swarm.Secret, []byte, error)
 	}{
 		{
 			name: "single-secret",
 			args: []string{"foo"},
-			secretInspectFunc: func(name string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
 				if name != "foo" {
 					return swarm.Secret{}, nil, errors.Errorf("Invalid name, expected %s, got %s", "foo", name)
 				}
@@ -83,7 +84,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 		{
 			name: "multiple-secrets-with-labels",
 			args: []string{"foo", "bar"},
-			secretInspectFunc: func(name string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
 				return *Secret(SecretID("ID-"+name), SecretName(name), SecretLabels(map[string]string{
 					"label1": "label-foo",
 				})), nil, nil
@@ -102,7 +103,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 }
 
 func TestSecretInspectWithFormat(t *testing.T) {
-	secretInspectFunc := func(name string) (swarm.Secret, []byte, error) {
+	secretInspectFunc := func(_ context.Context, name string) (swarm.Secret, []byte, error) {
 		return *Secret(SecretName("foo"), SecretLabels(map[string]string{
 			"label1": "label-foo",
 		})), nil, nil
@@ -111,7 +112,7 @@ func TestSecretInspectWithFormat(t *testing.T) {
 		name              string
 		format            string
 		args              []string
-		secretInspectFunc func(name string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(_ context.Context, name string) (swarm.Secret, []byte, error)
 	}{
 		{
 			name:              "simple-template",
@@ -141,11 +142,11 @@ func TestSecretInspectWithFormat(t *testing.T) {
 func TestSecretInspectPretty(t *testing.T) {
 	testCases := []struct {
 		name              string
-		secretInspectFunc func(string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(context.Context, string) (swarm.Secret, []byte, error)
 	}{
 		{
 			name: "simple",
-			secretInspectFunc: func(id string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, id string) (swarm.Secret, []byte, error) {
 				return *Secret(
 					SecretLabels(map[string]string{
 						"lbl1": "value1",
