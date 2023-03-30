@@ -6,11 +6,23 @@ module github.com/docker/cli
 
 go 1.18
 
+// This is github.com/docker/docker "master". Unfortunately, go modules version
+// resolution is very broken, and updating the dependency to "master" without
+// a replace rule will roll it back to v23.0.0-rc.2+incompatible, likely because
+// that version is used by some dependencies (BuildKit, SwarmKit).
+//
+// Why 20.10.3? Go modules generates pseudo versions based on the latest non-
+// pre-release on the branch that "looks like SemVer" (v20.10.2 in this case).
+// Pseudo versions are prefixed with "vMajor.Minor.Patch+1", so the version
+// becomes "v20.10.3-0.20230207102624-b5568723cee5+incompatible" (latest stable
+// (v20.10.2) "+1" (v20.10.3), followed by the commit-date, and sha.
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230327175735-54130b542db4+incompatible
+
 require (
 	github.com/containerd/containerd v1.6.19
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v23.0.2+incompatible
+	github.com/docker/docker v23.0.2+incompatible // replaced; currently using master branch (v24.0.0-dev)
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -18,12 +30,12 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.5.9
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/imdario/mergo v0.3.12
+	github.com/imdario/mergo v0.3.13
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.11.4
+	github.com/moby/buildkit v0.11.5
 	github.com/moby/patternmatcher v0.5.0
-	github.com/moby/swarmkit/v2 v2.0.0-20230309194213-a745a8755ce3
+	github.com/moby/swarmkit/v2 v2.0.0-20230315203717-e28e8ba9bc83
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f
@@ -38,7 +50,7 @@ require (
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.5.0
+	golang.org/x/sys v0.6.0
 	golang.org/x/term v0.5.0
 	golang.org/x/text v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -57,11 +69,11 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/klauspost/compress v1.15.12 // indirect
+	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/sys/symlink v0.2.0 // indirect
-	github.com/opencontainers/runc v1.1.3 // indirect
+	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
