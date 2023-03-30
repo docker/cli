@@ -49,35 +49,39 @@ type cpConfig struct {
 // copying files to/from a container.
 type copyProgressPrinter struct {
 	io.ReadCloser
-	toContainer bool
-	total       *float64
-	writer      io.Writer
-	isTerm      bool
+	total  *float64
+	writer io.Writer
+	isTerm bool
+	header string
 }
+
+const (
+	copyToContainerHeader   = "Copying to container - "
+	copyFromContainerHeader = "Copying from container - "
+)
 
 func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
 	n, err := pt.ReadCloser.Read(p)
+	isFirst := *pt.total == 0
 	if n > 0 {
-		isFirst := *pt.total == 0
 		*pt.total += float64(n)
-
-		if pt.isTerm {
-			var header string
-			if pt.toContainer {
-				header = "Copying to container - "
-			} else {
-				header = "Copying from container - "
-			}
-			if isFirst {
-				fmt.Fprint(pt.writer, aec.Restore)
-				fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
-				fmt.Fprint(pt.writer, header)
-			}
-			fmt.Fprint(pt.writer, aec.Column(uint(len(header)+1)))
-			fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
-			fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
-		}
 	}
+	if err != nil && err != io.EOF {
+		return n, err
+	}
+
+	if !pt.isTerm {
+		return n, err
+	}
+
+	if isFirst {
+		fmt.Fprint(pt.writer, aec.Restore)
+		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
+		fmt.Fprint(pt.writer, pt.header)
+	}
+	fmt.Fprint(pt.writer, aec.Column(uint(len(pt.header)+1)))
+	fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
+	fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
 
 	return n, err
 }
@@ -228,11 +232,11 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	var copiedSize float64
 	if !copyConfig.quiet {
 		content = &copyProgressPrinter{
-			ReadCloser:  content,
-			toContainer: false,
-			writer:      dockerCli.Err(),
-			total:       &copiedSize,
-			isTerm:      stderrIsTerm,
+			ReadCloser: content,
+			writer:     dockerCli.Err(),
+			total:      &copiedSize,
+			isTerm:     stderrIsTerm,
+			header:     copyFromContainerHeader,
 		}
 	}
 
@@ -360,11 +364,11 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		content = preparedArchive
 		if !copyConfig.quiet {
 			content = &copyProgressPrinter{
-				ReadCloser:  content,
-				toContainer: true,
-				writer:      dockerCli.Err(),
-				total:       &copiedSize,
-				isTerm:      stderrIsTerm,
+				ReadCloser: content,
+				writer:     dockerCli.Err(),
+				total:      &copiedSize,
+				isTerm:     stderrIsTerm,
+				header:     copyToContainerHeader,
 			}
 		}
 	}
