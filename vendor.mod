@@ -41,7 +41,7 @@ require (
 	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.0.3-0.20220303224323-02efb9a75ee1
+	github.com/opencontainers/image-spec v1.1.0-rc2.0.20221005185240-3a7f492d3f1b
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
