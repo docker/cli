@@ -18,7 +18,7 @@ import (
 
 const dockerfileContents = "FROM busybox"
 
-func prepareEmpty(t *testing.T) string {
+func prepareEmpty(_ *testing.T) string {
 	return ""
 }
 
