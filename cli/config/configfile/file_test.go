@@ -186,7 +186,7 @@ func (c *mockNativeStore) GetAll() (map[string]types.AuthConfig, error) {
 	return c.authConfigs, nil
 }
 
-func (c *mockNativeStore) Store(authConfig types.AuthConfig) error {
+func (c *mockNativeStore) Store(_ types.AuthConfig) error {
 	return nil
 }
 
