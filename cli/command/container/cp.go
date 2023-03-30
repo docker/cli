@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -49,15 +50,17 @@ type cpConfig struct {
 // copying files to/from a container.
 type copyProgressPrinter struct {
 	io.ReadCloser
-	total  *float64
-	writer io.Writer
-	isTerm bool
-	header string
+	total      *float64
+	writer     io.Writer
+	isTerm     bool
+	header     string
+	lastUpdate time.Time
 }
 
 const (
-	copyToContainerHeader   = "Copying to container - "
-	copyFromContainerHeader = "Copying from container - "
+	copyToContainerHeader       = "Copying to container - "
+	copyFromContainerHeader     = "Copying from container - "
+	copyProgressUpdateThreshold = 75 * time.Millisecond
 )
 
 func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
@@ -66,23 +69,30 @@ func (pt *copyProgressPrinter) Read(p []byte) (int, error) {
 	if n > 0 {
 		*pt.total += float64(n)
 	}
-	if err != nil && err != io.EOF {
+	if !pt.isTerm {
 		return n, err
 	}
 
-	if !pt.isTerm {
-		return n, err
+	doUpdate := func() {
+		fmt.Fprint(pt.writer, aec.Hide)
+		fmt.Fprint(pt.writer, aec.Column(uint(len(pt.header)+1)))
+		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
+		fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
+		fmt.Fprint(pt.writer, aec.Show)
+		pt.lastUpdate = time.Now()
 	}
 
 	if isFirst {
 		fmt.Fprint(pt.writer, aec.Restore)
 		fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.All))
 		fmt.Fprint(pt.writer, pt.header)
+		doUpdate()
+		return n, err
 	}
-	fmt.Fprint(pt.writer, aec.Column(uint(len(pt.header)+1)))
-	fmt.Fprint(pt.writer, aec.EraseLine(aec.EraseModes.Tail))
-	fmt.Fprint(pt.writer, units.HumanSize(*pt.total))
 
+	if err != nil || time.Since(pt.lastUpdate) > copyProgressUpdateThreshold {
+		doUpdate()
+	}
 	return n, err
 }
 
@@ -251,7 +261,6 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	}
 
 	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Hide)
 		fmt.Fprint(dockerCli.Err(), aec.Save)
 		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
 	}
@@ -259,7 +268,6 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	if stderrIsTerm {
 		fmt.Fprint(dockerCli.Err(), aec.Restore)
 		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
-		fmt.Fprint(dockerCli.Err(), aec.Show)
 	}
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", dstPath)
 
@@ -383,7 +391,6 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	}
 
 	if stderrIsTerm {
-		fmt.Fprint(dockerCli.Err(), aec.Hide)
 		fmt.Fprint(dockerCli.Err(), aec.Save)
 		fmt.Fprintln(dockerCli.Err(), "Preparing to copy...")
 	}
@@ -391,7 +398,6 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	if stderrIsTerm {
 		fmt.Fprint(dockerCli.Err(), aec.Restore)
 		fmt.Fprint(dockerCli.Err(), aec.EraseLine(aec.EraseModes.All))
-		fmt.Fprint(dockerCli.Err(), aec.Show)
 	}
 	fmt.Fprintln(dockerCli.Err(), "Successfully copied", units.HumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
