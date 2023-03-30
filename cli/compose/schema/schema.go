@@ -17,7 +17,7 @@ const (
 
 type portsFormatChecker struct{}
 
-func (checker portsFormatChecker) IsFormat(input interface{}) bool {
+func (checker portsFormatChecker) IsFormat(_ interface{}) bool {
 	// TODO: implement this
 	return true
 }
