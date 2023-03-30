@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -18,7 +19,7 @@ func TestConfigInspectErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		configInspectFunc func(configID string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, configID string) (swarm.Config, []byte, error)
 		expectedError     string
 	}{
 		{
@@ -26,7 +27,7 @@ func TestConfigInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			configInspectFunc: func(configID string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, configID string) (swarm.Config, []byte, error) {
 				return swarm.Config{}, nil, errors.Errorf("error while inspecting the config")
 			},
 			expectedError: "error while inspecting the config",
@@ -40,7 +41,7 @@ func TestConfigInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			configInspectFunc: func(configID string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, configID string) (swarm.Config, []byte, error) {
 				if configID == "foo" {
 					return *Config(ConfigName("foo")), nil, nil
 				}
@@ -68,12 +69,12 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 	testCases := []struct {
 		name              string
 		args              []string
-		configInspectFunc func(configID string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, configID string) (swarm.Config, []byte, error)
 	}{
 		{
 			name: "single-config",
 			args: []string{"foo"},
-			configInspectFunc: func(name string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, name string) (swarm.Config, []byte, error) {
 				if name != "foo" {
 					return swarm.Config{}, nil, errors.Errorf("Invalid name, expected %s, got %s", "foo", name)
 				}
@@ -83,7 +84,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 		{
 			name: "multiple-configs-with-labels",
 			args: []string{"foo", "bar"},
-			configInspectFunc: func(name string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, name string) (swarm.Config, []byte, error) {
 				return *Config(ConfigID("ID-"+name), ConfigName(name), ConfigLabels(map[string]string{
 					"label1": "label-foo",
 				})), nil, nil
@@ -100,7 +101,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 }
 
 func TestConfigInspectWithFormat(t *testing.T) {
-	configInspectFunc := func(name string) (swarm.Config, []byte, error) {
+	configInspectFunc := func(_ context.Context, name string) (swarm.Config, []byte, error) {
 		return *Config(ConfigName("foo"), ConfigLabels(map[string]string{
 			"label1": "label-foo",
 		})), nil, nil
@@ -109,7 +110,7 @@ func TestConfigInspectWithFormat(t *testing.T) {
 		name              string
 		format            string
 		args              []string
-		configInspectFunc func(name string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, name string) (swarm.Config, []byte, error)
 	}{
 		{
 			name:              "simple-template",
@@ -139,11 +140,11 @@ func TestConfigInspectWithFormat(t *testing.T) {
 func TestConfigInspectPretty(t *testing.T) {
 	testCases := []struct {
 		name              string
-		configInspectFunc func(string) (swarm.Config, []byte, error)
+		configInspectFunc func(context.Context, string) (swarm.Config, []byte, error)
 	}{
 		{
 			name: "simple",
-			configInspectFunc: func(id string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, id string) (swarm.Config, []byte, error) {
 				return *Config(
 					ConfigLabels(map[string]string{
 						"lbl1": "value1",
