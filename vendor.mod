@@ -16,7 +16,7 @@ go 1.18
 // Pseudo versions are prefixed with "vMajor.Minor.Patch+1", so the version
 // becomes "v20.10.3-0.20230207102624-b5568723cee5+incompatible" (latest stable
 // (v20.10.2) "+1" (v20.10.3), followed by the commit-date, and sha.
-replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230327175735-54130b542db4+incompatible
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230330223104-7c93e4a09be1+incompatible
 
 require (
 	github.com/containerd/containerd v1.6.20
