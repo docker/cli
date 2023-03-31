@@ -16,10 +16,10 @@ go 1.18
 // Pseudo versions are prefixed with "vMajor.Minor.Patch+1", so the version
 // becomes "v20.10.3-0.20230207102624-b5568723cee5+incompatible" (latest stable
 // (v20.10.2) "+1" (v20.10.3), followed by the commit-date, and sha.
-replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230327175735-54130b542db4+incompatible
+replace github.com/docker/docker => github.com/docker/docker v20.10.3-0.20230330223104-7c93e4a09be1+incompatible
 
 require (
-	github.com/containerd/containerd v1.6.19
+	github.com/containerd/containerd v1.6.20
 	github.com/creack/pty v1.1.11
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v23.0.2+incompatible // replaced; currently using master branch (v24.0.0-dev)
@@ -41,7 +41,7 @@ require (
 	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.0.3-0.20220303224323-02efb9a75ee1
+	github.com/opencontainers/image-spec v1.1.0-rc2.0.20221005185240-3a7f492d3f1b
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
