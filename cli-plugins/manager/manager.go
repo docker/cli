@@ -1,18 +1,15 @@
 package manager
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 	exec "golang.org/x/sys/execabs"
 )
 
@@ -149,31 +146,19 @@ func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error
 	}
 
 	var plugins []Plugin
-	var mu sync.Mutex
-	eg, _ := errgroup.WithContext(context.TODO())
 	for _, paths := range candidates {
-		func(paths []string) {
-			eg.Go(func() error {
-				if len(paths) == 0 {
-					return nil
-				}
-				c := &candidate{paths[0]}
-				p, err := newPlugin(c, rootcmd)
-				if err != nil {
-					return err
-				}
-				if !IsNotFound(p.Err) {
-					p.ShadowedPaths = paths[1:]
-					mu.Lock()
-					defer mu.Unlock()
-					plugins = append(plugins, p)
-				}
-				return nil
-			})
-		}(paths)
-	}
-	if err := eg.Wait(); err != nil {
-		return nil, err
+		if len(paths) == 0 {
+			continue
+		}
+		c := &candidate{paths[0]}
+		p, err := newPlugin(c, rootcmd)
+		if err != nil {
+			return nil, err
+		}
+		if !IsNotFound(p.Err) {
+			p.ShadowedPaths = paths[1:]
+			plugins = append(plugins, p)
+		}
 	}
 
 	sort.Slice(plugins, func(i, j int) bool {
