@@ -3,8 +3,8 @@ package registry
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )

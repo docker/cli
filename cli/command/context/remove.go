@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

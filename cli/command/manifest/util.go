@@ -3,9 +3,9 @@ package manifest
 import (
 	"context"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/cli/cli/manifest/types"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/manifest/store"
+	"github.com/docker/cli/v24/cli/manifest/types"
 	"github.com/docker/distribution/reference"
 )
 

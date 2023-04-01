@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/docker/cli/cli/command/formatter/tabwriter"
-	"github.com/docker/cli/templates"
+	"github.com/docker/cli/v24/cli/command/formatter/tabwriter"
+	"github.com/docker/cli/v24/templates"
 	"github.com/pkg/errors"
 )
 

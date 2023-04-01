@@ -17,7 +17,7 @@ set -e
 rsync -a /context/. .
 ./scripts/vendor update
 mkdir /out
-cp -r vendor.mod vendor.sum vendor /out
+cp -r go.mod go.sum vendor /out
 EOT
 
 FROM scratch AS update

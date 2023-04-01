@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
+	manifesttypes "github.com/docker/cli/v24/cli/manifest/types"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/reference"
 	distributionclient "github.com/docker/distribution/registry/client"

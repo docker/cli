@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/commands"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/command/commands"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/pflag"

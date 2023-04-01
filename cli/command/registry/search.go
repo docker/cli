@@ -3,10 +3,10 @@ package registry
 import (
 	"context"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/command/formatter"
+	"github.com/docker/cli/v24/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"

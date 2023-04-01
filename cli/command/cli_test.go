@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v24/cli/config"
+	"github.com/docker/cli/v24/cli/config/configfile"
+	"github.com/docker/cli/v24/cli/flags"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"

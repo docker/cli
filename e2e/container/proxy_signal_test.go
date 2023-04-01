@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/v24/e2e/internal/fixtures"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"

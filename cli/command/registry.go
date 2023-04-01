@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"strings"
 
-	configtypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/cli/cli/streams"
+	configtypes "github.com/docker/cli/v24/cli/config/types"
+	"github.com/docker/cli/v24/cli/streams"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"

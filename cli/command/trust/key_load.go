@@ -8,9 +8,9 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/trust"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"

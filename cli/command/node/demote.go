@@ -3,8 +3,8 @@ package node
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 )

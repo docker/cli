@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"

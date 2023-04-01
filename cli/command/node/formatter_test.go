@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/cli/command/formatter"
+	"github.com/docker/cli/v24/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"

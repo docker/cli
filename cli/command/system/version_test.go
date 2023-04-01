@@ -10,7 +10,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/internal/test"
 	"github.com/docker/docker/api/types"
 )
 

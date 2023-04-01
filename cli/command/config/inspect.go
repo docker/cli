@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
-	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	"github.com/docker/cli/v24/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/v24/cli/flags"
 	"github.com/spf13/cobra"
 )
 

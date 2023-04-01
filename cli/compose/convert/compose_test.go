@@ -3,7 +3,7 @@ package convert
 import (
 	"testing"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/v24/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"

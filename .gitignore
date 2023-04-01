@@ -11,7 +11,3 @@ Thumbs.db
 /cli/winresources/versioninfo.json
 /cli/winresources/*.syso
 profile.out
-
-# top-level go.mod is not meant to be checked in
-/go.mod
-/go.sum

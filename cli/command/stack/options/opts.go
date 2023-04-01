@@ -1,6 +1,6 @@
 package options
 
-import "github.com/docker/cli/opts"
+import "github.com/docker/cli/v24/opts"
 
 // Deploy holds docker stack deploy options
 type Deploy struct {

@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	dockeropts "github.com/docker/cli/opts"
+	"github.com/docker/cli/v24/cli"
+	"github.com/docker/cli/v24/cli/command"
+	dockeropts "github.com/docker/cli/v24/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/spf13/cobra"

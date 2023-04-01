@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v24/cli/streams"
 	"github.com/docker/docker/client"
 	"github.com/moby/term"
 )

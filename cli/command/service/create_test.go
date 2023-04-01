@@ -9,7 +9,7 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 
-	cliopts "github.com/docker/cli/opts"
+	cliopts "github.com/docker/cli/v24/opts"
 )
 
 // fakeConfigAPIClientList is used to let us pass a closure as a

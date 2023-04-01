@@ -3,7 +3,7 @@ package image
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/v24/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"

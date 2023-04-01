@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/cli/config"
+	"github.com/docker/cli/v24/internal/test"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/storage"

@@ -29,7 +29,7 @@ Assertions should be made using
 [gotest.tools/assert](https://godoc.org/gotest.tools/assert).
 
 Fakes, and testing utilities can be found in
-[internal/test](https://godoc.org/github.com/docker/cli/internal/test) and
+[internal/test](https://pkg.go.dev/github.com/docker/cli/v24/internal/test) and
 [gotest.tools](https://godoc.org/gotest.tools).
 
 ## End-to-End Test Suite

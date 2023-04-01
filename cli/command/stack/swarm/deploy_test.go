@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/cli/compose/convert"
+	"github.com/docker/cli/v24/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"

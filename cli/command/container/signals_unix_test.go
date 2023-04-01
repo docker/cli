@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v24/internal/test"
 	"golang.org/x/sys/unix"
 	"gotest.tools/v3/assert"
 )
