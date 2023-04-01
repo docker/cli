@@ -37,10 +37,6 @@ jobs:
 
   host:
     runs-on: ${{ matrix.os }}
-    env:
-      GOPATH: ${{ github.workspace }}
-      GOBIN: ${{ github.workspace }}/bin
-      GO111MODULE: auto
     strategy:
       fail-fast: false
       matrix:
@@ -57,8 +53,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: ${{ env.GOPATH }}/src/github.com/docker/cli
       -
         name: Set up Go
         uses: actions/setup-go@v4
@@ -69,11 +63,9 @@ jobs:
         run: |
           go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
           go tool cover -func=/tmp/coverage.txt
-        working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
         shell: bash
       -
         name: Send to Codecov
         uses: codecov/codecov-action@v3
         with:
           file: /tmp/coverage.txt
-          working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
