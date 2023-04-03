@@ -84,10 +84,3 @@ func (c *clientContextContext) Error() string {
 	// TODO(thaJeztah) add "--no-trunc" option to context ls and set default to 30 cols to match "docker service ps"
 	return Ellipsis(c.c.Error, maxErrLength)
 }
-
-// KubernetesEndpoint returns the kubernetes endpoint.
-//
-// Deprecated: support for kubernetes endpoints in contexts has been removed, and this formatting option will always be empty.
-func (c *clientContextContext) KubernetesEndpoint() string {
-	return ""
-}
