@@ -178,6 +178,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from cp' -l help -d 'Print u
 # create
 complete -c docker -f -n '__fish_docker_no_subcommand' -a create -d 'Create a new container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l add-host -d 'Add a custom host-to-IP mapping (host:ip)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l annotation -d 'Add an annotation to the container (passed through to the OCI runtime)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s a -l attach -d 'Attach to STDIN, STDOUT or STDERR.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l blkio-weight -d 'Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l blkio-weight-device -d 'Block IO weight (relative device weight)'
@@ -453,6 +454,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from rmi' -a '(__fish_print_
 
 # run
 complete -c docker -f -n '__fish_docker_no_subcommand' -a run -d 'Create and run a new container from an image'
+complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l annotation -d 'Add an annotation to the container (passed through to the OCI runtime)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s a -l attach -d 'Attach to STDIN, STDOUT or STDERR.'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -l add-host -d 'Add a custom host-to-IP mapping (host:ip)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from run' -s c -l cpu-shares -d 'CPU shares (relative weight)'

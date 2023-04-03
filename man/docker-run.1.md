@@ -7,6 +7,7 @@ docker-run - Create and run a new container from an image
 **docker run**
 [**-a**|**--attach**[=*[]*]]
 [**--add-host**[=*[]*]]
+[**--annotation**[=*[]*]]
 [**--blkio-weight**[=*[BLKIO-WEIGHT]*]]
 [**--blkio-weight-device**[=*[]*]]
 [**--cpu-shares**[=*0*]]
@@ -124,6 +125,11 @@ each of stdin, stdout, and stderr.
 
    Add a line to /etc/hosts. The format is hostname:ip.  The **--add-host**
 option can be set multiple times.
+
+**--annotation**=[]
+   Add an annotation to the container (passed through to the OCI runtime).
+
+   The annotations are provided to the OCI runtime.
 
 **--blkio-weight**=*0*
    Block IO weight (relative weight) accepts a weight value between 10 and 1000.

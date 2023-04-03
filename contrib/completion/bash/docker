@@ -1888,6 +1888,7 @@ _docker_container_run() {
 _docker_container_run_and_create() {
 	local options_with_args="
 		--add-host
+		--annotation
 		--attach -a
 		--blkio-weight
 		--blkio-weight-device
