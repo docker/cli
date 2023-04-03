@@ -31,7 +31,7 @@ type Plugin struct {
 // is set, and is always a `pluginError`, but the `Plugin` is still
 // returned with no error. An error is only returned due to a
 // non-recoverable error.
-func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
+func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	path := c.Path()
 	if path == "" {
 		return Plugin{}, errors.New("plugin candidate path cannot be empty")
@@ -62,22 +62,20 @@ func newPlugin(c Candidate, rootcmd *cobra.Command) (Plugin, error) {
 		return p, nil
 	}
 
-	if rootcmd != nil {
-		for _, cmd := range rootcmd.Commands() {
-			// Ignore conflicts with commands which are
-			// just plugin stubs (i.e. from a previous
-			// call to AddPluginCommandStubs).
-			if IsPluginCommand(cmd) {
-				continue
-			}
-			if cmd.Name() == p.Name {
-				p.Err = NewPluginError("plugin %q duplicates builtin command", p.Name)
-				return p, nil
-			}
-			if cmd.HasAlias(p.Name) {
-				p.Err = NewPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
-				return p, nil
-			}
+	for _, cmd := range cmds {
+		// Ignore conflicts with commands which are
+		// just plugin stubs (i.e. from a previous
+		// call to AddPluginCommandStubs).
+		if IsPluginCommand(cmd) {
+			continue
+		}
+		if cmd.Name() == p.Name {
+			p.Err = NewPluginError("plugin %q duplicates builtin command", p.Name)
+			return p, nil
+		}
+		if cmd.HasAlias(p.Name) {
+			p.Err = NewPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
+			return p, nil
 		}
 	}
 
