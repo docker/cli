@@ -123,6 +123,7 @@ type containerOptions struct {
 	runtime            string
 	autoRemove         bool
 	init               bool
+	annotations        *opts.MapOpts
 
 	Image string
 	Args  []string
@@ -163,6 +164,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		ulimits:           opts.NewUlimitOpt(nil),
 		volumes:           opts.NewListOpts(nil),
 		volumesFrom:       opts.NewListOpts(nil),
+		annotations:       opts.NewMapOpts(nil, nil),
 	}
 
 	// General purpose flags
@@ -297,6 +299,10 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 
 	flags.BoolVar(&copts.init, "init", false, "Run an init inside the container that forwards signals and reaps processes")
 	flags.SetAnnotation("init", "version", []string{"1.25"})
+
+	flags.Var(copts.annotations, "annotation", "Add an annotation to the container (passed through to the OCI runtime)")
+	flags.SetAnnotation("annotation", "version", []string{"1.43"})
+
 	return copts
 }
 
@@ -654,6 +660,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Mounts:         mounts,
 		MaskedPaths:    maskedPaths,
 		ReadonlyPaths:  readonlyPaths,
+		Annotations:    copts.annotations.GetAll(),
 	}
 
 	if copts.autoRemove && !hostConfig.RestartPolicy.IsNone() {
