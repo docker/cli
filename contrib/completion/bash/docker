@@ -1155,7 +1155,20 @@ __docker_complete_plugin() {
 			resultArray+=( "$value" )
 		fi
 	done
-	local result=$(eval "${resultArray[*]}" 2> /dev/null | grep -v '^:[0-9]*$')
+	local rawResult=$(eval "${resultArray[*]}" 2> /dev/null)
+	local result=$(grep -v '^:[0-9]*$' <<< "$rawResult")
+
+	# Compose V2 completions sometimes returns returns `:8` (ShellCompDirectiveFilterFileExt)
+	# with the expected file extensions (such as `yml`, `yaml`) to indicate that the shell should
+	# provide autocompletions for files with matching extensions
+	local completionFlag=$(tail -1 <<< "$rawResult")
+	if [ "$completionFlag" == ":8" ]; then
+		# format a valid glob pattern for the provided file extensions
+		local filePattern=$(tr '\n' '|' <<< "$result")
+
+		_filedir "$filePattern"
+		return
+	fi
 
 	# if result empty, just use filename completion as fallback
 	if [ -z "$result" ]; then
