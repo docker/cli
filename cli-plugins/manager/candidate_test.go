@@ -74,7 +74,7 @@ func TestValidateCandidate(t *testing.T) {
 		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p, err := newPlugin(tc.c, fakeroot)
+			p, err := newPlugin(tc.c, fakeroot.Commands())
 			if tc.err != "" {
 				assert.ErrorContains(t, err, tc.err)
 			} else if tc.invalid != "" {
