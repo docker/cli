@@ -29,7 +29,7 @@ Build an image from a Dockerfile
 | `--label`                           | `list`        |           | Set metadata for an image                                         |
 | `-m`, `--memory`                    | `bytes`       | `0`       | Memory limit                                                      |
 | `--memory-swap`                     | `bytes`       | `0`       | Swap limit equal to memory plus swap: -1 to enable unlimited swap |
-| `--network`                         | `string`      | `default` | Set the networking mode for the RUN instructions during build     |
+| [`--network`](#network)             | `string`      | `default` | Set the networking mode for the RUN instructions during build     |
 | `--no-cache`                        |               |           | Do not use cache when building the image                          |
 | `--platform`                        | `string`      |           | Set platform if server is multi-platform capable                  |
 | `--pull`                            |               |           | Always attempt to pull a newer version of the image               |
@@ -629,6 +629,18 @@ On another machine:
 ```console
 $ docker build --cache-from myname/myapp .
 ```
+
+### <a name="network"></a> Set the networking mode for the RUN instructions during build (--network)
+
+#### Overview
+
+Available options for the networking mode are:
+
+- `default` (default): Run in the default network.
+- `none`: Run with no network access.
+- `host`: Run in the host’s network environment.
+
+Find more details in the [Dockerfile documentation](https://docs.docker.com/engine/reference/builder/#run---network).
 
 ### <a name="squash"></a> Squash an image's layers (--squash) (experimental)
 
