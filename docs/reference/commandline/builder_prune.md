@@ -5,12 +5,12 @@ Remove build cache
 
 ### Options
 
-| Name             | Type     | Default | Description                                           |
-|:-----------------|:---------|:--------|:------------------------------------------------------|
-| `-a`, `--all`    |          |         | Remove all unused build cache, not just dangling ones |
-| `--filter`       | `filter` |         | Provide filter values (e.g. `until=24h`)              |
-| `-f`, `--force`  |          |         | Do not prompt for confirmation                        |
-| `--keep-storage` | `bytes`  | `0`     | Amount of disk space to keep for cache                |
+| Name             | Type     | Default | Description                                                                                             |
+|:-----------------|:---------|:--------|:--------------------------------------------------------------------------------------------------------|
+| `-a`, `--all`    |          |         | Remove all unused build cache, not just dangling ones                                                   |
+| `--filter`       | `filter` |         | Provide filter values (e.g. `until=24h`) Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h" |
+| `-f`, `--force`  |          |         | Do not prompt for confirmation                                                                          |
+| `--keep-storage` | `bytes`  | `0`     | Amount of disk space to keep for cache                                                                  |
 
 
 <!---MARKER_GEN_END-->
