@@ -49,11 +49,11 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 		return nil, nil, nil, err
 	}
 	// TODO: fix tests to accept ContainerConfig
-	containerConfig, err := parse(flags, copts, runtime.GOOS)
+	containerCfg, err := parse(flags, copts, runtime.GOOS)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return containerConfig.Config, containerConfig.HostConfig, containerConfig.NetworkingConfig, err
+	return containerCfg.Config, containerCfg.HostConfig, containerCfg.NetworkingConfig, err
 }
 
 func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
