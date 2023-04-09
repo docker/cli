@@ -1,4 +1,4 @@
-// Copyright 2013-2022 The Cobra Authors
+// Copyright 2013-2023 The Cobra Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ func genZshComp(buf io.StringWriter, name string, includeDesc bool) {
 		compCmd = ShellCompNoDescRequestCmd
 	}
 	WriteStringAndCheck(buf, fmt.Sprintf(`#compdef %[1]s
+compdef _%[1]s %[1]s
 
 # zsh completion for %-36[1]s -*- shell-script -*-
 

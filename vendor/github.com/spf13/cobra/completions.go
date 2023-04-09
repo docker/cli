@@ -1,4 +1,4 @@
-// Copyright 2013-2022 The Cobra Authors
+// Copyright 2013-2023 The Cobra Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -734,7 +734,7 @@ to enable it.  You can execute the following once:
 
 To load completions in your current shell session:
 
-	source <(%[1]s completion zsh); compdef _%[1]s %[1]s
+	source <(%[1]s completion zsh)
 
 To load completions for every new session, execute once:
 
