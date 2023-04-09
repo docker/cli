@@ -120,6 +120,8 @@ func runPs(dockerCli command.Cli, options *psOptions) error {
 	if len(options.format) == 0 {
 		// load custom psFormat from CLI config (if any)
 		options.format = dockerCli.ConfigFile().PsFormat
+	} else if options.quiet {
+		_, _ = dockerCli.Err().Write([]byte("WARNING: Ignoring custom format, because both --format and --quiet are set.\n"))
 	}
 
 	listOptions, err := buildContainerListOptions(options)
