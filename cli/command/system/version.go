@@ -33,7 +33,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Context:	{{.Context}}
 {{- end}}
 
-{{- if .ServerOK}}{{with .Server}}
+{{- if ne .Server nil}}{{with .Server}}
 
 Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  {{- range $component := .Components}}
@@ -78,12 +78,6 @@ type clientVersion struct {
 	Arch              string
 	BuildTime         string `json:",omitempty"`
 	Context           string
-}
-
-// ServerOK returns true when the client could connect to the docker server
-// and parse the information received. It returns false otherwise.
-func (v versionInfo) ServerOK() bool {
-	return v.Server != nil
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
