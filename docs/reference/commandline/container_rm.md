@@ -5,7 +5,7 @@ Remove one or more containers
 
 ### Aliases
 
-`docker container rm`, `docker rm`
+`docker container rm`, `docker container remove`, `docker rm`
 
 ### Options
 
