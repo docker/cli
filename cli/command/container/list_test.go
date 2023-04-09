@@ -324,6 +324,7 @@ func TestContainerListWithFormat(t *testing.T) {
 		assert.Check(t, cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}"))
 		assert.Check(t, cmd.Flags().Set("quiet", "true"))
 		assert.NilError(t, cmd.Execute())
+		assert.Equal(t, cli.ErrBuffer().String(), "WARNING: Ignoring custom format, because both --format and --quiet are set.\n")
 		golden.Assert(t, cli.OutBuffer().String(), "container-list-quiet.golden")
 	})
 }
