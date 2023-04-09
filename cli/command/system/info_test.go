@@ -396,6 +396,11 @@ func TestPrettyPrintInfo(t *testing.T) {
 				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
 				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+
+				cli = test.NewFakeCli(&fakeClient{})
+				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "json"))
+				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
+				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 			}
 		})
 	}
