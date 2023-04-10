@@ -47,7 +47,8 @@ information about the `overlay2` storage driver is shown:
 ```console
 $ docker info
 
-Client:
+Client: Docker Engine - Community
+ Version:    24.0.0
  Context:    default
  Debug Mode: false
  Plugins:
@@ -126,7 +127,8 @@ Here is a sample output for a daemon running on Windows Server:
 ```console
 C:\> docker info
 
-Client:
+Client: Docker Engine - Community
+ Version:    24.0.0
  Context:    default
  Debug Mode: false
  Plugins:

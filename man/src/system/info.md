@@ -27,7 +27,8 @@ information about the `overlay2` storage driver is shown:
 ```console
 $ docker info
 
-Client:
+Client: Docker Engine - Community
+ Version:    24.0.0
  Context:    default
  Debug Mode: false
  Plugins:

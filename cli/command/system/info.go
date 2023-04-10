@@ -28,8 +28,8 @@ type infoOptions struct {
 }
 
 type clientInfo struct {
-	Debug    bool
-	Context  string
+	Debug bool
+	clientVersion
 	Plugins  []pluginmanager.Plugin
 	Warnings []string
 }
@@ -44,6 +44,13 @@ type info struct {
 
 	ClientInfo   *clientInfo `json:",omitempty"`
 	ClientErrors []string    `json:",omitempty"`
+}
+
+func (i *info) clientPlatform() string {
+	if i.ClientInfo != nil && i.ClientInfo.Platform != nil {
+		return i.ClientInfo.Platform.Name
+	}
+	return ""
 }
 
 // NewInfoCommand creates a new cobra.Command for `docker info`
@@ -71,8 +78,11 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
 	info := info{
 		ClientInfo: &clientInfo{
-			Context: dockerCli.CurrentContext(),
-			Debug:   debug.IsEnabled(),
+			// Don't pass a dockerCLI to newClientVersion(), because we currently
+			// don't include negotiated API version, and want to avoid making an
+			// API connection when only printing the Client section.
+			clientVersion: newClientVersion(dockerCli.CurrentContext(), nil),
+			Debug:         debug.IsEnabled(),
 		},
 		Info: &types.Info{},
 	}
@@ -147,7 +157,12 @@ func needsServerInfo(template string, info info) bool {
 }
 
 func prettyPrintInfo(dockerCli command.Cli, info info) error {
-	fmt.Fprintln(dockerCli.Out(), "Client:")
+	// Only append the platform info if it's not empty, to prevent printing a trailing space.
+	if p := info.clientPlatform(); p != "" {
+		_, _ = fmt.Fprintln(dockerCli.Out(), "Client:", p)
+	} else {
+		_, _ = fmt.Fprintln(dockerCli.Out(), "Client:")
+	}
 	if info.ClientInfo != nil {
 		prettyPrintClientInfo(dockerCli, *info.ClientInfo)
 	}
@@ -173,6 +188,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 }
 
 func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
+	fprintlnNonEmpty(dockerCli.Out(), " Version:   ", info.Version)
 	fmt.Fprintln(dockerCli.Out(), " Context:   ", info.Context)
 	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
 
