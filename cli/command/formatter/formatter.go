@@ -19,7 +19,7 @@ const (
 	JSONFormatKey   = "json"
 
 	DefaultQuietFormat = "{{.ID}}"
-	jsonFormat         = "{{json .}}"
+	JSONFormat         = "{{json .}}"
 )
 
 // Format is the format string rendered using the Context
@@ -62,7 +62,7 @@ func (c *Context) preFormat() {
 	case c.Format.IsTable():
 		c.finalFormat = c.finalFormat[len(TableFormatKey):]
 	case c.Format.IsJSON():
-		c.finalFormat = jsonFormat
+		c.finalFormat = JSONFormat
 	}
 
 	c.finalFormat = strings.Trim(c.finalFormat, " ")
