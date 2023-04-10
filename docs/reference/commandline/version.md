@@ -37,30 +37,30 @@ machine running Docker Desktop:
 ```console
 $ docker version
 
-Client:
- Version:           20.10.16
- API version:       1.41
- Go version:        go1.17.10
- Git commit:        aa7e414
- Built:             Thu May 12 09:17:28 2022
+Client: Docker Engine - Community
+ Version:           23.0.3
+ API version:       1.42
+ Go version:        go1.19.7
+ Git commit:        3e7cbfd
+ Built:             Tue Apr  4 22:05:41 2023
  OS/Arch:           darwin/amd64
  Context:           default
 
-Server: Docker Desktop 4.8.2 (77141)
+Server: Docker Desktop 4.19.0 (12345)
  Engine:
-  Version:          20.10.16
-  API version:      1.41 (minimum version 1.12)
-  Go version:       go1.17.10
-  Git commit:       f756502
-  Built:            Thu May 12 09:15:33 2022
+  Version:          23.0.3
+  API version:      1.42 (minimum version 1.12)
+  Go version:       go1.19.7
+  Git commit:       59118bf
+  Built:            Tue Apr  4 22:05:41 2023
   OS/Arch:          linux/amd64
   Experimental:     false
  containerd:
-  Version:          1.6.4
-  GitCommit:        212e8b6fa2f44b9c21b2798135fc6fb7c53efc16
+  Version:          1.6.20
+  GitCommit:        2806fc1057397dbaeefbea0e4e17bddfbd388f38
  runc:
-  Version:          1.1.1
-  GitCommit:        v1.1.1-0-g52de29d
+  Version:          1.1.5
+  GitCommit:        v1.1.5-0-gf19387a
  docker-init:
   Version:          0.19.0
   GitCommit:        de40ad0
@@ -82,12 +82,12 @@ remote-test-server
 
 $ docker version
 
-Client:
- Version:           20.10.16
- API version:       1.40 (downgraded from 1.41)
- Go version:        go1.17.10
- Git commit:        aa7e414
- Built:             Thu May 12 09:17:28 2022
+Client: Docker Engine - Community
+ Version:           23.0.3
+ API version:       1.40 (downgraded from 1.42)
+ Go version:        go1.19.7
+ Git commit:        3e7cbfd
+ Built:             Tue Apr  4 22:05:41 2023
  OS/Arch:           darwin/amd64
  Context:           remote-test-server
 
@@ -142,7 +142,7 @@ $ docker version --format '{{.Client.APIVersion}}'
 
 $ unset DOCKER_API_VERSION
 $ docker version --format '{{.Client.APIVersion}}'
-1.41
+1.42
 ```
 
 ## Examples
@@ -159,7 +159,7 @@ page for details of the format.
 ```console
 $ docker version --format '{{.Server.Version}}'
 
-20.10.16
+23.0.3
 ```
 
 ### Get the client API version
@@ -169,7 +169,7 @@ The following example prints the API version that is used by the client:
 ```console
 $ docker version --format '{{.Client.APIVersion}}'
 
-1.41
+1.42
 ```
 
 The version shown is the API version that is negotiated between the client
@@ -181,5 +181,5 @@ above for more information.
 ```console
 $ docker version --format '{{json .}}'
 
-{"Client":{"Platform":{"Name":"Docker Engine - Community"},"Version":"19.03.8","ApiVersion":"1.40","DefaultAPIVersion":"1.40","GitCommit":"afacb8b","GoVersion":"go1.12.17","Os":"darwin","Arch":"amd64","BuildTime":"Wed Mar 11 01:21:11 2020","Experimental":true},"Server":{"Platform":{"Name":"Docker Engine - Community"},"Components":[{"Name":"Engine","Version":"19.03.8","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"Wed Mar 11 01:29:16 2020","Experimental":"true","GitCommit":"afacb8b","GoVersion":"go1.12.17","KernelVersion":"4.19.76-linuxkit","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.2.13","Details":{"GitCommit":"7ad184331fa3e55e52b890ea95e65ba581ae3429"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":"dc9208a3303feef5b3839f4323d9beb36df0a9dd"}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":"fec3683"}}],"Version":"19.03.8","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"afacb8b","GoVersion":"go1.12.17","Os":"linux","Arch":"amd64","KernelVersion":"4.19.76-linuxkit","Experimental":true,"BuildTime":"2020-03-11T01:29:16.000000000+00:00"}}
+{"Client":"Version":"23.0.3","ApiVersion":"1.42", ...}
 ```
