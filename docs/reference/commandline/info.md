@@ -52,14 +52,11 @@ Client:
  Debug Mode: false
  Plugins:
   buildx: Docker Buildx (Docker Inc.)
-    Version:  v0.8.2
+    Version:  v0.10.4
     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
   compose: Docker Compose (Docker Inc.)
-    Version:  v2.6.0
+    Version:  v2.17.2
     Path:     /usr/libexec/docker/cli-plugins/docker-compose
-  scan: Docker Scan (Docker Inc.)
-    Version:  v0.17.0
-    Path:     /usr/libexec/docker/cli-plugins/docker-scan
 
 Server:
  Containers: 14
@@ -67,7 +64,7 @@ Server:
   Paused: 1
   Stopped: 10
  Images: 52
- Server Version: 22.06.0
+ Server Version: 23.0.3
  Storage Driver: overlay2
   Backing Filesystem: extfs
   Supports d_type: true
@@ -82,11 +79,11 @@ Server:
   Network: bridge host ipvlan macvlan null overlay
   Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
  Swarm: inactive
- Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux runc
+ Runtimes: io.containerd.runc.v2 runc
  Default Runtime: runc
  Init Binary: docker-init
- containerd version: 212e8b6fa2f44b9c21b2798135fc6fb7c53efc16
- runc version: v1.1.1-0-g52de29d
+ containerd version: 2806fc1057397dbaeefbea0e4e17bddfbd388f38
+ runc version: v1.1.5-0-gf19387a
  init version: de40ad0
  Security Options:
   apparmor
@@ -106,7 +103,7 @@ Server:
  Username: gordontheturtle
  Registry: https://index.docker.io/v1/
  Experimental: false
- Insecure registries:
+ Insecure Registries:
   myinsecurehost:5000
   127.0.0.0/8
  Live Restore Enabled: false
@@ -119,7 +116,7 @@ You can also specify the output format:
 ```console
 $ docker info --format '{{json .}}'
 
-{"ID":"I54V:OLXT:HVMM:TPKO:JPHQ:CQCD:JNLC:O3BZ:4ZVJ:43XJ:PFHZ:6N2S","Containers":14, ...}
+{"ID":"4cee4408-10d2-4e17-891c-a41736ac4536","Containers":14, ...}
 ```
 
 ### Run `docker info` on Windows
@@ -133,9 +130,12 @@ Client:
  Context:    default
  Debug Mode: false
  Plugins:
-  buildx: Docker Buildx (Docker Inc., v0.8.2-docker)
-  compose: Docker Compose (Docker Inc., v2.6.0)
-  scan: Docker Scan (Docker Inc., v0.17.0)
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.10.4
+    Path:     C:\Program Files\Docker\cli-plugins\docker-buildx.exe
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.17.2
+    Path:     C:\Program Files\Docker\cli-plugins\docker-compose.exe
 
 Server:
  Containers: 1
@@ -143,7 +143,7 @@ Server:
   Paused: 0
   Stopped: 1
  Images: 17
- Server Version: 20.10.16
+ Server Version: 23.0.3
  Storage Driver: windowsfilter
  Logging Driver: json-file
  Plugins:
