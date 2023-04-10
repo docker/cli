@@ -83,6 +83,30 @@ type clientVersion struct {
 	Context           string        `json:"Context"`
 }
 
+// newClientVersion constructs a new clientVersion. If a dockerCLI is
+// passed as argument, additional information is included (API version),
+// which may invoke an API connection. Pass nil to omit the additional
+// information.
+func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
+	v := clientVersion{
+		Version:   version.Version,
+		GoVersion: runtime.Version(),
+		GitCommit: version.GitCommit,
+		BuildTime: reformatDate(version.BuildTime),
+		Os:        runtime.GOOS,
+		Arch:      arch(),
+		Context:   contextName,
+	}
+	if version.PlatformName != "" {
+		v.Platform = &platformInfo{Name: version.PlatformName}
+	}
+	if dockerCli != nil {
+		v.APIVersion = dockerCli.CurrentVersion()
+		v.DefaultAPIVersion = dockerCli.DefaultVersion()
+	}
+	return v
+}
+
 // NewVersionCommand creates a new cobra.Command for `docker version`
 func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 	var opts versionOptions
@@ -130,22 +154,8 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	// TODO print error if kubernetes is used?
 
 	vd := versionInfo{
-		Client: clientVersion{
-			Version:           version.Version,
-			APIVersion:        dockerCli.CurrentVersion(),
-			DefaultAPIVersion: dockerCli.DefaultVersion(),
-			GoVersion:         runtime.Version(),
-			GitCommit:         version.GitCommit,
-			BuildTime:         reformatDate(version.BuildTime),
-			Os:                runtime.GOOS,
-			Arch:              arch(),
-			Context:           dockerCli.CurrentContext(),
-		},
+		Client: newClientVersion(dockerCli.CurrentContext(), dockerCli),
 	}
-	if version.PlatformName != "" {
-		vd.Client.Platform = &platformInfo{Name: version.PlatformName}
-	}
-
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
 	if err == nil {
 		vd.Server = &sv
