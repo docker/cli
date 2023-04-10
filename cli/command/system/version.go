@@ -23,7 +23,7 @@ import (
 )
 
 const defaultVersionTemplate = `{{with .Client -}}
-Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
+Client:{{if ne .Platform nil}}{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}{{end}}
  Version:	{{.Version}}
  API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
  Go version:	{{.GoVersion}}
@@ -66,9 +66,12 @@ type versionInfo struct {
 	Server *types.Version
 }
 
-type clientVersion struct {
-	Platform struct{ Name string } `json:",omitempty"`
+type platformInfo struct {
+	Name string `json:"Name,omitempty"`
+}
 
+type clientVersion struct {
+	Platform          *platformInfo `json:"Platform,omitempty"`
 	Version           string
 	APIVersion        string `json:"ApiVersion"`
 	DefaultAPIVersion string `json:"DefaultAPIVersion,omitempty"`
@@ -128,7 +131,6 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 
 	vd := versionInfo{
 		Client: clientVersion{
-			Platform:          struct{ Name string }{version.PlatformName},
 			Version:           version.Version,
 			APIVersion:        dockerCli.CurrentVersion(),
 			DefaultAPIVersion: dockerCli.DefaultVersion(),
@@ -139,6 +141,9 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 			Arch:              arch(),
 			Context:           dockerCli.CurrentContext(),
 		},
+	}
+	if version.PlatformName != "" {
+		vd.Client.Platform = &platformInfo{Name: version.PlatformName}
 	}
 
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
