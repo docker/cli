@@ -5,9 +5,9 @@ Show the Docker version information
 
 ### Options
 
-| Name                                   | Type     | Default | Description                                   |
-|:---------------------------------------|:---------|:--------|:----------------------------------------------|
-| [`-f`](#format), [`--format`](#format) | `string` |         | Format the output using the given Go template |
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
 
 
 <!---MARKER_GEN_END-->
