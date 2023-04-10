@@ -20,7 +20,7 @@ import (
 	"github.com/tonistiigi/go-rosetta"
 )
 
-var versionTemplate = `{{with .Client -}}
+const defaultVersionTemplate = `{{with .Client -}}
 Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Version:	{{.Version}}
  API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
@@ -195,7 +195,7 @@ func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Te
 
 func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	if templateFormat == "" {
-		templateFormat = versionTemplate
+		templateFormat = defaultVersionTemplate
 	}
 	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	tmpl, err := tmpl.Parse(templateFormat)
