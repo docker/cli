@@ -419,6 +419,30 @@ func TestPrettyPrintInfo(t *testing.T) {
 	}
 }
 
+func BenchmarkPrettyPrintInfo(b *testing.B) {
+	infoWithSwarm := sampleInfoNoSwarm
+	infoWithSwarm.Swarm = sampleSwarmInfo
+
+	dockerInfo := info{
+		Info: &infoWithSwarm,
+		ClientInfo: &clientInfo{
+			clientVersion: clientVersion{
+				Platform: &platformInfo{Name: "Docker Engine - Community"},
+				Version:  "24.0.0",
+				Context:  "default",
+			},
+			Debug: true,
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{})
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_ = prettyPrintInfo(cli, dockerInfo)
+		cli.ResetOutputBuffers()
+	}
+}
+
 func TestFormatInfo(t *testing.T) {
 	for _, tc := range []struct {
 		doc           string
