@@ -72,15 +72,15 @@ type platformInfo struct {
 
 type clientVersion struct {
 	Platform          *platformInfo `json:"Platform,omitempty"`
-	Version           string
-	APIVersion        string `json:"ApiVersion"`
-	DefaultAPIVersion string `json:"DefaultAPIVersion,omitempty"`
-	GitCommit         string
-	GoVersion         string
-	Os                string
-	Arch              string
-	BuildTime         string `json:",omitempty"`
-	Context           string
+	Version           string        `json:"Version,omitempty"`
+	APIVersion        string        `json:"ApiVersion,omitempty"`
+	DefaultAPIVersion string        `json:"DefaultAPIVersion,omitempty"`
+	GitCommit         string        `json:"GitCommit,omitempty"`
+	GoVersion         string        `json:"GoVersion,omitempty"`
+	Os                string        `json:"Os,omitempty"`
+	Arch              string        `json:"Arch,omitempty"`
+	BuildTime         string        `json:"BuildTime,omitempty"`
+	Context           string        `json:"Context"`
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
