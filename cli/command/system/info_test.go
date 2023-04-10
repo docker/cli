@@ -406,12 +406,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 			if tc.jsonGolden != "" {
 				cli = test.NewFakeCli(&fakeClient{})
-				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
+				assert.NilError(t, formatInfo(cli.Out(), tc.dockerInfo, "{{json .}}"))
 				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 
 				cli = test.NewFakeCli(&fakeClient{})
-				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "json"))
+				assert.NilError(t, formatInfo(cli.Out(), tc.dockerInfo, "json"))
 				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 			}
@@ -473,7 +473,7 @@ func TestFormatInfo(t *testing.T) {
 				Info:       &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{Debug: true},
 			}
-			err := formatInfo(cli, info, tc.template)
+			err := formatInfo(cli.Out(), info, tc.template)
 			if tc.expectedOut != "" {
 				assert.NilError(t, err)
 				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
