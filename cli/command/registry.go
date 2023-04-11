@@ -3,8 +3,6 @@ package command
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -21,13 +19,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload
+// EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload.
 func EncodeAuthToBase64(authConfig registrytypes.AuthConfig) (string, error) {
-	buf, err := json.Marshal(authConfig)
-	if err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(buf), nil
+	return registrytypes.EncodeAuthConfig(authConfig)
 }
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
@@ -45,7 +39,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		if err != nil {
 			return "", err
 		}
-		return EncodeAuthToBase64(authConfig)
+		return registrytypes.EncodeAuthConfig(authConfig)
 	}
 }
 
@@ -177,14 +171,19 @@ func promptWithDefault(out io.Writer, prompt string, configDefault string) {
 	}
 }
 
-// RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete image
+// RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete
+// image. The auth configuration is serialized as a base64url encoded RFC4648,
+// section 5) JSON string for sending through the X-Registry-Auth header.
+//
+// For details on base64url encoding, see:
+// - RFC4648, section 5:   https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(ctx context.Context, cli Cli, image string) (string, error) {
 	// Retrieve encoded auth token from the image reference
 	authConfig, err := resolveAuthConfigFromImage(ctx, cli, image)
 	if err != nil {
 		return "", err
 	}
-	encodedAuth, err := EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return "", err
 	}
