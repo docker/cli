@@ -11,7 +11,9 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
@@ -20,7 +22,7 @@ import (
 	"github.com/tonistiigi/go-rosetta"
 )
 
-var versionTemplate = `{{with .Client -}}
+const defaultVersionTemplate = `{{with .Client -}}
 Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Version:	{{.Version}}
  API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
@@ -101,9 +103,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.NoComplete,
 	}
 
-	flags := cmd.Flags()
-	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
-
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	return cmd
 }
 
@@ -194,8 +194,11 @@ func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Te
 }
 
 func newVersionTemplate(templateFormat string) (*template.Template, error) {
-	if templateFormat == "" {
-		templateFormat = versionTemplate
+	switch templateFormat {
+	case "":
+		templateFormat = defaultVersionTemplate
+	case formatter.JSONFormatKey:
+		templateFormat = formatter.JSONFormat
 	}
 	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	tmpl, err := tmpl.Parse(templateFormat)
