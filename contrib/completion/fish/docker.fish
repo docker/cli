@@ -253,7 +253,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s p -l publish
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -s P -l publish-all -d 'Publish all exposed ports to random ports'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l read-only -d "Mount the container's root filesystem as read only"
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l restart -d 'Restart policy to apply when a container exits'
-complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l rm -d 'Automatically remove the container when it exits'
+complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l rm -d 'Automatically remove the container and its associated anonymous volumes when it exits'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l runtime -d 'Runtime to use for this container'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l security-opt -d 'Security Options'
 complete -c docker -A -f -n '__fish_seen_subcommand_from create' -l shm-size -d 'Size of /dev/shm'
