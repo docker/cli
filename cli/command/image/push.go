@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
@@ -76,7 +77,7 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
 	}
