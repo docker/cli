@@ -661,7 +661,7 @@ The `--squash` option has a number of known limitations:
 
 #### Prerequisites
 
-The example on this page is using experimental mode in Docker 19.03.
+The example on this page is using experimental mode in Docker 23.03.
 
 Experimental mode can be enabled by using the `--experimental` flag when starting
 the Docker daemon or setting `experimental: true` in the `daemon.json` configuration
@@ -673,21 +673,21 @@ line in the `Engine` section:
 
 ```console
 Client: Docker Engine - Community
- Version:           19.03.8
- API version:       1.40
- Go version:        go1.12.17
- Git commit:        afacb8b
- Built:             Wed Mar 11 01:21:11 2020
+ Version:           23.0.3
+ API version:       1.42
+ Go version:        go1.19.7
+ Git commit:        3e7cbfd
+ Built:             Tue Apr  4 22:05:41 2023
  OS/Arch:           darwin/amd64
- Experimental:      false
+ Context:           default
 
 Server: Docker Engine - Community
  Engine:
-  Version:          19.03.8
-  API version:      1.40 (minimum version 1.12)
-  Go version:       go1.12.17
-  Git commit:       afacb8b
-  Built:            Wed Mar 11 01:29:16 2020
+  Version:          23.0.3
+  API version:      1.42 (minimum version 1.12)
+  Go version:       go1.19.7
+  Git commit:       59118bf
+  Built:            Tue Apr  4 22:05:41 2023
   OS/Arch:          linux/amd64
   Experimental:     true
  [...]

@@ -110,10 +110,10 @@ Show all nodes that have a `region` node label set:
 $ docker node ls --filter node.label=region
 
 ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
-yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           20.10.2
-2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        20.10.2
-hc0pu7ntc7s4uvj4pv7z7pz15     swarm-test-03   Ready     Active         Reachable        20.10.2
-n41b2cijmhifxxvz56vwrs12q     swarm-test-04   Ready     Active                          20.10.2
+yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           23.0.3
+2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        23.0.3
+hc0pu7ntc7s4uvj4pv7z7pz15     swarm-test-03   Ready     Active         Reachable        23.0.3
+n41b2cijmhifxxvz56vwrs12q     swarm-test-04   Ready     Active                          23.0.3
 ```
 
 Show all nodes that have a `region` node label, with value `region-a`:
@@ -122,8 +122,8 @@ Show all nodes that have a `region` node label, with value `region-a`:
 $ docker node ls --filter node.label=region=region-a
 
 ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
-yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           20.10.2
-2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        20.10.2
+yg550ettvsjn6g6t840iaiwgb *   swarm-test-01   Ready     Active         Leader           23.0.3
+2lm9w9kbepgvkzkkeyku40e65     swarm-test-02   Ready     Active         Reachable        23.0.3
 ```
 
 #### membership
@@ -203,7 +203,7 @@ e216jshn25ckzbvmwlnh5jr3g: swarm-manager1 Ready
 To list all nodes in JSON format, use the `json` directive:
 ```console
 $ docker node ls --format json
-{"Availability":"Active","EngineVersion":"20.10.5","Hostname":"docker-desktop","ID":"k8f4w7qtzpj5sqzclcqafw35g","ManagerStatus":"Leader","Self":true,"Status":"Ready","TLSStatus":"Ready"}
+{"Availability":"Active","EngineVersion":"23.0.3","Hostname":"docker-desktop","ID":"k8f4w7qtzpj5sqzclcqafw35g","ManagerStatus":"Leader","Self":true,"Status":"Ready","TLSStatus":"Ready"}
 ```
 
 ## Related commands
