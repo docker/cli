@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.18
 
+replace github.com/spf13/cobra => github.com/spf13/cobra v1.6.1-0.20230225213037-567ea8ebc9b4
+
 require (
 	github.com/containerd/containerd v1.6.20
 	github.com/creack/pty v1.1.11

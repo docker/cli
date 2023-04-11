@@ -313,8 +313,8 @@ rootCmd.MarkFlagsRequiredTogether("username", "password")
 You can also prevent different flags from being provided together if they represent mutually
 exclusive options such as specifying an output format as either `--json` or `--yaml` but never both:
 ```go
-rootCmd.Flags().BoolVar(&u, "json", false, "Output in JSON")
-rootCmd.Flags().BoolVar(&pw, "yaml", false, "Output in YAML")
+rootCmd.Flags().BoolVar(&ofJson, "json", false, "Output in JSON")
+rootCmd.Flags().BoolVar(&ofYaml, "yaml", false, "Output in YAML")
 rootCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 ```
 
@@ -349,7 +349,7 @@ shown below:
 ```go
 var cmd = &cobra.Command{
   Short: "hello",
-  Args: MatchAll(ExactArgs(2), OnlyValidArgs),
+  Args: cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
   Run: func(cmd *cobra.Command, args []string) {
     fmt.Println("Hello, World!")
   },

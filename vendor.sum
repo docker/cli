@@ -230,7 +230,6 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/imdario/mergo v0.3.13 h1:lFzP57bqS/wsqKssCGmtLAb8A0wKjLGrve2q3PPVcBk=
 github.com/imdario/mergo v0.3.13/go.mod h1:4lJ1jqUDcsbIECGy0RUJAXNIhg+6ocWgb1ALK2O4oXg=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/inconshreveable/mousetrap v1.0.1/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/jinzhu/gorm v0.0.0-20170222002820-5409931a1bb8 h1:CZkYfurY6KGhVtlalI4QwQ6T0Cu6iuY3e0x5RLu96WE=
@@ -378,9 +377,8 @@ github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/spf13/cast v0.0.0-20150508191742-4d07383ffe94 h1:JmfC365KywYwHB946TTiQWEb8kqPY+pybPLoGE9GgVk=
 github.com/spf13/cast v0.0.0-20150508191742-4d07383ffe94/go.mod h1:r2rcYCSwa1IExKTDiTfzaxqT2FNHs8hODu4LnUfgKEg=
-github.com/spf13/cobra v0.0.1/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3XqQ=
-github.com/spf13/cobra v1.6.1 h1:o94oiPyS4KD1mPy2fmcYYHHfCxLqYjJOhGsCHFZtEzA=
-github.com/spf13/cobra v1.6.1/go.mod h1:IOw/AERYS7UzyrGinqmz6HLUo219MORXGxhbaJUqzrY=
+github.com/spf13/cobra v1.6.1-0.20230225213037-567ea8ebc9b4 h1:Lz7CkhugL9Vx4mZwiEYS0VmG3z/g07fQf0oNkIvoSRk=
+github.com/spf13/cobra v1.6.1-0.20230225213037-567ea8ebc9b4/go.mod h1:uLxZILRyS/50WlhOIKD7W6V5bgeIt+4sICxh6uRMrb0=
 github.com/spf13/jwalterweatherman v0.0.0-20141219030609-3d60171a6431 h1:XTHrT015sxHyJ5FnQ0AeemSspZWaDq7DoTRW0EVsDCE=
 github.com/spf13/jwalterweatherman v0.0.0-20141219030609-3d60171a6431/go.mod h1:cQK4TGJAtQXfYWX+Ddv3mKDzgVb68N+wFjFa4jdeBTo=
 github.com/spf13/pflag v1.0.0/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
