@@ -16,11 +16,9 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/versions"
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -114,19 +112,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 }
 
 func pullImage(ctx context.Context, dockerCli command.Cli, image string, platform string, out io.Writer) error {
-	ref, err := reference.ParseNormalizedNamed(image)
-	if err != nil {
-		return err
-	}
-
-	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return err
-	}
-
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
 	if err != nil {
 		return err
 	}
