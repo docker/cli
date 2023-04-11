@@ -63,16 +63,12 @@ func runSearch(dockerCli command.Cli, options searchOptions) error {
 		return err
 	}
 
-	searchOptions := types.ImageSearchOptions{
+	results, err := dockerCli.Client().ImageSearch(ctx, options.term, types.ImageSearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		Filters:       options.filter.Value(),
 		Limit:         options.limit,
-	}
-
-	clnt := dockerCli.Client()
-
-	results, err := clnt.ImageSearch(ctx, options.term, searchOptions)
+	})
 	if err != nil {
 		return err
 	}
