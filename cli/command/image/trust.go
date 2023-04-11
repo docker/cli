@@ -264,7 +264,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
 	ref := reference.FamiliarString(imgRefAndAuth.Reference())
 
-	encodedAuth, err := command.EncodeAuthToBase64(*imgRefAndAuth.AuthConfig())
+	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
 	}
