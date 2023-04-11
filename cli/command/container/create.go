@@ -131,12 +131,10 @@ func pullImage(ctx context.Context, dockerCli command.Cli, image string, platfor
 		return err
 	}
 
-	options := types.ImageCreateOptions{
+	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, types.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
 		Platform:     platform,
-	}
-
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, options)
+	})
 	if err != nil {
 		return err
 	}
