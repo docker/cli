@@ -89,7 +89,14 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 
 // ConfigureAuth handles prompting of user's username and password if needed
 func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes.AuthConfig, isDefaultRegistry bool) error {
-	// On Windows, force the use of the regular OS stdin stream. Fixes #14336/#14210
+	// On Windows, force the use of the regular OS stdin stream.
+	//
+	// See:
+	// - https://github.com/moby/moby/issues/14336
+	// - https://github.com/moby/moby/issues/14210
+	// - https://github.com/moby/moby/pull/17738
+	//
+	// TODO(thaJeztah): we need to confirm if this special handling is still needed, as we may not be doing this in other places.
 	if runtime.GOOS == "windows" {
 		cli.SetIn(streams.NewIn(os.Stdin))
 	}
