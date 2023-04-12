@@ -390,7 +390,7 @@ type ServiceVolumeConfig struct {
 	Source      string                `yaml:",omitempty" json:"source,omitempty"`
 	Target      string                `yaml:",omitempty" json:"target,omitempty"`
 	ReadOnly    bool                  `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
-	Consistency string                `yaml:",omitempty" json:"consistency,omitempty"`
+	Consistency mount.Consistency     `yaml:",omitempty" json:"consistency,omitempty"`
 	Bind        *ServiceVolumeBind    `yaml:",omitempty" json:"bind,omitempty"`
 	Volume      *ServiceVolumeVolume  `yaml:",omitempty" json:"volume,omitempty"`
 	Tmpfs       *ServiceVolumeTmpfs   `yaml:",omitempty" json:"tmpfs,omitempty"`
