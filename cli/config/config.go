@@ -111,7 +111,19 @@ func load(configDir string) (*configfile.ConfigFile, bool, error) {
 		configDir = Dir()
 	}
 
-	filename := filepath.Join(configDir, ConfigFileName)
+	var filename string
+	stat, err := os.Stat(configDir)
+	if err != nil {
+		// configDir does not exists
+		return nil, errors.Wrap(err, configDir)
+	} else if stat.IsDir() {
+		// configDir is a directory, use it as base for config.json
+		filename = filepath.Join(configDir, ConfigFileName)
+	} else {
+		// configDir is a file, use it as filename
+		filename = configDir
+	}
+
 	configFile := configfile.New(filename)
 
 	// Try happy path first - latest config file
