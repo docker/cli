@@ -426,7 +426,7 @@ func invalidPluginReason(cmd *cobra.Command) string {
 	return cmd.Annotations[pluginmanager.CommandAnnotationPluginInvalid]
 }
 
-var usageTemplate = `Usage:
+const usageTemplate = `Usage:
 
 {{- if not .HasSubCommands}}  {{.UseLine}}{{end}}
 {{- if .HasSubCommands}}  {{ .CommandPath}}{{- if .HasAvailableFlags}} [OPTIONS]{{end}} COMMAND{{end}}
@@ -525,5 +525,5 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
 `
 
-var helpTemplate = `
+const helpTemplate = `
 {{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
