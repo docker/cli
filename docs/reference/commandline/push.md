@@ -54,7 +54,20 @@ allowed when naming images:
 $ docker container commit c16378f943fe rhel-httpd:latest
 ```
 
-Now, push the image to the registry using the image ID. In this example the
+Now, push the image to the registry using the image ID.  In this example the registry is on 
+host named `registry-host` and listening on port `5000`. Additionally, the username for 
+authentication is specified as "myadmin" and the remote name/tag is "rhel-httpd:latest". Note, 
+the syntax generally follows the format: 
+
+```console
+$ docker image tag [OPTIONS] IMAGE[:TAG] [REGISTRYHOST:][PORT/][USERNAME/]NAME[:TAG]
+```
+
+To do
+this, tag the image with the host name or IP address, and the port of the
+registry: 
+
+In this example the
 registry is on host named `registry-host` and listening on port `5000`. To do
 this, tag the image with the host name or IP address, and the port of the
 registry:
