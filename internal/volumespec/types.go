@@ -4,16 +4,16 @@ import "github.com/moby/moby/api/types/mount"
 
 // VolumeConfig are references to a volume used by a service
 type VolumeConfig struct {
-	Type        mount.Type   `yaml:",omitempty" json:"type,omitempty"`
-	Source      string       `yaml:",omitempty" json:"source,omitempty"`
-	Target      string       `yaml:",omitempty" json:"target,omitempty"`
-	ReadOnly    bool         `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
-	Consistency string       `yaml:",omitempty" json:"consistency,omitempty"`
-	Bind        *BindOpts    `yaml:",omitempty" json:"bind,omitempty"`
-	Volume      *VolumeOpts  `yaml:",omitempty" json:"volume,omitempty"`
-	Image       *ImageOpts   `yaml:",omitempty" json:"image,omitempty"`
-	Tmpfs       *TmpFsOpts   `yaml:",omitempty" json:"tmpfs,omitempty"`
-	Cluster     *ClusterOpts `yaml:",omitempty" json:"cluster,omitempty"`
+	Type        mount.Type        `yaml:",omitempty" json:"type,omitempty"`
+	Source      string            `yaml:",omitempty" json:"source,omitempty"`
+	Target      string            `yaml:",omitempty" json:"target,omitempty"`
+	ReadOnly    bool              `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
+	Consistency mount.Consistency `yaml:",omitempty" json:"consistency,omitempty"`
+	Bind        *BindOpts         `yaml:",omitempty" json:"bind,omitempty"`
+	Volume      *VolumeOpts       `yaml:",omitempty" json:"volume,omitempty"`
+	Image       *ImageOpts        `yaml:",omitempty" json:"image,omitempty"`
+	Tmpfs       *TmpFsOpts        `yaml:",omitempty" json:"tmpfs,omitempty"`
+	Cluster     *ClusterOpts      `yaml:",omitempty" json:"cluster,omitempty"`
 }
 
 // BindOpts are options for a service volume of type bind

@@ -30,7 +30,7 @@ func createMountFromVolume(volume composetypes.ServiceVolumeConfig) mount.Mount 
 		Target:      volume.Target,
 		ReadOnly:    volume.ReadOnly,
 		Source:      volume.Source,
-		Consistency: mount.Consistency(volume.Consistency),
+		Consistency: volume.Consistency,
 	}
 }
 
