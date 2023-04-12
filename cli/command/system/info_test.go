@@ -278,8 +278,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
-					Context: "default",
-					Debug:   true,
+					clientVersion: clientVersion{
+						Platform: &platformInfo{Name: "Docker Engine - Community"},
+						Version:  "24.0.0",
+						Context:  "default",
+					},
+					Debug: true,
 				},
 			},
 			prettyGolden: "docker-info-no-swarm",
@@ -290,8 +294,8 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
-					Context: "default",
-					Plugins: samplePluginsInfo,
+					clientVersion: clientVersion{Context: "default"},
+					Plugins:       samplePluginsInfo,
 				},
 			},
 			prettyGolden:   "docker-info-plugins",
@@ -302,7 +306,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			doc: "info with nil labels",
 			dockerInfo: info{
 				Info:       &sampleInfoLabelsNil,
-				ClientInfo: &clientInfo{Context: "default"},
+				ClientInfo: &clientInfo{clientVersion: clientVersion{Context: "default"}},
 			},
 			prettyGolden: "docker-info-with-labels-nil",
 		},
@@ -310,7 +314,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			doc: "info with empty labels",
 			dockerInfo: info{
 				Info:       &sampleInfoLabelsEmpty,
-				ClientInfo: &clientInfo{Context: "default"},
+				ClientInfo: &clientInfo{clientVersion: clientVersion{Context: "default"}},
 			},
 			prettyGolden: "docker-info-with-labels-empty",
 		},
@@ -319,8 +323,8 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &infoWithSwarm,
 				ClientInfo: &clientInfo{
-					Context: "default",
-					Debug:   false,
+					clientVersion: clientVersion{Context: "default"},
+					Debug:         false,
 				},
 			},
 			prettyGolden: "docker-info-with-swarm",
@@ -331,8 +335,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &infoWithWarningsLinux,
 				ClientInfo: &clientInfo{
-					Context: "default",
-					Debug:   true,
+					clientVersion: clientVersion{
+						Platform: &platformInfo{Name: "Docker Engine - Community"},
+						Version:  "24.0.0",
+						Context:  "default",
+					},
+					Debug: true,
 				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
@@ -344,8 +352,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 			dockerInfo: info{
 				Info: &sampleInfoDaemonWarnings,
 				ClientInfo: &clientInfo{
-					Context: "default",
-					Debug:   true,
+					clientVersion: clientVersion{
+						Platform: &platformInfo{Name: "Docker Engine - Community"},
+						Version:  "24.0.0",
+						Context:  "default",
+					},
+					Debug: true,
 				},
 			},
 			prettyGolden:   "docker-info-no-swarm",
@@ -376,6 +388,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			expectedError:  "errors pretty printing info",
 		},
 	} {
+		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			err := prettyPrintInfo(cli, tc.dockerInfo)
@@ -429,6 +442,7 @@ func TestFormatInfo(t *testing.T) {
 			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.info`,
 		},
 	} {
+		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			info := info{

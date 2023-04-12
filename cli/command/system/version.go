@@ -23,7 +23,7 @@ import (
 )
 
 const defaultVersionTemplate = `{{with .Client -}}
-Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
+Client:{{if ne .Platform nil}}{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}{{end}}
  Version:	{{.Version}}
  API version:	{{.APIVersion}}{{if ne .APIVersion .DefaultAPIVersion}} (downgraded from {{.DefaultAPIVersion}}){{end}}
  Go version:	{{.GoVersion}}
@@ -33,7 +33,7 @@ Client:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  Context:	{{.Context}}
 {{- end}}
 
-{{- if .ServerOK}}{{with .Server}}
+{{- if ne .Server nil}}{{with .Server}}
 
 Server:{{if ne .Platform.Name ""}} {{.Platform.Name}}{{end}}
  {{- range $component := .Components}}
@@ -66,24 +66,45 @@ type versionInfo struct {
 	Server *types.Version
 }
 
-type clientVersion struct {
-	Platform struct{ Name string } `json:",omitempty"`
-
-	Version           string
-	APIVersion        string `json:"ApiVersion"`
-	DefaultAPIVersion string `json:"DefaultAPIVersion,omitempty"`
-	GitCommit         string
-	GoVersion         string
-	Os                string
-	Arch              string
-	BuildTime         string `json:",omitempty"`
-	Context           string
+type platformInfo struct {
+	Name string `json:"Name,omitempty"`
 }
 
-// ServerOK returns true when the client could connect to the docker server
-// and parse the information received. It returns false otherwise.
-func (v versionInfo) ServerOK() bool {
-	return v.Server != nil
+type clientVersion struct {
+	Platform          *platformInfo `json:"Platform,omitempty"`
+	Version           string        `json:"Version,omitempty"`
+	APIVersion        string        `json:"ApiVersion,omitempty"`
+	DefaultAPIVersion string        `json:"DefaultAPIVersion,omitempty"`
+	GitCommit         string        `json:"GitCommit,omitempty"`
+	GoVersion         string        `json:"GoVersion,omitempty"`
+	Os                string        `json:"Os,omitempty"`
+	Arch              string        `json:"Arch,omitempty"`
+	BuildTime         string        `json:"BuildTime,omitempty"`
+	Context           string        `json:"Context"`
+}
+
+// newClientVersion constructs a new clientVersion. If a dockerCLI is
+// passed as argument, additional information is included (API version),
+// which may invoke an API connection. Pass nil to omit the additional
+// information.
+func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
+	v := clientVersion{
+		Version:   version.Version,
+		GoVersion: runtime.Version(),
+		GitCommit: version.GitCommit,
+		BuildTime: reformatDate(version.BuildTime),
+		Os:        runtime.GOOS,
+		Arch:      arch(),
+		Context:   contextName,
+	}
+	if version.PlatformName != "" {
+		v.Platform = &platformInfo{Name: version.PlatformName}
+	}
+	if dockerCli != nil {
+		v.APIVersion = dockerCli.CurrentVersion()
+		v.DefaultAPIVersion = dockerCli.DefaultVersion()
+	}
+	return v
 }
 
 // NewVersionCommand creates a new cobra.Command for `docker version`
@@ -133,20 +154,8 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	// TODO print error if kubernetes is used?
 
 	vd := versionInfo{
-		Client: clientVersion{
-			Platform:          struct{ Name string }{version.PlatformName},
-			Version:           version.Version,
-			APIVersion:        dockerCli.CurrentVersion(),
-			DefaultAPIVersion: dockerCli.DefaultVersion(),
-			GoVersion:         runtime.Version(),
-			GitCommit:         version.GitCommit,
-			BuildTime:         reformatDate(version.BuildTime),
-			Os:                runtime.GOOS,
-			Arch:              arch(),
-			Context:           dockerCli.CurrentContext(),
-		},
+		Client: newClientVersion(dockerCli.CurrentContext(), dockerCli),
 	}
-
 	sv, err := dockerCli.Client().ServerVersion(context.Background())
 	if err == nil {
 		vd.Server = &sv
