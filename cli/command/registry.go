@@ -118,7 +118,6 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 		if err != nil {
 			return err
 		}
-		flUser = strings.TrimSpace(flUser)
 		if flUser == "" {
 			flUser = authconfig.Username
 		}
@@ -153,13 +152,14 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 }
 
 // readInput reads, and returns user input from in. It tries to return a
-// single line, not including the end-of-line bytes.
+// single line, not including the end-of-line bytes, and trims leading
+// and trailing whitespace.
 func readInput(in io.Reader) (string, error) {
 	line, _, err := bufio.NewReader(in).ReadLine()
 	if err != nil {
 		return "", errors.Wrap(err, "error while reading input")
 	}
-	return string(line), nil
+	return strings.TrimSpace(string(line)), nil
 }
 
 func promptWithDefault(out io.Writer, prompt string, configDefault string) {
