@@ -140,13 +140,14 @@ line:
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
 
-* `HTTP_PROXY`
-* `HTTPS_PROXY`
-* `NO_PROXY`
+| Variable      | Description                                                                    |
+|:--------------|:-------------------------------------------------------------------------------|
+| `HTTP_PROXY`  | Proxy URL for HTTP requests unless overridden by NoProxy.                      |
+| `HTTPS_PROXY` | Proxy URL for HTTPS requests unless overridden by NoProxy.                     |
+| `NO_PROXY`    | Comma-separated values specifying hosts that should be excluded from proxying. |
 
-These Go environment variables are case-insensitive. See the
-[Go specification](https://golang.org/pkg/net/http/) for details on these
-variables.
+See the [Go specification](https://pkg.go.dev/golang.org/x/net/http/httpproxy#Config)
+for details on these variables.
 
 ## Configuration files
 
