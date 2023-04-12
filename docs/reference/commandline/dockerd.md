@@ -42,7 +42,7 @@ Options:
       --data-root string                      Root directory of persistent Docker state (default "/var/lib/docker")
   -D, --debug                                 Enable debug mode
       --default-address-pool pool-options     Default address pools for node specific local networks
-      --default-cgroupns-mode string          Default mode for containers cgroup namespace ("host" | "private") (default "host")
+      --default-cgroupns-mode string          Default mode for containers cgroup namespace ("host" | "private") (default "host" for cgroups v1, and "private" for cgroups v2)
       --default-gateway ip                    Container default gateway IPv4 address
       --default-gateway-v6 ip                 Container default gateway IPv6 address
       --default-ipc-mode string               Default mode for containers ipc ("shareable" | "private") (default "private")
