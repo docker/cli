@@ -29,13 +29,32 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       -
         name: Run
         uses: docker/bake-action@v2
         with:
           targets: ${{ matrix.target }}
+
+  # check that the generated Markdown and the checked-in files match
+  validate-md:
+    runs-on: ubuntu-20.04
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Generate
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile mddocs
+      -
+        name: Validate
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo 'fail: generated files do not match checked-in files'
+            git --no-pager diff
+            exit 1
+          fi
 
   validate-make:
     runs-on: ubuntu-20.04
@@ -49,8 +68,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       -
         name: Run
         shell: 'script --return --quiet --command "bash {0}"'
