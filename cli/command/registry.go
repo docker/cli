@@ -113,7 +113,11 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 			fmt.Fprintln(cli.Out(), "Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.")
 		}
 		promptWithDefault(cli.Out(), "Username", authconfig.Username)
-		flUser = readInput(cli.In(), cli.Out())
+		var err error
+		flUser, err = readInput(cli.In())
+		if err != nil {
+			return err
+		}
 		flUser = strings.TrimSpace(flUser)
 		if flUser == "" {
 			flUser = authconfig.Username
@@ -128,12 +132,15 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 			return err
 		}
 		fmt.Fprintf(cli.Out(), "Password: ")
-		term.DisableEcho(cli.In().FD(), oldState)
-
-		flPassword = readInput(cli.In(), cli.Out())
+		_ = term.DisableEcho(cli.In().FD(), oldState)
+		defer func() {
+			_ = term.RestoreTerminal(cli.In().FD(), oldState)
+		}()
+		flPassword, err = readInput(cli.In())
+		if err != nil {
+			return err
+		}
 		fmt.Fprint(cli.Out(), "\n")
-
-		term.RestoreTerminal(cli.In().FD(), oldState)
 		if flPassword == "" {
 			return errors.Errorf("Error: Password Required")
 		}
@@ -145,14 +152,14 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 	return nil
 }
 
-func readInput(in io.Reader, out io.Writer) string {
-	reader := bufio.NewReader(in)
-	line, _, err := reader.ReadLine()
+// readInput reads, and returns user input from in. It tries to return a
+// single line, not including the end-of-line bytes.
+func readInput(in io.Reader) (string, error) {
+	line, _, err := bufio.NewReader(in).ReadLine()
 	if err != nil {
-		fmt.Fprintln(out, err.Error())
-		os.Exit(1)
+		return "", errors.Wrap(err, "error while reading input")
 	}
-	return string(line)
+	return string(line), nil
 }
 
 func promptWithDefault(out io.Writer, prompt string, configDefault string) {
