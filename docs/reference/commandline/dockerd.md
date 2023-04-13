@@ -18,7 +18,7 @@ redirect_from:
 # daemon
 
 ```markdown
-Usage: dockerd COMMAND
+Usage: dockerd [OPTIONS]
 
 A self-sufficient runtime for containers.
 
@@ -35,14 +35,14 @@ Options:
       --containerd-namespace string           Containerd namespace to use (default "moby")
       --containerd-plugins-namespace string   Containerd namespace to use for plugins (default "plugins.moby")
       --cpu-rt-period int                     Limit the CPU real-time period in microseconds for the
-                                              parent cgroup for all containers
+                                              parent cgroup for all containers (not supported with cgroups v2)
       --cpu-rt-runtime int                    Limit the CPU real-time runtime in microseconds for the
-                                              parent cgroup for all containers
+                                              parent cgroup for all containers (not supported with cgroups v2)
       --cri-containerd                        start containerd with cri
       --data-root string                      Root directory of persistent Docker state (default "/var/lib/docker")
   -D, --debug                                 Enable debug mode
       --default-address-pool pool-options     Default address pools for node specific local networks
-      --default-cgroupns-mode string          Default mode for containers cgroup namespace ("host" | "private") (default "host")
+      --default-cgroupns-mode string          Default mode for containers cgroup namespace ("host" | "private") (default "private")
       --default-gateway ip                    Container default gateway IPv4 address
       --default-gateway-v6 ip                 Container default gateway IPv6 address
       --default-ipc-mode string               Default mode for containers ipc ("shareable" | "private") (default "private")
@@ -62,6 +62,8 @@ Options:
   -H, --host list                             Daemon socket(s) to connect to
       --host-gateway-ip ip                    IP address that the special 'host-gateway' string in --add-host resolves to.
                                               Defaults to the IP address of the default bridge
+      --http-proxy string                     HTTP proxy URL to use for outgoing traffic
+      --https-proxy string                    HTTPS proxy URL to use for outgoing traffic
       --icc                                   Enable inter-container communication (default true)
       --init                                  Run an init in the container to forward signals and reap processes
       --init-path string                      Path to the docker-init binary
@@ -69,8 +71,8 @@ Options:
       --ip ip                                 Default IP when binding container ports (default 0.0.0.0)
       --ip-forward                            Enable net.ipv4.ip_forward (default true)
       --ip-masq                               Enable IP masquerading (default true)
+      --ip6tables                             Enable addition of ip6tables rules (experimental)
       --iptables                              Enable addition of iptables rules (default true)
-      --ip6tables                             Enable addition of ip6tables rules (default false)
       --ipv6                                  Enable IPv6 networking
       --label list                            Set key=value labels to the daemon
       --live-restore                          Enable live restore of docker when containers are still running
@@ -81,16 +83,17 @@ Options:
       --max-concurrent-uploads int            Set the max concurrent uploads (default 5)
       --max-download-attempts int             Set the max download attempts for each pull (default 5)
       --metrics-addr string                   Set default address and port to serve the metrics api on
-      --mtu int                               Set the containers network MTU
+      --mtu int                               Set the containers network MTU (default 1500)
       --network-control-plane-mtu int         Network Control plane MTU (default 1500)
       --no-new-privileges                     Set no-new-privileges by default for new containers
+      --no-proxy string                       Comma-separated list of hosts or IP addresses for which the proxy is skipped
       --node-generic-resource list            Advertise user-defined resource
-      --oom-score-adjust int                  Set the oom_score_adj for the daemon (default -500)
+      --oom-score-adjust int                  Set the oom_score_adj for the daemon
   -p, --pidfile string                        Path to use for daemon PID file (default "/var/run/docker.pid")
       --raw-logs                              Full timestamps without ANSI coloring
       --registry-mirror list                  Preferred registry mirror
       --rootless                              Enable rootless mode; typically used with RootlessKit
-      --seccomp-profile string                Path to seccomp profile
+      --seccomp-profile string                Path to seccomp profile. Use "unconfined" to disable the default seccomp profile (default "builtin")
       --selinux-enabled                       Enable selinux support
       --shutdown-timeout int                  Set the default shutdown timeout (default 15)
   -s, --storage-driver string                 Storage driver to use
@@ -129,15 +132,41 @@ to [the `daemon.json` file](#daemon-configuration-file).
 For easy reference, the following list of environment variables are supported
 by the `dockerd` command line:
 
-* `DOCKER_DRIVER` The graph driver to use.
-* `DOCKER_NOWARN_KERNEL_VERSION` Prevent warnings that your Linux kernel is
-  unsuitable for Docker.
-* `DOCKER_RAMDISK` If set this will disable 'pivot_root'.
-* `DOCKER_TMPDIR` Location for temporary Docker files.
-* `MOBY_DISABLE_PIGZ` Do not use [`unpigz`](https://linux.die.net/man/1/pigz) to
-  decompress layers in parallel when pulling images, even if it is installed.
+| Variable            | Description                                                                                                                                                                       |
+|:--------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DOCKER_CERT_PATH`  | Location of your authentication keys. This variable is used both by the [`docker` CLI](cli.md) and the `dockerd` daemon.                                                          |
+| `DOCKER_DRIVER`     | The storage driver to use.                                                                                                                                                        |
+| `DOCKER_RAMDISK`    | If set this disables 'pivot_root'.                                                                                                                                                |
+| `DOCKER_TLS_VERIFY` | When set Docker uses TLS and verifies the remote. This variable is used both by the  [`docker` CLI](cli.md) and the `dockerd` daemon.                                             |
+| `DOCKER_TMPDIR`     | Location for temporary files created by the daemon.                                                                                                                               |
+| `HTTP_PROXY`        | Proxy URL for HTTP requests unless overridden by NoProxy. See the [Go specification](https://pkg.go.dev/golang.org/x/net/http/httpproxy#Config) for details.                      |
+| `HTTPS_PROXY`       | Proxy URL for HTTPS requests unless overridden by NoProxy. See the [Go specification](https://pkg.go.dev/golang.org/x/net/http/httpproxy#Config) for details.                     |
+| `MOBY_DISABLE_PIGZ` | Disables the use of [`unpigz`](https://linux.die.net/man/1/pigz) to  decompress layers in parallel when pulling images, even if it is installed.                                  |                                                                                                                                                               |
+| `NO_PROXY`          | Comma-separated values specifying hosts that should be excluded from proxying. See the [Go specification](https://pkg.go.dev/golang.org/x/net/http/httpproxy#Config) for details. |
 
 ## Examples
+
+### Proxy configuration
+
+> **Note**
+> 
+> Refer to the [Docker Desktop manual](https://docs.docker.com/desktop/networking/#httphttps-proxy-support)
+> if you are running [Docker Desktop](https://docs.docker.com/desktop/).
+
+If you are behind an HTTP proxy server, for example in corporate settings,
+you may have to configure the Docker daemon to use the proxy server for
+operations such as pulling and pushing images. The daemon can be configured
+in three ways:
+
+1. Using environment variables (`HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`).
+2. Using the "http-proxy", "https-proxy", and "no-proxy" fields in the
+  [daemon configuration file](#daemon-configuration-file) (Docker Engine 23.0 or newer).
+3. Using the `--http-proxy`, `--https-proxy`, and `--no-proxy` command-line
+  options. (Docker Engine 23.0 or newer).
+
+The command-line and configuration file options take precedence over environment
+variables. Refer to [control and configure Docker with systemd](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
+to set these environment variables on a host using `systemd`.
 
 ### Daemon socket option
 
@@ -1222,6 +1251,9 @@ This is a full example of the allowed configuration options on Linux:
   "fixed-cidr-v6": "",
   "group": "",
   "hosts": [],
+  "http-proxy": "http://proxy.example.com:80",
+  "https-proxy": "https://proxy.example.com:443",
+  "no-proxy": "*.test.example.com,.example.org",
   "icc": false,
   "init": false,
   "init-path": "/usr/libexec/docker-init",
@@ -1255,7 +1287,7 @@ This is a full example of the allowed configuration options on Linux:
     "NVIDIA-GPU=UUID1",
     "NVIDIA-GPU=UUID2"
   ],
-  "oom-score-adjust": -500,
+  "oom-score-adjust": 0,
   "pidfile": "",
   "raw-logs": false,
   "registry-mirrors": [],
