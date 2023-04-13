@@ -20,6 +20,8 @@ import (
 )
 
 // EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload.
+//
+// Deprecated: use [registrytypes.EncodeAuthConfig] instead.
 func EncodeAuthToBase64(authConfig registrytypes.AuthConfig) (string, error) {
 	return registrytypes.EncodeAuthConfig(authConfig)
 }
