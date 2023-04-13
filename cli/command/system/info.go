@@ -42,6 +42,7 @@ type info struct {
 	// object.
 	*types.Info  `json:",omitempty"`
 	ServerErrors []string `json:",omitempty"`
+	UserName     string   `json:"-"`
 
 	ClientInfo   *clientInfo `json:",omitempty"`
 	ClientErrors []string    `json:",omitempty"`
@@ -113,6 +114,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	if opts.format == "" {
+		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
 		return prettyPrintInfo(dockerCli, info)
 	}
 	return formatInfo(dockerCli, info, opts.format)
@@ -174,7 +176,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	fmt.Fprintln(dockerCli.Out())
 	fmt.Fprintln(dockerCli.Out(), "Server:")
 	if info.Info != nil {
-		for _, err := range prettyPrintServerInfo(dockerCli, *info.Info) {
+		for _, err := range prettyPrintServerInfo(dockerCli, &info) {
 			info.ServerErrors = append(info.ServerErrors, err.Error())
 		}
 	}
@@ -212,7 +214,7 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 }
 
 //nolint:gocyclo
-func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
+func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 	var errs []error
 
 	fmt.Fprintln(dockerCli.Out(), " Containers:", info.Containers)
@@ -247,7 +249,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	fmt.Fprintln(dockerCli.Out(), "  Log:", strings.Join(info.Plugins.Log, " "))
 
 	fmt.Fprintln(dockerCli.Out(), " Swarm:", info.Swarm.LocalNodeState)
-	printSwarmInfo(dockerCli, info)
+	printSwarmInfo(dockerCli, *info.Info)
 
 	if len(info.Runtimes) > 0 {
 		fmt.Fprint(dockerCli.Out(), " Runtimes:")
@@ -319,10 +321,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	fprintlnNonEmpty(dockerCli.Out(), " HTTP Proxy:", info.HTTPProxy)
 	fprintlnNonEmpty(dockerCli.Out(), " HTTPS Proxy:", info.HTTPSProxy)
 	fprintlnNonEmpty(dockerCli.Out(), " No Proxy:", info.NoProxy)
-
-	u := dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
-	fprintlnNonEmpty(dockerCli.Out(), " Username:", u)
-
+	fprintlnNonEmpty(dockerCli.Out(), " Username:", info.UserName)
 	if len(info.Labels) > 0 {
 		fmt.Fprintln(dockerCli.Out(), " Labels:")
 		for _, lbl := range info.Labels {
@@ -367,7 +366,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 
 	fmt.Fprint(dockerCli.Out(), "\n")
 
-	printServerWarnings(dockerCli, info)
+	printServerWarnings(dockerCli, *info.Info)
 	return errs
 }
 
