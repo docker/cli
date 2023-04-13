@@ -309,8 +309,22 @@ func TestContainerListWithFormat(t *testing.T) {
 			}, nil
 		},
 	})
-	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}")
-	assert.NilError(t, cmd.Execute())
-	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-format.golden")
+
+	t.Run("with format", func(t *testing.T) {
+		cli.OutBuffer().Reset()
+		cmd := newListCommand(cli)
+		assert.Check(t, cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}"))
+		assert.NilError(t, cmd.Execute())
+		golden.Assert(t, cli.OutBuffer().String(), "container-list-with-format.golden")
+	})
+
+	t.Run("with format and quiet", func(t *testing.T) {
+		cli.OutBuffer().Reset()
+		cmd := newListCommand(cli)
+		assert.Check(t, cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}"))
+		assert.Check(t, cmd.Flags().Set("quiet", "true"))
+		assert.NilError(t, cmd.Execute())
+		assert.Equal(t, cli.ErrBuffer().String(), "WARNING: Ignoring custom format, because both --format and --quiet are set.\n")
+		golden.Assert(t, cli.OutBuffer().String(), "container-list-quiet.golden")
+	})
 }
