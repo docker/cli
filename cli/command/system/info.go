@@ -324,7 +324,6 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 		if len(u) > 0 {
 			fmt.Fprintln(dockerCli.Out(), " Username:", u)
 		}
-		fmt.Fprintln(dockerCli.Out(), " Registry:", info.IndexServerAddress)
 	}
 
 	if len(info.Labels) > 0 {

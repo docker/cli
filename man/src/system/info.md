@@ -82,7 +82,6 @@ Server:
  Docker Root Dir: /var/lib/docker
  Debug Mode: false
  Username: gordontheturtle
- Registry: https://index.docker.io/v1/
  Experimental: false
  Insecure Registries:
   myinsecurehost:5000
