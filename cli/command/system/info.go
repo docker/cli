@@ -115,6 +115,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 
 	if opts.format == "" {
 		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
+		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
 		return prettyPrintInfo(dockerCli, info)
 	}
 	return formatInfo(dockerCli, info, opts.format)
@@ -366,7 +367,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 
 	fmt.Fprint(dockerCli.Out(), "\n")
 
-	printServerWarnings(dockerCli, *info.Info)
+	printServerWarnings(dockerCli, info)
 	return errs
 }
 
@@ -440,16 +441,16 @@ func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 	}
 }
 
-func printServerWarnings(dockerCli command.Cli, info types.Info) {
-	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.42") {
-		printSecurityOptionsWarnings(dockerCli, info)
+func printServerWarnings(dockerCli command.Cli, info *info) {
+	if versions.LessThan(info.ClientInfo.APIVersion, "1.42") {
+		printSecurityOptionsWarnings(dockerCli, *info.Info)
 	}
 	if len(info.Warnings) > 0 {
 		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
 		return
 	}
 	// daemon didn't return warnings. Fallback to old behavior
-	printServerWarningsLegacy(dockerCli, info)
+	printServerWarningsLegacy(dockerCli, *info.Info)
 }
 
 // printSecurityOptionsWarnings prints warnings based on the security options
