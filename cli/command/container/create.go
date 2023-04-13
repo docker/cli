@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -19,7 +20,6 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -112,41 +112,27 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 	return nil
 }
 
-func pullImage(ctx context.Context, dockerCli command.Cli, image string, platform string, out io.Writer) error {
-	ref, err := reference.ParseNormalizedNamed(image)
+// FIXME(thaJeztah): this is the only code-path that uses APIClient.ImageCreate. Rewrite this to use the regular "pull" code (or vice-versa).
+func pullImage(ctx context.Context, dockerCli command.Cli, image string, opts *createOptions) error {
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
 	if err != nil {
 		return err
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return err
-	}
-
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
-	if err != nil {
-		return err
-	}
-
-	options := types.ImageCreateOptions{
+	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, types.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
-		Platform:     platform,
-	}
-
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, options)
+		Platform:     opts.platform,
+	})
 	if err != nil {
 		return err
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesStream(
-		responseBody,
-		out,
-		dockerCli.Out().FD(),
-		dockerCli.Out().IsTerminal(),
-		nil)
+	out := dockerCli.Err()
+	if opts.quiet {
+		out = io.Discard
+	}
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(out), nil)
 }
 
 type cidFile struct {
@@ -236,11 +222,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	pullAndTagImage := func() error {
-		pullOut := dockerCli.Err()
-		if opts.quiet {
-			pullOut = io.Discard
-		}
-		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, pullOut); err != nil {
+		if err := pullImage(ctx, dockerCli, config.Image, opts); err != nil {
 			return err
 		}
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {

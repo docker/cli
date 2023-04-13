@@ -262,20 +262,17 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
-	ref := reference.FamiliarString(imgRefAndAuth.Reference())
-
-	encodedAuth, err := command.EncodeAuthToBase64(*imgRefAndAuth.AuthConfig())
+	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
 	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
-	options := types.ImagePullOptions{
+	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), types.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		All:           opts.all,
 		Platform:      opts.platform,
-	}
-	responseBody, err := cli.Client().ImagePull(ctx, ref, options)
+	})
 	if err != nil {
 		return err
 	}

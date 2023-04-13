@@ -3,8 +3,6 @@ package command
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -21,13 +19,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload
+// EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload.
 func EncodeAuthToBase64(authConfig registrytypes.AuthConfig) (string, error) {
-	buf, err := json.Marshal(authConfig)
-	if err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(buf), nil
+	return registrytypes.EncodeAuthConfig(authConfig)
 }
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
@@ -45,7 +39,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		if err != nil {
 			return "", err
 		}
-		return EncodeAuthToBase64(authConfig)
+		return registrytypes.EncodeAuthConfig(authConfig)
 	}
 }
 
@@ -89,7 +83,14 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 
 // ConfigureAuth handles prompting of user's username and password if needed
 func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes.AuthConfig, isDefaultRegistry bool) error {
-	// On Windows, force the use of the regular OS stdin stream. Fixes #14336/#14210
+	// On Windows, force the use of the regular OS stdin stream.
+	//
+	// See:
+	// - https://github.com/moby/moby/issues/14336
+	// - https://github.com/moby/moby/issues/14210
+	// - https://github.com/moby/moby/pull/17738
+	//
+	// TODO(thaJeztah): we need to confirm if this special handling is still needed, as we may not be doing this in other places.
 	if runtime.GOOS == "windows" {
 		cli.SetIn(streams.NewIn(os.Stdin))
 	}
@@ -113,8 +114,11 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 			fmt.Fprintln(cli.Out(), "Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.")
 		}
 		promptWithDefault(cli.Out(), "Username", authconfig.Username)
-		flUser = readInput(cli.In(), cli.Out())
-		flUser = strings.TrimSpace(flUser)
+		var err error
+		flUser, err = readInput(cli.In())
+		if err != nil {
+			return err
+		}
 		if flUser == "" {
 			flUser = authconfig.Username
 		}
@@ -128,12 +132,15 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 			return err
 		}
 		fmt.Fprintf(cli.Out(), "Password: ")
-		term.DisableEcho(cli.In().FD(), oldState)
-
-		flPassword = readInput(cli.In(), cli.Out())
+		_ = term.DisableEcho(cli.In().FD(), oldState)
+		defer func() {
+			_ = term.RestoreTerminal(cli.In().FD(), oldState)
+		}()
+		flPassword, err = readInput(cli.In())
+		if err != nil {
+			return err
+		}
 		fmt.Fprint(cli.Out(), "\n")
-
-		term.RestoreTerminal(cli.In().FD(), oldState)
 		if flPassword == "" {
 			return errors.Errorf("Error: Password Required")
 		}
@@ -145,14 +152,15 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 	return nil
 }
 
-func readInput(in io.Reader, out io.Writer) string {
-	reader := bufio.NewReader(in)
-	line, _, err := reader.ReadLine()
+// readInput reads, and returns user input from in. It tries to return a
+// single line, not including the end-of-line bytes, and trims leading
+// and trailing whitespace.
+func readInput(in io.Reader) (string, error) {
+	line, _, err := bufio.NewReader(in).ReadLine()
 	if err != nil {
-		fmt.Fprintln(out, err.Error())
-		os.Exit(1)
+		return "", errors.Wrap(err, "error while reading input")
 	}
-	return string(line)
+	return strings.TrimSpace(string(line)), nil
 }
 
 func promptWithDefault(out io.Writer, prompt string, configDefault string) {
@@ -163,14 +171,19 @@ func promptWithDefault(out io.Writer, prompt string, configDefault string) {
 	}
 }
 
-// RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete image
+// RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete
+// image. The auth configuration is serialized as a base64url encoded RFC4648,
+// section 5) JSON string for sending through the X-Registry-Auth header.
+//
+// For details on base64url encoding, see:
+// - RFC4648, section 5:   https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(ctx context.Context, cli Cli, image string) (string, error) {
 	// Retrieve encoded auth token from the image reference
 	authConfig, err := resolveAuthConfigFromImage(ctx, cli, image)
 	if err != nil {
 		return "", err
 	}
-	encodedAuth, err := EncodeAuthToBase64(authConfig)
+	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return "", err
 	}
