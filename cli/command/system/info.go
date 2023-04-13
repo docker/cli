@@ -19,6 +19,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/registry"
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
@@ -319,12 +320,8 @@ func prettyPrintServerInfo(dockerCli command.Cli, info types.Info) []error {
 	fprintlnNonEmpty(dockerCli.Out(), " HTTPS Proxy:", info.HTTPSProxy)
 	fprintlnNonEmpty(dockerCli.Out(), " No Proxy:", info.NoProxy)
 
-	if info.IndexServerAddress != "" {
-		u := dockerCli.ConfigFile().AuthConfigs[info.IndexServerAddress].Username
-		if len(u) > 0 {
-			fmt.Fprintln(dockerCli.Out(), " Username:", u)
-		}
-	}
+	u := dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
+	fprintlnNonEmpty(dockerCli.Out(), " Username:", u)
 
 	if len(info.Labels) > 0 {
 		fmt.Fprintln(dockerCli.Out(), " Labels:")
