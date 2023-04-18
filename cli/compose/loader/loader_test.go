@@ -179,7 +179,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
-	Version: "3.10",
+	Version: "3.11",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -486,6 +486,17 @@ services:
     image: ["busybox", "latest"]
 `)
 	assert.Check(t, is.ErrorContains(err, "services.foo.image must be a string"))
+}
+
+func TestIgnoreBuildProperties(t *testing.T) {
+	_, err := loadYAML(`
+services:
+  foo:
+    image: busybox
+    build:
+      unsupported_prop: foo
+`)
+	assert.NilError(t, err)
 }
 
 func TestLoadWithEnvironment(t *testing.T) {

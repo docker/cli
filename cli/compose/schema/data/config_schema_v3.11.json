@@ -91,7 +91,7 @@
                 "shm_size": {"type": ["integer", "string"]},
                 "extra_hosts": {"$ref": "#/definitions/list_or_dict"}
               },
-              "additionalProperties": false
+              "additionalProperties": true
             }
           ]
         },
