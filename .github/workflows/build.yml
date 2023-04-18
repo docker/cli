@@ -58,7 +58,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       -
         name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v3
         with:
           targets: ${{ matrix.target }}
           set: |
@@ -121,7 +121,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       -
         name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v3
         with:
           targets: plugins-cross
           set: |
