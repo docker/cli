@@ -12,7 +12,7 @@ dockerd - Enable daemon mode
 [**-b**|**--bridge**[=*BRIDGE*]]
 [**--bip**[=*BIP*]]
 [**--cgroup-parent**[=*[]*]]
-[**--config-file**[=*/etc/docker/daemon.json*]]
+[**--config-file**[=*path*]]
 [**--containerd**[=*SOCKET-PATH*]]
 [**--data-root**[=*/var/lib/docker*]]
 [**-D**|**--debug**]
@@ -29,7 +29,7 @@ dockerd - Enable daemon mode
 [**--dns-search**[=*[]*]]
 [**--exec-opt**[=*[]*]]
 [**--exec-root**[=*/var/run/docker*]]
-[**--experimental**[=*false*]]
+[**--experimental**[=**false**]]
 [**--fixed-cidr**[=*FIXED-CIDR*]]
 [**--fixed-cidr-v6**[=*FIXED-CIDR-V6*]]
 [**-G**|**--group**[=*docker*]]
@@ -37,19 +37,19 @@ dockerd - Enable daemon mode
 [**--help**]
 [**--http-proxy**[*""*]]
 [**--https-proxy**[*""*]]
-[**--icc**[=*true*]]
-[**--init**[=*false*]]
+[**--icc**[=**true**]]
+[**--init**[=**false**]]
 [**--init-path**[=*""*]]
 [**--insecure-registry**[=*[]*]]
 [**--ip**[=*0.0.0.0*]]
-[**--ip-forward**[=*true*]]
-[**--ip-masq**[=*true*]]
-[**--iptables**[=*true*]]
+[**--ip-forward**[=**true**]]
+[**--ip-masq**[=**true**]]
+[**--iptables**[=**true**]]
 [**--ipv6**]
 [**--isolation**[=*default*]]
 [**-l**|**--log-level**[=*info*]]
 [**--label**[=*[]*]]
-[**--live-restore**[=*false*]]
+[**--live-restore**[=**false**]]
 [**--log-driver**[=*json-file*]]
 [**--log-opt**[=*map[]*]]
 [**--mtu**[=*0*]]
@@ -72,7 +72,7 @@ dockerd - Enable daemon mode
 [**--tlscert**[=*~/.docker/cert.pem*]]
 [**--tlskey**[=*~/.docker/key.pem*]]
 [**--tlsverify**]
-[**--userland-proxy**[=*true*]]
+[**--userland-proxy**[=**true**]]
 [**--userland-proxy-path**[=*""*]]
 [**--userns-remap**[=*default*]]
 [**--validate**]
@@ -137,7 +137,7 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 
 **--api-cors-header**=""
   Set CORS headers in the Engine API. Default is cors disabled. Give urls like
-  "http://foo, http://bar, ...". Give "*" to allow all.
+  "http://foo, http://bar, ...". Give "\*" to allow all.
 
 **--authorization-plugin**=""
   Set authorization plugins to load
@@ -155,7 +155,8 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
   driver and "system.slice" for systemd cgroup driver.
 
 **--config-file**=*"/etc/docker/daemon.json"*
-  Specifies the JSON file path to load the configuration from.
+  Specifies the JSON file path to load the configuration from. Default is
+  */etc/docker/daemon.json*.
 
 **--containerd**=""
   Path to containerd socket.
@@ -163,19 +164,19 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 **--data-root**=""
   Path to the directory used to store persisted Docker data such as
   configuration for resources, swarm cluster state, and filesystem data for
-  images, containers, and local volumes. Default is `/var/lib/docker`.
+  images, containers, and local volumes. Default is */var/lib/docker*.
 
-**-D**, **--debug**=*true*|*false*
-  Enable debug mode. Default is false.
+**-D**, **--debug**=**true**|**false**
+  Enable debug mode. Default is **false**.
 
-**--default-cgroupns-mode**="*host*|*private*"
+**--default-cgroupns-mode**="**host**|**private**"
   Set the default cgroup namespace mode for newly created containers. The argument
-  can either be **host** or **private**. If unset, this defaults to `host` on cgroup v1,
-`private` on cgroup v2.
+  can either be **host** or **private**. If unset, this defaults to **host** on cgroup v1,
+  or **private** on cgroup v2.
 
 **--default-gateway**=""
   IPv4 address of the container default gateway; this address must be part of
-  the bridge subnet (which is defined by \-b or \--bip)
+  the bridge subnet (which is defined by \-b or \-\-bip)
 
 **--default-gateway-v6**=""
   IPv6 address of the container default gateway
@@ -185,21 +186,21 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
   Example: base=172.30.0.0/16,size=24 will set the default
   address pools for the selected scope networks to {172.30.[0-255].0/24}
 
-**--default-runtime**=*"runc"*
-  Set default runtime if there're more than one specified by `--add-runtime`.
+**--default-runtime**=*"runtime"*
+  Set default runtime if there're more than one specified by **--add-runtime**.
 
-**--default-ipc-mode**="*private*|*shareable*"
+**--default-ipc-mode**="**private**|**shareable**"
   Set the default IPC mode for newly created containers. The argument
   can either be **private** or **shareable**.
 
-**--default-shm-size**=*64MiB*
-  Set the daemon-wide default shm size for containers. Default is `64MiB`.
+**--default-shm-size**=*size*
+  Set the daemon-wide default shm *size* for containers. Default is `64MiB`.
 
 **--default-ulimit**=[]
   Default ulimits for containers.
 
 **--dns**=""
-  Force Docker to use specific DNS servers
+  Force Docker to use specific DNS servers.
 
 **--dns-opt**=""
   DNS options to use.
@@ -231,7 +232,7 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 **-H**, **--host**=[*unix:///var/run/docker.sock*]: tcp://[host:port] to bind or
 unix://[/path/to/socket] to use.
   The socket(s) to bind to in daemon mode specified using one or more
-  tcp://host:port, unix:///path/to/socket, fd://* or fd://socketfd.
+  tcp://host:port, unix:///path/to/socket, fd://\* or fd://socketfd.
 
 **--help**
   Print usage statement
@@ -242,10 +243,10 @@ unix://[/path/to/socket] to use.
 **--https-proxy***""*
   Proxy URL for HTTPS requests unless overridden by NoProxy.
 
-**--icc**=*true*|*false*
+**--icc**=**true**|**false**
   Allow unrestricted inter\-container and Docker daemon host communication. If
   disabled, containers can still be linked together using the **--link** option
-  (see **docker-run(1)**). Default is true.
+  (see **docker-run**(1)). Default is **true**.
 
 **--init**
   Run an init process inside containers for signal forwarding and process
@@ -269,33 +270,33 @@ unix://[/path/to/socket] to use.
   `--insecure-registry`.
 
 **--ip**=""
-  Default IP address to use when binding container ports. Default is `0.0.0.0`.
+  Default IP address to use when binding container ports. Default is **0.0.0.0**.
 
-**--ip-forward**=*true*|*false*
-  Enables IP forwarding on the Docker host. The default is `true`. This flag
+**--ip-forward**=**true**|**false**
+  Enables IP forwarding on the Docker host. The default is **true**. This flag
   interacts with the IP forwarding setting on your host system's kernel. If
   your system has IP forwarding disabled, this setting enables it. If your
-  system has IP forwarding enabled, setting this flag to `--ip-forward=false`
+  system has IP forwarding enabled, setting this flag to **false**
   has no effect.
 
   This setting will also enable IPv6 forwarding if you have both
-  `--ip-forward=true` and `--fixed-cidr-v6` set. Note that this may reject
+  **--ip-forward=true** and **--fixed-cidr-v6** set. Note that this may reject
   Router Advertisements and interfere with the host's existing IPv6
   configuration. For more information, please consult the documentation about
   "Advanced Networking - IPv6".
 
-**--ip-masq**=*true*|*false*
-  Enable IP masquerading for bridge's IP range. Default is true.
+**--ip-masq**=**true**|**false**
+  Enable IP masquerading for bridge's IP range. Default is **true**.
 
-**--iptables**=*true*|*false*
-  Enable Docker's addition of iptables rules. Default is true.
+**--iptables**=**true**|**false**
+  Enable Docker's addition of iptables rules. Default is **true**.
 
-**--ipv6**=*true*|*false*
-  Enable IPv6 support. Default is false. Docker will create an IPv6-enabled
+**--ipv6**=**true**|**false**
+  Enable IPv6 support. Default is **false**. Docker will create an IPv6-enabled
   bridge with address fe80::1 which will allow you to create IPv6-enabled
-  containers. Use together with `--fixed-cidr-v6` to provide globally routable
+  containers. Use together with **--fixed-cidr-v6** to provide globally routable
   IPv6 addresses. IPv6 forwarding will be enabled if not used with
-  `--ip-forward=false`. This may collide with your host's current IPv6
+  **--ip-forward=false**. This may collide with your host's current IPv6
   settings. For more information please consult the documentation about
   "Advanced Networking - IPv6".
 
@@ -310,14 +311,14 @@ unix://[/path/to/socket] to use.
 **--label**="[]"
   Set key=value labels to the daemon (displayed in `docker info`)
 
-**--live-restore**=*false*
+**--live-restore**=**false**
   Enable live restore of running containers when the daemon starts so that they
   are not restarted. This option is applicable only for docker daemon running
   on Linux host.
 
-**--log-driver**="*json-file*|*syslog*|*journald*|*gelf*|*fluentd*|*awslogs*|*splunk*|*etwlogs*|*gcplogs*|*none*"
-  Default driver for container logs. Default is `json-file`.
-  **Warning**: `docker logs` command works only for `json-file` logging driver.
+**--log-driver**="**json-file**|**syslog**|**journald**|**gelf**|**fluentd**|**awslogs**|**splunk**|**etwlogs**|**gcplogs**|**none**"
+  Default driver for container logs. Default is **json-file**.
+  **Warning**: **docker logs** command works only for **json-file** logging driver.
 
 **--log-opt**=[]
   Logging driver specific options.
@@ -346,8 +347,8 @@ unix://[/path/to/socket] to use.
   --node-generic-resources "NVIDIA-GPU=UUID2"`
 
 
-**-p**, **--pidfile**=""
-  Path to use for daemon PID file. Default is `/var/run/docker.pid`
+**-p**, **--pidfile**="*path*"
+  Path to use for daemon PID file. Default is */var/run/docker.pid*.
 
 **--raw-logs**
   Output daemon logs in full timestamp format without ANSI coloring. If this
@@ -364,23 +365,23 @@ unix://[/path/to/socket] to use.
 **--seccomp-profile**=""
   Path to seccomp profile.
 
-**--selinux-enabled**=*true*|*false*
-  Enable selinux support. Default is false.
+**--selinux-enabled**=**true**|**false**
+  Enable selinux support. Default is **false**.
 
-**--shutdown-timeout**=*15*
-  Set the shutdown timeout value in seconds. Default is `15`.
+**--shutdown-timeout**=*seconds*
+  Set the shutdown timeout value in seconds. Default is **15**.
 
 **--storage-opt**=[]
   Set storage driver options. See STORAGE DRIVER OPTIONS.
 
-**--swarm-default-advertise-addr**=*IP|INTERFACE*
+**--swarm-default-advertise-addr**=*IP*|*INTERFACE*
   Set default address or interface for swarm to advertise as its
   externally-reachable address to other cluster members. This can be a
   hostname, an IP address, or an interface such as `eth0`. A port cannot be
   specified with this option.
 
-**--tls**=*true*|*false*
-  Use TLS; implied by --tlsverify. Default is false.
+**--tls**=**true**|**false**
+  Use TLS; implied by **--tlsverify**. Default is **false**.
 
 **--tlscacert**=*~/.docker/ca.pem*
   Trust certs signed only by this CA.
@@ -391,13 +392,13 @@ unix://[/path/to/socket] to use.
 **--tlskey**=*~/.docker/key.pem*
   Path to TLS key file.
 
-**--tlsverify**=*true*|*false*
+**--tlsverify**=**true**|**false**
   Use TLS and verify the remote (daemon: verify client, client: verify daemon).
-  Default is false.
+  Default is **false**.
 
-**--userland-proxy**=*true*|*false*
+**--userland-proxy**=**true**|**false**
   Rely on a userland proxy implementation for inter-container and
-  outside-to-container loopback communications. Default is true.
+  outside-to-container loopback communications. Default is **true**.
 
 **--userland-proxy-path**=""
   Path to the userland proxy binary.
@@ -421,18 +422,18 @@ backends use operating system level technologies and can be
 configured.
 
 Specify options to the storage backend with **--storage-opt** flags. The
-backends that currently take options are *devicemapper*, *zfs* and *btrfs*.
-Options for *devicemapper* are prefixed with *dm*, options for *zfs*
-start with *zfs* and options for *btrfs* start with *btrfs*.
+backends that currently take options are **devicemapper**, **zfs** and **btrfs**.
+Options for **devicemapper** are prefixed with **dm.**, options for **zfs**
+start with **zfs.**, and options for **btrfs** start with **btrfs.**.
 
 Specifically for devicemapper, the default is a "loopback" model which
 requires no pre-configuration, but is extremely inefficient.  Do not
 use it in production.
 
 To make the best use of Docker with the devicemapper backend, you must
-have a recent version of LVM.  Use `lvm` to create a thin pool; for
-more information see `man lvmthin`.  Then, use `--storage-opt
-dm.thinpooldev` to tell the Docker engine to use that pool for
+have a recent version of LVM.  Use **lvm**(8) to create a thin pool; for
+more information, see **lvmthin**(7).  Then, use **--storage-opt
+dm.thinpooldev** to tell the Docker engine to use that pool for
 allocating images and container snapshots.
 
 ## Devicemapper options
@@ -463,7 +464,7 @@ Example use:
    $ dockerd \
          --storage-opt dm.thinpooldev=/dev/mapper/thin-pool
 
-#### dm.directlvm_device
+#### dm.directlvm\_device
 
 As an alternative to manually creating a thin pool as above, Docker can
 automatically configure a block device for you.
@@ -473,40 +474,40 @@ Example use:
    $ dockerd \
          --storage-opt dm.directlvm_device=/dev/xvdf
 
-##### dm.thinp_percent
+#### dm.thinp\_percent
 
 Sets the percentage of passed in block device to use for storage.
 
-###### Example:
+Example:
 
    $ sudo dockerd \
         --storage-opt dm.thinp_percent=95
 
-##### `dm.thinp_metapercent`
+#### dm.thinp\_metapercent
 
 Sets the percentage of the passed in block device to use for metadata storage.
 
-###### Example:
+Example:
 
    $ sudo dockerd \
          --storage-opt dm.thinp_metapercent=1
 
-##### dm.thinp_autoextend_threshold
+#### dm.thinp\_autoextend\_threshold
 
 Sets the value of the percentage of space used before `lvm` attempts to
 autoextend the available space [100 = disabled]
 
-###### Example:
+Example:
 
    $ sudo dockerd \
          --storage-opt dm.thinp_autoextend_threshold=80
 
-##### dm.thinp_autoextend_percent
+#### dm.thinp\_autoextend\_percent
 
 Sets the value percentage value to increase the thin pool by when `lvm`
 attempts to autoextend the available space [100 = disabled]
 
-###### Example:
+Example:
 
    $ sudo dockerd \
          --storage-opt dm.thinp_autoextend_percent=20
@@ -559,7 +560,7 @@ Specifies extra mount options used when mounting the thin devices.
 
 Example use: `dockerd --storage-opt dm.mountopt=nodiscard`
 
-#### dm.use_deferred_removal
+#### dm.use\_deferred\_removal
 
 Enables use of deferred device removal if `libdm` and the kernel driver
 support the mechanism.
@@ -577,7 +578,7 @@ busy device.
 
 Example use: `dockerd --storage-opt dm.use_deferred_removal=true`
 
-#### dm.use_deferred_deletion
+#### dm.use\_deferred\_deletion
 
 Enables use of deferred device deletion for thin pool devices. By default,
 thin pool device deletion is synchronous. Before a container is deleted, the
@@ -656,34 +657,34 @@ returned to the system for other use when containers are removed.
 
 Example use: `dockerd --storage-opt dm.blkdiscard=false`
 
-#### dm.override_udev_sync_check
+#### dm.override\_udev\_sync\_check
 
 By default, the devicemapper backend attempts to synchronize with the `udev`
 device manager for the Linux kernel.  This option allows disabling that
 synchronization, to continue even though the configuration may be buggy.
 
-To view the `udev` sync support of a Docker daemon that is using the
-`devicemapper` driver, run:
+To view the udev sync support of a Docker daemon that is using the
+devicemapper driver, run:
 
         $ docker info
         [...]
          Udev Sync Supported: true
         [...]
 
-When `udev` sync support is `true`, then `devicemapper` and `udev` can
+When udev sync support is **true**, then devicemapper and udev can
 coordinate the activation and deactivation of devices for containers.
 
-When `udev` sync support is `false`, a race condition occurs between the
-`devicemapper` and `udev` during create and cleanup. The race condition results
+When udev sync support is **false**, a race condition occurs between the
+devicemapper and udev during create and cleanup. The race condition results
 in errors and failures. (For information on these failures, see
 [docker#4036](https://github.com/docker/docker/issues/4036))
 
-To allow the `docker` daemon to start, regardless of whether `udev` sync is
-`false`, set `dm.override_udev_sync_check` to true:
+To allow the docker daemon to start, regardless of whether udev sync is
+**false**, set **dm.override_udev_sync_check** to **true**:
 
         $ dockerd --storage-opt dm.override_udev_sync_check=true
 
-When this value is `true`, the driver continues and simply warns you the errors
+When this value is **true**, the driver continues and simply warns you the errors
 are happening.
 
 **Note**: The ideal is to pursue a `docker` daemon and environment that does
@@ -692,7 +693,7 @@ support synchronizing with `udev`. For further discussion on this topic, see
 Otherwise, set this flag for migrating existing Docker daemons to a daemon with
 a supported environment.
 
-#### dm.min_free_space
+#### dm.min\_free\_space
 
 Specifies the min free space percent in a thin pool require for new device
 creation to succeed. This check applies to both free data space as well
@@ -717,24 +718,24 @@ the issue.
 
 Example use:: `dockerd --storage-opt dm.min_free_space=10%`
 
-#### dm.xfs_nospace_max_retries
+#### dm.xfs\_nospace\_max\_retries
 
 Specifies the maximum number of retries XFS should attempt to complete IO when
 ENOSPC (no space) error is returned by underlying storage device.
 
 By default XFS retries infinitely for IO to finish and this can result in
-unkillable process. To change this behavior one can set xfs_nospace_max_retries
-to say 0 and XFS will not retry IO after getting ENOSPC and will shutdown
+unkillable process. To change this behavior one can set **xfs_nospace_max_retries**
+to e.g. **0** and XFS will not retry IO after getting ENOSPC and will shutdown
 filesystem.
 
 Example use:
 
     $ sudo dockerd --storage-opt dm.xfs_nospace_max_retries=0
 
-##### dm.libdm_log_level
+##### dm.libdm\_log\_level
 
 Specifies the maxmimum libdm log level that will be forwarded to the dockerd
-log (as specified by --log-level). This option is primarily intended for
+log (as specified by **--log-level**). This option is primarily intended for
 debugging problems involving libdm. Using values other than the defaults may
 cause false-positive warnings to be logged.
 
@@ -742,14 +743,14 @@ Values specified must fall within the range of valid libdm log levels. At the
 time of writing, the following is the list of libdm log levels as well as their
 corresponding levels when output by dockerd.
 
-| libdm Level | Value | --log-level |
-| ----------- | -----:| ----------- |
-| _LOG_FATAL  |     2 | error       |
-| _LOG_ERR    |     3 | error       |
-| _LOG_WARN   |     4 | warn        |
-| _LOG_NOTICE |     5 | info        |
-| _LOG_INFO   |     6 | info        |
-| _LOG_DEBUG  |     7 | debug       |
+| libdm Level   | Value | --log-level |
+| ------------- | -----:| ----------- |
+| \_LOG\_FATAL  |     2 | error       |
+| \_LOG\_ERR    |     3 | error       |
+| \_LOG\_WARN   |     4 | warn        |
+| \_LOG\_NOTICE |     5 | info        |
+| \_LOG\_INFO   |     6 | info        |
+| \_LOG\_DEBUG  |     7 | debug       |
 
 Example use:
 
@@ -769,7 +770,7 @@ Example use: `dockerd -s zfs --storage-opt zfs.fsname=zroot/docker`
 
 ## Btrfs options
 
-#### btrfs.min_space
+#### btrfs.min\_space
 
 Specifies the minimum size to use when creating the subvolume which is used for
 containers. If user uses disk quota for btrfs when creating or running a
