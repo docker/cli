@@ -5383,7 +5383,7 @@ _docker_volume_prune() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--filter --force -f --help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--all -a --filter --force -f --help" -- "$cur" ) )
 			;;
 	esac
 }
