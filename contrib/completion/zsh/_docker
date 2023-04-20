@@ -2527,6 +2527,8 @@ __docker_volume_subcommand() {
         (prune)
             _arguments $(__docker_arguments) \
                 $opts_help \
+                "($help -a --all)"{-a,--all}"[Remove all unused local volumes, not just anonymous ones]" \
+                "($help)*--filter=[Filter values]:filter:__docker_complete_prune_filters" \
                 "($help -f --force)"{-f,--force}"[Do not prompt for confirmation]" && ret=0
             ;;
         (rm)

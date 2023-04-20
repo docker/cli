@@ -5,24 +5,26 @@ Remove all unused local volumes
 
 ### Options
 
-| Name                  | Type     | Default | Description                                  |
-|:----------------------|:---------|:--------|:---------------------------------------------|
-| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<label>`) |
-| `-f`, `--force`       |          |         | Do not prompt for confirmation               |
+| Name                          | Type     | Default | Description                                        |
+|:------------------------------|:---------|:--------|:---------------------------------------------------|
+| [`-a`](#all), [`--all`](#all) |          |         | Remove all unused volumes, not just anonymous ones |
+| [`--filter`](#filter)         | `filter` |         | Provide filter values (e.g. `label=<label>`)       |
+| `-f`, `--force`               |          |         | Do not prompt for confirmation                     |
 
 
 <!---MARKER_GEN_END-->
 
 ## Description
 
-Remove all unused local volumes. Unused local volumes are those which are not referenced by any containers
+Remove all unused local volumes. Unused local volumes are those which are not
+referenced by any containers. By default, it only removes anonymous volumes.
 
 ## Examples
 
 ```console
 $ docker volume prune
 
-WARNING! This will remove all local volumes not used by at least one container.
+WARNING! This will remove anonymous local volumes not used by at least one container.
 Are you sure you want to continue? [y/N] y
 Deleted Volumes:
 07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
@@ -30,6 +32,10 @@ my-named-vol
 
 Total reclaimed space: 36 B
 ```
+
+### <a name="all"></a> Filtering (--all, -a)
+
+Use the `--all` flag to prune both unused anonymous and named volumes.
 
 ### <a name="filter"></a> Filtering (--filter)
 
