@@ -44,9 +44,9 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	var buildKitDisabled, useBuilder, useAlias bool
 	var envs []string
 
-	// check DOCKER_BUILDKIT env var is present and
-	// if not assume we want to use the builder component
-	if v, ok := os.LookupEnv("DOCKER_BUILDKIT"); ok {
+	// check DOCKER_BUILDKIT env var is not empty
+	// if it is assume we want to use the builder component
+	if v := os.Getenv("DOCKER_BUILDKIT"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
 			return args, osargs, nil, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
