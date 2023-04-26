@@ -12,7 +12,9 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/debug"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
@@ -62,10 +64,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.NoComplete,
 	}
 
-	flags := cmd.Flags()
-
-	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
-
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	return cmd
 }
 
@@ -507,6 +506,10 @@ func printServerWarningsLegacy(dockerCli command.Cli, info types.Info) {
 }
 
 func formatInfo(dockerCli command.Cli, info info, format string) error {
+	if format == formatter.JSONFormatKey {
+		format = formatter.JSONFormat
+	}
+
 	// Ensure slice/array fields render as `[]` not `null`
 	if info.ClientInfo != nil && info.ClientInfo.Plugins == nil {
 		info.ClientInfo.Plugins = make([]pluginmanager.Plugin, 0)
