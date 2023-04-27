@@ -14,7 +14,6 @@
         "Architecture": "",
         "Os": "",
         "Size": 0,
-        "VirtualSize": 0,
         "GraphDriver": {
             "Data": null,
             "Name": ""
@@ -39,7 +38,6 @@
         "Architecture": "",
         "Os": "",
         "Size": 0,
-        "VirtualSize": 0,
         "GraphDriver": {
             "Data": null,
             "Name": ""
