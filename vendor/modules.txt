@@ -159,7 +159,7 @@ github.com/miekg/pkcs11
 # github.com/mitchellh/mapstructure v1.3.2
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/moby/buildkit v0.11.5
+# github.com/moby/buildkit v0.11.6
 ## explicit; go 1.18
 github.com/moby/buildkit/frontend/dockerfile/dockerignore
 github.com/moby/buildkit/util/appcontext
