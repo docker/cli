@@ -1746,15 +1746,14 @@ definitions:
           Total size of the image including all layers it is composed of.
 
           In versions of Docker before v1.10, this field was calculated from
-          the image itself and all of its parent images. Docker v1.10 and up
-          store images self-contained, and no longer use a parent-chain, making
-          this field an equivalent of the Size field.
+          the image itself and all of its parent images. Images are now stored
+          self-contained, and no longer use a parent-chain, making this field
+          an equivalent of the Size field.
 
-          This field is kept for backward compatibility, but may be removed in
-          a future version of the API.
+          > **Deprecated**: this field is kept for backward compatibility, but
+          > will be removed in API v1.44.
         type: "integer"
         format: "int64"
-        x-nullable: false
         example: 1239828
       GraphDriver:
         $ref: "#/definitions/GraphDriverData"
@@ -1802,7 +1801,6 @@ definitions:
       - Created
       - Size
       - SharedSize
-      - VirtualSize
       - Labels
       - Containers
     properties:
@@ -1888,19 +1886,17 @@ definitions:
         x-nullable: false
         example: 1239828
       VirtualSize:
-        description: |
+        description: |-
           Total size of the image including all layers it is composed of.
 
           In versions of Docker before v1.10, this field was calculated from
-          the image itself and all of its parent images. Docker v1.10 and up
-          store images self-contained, and no longer use a parent-chain, making
-          this field an equivalent of the Size field.
+          the image itself and all of its parent images. Images are now stored
+          self-contained, and no longer use a parent-chain, making this field
+          an equivalent of the Size field.
 
-          This field is kept for backward compatibility, but may be removed in
-          a future version of the API.
+          Deprecated: this field is kept for backward compatibility, and will be removed in API v1.44.
         type: "integer"
         format: "int64"
-        x-nullable: false
         example: 172064416
       Labels:
         description: "User-defined key/value metadata."
@@ -5243,7 +5239,8 @@ definitions:
       SecurityOptions:
         description: |
           List of security features that are enabled on the daemon, such as
-          apparmor, seccomp, SELinux, user-namespaces (userns), and rootless.
+          apparmor, seccomp, SELinux, user-namespaces (userns), rootless and
+          no-new-privileges.
 
           Additional configuration options for each security feature may
           be present, and are included as a comma-separated list of key/value
@@ -8229,7 +8226,7 @@ paths:
 
             Available filters:
 
-            - `until=<duration>`: duration relative to daemon's time, during which build cache was not used, in Go's duration format (e.g., '24h')
+            - `until=<timestamp>` remove cache older than `<timestamp>`. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon's local time.
             - `id=<id>`
             - `parent=<id>`
             - `type=<string>`
