@@ -8,7 +8,7 @@ go 1.18
 
 require (
 	github.com/containerd/containerd v1.6.20
-	github.com/creack/pty v1.1.11
+	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/docker v24.0.0-beta.2+incompatible
 	github.com/docker/docker-credential-helpers v0.7.0
@@ -21,9 +21,9 @@ require (
 	github.com/imdario/mergo v0.3.13
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.11.5
+	github.com/moby/buildkit v0.11.6
 	github.com/moby/patternmatcher v0.5.0
-	github.com/moby/swarmkit/v2 v2.0.0-20230315203717-e28e8ba9bc83
+	github.com/moby/swarmkit/v2 v2.0.0-20230406225228-75e92ce14ff7
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f
