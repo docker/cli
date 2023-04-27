@@ -18,7 +18,7 @@ github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/pkg/userns
 github.com/containerd/containerd/platforms
-# github.com/creack/pty v1.1.11
+# github.com/creack/pty v1.1.18
 ## explicit; go 1.13
 github.com/creack/pty
 # github.com/docker/distribution v2.8.1+incompatible
