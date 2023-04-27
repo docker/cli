@@ -44,7 +44,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 	result.Assert(t, icmd.Expected{Err: buildkitDisabledWarning})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Prefix("Sending build context to Docker daemon"),
-		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:3.6"),
+		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:frozen"),
 		3:  output.Suffix("Step 2/4 : COPY run /usr/bin/run"),
 		5:  output.Suffix("Step 3/4 : RUN run"),
 		7:  output.Suffix("running"),

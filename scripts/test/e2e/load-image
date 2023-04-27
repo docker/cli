@@ -2,11 +2,11 @@
 # Fetch images used for e2e testing
 set -eu -o pipefail
 
-alpine_src=alpine@sha256:f006ecbb824d87947d0b51ab8488634bf69fe4094959d935c0c103f4820a417d
-alpine_dest=registry:5000/alpine:3.6
+alpine_src=alpine@sha256:69665d02cb32192e52e07644d76bc6f25abeb5410edc1c7a81a10ba3f0efb90a
+alpine_dest=registry:5000/alpine:frozen
 
 busybox_src=busybox@sha256:3e8fa85ddfef1af9ca85a5cfb714148956984e02f00bec3f7f49d3925a91e0e7
-busybox_dest=registry:5000/busybox:1.27.2
+busybox_dest=registry:5000/busybox:frozen
 
 fetch_tag_image() {
     docker pull "$1"

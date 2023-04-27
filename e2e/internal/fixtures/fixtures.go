@@ -15,11 +15,11 @@ const (
 	// EvilNotaryURL is the location of the evil notary server
 	EvilNotaryURL = "https://evil-notary-server:4444"
 	// AlpineImage is an image in the test registry
-	AlpineImage = "registry:5000/alpine:3.6"
+	AlpineImage = "registry:5000/alpine:frozen"
 	// AlpineSha is the sha of the alpine image
-	AlpineSha = "641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d"
+	AlpineSha = "e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501"
 	// BusyboxImage is an image in the test registry
-	BusyboxImage = "registry:5000/busybox:1.27.2"
+	BusyboxImage = "registry:5000/busybox:frozen"
 	// BusyboxSha is the sha of the busybox image
 	BusyboxSha = "030fcb92e1487b18c974784dcc110a93147c9fc402188370fbfd17efabffc6af"
 )

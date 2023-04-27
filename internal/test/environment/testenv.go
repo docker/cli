@@ -98,3 +98,13 @@ func SkipIfCgroupNamespacesNotSupported(t *testing.T) {
 
 	skip.If(t, !cgroupNsFound, fmt.Sprintf("running against a daemon that doesn't support cgroup namespaces (security options: %s)", result.Stdout()))
 }
+
+// SkipIfNotPlatform skips the test if the running docker daemon is not running on a specific platform.
+// platform should be in format os/arch (for example linux/arm64).
+func SkipIfNotPlatform(t *testing.T, platform string) {
+	t.Helper()
+	result := icmd.RunCmd(icmd.Command("docker", "version", "--format", "{{.Server.Os}}/{{.Server.Arch}}"))
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	daemonPlatform := strings.TrimSpace(result.Stdout())
+	skip.If(t, daemonPlatform != platform, "running against a non %s daemon", platform)
+}

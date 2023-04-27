@@ -33,6 +33,10 @@ const (
 func TestPushAllTags(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
+
 	_ = createImage(t, "push-all-tags", "latest", "v1", "v1.0", "v1.0.1")
 	result := icmd.RunCmd(icmd.Command("docker", "push", "--all-tags", registryPrefix+"/push-all-tags"))
 
@@ -40,16 +44,20 @@ func TestPushAllTags(t *testing.T) {
 	golden.Assert(t, result.Stderr(), "push-with-content-trust-err.golden")
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Equals("The push refers to repository [registry:5000/push-all-tags]"),
-		1:  output.Equals("5bef08742407: Preparing"),
-		3:  output.Equals("latest: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		6:  output.Equals("v1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		9:  output.Equals("v1.0: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		12: output.Equals("v1.0.1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		1:  output.Equals("7cd52847ad77: Preparing"),
+		3:  output.Equals("latest: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		6:  output.Equals("v1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		9:  output.Equals("v1.0: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		12: output.Equals("v1.0.1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 	})
 }
 
 func TestPushWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -65,8 +73,8 @@ func TestPushWithContentTrust(t *testing.T) {
 	golden.Assert(t, result.Stderr(), "push-with-content-trust-err.golden")
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0: output.Equals("The push refers to repository [registry:5000/trust-push]"),
-		1: output.Equals("5bef08742407: Preparing"),
-		3: output.Equals("latest: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		1: output.Equals("7cd52847ad77: Preparing"),
+		3: output.Equals("latest: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 		4: output.Equals("Signing and pushing trust metadata"),
 		5: output.Equals(`Finished initializing "registry:5000/trust-push"`),
 		6: output.Equals("Successfully signed registry:5000/trust-push:latest"),
