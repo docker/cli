@@ -36,7 +36,7 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.ID,
 		},
 		{
-			imageCtx: imageContext{i: types.ImageSummary{Size: 10, VirtualSize: 10}, trunc: true},
+			imageCtx: imageContext{i: types.ImageSummary{Size: 10}, trunc: true},
 			expValue: "10B",
 			call:     ctx.Size,
 		},
@@ -70,9 +70,9 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.Containers,
 		},
 		{
-			imageCtx: imageContext{i: types.ImageSummary{VirtualSize: 10000}},
+			imageCtx: imageContext{i: types.ImageSummary{Size: 10000}},
 			expValue: "10kB",
-			call:     ctx.VirtualSize,
+			call:     ctx.VirtualSize, //nolint:staticcheck // ignore SA1019: field is deprecated, but still set on API < v1.44.
 		},
 		{
 			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 10000}},
@@ -80,7 +80,7 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.SharedSize,
 		},
 		{
-			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 5000, VirtualSize: 20000}},
+			imageCtx: imageContext{i: types.ImageSummary{SharedSize: 5000, Size: 20000}},
 			expValue: "15kB",
 			call:     ctx.UniqueSize,
 		},
