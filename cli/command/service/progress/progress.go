@@ -143,7 +143,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 		if converged && time.Since(convergedAt) >= monitor {
 			progressOut.WriteProgress(progress.Progress{
 				ID:     "verify",
-				Action: "Service converged",
+				Action: fmt.Sprintf("Service %s converged", serviceID),
 			})
 			if message != nil {
 				progressOut.WriteProgress(*message)

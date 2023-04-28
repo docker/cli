@@ -63,5 +63,5 @@ func runRollback(dockerCli command.Cli, options *serviceOptions, serviceID strin
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
 }

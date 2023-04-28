@@ -3,8 +3,10 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli/command"
+	servicecli "github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -59,7 +61,8 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 	if err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
+
+	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage, opts.Detach, opts.Quiet)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -174,7 +177,7 @@ func createNetworks(ctx context.Context, dockerCli command.Cli, namespace conver
 	return nil
 }
 
-func deployServices(ctx context.Context, dockerCli command.Cli, services map[string]swarm.ServiceSpec, namespace convert.Namespace, sendAuth bool, resolveImage string) error {
+func deployServices(ctx context.Context, dockerCli command.Cli, services map[string]swarm.ServiceSpec, namespace convert.Namespace, sendAuth bool, resolveImage string, detach bool, quiet bool) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
 
@@ -187,6 +190,9 @@ func deployServices(ctx context.Context, dockerCli command.Cli, services map[str
 	for _, service := range existingServices {
 		existingServiceMap[service.Spec.Name] = service
 	}
+
+	var errs []string
+	var serviceIDs []string
 
 	for internalName, serviceSpec := range services {
 		var (
@@ -240,12 +246,14 @@ func deployServices(ctx context.Context, dockerCli command.Cli, services map[str
 
 			response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, serviceSpec, updateOpts)
 			if err != nil {
-				return errors.Wrapf(err, "failed to update service %s", name)
+				return errors.Wrapf(err, "Failed to update service %s", name)
 			}
 
 			for _, warning := range response.Warnings {
 				fmt.Fprintln(dockerCli.Err(), warning)
 			}
+
+			serviceIDs = append(serviceIDs, service.ID)
 		} else {
 			fmt.Fprintf(out, "Creating service %s\n", name)
 
@@ -256,10 +264,29 @@ func deployServices(ctx context.Context, dockerCli command.Cli, services map[str
 				createOpts.QueryRegistry = true
 			}
 
-			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts); err != nil {
-				return errors.Wrapf(err, "failed to create service %s", name)
+			response, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts)
+			if err != nil {
+				return errors.Wrapf(err, "Failed to create service %s", name)
+			}
+
+			serviceIDs = append(serviceIDs, response.ID)
+		}
+	}
+	return waitOnServices(ctx, dockerCli, serviceIDs, detach, quiet, errs)
+}
+
+func waitOnServices(ctx context.Context, dockerCli command.Cli, serviceIDs []string, detach bool, quiet bool, errs []string) error {
+	if !detach {
+		for _, serviceID := range serviceIDs {
+			if err := servicecli.WaitOnService(ctx, dockerCli, serviceID, quiet); err != nil {
+				errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
 			}
 		}
 	}
-	return nil
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	return errors.Errorf(strings.Join(errs, "\n"))
 }

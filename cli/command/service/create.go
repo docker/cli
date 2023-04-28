@@ -139,7 +139,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, response.ID, opts.quiet)
+	return WaitOnService(ctx, dockerCli, response.ID, opts.quiet)
 }
 
 // setConfigs does double duty: it both sets the ConfigReferences of the

@@ -249,7 +249,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
 }
 
 //nolint:gocyclo

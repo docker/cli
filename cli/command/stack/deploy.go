@@ -1,6 +1,8 @@
 package stack
 
 import (
+	"fmt"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/loader"
@@ -28,6 +30,14 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			if opts.Detach {
+				if !cmd.Flags().Changed("detach") {
+					fmt.Fprintln(dockerCli.Err(), "Since --detach=false was not specified, tasks will be created in the background.\n"+
+						"In a future release, --detach=false will become the default.")
+				}
+			}
+
 			return swarm.RunDeploy(dockerCli, opts, config)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -44,6 +54,8 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.ResolveImage, "resolve-image", swarm.ResolveImageAlways,
 		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`", "`+swarm.ResolveImageChanged+`", "`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
+	flags.BoolVarP(&opts.Detach, "detach", "d", true, "Exit immediately instead of waiting for the stack services to converge")
+	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Suppress progress output")
 	return cmd
 }
 
