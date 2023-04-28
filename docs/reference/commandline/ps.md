@@ -128,7 +128,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 9b6247364a03        busybox             "top"               2 minutes ago       Up 2 minutes                            nostalgic_stallman
 ```
 
-You can also filter for a substring in a name as this shows:
+You can only filter for a substring in a name as this shows:
 
 ```console
 $ docker ps --filter "name=nostalgic"
