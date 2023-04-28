@@ -40,7 +40,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v23.0.4+incompatible
+# github.com/docker/docker v23.0.5+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -164,7 +164,7 @@ github.com/moby/buildkit/util/appcontext
 # github.com/moby/patternmatcher v0.5.0
 ## explicit; go 1.19
 github.com/moby/patternmatcher
-# github.com/moby/swarmkit/v2 v2.0.0-20230309194213-a745a8755ce3
+# github.com/moby/swarmkit/v2 v2.0.0-20230315203717-e28e8ba9bc83
 ## explicit; go 1.18
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy
@@ -195,7 +195,7 @@ github.com/opencontainers/go-digest
 ## explicit; go 1.16
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.1.3
+# github.com/opencontainers/runc v1.1.5
 ## explicit; go 1.16
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
