@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/archive"
 	"gotest.tools/v3/assert"
 )
 
@@ -41,10 +40,10 @@ D: /usr/app/old_app.js
 		},
 	}
 
-	diffs := []container.ContainerChangeResponseItem{
-		{Kind: archive.ChangeModify, Path: "/var/log/app.log"},
-		{Kind: archive.ChangeAdd, Path: "/usr/app/app.js"},
-		{Kind: archive.ChangeDelete, Path: "/usr/app/old_app.js"},
+	diffs := []container.FilesystemChange{
+		{Kind: container.ChangeModify, Path: "/var/log/app.log"},
+		{Kind: container.ChangeAdd, Path: "/usr/app/app.js"},
+		{Kind: container.ChangeDelete, Path: "/usr/app/old_app.js"},
 	}
 
 	for _, tc := range cases {
