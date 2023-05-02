@@ -273,6 +273,62 @@ func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	assert.Check(t, is.DeepEqual(expected, configs))
 }
 
+func TestConvertServiceNetworksDriverOpts(t *testing.T) {
+	networkConfigs := networkMap{
+		"front": composetypes.NetworkConfig{
+			External: composetypes.External{External: true},
+			Name:     "fronttier",
+			DriverOpts: map[string]string{
+				"key1": "value1",
+				"key3": "val",
+			},
+		},
+		"back": composetypes.NetworkConfig{},
+	}
+	networks := map[string]*composetypes.ServiceNetworkConfig{
+		"front": {
+			Aliases: []string{"something"},
+			DriverOpts: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		"back": {
+			Aliases: []string{"other"},
+			DriverOpts: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
+		},
+	}
+
+	configs, err := convertServiceNetworks(
+		networks, networkConfigs, NewNamespace("foo"), "service")
+
+	expected := []swarm.NetworkAttachmentConfig{
+		{
+			Target:  "foo_back",
+			Aliases: []string{"other", "service"},
+			DriverOpts: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
+		},
+		{
+			Target:  "fronttier",
+			Aliases: []string{"something", "service"},
+			DriverOpts: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+	}
+
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, configs))
+}
+
 func TestConvertDNSConfigEmpty(t *testing.T) {
 	dnsConfig := convertDNSConfig(nil, nil)
 	assert.Check(t, is.DeepEqual((*swarm.DNSConfig)(nil), dnsConfig))
