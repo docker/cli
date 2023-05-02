@@ -366,8 +366,7 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 	}
 
 	fmt.Fprint(dockerCli.Out(), "\n")
-
-	printServerWarnings(dockerCli, info)
+	printServerWarnings(dockerCli.Err(), info)
 	return errs
 }
 
@@ -441,16 +440,16 @@ func printSwarmInfo(dockerCli command.Cli, info types.Info) {
 	}
 }
 
-func printServerWarnings(dockerCli command.Cli, info *info) {
+func printServerWarnings(stdErr io.Writer, info *info) {
 	if versions.LessThan(info.ClientInfo.APIVersion, "1.42") {
-		printSecurityOptionsWarnings(dockerCli, *info.Info)
+		printSecurityOptionsWarnings(stdErr, *info.Info)
 	}
 	if len(info.Warnings) > 0 {
-		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
+		fmt.Fprintln(stdErr, strings.Join(info.Warnings, "\n"))
 		return
 	}
 	// daemon didn't return warnings. Fallback to old behavior
-	printServerWarningsLegacy(dockerCli, *info.Info)
+	printServerWarningsLegacy(stdErr, *info.Info)
 }
 
 // printSecurityOptionsWarnings prints warnings based on the security options
@@ -459,7 +458,7 @@ func printServerWarnings(dockerCli command.Cli, info *info) {
 // info.Warnings. This function is used to provide backward compatibility with
 // daemons that do not provide these warnings. No new warnings should be added
 // here.
-func printSecurityOptionsWarnings(dockerCli command.Cli, info types.Info) {
+func printSecurityOptionsWarnings(stdErr io.Writer, info types.Info) {
 	if info.OSType == "windows" {
 		return
 	}
@@ -470,7 +469,7 @@ func printSecurityOptionsWarnings(dockerCli command.Cli, info types.Info) {
 		}
 		for _, o := range so.Options {
 			if o.Key == "profile" && o.Value != "default" && o.Value != "builtin" {
-				_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING: You're not using the default seccomp profile")
+				_, _ = fmt.Fprintln(stdErr, "WARNING: You're not using the default seccomp profile")
 			}
 		}
 	}
@@ -481,39 +480,39 @@ func printSecurityOptionsWarnings(dockerCli command.Cli, info types.Info) {
 // info.Warnings. This function is used to provide backward compatibility with
 // daemons that do not provide these warnings. No new warnings should be added
 // here.
-func printServerWarningsLegacy(dockerCli command.Cli, info types.Info) {
+func printServerWarningsLegacy(stdErr io.Writer, info types.Info) {
 	if info.OSType == "windows" {
 		return
 	}
 	if !info.MemoryLimit {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No memory limit support")
+		fmt.Fprintln(stdErr, "WARNING: No memory limit support")
 	}
 	if !info.SwapLimit {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No swap limit support")
+		fmt.Fprintln(stdErr, "WARNING: No swap limit support")
 	}
 	if !info.OomKillDisable && info.CgroupVersion != "2" {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No oom kill disable support")
+		fmt.Fprintln(stdErr, "WARNING: No oom kill disable support")
 	}
 	if !info.CPUCfsQuota {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No cpu cfs quota support")
+		fmt.Fprintln(stdErr, "WARNING: No cpu cfs quota support")
 	}
 	if !info.CPUCfsPeriod {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No cpu cfs period support")
+		fmt.Fprintln(stdErr, "WARNING: No cpu cfs period support")
 	}
 	if !info.CPUShares {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No cpu shares support")
+		fmt.Fprintln(stdErr, "WARNING: No cpu shares support")
 	}
 	if !info.CPUSet {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: No cpuset support")
+		fmt.Fprintln(stdErr, "WARNING: No cpuset support")
 	}
 	if !info.IPv4Forwarding {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: IPv4 forwarding is disabled")
+		fmt.Fprintln(stdErr, "WARNING: IPv4 forwarding is disabled")
 	}
 	if !info.BridgeNfIptables {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: bridge-nf-call-iptables is disabled")
+		fmt.Fprintln(stdErr, "WARNING: bridge-nf-call-iptables is disabled")
 	}
 	if !info.BridgeNfIP6tables {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: bridge-nf-call-ip6tables is disabled")
+		fmt.Fprintln(stdErr, "WARNING: bridge-nf-call-ip6tables is disabled")
 	}
 }
 
