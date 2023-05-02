@@ -253,11 +253,11 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 	printSwarmInfo(dockerCli, *info.Info)
 
 	if len(info.Runtimes) > 0 {
-		fmt.Fprint(dockerCli.Out(), " Runtimes:")
+		names := make([]string, 0, len(info.Runtimes))
 		for name := range info.Runtimes {
-			fmt.Fprintf(dockerCli.Out(), " %s", name)
+			names = append(names, name)
 		}
-		fmt.Fprint(dockerCli.Out(), "\n")
+		fmt.Fprintln(dockerCli.Out(), " Runtimes:", strings.Join(names, " "))
 		fmt.Fprintln(dockerCli.Out(), " Default Runtime:", info.DefaultRuntime)
 	}
 
