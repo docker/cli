@@ -216,54 +216,55 @@ func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
 }
 
 //nolint:gocyclo
-func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
+func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 	var errs []error
+	output := streams.Out()
 
-	fmt.Fprintln(dockerCli.Out(), " Containers:", info.Containers)
-	fmt.Fprintln(dockerCli.Out(), "  Running:", info.ContainersRunning)
-	fmt.Fprintln(dockerCli.Out(), "  Paused:", info.ContainersPaused)
-	fmt.Fprintln(dockerCli.Out(), "  Stopped:", info.ContainersStopped)
-	fmt.Fprintln(dockerCli.Out(), " Images:", info.Images)
-	fprintlnNonEmpty(dockerCli.Out(), " Server Version:", info.ServerVersion)
-	fprintlnNonEmpty(dockerCli.Out(), " Storage Driver:", info.Driver)
+	fmt.Fprintln(output, " Containers:", info.Containers)
+	fmt.Fprintln(output, "  Running:", info.ContainersRunning)
+	fmt.Fprintln(output, "  Paused:", info.ContainersPaused)
+	fmt.Fprintln(output, "  Stopped:", info.ContainersStopped)
+	fmt.Fprintln(output, " Images:", info.Images)
+	fprintlnNonEmpty(output, " Server Version:", info.ServerVersion)
+	fprintlnNonEmpty(output, " Storage Driver:", info.Driver)
 	if info.DriverStatus != nil {
 		for _, pair := range info.DriverStatus {
-			fmt.Fprintf(dockerCli.Out(), "  %s: %s\n", pair[0], pair[1])
+			fmt.Fprintf(output, "  %s: %s\n", pair[0], pair[1])
 		}
 	}
 	if info.SystemStatus != nil {
 		for _, pair := range info.SystemStatus {
-			fmt.Fprintf(dockerCli.Out(), " %s: %s\n", pair[0], pair[1])
+			fmt.Fprintf(output, " %s: %s\n", pair[0], pair[1])
 		}
 	}
-	fprintlnNonEmpty(dockerCli.Out(), " Logging Driver:", info.LoggingDriver)
-	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Driver:", info.CgroupDriver)
-	fprintlnNonEmpty(dockerCli.Out(), " Cgroup Version:", info.CgroupVersion)
+	fprintlnNonEmpty(output, " Logging Driver:", info.LoggingDriver)
+	fprintlnNonEmpty(output, " Cgroup Driver:", info.CgroupDriver)
+	fprintlnNonEmpty(output, " Cgroup Version:", info.CgroupVersion)
 
-	fmt.Fprintln(dockerCli.Out(), " Plugins:")
-	fmt.Fprintln(dockerCli.Out(), "  Volume:", strings.Join(info.Plugins.Volume, " "))
-	fmt.Fprintln(dockerCli.Out(), "  Network:", strings.Join(info.Plugins.Network, " "))
+	fmt.Fprintln(output, " Plugins:")
+	fmt.Fprintln(output, "  Volume:", strings.Join(info.Plugins.Volume, " "))
+	fmt.Fprintln(output, "  Network:", strings.Join(info.Plugins.Network, " "))
 
 	if len(info.Plugins.Authorization) != 0 {
-		fmt.Fprintln(dockerCli.Out(), "  Authorization:", strings.Join(info.Plugins.Authorization, " "))
+		fmt.Fprintln(output, "  Authorization:", strings.Join(info.Plugins.Authorization, " "))
 	}
 
-	fmt.Fprintln(dockerCli.Out(), "  Log:", strings.Join(info.Plugins.Log, " "))
+	fmt.Fprintln(output, "  Log:", strings.Join(info.Plugins.Log, " "))
 
-	fmt.Fprintln(dockerCli.Out(), " Swarm:", info.Swarm.LocalNodeState)
-	printSwarmInfo(dockerCli.Out(), *info.Info)
+	fmt.Fprintln(output, " Swarm:", info.Swarm.LocalNodeState)
+	printSwarmInfo(output, *info.Info)
 
 	if len(info.Runtimes) > 0 {
 		names := make([]string, 0, len(info.Runtimes))
 		for name := range info.Runtimes {
 			names = append(names, name)
 		}
-		fmt.Fprintln(dockerCli.Out(), " Runtimes:", strings.Join(names, " "))
-		fmt.Fprintln(dockerCli.Out(), " Default Runtime:", info.DefaultRuntime)
+		fmt.Fprintln(output, " Runtimes:", strings.Join(names, " "))
+		fmt.Fprintln(output, " Default Runtime:", info.DefaultRuntime)
 	}
 
 	if info.OSType == "linux" {
-		fmt.Fprintln(dockerCli.Out(), " Init Binary:", info.InitBinary)
+		fmt.Fprintln(output, " Init Binary:", info.InitBinary)
 
 		for _, ci := range []struct {
 			Name   string
@@ -273,23 +274,23 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 			{"runc", info.RuncCommit},
 			{"init", info.InitCommit},
 		} {
-			fmt.Fprintf(dockerCli.Out(), " %s version: %s", ci.Name, ci.Commit.ID)
+			fmt.Fprintf(output, " %s version: %s", ci.Name, ci.Commit.ID)
 			if ci.Commit.ID != ci.Commit.Expected {
-				fmt.Fprintf(dockerCli.Out(), " (expected: %s)", ci.Commit.Expected)
+				fmt.Fprintf(output, " (expected: %s)", ci.Commit.Expected)
 			}
-			fmt.Fprint(dockerCli.Out(), "\n")
+			fmt.Fprint(output, "\n")
 		}
 		if len(info.SecurityOptions) != 0 {
 			if kvs, err := types.DecodeSecurityOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
 			} else {
-				fmt.Fprintln(dockerCli.Out(), " Security Options:")
+				fmt.Fprintln(output, " Security Options:")
 				for _, so := range kvs {
-					fmt.Fprintln(dockerCli.Out(), "  "+so.Name)
+					fmt.Fprintln(output, "  "+so.Name)
 					for _, o := range so.Options {
 						switch o.Key {
 						case "profile":
-							fmt.Fprintln(dockerCli.Out(), "   Profile:", o.Value)
+							fmt.Fprintln(output, "   Profile:", o.Value)
 						}
 					}
 				}
@@ -299,75 +300,75 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 
 	// Isolation only has meaning on a Windows daemon.
 	if info.OSType == "windows" {
-		fmt.Fprintln(dockerCli.Out(), " Default Isolation:", info.Isolation)
+		fmt.Fprintln(output, " Default Isolation:", info.Isolation)
 	}
 
-	fprintlnNonEmpty(dockerCli.Out(), " Kernel Version:", info.KernelVersion)
-	fprintlnNonEmpty(dockerCli.Out(), " Operating System:", info.OperatingSystem)
-	fprintlnNonEmpty(dockerCli.Out(), " OSType:", info.OSType)
-	fprintlnNonEmpty(dockerCli.Out(), " Architecture:", info.Architecture)
-	fmt.Fprintln(dockerCli.Out(), " CPUs:", info.NCPU)
-	fmt.Fprintln(dockerCli.Out(), " Total Memory:", units.BytesSize(float64(info.MemTotal)))
-	fprintlnNonEmpty(dockerCli.Out(), " Name:", info.Name)
-	fprintlnNonEmpty(dockerCli.Out(), " ID:", info.ID)
-	fmt.Fprintln(dockerCli.Out(), " Docker Root Dir:", info.DockerRootDir)
-	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
+	fprintlnNonEmpty(output, " Kernel Version:", info.KernelVersion)
+	fprintlnNonEmpty(output, " Operating System:", info.OperatingSystem)
+	fprintlnNonEmpty(output, " OSType:", info.OSType)
+	fprintlnNonEmpty(output, " Architecture:", info.Architecture)
+	fmt.Fprintln(output, " CPUs:", info.NCPU)
+	fmt.Fprintln(output, " Total Memory:", units.BytesSize(float64(info.MemTotal)))
+	fprintlnNonEmpty(output, " Name:", info.Name)
+	fprintlnNonEmpty(output, " ID:", info.ID)
+	fmt.Fprintln(output, " Docker Root Dir:", info.DockerRootDir)
+	fmt.Fprintln(output, " Debug Mode:", info.Debug)
 
 	if info.Debug {
-		fmt.Fprintln(dockerCli.Out(), "  File Descriptors:", info.NFd)
-		fmt.Fprintln(dockerCli.Out(), "  Goroutines:", info.NGoroutines)
-		fmt.Fprintln(dockerCli.Out(), "  System Time:", info.SystemTime)
-		fmt.Fprintln(dockerCli.Out(), "  EventsListeners:", info.NEventsListener)
+		fmt.Fprintln(output, "  File Descriptors:", info.NFd)
+		fmt.Fprintln(output, "  Goroutines:", info.NGoroutines)
+		fmt.Fprintln(output, "  System Time:", info.SystemTime)
+		fmt.Fprintln(output, "  EventsListeners:", info.NEventsListener)
 	}
 
-	fprintlnNonEmpty(dockerCli.Out(), " HTTP Proxy:", info.HTTPProxy)
-	fprintlnNonEmpty(dockerCli.Out(), " HTTPS Proxy:", info.HTTPSProxy)
-	fprintlnNonEmpty(dockerCli.Out(), " No Proxy:", info.NoProxy)
-	fprintlnNonEmpty(dockerCli.Out(), " Username:", info.UserName)
+	fprintlnNonEmpty(output, " HTTP Proxy:", info.HTTPProxy)
+	fprintlnNonEmpty(output, " HTTPS Proxy:", info.HTTPSProxy)
+	fprintlnNonEmpty(output, " No Proxy:", info.NoProxy)
+	fprintlnNonEmpty(output, " Username:", info.UserName)
 	if len(info.Labels) > 0 {
-		fmt.Fprintln(dockerCli.Out(), " Labels:")
+		fmt.Fprintln(output, " Labels:")
 		for _, lbl := range info.Labels {
-			fmt.Fprintln(dockerCli.Out(), "  "+lbl)
+			fmt.Fprintln(output, "  "+lbl)
 		}
 	}
 
-	fmt.Fprintln(dockerCli.Out(), " Experimental:", info.ExperimentalBuild)
+	fmt.Fprintln(output, " Experimental:", info.ExperimentalBuild)
 
 	if info.RegistryConfig != nil && (len(info.RegistryConfig.InsecureRegistryCIDRs) > 0 || len(info.RegistryConfig.IndexConfigs) > 0) {
-		fmt.Fprintln(dockerCli.Out(), " Insecure Registries:")
+		fmt.Fprintln(output, " Insecure Registries:")
 		for _, reg := range info.RegistryConfig.IndexConfigs {
 			if !reg.Secure {
-				fmt.Fprintln(dockerCli.Out(), "  "+reg.Name)
+				fmt.Fprintln(output, "  "+reg.Name)
 			}
 		}
 
 		for _, reg := range info.RegistryConfig.InsecureRegistryCIDRs {
 			mask, _ := reg.Mask.Size()
-			fmt.Fprintf(dockerCli.Out(), "  %s/%d\n", reg.IP.String(), mask)
+			fmt.Fprintf(output, "  %s/%d\n", reg.IP.String(), mask)
 		}
 	}
 
 	if info.RegistryConfig != nil && len(info.RegistryConfig.Mirrors) > 0 {
-		fmt.Fprintln(dockerCli.Out(), " Registry Mirrors:")
+		fmt.Fprintln(output, " Registry Mirrors:")
 		for _, mirror := range info.RegistryConfig.Mirrors {
-			fmt.Fprintln(dockerCli.Out(), "  "+mirror)
+			fmt.Fprintln(output, "  "+mirror)
 		}
 	}
 
-	fmt.Fprintln(dockerCli.Out(), " Live Restore Enabled:", info.LiveRestoreEnabled)
+	fmt.Fprintln(output, " Live Restore Enabled:", info.LiveRestoreEnabled)
 	if info.ProductLicense != "" {
-		fmt.Fprintln(dockerCli.Out(), " Product License:", info.ProductLicense)
+		fmt.Fprintln(output, " Product License:", info.ProductLicense)
 	}
 
 	if info.DefaultAddressPools != nil && len(info.DefaultAddressPools) > 0 {
-		fmt.Fprintln(dockerCli.Out(), " Default Address Pools:")
+		fmt.Fprintln(output, " Default Address Pools:")
 		for _, pool := range info.DefaultAddressPools {
-			fmt.Fprintf(dockerCli.Out(), "   Base: %s, Size: %d\n", pool.Base, pool.Size)
+			fmt.Fprintf(output, "   Base: %s, Size: %d\n", pool.Base, pool.Size)
 		}
 	}
 
-	fmt.Fprint(dockerCli.Out(), "\n")
-	printServerWarnings(dockerCli.Err(), info)
+	fmt.Fprint(output, "\n")
+	printServerWarnings(streams.Err(), info)
 	return errs
 }
 
