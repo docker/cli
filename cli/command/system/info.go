@@ -334,15 +334,15 @@ func prettyPrintServerInfo(dockerCli command.Cli, info *info) []error {
 
 	if info.RegistryConfig != nil && (len(info.RegistryConfig.InsecureRegistryCIDRs) > 0 || len(info.RegistryConfig.IndexConfigs) > 0) {
 		fmt.Fprintln(dockerCli.Out(), " Insecure Registries:")
-		for _, registry := range info.RegistryConfig.IndexConfigs {
-			if !registry.Secure {
-				fmt.Fprintln(dockerCli.Out(), "  "+registry.Name)
+		for _, reg := range info.RegistryConfig.IndexConfigs {
+			if !reg.Secure {
+				fmt.Fprintln(dockerCli.Out(), "  "+reg.Name)
 			}
 		}
 
-		for _, registry := range info.RegistryConfig.InsecureRegistryCIDRs {
-			mask, _ := registry.Mask.Size()
-			fmt.Fprintf(dockerCli.Out(), "  %s/%d\n", registry.IP.String(), mask)
+		for _, reg := range info.RegistryConfig.InsecureRegistryCIDRs {
+			mask, _ := reg.Mask.Size()
+			fmt.Fprintf(dockerCli.Out(), "  %s/%d\n", reg.IP.String(), mask)
 		}
 	}
 
