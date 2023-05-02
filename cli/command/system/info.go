@@ -160,29 +160,29 @@ func needsServerInfo(template string, info info) bool {
 	return err != nil
 }
 
-func prettyPrintInfo(dockerCli command.Cli, info info) error {
+func prettyPrintInfo(streams command.Streams, info info) error {
 	// Only append the platform info if it's not empty, to prevent printing a trailing space.
 	if p := info.clientPlatform(); p != "" {
-		_, _ = fmt.Fprintln(dockerCli.Out(), "Client:", p)
+		_, _ = fmt.Fprintln(streams.Out(), "Client:", p)
 	} else {
-		_, _ = fmt.Fprintln(dockerCli.Out(), "Client:")
+		_, _ = fmt.Fprintln(streams.Out(), "Client:")
 	}
 	if info.ClientInfo != nil {
-		prettyPrintClientInfo(dockerCli, *info.ClientInfo)
+		prettyPrintClientInfo(streams, *info.ClientInfo)
 	}
 	for _, err := range info.ClientErrors {
-		fmt.Fprintln(dockerCli.Err(), "ERROR:", err)
+		fmt.Fprintln(streams.Err(), "ERROR:", err)
 	}
 
-	fmt.Fprintln(dockerCli.Out())
-	fmt.Fprintln(dockerCli.Out(), "Server:")
+	fmt.Fprintln(streams.Out())
+	fmt.Fprintln(streams.Out(), "Server:")
 	if info.Info != nil {
-		for _, err := range prettyPrintServerInfo(dockerCli, &info) {
+		for _, err := range prettyPrintServerInfo(streams, &info) {
 			info.ServerErrors = append(info.ServerErrors, err.Error())
 		}
 	}
 	for _, err := range info.ServerErrors {
-		fmt.Fprintln(dockerCli.Err(), "ERROR:", err)
+		fmt.Fprintln(streams.Err(), "ERROR:", err)
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
