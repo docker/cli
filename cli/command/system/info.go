@@ -191,18 +191,19 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	return nil
 }
 
-func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
-	fprintlnNonEmpty(dockerCli.Out(), " Version:   ", info.Version)
-	fmt.Fprintln(dockerCli.Out(), " Context:   ", info.Context)
-	fmt.Fprintln(dockerCli.Out(), " Debug Mode:", info.Debug)
+func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
+	output := streams.Out()
+	fprintlnNonEmpty(output, " Version:   ", info.Version)
+	fmt.Fprintln(output, " Context:   ", info.Context)
+	fmt.Fprintln(output, " Debug Mode:", info.Debug)
 
 	if len(info.Plugins) > 0 {
-		fmt.Fprintln(dockerCli.Out(), " Plugins:")
+		fmt.Fprintln(output, " Plugins:")
 		for _, p := range info.Plugins {
 			if p.Err == nil {
-				fmt.Fprintf(dockerCli.Out(), "  %s: %s (%s)\n", p.Name, p.ShortDescription, p.Vendor)
-				fprintlnNonEmpty(dockerCli.Out(), "    Version: ", p.Version)
-				fprintlnNonEmpty(dockerCli.Out(), "    Path:    ", p.Path)
+				fmt.Fprintf(output, "  %s: %s (%s)\n", p.Name, p.ShortDescription, p.Vendor)
+				fprintlnNonEmpty(output, "    Version: ", p.Version)
+				fprintlnNonEmpty(output, "    Path:    ", p.Path)
 			} else {
 				info.Warnings = append(info.Warnings, fmt.Sprintf("WARNING: Plugin %q is not valid: %s", p.Path, p.Err))
 			}
@@ -210,7 +211,7 @@ func prettyPrintClientInfo(dockerCli command.Cli, info clientInfo) {
 	}
 
 	if len(info.Warnings) > 0 {
-		fmt.Fprintln(dockerCli.Err(), strings.Join(info.Warnings, "\n"))
+		fmt.Fprintln(streams.Err(), strings.Join(info.Warnings, "\n"))
 	}
 }
 
