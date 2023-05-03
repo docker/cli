@@ -26,7 +26,7 @@ require (
 	github.com/moby/swarmkit/v2 v2.0.0-20230406225228-75e92ce14ff7
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
-	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f
+	github.com/moby/term v0.5.0
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2.0.20221005185240-3a7f492d3f1b
