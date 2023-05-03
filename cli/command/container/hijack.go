@@ -87,7 +87,7 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 	var restoreOnce sync.Once
 	restore = func() {
 		restoreOnce.Do(func() {
-			restoreTerminal(h.streams, h.inputStream)
+			_ = restoreTerminal(h.streams, h.inputStream)
 		})
 	}
 
