@@ -269,7 +269,8 @@ be set for each environment:
 
 These settings are used to configure proxy settings for containers only, and not
 used as proxy settings for the `docker` CLI or the `dockerd` daemon. Refer to the
-[environment variables](#environment-variables) and [HTTP/HTTPS proxy](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
+[environment variables](#environment-variables) and
+[configure the daemon to use a proxy server](https://docs.docker.com/config/daemon/systemd/#configure-the-docker-daemon-to-use-a-proxy-server)
 sections for configuring proxy settings for the cli and daemon.
 
 > **Warning**

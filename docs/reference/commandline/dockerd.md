@@ -165,7 +165,8 @@ in three ways:
   options. (Docker Engine 23.0 or newer).
 
 The command-line and configuration file options take precedence over environment
-variables. Refer to [control and configure Docker with systemd](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
+variables. Refer to
+[configure the daemon to use a proxy server](https://docs.docker.com/config/daemon/systemd/#configure-the-docker-daemon-to-use-a-proxy-server)
 to set these environment variables on a host using `systemd`.
 
 ### Daemon socket option
