@@ -406,16 +406,40 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 			if tc.jsonGolden != "" {
 				cli = test.NewFakeCli(&fakeClient{})
-				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "{{json .}}"))
+				assert.NilError(t, formatInfo(cli.Out(), tc.dockerInfo, "{{json .}}"))
 				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 
 				cli = test.NewFakeCli(&fakeClient{})
-				assert.NilError(t, formatInfo(cli, tc.dockerInfo, "json"))
+				assert.NilError(t, formatInfo(cli.Out(), tc.dockerInfo, "json"))
 				golden.Assert(t, cli.OutBuffer().String(), tc.jsonGolden+".json.golden")
 				assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
 			}
 		})
+	}
+}
+
+func BenchmarkPrettyPrintInfo(b *testing.B) {
+	infoWithSwarm := sampleInfoNoSwarm
+	infoWithSwarm.Swarm = sampleSwarmInfo
+
+	dockerInfo := info{
+		Info: &infoWithSwarm,
+		ClientInfo: &clientInfo{
+			clientVersion: clientVersion{
+				Platform: &platformInfo{Name: "Docker Engine - Community"},
+				Version:  "24.0.0",
+				Context:  "default",
+			},
+			Debug: true,
+		},
+	}
+	cli := test.NewFakeCli(&fakeClient{})
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_ = prettyPrintInfo(cli, dockerInfo)
+		cli.ResetOutputBuffers()
 	}
 }
 
@@ -449,7 +473,7 @@ func TestFormatInfo(t *testing.T) {
 				Info:       &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{Debug: true},
 			}
-			err := formatInfo(cli, info, tc.template)
+			err := formatInfo(cli.Out(), info, tc.template)
 			if tc.expectedOut != "" {
 				assert.NilError(t, err)
 				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
