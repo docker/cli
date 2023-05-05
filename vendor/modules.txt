@@ -195,7 +195,7 @@ github.com/opencontainers/go-digest
 ## explicit; go 1.17
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.1.6
+# github.com/opencontainers/runc v1.1.7
 ## explicit; go 1.17
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
