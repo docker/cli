@@ -92,18 +92,18 @@ The base command for the Docker CLI.
 
 ### Options
 
-| Name                | Type     | Default                  | Description                                                                                                                           |
-|:--------------------|:---------|:-------------------------|:--------------------------------------------------------------------------------------------------------------------------------------|
-| `--config`          | `string` | `/root/.docker`          | Location of client config files                                                                                                       |
-| `-c`, `--context`   | `string` |                          | Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with `docker context use`) |
-| `-D`, `--debug`     |          |                          | Enable debug mode                                                                                                                     |
-| `-H`, `--host`      | `list`   |                          | Daemon socket(s) to connect to                                                                                                        |
-| `-l`, `--log-level` | `string` | `info`                   | Set the logging level (`debug`, `info`, `warn`, `error`, `fatal`)                                                                     |
-| `--tls`             |          |                          | Use TLS; implied by --tlsverify                                                                                                       |
-| `--tlscacert`       | `string` | `/root/.docker/ca.pem`   | Trust certs signed only by this CA                                                                                                    |
-| `--tlscert`         | `string` | `/root/.docker/cert.pem` | Path to TLS certificate file                                                                                                          |
-| `--tlskey`          | `string` | `/root/.docker/key.pem`  | Path to TLS key file                                                                                                                  |
-| `--tlsverify`       |          |                          | Use TLS and verify the remote                                                                                                         |
+| Name                             | Type     | Default                  | Description                                                                                                                           |
+|:---------------------------------|:---------|:-------------------------|:--------------------------------------------------------------------------------------------------------------------------------------|
+| `--config`                       | `string` | `/root/.docker`          | Location of client config files                                                                                                       |
+| `-c`, `--context`                | `string` |                          | Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with `docker context use`) |
+| `-D`, `--debug`                  |          |                          | Enable debug mode                                                                                                                     |
+| [`-H`](#host), [`--host`](#host) | `list`   |                          | Daemon socket to connect to                                                                                                           |
+| `-l`, `--log-level`              | `string` | `info`                   | Set the logging level (`debug`, `info`, `warn`, `error`, `fatal`)                                                                     |
+| `--tls`                          |          |                          | Use TLS; implied by --tlsverify                                                                                                       |
+| `--tlscacert`                    | `string` | `/root/.docker/ca.pem`   | Trust certs signed only by this CA                                                                                                    |
+| `--tlscert`                      | `string` | `/root/.docker/cert.pem` | Path to TLS certificate file                                                                                                          |
+| `--tlskey`                       | `string` | `/root/.docker/key.pem`  | Path to TLS key file                                                                                                                  |
+| `--tlsverify`                    |          |                          | Use TLS and verify the remote                                                                                                         |
 
 
 <!---MARKER_GEN_END-->
@@ -377,6 +377,56 @@ Alternatively you can trust the certificate globally by adding it to your system
 list of root Certificate Authorities.
 
 ## Examples
+
+### <a name="host"></a> Specify daemon host (-H, --host)
+
+You can use the `-H`, `--host` flag to specify a socket to use when you invoke
+a `docker` command. You can use the following protocols:
+
+| Scheme                                 | Description               | Example                          |
+|----------------------------------------|---------------------------|----------------------------------|
+| `unix://[<path>]`                      | Unix socket (Linux only)  | `unix:///var/run/docker.sock`    |
+| `tcp://[<IP or host>[:port]]`          | TCP connection            | `tcp://174.17.0.1:2376`          |
+| `ssh://[username@]<IP or host>[:port]` | SSH connection            | `ssh://user@192.168.64.5`        |
+| `npipe://[<name>]`                     | Named pipe (Windows only) | `npipe:////./pipe/docker_engine` |
+
+If you don't specify the `-H` flag, and you're not using a custom
+[context](https://docs.docker.com/engine/context/working-with-contexts),
+commands use the following default sockets:
+
+- `unix:///var/run/docker.sock` on macOS and Linux
+- `npipe:////./pipe/docker_engine` on Windows
+
+To achieve a similar effect without having to specify the `-H` flag for every
+command, you could also [create a context](context_create.md),
+or alternatively, use the
+[`DOCKER_HOST` environment variable](#environment-variables).
+
+For more information about the `-H` flag, see
+[Daemon socket option](dockerd.md#daemon-socket-option).
+
+#### Using TCP sockets
+
+The following example shows how to invoke `docker ps` over TCP, to a remote
+daemon with IP address `174.17.0.1`, listening on port `2376`:
+
+```console
+$ docker -H tcp://174.17.0.1:2376 ps
+```
+
+> **Note**
+>
+> By convention, the Docker daemon uses port `2376` for secure TLS connections,
+> and port `2375` for insecure, non-TLS connections.
+
+#### Using SSH sockets
+
+When you use SSH invoke a command on a remote daemon, the request gets forwarded
+to the `/var/run/docker.sock` Unix socket on the SSH host.
+
+```console
+$ docker -H ssh://user@192.168.64.5 ps
+```
 
 ### Display help text
 
