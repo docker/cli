@@ -7,6 +7,12 @@ Remove one or more stacks
 
 `docker stack rm`, `docker stack remove`, `docker stack down`
 
+### Options
+
+| Name             | Type   | Default | Description                   |
+|:-----------------|:-------|:--------|:------------------------------|
+| `-d`, `--detach` | `bool` | `true`  | Do not wait for stack removal |
+
 
 <!---MARKER_GEN_END-->
 
