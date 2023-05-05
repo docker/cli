@@ -9,6 +9,8 @@ type Deploy struct {
 	ResolveImage     string
 	SendRegistryAuth bool
 	Prune            bool
+	Detach           bool
+	Quiet            bool
 }
 
 // Config holds docker stack config options

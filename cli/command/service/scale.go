@@ -80,7 +80,7 @@ func runScale(ctx context.Context, dockerCli command.Cli, options *scaleOptions,
 	if len(serviceIDs) > 0 {
 		if !options.detach && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
 			for _, serviceID := range serviceIDs {
-				if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
+				if err := WaitOnService(ctx, dockerCli, serviceID, false); err != nil {
 					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
 				}
 			}
