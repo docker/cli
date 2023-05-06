@@ -1781,13 +1781,7 @@ definitions:
         description: |
           Total size of the image including all layers it is composed of.
 
-          In versions of Docker before v1.10, this field was calculated from
-          the image itself and all of its parent images. Images are now stored
-          self-contained, and no longer use a parent-chain, making this field
-          an equivalent of the Size field.
-
-          > **Deprecated**: this field is kept for backward compatibility, but
-          > will be removed in API v1.44.
+          Deprecated: this field is omitted in API v1.44, but kept for backward compatibility. Use Size instead.
         type: "integer"
         format: "int64"
         example: 1239828
@@ -1925,12 +1919,7 @@ definitions:
         description: |-
           Total size of the image including all layers it is composed of.
 
-          In versions of Docker before v1.10, this field was calculated from
-          the image itself and all of its parent images. Images are now stored
-          self-contained, and no longer use a parent-chain, making this field
-          an equivalent of the Size field.
-
-          Deprecated: this field is kept for backward compatibility, and will be removed in API v1.44.
+          Deprecated: this field is omitted in API v1.44, but kept for backward compatibility. Use Size instead.
         type: "integer"
         format: "int64"
         example: 172064416
@@ -6597,7 +6586,7 @@ paths:
                 StopSignal: "SIGTERM"
                 StopTimeout: 10
               Created: "2015-01-06T15:47:31.485331387Z"
-              Driver: "devicemapper"
+              Driver: "overlay2"
               ExecIDs:
                 - "b35395de42bc8abd327f9dd65d913b9ba28c74d2f0734eeeae84fa1c616a0fca"
                 - "3fc1232e5cd20c8de182ed81178503dc6437f4e7ef12b52cc5e8de020652f1c4"
@@ -9066,7 +9055,6 @@ paths:
                   Created: 1466724217
                   Size: 1092588
                   SharedSize: 0
-                  VirtualSize: 1092588
                   Labels: {}
                   Containers: 1
               Containers:
