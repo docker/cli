@@ -6,11 +6,14 @@ module github.com/docker/cli
 
 go 1.18
 
+// use a replace rule to prevent go mod downgrading (because master gets v24.0.0-rc.2.xxx pseudo-versions)
+replace github.com/docker/docker => github.com/docker/docker v24.0.0-rc.2.0.20230506131059-88f4bf4ae4ba+incompatible
+
 require (
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v24.0.0-rc.2+incompatible
+	github.com/docker/docker v24.0.0-rc.2.0.20230506131059-88f4bf4ae4ba+incompatible // replaced; this is master / v25.0.0-dev; see replace rule above.
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
