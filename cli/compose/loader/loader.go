@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/compose-spec/compose-go/template"
 	interp "github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
-	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
