@@ -19,13 +19,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// EncodeAuthToBase64 serializes the auth configuration as JSON base64 payload.
-//
-// Deprecated: use [registrytypes.EncodeAuthConfig] instead.
-func EncodeAuthToBase64(authConfig registrytypes.AuthConfig) (string, error) {
-	return registrytypes.EncodeAuthConfig(authConfig)
-}
-
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
