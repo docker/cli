@@ -12,27 +12,45 @@ Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
 
 ## Description
 
-An image name is made up of slash-separated name components, optionally prefixed
-by a registry hostname. The hostname must comply with standard DNS rules, but
-may not contain underscores. If a hostname is present, it may optionally be
-followed by a port number in the format `:8080`. If not present, the command
-uses Docker's public registry located at `registry-1.docker.io` by default. Name
-components may contain lowercase letters, digits and separators. A separator
-is defined as a period, one or two underscores, or one or more hyphens. A name
-component may not start or end with a separator.
+A full image name has the following format and components:
 
-A tag name must be valid ASCII and may contain lowercase and uppercase letters,
-digits, underscores, periods and hyphens. A tag name may not start with a
-period or a hyphen and may contain a maximum of 128 characters.
+`[HOST[:PORT_NUMBER]/]PATH`
 
-You can group your images together using names and tags, and then upload them
-to [*Share images on Docker Hub*](https://docs.docker.com/get-started/part3/).
+- `HOST`: The optional registry hostname specifies where the image is located.
+The hostname must comply with standard DNS rules, but may not contain
+underscores. If the hostname is not specified, the command uses Docker's public
+registry at `registry-1.docker.io` by default. Note that `docker.io` is the
+canonical reference for Docker's public registry.
+- `PORT_NUMBER`: If a hostname is present, it may optionally be followed by a
+registry port number in the format `:8080`.
+- `PATH`: The path consists consists of slash-separated components. Each
+component may contain lowercase letters, digits and separators. A separator is
+defined as a period, one or two underscores, or one or more hyphens. A component
+may not start or end with a separator. While the
+[OCI Distribution Specification](https://github.com/opencontainers/distribution-spec)
+supports more than two slash-separated components, most registries only support
+two slash-separated components. For Docker's public registry, the path format is
+as follows:
+  - `[NAMESPACE/]REPOSITORY`: The first, optional component is typically a
+user's or an organization's namespace. The second, mandatory component is the
+repository name. When the namespace is not present, Docker uses `library`
+as the default namespace.
+
+After the image name, the optional `TAG` is a custom, human-readable manifest
+identifier that is typically a specific version or variant of an image. The tag
+must be valid ASCII and can contain lowercase and uppercase letters, digits,
+underscores, periods, and hyphens. It cannot start with a period or hyphen and
+must be no longer than 128 characters. If the tag is not specified, the command uses `latest` by default.
+
+You can group your images together using names and tags, and then
+[push](https://docs.docker.com/engine/reference/commandline/push) them to a
+registry.
 
 ## Examples
 
 ### Tag an image referenced by ID
 
-To tag a local image with ID "0e5574283393" into the "fedora" repository with
+To tag a local image with ID "0e5574283393" as "fedora/httpd" with the tag
 "version1.0":
 
 ```console
@@ -41,8 +59,7 @@ $ docker tag 0e5574283393 fedora/httpd:version1.0
 
 ### Tag an image referenced by Name
 
-To tag a local image with name "httpd" into the "fedora" repository with
-"version1.0":
+To tag a local image "httpd" as "fedora/httpd" with the tag "version1.0":
 
 ```console
 $ docker tag httpd fedora/httpd:version1.0
@@ -53,17 +70,17 @@ existing local version `httpd:latest`.
 
 ### Tag an image referenced by Name and Tag
 
-To tag a local image with name "httpd" and tag "test" into the "fedora"
-repository with "version1.0.test":
+To tag a local image with the name "httpd" and the tag "test" as "fedora/httpd"
+with the tag "version1.0.test":
 
 ```console
 $ docker tag httpd:test fedora/httpd:version1.0.test
 ```
 
-### Tag an image for a private repository
+### Tag an image for a private registry
 
-To push an image to a private registry and not the central Docker
-registry you must tag it with the registry hostname and port (if needed).
+To push an image to a private registry and not the public Docker registry you
+must include the registry hostname and port (if needed).
 
 ```console
 $ docker tag 0e5574283393 myregistryhost:5000/fedora/httpd:version1.0
