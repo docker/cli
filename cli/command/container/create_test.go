@@ -350,5 +350,5 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 
 type fakeNotFound struct{}
 
-func (f fakeNotFound) NotFound() bool { return true }
-func (f fakeNotFound) Error() string  { return "error fake not found" }
+func (f fakeNotFound) NotFound()     {}
+func (f fakeNotFound) Error() string { return "error fake not found" }
