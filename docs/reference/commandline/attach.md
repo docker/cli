@@ -26,7 +26,7 @@ ID or name. This allows you to view its ongoing output or to control it
 interactively, as though the commands were running directly in your terminal.
 
 > **Note:**
-> The `attach` command will display the output of the `ENTRYPOINT/CMD` process.  This
+> The `attach` command will display the output of the `ENTRYPOINT/CMD` process. This
 > can appear as if the attach command is hung when in fact the process may simply
 > not be interacting with the terminal at that time.
 
@@ -78,13 +78,14 @@ the following:
 
 These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
 sequences. To configure a different configuration default key sequence for all
-containers, see [**Configuration file** section](cli.md#configuration-files).
+containers, see
+[Configuration file section](https://docs.docker.com/cli/config-file/).
 
 ## Examples
 
 ### Attach to and detach from a running container
 
-The following example starts an ubuntu container running `top` in detached mode,
+The following example starts an Ubuntu container running `top` in detached mode,
 then attaches to the container;
 
 ```console

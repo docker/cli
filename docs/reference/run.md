@@ -47,8 +47,8 @@ operator's ability to override image and Docker runtime defaults is why
 [*run*](commandline/run.md) has more options than any
 other `docker` command.
 
-To learn how to interpret the types of `[OPTIONS]`, see
-[*Option types*](commandline/cli.md#option-types).
+To learn how to interpret the types of `[OPTIONS]`, refer to
+[CLI flags](https://docs.docker.com/cli/flags).
 
 > **Note**
 >

@@ -142,7 +142,7 @@ commands use the following default sockets:
 To achieve a similar effect without having to specify the `-H` flag for every
 command, you could also [create a context](context_create.md),
 or alternatively, use the
-[`DOCKER_HOST` environment variable](#environment-variables).
+[`DOCKER_HOST` environment variable](https://docs.docker.com/cli/env-vars/).
 
 For more information about the `-H` flag, see
 [Daemon socket option](dockerd.md#daemon-socket-option).
