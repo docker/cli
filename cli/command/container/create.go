@@ -18,7 +18,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/versions"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/jsonmessage"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -255,7 +255,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
-		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
+		if errdefs.IsNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
 			if !opts.quiet {
 				// we don't want to write to stdout anything apart from container.ID
 				fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 )
 
@@ -85,7 +86,7 @@ func validateExternalNetworks(ctx context.Context, client apiclient.NetworkAPICl
 		}
 		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 		switch {
-		case apiclient.IsErrNotFound(err):
+		case errdefs.IsNotFound(err):
 			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
@@ -107,7 +108,7 @@ func createSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.S
 			if err := client.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
 				return errors.Wrapf(err, "failed to update secret %s", secretSpec.Name)
 			}
-		case apiclient.IsErrNotFound(err):
+		case errdefs.IsNotFound(err):
 			// secret does not exist, then we create a new one.
 			fmt.Fprintf(dockerCli.Out(), "Creating secret %s\n", secretSpec.Name)
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
@@ -131,7 +132,7 @@ func createConfigs(ctx context.Context, dockerCli command.Cli, configs []swarm.C
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
 				return errors.Wrapf(err, "failed to update config %s", configSpec.Name)
 			}
-		case apiclient.IsErrNotFound(err):
+		case errdefs.IsNotFound(err):
 			// config does not exist, then we create a new one.
 			fmt.Fprintf(dockerCli.Out(), "Creating config %s\n", configSpec.Name)
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {

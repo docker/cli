@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -63,7 +63,7 @@ func runRemove(dockerCli command.Cli, opts removeOptions, images []string) error
 	for _, img := range images {
 		dels, err := client.ImageRemove(ctx, img, options)
 		if err != nil {
-			if !apiclient.IsErrNotFound(err) {
+			if !errdefs.IsNotFound(err) {
 				fatalErr = true
 			}
 			errs = append(errs, err.Error())

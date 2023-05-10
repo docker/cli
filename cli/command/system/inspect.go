@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -213,7 +213,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 }
 
 func isErrSkippable(err error) bool {
-	return apiclient.IsErrNotFound(err) ||
+	return errdefs.IsNotFound(err) ||
 		strings.Contains(err.Error(), "not supported") ||
 		strings.Contains(err.Error(), "invalid reference format")
 }
