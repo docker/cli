@@ -9,7 +9,7 @@ go 1.18
 require (
 	github.com/containerd/containerd v1.6.19
 	github.com/creack/pty v1.1.11
-	github.com/docker/distribution v2.8.1+incompatible
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/docker/docker v23.0.5+incompatible
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
