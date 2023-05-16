@@ -161,13 +161,13 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		return nil, "", err
 	}
 
-	tar, err := archive.Tar(dockerfileDir, archive.Uncompressed)
+	tarArchive, err := archive.Tar(dockerfileDir, archive.Uncompressed)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return ioutils.NewReadCloserWrapper(tar, func() error {
-		err := tar.Close()
+	return ioutils.NewReadCloserWrapper(tarArchive, func() error {
+		err := tarArchive.Close()
 		os.RemoveAll(dockerfileDir)
 		return err
 	}), DefaultDockerfileName, nil
@@ -432,8 +432,7 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 		defer buildCtx.Close()
 
 		if _, err := pools.Copy(compressWriter, buildCtx); err != nil {
-			pipeWriter.CloseWithError(
-				errors.Wrap(err, "failed to compress context"))
+			pipeWriter.CloseWithError(errors.Wrap(err, "failed to compress context"))
 			compressWriter.Close()
 			return
 		}
