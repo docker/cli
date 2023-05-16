@@ -15,7 +15,6 @@ import (
 	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 func newServicesCommand(dockerCli command.Cli) *cobra.Command {
@@ -50,13 +49,6 @@ func RunServices(dockerCli command.Cli, opts options.Services) error {
 		return err
 	}
 	return formatWrite(dockerCli, services, opts)
-}
-
-// GetServices returns the services for the specified swarm cluster.
-//
-// Deprecated: use [swarm.GetServices] instead.
-func GetServices(dockerCli command.Cli, _ *pflag.FlagSet, opts options.Services) ([]swarmtypes.Service, error) {
-	return swarm.GetServices(dockerCli, opts)
 }
 
 func formatWrite(dockerCli command.Cli, services []swarmtypes.Service, opts options.Services) error {

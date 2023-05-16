@@ -6,7 +6,6 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
@@ -29,11 +28,4 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-// RunRemove performs a stack remove against the specified swarm cluster.
-//
-// Deprecated: use [swarm.RunRemove] instead.
-func RunRemove(dockerCli command.Cli, _ *pflag.FlagSet, opts options.Remove) error {
-	return swarm.RunRemove(dockerCli, opts)
 }

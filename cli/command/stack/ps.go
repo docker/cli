@@ -8,7 +8,6 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 func newPsCommand(dockerCli command.Cli) *cobra.Command {
@@ -36,11 +35,4 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Only display task IDs")
 	flags.StringVar(&opts.Format, "format", "", flagsHelper.FormatHelp)
 	return cmd
-}
-
-// RunPs performs a stack ps against the specified swarm cluster.
-//
-// Deprecated: use [swarm.RunPS] instead.
-func RunPs(dockerCli command.Cli, _ *pflag.FlagSet, opts options.PS) error {
-	return swarm.RunPS(dockerCli, opts)
 }

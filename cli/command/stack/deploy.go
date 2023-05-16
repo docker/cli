@@ -6,9 +6,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 func newDeployCommand(dockerCli command.Cli) *cobra.Command {
@@ -45,11 +43,4 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`", "`+swarm.ResolveImageChanged+`", "`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	return cmd
-}
-
-// RunDeploy performs a stack deploy against the specified swarm cluster.
-//
-// Deprecated: use [swarm.RunDeploy] instead.
-func RunDeploy(dockerCli command.Cli, _ *pflag.FlagSet, config *composetypes.Config, opts options.Deploy) error {
-	return swarm.RunDeploy(dockerCli, opts, config)
 }
