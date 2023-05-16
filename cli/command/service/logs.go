@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
@@ -99,12 +100,12 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	service, _, err := cli.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
-		if !client.IsErrNotFound(err) {
+		if !errdefs.IsNotFound(err) {
 			return err
 		}
 		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
-			if client.IsErrNotFound(err) {
+			if errdefs.IsNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
 				err = fmt.Errorf("no such task or service: %v", opts.target)
