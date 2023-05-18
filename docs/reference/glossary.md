@@ -314,19 +314,6 @@ containers.
 
 ![services diagram](https://docs.docker.com/engine/swarm/images/services-diagram.png)
 
-## Toolbox
-
-[Docker Toolbox](https://docs.docker.com/toolbox/overview/) is a legacy
-installer for Mac and Windows users. It uses Oracle VirtualBox for
-virtualization.
-
-For Macs running OS X El Capitan 10.11 and newer macOS releases, [Docker for
-Mac](https://docs.docker.com/docker-for-mac/) is the better solution.
-
-For Windows 10 systems that support Microsoft Hyper-V (Professional, Enterprise
-and Education), [Docker for
-Windows](https://docs.docker.com/docker-for-windows/) is the better solution.
-
 ## Union file system
 
 Union file systems implement a [union
