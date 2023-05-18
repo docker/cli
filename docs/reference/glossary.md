@@ -16,12 +16,6 @@ keywords: "glossary, docker, terms, definitions"
 
 A list of terms used around the Docker project.
 
-## aufs
-
-aufs (advanced multi layered unification filesystem) is a Linux [filesystem](#filesystem) that
-Docker supports as a storage backend. It implements the
-[union mount](https://en.wikipedia.org/wiki/Union_mount) for Linux file systems.
-
 ## base image
 
 An image that has no parent is a **base image**.
@@ -178,7 +172,7 @@ and assign them locations for efficient storage and retrieval.
 
 Examples :
 
-- Linux : ext4, aufs, btrfs, zfs
+- Linux : ext4, btrfs, zfs
 - Windows : NTFS
 - macOS : HFS+
 
@@ -316,23 +310,16 @@ containers.
 
 ## Union file system
 
-Union file systems implement a [union
-mount](https://en.wikipedia.org/wiki/Union_mount) and operate by creating
+Union file systems implement a [union mount](https://en.wikipedia.org/wiki/Union_mount) and operate by creating
 layers. Docker uses union file systems in conjunction with
 [copy-on-write](#copy-on-write) techniques to provide the building blocks for
 containers, making them very lightweight and fast.
 
-For more on Docker and union file systems, see [Docker and AUFS in
-practice](https://docs.docker.com/engine/userguide/storagedriver/aufs-driver/),
-[Docker and Btrfs in
-practice](https://docs.docker.com/engine/userguide/storagedriver/btrfs-driver/),
-and [Docker and OverlayFS in
-practice](https://docs.docker.com/engine/userguide/storagedriver/overlayfs-driver/)
+For more on Docker and union file systems, see [OverlayFS storage driver](https://docs.docker.com/storage/storagedriver/overlayfs-driver/),
+and [Btrfs storage driver](https://docs.docker.com/storage/storagedriver/btrfs-driver/).
 
 Example implementations of union file systems are
-[UnionFS](https://en.wikipedia.org/wiki/UnionFS),
-[AUFS](https://en.wikipedia.org/wiki/Aufs), and
-[Btrfs](https://btrfs.wiki.kernel.org/index.php/Main_Page).
+[UnionFS](https://en.wikipedia.org/wiki/UnionFS), and [Btrfs](https://btrfs.wiki.kernel.org/index.php/Main_Page).
 
 ## virtual machine
 
