@@ -31,12 +31,12 @@ var sampleInfoNoSwarm = types.Info{
 	ContainersPaused:  0,
 	ContainersStopped: 0,
 	Images:            0,
-	Driver:            "aufs",
+	Driver:            "overlay2",
 	DriverStatus: [][2]string{
-		{"Root Dir", "/var/lib/docker/aufs"},
 		{"Backing Filesystem", "extfs"},
-		{"Dirs", "0"},
-		{"Dirperm1 Supported", "true"},
+		{"Supports d_type", "true"},
+		{"Using metacopy", "false"},
+		{"Native Overlay Diff", "true"},
 	},
 	SystemStatus: nil,
 	Plugins: types.PluginsInfo{
