@@ -26,11 +26,6 @@ Docker supports as a storage backend. It implements the
 
 An image that has no parent is a **base image**.
 
-## boot2docker
-
-[boot2docker](https://boot2docker.io/) is a lightweight Linux distribution made
-specifically to run Docker containers. The boot2docker management tool for Mac and Windows was deprecated and replaced by [`docker-machine`](#machine) which you can install with the Docker Toolbox.
-
 ## bridge
 
 In terms of generic networking, a bridge is a Link Layer device which forwards
@@ -213,15 +208,6 @@ of the container performing additional operations after the container is created
 links provide a legacy interface to connect Docker containers running on the
 same host to each other without exposing the hosts' network ports. Use the
 Docker networks feature instead.
-
-## Machine
-
-[Machine](https://github.com/docker/machine) is a Docker tool which
-makes it really easy to create Docker hosts on  your computer, on
-cloud providers and inside your own data center. It creates servers,
-installs Docker on them, then configures the Docker client to talk to them.
-
-*Also known as : docker-machine*
 
 ## node
 
