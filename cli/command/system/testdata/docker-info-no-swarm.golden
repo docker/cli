@@ -10,11 +10,11 @@ Server:
   Stopped: 0
  Images: 0
  Server Version: 17.06.1-ce
- Storage Driver: aufs
-  Root Dir: /var/lib/docker/aufs
+ Storage Driver: overlay2
   Backing Filesystem: extfs
-  Dirs: 0
-  Dirperm1 Supported: true
+  Supports d_type: true
+  Using metacopy: false
+  Native Overlay Diff: true
  Logging Driver: json-file
  Cgroup Driver: cgroupfs
  Plugins:
