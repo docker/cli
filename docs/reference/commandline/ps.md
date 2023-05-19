@@ -32,9 +32,9 @@ Running `docker ps --no-trunc` showing 2 linked containers.
 ```console
 $ docker ps --no-trunc
 
-CONTAINER ID        IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
-4c01db0b339c        ubuntu:22.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
-d7886598dbe2        crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
+CONTAINER ID                                                     IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
+ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 ubuntu:22.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
+9ca9747b233100676a48cc7806131586213fa5dab86dd1972d6a8732e3a84a4d crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
 ### <a name="all"></a> Show both running and stopped containers (-a, --all)
