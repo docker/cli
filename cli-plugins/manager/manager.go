@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
-	exec "golang.org/x/sys/execabs"
 )
 
 // ReexecEnvvar is the name of an ennvar which is set to the command
