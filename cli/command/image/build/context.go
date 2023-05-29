@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -22,7 +23,6 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/moby/patternmatcher"
 	"github.com/pkg/errors"
-	exec "golang.org/x/sys/execabs"
 )
 
 const (

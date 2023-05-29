@@ -1,8 +1,6 @@
 package manager
 
-import (
-	exec "golang.org/x/sys/execabs"
-)
+import "os/exec"
 
 // Candidate represents a possible plugin candidate, for mocking purposes
 type Candidate interface {
