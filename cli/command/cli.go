@@ -381,7 +381,7 @@ func (cli *DockerCli) ContextStore() store.Store {
 // the "default" context is used if:
 //
 //   - The "--host" option is set
-//   - The "DOCKER_HOST" ([DefaultContextName]) environment variable is set
+//   - The "DOCKER_HOST" ([client.EnvOverrideHost]) environment variable is set
 //     to a non-empty value.
 //
 // In these cases, the default context is used, which uses the host as
