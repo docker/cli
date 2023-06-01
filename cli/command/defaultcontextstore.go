@@ -11,6 +11,12 @@ import (
 const (
 	// DefaultContextName is the name reserved for the default context (config & env based)
 	DefaultContextName = "default"
+
+	// EnvOverrideContext is the name of the environment variable that can be
+	// used to override the context to use. If set, it overrides the context
+	// that's set in the CLI's configuration file, but takes no effect if the
+	// "DOCKER_HOST" env-var is set (which takes precedence.
+	EnvOverrideContext = "DOCKER_CONTEXT"
 )
 
 // DefaultContext contains the default context data for all endpoints
