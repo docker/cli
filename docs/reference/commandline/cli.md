@@ -240,7 +240,7 @@ credential store. When this property is set, `docker login` will attempt to
 store credentials in the binary specified by `docker-credential-<value>` which
 is visible on `$PATH`. If this property is not set, credentials will be stored
 in the `auths` property of the config. For more information, see the
-[**Credentials store** section in the `docker login` documentation](login.md#credentials-store)
+[**Credential stores** section in the `docker login` documentation](login.md#credential-stores)
 
 The property `credHelpers` specifies a set of credential helpers to use
 preferentially over `credsStore` or `auths` when storing and retrieving
