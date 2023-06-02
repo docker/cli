@@ -428,6 +428,13 @@ to the `/var/run/docker.sock` Unix socket on the SSH host.
 $ docker -H ssh://user@192.168.64.5 ps
 ```
 
+You can optionally specify the location of the socket by appending a path
+component to the end of the SSH address.
+
+```console
+$ docker -H ssh://user@192.168.64.5/var/run/docker.sock ps
+```
+
 ### Display help text
 
 To list the help on any command just execute the command, followed by the
