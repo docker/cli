@@ -9,7 +9,7 @@ RUN apk add --no-cache bash git rsync
 WORKDIR /src
 
 FROM base AS vendored
-ENV GOPROXY=direct
+ENV GOPROXY=https://proxy.golang.org|direct
 RUN --mount=target=/context \
     --mount=target=.,type=tmpfs  \
     --mount=target=/go/pkg/mod,type=cache <<EOT
