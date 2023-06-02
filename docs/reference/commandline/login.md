@@ -56,27 +56,28 @@ credentials.  When you log in, the command stores credentials in
 `$HOME/.docker/config.json` on Linux or `%USERPROFILE%/.docker/config.json` on
 Windows, via the procedure described below.
 
-### Credentials store
+### Credential stores
 
-The Docker Engine can keep user credentials in an external credentials store,
+The Docker Engine can keep user credentials in an external credential store,
 such as the native keychain of the operating system. Using an external store
 is more secure than storing credentials in the Docker configuration file.
 
-To use a credentials store, you need an external helper program to interact
+To use a credential store, you need an external helper program to interact
 with a specific keychain or external store. Docker requires the helper
 program to be in the client's host `$PATH`.
 
-This is the list of currently available credentials helpers and where
-you can download them from:
+You can download the helpers from the `docker-credential-helpers`
+[releases page](https://github.com/docker/docker-credential-helpers/releases).
+Helpers are available for the following credential stores:
 
-- D-Bus Secret Service: https://github.com/docker/docker-credential-helpers/releases
-- Apple macOS keychain: https://github.com/docker/docker-credential-helpers/releases
-- Microsoft Windows Credential Manager: https://github.com/docker/docker-credential-helpers/releases
-- [pass](https://www.passwordstore.org/): https://github.com/docker/docker-credential-helpers/releases
+- D-Bus Secret Service
+- Apple macOS keychain
+- Microsoft Windows Credential Manager
+- [pass](https://www.passwordstore.org/)
 
-#### Configure the credentials store
+#### Configure the credential store
 
-You need to specify the credentials store in `$HOME/.docker/config.json`
+You need to specify the credential store in `$HOME/.docker/config.json`
 to tell the docker engine to use it. The value of the config property should be
 the suffix of the program to use (i.e. everything after `docker-credential-`).
 For example, to use `docker-credential-osxkeychain`:
