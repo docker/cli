@@ -198,15 +198,15 @@ $ docker run -it --storage-opt size=120G fedora /bin/bash
 ```
 
 This (size) constraints the container filesystem size to 120G at creation time.
-This option is only available for the `devicemapper`, `btrfs`, `overlay2`,
-`windowsfilter` and `zfs` storage drivers.
+This option is only available for the `btrfs`, `overlay2`, `windowsfilter`,
+and `zfs` storage drivers.
 
 For the `overlay2` storage driver, the size option is only available if the
 backing filesystem is `xfs` and mounted with the `pquota` mount option.
 Under these conditions, you can pass any size less than the backing filesystem size.
 
-For the `windowsfilter`, `devicemapper`, `btrfs`, and `zfs` storage drivers,
-you cannot pass a size less than the Default BaseFS Size.
+For the `windowsfilter`, `btrfs`, and `zfs` storage drivers, you cannot pass a
+size less than the Default BaseFS Size.
 
 
 ### <a name="tmpfs"></a> Mount tmpfs (--tmpfs)
