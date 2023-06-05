@@ -370,7 +370,7 @@ func (cli *DockerCli) ContextStore() store.Store {
 // order of preference:
 //
 //  1. The "--context" command-line option.
-//  2. The "DOCKER_CONTEXT" environment variable.
+//  2. The "DOCKER_CONTEXT" environment variable ([EnvOverrideContext]).
 //  3. The current context as configured through the in "currentContext"
 //     field in the CLI configuration file ("~/.docker/config.json").
 //  4. If no context is configured, use the "default" context.
@@ -412,7 +412,7 @@ func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigF
 	if os.Getenv(client.EnvOverrideHost) != "" {
 		return DefaultContextName
 	}
-	if ctxName := os.Getenv("DOCKER_CONTEXT"); ctxName != "" {
+	if ctxName := os.Getenv(EnvOverrideContext); ctxName != "" {
 		return ctxName
 	}
 	if config != nil && config.CurrentContext != "" {
