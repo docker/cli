@@ -30,7 +30,15 @@ To start a container, specify the container ID or image name. For example:
 $ docker start my_container
 ```
 
-### Start a container and attach to its STDOUT/STDERR
+### <a name="attach"></a>  Start a container and attach to its STDOUT/STDERR (--attach, -a)
+
+> This option is experimental.
+>
+> This command is experimental on the Docker daemon. It should not be used in
+> production environments.
+> To enable experimental features on the Docker daemon, edit the
+> [daemon.json](/engine/reference/commandline/dockerd/
+#daemon-configuration-file)
 
 To start a container and attach to its STDOUT/STDERR and forward signals, use the `--attach` or `-a` option. For example, if you create an nginx container named my_nginx_container, you can start it and monitor its logs using the following:
 
@@ -45,7 +53,12 @@ $ docker start -a my_nginx_container
 ...
 ```
 
-### Start a contianer and restore from a checkpoint
+### <a name="checkpoint"></a> Start a container and restore from a checkpoint (--checkpoint) (experimental)
+
+The `--checkpoint` option is an experimental feature, and should not be
+considered stable. To read about experimental daemon options and how to enable
+them, see
+[Daemon configuration file](https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-configuration-file).
 
 To start a container and restore it from a checkpoint, use the `--checkpoint` option. For example:
 
@@ -60,7 +73,12 @@ checkpoint1
 $ docker start --checkpoint checkpoint1 cr
 ```
 
-### Start a container and restore from a custom checkpoint storage
+### <a name="checkpoint-dir"></a>  Start a container and restore from a custom checkpoint storage (--checkpoint-dir) (experimental)
+
+The `--checkpoint-dir` option is an experimental feature, and should not be
+considered stable. To read about experimental daemon options and how to enable
+them, see
+[Daemon configuration file](https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-configuration-file).
 
 To start a container and restore it from a checkpoint in a custom checkpoint storage directory, use the `--checkpoint-dir` option. For example:
 
@@ -75,7 +93,7 @@ checkpoint2
 $ docker start --checkpoint-dir /path/to/checkpoints --checkpoint checkpoint2 cr
 ```
 
-### Start a container and override the detach key sequence
+### <a name="detach-keys"></a> Start a container and override the detach key sequence (--detach-keys)
 
 To start a container and override the key sequence for detaching a container, use the `--detach-keys` option. For example to change the detach sequence to `ctrl` plus `x`, use the following:
 
@@ -83,7 +101,7 @@ To start a container and override the key sequence for detaching a container, us
 $ docker start -a --detach-keys="ctrl-x" my_container
 ```
 
-### Start a container and attach to its STDIN
+### <a name="interactive"></a> Start a container and attach to its STDIN (--interactive, -i)
 
 To start a container and attach to its STDIN, use the `--interactive` or `-i` option. For example, if you create an ubuntu container named my_ubuntu_container, you can start it and interact with its shell using the following:
 
