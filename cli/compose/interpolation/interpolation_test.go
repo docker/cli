@@ -11,6 +11,7 @@ import (
 var defaults = map[string]string{
 	"USER":  "jenny",
 	"FOO":   "bar",
+	"CMD":   "my-cmd",
 	"count": "5",
 }
 
@@ -22,7 +23,11 @@ func defaultMapping(name string) (string, bool) {
 func TestInterpolate(t *testing.T) {
 	services := map[string]interface{}{
 		"servicea": map[string]interface{}{
-			"image":   "example:${USER}",
+			"image": "example:${USER}",
+			"command": []interface{}{
+				"${CMD:-${UNDEF_CMD:-}}",
+				"${UNDEF:-${CMD}}",
+			},
 			"volumes": []interface{}{"$FOO:/target"},
 			"logging": map[string]interface{}{
 				"driver": "${FOO}",
@@ -36,6 +41,7 @@ func TestInterpolate(t *testing.T) {
 		"servicea": map[string]interface{}{
 			"image":   "example:jenny",
 			"volumes": []interface{}{"bar:/target"},
+			"command": []interface{}{"my-cmd", "my-cmd"},
 			"logging": map[string]interface{}{
 				"driver": "bar",
 				"options": map[string]interface{}{
