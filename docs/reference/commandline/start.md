@@ -32,14 +32,6 @@ $ docker start my_container
 
 ### <a name="attach"></a>  Start a container and attach to its STDOUT/STDERR (--attach, -a)
 
-> This option is experimental.
->
-> This command is experimental on the Docker daemon. It should not be used in
-> production environments.
-> To enable experimental features on the Docker daemon, edit the
-> [daemon.json](/engine/reference/commandline/dockerd/
-#daemon-configuration-file)
-
 To start a container and attach to its STDOUT/STDERR and forward signals, use the `--attach` or `-a` option. For example, if you create an nginx container named my_nginx_container, you can start it and monitor its logs using the following:
 
 ```console
