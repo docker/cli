@@ -9,6 +9,33 @@ import (
 
 type dict map[string]interface{}
 
+func TestVersion(t *testing.T) {
+	tests := []struct {
+		version         string
+		expectedVersion string
+	}{
+		{version: "", expectedVersion: defaultVersion},
+		{version: "3", expectedVersion: "3.0"},
+		{version: "3.4", expectedVersion: "3.4"},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.version, func(t *testing.T) {
+			config := dict{
+				"version": tc.version,
+				"services": dict{
+					"foo": dict{
+						"image": "busybox",
+					},
+				},
+			}
+			actualVersion := Version(config)
+			assert.Equal(t, tc.expectedVersion, actualVersion)
+		})
+	}
+}
+
 func TestValidate(t *testing.T) {
 	config := dict{
 		"version": "3.0",
@@ -88,6 +115,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		version     string
 		expectedErr string
 	}{
+		{version: "3", expectedErr: "credential_spec"},
 		{version: "3.0", expectedErr: "credential_spec"},
 		{version: "3.1", expectedErr: "credential_spec"},
 		{version: "3.2", expectedErr: "credential_spec"},
@@ -100,7 +128,6 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.9"},
 		{version: "3.10"},
 		{version: "3.11"},
-		{version: "3"},
 		{version: ""},
 	}
 

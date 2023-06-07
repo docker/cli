@@ -43,7 +43,7 @@ func loadYAMLWithEnv(yaml string, env map[string]string) (*types.Config, error) 
 }
 
 var sampleYAML = `
-version: "3"
+version: "3.11"
 services:
   foo:
     image: busybox
@@ -73,7 +73,7 @@ networks:
 `
 
 var sampleDict = map[string]interface{}{
-	"version": "3",
+	"version": "3.11",
 	"services": map[string]interface{}{
 		"foo": map[string]interface{}{
 			"image":    "busybox",
