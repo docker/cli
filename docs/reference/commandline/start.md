@@ -65,7 +65,7 @@ $ docker checkpoint create my_container checkpoint1
 checkpoint1
 
 # <later>
-$ docker start --checkpoint checkpoint1 cr
+$ docker start --checkpoint checkpoint1 my_container
 ```
 
 ### <a name="checkpoint-dir"></a>  Start a container and restore from a custom checkpoint storage (--checkpoint-dir) (experimental)
