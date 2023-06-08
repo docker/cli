@@ -144,14 +144,14 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
 
-	createResponse, err := createContainer(ctx, dockerCli, containerCfg, &opts.createOptions)
+	containerID, err := createContainer(ctx, dockerCli, containerCfg, &opts.createOptions)
 	if err != nil {
 		reportError(stderr, "run", err.Error(), true)
 		return runStartContainerErr(err)
 	}
 	if opts.sigProxy {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, dockerCli, createResponse.ID, sigc)
+		go ForwardAllSignals(ctx, dockerCli, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
@@ -164,7 +164,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		waitDisplayID = make(chan struct{})
 		go func() {
 			defer close(waitDisplayID)
-			fmt.Fprintln(stdout, createResponse.ID)
+			_, _ = fmt.Fprintln(stdout, containerID)
 		}()
 	}
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
@@ -173,17 +173,17 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 			dockerCli.ConfigFile().DetachKeys = opts.detachKeys
 		}
 
-		closeFn, err := attachContainer(ctx, dockerCli, &errCh, config, createResponse.ID)
+		closeFn, err := attachContainer(ctx, dockerCli, &errCh, config, containerID)
 		if err != nil {
 			return err
 		}
 		defer closeFn()
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli, createResponse.ID, copts.autoRemove)
+	statusChan := waitExitOrRemoved(ctx, dockerCli, containerID, copts.autoRemove)
 
 	// start the container
-	if err := client.ContainerStart(ctx, createResponse.ID, types.ContainerStartOptions{}); err != nil {
+	if err := client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
@@ -201,8 +201,8 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
-		if err := MonitorTtySize(ctx, dockerCli, createResponse.ID, false); err != nil {
-			fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
+		if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
+			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
 	}
 

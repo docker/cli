@@ -93,18 +93,18 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 	cases := []struct {
 		PullPolicy      string
 		ExpectedPulls   int
-		ExpectedBody    container.CreateResponse
+		ExpectedID      string
 		ExpectedErrMsg  string
 		ResponseCounter int
 	}{
 		{
 			PullPolicy:    PullImageMissing,
 			ExpectedPulls: 1,
-			ExpectedBody:  container.CreateResponse{ID: containerID},
+			ExpectedID:    containerID,
 		}, {
 			PullPolicy:      PullImageAlways,
 			ExpectedPulls:   1,
-			ExpectedBody:    container.CreateResponse{ID: containerID},
+			ExpectedID:      containerID,
 			ResponseCounter: 1, // This lets us return a container on the first pull
 		}, {
 			PullPolicy:     PullImageNever,
@@ -142,7 +142,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				},
 			}
 			fakeCLI := test.NewFakeCli(client)
-			body, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
+			id, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
 				name:      "name",
 				platform:  runtime.GOOS,
 				untrusted: true,
@@ -153,7 +153,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))
 			} else {
 				assert.Check(t, err)
-				assert.Check(t, is.DeepEqual(tc.ExpectedBody, *body))
+				assert.Check(t, is.Equal(tc.ExpectedID, id))
 			}
 
 			assert.Check(t, is.Equal(tc.ExpectedPulls, pullCounter))
