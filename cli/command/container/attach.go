@@ -86,8 +86,9 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		return err
 	}
 
+	detachKeys := dockerCli.ConfigFile().DetachKeys
 	if opts.detachKeys != "" {
-		dockerCli.ConfigFile().DetachKeys = opts.detachKeys
+		detachKeys = opts.detachKeys
 	}
 
 	options := types.ContainerAttachOptions{
@@ -95,7 +96,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		Stdin:      !opts.noStdin && c.Config.OpenStdin,
 		Stdout:     true,
 		Stderr:     true,
-		DetachKeys: dockerCli.ConfigFile().DetachKeys,
+		DetachKeys: detachKeys,
 	}
 
 	var in io.ReadCloser

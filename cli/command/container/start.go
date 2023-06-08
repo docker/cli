@@ -94,8 +94,9 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 			defer signal.StopCatch(sigc)
 		}
 
+		detachKeys := dockerCli.ConfigFile().DetachKeys
 		if opts.DetachKeys != "" {
-			dockerCli.ConfigFile().DetachKeys = opts.DetachKeys
+			detachKeys = opts.DetachKeys
 		}
 
 		options := types.ContainerAttachOptions{
@@ -103,7 +104,7 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 			Stdin:      opts.OpenStdin && c.Config.OpenStdin,
 			Stdout:     true,
 			Stderr:     true,
-			DetachKeys: dockerCli.ConfigFile().DetachKeys,
+			DetachKeys: detachKeys,
 		}
 
 		var in io.ReadCloser

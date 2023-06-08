@@ -169,11 +169,18 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	}
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if attach {
+		detachKeys := dockerCli.ConfigFile().DetachKeys
 		if opts.detachKeys != "" {
-			dockerCli.ConfigFile().DetachKeys = opts.detachKeys
+			detachKeys = opts.detachKeys
 		}
 
-		closeFn, err := attachContainer(ctx, dockerCli, &errCh, config, containerID)
+		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, types.ContainerAttachOptions{
+			Stream:     true,
+			Stdin:      config.AttachStdin,
+			Stdout:     config.AttachStdout,
+			Stderr:     config.AttachStderr,
+			DetachKeys: detachKeys,
+		})
 		if err != nil {
 			return err
 		}
@@ -232,15 +239,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	return nil
 }
 
-func attachContainer(ctx context.Context, dockerCli command.Cli, errCh *chan error, config *container.Config, containerID string) (func(), error) {
-	options := types.ContainerAttachOptions{
-		Stream:     true,
-		Stdin:      config.AttachStdin,
-		Stdout:     config.AttachStdout,
-		Stderr:     config.AttachStderr,
-		DetachKeys: dockerCli.ConfigFile().DetachKeys,
-	}
-
+func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options types.ContainerAttachOptions) (func(), error) {
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
 		return nil, errAttach
@@ -250,13 +249,13 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, errCh *chan err
 		out, cerr io.Writer
 		in        io.ReadCloser
 	)
-	if config.AttachStdin {
+	if options.Stdin {
 		in = dockerCli.In()
 	}
-	if config.AttachStdout {
+	if options.Stdout {
 		out = dockerCli.Out()
 	}
-	if config.AttachStderr {
+	if options.Stderr {
 		if config.Tty {
 			cerr = dockerCli.Out()
 		} else {
