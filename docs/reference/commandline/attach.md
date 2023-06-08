@@ -9,11 +9,11 @@ Attach local standard input, output, and error streams to a running container
 
 ### Options
 
-| Name            | Type     | Default | Description                                         |
-|:----------------|:---------|:--------|:----------------------------------------------------|
-| `--detach-keys` | `string` |         | Override the key sequence for detaching a container |
-| `--no-stdin`    |          |         | Do not attach STDIN                                 |
-| `--sig-proxy`   |          |         | Proxy all received signals to the process           |
+| Name                            | Type     | Default | Description                                         |
+|:--------------------------------|:---------|:--------|:----------------------------------------------------|
+| [`--detach-keys`](#detach-keys) | `string` |         | Override the key sequence for detaching a container |
+| `--no-stdin`                    |          |         | Do not attach STDIN                                 |
+| `--sig-proxy`                   |          |         | Proxy all received signals to the process           |
 
 
 <!---MARKER_GEN_END-->
@@ -55,30 +55,6 @@ applications like SSH. Because of this, it is not recommended to run
 performance critical applications that generate a lot of output in the
 foreground over a slow client connection. Instead, users should use the
 `docker logs` command to get access to the logs.
-
-### Override the detach sequence
-
-If you want, you can configure an override the Docker key sequence for detach.
-This is useful if the Docker default sequence conflicts with key sequence you
-use for other applications. There are two ways to define your own detach key
-sequence, as a per-container override or as a configuration property on  your
-entire configuration.
-
-To override the sequence for an individual container, use the
-`--detach-keys="<sequence>"` flag with the `docker attach` command. The format of
-the `<sequence>` is either a letter [a-Z], or the `ctrl-` combined with any of
-the following:
-
-* `a-z` (a single lowercase alpha character )
-* `@` (at sign)
-* `[` (left bracket)
-* `\\` (two backward slashes)
-*  `_` (underscore)
-* `^` (caret)
-
-These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
-sequences. To configure a different configuration default key sequence for all
-containers, see [**Configuration file** section](cli.md#configuration-files).
 
 ## Examples
 
@@ -168,3 +144,27 @@ $ docker ps -a --filter name=test
 CONTAINER ID   IMAGE     COMMAND     CREATED              STATUS                       PORTS     NAMES
 a2fe3fd886db   alpine    "/bin/sh"   About a minute ago   Exited (13) 40 seconds ago             test
 ```
+
+### <a name="detach-keys"></a> Override the detach sequence (--detach-keys)
+
+Use the `--detach-keys` option to override the Docker key sequence for detach.
+This is useful if the Docker default sequence conflicts with key sequence you
+use for other applications. There are two ways to define your own detach key
+sequence, as a per-container override or as a configuration property on  your
+entire configuration.
+
+To override the sequence for an individual container, use the
+`--detach-keys="<sequence>"` flag with the `docker attach` command. The format of
+the `<sequence>` is either a letter [a-Z], or the `ctrl-` combined with any of
+the following:
+
+* `a-z` (a single lowercase alpha character )
+* `@` (at sign)
+* `[` (left bracket)
+* `\\` (two backward slashes)
+*  `_` (underscore)
+* `^` (caret)
+
+These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
+sequences. To configure a different configuration default key sequence for all
+containers, see [**Configuration file** section](cli.md#configuration-files).
