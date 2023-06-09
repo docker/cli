@@ -6,7 +6,9 @@ import (
 	"context"
 	"io"
 	"testing"
+	"time"
 
+	"github.com/docker/docker/pkg/process"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -41,4 +43,170 @@ func TestEOFWithoutError(t *testing.T) {
 	n, err = c.Read(b)
 	assert.Check(t, is.Equal(0, n))
 	assert.Check(t, is.Equal(io.EOF, err))
+}
+
+func TestCloseRunningCommand(t *testing.T) {
+	cmd := "sh"
+	args := []string{"-c", "while true; sleep 1; done"}
+
+	done := make(chan struct{})
+	defer close(done)
+
+	go func() {
+		c, err := New(context.TODO(), cmd, args...)
+		assert.NilError(t, err)
+		cmdConn := c.(*commandConn)
+		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+		n, err := c.Write([]byte("hello"))
+		assert.Check(t, is.Equal(len("hello"), n))
+		assert.NilError(t, err)
+		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+		err = cmdConn.Close()
+		assert.NilError(t, err)
+		assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-time.After(5 * time.Second):
+		t.Error("test did not finish in time")
+	case <-done:
+		break
+	}
+}
+
+func TestCloseTwice(t *testing.T) {
+	cmd := "sh"
+	args := []string{"-c", "echo hello; sleep 1; exit 0"}
+
+	done := make(chan struct{})
+	go func() {
+		c, err := New(context.TODO(), cmd, args...)
+		assert.NilError(t, err)
+		cmdConn := c.(*commandConn)
+		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+		b := make([]byte, 32)
+		n, err := c.Read(b)
+		assert.Check(t, is.Equal(len("hello\n"), n))
+		assert.NilError(t, err)
+
+		err = cmdConn.Close()
+		assert.NilError(t, err)
+		assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
+
+		err = cmdConn.Close()
+		assert.NilError(t, err)
+		assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-time.After(10 * time.Second):
+		t.Error("test did not finish in time")
+	case <-done:
+		break
+	}
+}
+
+func TestEOFTimeout(t *testing.T) {
+	cmd := "sh"
+	args := []string{"-c", "sleep 20"}
+
+	done := make(chan struct{})
+	go func() {
+		c, err := New(context.TODO(), cmd, args...)
+		assert.NilError(t, err)
+		cmdConn := c.(*commandConn)
+		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+		cmdConn.stdout = mockStdoutEOF{}
+
+		b := make([]byte, 32)
+		n, err := c.Read(b)
+		assert.Check(t, is.Equal(0, n))
+		assert.ErrorContains(t, err, "did not exit after EOF")
+
+		done <- struct{}{}
+	}()
+
+	// after receiving an EOF, we try to kill the command
+	// if it doesn't exit after 10s, we throw an error
+	select {
+	case <-time.After(12 * time.Second):
+		t.Error("test did not finish in time")
+	case <-done:
+		break
+	}
+}
+
+type mockStdoutEOF struct{}
+
+func (mockStdoutEOF) Read(_ []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (mockStdoutEOF) Close() error {
+	return nil
+}
+
+func TestCloseWhileWriting(t *testing.T) {
+	cmd := "sh"
+	args := []string{"-c", "while true; sleep 1; done"}
+
+	c, err := New(context.TODO(), cmd, args...)
+	assert.NilError(t, err)
+	cmdConn := c.(*commandConn)
+	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+	writeErrC := make(chan error)
+	go func() {
+		for {
+			n, err := c.Write([]byte("hello"))
+			if err != nil {
+				writeErrC <- err
+				return
+			}
+			assert.Equal(t, n, len("hello"))
+		}
+	}()
+
+	err = c.Close()
+	assert.NilError(t, err)
+	assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
+
+	writeErr := <-writeErrC
+	assert.ErrorContains(t, writeErr, "EOF")
+}
+
+func TestCloseWhileReading(t *testing.T) {
+	cmd := "sh"
+	args := []string{"-c", "while true; sleep 1; done"}
+
+	c, err := New(context.TODO(), cmd, args...)
+	assert.NilError(t, err)
+	cmdConn := c.(*commandConn)
+	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
+
+	readErrC := make(chan error)
+	go func() {
+		for {
+			b := make([]byte, 32)
+			n, err := c.Read(b)
+			if err != nil {
+				readErrC <- err
+				return
+			}
+			assert.Check(t, is.Equal(0, n))
+		}
+	}()
+
+	err = cmdConn.Close()
+	assert.NilError(t, err)
+	assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
+
+	readErr := <-readErrC
+	assert.ErrorContains(t, readErr, "EOF")
 }
