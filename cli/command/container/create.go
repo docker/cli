@@ -104,11 +104,11 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerCfg, options)
+	id, err := createContainer(context.Background(), dockerCli, containerCfg, options)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), response.ID)
+	_, _ = fmt.Fprintln(dockerCli.Out(), id)
 	return nil
 }
 
@@ -185,7 +185,7 @@ func newCIDFile(path string) (*cidFile, error) {
 }
 
 //nolint:gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, opts *createOptions) (*container.CreateResponse, error) {
+func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, opts *createOptions) (containerID string, err error) {
 	config := containerCfg.Config
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
@@ -200,13 +200,13 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer containerIDFile.Close()
 
 	ref, err := reference.ParseAnyReference(config.Image)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if named, ok := ref.(reference.Named); ok {
 		namedRef = reference.TagNameOnly(named)
@@ -215,7 +215,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			var err error
 			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 			config.Image = reference.FamiliarString(trustedRef)
 		}
@@ -239,14 +239,14 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if opts.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
 		p, err := platforms.Parse(opts.platform)
 		if err != nil {
-			return nil, errors.Wrap(err, "error parsing specified platform")
+			return "", errors.Wrap(err, "error parsing specified platform")
 		}
 		platform = &p
 	}
 
 	if opts.pull == PullImageAlways {
 		if err := pullAndTagImage(); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
@@ -262,24 +262,24 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			}
 
 			if err := pullAndTagImage(); err != nil {
-				return nil, err
+				return "", err
 			}
 
 			var retryErr error
 			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
 			if retryErr != nil {
-				return nil, retryErr
+				return "", retryErr
 			}
 		} else {
-			return nil, err
+			return "", err
 		}
 	}
 
 	for _, w := range response.Warnings {
-		fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", w)
+		_, _ = fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", w)
 	}
 	err = containerIDFile.Write(response.ID)
-	return &response, err
+	return response.ID, err
 }
 
 func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {

@@ -79,8 +79,10 @@ func TestCIDFileCloseWithWrite(t *testing.T) {
 }
 
 func TestCreateContainerImagePullPolicy(t *testing.T) {
-	imageName := "does-not-exist-locally"
-	containerID := "abcdef"
+	const (
+		imageName   = "does-not-exist-locally"
+		containerID = "abcdef"
+	)
 	config := &containerConfig{
 		Config: &container.Config{
 			Image: imageName,
@@ -91,18 +93,18 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 	cases := []struct {
 		PullPolicy      string
 		ExpectedPulls   int
-		ExpectedBody    container.CreateResponse
+		ExpectedID      string
 		ExpectedErrMsg  string
 		ResponseCounter int
 	}{
 		{
 			PullPolicy:    PullImageMissing,
 			ExpectedPulls: 1,
-			ExpectedBody:  container.CreateResponse{ID: containerID},
+			ExpectedID:    containerID,
 		}, {
 			PullPolicy:      PullImageAlways,
 			ExpectedPulls:   1,
-			ExpectedBody:    container.CreateResponse{ID: containerID},
+			ExpectedID:      containerID,
 			ResponseCounter: 1, // This lets us return a container on the first pull
 		}, {
 			PullPolicy:     PullImageNever,
@@ -110,50 +112,52 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 			ExpectedErrMsg: "error fake not found",
 		},
 	}
-	for _, c := range cases {
-		c := c
-		pullCounter := 0
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.PullPolicy, func(t *testing.T) {
+			pullCounter := 0
 
-		client := &fakeClient{
-			createContainerFunc: func(
-				config *container.Config,
-				hostConfig *container.HostConfig,
-				networkingConfig *network.NetworkingConfig,
-				platform *specs.Platform,
-				containerName string,
-			) (container.CreateResponse, error) {
-				defer func() { c.ResponseCounter++ }()
-				switch c.ResponseCounter {
-				case 0:
-					return container.CreateResponse{}, fakeNotFound{}
-				default:
-					return container.CreateResponse{ID: containerID}, nil
-				}
-			},
-			imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
-				defer func() { pullCounter++ }()
-				return io.NopCloser(strings.NewReader("")), nil
-			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
-			},
-		}
-		cli := test.NewFakeCli(client)
-		body, err := createContainer(context.Background(), cli, config, &createOptions{
-			name:      "name",
-			platform:  runtime.GOOS,
-			untrusted: true,
-			pull:      c.PullPolicy,
+			client := &fakeClient{
+				createContainerFunc: func(
+					config *container.Config,
+					hostConfig *container.HostConfig,
+					networkingConfig *network.NetworkingConfig,
+					platform *specs.Platform,
+					containerName string,
+				) (container.CreateResponse, error) {
+					defer func() { tc.ResponseCounter++ }()
+					switch tc.ResponseCounter {
+					case 0:
+						return container.CreateResponse{}, fakeNotFound{}
+					default:
+						return container.CreateResponse{ID: containerID}, nil
+					}
+				},
+				imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+					defer func() { pullCounter++ }()
+					return io.NopCloser(strings.NewReader("")), nil
+				},
+				infoFunc: func() (types.Info, error) {
+					return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
+				},
+			}
+			fakeCLI := test.NewFakeCli(client)
+			id, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
+				name:      "name",
+				platform:  runtime.GOOS,
+				untrusted: true,
+				pull:      tc.PullPolicy,
+			})
+
+			if tc.ExpectedErrMsg != "" {
+				assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))
+			} else {
+				assert.Check(t, err)
+				assert.Check(t, is.Equal(tc.ExpectedID, id))
+			}
+
+			assert.Check(t, is.Equal(tc.ExpectedPulls, pullCounter))
 		})
-
-		if c.ExpectedErrMsg != "" {
-			assert.ErrorContains(t, err, c.ExpectedErrMsg)
-		} else {
-			assert.NilError(t, err)
-			assert.Check(t, is.DeepEqual(c.ExpectedBody, *body))
-		}
-
-		assert.Check(t, is.Equal(c.ExpectedPulls, pullCounter))
 	}
 }
 

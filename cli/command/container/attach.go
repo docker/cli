@@ -72,12 +72,12 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 
 func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	ctx := context.Background()
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 
 	// request channel to wait for client
-	resultC, errC := client.ContainerWait(ctx, opts.container, "")
+	resultC, errC := apiClient.ContainerWait(ctx, opts.container, "")
 
-	c, err := inspectContainerAndCheckState(ctx, client, opts.container)
+	c, err := inspectContainerAndCheckState(ctx, apiClient, opts.container)
 	if err != nil {
 		return err
 	}
@@ -86,8 +86,9 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		return err
 	}
 
+	detachKeys := dockerCli.ConfigFile().DetachKeys
 	if opts.detachKeys != "" {
-		dockerCli.ConfigFile().DetachKeys = opts.detachKeys
+		detachKeys = opts.detachKeys
 	}
 
 	options := types.ContainerAttachOptions{
@@ -95,7 +96,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		Stdin:      !opts.noStdin && c.Config.OpenStdin,
 		Stdout:     true,
 		Stderr:     true,
-		DetachKeys: dockerCli.ConfigFile().DetachKeys,
+		DetachKeys: detachKeys,
 	}
 
 	var in io.ReadCloser
@@ -109,7 +110,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		defer signal.StopCatch(sigc)
 	}
 
-	resp, errAttach := client.ContainerAttach(ctx, opts.container, options)
+	resp, errAttach := apiClient.ContainerAttach(ctx, opts.container, options)
 	if errAttach != nil {
 		return errAttach
 	}
@@ -123,7 +124,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 	// the container and not exit.
 	//
 	// Recheck the container's state to avoid attach block.
-	_, err = inspectContainerAndCheckState(ctx, client, opts.container)
+	_, err = inspectContainerAndCheckState(ctx, apiClient, opts.container)
 	if err != nil {
 		return err
 	}
