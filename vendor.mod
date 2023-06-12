@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v24.0.0-rc.2.0.20230523155306-cf4df9d8ae4c+incompatible // master (v25.0.0-dev)
+	github.com/docker/docker v24.0.0-rc.2.0.20230612074407-ed798d651a50+incompatible // master (v25.0.0-dev)
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -23,24 +23,24 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.11.6
 	github.com/moby/patternmatcher v0.5.0
-	github.com/moby/swarmkit/v2 v2.0.0-20230406225228-75e92ce14ff7
+	github.com/moby/swarmkit/v2 v2.0.0-20230607145746-36334ed18760
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.5.0
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc2.0.20221005185240-3a7f492d3f1b
+	github.com/opencontainers/image-spec v1.1.0-rc3
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.6.0
-	golang.org/x/term v0.6.0
-	golang.org/x/text v0.8.0
+	golang.org/x/sys v0.8.0
+	golang.org/x/term v0.8.0
+	golang.org/x/text v0.9.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.4.0
 )
@@ -71,7 +71,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.6 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20220706185917-7780775163c4 // indirect
 	google.golang.org/grpc v1.50.1 // indirect
