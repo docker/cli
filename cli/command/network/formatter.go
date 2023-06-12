@@ -103,7 +103,7 @@ func (c *networkContext) Labels() string {
 
 	var joinLabels []string
 	for k, v := range c.n.Labels {
-		joinLabels = append(joinLabels, fmt.Sprintf("%s=%s", k, v))
+		joinLabels = append(joinLabels, k+"="+v)
 	}
 	return strings.Join(joinLabels, ",")
 }

@@ -1,7 +1,6 @@
 package convert
 
 import (
-	"fmt"
 	"os"
 	"sort"
 	"strings"
@@ -605,7 +604,7 @@ func convertEnvironment(source map[string]*string) []string {
 		case nil:
 			output = append(output, name)
 		default:
-			output = append(output, fmt.Sprintf("%s=%s", name, *value))
+			output = append(output, name+"="+*value)
 		}
 	}
 
