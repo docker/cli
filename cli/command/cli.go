@@ -260,17 +260,15 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 }
 
 func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
-	clientOpts, err := ep.ClientOpts()
+	opts, err := ep.ClientOpts()
 	if err != nil {
 		return nil, err
 	}
-	customHeaders := make(map[string]string, len(configFile.HTTPHeaders))
-	for k, v := range configFile.HTTPHeaders {
-		customHeaders[k] = v
+	if len(configFile.HTTPHeaders) > 0 {
+		opts = append(opts, client.WithHTTPHeaders(configFile.HTTPHeaders))
 	}
-	customHeaders["User-Agent"] = UserAgent()
-	clientOpts = append(clientOpts, client.WithHTTPHeaders(customHeaders))
-	return client.NewClientWithOpts(clientOpts...)
+	opts = append(opts, client.WithUserAgent(UserAgent()))
+	return client.NewClientWithOpts(opts...)
 }
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
