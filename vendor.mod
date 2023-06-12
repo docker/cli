@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v24.0.0-rc.2.0.20230523155306-cf4df9d8ae4c+incompatible // master (v25.0.0-dev)
+	github.com/docker/docker v24.0.0-rc.2.0.20230612074407-ed798d651a50+incompatible // master (v25.0.0-dev)
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0

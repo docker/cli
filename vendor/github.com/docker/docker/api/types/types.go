@@ -656,15 +656,6 @@ type Runtime struct {
 
 	Type    string                 `json:"runtimeType,omitempty"`
 	Options map[string]interface{} `json:"options,omitempty"`
-
-	// This is exposed here only for internal use
-	ShimConfig *ShimConfig `json:"-"`
-}
-
-// ShimConfig is used by runtime to configure containerd shims
-type ShimConfig struct {
-	Binary string
-	Opts   interface{}
 }
 
 // DiskUsageObject represents an object type used for disk usage query filtering.
