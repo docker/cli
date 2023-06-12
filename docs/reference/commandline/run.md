@@ -32,7 +32,7 @@ Create and run a new container from an image
 | `--cpuset-cpus`                               | `string`      |           | CPUs in which to allow execution (0-3, 0,1)                                                                                                                                                                                                                                                                      |
 | `--cpuset-mems`                               | `string`      |           | MEMs in which to allow execution (0-3, 0,1)                                                                                                                                                                                                                                                                      |
 | `-d`, `--detach`                              |               |           | Run container in background and print container ID                                                                                                                                                                                                                                                               |
-| `--detach-keys`                               | `string`      |           | Override the key sequence for detaching a container                                                                                                                                                                                                                                                              |
+| [`--detach-keys`](#detach-keys)               | `string`      |           | Override the key sequence for detaching a container                                                                                                                                                                                                                                                              |
 | [`--device`](#device)                         | `list`        |           | Add a host device to the container                                                                                                                                                                                                                                                                               |
 | [`--device-cgroup-rule`](#device-cgroup-rule) | `list`        |           | Add a rule to the cgroup allowed devices list                                                                                                                                                                                                                                                                    |
 | `--device-read-bps`                           | `list`        |           | Limit read rate (bytes per second) from a device                                                                                                                                                                                                                                                                 |
@@ -568,6 +568,30 @@ useful if you need to pipe a file or something else into a container and
 retrieve the container's ID once the container has finished running.
 
 See also [the `docker cp` command](cp.md).
+
+### <a name="detach-keys"></a> Override the detach sequence (--detach-keys)
+
+Use the `--detach-keys` option to override the Docker key sequence for detach.
+This is useful if the Docker default sequence conflicts with key sequence you
+use for other applications. There are two ways to define your own detach key
+sequence, as a per-container override or as a configuration property on  your
+entire configuration.
+
+To override the sequence for an individual container, use the
+`--detach-keys="<sequence>"` flag with the `docker attach` command. The format of
+the `<sequence>` is either a letter [a-Z], or the `ctrl-` combined with any of
+the following:
+
+* `a-z` (a single lowercase alpha character )
+* `@` (at sign)
+* `[` (left bracket)
+* `\\` (two backward slashes)
+*  `_` (underscore)
+* `^` (caret)
+
+These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
+sequences. To configure a different configuration default key sequence for all
+containers, see [**Configuration file** section](cli.md#configuration-files).
 
 ### <a name="device"></a> Add host device to container (--device)
 
