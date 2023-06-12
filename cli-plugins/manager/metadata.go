@@ -22,8 +22,4 @@ type Metadata struct {
 	ShortDescription string `json:",omitempty"`
 	// URL is a pointer to the plugin's homepage.
 	URL string `json:",omitempty"`
-	// Experimental specifies whether the plugin is experimental.
-	//
-	// Deprecated: experimental features are now always enabled in the CLI
-	Experimental bool `json:",omitempty"`
 }
