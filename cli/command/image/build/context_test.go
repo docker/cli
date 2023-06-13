@@ -152,6 +152,13 @@ func TestGetContextFromReaderString(t *testing.T) {
 	}
 }
 
+func TestGetContextFromReaderStringConflict(t *testing.T) {
+	rdr, relDockerfile, err := GetContextFromReader(io.NopCloser(strings.NewReader(dockerfileContents)), "custom.Dockerfile")
+	assert.Check(t, is.Equal(rdr, nil))
+	assert.Check(t, is.Equal(relDockerfile, ""))
+	assert.Check(t, is.ErrorContains(err, "ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles"))
+}
+
 func TestGetContextFromReaderTar(t *testing.T) {
 	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)

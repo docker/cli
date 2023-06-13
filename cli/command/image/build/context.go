@@ -155,6 +155,9 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 	if dockerfileName == "-" {
 		return nil, "", errors.New("build context is not an archive")
 	}
+	if dockerfileName != "" {
+		return nil, "", errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
+	}
 
 	dockerfileDir, err := WriteTempDockerfile(rc)
 	if err != nil {
