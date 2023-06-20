@@ -80,7 +80,7 @@ func RunCreate(cli command.Cli, o *CreateOptions) error {
 	case o.From != "":
 		err = createFromExistingContext(s, o.From, o)
 	default:
-		err = createNewContext(o, cli, s)
+		err = createNewContext(s, o)
 	}
 	if err == nil {
 		fmt.Fprintln(cli.Out(), o.Name)
@@ -89,11 +89,11 @@ func RunCreate(cli command.Cli, o *CreateOptions) error {
 	return err
 }
 
-func createNewContext(o *CreateOptions, cli command.Cli, s store.Writer) error {
+func createNewContext(contextStore store.ReaderWriter, o *CreateOptions) error {
 	if o.Docker == nil {
 		return errors.New("docker endpoint configuration is required")
 	}
-	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.Docker)
+	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(contextStore, o.Docker)
 	if err != nil {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}
@@ -115,10 +115,10 @@ func createNewContext(o *CreateOptions, cli command.Cli, s store.Writer) error {
 	if err := validateEndpoints(contextMetadata); err != nil {
 		return err
 	}
-	if err := s.CreateOrUpdate(contextMetadata); err != nil {
+	if err := contextStore.CreateOrUpdate(contextMetadata); err != nil {
 		return err
 	}
-	return s.ResetTLSMaterial(o.Name, &contextTLSData)
+	return contextStore.ResetTLSMaterial(o.Name, &contextTLSData)
 }
 
 func checkContextNameForCreation(s store.Reader, name string) error {

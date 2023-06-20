@@ -84,7 +84,7 @@ func RunUpdate(cli command.Cli, o *UpdateOptions) error {
 	tlsDataToReset := make(map[string]*store.EndpointTLSData)
 
 	if o.Docker != nil {
-		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(cli, o.Docker)
+		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(s, o.Docker)
 		if err != nil {
 			return errors.Wrap(err, "unable to create docker endpoint config")
 		}
