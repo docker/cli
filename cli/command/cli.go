@@ -49,7 +49,7 @@ type Cli interface {
 	Client() client.APIClient
 	Streams
 	SetIn(in *streams.In)
-	Apply(ops ...DockerCliOption) error
+	Apply(ops ...CLIOption) error
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
 	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
@@ -194,11 +194,8 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }
 
-// InitializeOpt is the type of the functional options passed to DockerCli.Initialize
-type InitializeOpt func(dockerCli *DockerCli) error
-
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
-func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) InitializeOpt {
+func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
 	return func(dockerCli *DockerCli) error {
 		var err error
 		dockerCli.client, err = makeClient(dockerCli)
@@ -208,7 +205,7 @@ func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClien
 
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
-func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...InitializeOpt) error {
+func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption) error {
 	for _, o := range ops {
 		if err := o(cli); err != nil {
 			return err
@@ -450,7 +447,7 @@ func (cli *DockerCli) initialize() error {
 }
 
 // Apply all the operation on the cli
-func (cli *DockerCli) Apply(ops ...DockerCliOption) error {
+func (cli *DockerCli) Apply(ops ...CLIOption) error {
 	for _, op := range ops {
 		if err := op(cli); err != nil {
 			return err
@@ -479,8 +476,8 @@ type ServerInfo struct {
 // NewDockerCli returns a DockerCli instance with all operators applied on it.
 // It applies by default the standard streams, and the content trust from
 // environment.
-func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
-	defaultOps := []DockerCliOption{
+func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
+	defaultOps := []CLIOption{
 		WithContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),

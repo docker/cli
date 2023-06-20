@@ -83,7 +83,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 			cmd.SetContext(ctx)
 			closeOnCLISocketClose(cancel)
 
-			var opts []command.InitializeOpt
+			var opts []command.CLIOption
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
@@ -129,7 +129,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	}
 }
 
-func withPluginClientConn(name string) command.InitializeOpt {
+func withPluginClientConn(name string) command.CLIOption {
 	return command.WithInitializeClient(func(dockerCli *command.DockerCli) (client.APIClient, error) {
 		cmd := "docker"
 		if x := os.Getenv(manager.ReexecEnvvar); x != "" {
