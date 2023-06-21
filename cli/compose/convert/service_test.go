@@ -3,7 +3,6 @@ package convert
 import (
 	"context"
 	"os"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -59,7 +58,6 @@ func TestConvertEnvironment(t *testing.T) {
 		"key": strPtr("value"),
 	}
 	env := convertEnvironment(source)
-	sort.Strings(env)
 	assert.Check(t, is.DeepEqual([]string{"foo=bar", "key=value"}, env))
 }
 

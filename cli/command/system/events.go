@@ -133,7 +133,7 @@ func prettyPrintEvent(out io.Writer, event eventtypes.Message) error {
 		sort.Strings(keys)
 		for _, k := range keys {
 			v := event.Actor.Attributes[k]
-			attrs = append(attrs, fmt.Sprintf("%s=%s", k, v))
+			attrs = append(attrs, k+"="+v)
 		}
 		fmt.Fprintf(out, " (%s)", strings.Join(attrs, ", "))
 	}

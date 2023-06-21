@@ -91,7 +91,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		if v == nil {
 			newEnv = append(newEnv, k)
 		} else {
-			newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, *v))
+			newEnv = append(newEnv, k+"="+*v)
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)

@@ -103,7 +103,7 @@ func (c *configContext) Labels() string {
 	}
 	var joinLabels []string
 	for k, v := range mapLabels {
-		joinLabels = append(joinLabels, fmt.Sprintf("%s=%s", k, v))
+		joinLabels = append(joinLabels, k+"="+v)
 	}
 	return strings.Join(joinLabels, ",")
 }

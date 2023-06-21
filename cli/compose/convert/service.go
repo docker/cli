@@ -1,7 +1,6 @@
 package convert
 
 import (
-	"fmt"
 	"os"
 	"sort"
 	"strings"
@@ -134,7 +133,7 @@ func Service(
 				Hosts:           convertExtraHosts(service.ExtraHosts),
 				DNSConfig:       dnsConfig,
 				Healthcheck:     healthcheck,
-				Env:             sortStrings(convertEnvironment(service.Environment)),
+				Env:             convertEnvironment(service.Environment),
 				Labels:          AddStackLabel(namespace, service.Labels),
 				Dir:             service.WorkingDir,
 				User:            service.User,
@@ -198,11 +197,6 @@ func getPlacementPreference(preferences []composetypes.PlacementPreferences) []s
 		})
 	}
 	return result
-}
-
-func sortStrings(strs []string) []string {
-	sort.Strings(strs)
-	return strs
 }
 
 func convertServiceNetworks(
@@ -597,6 +591,8 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 	}
 }
 
+// convertEnvironment converts key/value mappings to a slice, and sorts
+// the results.
 func convertEnvironment(source map[string]*string) []string {
 	var output []string
 
@@ -605,10 +601,10 @@ func convertEnvironment(source map[string]*string) []string {
 		case nil:
 			output = append(output, name)
 		default:
-			output = append(output, fmt.Sprintf("%s=%s", name, *value))
+			output = append(output, name+"="+*value)
 		}
 	}
-
+	sort.Strings(output)
 	return output
 }
 
