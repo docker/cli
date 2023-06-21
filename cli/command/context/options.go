@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
@@ -86,12 +85,12 @@ func validateConfig(config map[string]string, allowedKeys map[string]struct{}) e
 	return errors.New(strings.Join(errs, "\n"))
 }
 
-func getDockerEndpoint(dockerCli command.Cli, config map[string]string) (docker.Endpoint, error) {
+func getDockerEndpoint(contextStore store.Reader, config map[string]string) (docker.Endpoint, error) {
 	if err := validateConfig(config, allowedDockerConfigKeys); err != nil {
 		return docker.Endpoint{}, err
 	}
 	if contextName, ok := config[keyFrom]; ok {
-		metadata, err := dockerCli.ContextStore().GetMetadata(contextName)
+		metadata, err := contextStore.GetMetadata(contextName)
 		if err != nil {
 			return docker.Endpoint{}, err
 		}
@@ -126,8 +125,8 @@ func getDockerEndpoint(dockerCli command.Cli, config map[string]string) (docker.
 	return ep, nil
 }
 
-func getDockerEndpointMetadataAndTLS(dockerCli command.Cli, config map[string]string) (docker.EndpointMeta, *store.EndpointTLSData, error) {
-	ep, err := getDockerEndpoint(dockerCli, config)
+func getDockerEndpointMetadataAndTLS(contextStore store.Reader, config map[string]string) (docker.EndpointMeta, *store.EndpointTLSData, error) {
+	ep, err := getDockerEndpoint(contextStore, config)
 	if err != nil {
 		return docker.EndpointMeta{}, nil, err
 	}
