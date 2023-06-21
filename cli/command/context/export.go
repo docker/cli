@@ -19,13 +19,14 @@ type ExportOptions struct {
 }
 
 func newExportCommand(dockerCli command.Cli) *cobra.Command {
-	opts := &ExportOptions{}
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "export [OPTIONS] CONTEXT [FILE|-]",
 		Short: "Export a context to a tar archive FILE or a tar stream on STDOUT.",
 		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.ContextName = args[0]
+			opts := &ExportOptions{
+				ContextName: args[0],
+			}
 			if len(args) == 2 {
 				opts.Dest = args[1]
 			} else {
@@ -34,13 +35,6 @@ func newExportCommand(dockerCli command.Cli) *cobra.Command {
 			return RunExport(dockerCli, opts)
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.Bool("kubeconfig", false, "Export as a kubeconfig file")
-	flags.MarkDeprecated("kubeconfig", "option will be ignored")
-	flags.SetAnnotation("kubeconfig", "kubernetes", nil)
-	flags.SetAnnotation("kubeconfig", "deprecated", nil)
-	return cmd
 }
 
 func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {

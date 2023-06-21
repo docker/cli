@@ -51,18 +51,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")
-	flags.String(
-		"default-stack-orchestrator", "",
-		`Default orchestrator for stack operations to use with this context ("swarm", "kubernetes", "all")`,
-	)
-	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
-	flags.SetAnnotation("default-stack-orchestrator", "deprecated", nil)
-	flags.MarkDeprecated("default-stack-orchestrator", "option will be ignored")
 	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
-	flags.StringToString("kubernetes", nil, "set the kubernetes endpoint")
-	flags.SetAnnotation("kubernetes", "kubernetes", nil)
-	flags.SetAnnotation("kubernetes", "deprecated", nil)
-	flags.MarkDeprecated("kubernetes", "option will be ignored")
 	flags.StringVar(&opts.From, "from", "", "create context from a named context")
 	return cmd
 }
