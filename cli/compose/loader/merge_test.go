@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"dario.cat/mergo"
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/imdario/mergo"
 	"gotest.tools/v3/assert"
 )
 
