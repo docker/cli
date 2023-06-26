@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/homedir"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -57,7 +57,11 @@ func TestUseDefaultWithoutConfigFile(t *testing.T) {
 	// the _default_ configuration file. If we specify a custom configuration
 	// file, the CLI produces an error if the file doesn't exist.
 	tmpHomeDir := t.TempDir()
-	t.Setenv(homedir.Key(), tmpHomeDir)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tmpHomeDir)
+	} else {
+		t.Setenv("HOME", tmpHomeDir)
+	}
 	configDir := filepath.Join(tmpHomeDir, ".docker")
 	configFilePath := filepath.Join(configDir, "config.json")
 
