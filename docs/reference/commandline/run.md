@@ -485,10 +485,12 @@ $ docker run -itd --network=my-net busybox
 ```
 
 You can also choose the IP addresses for the container with `--ip` and `--ip6`
-flags when you start the container on a user-defined network.
+flags when you start the container on a user-defined network. To assign a
+static IP to containers, you must specify subnet block for the network.
 
 ```console
-$ docker run -itd --network=my-net --ip=10.10.9.75 busybox
+$ docker network create --subnet 192.0.2.0/24 my-net
+$ docker run -itd --network=my-net --ip=192.0.2.69 busybox
 ```
 
 If you want to add a running container to a network use the `docker network connect` subcommand.
