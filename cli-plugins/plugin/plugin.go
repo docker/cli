@@ -131,7 +131,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 			DisableDescriptions: true,
 		},
 	}
-	opts, flags := cli.SetupPluginRootCommand(cmd)
+	opts, _ := cli.SetupPluginRootCommand(cmd)
 
 	cmd.SetIn(dockerCli.In())
 	cmd.SetOut(dockerCli.Out())
@@ -144,7 +144,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 
 	cli.DisableFlagsInUseLine(cmd)
 
-	return cli.NewTopLevelCommand(cmd, dockerCli, opts, flags)
+	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
 }
 
 func newMetadataSubcommand(plugin *cobra.Command, meta manager.Metadata) *cobra.Command {

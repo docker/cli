@@ -37,7 +37,7 @@ func gen(opts *options) error {
 		Use:   "docker [OPTIONS] COMMAND [ARG...]",
 		Short: "The base command for the Docker CLI.",
 	}
-	clientOpts, _, _ := cli.SetupRootCommand(cmd)
+	clientOpts, _ := cli.SetupRootCommand(cmd)
 	if err := dockerCLI.Initialize(clientOpts); err != nil {
 		return err
 	}

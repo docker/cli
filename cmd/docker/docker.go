@@ -24,7 +24,6 @@ import (
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
-		flags   *pflag.FlagSet
 		helpCmd *cobra.Command
 	)
 
@@ -55,9 +54,9 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	cmd.SetErr(dockerCli.Err())
 
-	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
+	opts, helpCmd = cli.SetupRootCommand(cmd)
 	registerCompletionFuncForGlobalFlags(dockerCli, cmd)
-	flags.BoolP("version", "v", false, "Print version information and quit")
+	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
 	setFlagErrorFunc(dockerCli, cmd)
 
 	setupHelpCommand(dockerCli, cmd, helpCmd)
@@ -70,7 +69,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	setValidateArgs(dockerCli, cmd)
 
 	// flags must be the top-level command flags, not cmd.Flags()
-	return cli.NewTopLevelCommand(cmd, dockerCli, opts, flags)
+	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
 }
 
 func setFlagErrorFunc(dockerCli command.Cli, cmd *cobra.Command) {
