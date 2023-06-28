@@ -27,6 +27,13 @@ var (
 	configDir     string
 )
 
+// resetConfigDir is used in testing to reset the "configDir" package variable
+// and its sync.Once to force re-lookup between tests.
+func resetConfigDir() {
+	configDir = ""
+	initConfigDir = new(sync.Once)
+}
+
 // Dir returns the directory the configuration file is stored in
 func Dir() string {
 	initConfigDir.Do(func() {
@@ -45,6 +52,8 @@ func ContextStoreDir() string {
 
 // SetDir sets the directory the configuration file is stored in
 func SetDir(dir string) {
+	// trigger the sync.Once to synchronise with Dir()
+	initConfigDir.Do(func() {})
 	configDir = filepath.Clean(dir)
 }
 

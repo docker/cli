@@ -382,3 +382,12 @@ func TestConfigPath(t *testing.T) {
 
 	SetDir(oldDir)
 }
+
+// TestSetDir verifies that Dir() does not overwrite the value set through
+// SetDir() if it has not been run before.
+func TestSetDir(t *testing.T) {
+	const expected = "my_config_dir"
+	resetConfigDir()
+	SetDir(expected)
+	assert.Check(t, is.Equal(Dir(), expected))
+}
