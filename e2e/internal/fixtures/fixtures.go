@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/config"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
 )
@@ -53,7 +54,7 @@ func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 // WithConfig sets an environment variable for the docker config location
 func WithConfig(dir string) func(cmd *icmd.Cmd) {
 	return func(cmd *icmd.Cmd) {
-		addEnvs(cmd, "DOCKER_CONFIG="+dir)
+		addEnvs(cmd, config.EnvOverrideConfigDir+"="+dir)
 	}
 }
 

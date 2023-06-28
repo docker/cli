@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/cli/cli/config"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
@@ -11,7 +12,7 @@ import (
 
 func TestContextList(t *testing.T) {
 	cmd := icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env, "DOCKER_CONFIG=testdata/test-dockerconfig")
+	cmd.Env = append(cmd.Env, config.EnvOverrideConfigDir+"=testdata/test-dockerconfig")
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Expected{
 		Err:      icmd.None,
 		ExitCode: 0,
@@ -22,13 +23,11 @@ func TestContextList(t *testing.T) {
 func TestContextImportNoTLS(t *testing.T) {
 	d := t.TempDir()
 	cmd := icmd.Command("docker", "context", "import", "remote", "./testdata/test-dockerconfig.tar")
-	cmd.Env = append(cmd.Env,
-		"DOCKER_CONFIG="+d,
-	)
+	cmd.Env = append(cmd.Env, config.EnvOverrideConfigDir+"="+d)
 	icmd.RunCmd(cmd).Assert(t, icmd.Success)
 
 	cmd = icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+d)
+	cmd.Env = append(cmd.Env, config.EnvOverrideConfigDir+"="+d)
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Success)
 	golden.Assert(t, result.Stdout(), "context-ls.golden")
 }
@@ -36,15 +35,11 @@ func TestContextImportNoTLS(t *testing.T) {
 func TestContextImportTLS(t *testing.T) {
 	d := t.TempDir()
 	cmd := icmd.Command("docker", "context", "import", "test", "./testdata/test-dockerconfig-tls.tar")
-	cmd.Env = append(cmd.Env,
-		"DOCKER_CONFIG="+d,
-	)
+	cmd.Env = append(cmd.Env, config.EnvOverrideConfigDir+"="+d)
 	icmd.RunCmd(cmd).Assert(t, icmd.Success)
 
 	cmd = icmd.Command("docker", "context", "ls")
-	cmd.Env = append(cmd.Env,
-		"DOCKER_CONFIG="+d,
-	)
+	cmd.Env = append(cmd.Env, config.EnvOverrideConfigDir+"="+d)
 	result := icmd.RunCmd(cmd).Assert(t, icmd.Success)
 	golden.Assert(t, result.Stdout(), "context-ls-tls.golden")
 
