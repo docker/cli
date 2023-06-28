@@ -73,10 +73,12 @@ func NewClientOptions() *ClientOptions {
 
 // InstallFlags adds flags for the common options on the FlagSet
 func (o *ClientOptions) InstallFlags(flags *pflag.FlagSet) {
+	configDir := config.Dir()
 	if dockerCertPath == "" {
-		dockerCertPath = config.Dir()
+		dockerCertPath = configDir
 	}
 
+	flags.StringVar(&o.ConfigDir, "config", configDir, "Location of client config files")
 	flags.BoolVarP(&o.Debug, "debug", "D", false, "Enable debug mode")
 	flags.StringVarP(&o.LogLevel, "log-level", "l", "info", `Set the logging level ("debug", "info", "warn", "error", "fatal")`)
 	flags.BoolVar(&o.TLS, "tls", dockerTLS, "Use TLS; implied by --tlsverify")
