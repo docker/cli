@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"sort"
 
+	"dario.cat/mergo"
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 )
 
