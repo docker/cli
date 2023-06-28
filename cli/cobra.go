@@ -22,10 +22,9 @@ import (
 
 // setupCommonRootCommand contains the setup common to
 // SetupRootCommand and SetupPluginRootCommand.
-func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet, *cobra.Command) {
-	flags := rootCmd.Flags()
+func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *cobra.Command) {
 	opts := cliflags.NewClientOptions()
-	opts.InstallFlags(flags)
+	opts.InstallFlags(rootCmd.Flags())
 
 	cobra.AddTemplateFunc("add", func(a, b int) int { return a + b })
 	cobra.AddTemplateFunc("hasAliases", hasAliases)
@@ -70,20 +69,20 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *p
 		}
 	}
 
-	return opts, flags, helpCommand
+	return opts, helpCommand
 }
 
 // SetupRootCommand sets default usage, help, and error handling for the
 // root command.
-func SetupRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet, *cobra.Command) {
+func SetupRootCommand(rootCmd *cobra.Command) (opts *cliflags.ClientOptions, helpCmd *cobra.Command) {
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
 	return setupCommonRootCommand(rootCmd)
 }
 
 // SetupPluginRootCommand sets default usage, help and error handling for a plugin root command.
 func SetupPluginRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
-	opts, flags, _ := setupCommonRootCommand(rootCmd)
-	return opts, flags
+	opts, _ := setupCommonRootCommand(rootCmd)
+	return opts, rootCmd.Flags()
 }
 
 // FlagErrorFunc prints an error message which matches the format of the
