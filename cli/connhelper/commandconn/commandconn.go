@@ -163,9 +163,8 @@ func (c *commandConn) Read(p []byte) (int, error) {
 	// Close might get called
 	if c.closing.Load() {
 		// If we're currently closing the connection
-		// we don't want to call onEOF, but we do want
-		// to return an io.EOF
-		return 0, io.EOF
+		// we don't want to call onEOF
+		return n, err
 	}
 
 	return n, c.handleEOF(err)
@@ -178,9 +177,8 @@ func (c *commandConn) Write(p []byte) (int, error) {
 	// Close might get called
 	if c.closing.Load() {
 		// If we're currently closing the connection
-		// we don't want to call onEOF, but we do want
-		// to return an io.EOF
-		return 0, io.EOF
+		// we don't want to call onEOF
+		return n, err
 	}
 
 	return n, c.handleEOF(err)

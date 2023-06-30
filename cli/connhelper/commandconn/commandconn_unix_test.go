@@ -6,6 +6,7 @@ package commandconn
 import (
 	"context"
 	"io"
+	"io/fs"
 	"testing"
 	"time"
 
@@ -179,7 +180,8 @@ func TestCloseWhileWriting(t *testing.T) {
 	assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
 
 	writeErr := <-writeErrC
-	assert.ErrorContains(t, writeErr, "EOF")
+	assert.ErrorContains(t, writeErr, "file already closed")
+	assert.Check(t, is.ErrorIs(writeErr, fs.ErrClosed))
 }
 
 func TestCloseWhileReading(t *testing.T) {
@@ -209,5 +211,5 @@ func TestCloseWhileReading(t *testing.T) {
 	assert.Check(t, !process.Alive(cmdConn.cmd.Process.Pid))
 
 	readErr := <-readErrC
-	assert.ErrorContains(t, readErr, "EOF")
+	assert.Check(t, is.ErrorIs(readErr, fs.ErrClosed))
 }
