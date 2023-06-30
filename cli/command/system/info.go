@@ -313,7 +313,12 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 	fprintln(output, " Docker Root Dir:", info.DockerRootDir)
 	fprintln(output, " Debug Mode:", info.Debug)
 
-	if info.Debug {
+	// The daemon collects this information regardless if "debug" is
+	// enabled. Print the debugging information if either the daemon,
+	// or the client has debug enabled. We should probably improve this
+	// logic and print any of these if set (but some special rules are
+	// needed for file-descriptors, which may use "-1".
+	if info.Debug || debug.IsEnabled() {
 		fprintln(output, "  File Descriptors:", info.NFd)
 		fprintln(output, "  Goroutines:", info.NGoroutines)
 		fprintln(output, "  System Time:", info.SystemTime)
