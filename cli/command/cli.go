@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -327,13 +326,8 @@ func (cli *DockerCli) getInitTimeout() time.Duration {
 
 func (cli *DockerCli) initializeFromClient() {
 	ctx := context.Background()
-	if !strings.HasPrefix(cli.dockerEndpoint.Host, "ssh://") {
-		// @FIXME context.WithTimeout doesn't work with connhelper / ssh connections
-		// time="2020-04-10T10:16:26Z" level=warning msg="commandConn.CloseWrite: commandconn: failed to wait: signal: killed"
-		var cancel func()
-		ctx, cancel = context.WithTimeout(ctx, cli.getInitTimeout())
-		defer cancel()
-	}
+	ctx, cancel := context.WithTimeout(ctx, cli.getInitTimeout())
+	defer cancel()
 
 	ping, err := cli.client.Ping(ctx)
 	if err != nil {
