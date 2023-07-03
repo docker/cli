@@ -759,23 +759,27 @@ PING docker (93.184.216.34): 56 data bytes
 round-trip min/avg/max = 92.209/92.495/93.052 ms
 ```
 
-Sometimes you need to connect to the Docker host from within your
-container. To enable this, pass the Docker host's IP address to
-the container using the `--add-host` flag. To find the host's address,
-use the `ip addr show` command.
+The `--add-host` flag supports a special `host-gateway` value that resolves to
+the internal IP address of the host. This is useful when you want containers to
+connect to services running on the host machine.
 
-The flags you pass to `ip addr show` depend on whether you are
-using IPv4 or IPv6 networking in your containers. Use the following
-flags for IPv4 address retrieval for a network device named `eth0`:
+It's conventional to use `host.docker.internal` as the hostname referring to
+`host-gateway`. Docker Desktop automatically resolves this hostname, see
+[Explore networking features](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host).
+
+The following example shows how the special `host-gateway` value works. The
+example runs an HTTP server that serves a file from host to container over the
+`host.docker.internal` hostname, which resolves to the host's internal IP.
 
 ```console
-$ HOSTIP=`ip -4 addr show scope global dev eth0 | grep inet | awk '{print $2}' | cut -d / -f 1 | sed -n 1p`
-$ docker run  --add-host=docker:${HOSTIP} --rm -it debian
+$ echo "hello from host!" > ./hello
+$ python3 -m http.server 8000
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+$ docker run \
+  --add-host host.docker.internal:host-gateway \
+  curlimages/curl -s host.docker.internal:8000/hello
+hello from host!
 ```
-
-For IPv6 use the `-6` flag instead of the `-4` flag. For other network
-devices, replace `eth0` with the correct device name (for example `docker0`
-for the bridge device).
 
 ### <a name="ulimit"></a> Set ulimits in container (--ulimit)
 
