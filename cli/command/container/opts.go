@@ -31,99 +31,100 @@ var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) 
 
 // containerOptions is a data object with all the options for creating a container
 type containerOptions struct {
-	attach             opts.ListOpts
-	volumes            opts.ListOpts
-	tmpfs              opts.ListOpts
-	mounts             opts.MountOpt
-	blkioWeightDevice  opts.WeightdeviceOpt
-	deviceReadBps      opts.ThrottledeviceOpt
-	deviceWriteBps     opts.ThrottledeviceOpt
-	links              opts.ListOpts
-	aliases            opts.ListOpts
-	linkLocalIPs       opts.ListOpts
-	deviceReadIOps     opts.ThrottledeviceOpt
-	deviceWriteIOps    opts.ThrottledeviceOpt
-	env                opts.ListOpts
-	labels             opts.ListOpts
-	deviceCgroupRules  opts.ListOpts
-	devices            opts.ListOpts
-	gpus               opts.GpuOpts
-	ulimits            *opts.UlimitOpt
-	sysctls            *opts.MapOpts
-	publish            opts.ListOpts
-	expose             opts.ListOpts
-	dns                opts.ListOpts
-	dnsSearch          opts.ListOpts
-	dnsOptions         opts.ListOpts
-	extraHosts         opts.ListOpts
-	volumesFrom        opts.ListOpts
-	envFile            opts.ListOpts
-	capAdd             opts.ListOpts
-	capDrop            opts.ListOpts
-	groupAdd           opts.ListOpts
-	securityOpt        opts.ListOpts
-	storageOpt         opts.ListOpts
-	labelsFile         opts.ListOpts
-	loggingOpts        opts.ListOpts
-	privileged         bool
-	pidMode            string
-	utsMode            string
-	usernsMode         string
-	cgroupnsMode       string
-	publishAll         bool
-	stdin              bool
-	tty                bool
-	oomKillDisable     bool
-	oomScoreAdj        int
-	containerIDFile    string
-	entrypoint         string
-	hostname           string
-	domainname         string
-	memory             opts.MemBytes
-	memoryReservation  opts.MemBytes
-	memorySwap         opts.MemSwapBytes
-	kernelMemory       opts.MemBytes
-	user               string
-	workingDir         string
-	cpuCount           int64
-	cpuShares          int64
-	cpuPercent         int64
-	cpuPeriod          int64
-	cpuRealtimePeriod  int64
-	cpuRealtimeRuntime int64
-	cpuQuota           int64
-	cpus               opts.NanoCPUs
-	cpusetCpus         string
-	cpusetMems         string
-	blkioWeight        uint16
-	ioMaxBandwidth     opts.MemBytes
-	ioMaxIOps          uint64
-	swappiness         int64
-	netMode            opts.NetworkOpt
-	macAddress         string
-	ipv4Address        string
-	ipv6Address        string
-	ipcMode            string
-	pidsLimit          int64
-	restartPolicy      string
-	readonlyRootfs     bool
-	loggingDriver      string
-	cgroupParent       string
-	volumeDriver       string
-	stopSignal         string
-	stopTimeout        int
-	isolation          string
-	shmSize            opts.MemBytes
-	noHealthcheck      bool
-	healthCmd          string
-	healthInterval     time.Duration
-	healthTimeout      time.Duration
-	healthStartPeriod  time.Duration
-	healthRetries      int
-	runtime            string
-	autoRemove         bool
-	init               bool
-	annotations        *opts.MapOpts
+	attach              opts.ListOpts
+	volumes             opts.ListOpts
+	tmpfs               opts.ListOpts
+	mounts              opts.MountOpt
+	blkioWeightDevice   opts.WeightdeviceOpt
+	deviceReadBps       opts.ThrottledeviceOpt
+	deviceWriteBps      opts.ThrottledeviceOpt
+	links               opts.ListOpts
+	aliases             opts.ListOpts
+	linkLocalIPs        opts.ListOpts
+	deviceReadIOps      opts.ThrottledeviceOpt
+	deviceWriteIOps     opts.ThrottledeviceOpt
+	env                 opts.ListOpts
+	labels              opts.ListOpts
+	deviceCgroupRules   opts.ListOpts
+	devices             opts.ListOpts
+	gpus                opts.GpuOpts
+	ulimits             *opts.UlimitOpt
+	sysctls             *opts.MapOpts
+	publish             opts.ListOpts
+	expose              opts.ListOpts
+	dns                 opts.ListOpts
+	dnsSearch           opts.ListOpts
+	dnsOptions          opts.ListOpts
+	extraHosts          opts.ListOpts
+	volumesFrom         opts.ListOpts
+	envFile             opts.ListOpts
+	capAdd              opts.ListOpts
+	capDrop             opts.ListOpts
+	groupAdd            opts.ListOpts
+	securityOpt         opts.ListOpts
+	storageOpt          opts.ListOpts
+	labelsFile          opts.ListOpts
+	loggingOpts         opts.ListOpts
+	privileged          bool
+	pidMode             string
+	utsMode             string
+	usernsMode          string
+	cgroupnsMode        string
+	publishAll          bool
+	stdin               bool
+	tty                 bool
+	oomKillDisable      bool
+	oomScoreAdj         int
+	containerIDFile     string
+	entrypoint          string
+	hostname            string
+	domainname          string
+	memory              opts.MemBytes
+	memoryReservation   opts.MemBytes
+	memorySwap          opts.MemSwapBytes
+	kernelMemory        opts.MemBytes
+	user                string
+	workingDir          string
+	cpuCount            int64
+	cpuShares           int64
+	cpuPercent          int64
+	cpuPeriod           int64
+	cpuRealtimePeriod   int64
+	cpuRealtimeRuntime  int64
+	cpuQuota            int64
+	cpus                opts.NanoCPUs
+	cpusetCpus          string
+	cpusetMems          string
+	blkioWeight         uint16
+	ioMaxBandwidth      opts.MemBytes
+	ioMaxIOps           uint64
+	swappiness          int64
+	netMode             opts.NetworkOpt
+	macAddress          string
+	ipv4Address         string
+	ipv6Address         string
+	ipcMode             string
+	pidsLimit           int64
+	restartPolicy       string
+	readonlyRootfs      bool
+	loggingDriver       string
+	cgroupParent        string
+	volumeDriver        string
+	stopSignal          string
+	stopTimeout         int
+	isolation           string
+	shmSize             opts.MemBytes
+	noHealthcheck       bool
+	healthCmd           string
+	healthInterval      time.Duration
+	healthTimeout       time.Duration
+	healthStartPeriod   time.Duration
+	healthStartInterval time.Duration
+	healthRetries       int
+	runtime             string
+	autoRemove          bool
+	init                bool
+	annotations         *opts.MapOpts
 
 	Image string
 	Args  []string
@@ -250,6 +251,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.DurationVar(&copts.healthTimeout, "health-timeout", 0, "Maximum time to allow one check to run (ms|s|m|h) (default 0s)")
 	flags.DurationVar(&copts.healthStartPeriod, "health-start-period", 0, "Start period for the container to initialize before starting health-retries countdown (ms|s|m|h) (default 0s)")
 	flags.SetAnnotation("health-start-period", "version", []string{"1.29"})
+	flags.DurationVar(&copts.healthStartInterval, "health-start-interval", 0, "Time between running the check during the start period (ms|s|m|h) (default 0s)")
+	flags.SetAnnotation("health-start-interval", "version", []string{"1.44"})
 	flags.BoolVar(&copts.noHealthcheck, "no-healthcheck", false, "Disable any container-specified HEALTHCHECK")
 
 	// Resource management
@@ -526,7 +529,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		copts.healthInterval != 0 ||
 		copts.healthTimeout != 0 ||
 		copts.healthStartPeriod != 0 ||
-		copts.healthRetries != 0
+		copts.healthRetries != 0 ||
+		copts.healthStartInterval != 0
 	if copts.noHealthcheck {
 		if haveHealthSettings {
 			return nil, errors.Errorf("--no-healthcheck conflicts with --health-* options")
@@ -549,13 +553,17 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if copts.healthStartPeriod < 0 {
 			return nil, fmt.Errorf("--health-start-period cannot be negative")
 		}
+		if copts.healthStartInterval < 0 {
+			return nil, fmt.Errorf("--health-start-interval cannot be negative")
+		}
 
 		healthConfig = &container.HealthConfig{
-			Test:        probe,
-			Interval:    copts.healthInterval,
-			Timeout:     copts.healthTimeout,
-			StartPeriod: copts.healthStartPeriod,
-			Retries:     copts.healthRetries,
+			Test:          probe,
+			Interval:      copts.healthInterval,
+			Timeout:       copts.healthTimeout,
+			StartPeriod:   copts.healthStartPeriod,
+			StartInterval: copts.healthStartInterval,
+			Retries:       copts.healthRetries,
 		}
 	}
 
