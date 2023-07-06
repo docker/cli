@@ -137,7 +137,10 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			return
 		}
 
-		if len(args) >= 1 {
+		// commands are chained in the form `rootCmd 1stCmd 2ndCmd...`
+		// if RootCmd and ParentCmd are the same
+		// then my command is 1st level command
+		if len(args) >= 1 && ccmd.Root() == ccmd.Parent() {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
 			if err == nil {
 				return
