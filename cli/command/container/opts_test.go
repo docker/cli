@@ -417,39 +417,91 @@ func TestParseWithExpose(t *testing.T) {
 
 func TestParseDevice(t *testing.T) {
 	skip.If(t, runtime.GOOS != "linux") // Windows and macOS validate server-side
-	valids := map[string]container.DeviceMapping{
-		"/dev/snd": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/dev/snd",
-			CgroupPermissions: "rwm",
+	testCases := []struct {
+		devices        []string
+		deviceMapping  *container.DeviceMapping
+		deviceRequests []container.DeviceRequest
+	}{
+		{
+			devices: []string{"/dev/snd"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/dev/snd",
+				CgroupPermissions: "rwm",
+			},
 		},
-		"/dev/snd:rw": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/dev/snd",
-			CgroupPermissions: "rw",
+		{
+			devices: []string{"/dev/snd:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/dev/snd",
+				CgroupPermissions: "rw",
+			},
 		},
-		"/dev/snd:/something": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/something",
-			CgroupPermissions: "rwm",
+		{
+			devices: []string{"/dev/snd:/something"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rwm",
+			},
 		},
-		"/dev/snd:/something:rw": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/something",
-			CgroupPermissions: "rw",
+		{
+			devices: []string{"/dev/snd:/something:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rw",
+			},
+		},
+		{
+			devices:       []string{"vendor.com/class=name"},
+			deviceMapping: nil,
+			deviceRequests: []container.DeviceRequest{
+				{
+					Driver:    "cdi",
+					DeviceIDs: []string{"vendor.com/class=name"},
+				},
+			},
+		},
+		{
+			devices: []string{"vendor.com/class=name", "/dev/snd:/something:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rw",
+			},
+			deviceRequests: []container.DeviceRequest{
+				{
+					Driver:    "cdi",
+					DeviceIDs: []string{"vendor.com/class=name"},
+				},
+			},
 		},
 	}
-	for device, deviceMapping := range valids {
-		_, hostconfig, _, err := parseRun([]string{fmt.Sprintf("--device=%v", device), "img", "cmd"})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(hostconfig.Devices) != 1 {
-			t.Fatalf("Expected 1 devices, got %v", hostconfig.Devices)
-		}
-		if hostconfig.Devices[0] != deviceMapping {
-			t.Fatalf("Expected %v, got %v", deviceMapping, hostconfig.Devices)
-		}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%s", tc.devices), func(t *testing.T) {
+			var args []string
+			for _, d := range tc.devices {
+				args = append(args, fmt.Sprintf("--device=%v", d))
+			}
+			args = append(args, "img", "cmd")
+
+			_, hostconfig, _, err := parseRun(args)
+
+			assert.NilError(t, err)
+
+			if tc.deviceMapping != nil {
+				if assert.Check(t, is.Len(hostconfig.Devices, 1)) {
+					assert.Check(t, is.DeepEqual(*tc.deviceMapping, hostconfig.Devices[0]))
+				}
+			} else {
+				assert.Check(t, is.Len(hostconfig.Devices, 0))
+			}
+
+			assert.Check(t, is.DeepEqual(tc.deviceRequests, hostconfig.DeviceRequests))
+		})
 	}
 }
 
