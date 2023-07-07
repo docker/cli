@@ -428,6 +428,7 @@ type healthCheckOptions struct {
 	timeout       opts.PositiveDurationOpt
 	retries       int
 	startPeriod   opts.PositiveDurationOpt
+	startInterval opts.PositiveDurationOpt
 	noHealthcheck bool
 }
 
@@ -436,6 +437,8 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 	haveHealthSettings := opts.cmd != "" ||
 		opts.interval.Value() != nil ||
 		opts.timeout.Value() != nil ||
+		opts.startPeriod.Value() != nil ||
+		opts.startInterval.Value() != nil ||
 		opts.retries != 0
 	if opts.noHealthcheck {
 		if haveHealthSettings {
@@ -447,7 +450,7 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 		if opts.cmd != "" {
 			test = []string{"CMD-SHELL", opts.cmd}
 		}
-		var interval, timeout, startPeriod time.Duration
+		var interval, timeout, startPeriod, startInterval time.Duration
 		if ptr := opts.interval.Value(); ptr != nil {
 			interval = *ptr
 		}
@@ -457,12 +460,16 @@ func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error
 		if ptr := opts.startPeriod.Value(); ptr != nil {
 			startPeriod = *ptr
 		}
+		if ptr := opts.startInterval.Value(); ptr != nil {
+			startInterval = *ptr
+		}
 		healthConfig = &container.HealthConfig{
-			Test:        test,
-			Interval:    interval,
-			Timeout:     timeout,
-			Retries:     opts.retries,
-			StartPeriod: startPeriod,
+			Test:          test,
+			Interval:      interval,
+			Timeout:       timeout,
+			Retries:       opts.retries,
+			StartPeriod:   startPeriod,
+			StartInterval: startInterval,
 		}
 	}
 	return healthConfig, nil
@@ -906,6 +913,8 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 	flags.SetAnnotation(flagHealthRetries, "version", []string{"1.25"})
 	flags.Var(&opts.healthcheck.startPeriod, flagHealthStartPeriod, "Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)")
 	flags.SetAnnotation(flagHealthStartPeriod, "version", []string{"1.29"})
+	flags.Var(&opts.healthcheck.startInterval, flagHealthStartInterval, "Time between running the check during the start period (ms|s|m|h)")
+	flags.SetAnnotation(flagHealthStartInterval, "version", []string{"1.44"})
 	flags.BoolVar(&opts.healthcheck.noHealthcheck, flagNoHealthcheck, false, "Disable any container-specified HEALTHCHECK")
 	flags.SetAnnotation(flagNoHealthcheck, "version", []string{"1.25"})
 
@@ -1016,6 +1025,7 @@ const (
 	flagHealthRetries           = "health-retries"
 	flagHealthTimeout           = "health-timeout"
 	flagHealthStartPeriod       = "health-start-period"
+	flagHealthStartInterval     = "health-start-interval"
 	flagNoHealthcheck           = "no-healthcheck"
 	flagSecret                  = "secret"
 	flagSecretAdd               = "secret-add"

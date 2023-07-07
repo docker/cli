@@ -46,7 +46,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v24.0.0-rc.2.0.20230627140857-7f8b1cd7f928+incompatible
+# github.com/docker/docker v24.0.0-rc.2.0.20230706181717-98d3da79ef9c+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types

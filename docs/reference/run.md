@@ -1640,6 +1640,7 @@ Similarly the operator can set the **HOSTNAME** (Linux) or **COMPUTERNAME** (Win
   --health-retries        Consecutive failures needed to report unhealthy
   --health-timeout        Maximum time to allow one check to run
   --health-start-period   Start period for the container to initialize before starting health-retries countdown
+  --health-start-interval Time between running the check during the start period
   --no-healthcheck        Disable any container-specified HEALTHCHECK
 ```
 
