@@ -79,19 +79,18 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 			return types.PluginInstallOptions{}, errors.Errorf("invalid name: %s", ref.String())
 		}
 
-		trusted, err := image.TrustedReference(context.Background(), dockerCli, nt)
+		trusted, err := image.TrustedReference(ctx, dockerCli, nt)
 		if err != nil {
 			return types.PluginInstallOptions{}, err
 		}
 		remote = reference.FamiliarString(trusted)
 	}
 
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return types.PluginInstallOptions{}, err
 	}
-	registryAuthFunc := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName)
 
 	options := types.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
@@ -99,7 +98,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCli, opts.remote),
-		PrivilegeFunc:         registryAuthFunc,
+		PrivilegeFunc:         command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName),
 		Args:                  opts.args,
 	}
 	return options, nil

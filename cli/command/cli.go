@@ -189,7 +189,7 @@ func (cli *DockerCli) ManifestStore() manifeststore.Store {
 // registry
 func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
 	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
-		return ResolveAuthConfig(ctx, cli, index)
+		return ResolveAuthConfig(cli.ConfigFile(), index)
 	}
 	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }

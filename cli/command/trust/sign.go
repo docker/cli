@@ -93,7 +93,7 @@ func runSignImage(cli command.Cli, options signOptions) error {
 			}
 			fmt.Fprintf(cli.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
 
-			authConfig := command.ResolveAuthConfig(ctx, cli, imgRefAndAuth.RepoInfo().Index)
+			authConfig := command.ResolveAuthConfig(cli.ConfigFile(), imgRefAndAuth.RepoInfo().Index)
 			encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 			if err != nil {
 				return err

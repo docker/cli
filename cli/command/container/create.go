@@ -114,7 +114,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 
 // FIXME(thaJeztah): this is the only code-path that uses APIClient.ImageCreate. Rewrite this to use the regular "pull" code (or vice-versa).
 func pullImage(ctx context.Context, dockerCli command.Cli, image string, opts *createOptions) error {
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), image)
 	if err != nil {
 		return err
 	}

@@ -54,13 +54,13 @@ func runSearch(dockerCli command.Cli, options searchOptions) error {
 		return err
 	}
 
-	ctx := context.Background()
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, indexInfo)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
 	}
 
+	ctx := context.Background()
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
 	results, err := dockerCli.Client().ImageSearch(ctx, options.term, types.ImageSearchOptions{
 		RegistryAuth:  encodedAuth,

@@ -339,6 +339,6 @@ func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canon
 // AuthResolver returns an auth resolver function from a command.Cli
 func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
+		return command.ResolveAuthConfig(cli.ConfigFile(), index)
 	}
 }
