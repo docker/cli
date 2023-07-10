@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.21.3
 ARG ALPINE_VERSION=3.17
+ARG BASE_DEBIAN_DISTRO=bookworm
+
+ARG GO_VERSION=1.21.3
 ARG XX_VERSION=1.2.1
 ARG GOVERSIONINFO_VERSION=v1.3.0
 ARG GOTESTSUM_VERSION=v1.10.0
@@ -22,13 +24,13 @@ ARG TARGETPLATFORM
 # gcc is installed for libgcc only
 RUN xx-apk add --no-cache musl-dev gcc
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bookworm AS build-base-bookworm
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_DEBIAN_DISTRO} AS build-base-debian
 ENV GOTOOLCHAIN=local
 COPY --link --from=xx / /
 RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld llvm file
 WORKDIR /go/src/github.com/docker/cli
 
-FROM build-base-bookworm AS build-bookworm
+FROM build-base-debian AS build-debian
 ARG TARGETPLATFORM
 RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-12-dev pkgconf
 
@@ -94,7 +96,7 @@ RUN --mount=ro --mount=type=cache,target=/root/.cache \
 FROM build-base-alpine AS e2e-base-alpine
 RUN apk add --no-cache build-base curl openssl openssh-client
 
-FROM build-base-bookworm AS e2e-base-bookworm
+FROM build-base-debian AS e2e-base-debian
 RUN apt-get update && apt-get install -y build-essential curl openssl openssh-client
 
 FROM docker/buildx-bin:${BUILDX_VERSION}   AS buildx
