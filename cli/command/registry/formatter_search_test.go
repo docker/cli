@@ -50,13 +50,13 @@ func TestSearchContext(t *testing.T) {
 				s: registrytypes.SearchResult{IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 			},
 			expValue: "[OK]",
-			call:     ctx.IsAutomated,
+			call:     ctx.IsAutomated, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 		},
 		{
 			searchCtx: searchContext{
 				s: registrytypes.SearchResult{},
 			},
-			call: ctx.IsAutomated,
+			call: ctx.IsAutomated, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 		},
 	}
 
