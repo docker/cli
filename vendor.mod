@@ -8,7 +8,7 @@ go 1.18
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/container-orchestrated-devices/container-device-interface v0.5.5-0.20230516140309-1e6752771dc5
+	github.com/container-orchestrated-devices/container-device-interface v0.6.0
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.2+incompatible
