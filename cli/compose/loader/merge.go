@@ -126,7 +126,9 @@ func toServiceVolumeConfigsMap(s interface{}) (map[interface{}]interface{}, erro
 	}
 	m := map[interface{}]interface{}{}
 	for _, v := range volumes {
-		m[v.Target] = v
+		if _, exists := m[v.Target]; !exists {
+			m[v.Target] = v
+		}
 	}
 	return m, nil
 }
