@@ -712,6 +712,12 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
+	// Put the endpoint-specific MacAddress of the "main" network attachment into the container Config for backward
+	// compatibility with older daemons.
+	if nw, ok := networkingConfig.EndpointsConfig[hostConfig.NetworkMode.NetworkName()]; ok {
+		config.MacAddress = nw.MacAddress
+	}
+
 	return &containerConfig{
 		Config:           config,
 		HostConfig:       hostConfig,
@@ -773,8 +779,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 	return endpoints, nil
 }
 
-func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOptions) error {
-	// TODO should copts.MacAddress actually be set on the first network? (currently it's not)
+func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOptions) error { //nolint:gocyclo
 	// TODO should we error if _any_ advanced option is used? (i.e. forbid to combine advanced notation with the "old" flags (`--network-alias`, `--link`, `--ip`, `--ip6`)?
 	if len(n.Aliases) > 0 && copts.aliases.Len() > 0 {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --network-alias and per-network alias"))
@@ -787,6 +792,12 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	}
 	if n.IPv6Address != "" && copts.ipv6Address != "" {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
+	}
+	if n.MacAddress != "" && copts.macAddress != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --mac-address and per-network MAC address"))
+	}
+	if len(n.LinkLocalIPs) > 0 && copts.linkLocalIPs.Len() > 0 {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --link-local-ip and per-network link-local IP addresses"))
 	}
 	if copts.aliases.Len() > 0 {
 		n.Aliases = make([]string, copts.aliases.Len())
@@ -802,8 +813,9 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if copts.ipv6Address != "" {
 		n.IPv6Address = copts.ipv6Address
 	}
-
-	// TODO should linkLocalIPs be added to the _first_ network only, or to _all_ networks? (should this be a per-network option as well?)
+	if copts.macAddress != "" {
+		n.MacAddress = copts.macAddress
+	}
 	if copts.linkLocalIPs.Len() > 0 {
 		n.LinkLocalIPs = make([]string, copts.linkLocalIPs.Len())
 		copy(n.LinkLocalIPs, copts.linkLocalIPs.GetAll())
@@ -839,6 +851,12 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 			IPv6Address:  ep.IPv6Address,
 			LinkLocalIPs: ep.LinkLocalIPs,
 		}
+	}
+	if ep.MacAddress != "" {
+		if _, err := opts.ValidateMACAddress(ep.MacAddress); err != nil {
+			return nil, errors.Errorf("%s is not a valid mac address", ep.MacAddress)
+		}
+		epConfig.MacAddress = ep.MacAddress
 	}
 	return epConfig, nil
 }
