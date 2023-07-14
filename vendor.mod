@@ -24,7 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moby/buildkit v0.11.6
 	github.com/moby/patternmatcher v0.5.0
-	github.com/moby/swarmkit/v2 v2.0.0-20230627115642-ad0f3ae162fa
+	github.com/moby/swarmkit/v2 v2.0.0-20230707182847-6f78b8199b05
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.5.0
