@@ -9,8 +9,8 @@ import (
 	. "github.com/docker/cli/cli/command" // Prevents a circular import with "github.com/docker/cli/internal/test"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +18,7 @@ import (
 
 type fakeClient struct {
 	client.Client
-	infoFunc func() (types.Info, error)
+	infoFunc func() (system.Info, error)
 }
 
 var testAuthConfigs = []registry.AuthConfig{
@@ -34,11 +34,11 @@ var testAuthConfigs = []registry.AuthConfig{
 	},
 }
 
-func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
+func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return types.Info{}, nil
+	return system.Info{}, nil
 }
 
 func TestGetDefaultAuthConfig(t *testing.T) {

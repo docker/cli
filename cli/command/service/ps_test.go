@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/google/go-cmp/cmp"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -117,8 +118,8 @@ func TestUpdateNodeFilter(t *testing.T) {
 	)
 
 	client := &fakeClient{
-		infoFunc: func(_ context.Context) (types.Info, error) {
-			return types.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
+		infoFunc: func(_ context.Context) (system.Info, error) {
+			return system.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
 		},
 	}
 

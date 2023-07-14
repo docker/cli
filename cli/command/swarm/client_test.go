@@ -5,12 +5,13 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
 type fakeClient struct {
 	client.Client
-	infoFunc              func() (types.Info, error)
+	infoFunc              func() (system.Info, error)
 	swarmInitFunc         func() (string, error)
 	swarmInspectFunc      func() (swarm.Swarm, error)
 	nodeInspectFunc       func() (swarm.Node, []byte, error)
@@ -21,11 +22,11 @@ type fakeClient struct {
 	swarmUnlockFunc       func(req swarm.UnlockRequest) error
 }
 
-func (cli *fakeClient) Info(context.Context) (types.Info, error) {
+func (cli *fakeClient) Info(context.Context) (system.Info, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return types.Info{}, nil
+	return system.Info{}, nil
 }
 
 func (cli *fakeClient) NodeInspectWithRaw(context.Context, string) (swarm.Node, []byte, error) {

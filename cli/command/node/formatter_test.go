@@ -9,8 +9,8 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -204,7 +204,7 @@ foobar_boo  Unknown
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			err := FormatWrite(tc.context, nodes, types.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
+			err := FormatWrite(tc.context, nodes, system.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -217,7 +217,7 @@ foobar_boo  Unknown
 func TestNodeContextWriteJSON(t *testing.T) {
 	cases := []struct {
 		expected []map[string]interface{}
-		info     types.Info
+		info     system.Info
 	}{
 		{
 			expected: []map[string]interface{}{
@@ -225,7 +225,7 @@ func TestNodeContextWriteJSON(t *testing.T) {
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: types.Info{},
+			info: system.Info{},
 		},
 		{
 			expected: []map[string]interface{}{
@@ -233,7 +233,7 @@ func TestNodeContextWriteJSON(t *testing.T) {
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Needs Rotation", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: types.Info{
+			info: system.Info{
 				Swarm: swarm.Info{
 					Cluster: &swarm.ClusterInfo{
 						TLSInfo:                swarm.TLSInfo{TrustRoot: "hi"},
@@ -271,7 +271,7 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar"}},
 	}
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, types.Info{})
+	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, system.Info{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,9 +8,9 @@ import (
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -24,7 +24,7 @@ func base64Decode(val string) []byte {
 
 const sampleID = "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX"
 
-var sampleInfoNoSwarm = types.Info{
+var sampleInfoNoSwarm = system.Info{
 	ID:                sampleID,
 	Containers:        0,
 	ContainersRunning: 0,
@@ -39,7 +39,7 @@ var sampleInfoNoSwarm = types.Info{
 		{"Native Overlay Diff", "true"},
 	},
 	SystemStatus: nil,
-	Plugins: types.PluginsInfo{
+	Plugins: system.PluginsInfo{
 		Volume:        []string{"local"},
 		Network:       []string{"bridge", "host", "macvlan", "null", "overlay"},
 		Authorization: nil,
@@ -98,7 +98,7 @@ var sampleInfoNoSwarm = types.Info{
 	Labels:            []string{"provider=digitalocean"},
 	ExperimentalBuild: false,
 	ServerVersion:     "17.06.1-ce",
-	Runtimes: map[string]types.Runtime{
+	Runtimes: map[string]system.Runtime{
 		"runc": {
 			Path: "docker-runc",
 			Args: nil,
@@ -109,20 +109,20 @@ var sampleInfoNoSwarm = types.Info{
 	LiveRestoreEnabled: false,
 	Isolation:          "",
 	InitBinary:         "docker-init",
-	ContainerdCommit: types.Commit{
+	ContainerdCommit: system.Commit{
 		ID:       "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
 		Expected: "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
 	},
-	RuncCommit: types.Commit{
+	RuncCommit: system.Commit{
 		ID:       "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
 		Expected: "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
 	},
-	InitCommit: types.Commit{
+	InitCommit: system.Commit{
 		ID:       "949e6fa",
 		Expected: "949e6fa",
 	},
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
-	DefaultAddressPools: []types.NetworkAddressPool{
+	DefaultAddressPools: []system.NetworkAddressPool{
 		{
 			Base: "10.123.0.0/16",
 			Size: 24,

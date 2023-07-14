@@ -7,8 +7,8 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +18,7 @@ import (
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	testCases := []struct {
 		nodeListFunc  func() ([]swarm.Node, error)
-		infoFunc      func() (types.Info, error)
+		infoFunc      func() (system.Info, error)
 		expectedError string
 	}{
 		{
@@ -35,8 +35,8 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 					},
 				}, nil
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -61,8 +61,8 @@ func TestNodeList(t *testing.T) {
 				*Node(NodeID("nodeID3"), Hostname("node-1-foo")),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},
@@ -98,8 +98,8 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 				*Node(NodeID("nodeID3"), Hostname("nodeHostname3")),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},
@@ -122,8 +122,8 @@ func TestNodeListFormat(t *testing.T) {
 				*Node(NodeID("nodeID2"), Hostname("nodeHostname2"), Manager()),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},

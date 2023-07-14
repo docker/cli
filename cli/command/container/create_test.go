@@ -18,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/system"
 	"github.com/google/go-cmp/cmp"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
@@ -137,8 +138,8 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 					defer func() { pullCounter++ }()
 					return io.NopCloser(strings.NewReader("")), nil
 				},
-				infoFunc: func() (types.Info, error) {
-					return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
+				infoFunc: func() (system.Info, error) {
+					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
 				},
 			}
 			fakeCLI := test.NewFakeCli(client)
