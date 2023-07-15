@@ -11,6 +11,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/system"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +54,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		return err
 	}
 
-	info := types.Info{}
+	info := system.Info{}
 	if len(nodes) > 0 && !options.quiet {
 		// only non-empty nodes and not quiet, should we call /info api
 		info, err = client.Info(ctx)

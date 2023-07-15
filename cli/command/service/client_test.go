@@ -6,6 +6,7 @@ import (
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
@@ -15,7 +16,7 @@ type fakeClient struct {
 	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
 	serviceListFunc           func(context.Context, types.ServiceListOptions) ([]swarm.Service, error)
 	taskListFunc              func(context.Context, types.TaskListOptions) ([]swarm.Task, error)
-	infoFunc                  func(ctx context.Context) (types.Info, error)
+	infoFunc                  func(ctx context.Context) (system.Info, error)
 	networkInspectFunc        func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error)
 	nodeListFunc              func(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error)
 }
@@ -58,9 +59,9 @@ func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, versio
 	return types.ServiceUpdateResponse{}, nil
 }
 
-func (f *fakeClient) Info(ctx context.Context) (types.Info, error) {
+func (f *fakeClient) Info(ctx context.Context) (system.Info, error) {
 	if f.infoFunc == nil {
-		return types.Info{}, nil
+		return system.Info{}, nil
 	}
 	return f.infoFunc(ctx)
 }

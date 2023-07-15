@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package functions
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,7 +19,7 @@ func TestNodeInspectErrors(t *testing.T) {
 		args            []string
 		flags           map[string]string
 		nodeInspectFunc func() (swarm.Node, []byte, error)
-		infoFunc        func() (types.Info, error)
+		infoFunc        func() (system.Info, error)
 		expectedError   string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestNodeInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"self"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -37,8 +37,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -47,8 +47,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
+			infoFunc: func() (system.Info, error) {
+				return system.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -57,8 +57,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			flags: map[string]string{
 				"pretty": "true",
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

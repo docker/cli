@@ -16,8 +16,8 @@ import (
 	"github.com/docker/cli/cli/debug"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-units"
@@ -40,7 +40,7 @@ type info struct {
 	// preserve backwards compatibility in the JSON rendering
 	// which has ServerInfo immediately within the top-level
 	// object.
-	*types.Info  `json:",omitempty"`
+	*system.Info `json:",omitempty"`
 	ServerErrors []string `json:",omitempty"`
 	UserName     string   `json:"-"`
 
@@ -86,7 +86,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 			clientVersion: newClientVersion(dockerCli.CurrentContext(), nil),
 			Debug:         debug.IsEnabled(),
 		},
-		Info: &types.Info{},
+		Info: &system.Info{},
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -267,7 +267,7 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 
 		for _, ci := range []struct {
 			Name   string
-			Commit types.Commit
+			Commit system.Commit
 		}{
 			{"containerd", info.ContainerdCommit},
 			{"runc", info.RuncCommit},
@@ -280,7 +280,7 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 			fprintln(output)
 		}
 		if len(info.SecurityOptions) != 0 {
-			if kvs, err := types.DecodeSecurityOptions(info.SecurityOptions); err != nil {
+			if kvs, err := system.DecodeSecurityOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
 			} else {
 				fprintln(output, " Security Options:")
@@ -377,7 +377,7 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 }
 
 //nolint:gocyclo
-func printSwarmInfo(output io.Writer, info types.Info) {
+func printSwarmInfo(output io.Writer, info system.Info) {
 	if info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive || info.Swarm.LocalNodeState == swarm.LocalNodeStateLocked {
 		return
 	}
@@ -464,11 +464,11 @@ func printServerWarnings(stdErr io.Writer, info *info) {
 // info.Warnings. This function is used to provide backward compatibility with
 // daemons that do not provide these warnings. No new warnings should be added
 // here.
-func printSecurityOptionsWarnings(stdErr io.Writer, info types.Info) {
+func printSecurityOptionsWarnings(stdErr io.Writer, info system.Info) {
 	if info.OSType == "windows" {
 		return
 	}
-	kvs, _ := types.DecodeSecurityOptions(info.SecurityOptions)
+	kvs, _ := system.DecodeSecurityOptions(info.SecurityOptions)
 	for _, so := range kvs {
 		if so.Name != "seccomp" {
 			continue
@@ -486,7 +486,7 @@ func printSecurityOptionsWarnings(stdErr io.Writer, info types.Info) {
 // info.Warnings. This function is used to provide backward compatibility with
 // daemons that do not provide these warnings. No new warnings should be added
 // here.
-func printServerWarningsLegacy(stdErr io.Writer, info types.Info) {
+func printServerWarningsLegacy(stdErr io.Writer, info system.Info) {
 	if info.OSType == "windows" {
 		return
 	}

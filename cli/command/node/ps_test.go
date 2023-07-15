@@ -11,6 +11,7 @@ import (
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -20,15 +21,15 @@ func TestNodePsErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		infoFunc        func() (types.Info, error)
+		infoFunc        func() (system.Info, error)
 		nodeInspectFunc func() (swarm.Node, []byte, error)
 		taskListFunc    func(options types.TaskListOptions) ([]swarm.Task, error)
 		taskInspectFunc func(taskID string) (swarm.Task, []byte, error)
 		expectedError   string
 	}{
 		{
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -69,7 +70,7 @@ func TestNodePs(t *testing.T) {
 		name               string
 		args               []string
 		flags              map[string]string
-		infoFunc           func() (types.Info, error)
+		infoFunc           func() (system.Info, error)
 		nodeInspectFunc    func() (swarm.Node, []byte, error)
 		taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
 		taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)

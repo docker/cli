@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -23,7 +24,7 @@ type fakeClient struct {
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(container string, options types.ContainerStartOptions) error
 	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
-	infoFunc                func() (types.Info, error)
+	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(container, path string) (types.ContainerPathStat, error)
 	containerCopyFromFunc   func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	logFunc                 func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
@@ -96,11 +97,11 @@ func (f *fakeClient) ImageCreate(_ context.Context, parentReference string, opti
 	return nil, nil
 }
 
-func (f *fakeClient) Info(_ context.Context) (types.Info, error) {
+func (f *fakeClient) Info(_ context.Context) (system.Info, error) {
 	if f.infoFunc != nil {
 		return f.infoFunc()
 	}
-	return types.Info{}, nil
+	return system.Info{}, nil
 }
 
 func (f *fakeClient) ContainerStatPath(_ context.Context, container, path string) (types.ContainerPathStat, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
@@ -18,7 +19,7 @@ type fakeClient struct {
 	imageSaveFunc    func(images []string) (io.ReadCloser, error)
 	imageRemoveFunc  func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error)
 	imagePushFunc    func(ref string, options types.ImagePushOptions) (io.ReadCloser, error)
-	infoFunc         func() (types.Info, error)
+	infoFunc         func() (system.Info, error)
 	imagePullFunc    func(ref string, options types.ImagePullOptions) (io.ReadCloser, error)
 	imagesPruneFunc  func(pruneFilter filters.Args) (types.ImagesPruneReport, error)
 	imageLoadFunc    func(input io.Reader, quiet bool) (types.ImageLoadResponse, error)
@@ -59,11 +60,11 @@ func (cli *fakeClient) ImagePush(_ context.Context, ref string, options types.Im
 	return io.NopCloser(strings.NewReader("")), nil
 }
 
-func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
+func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return types.Info{}, nil
+	return system.Info{}, nil
 }
 
 func (cli *fakeClient) ImagePull(_ context.Context, ref string, options types.ImagePullOptions) (io.ReadCloser, error) {

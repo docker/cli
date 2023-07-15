@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
@@ -71,6 +72,6 @@ func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*type
 	return nil, nil, nil
 }
 
-func (c *fakeClient) Info(context.Context) (types.Info, error) {
-	return types.Info{}, nil
+func (c *fakeClient) Info(context.Context) (system.Info, error) {
+	return system.Info{}, nil
 }

@@ -8,8 +8,8 @@ import (
 
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -34,8 +34,8 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c fakeClient) Info(context.Context) (types.Info, error) {
-	return types.Info{}, nil
+func (c fakeClient) Info(context.Context) (system.Info, error) {
+	return system.Info{}, nil
 }
 
 func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
